@@ -263,16 +263,7 @@ gts_mle_cmp (const void *a,
   y = (gts_mle_t **) b;
 
   r = (((*x)->res_move_count > (*y)->res_move_count) - ((*x)->res_move_count < (*y)->res_move_count));
-  /*
-  if (r == 0) {
-    SquareSet xss = 1ULL << x->move;
-    SquareSet yss = 1ULL << y->move;
-    for (int i = 0; i < legal_moves_priority_cluster_count; i++) {
-      bool x_match = xss & legal_moves_priority_mask[i];
-      bool y_match = yss & legal_moves_priority_mask[i];
-    }
-  }
-  */
+
   return r;
 }
 
@@ -395,6 +386,9 @@ game_position_solve_impl (ExactSolution *const result,
 {
   NodeInfo *c;
 
+  MoveList ml;
+  MoveListElement *element;
+
   result->node_count++;
   PVCell **pve_line = NULL;
   c = ++stack->active_node;
@@ -410,18 +404,27 @@ game_position_solve_impl (ExactSolution *const result,
     gtl_do_log(result, stack, sub_run_id, log_env);
   }
 
+  ml.head = NULL;
+  element = ml.elements;
   if (move_set == empty_square_set) {
     if (pv_recording) pve_line = pve_line_create(pve);
     const int previous_move_count = (c - 1)->move_count;
     if (previous_move_count != 0) {
-      game_position_x_pass(current_gpx, next_gpx);
+
+      element->sq = pass_move;
+      game_position_x_pass(&c->gpx, &element->gpx);
+      element->moves = game_position_x_legal_moves(&element->gpx);
+      element->mobility = bitw_bit_count_64(element->moves);
+      element->next = NULL;
+      ml.head = element;
+      c->move_cursor = c->head_of_legal_move_list;
+
+      game_position_x_copy(&element->gpx, next_gpx);
+      (c + 1)->move_set = element->moves;
+      (c + 1)->head_of_legal_move_list = c->head_of_legal_move_list + element->mobility;
       (c + 1)->alpha = - c->beta;
       (c + 1)->beta = - c->alpha;
-      MoveListElement next_mle;
-      next_mle.moves = game_position_x_legal_moves(next_gpx);
-      (c + 1)->move_set = next_mle.moves;
-      (c + 1)->head_of_legal_move_list = c->head_of_legal_move_list + 1;
-      game_position_solve_impl(result, stack, &pve_line, &next_mle);
+      game_position_solve_impl(result, stack, &pve_line, element);
       c->alpha = - (c + 1)->alpha;
       c->best_move = (c + 1)->best_move;
     } else {
@@ -435,18 +438,28 @@ game_position_solve_impl (ExactSolution *const result,
       *pve_parent_line_p = pve_line;
     }
   } else {
-    MoveList ml;
     bool branch_is_active = false;
     sort_moves_by_mobility_count(stack, &ml);
     // --i--
     gts_sort_moves_by_mobility_count(stack);
+    if (c->head_of_legal_move_list != c->move_cursor) abort();
     // --e--
     if (pv_full_recording) c->alpha -= 1;
-    for (MoveListElement *element = ml.head; element; element = element->next) {
+    for (element = ml.head; element; element = element->next) {
+      //
+      gts_mle_t *e = *c->move_cursor;
+      if (e->move != element->sq || e->res_move_set != element->moves) {
+        printf("e->move     = %s\n", square_as_move_to_string(e->move));
+        printf("element->sq = %s\n", square_as_move_to_string(element->sq));
+        char to_s[256];
+        game_position_x_print(to_s, &c->gpx);
+        printf("\n%s\n", to_s);
+        abort();
+      }
+      //
       const Square move = element->sq;
       game_position_x_copy(&element->gpx, next_gpx);
       (c + 1)->move_set = element->moves;
-      (c + 1)->head_of_legal_move_list = c->head_of_legal_move_list + element->mobility;
       if (pv_recording) pve_line = pve_line_create(pve);
       (c + 1)->alpha = -c->beta;
       (c + 1)->beta = -c->alpha;
@@ -473,6 +486,7 @@ game_position_solve_impl (ExactSolution *const result,
           }
         }
       }
+      c->move_cursor++;
     }
   }
  out:
