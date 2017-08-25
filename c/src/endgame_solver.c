@@ -13,7 +13,7 @@
  *
  * @todo Analyze the effectiveness of the a-b cut operated by es, compare it with a-b, and random a-b. The analysis require to have the tail-log-file tool.
  *
- * @todo Remove json fields in the logging procedures, and from postgresql.
+ * @todo Remove json fields in the logging procedures, and from PostgreSQL.
  *
  * @todo Complete the object allocator tool.
  *
