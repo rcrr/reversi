@@ -1,7 +1,7 @@
 /**
  * @file
  *
- * @todo Complete the removal of MoveList and MoveList Element from exact_solver.
+ * @todo [done] Complete the removal of MoveList and MoveList Element from exact_solver.
  *
  * @todo Harmonize the exact_solver algorithm to minimax, full use of the stack and no recursion.
  *

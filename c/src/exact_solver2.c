@@ -49,33 +49,6 @@
  */
 
 /*
- * Internal structures.
- */
-
-/*
- * Elements of a doubly linked list that collects moves.
- */
-typedef struct MoveListElement_ {
-  Square                   sq;           /**< @brief The square field. */
-  uint8_t                  mobility;     /**< @brief The mobility field. */
-  SquareSet                moves;        /**< @brief The move set. */
-  GamePositionX            gpx;          /**< @brief The game position. */
-  struct MoveListElement_ *next;         /**< @brief A pointer to the successor element. */
-} MoveListElement;
-
-/*
- * Move list, having head, tail, and elements fields.
- *
- * Head and tail are not part of the list.
- */
-typedef struct {
-  MoveListElement *head;                 /**< @brief Head element, it is not part of the list. */
-  MoveListElement elements[32];          /**< @brief Elements array. */
-} MoveList;
-
-
-
-/*
  * Prototypes for internal functions.
  */
 
@@ -85,8 +58,7 @@ game_position_solve_impl (ExactSolution *const result,
                           PVCell ***pve_parent_line_p);
 
 static void
-sort_moves_by_mobility_count (GameTreeStack *const stack,
-                              MoveList *ml);
+sort_moves_by_mobility_count (GameTreeStack *const stack);
 
 /*
  * Internal variables and constants.
@@ -249,69 +221,33 @@ game_position_es2_solve (const GamePositionX *const root,
  * Internal functions.
  */
 
-static int
-gts_mle_cmp (const void *a,
-             const void *b)
-{
-  gts_mle_t **x = (gts_mle_t **) a;
-  gts_mle_t **y = (gts_mle_t **) b;
-  return (((*x)->res_move_count > (*y)->res_move_count) - ((*x)->res_move_count < (*y)->res_move_count));
-}
-
-void
+/*
+ * Insertion sort.
+ */
+static void
 sort_move_pointers (gts_mle_t ** moves,
                     const size_t count)
 {
-  sort_utils_insertionsort(moves, count, sizeof(gts_mle_t *), gts_mle_cmp);
-}
-
-static void
-sort_moves_by_mobility_count (GameTreeStack *const stack,
-                              MoveList *ml)
-{
-  NodeInfo *const c = stack->active_node;
-
-  ml->head = NULL;
-  MoveListElement *e = ml->elements;
-
-  for (int i = 0; i < legal_moves_priority_cluster_count; i++) {
-    SquareSet moves_to_search = legal_moves_priority_mask[i] & c->move_set;
-    while (moves_to_search) {
-      const Square move = bitw_bit_scan_forward_64(moves_to_search);
-      moves_to_search &= ~(1ULL << move);
-      game_position_x_make_move(&c->gpx, move, &e->gpx);
-      const SquareSet next_moves = game_position_x_legal_moves(&e->gpx);
-      const uint8_t next_move_count = bitw_bit_count_64(next_moves);
-      e->sq = move;
-      e->mobility = next_move_count;
-      e->moves = next_moves;
-
-      MoveListElement **epp = &(ml->head);
-      if (!*epp) {
-        ml->head = e;
-        e->next = NULL;
-        goto out;
-      }
-      while (true) {
-        if (e->mobility < (*epp)->mobility) { /* Insert e before cursor. */
-          e->next = *epp;
-          *epp = e;
-          goto out;
-        }
-        if ((*epp)->next == NULL) {
-          (*epp)->next = e;
-          e->next = NULL;
-          goto out;
-        }
-        epp = &((*epp)->next);
-      }
-    out:
-      e++;
+  for (size_t i = 1; i < count; i++) {
+    size_t j = i;
+    for (;;) {
+      gts_mle_t * tmp;
+      if (j == 0 || (*(moves + j - 1))->res_move_count <= (*(moves + j))->res_move_count) break;
+      tmp = *(moves + j), *(moves + j) = *(moves + j - 1), *(moves + j - 1) = tmp; // Swaps elements.
+      j--;
     }
   }
-  assert(c->move_count == e - ml->elements);
+}
 
-  // ---
+/*
+ * Generates moves and sort them by mobility_count/priority_cluster.
+ * Insertion sort is a stable algorithm, so generating the moves by priority cluster
+ * and then sorting them is ok.
+ */
+static void
+sort_moves_by_mobility_count (GameTreeStack *const stack)
+{
+  NodeInfo *const c = stack->active_node;
 
   gts_mle_t **mle = c->head_of_legal_move_list;
 
@@ -327,37 +263,8 @@ sort_moves_by_mobility_count (GameTreeStack *const stack,
     }
   }
   (c + 1)->head_of_legal_move_list = mle;
-  assert(c->move_count == mle - c->head_of_legal_move_list);
 
-  // Sort the pointers !!!
   sort_move_pointers(c->head_of_legal_move_list, c->move_count);
-
-  // Two invariants has to be checked:
-  // - after sorting the two move lists have to be equal DONE!!!
-  // - the list is in the right place ... sum of move count must be equal to where we are ... TO BE DONE !!!
-
-  c->move_cursor = c->head_of_legal_move_list;
-  for (MoveListElement *e = ml->head; e; e = e->next) {
-    gts_mle_t *en = *(c->move_cursor++);
-    if (e->sq != en->move) {
-      printf("\n");
-      printf("old: [ ");
-      for (MoveListElement *e = ml->head; e; e = e->next) {
-        printf("(%s, %02d) ", square_as_move_to_string(e->sq), e->mobility);
-      }
-      printf("]\nnew: [ ");
-      c->move_cursor = c->head_of_legal_move_list;
-      for ( ; c->move_cursor < (c + 1)->head_of_legal_move_list; c->move_cursor++) {
-        gts_mle_t *e = *(c->move_cursor);
-        printf("(%s, %02d) ", square_as_move_to_string(e->move), e->res_move_count);
-      }
-      printf("]\n");
-      abort();
-    }
-  }
-
-  c->move_cursor = c->head_of_legal_move_list;
-  return;
 }
 
 
@@ -375,8 +282,6 @@ game_position_solve_impl (ExactSolution *const result,
 {
   NodeInfo *c;
   gts_mle_t *e;
-
-  MoveList ml;
 
   result->node_count++;
   PVCell **pve_line = NULL;
@@ -421,12 +326,11 @@ game_position_solve_impl (ExactSolution *const result,
     }
   } else {
     bool branch_is_active = false;
-    sort_moves_by_mobility_count(stack, &ml);
-    // --i--
-    gts_sort_moves_by_mobility_count(stack);
-    // --e--
+    sort_moves_by_mobility_count(stack);
     if (pv_full_recording) c->alpha -= 1;
-    for ( ; c->move_cursor - c->head_of_legal_move_list < c->move_count; c->move_cursor++) {
+    for (c->move_cursor = c->head_of_legal_move_list;
+         c->move_cursor - c->head_of_legal_move_list < c->move_count;
+         c->move_cursor++) {
       e = *c->move_cursor;
       game_position_x_copy(&e->res_position, &(c + 1)->gpx);
       (c + 1)->move_set = e->res_move_set;

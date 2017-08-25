@@ -1937,13 +1937,6 @@ gts_make_move (GameTreeStack *const stack);
 extern void
 gts_generate_moves (GameTreeStack *const stack);
 
-void
-gts_sort_moves_by_mobility_count (GameTreeStack *const stack)
-{
-  NodeInfo *const c = stack->active_node;
-  gts_mle_t **holml = c->head_of_legal_move_list;
-  ;
-}
 
 
 /**
