@@ -37,8 +37,6 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "sort_utils.h"
-
 #include "game_tree_logger.h"
 #include "exact_solver2.h"
 
