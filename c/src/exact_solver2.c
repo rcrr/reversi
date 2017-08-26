@@ -146,6 +146,7 @@ game_position_es2_solve (const GamePositionX *const root,
   log_env = gtl_init(env->log_file);
   if (log_env->log_is_on) {
     gtl_open_h(log_env);
+    stack->hash_is_on = true;
   }
 
   first_node_info->move_set = game_position_x_legal_moves(root);
@@ -288,10 +289,8 @@ game_position_solve_impl (ExactSolution *const result,
   c->move_count = bitw_bit_count_64(c->move_set);
   const int sub_run_id = 0;
 
-  if (log_env->log_is_on) {
-    c->hash = game_position_x_hash(&c->gpx);
-    gtl_do_log(result, stack, sub_run_id, log_env);
-  }
+  if (stack->hash_is_on) gts_compute_hash(stack);
+  if (log_env->log_is_on) gtl_do_log(result, stack, sub_run_id, log_env);
 
   if (c->move_set == empty_square_set) {
     if (pv_recording) pve_line = pve_line_create(pve);
@@ -308,6 +307,12 @@ game_position_solve_impl (ExactSolution *const result,
       (c + 1)->head_of_legal_move_list = c->head_of_legal_move_list + (*c->move_cursor)->res_move_count;
       (c + 1)->alpha = - c->beta;
       (c + 1)->beta = - c->alpha;
+
+      if (stack->hash_is_on) {
+        stack->flip_count = 1;
+        *stack->flips = pass_move;
+      }
+
       game_position_solve_impl(result, stack, &pve_line);
       c->alpha = - (c + 1)->alpha;
       c->best_move = (c + 1)->best_move;
@@ -331,6 +336,21 @@ game_position_solve_impl (ExactSolution *const result,
          c->move_cursor++) {
       e = *c->move_cursor;
       game_position_x_copy(&e->res_position, &(c + 1)->gpx);
+
+      if (stack->hash_is_on) {
+        Square *flip_cursor = stack->flips;
+        *flip_cursor++ = e->move;
+        const SquareSet bitmove = 1ULL << e->move;
+        const SquareSet cu_p = game_position_x_get_player(&c->gpx);
+        const SquareSet up_o = game_position_x_get_opponent(&(c + 1)->gpx);
+        SquareSet flip_set = up_o & ~(cu_p | bitmove);
+        while (flip_set) {
+          *flip_cursor++ = bitw_bit_scan_forward_64(flip_set);
+          flip_set = bitw_reset_lowest_set_bit_64(flip_set);
+        }
+        stack->flip_count = flip_cursor - stack->flips;
+      }
+
       (c + 1)->move_set = e->res_move_set;
       if (pv_recording) pve_line = pve_line_create(pve);
       (c + 1)->alpha = -c->beta;
