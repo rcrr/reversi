@@ -337,13 +337,11 @@ game_position_solve_impl (ExactSolution *const result,
                           PVCell ***pve_parent_line_p)
 {
   NodeInfo *c;
-  gts_mle_t *e;
   PVCell **pve_line;
 
   result->node_count++;
   c = ++stack->active_node;
   c->move_cursor = c->head_of_legal_move_list;
-  //c->move_count = bitw_bit_count_64(c->move_set);
   c->move_count = adjusted_move_count(stack);
   const int sub_run_id = 0;
 
@@ -379,13 +377,12 @@ game_position_solve_impl (ExactSolution *const result,
       *pve_parent_line_p = pve_line;
     }
   } else {
-    bool branch_is_active = false;
+    bool first_pv_line_created = false;
     look_ahead_and_sort_moves_by_mobility_count(stack);
     if (pv_full_recording) c->alpha -= 1;
     for ( ; c->move_cursor - c->head_of_legal_move_list < c->move_count; c->move_cursor++) {
-      e = *c->move_cursor;
-      game_position_x_copy(&e->res_position, &(c + 1)->gpx);
-      (c + 1)->move_set = e->res_move_set;
+      game_position_x_copy(&(*c->move_cursor)->res_position, &(c + 1)->gpx);
+      (c + 1)->move_set = (*c->move_cursor)->res_move_set;
       (c + 1)->alpha = -c->beta;
       (c + 1)->beta = -c->alpha;
 
@@ -394,12 +391,12 @@ game_position_solve_impl (ExactSolution *const result,
       if (pv_recording) pve_line = pve_line_create(pve);
 
       game_position_solve_impl(result, stack, &pve_line);
-      if (-(c + 1)->alpha > c->alpha || (!branch_is_active && -(c + 1)->alpha == c->alpha)) {
-        branch_is_active = true;
+      if (-(c + 1)->alpha > c->alpha || (!first_pv_line_created && -(c + 1)->alpha == c->alpha)) {
+        first_pv_line_created = true;
         c->alpha = -(c + 1)->alpha;
-        c->best_move = e->move;
+        c->best_move = (*c->move_cursor)->move;
         if (pv_recording) {
-          pve_line_add_move(pve, pve_line, e->move, &(c + 1)->gpx);
+          pve_line_add_move(pve, pve_line, (*c->move_cursor)->move, &(c + 1)->gpx);
           pve_line_delete(pve, *pve_parent_line_p);
           *pve_parent_line_p = pve_line;
         }
@@ -408,7 +405,7 @@ game_position_solve_impl (ExactSolution *const result,
       } else {
         if (pv_recording) {
           if (pv_full_recording && -(c + 1)->alpha == c->alpha) {
-            pve_line_add_move(pve, pve_line, e->move, &(c + 1)->gpx);
+            pve_line_add_move(pve, pve_line, (*c->move_cursor)->move, &(c + 1)->gpx);
             pve_line_add_variant(pve, *pve_parent_line_p, pve_line);
           } else {
             pve_line_delete(pve, pve_line);
