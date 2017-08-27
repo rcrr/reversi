@@ -358,10 +358,13 @@ game_position_solve_impl (ExactSolution *const result,
     c->best_move = pass_move;
   }
 
+  look_ahead_and_sort_moves_by_mobility_count(stack);
+
+  if (pv_full_recording && c->move_set) c->alpha -= 1;
+
   if (!c->move_set) {
     if (pv_recording) pve_line = pve_line_create(pve);
     if ((c - 1)->move_count != 0) {
-      look_ahead_and_sort_moves_by_mobility_count(stack);
 
       recursive_call_setup(stack);
 
@@ -378,8 +381,6 @@ game_position_solve_impl (ExactSolution *const result,
       *pve_parent_line_p = pve_line;
     }
   } else {
-    look_ahead_and_sort_moves_by_mobility_count(stack);
-    if (pv_full_recording) c->alpha -= 1;
     for ( ; c->move_cursor - c->head_of_legal_move_list < c->move_count; c->move_cursor++) {
 
       recursive_call_setup(stack);
