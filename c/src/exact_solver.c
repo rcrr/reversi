@@ -293,11 +293,14 @@ update_move_flips (GameTreeStack *const stack)
   stack->flip_count = flip_cursor - stack->flips;
 }
 
-static bool
-is_position_leaf (GameTreeStack *const stack)
+static void
+recursive_call_setup (GameTreeStack *const stack)
 {
   NodeInfo *const c = stack->active_node;
-  return !(c->move_set || (c - 1)->move_set);
+  game_position_x_copy(&(*c->move_cursor)->res_position, &(c + 1)->gpx);
+  (c + 1)->move_set = (*c->move_cursor)->res_move_set;
+  (c + 1)->alpha = - c->beta;
+  (c + 1)->beta = - c->alpha;
 }
 
 static uint8_t
@@ -344,11 +347,12 @@ game_position_solve_impl (ExactSolution *const result,
   c->move_cursor = c->head_of_legal_move_list;
   c->move_count = adjusted_move_count(stack);
   const int sub_run_id = 0;
+  bool first_pv_line_created = false;
 
   if (stack->hash_is_on) gts_compute_hash(stack);
   if (log_env->log_is_on) gtl_do_log(result, stack, sub_run_id, log_env);
 
-  if (is_position_leaf(stack)) {
+  if (!c->move_count) {
     result->leaf_count++;
     c->alpha = game_position_x_final_value(&c->gpx);
     c->best_move = pass_move;
@@ -359,10 +363,7 @@ game_position_solve_impl (ExactSolution *const result,
     if ((c - 1)->move_count != 0) {
       look_ahead_and_sort_moves_by_mobility_count(stack);
 
-      game_position_x_copy(&(*c->move_cursor)->res_position, &(c + 1)->gpx);
-      (c + 1)->move_set = (*c->move_cursor)->res_move_set;
-      (c + 1)->alpha = - c->beta;
-      (c + 1)->beta = - c->alpha;
+      recursive_call_setup(stack);
 
       if (stack->hash_is_on) update_move_flips(stack);
 
@@ -377,17 +378,12 @@ game_position_solve_impl (ExactSolution *const result,
       *pve_parent_line_p = pve_line;
     }
   } else {
-    bool first_pv_line_created = false;
     look_ahead_and_sort_moves_by_mobility_count(stack);
     if (pv_full_recording) c->alpha -= 1;
     for ( ; c->move_cursor - c->head_of_legal_move_list < c->move_count; c->move_cursor++) {
-      game_position_x_copy(&(*c->move_cursor)->res_position, &(c + 1)->gpx);
-      (c + 1)->move_set = (*c->move_cursor)->res_move_set;
-      (c + 1)->alpha = -c->beta;
-      (c + 1)->beta = -c->alpha;
 
+      recursive_call_setup(stack);
       if (stack->hash_is_on) update_move_flips(stack);
-
       if (pv_recording) pve_line = pve_line_create(pve);
 
       game_position_solve_impl(result, stack, &pve_line);
