@@ -56,7 +56,7 @@ game_position_solve_impl (ExactSolution *const result,
                           PVCell ***pve_parent_line_p);
 
 static void
-sort_moves_by_mobility_count (GameTreeStack *const stack);
+look_ahead_and_sort_moves_by_mobility_count (GameTreeStack *const stack);
 
 /*
  * Internal variables and constants.
@@ -244,26 +244,60 @@ sort_move_pointers (gts_mle_t ** moves,
  * and then sorting them is ok.
  */
 static void
-sort_moves_by_mobility_count (GameTreeStack *const stack)
+look_ahead_and_sort_moves_by_mobility_count (GameTreeStack *const stack)
 {
   NodeInfo *const c = stack->active_node;
 
   gts_mle_t **mle = c->head_of_legal_move_list;
 
-  for (int i = 0; i < legal_moves_priority_cluster_count; i++) {
-    SquareSet moves_to_search = c->move_set & legal_moves_priority_mask[i];
-    while (moves_to_search) {
-      (*mle)->move = bitw_bit_scan_forward_64(moves_to_search);
-      moves_to_search &= ~(1ULL << (*mle)->move);
-      game_position_x_make_move(&c->gpx, (*mle)->move, &(*mle)->res_position);
-      (*mle)->res_move_set = game_position_x_legal_moves(&(*mle)->res_position);
-      (*mle)->res_move_count = bitw_bit_count_64((*mle)->res_move_set);
-      mle++;
+  if (c->move_set) {
+    for (int i = 0; i < legal_moves_priority_cluster_count; i++) {
+      SquareSet moves_to_search = c->move_set & legal_moves_priority_mask[i];
+      while (moves_to_search) {
+        (*mle)->move = bitw_bit_scan_forward_64(moves_to_search);
+        moves_to_search &= ~(1ULL << (*mle)->move);
+        game_position_x_make_move(&c->gpx, (*mle)->move, &(*mle)->res_position);
+        (*mle)->res_move_set = game_position_x_legal_moves(&(*mle)->res_position);
+        (*mle)->res_move_count = bitw_bit_count_64((*mle)->res_move_set);
+        mle++;
+      }
     }
+    sort_move_pointers(c->head_of_legal_move_list, c->move_count);
+  } else {
+    (*mle)->move = pass_move;
+    game_position_x_pass(&c->gpx, &(*mle)->res_position);
+    (*mle)->res_move_set = game_position_x_legal_moves(&(*mle)->res_position);
+    (*mle)->res_move_count = bitw_bit_count_64((*mle)->res_move_set);
+    mle++;
   }
   (c + 1)->head_of_legal_move_list = mle;
+}
 
-  sort_move_pointers(c->head_of_legal_move_list, c->move_count);
+static void
+update_move_flips (GameTreeStack *const stack)
+{
+  const NodeInfo *const c = stack->active_node;
+  const gts_mle_t *e = *c->move_cursor;
+
+  Square *flip_cursor = stack->flips;
+
+  *flip_cursor++ = e->move;
+  const SquareSet bitmove = 1ULL << e->move;
+  const SquareSet cu_p = game_position_x_get_player(&c->gpx);
+  const SquareSet up_o = game_position_x_get_opponent(&(c + 1)->gpx);
+  SquareSet flip_set = up_o & ~(cu_p | bitmove);
+  while (flip_set) {
+    *flip_cursor++ = bitw_bit_scan_forward_64(flip_set);
+    flip_set = bitw_reset_lowest_set_bit_64(flip_set);
+  }
+  stack->flip_count = flip_cursor - stack->flips;
+}
+
+static bool
+is_position_leaf (GameTreeStack *const stack)
+{
+  NodeInfo *const c = stack->active_node;
+  return !(c->move_set || (c - 1)->move_set);
 }
 
 
@@ -273,6 +307,20 @@ sort_moves_by_mobility_count (GameTreeStack *const stack)
  * What to try:
  * - Avoid recursion .... write a "compact" iterative function.
  * - Avoid the special case of PASSING .....
+ *
+ * ab(p, alpha, beta)
+ * position p; int alpha, beta;
+ * {
+ *   int m, n;
+ *   if p is leaf return(finalvalue(p));
+ *   let p0...pn be the successors of p;
+ *   for (i = 0; i < n; i++) {
+ *     m = max(m, -ab(pi, -beta, -m));
+ *     if (m >= beta) return(m);
+ *   }
+ *   return(m);
+ * }
+ *
  */
 static void
 game_position_solve_impl (ExactSolution *const result,
@@ -281,9 +329,9 @@ game_position_solve_impl (ExactSolution *const result,
 {
   NodeInfo *c;
   gts_mle_t *e;
+  PVCell **pve_line;
 
   result->node_count++;
-  PVCell **pve_line = NULL;
   c = ++stack->active_node;
   c->move_cursor = c->head_of_legal_move_list;
   c->move_count = bitw_bit_count_64(c->move_set);
@@ -292,35 +340,28 @@ game_position_solve_impl (ExactSolution *const result,
   if (stack->hash_is_on) gts_compute_hash(stack);
   if (log_env->log_is_on) gtl_do_log(result, stack, sub_run_id, log_env);
 
+  if (is_position_leaf(stack)) {
+    result->leaf_count++;
+    c->alpha = game_position_x_final_value(&c->gpx);
+    c->best_move = pass_move;
+  }
+
   if (c->move_set == empty_square_set) {
     if (pv_recording) pve_line = pve_line_create(pve);
-    const int previous_move_count = (c - 1)->move_count;
-    if (previous_move_count != 0) {
-
-      (*c->move_cursor)->move = pass_move;
-      game_position_x_pass(&c->gpx, &(*c->move_cursor)->res_position);
-      (*c->move_cursor)->res_move_set = game_position_x_legal_moves(&(*c->move_cursor)->res_position);
-      (*c->move_cursor)->res_move_count = bitw_bit_count_64((*c->move_cursor)->res_move_set);
+    if ((c - 1)->move_count != 0) {
+      look_ahead_and_sort_moves_by_mobility_count(stack);
 
       game_position_x_copy(&(*c->move_cursor)->res_position, &(c + 1)->gpx);
       (c + 1)->move_set = (*c->move_cursor)->res_move_set;
-      (c + 1)->head_of_legal_move_list = c->head_of_legal_move_list + (*c->move_cursor)->res_move_count;
       (c + 1)->alpha = - c->beta;
       (c + 1)->beta = - c->alpha;
 
-      if (stack->hash_is_on) {
-        stack->flip_count = 1;
-        *stack->flips = pass_move;
-      }
+      if (stack->hash_is_on) update_move_flips(stack);
 
       game_position_solve_impl(result, stack, &pve_line);
       c->alpha = - (c + 1)->alpha;
       c->best_move = (c + 1)->best_move;
       c->move_cursor++;
-    } else {
-      result->leaf_count++;
-      c->alpha = game_position_x_final_value(&c->gpx);
-      c->best_move = pass_move;
     }
     if (pv_recording) {
       pve_line_add_move(pve, pve_line, pass_move, &(c + 1)->gpx);
@@ -329,35 +370,21 @@ game_position_solve_impl (ExactSolution *const result,
     }
   } else {
     bool branch_is_active = false;
-    sort_moves_by_mobility_count(stack);
+    look_ahead_and_sort_moves_by_mobility_count(stack);
     if (pv_full_recording) c->alpha -= 1;
-    for (c->move_cursor = c->head_of_legal_move_list;
-         c->move_cursor - c->head_of_legal_move_list < c->move_count;
-         c->move_cursor++) {
+    for ( ; c->move_cursor - c->head_of_legal_move_list < c->move_count; c->move_cursor++) {
       e = *c->move_cursor;
       game_position_x_copy(&e->res_position, &(c + 1)->gpx);
-
-      if (stack->hash_is_on) {
-        Square *flip_cursor = stack->flips;
-        *flip_cursor++ = e->move;
-        const SquareSet bitmove = 1ULL << e->move;
-        const SquareSet cu_p = game_position_x_get_player(&c->gpx);
-        const SquareSet up_o = game_position_x_get_opponent(&(c + 1)->gpx);
-        SquareSet flip_set = up_o & ~(cu_p | bitmove);
-        while (flip_set) {
-          *flip_cursor++ = bitw_bit_scan_forward_64(flip_set);
-          flip_set = bitw_reset_lowest_set_bit_64(flip_set);
-        }
-        stack->flip_count = flip_cursor - stack->flips;
-      }
-
       (c + 1)->move_set = e->res_move_set;
-      if (pv_recording) pve_line = pve_line_create(pve);
       (c + 1)->alpha = -c->beta;
       (c + 1)->beta = -c->alpha;
+
+      if (stack->hash_is_on) update_move_flips(stack);
+
+      if (pv_recording) pve_line = pve_line_create(pve);
+
       game_position_solve_impl(result, stack, &pve_line);
-      const int current_alpha = c->alpha;
-      if (-(c + 1)->alpha > current_alpha || (!branch_is_active && -(c + 1)->alpha == current_alpha)) {
+      if (-(c + 1)->alpha > c->alpha || (!branch_is_active && -(c + 1)->alpha == c->alpha)) {
         branch_is_active = true;
         c->alpha = -(c + 1)->alpha;
         c->best_move = e->move;
@@ -370,7 +397,7 @@ game_position_solve_impl (ExactSolution *const result,
         if (!pv_full_recording && c->alpha == c->beta) goto out;
       } else {
         if (pv_recording) {
-          if (pv_full_recording && -(c + 1)->alpha == current_alpha) {
+          if (pv_full_recording && -(c + 1)->alpha == c->alpha) {
             pve_line_add_move(pve, pve_line, e->move, &(c + 1)->gpx);
             pve_line_add_variant(pve, *pve_parent_line_p, pve_line);
           } else {
