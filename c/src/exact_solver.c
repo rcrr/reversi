@@ -356,6 +356,8 @@ game_position_solve_impl (ExactSolution *const result,
     result->leaf_count++;
     c->alpha = game_position_x_final_value(&c->gpx);
     c->best_move = pass_move;
+    if (pv_recording) pve_line_add_move(pve, *pve_parent_line_p, pass_move, &(c + 1)->gpx);
+    goto out;
   }
 
   look_ahead_and_sort_moves_by_mobility_count(stack);
