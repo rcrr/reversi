@@ -293,13 +293,24 @@ update_move_flips (GameTreeStack *const stack)
   stack->flip_count = flip_cursor - stack->flips;
 }
 
-static bool
-is_position_leaf (GameTreeStack *const stack)
+static void
+recursive_call_setup (GameTreeStack *const stack)
 {
   NodeInfo *const c = stack->active_node;
-  return !(c->move_set || (c - 1)->move_set);
+  game_position_x_copy(&(*c->move_cursor)->res_position, &(c + 1)->gpx);
+  (c + 1)->move_set = (*c->move_cursor)->res_move_set;
+  (c + 1)->alpha = - c->beta;
+  (c + 1)->beta = - c->alpha;
 }
 
+static uint8_t
+adjusted_move_count (GameTreeStack *const stack)
+{
+  NodeInfo *const c = stack->active_node;
+  if (c->move_set) return bitw_bit_count_64(c->move_set);
+  else if ((c - 1)->move_set) return 1;
+  else return 0;
+}
 
 
 /*
@@ -328,81 +339,63 @@ game_position_solve_impl (ExactSolution *const result,
                           PVCell ***pve_parent_line_p)
 {
   NodeInfo *c;
-  gts_mle_t *e;
   PVCell **pve_line;
 
   result->node_count++;
   c = ++stack->active_node;
   c->move_cursor = c->head_of_legal_move_list;
-  c->move_count = bitw_bit_count_64(c->move_set);
+  c->move_count = adjusted_move_count(stack);
   const int sub_run_id = 0;
+  bool first_pv_line_created = false;
 
   if (stack->hash_is_on) gts_compute_hash(stack);
   if (log_env->log_is_on) gtl_do_log(result, stack, sub_run_id, log_env);
 
-  if (is_position_leaf(stack)) {
+  if (!c->move_count) {
     result->leaf_count++;
     c->alpha = game_position_x_final_value(&c->gpx);
     c->best_move = pass_move;
+    if (pv_recording) pve_line_add_move(pve, *pve_parent_line_p, pass_move, &(c + 1)->gpx);
+    goto out;
   }
 
-  if (c->move_set == empty_square_set) {
+  look_ahead_and_sort_moves_by_mobility_count(stack);
+
+  if (pv_full_recording && c->move_set) c->alpha -= 1;
+
+  for ( ; c->move_cursor - c->head_of_legal_move_list < c->move_count; c->move_cursor++) {
+
+    if (stack->hash_is_on) update_move_flips(stack);
     if (pv_recording) pve_line = pve_line_create(pve);
-    if ((c - 1)->move_count != 0) {
-      look_ahead_and_sort_moves_by_mobility_count(stack);
+    recursive_call_setup(stack);
 
-      game_position_x_copy(&(*c->move_cursor)->res_position, &(c + 1)->gpx);
-      (c + 1)->move_set = (*c->move_cursor)->res_move_set;
-      (c + 1)->alpha = - c->beta;
-      (c + 1)->beta = - c->alpha;
+    game_position_solve_impl(result, stack, &pve_line);
 
-      if (stack->hash_is_on) update_move_flips(stack);
-
-      game_position_solve_impl(result, stack, &pve_line);
-      c->alpha = - (c + 1)->alpha;
-      c->best_move = (c + 1)->best_move;
-      c->move_cursor++;
-    }
-    if (pv_recording) {
-      pve_line_add_move(pve, pve_line, pass_move, &(c + 1)->gpx);
-      pve_line_delete(pve, *pve_parent_line_p);
-      *pve_parent_line_p = pve_line;
-    }
-  } else {
-    bool branch_is_active = false;
-    look_ahead_and_sort_moves_by_mobility_count(stack);
-    if (pv_full_recording) c->alpha -= 1;
-    for ( ; c->move_cursor - c->head_of_legal_move_list < c->move_count; c->move_cursor++) {
-      e = *c->move_cursor;
-      game_position_x_copy(&e->res_position, &(c + 1)->gpx);
-      (c + 1)->move_set = e->res_move_set;
-      (c + 1)->alpha = -c->beta;
-      (c + 1)->beta = -c->alpha;
-
-      if (stack->hash_is_on) update_move_flips(stack);
-
-      if (pv_recording) pve_line = pve_line_create(pve);
-
-      game_position_solve_impl(result, stack, &pve_line);
-      if (-(c + 1)->alpha > c->alpha || (!branch_is_active && -(c + 1)->alpha == c->alpha)) {
-        branch_is_active = true;
-        c->alpha = -(c + 1)->alpha;
-        c->best_move = e->move;
-        if (pv_recording) {
-          pve_line_add_move(pve, pve_line, e->move, &(c + 1)->gpx);
-          pve_line_delete(pve, *pve_parent_line_p);
-          *pve_parent_line_p = pve_line;
-        }
-        if (c->alpha > c->beta) goto out;
-        if (!pv_full_recording && c->alpha == c->beta) goto out;
-      } else {
-        if (pv_recording) {
-          if (pv_full_recording && -(c + 1)->alpha == c->alpha) {
-            pve_line_add_move(pve, pve_line, e->move, &(c + 1)->gpx);
-            pve_line_add_variant(pve, *pve_parent_line_p, pve_line);
+    if (-(c + 1)->alpha > c->alpha || !c->move_set) { // pass updates always the alpha value, why?.
+      c->alpha = -(c + 1)->alpha;
+      c->best_move = (*c->move_cursor)->move;
+      if (pv_recording) {
+        first_pv_line_created = true;
+        pve_line_add_move(pve, pve_line, (*c->move_cursor)->move, &(c + 1)->gpx);
+        pve_line_delete(pve, *pve_parent_line_p);
+        *pve_parent_line_p = pve_line;
+      }
+      if (c->alpha > c->beta) goto out;
+      if (!pv_full_recording && c->alpha == c->beta) goto out;
+    } else {
+      if (pv_recording) {
+        if (pv_full_recording && -(c + 1)->alpha == c->alpha) {
+          if (!first_pv_line_created) {
+            first_pv_line_created = true;
+            pve_line_add_move(pve, pve_line, (*c->move_cursor)->move, &(c + 1)->gpx);
+            pve_line_delete(pve, *pve_parent_line_p);
+            *pve_parent_line_p = pve_line;
           } else {
-            pve_line_delete(pve, pve_line);
+            pve_line_add_move(pve, pve_line, (*c->move_cursor)->move, &(c + 1)->gpx);
+            pve_line_add_variant(pve, *pve_parent_line_p, pve_line);
           }
+        } else {
+          pve_line_delete(pve, pve_line);
         }
       }
     }
