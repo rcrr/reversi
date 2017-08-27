@@ -346,7 +346,7 @@ game_position_solve_impl (ExactSolution *const result,
     c->best_move = pass_move;
   }
 
-  if (c->move_set == empty_square_set) {
+  if (!c->move_set) {
     if (pv_recording) pve_line = pve_line_create(pve);
     if ((c - 1)->move_count != 0) {
       look_ahead_and_sort_moves_by_mobility_count(stack);
