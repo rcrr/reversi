@@ -300,6 +300,15 @@ is_position_leaf (GameTreeStack *const stack)
   return !(c->move_set || (c - 1)->move_set);
 }
 
+static uint8_t
+adjusted_move_count (GameTreeStack *const stack)
+{
+  NodeInfo *const c = stack->active_node;
+  if (c->move_set) return bitw_bit_count_64(c->move_set);
+  else if ((c - 1)->move_set) return 1;
+  else return 0;
+}
+
 
 
 /*
@@ -334,7 +343,8 @@ game_position_solve_impl (ExactSolution *const result,
   result->node_count++;
   c = ++stack->active_node;
   c->move_cursor = c->head_of_legal_move_list;
-  c->move_count = bitw_bit_count_64(c->move_set);
+  //c->move_count = bitw_bit_count_64(c->move_set);
+  c->move_count = adjusted_move_count(stack);
   const int sub_run_id = 0;
 
   if (stack->hash_is_on) gts_compute_hash(stack);
