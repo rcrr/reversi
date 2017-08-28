@@ -365,10 +365,9 @@ game_position_solve_impl (ExactSolution *const result,
   if (pv_full_recording && c->move_set) c->alpha -= 1;
 
   if (!c->move_set) {
+
     if (pv_recording) pve_line = pve_line_create(pve);
-
     recursive_call_setup(stack);
-
     if (stack->hash_is_on) update_move_flips(stack);
 
     game_position_solve_impl(result, stack, &pve_line);
@@ -385,11 +384,12 @@ game_position_solve_impl (ExactSolution *const result,
   } else {
     for ( ; c->move_cursor - c->head_of_legal_move_list < c->move_count; c->move_cursor++) {
 
+      if (pv_recording) pve_line = pve_line_create(pve);
       recursive_call_setup(stack);
       if (stack->hash_is_on) update_move_flips(stack);
-      if (pv_recording) pve_line = pve_line_create(pve);
 
       game_position_solve_impl(result, stack, &pve_line);
+
       if (-(c + 1)->alpha > c->alpha || (!first_pv_line_created && -(c + 1)->alpha == c->alpha)) {
         first_pv_line_created = true; // wrong name? is it the first update?
         c->alpha = -(c + 1)->alpha;
