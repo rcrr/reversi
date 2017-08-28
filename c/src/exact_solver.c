@@ -374,11 +374,11 @@ game_position_solve_impl (ExactSolution *const result,
 
       game_position_solve_impl(result, stack, &pve_line);
       first_pv_line_created = true;
-      c->alpha = - (c + 1)->alpha;
+      c->alpha = -(c + 1)->alpha;
       c->best_move = (*c->move_cursor)->move;
 
       if (pv_recording) {
-        pve_line_add_move(pve, pve_line, pass_move, &(c + 1)->gpx);
+        pve_line_add_move(pve, pve_line, (*c->move_cursor)->move, &(c + 1)->gpx);
         pve_line_delete(pve, *pve_parent_line_p);
         *pve_parent_line_p = pve_line;
       }
@@ -392,7 +392,7 @@ game_position_solve_impl (ExactSolution *const result,
 
       game_position_solve_impl(result, stack, &pve_line);
 
-      if (-(c + 1)->alpha > c->alpha || (!first_pv_line_created && -(c + 1)->alpha == c->alpha)) {
+      if (-(c + 1)->alpha > c->alpha || !c->move_set || (!first_pv_line_created && -(c + 1)->alpha == c->alpha)) {
         first_pv_line_created = true; // wrong name? is it the first update?
         c->alpha = -(c + 1)->alpha;
         c->best_move = (*c->move_cursor)->move;
