@@ -318,7 +318,6 @@ adjusted_move_count (GameTreeStack *const stack)
  * TODO
  * What to try:
  * - Avoid recursion .... write a "compact" iterative function.
- * - Avoid the special case of PASSING .....
  *
  * ab(p, alpha, beta)
  * position p; int alpha, beta;
@@ -364,53 +363,39 @@ game_position_solve_impl (ExactSolution *const result,
 
   if (pv_full_recording && c->move_set) c->alpha -= 1;
 
-  if (!c->move_set) {
+  for ( ; c->move_cursor - c->head_of_legal_move_list < c->move_count; c->move_cursor++) {
 
-    for ( ; c->move_cursor - c->head_of_legal_move_list < c->move_count; c->move_cursor++) {
+    if (pv_recording) pve_line = pve_line_create(pve);
+    recursive_call_setup(stack);
+    if (stack->hash_is_on) update_move_flips(stack);
 
-      if (pv_recording) pve_line = pve_line_create(pve);
-      recursive_call_setup(stack);
-      if (stack->hash_is_on) update_move_flips(stack);
+    game_position_solve_impl(result, stack, &pve_line);
 
-      game_position_solve_impl(result, stack, &pve_line);
-      first_pv_line_created = true;
+    if (-(c + 1)->alpha > c->alpha || !c->move_set) {
       c->alpha = -(c + 1)->alpha;
       c->best_move = (*c->move_cursor)->move;
-
       if (pv_recording) {
+        first_pv_line_created = true;
         pve_line_add_move(pve, pve_line, (*c->move_cursor)->move, &(c + 1)->gpx);
         pve_line_delete(pve, *pve_parent_line_p);
         *pve_parent_line_p = pve_line;
       }
-    }
-  } else {
-    for ( ; c->move_cursor - c->head_of_legal_move_list < c->move_count; c->move_cursor++) {
-
-      if (pv_recording) pve_line = pve_line_create(pve);
-      recursive_call_setup(stack);
-      if (stack->hash_is_on) update_move_flips(stack);
-
-      game_position_solve_impl(result, stack, &pve_line);
-
-      if (-(c + 1)->alpha > c->alpha || !c->move_set || (!first_pv_line_created && -(c + 1)->alpha == c->alpha)) {
-        first_pv_line_created = true; // wrong name? is it the first update?
-        c->alpha = -(c + 1)->alpha;
-        c->best_move = (*c->move_cursor)->move;
-        if (pv_recording) {
-          pve_line_add_move(pve, pve_line, (*c->move_cursor)->move, &(c + 1)->gpx);
-          pve_line_delete(pve, *pve_parent_line_p);
-          *pve_parent_line_p = pve_line;
-        }
-        if (c->alpha > c->beta) goto out;
-        if (!pv_full_recording && c->alpha == c->beta) goto out;
-      } else {
-        if (pv_recording) {
-          if (pv_full_recording && -(c + 1)->alpha == c->alpha) {
+      if (c->alpha > c->beta) goto out;
+      if (!pv_full_recording && c->alpha == c->beta) goto out;
+    } else {
+      if (pv_recording) {
+        if (pv_full_recording && -(c + 1)->alpha == c->alpha) {
+          if (!first_pv_line_created) {
+            first_pv_line_created = true;
+            pve_line_add_move(pve, pve_line, (*c->move_cursor)->move, &(c + 1)->gpx);
+            pve_line_delete(pve, *pve_parent_line_p);
+            *pve_parent_line_p = pve_line;
+          } else {
             pve_line_add_move(pve, pve_line, (*c->move_cursor)->move, &(c + 1)->gpx);
             pve_line_add_variant(pve, *pve_parent_line_p, pve_line);
-          } else {
-            pve_line_delete(pve, pve_line);
           }
+        } else {
+          pve_line_delete(pve, pve_line);
         }
       }
     }
