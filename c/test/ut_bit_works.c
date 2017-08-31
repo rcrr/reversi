@@ -174,6 +174,44 @@ bitw_bit_count_64_t (ut_test_t *const t)
 }
 
 static void
+bitw_lzcnt_64_plain_t (ut_test_t *const t)
+{
+  ut_assert(t, 64 == bitw_lzcnt_64_plain(0x00ULL));
+  ut_assert(t, 63 == bitw_lzcnt_64_plain(0x01ULL));
+  ut_assert(t, 62 == bitw_lzcnt_64_plain(0x02ULL));
+  ut_assert(t, 62 == bitw_lzcnt_64_plain(0x03ULL));
+  ut_assert(t,  0 == bitw_lzcnt_64_plain(0xFFFFFFFFFFFFFFFFULL));
+  ut_assert(t,  7 == bitw_lzcnt_64_plain(0x0101010101010101ULL));
+  ut_assert(t,  1 == bitw_lzcnt_64_plain(0x7000000000000000ULL));
+}
+
+#ifdef __ABM__
+static void
+bitw_lzcnt_64_lzcnt_t (ut_test_t *const t)
+{
+  ut_assert(t, 64 == bitw_lzcnt_64_lzcnt(0x00ULL));
+  ut_assert(t, 63 == bitw_lzcnt_64_lzcnt(0x01ULL));
+  ut_assert(t, 62 == bitw_lzcnt_64_lzcnt(0x02ULL));
+  ut_assert(t, 62 == bitw_lzcnt_64_lzcnt(0x03ULL));
+  ut_assert(t,  0 == bitw_lzcnt_64_lzcnt(0xFFFFFFFFFFFFFFFFULL));
+  ut_assert(t,  7 == bitw_lzcnt_64_lzcnt(0x0101010101010101ULL));
+  ut_assert(t,  1 == bitw_lzcnt_64_lzcnt(0x7000000000000000ULL));
+}
+#endif
+
+static void
+bitw_lzcnt_64_t (ut_test_t *const t)
+{
+  ut_assert(t, 64 == bitw_lzcnt_64(0x00ULL));
+  ut_assert(t, 63 == bitw_lzcnt_64(0x01ULL));
+  ut_assert(t, 62 == bitw_lzcnt_64(0x02ULL));
+  ut_assert(t, 62 == bitw_lzcnt_64(0x03ULL));
+  ut_assert(t,  0 == bitw_lzcnt_64(0xFFFFFFFFFFFFFFFFULL));
+  ut_assert(t,  7 == bitw_lzcnt_64(0x0101010101010101ULL));
+  ut_assert(t,  1 == bitw_lzcnt_64(0x7000000000000000ULL));
+}
+
+static void
 bitw_bit_scan_reverse_64_plain_t (ut_test_t *const t)
 {
   ut_assert(t,  0 == bitw_bit_scan_reverse_64_plain(0x0000000000000001));
@@ -458,6 +496,12 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_bit_count_64_popcnt", bitw_bit_count_64_popcnt_t);
 #endif
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_bit_count_64", bitw_bit_count_64_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_lzcnt_64_plain", bitw_lzcnt_64_plain_t);
+#ifdef __ABM__
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_lzcnt_64_lzcnt", bitw_lzcnt_64_lzcnt_t);
+#endif
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_lzcnt_64", bitw_lzcnt_64_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_bit_scan_reverse_64_plain",  bitw_bit_scan_reverse_64_plain_t);
 #ifdef __x86_64__

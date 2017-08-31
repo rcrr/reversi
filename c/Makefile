@@ -42,7 +42,7 @@ CC = gcc
 # add -pg for gprof execution.
 # add -DNDEBUG to disable assertions
 # add -fno-inline to prevent inlining
-ARCH_FLAGS = -mpopcnt -mavx2
+ARCH_FLAGS = -mpopcnt -mavx2 -mabm
 CFLAGS = -std=c99 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O0 $(ARCH_FLAGS) -fno-inline
 LDFLAGS =
 CFLAGS_TEST = -std=c99 -pedantic-errors -Wall -g -O0 -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS)

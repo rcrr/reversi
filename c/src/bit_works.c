@@ -145,6 +145,60 @@ bitw_bit_count_64 (uint64_t bit_set);
 
 
 /*
+ * Leading zero count functions.
+ */
+
+/**
+ * @cond
+ */
+
+uint8_t
+bitw_lzcnt_64_plain (const uint64_t bit_sequence)
+{
+  if (bit_sequence) return 63 - bitw_bit_scan_reverse_64_plain(bit_sequence);
+  return 64;
+}
+
+#ifdef __ABM__
+extern uint8_t
+bitw_lzcnt_64_lzcnt (const uint64_t bit_sequence);
+#endif
+
+/**
+ * @endcond
+ */
+
+/**
+ * @brief Returns the count of leading zero bit set in the `bit_sequence` parameter.
+ *
+ * If the content of `bit_sequence` is 0, the result is `64`.
+ *
+ * This function has two distinct implementations:
+ * - `bitw_lzcnt_64_plain`
+ * - `bitw_lzcnt_64_lzcnt`
+ *
+ * Depending on the "compile time" value of the macro `__ABM__`, it
+ * resolves to one of the two variants.
+ *
+ * The first implementation is plain `C` code, and should work on any
+ * platform.
+ *
+ * The second implementation works on `x86` architecture that implements the `lzcnt`
+ * assembler instruction. The function call reduces to one ASM instruction
+ * and it is always inlined. This variant is always inlined.
+ *
+ * It is possible to call directly the two function underneath, this is usefull
+ * for testing purposes, but it should be never done otherwise.
+ *
+ * @param bit_sequence value that is scanned
+ * @return             the count `[0..64]` of leading zeros
+ */
+extern uint8_t
+bitw_lzcnt_64 (const uint64_t bit_sequence);
+
+
+
+/*
  * Bit scan reverse functions.
  */
 

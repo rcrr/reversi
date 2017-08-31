@@ -82,6 +82,47 @@ bitw_bit_count_64 (uint64_t bit_set)
 
 
 /*
+ * Leading zero count functions - Section begin.
+ */
+
+/**
+ * @cond
+ */
+
+extern uint8_t
+bitw_lzcnt_64_plain (uint64_t bit_set);
+
+#ifdef __ABM__
+__attribute__((always_inline))
+inline uint8_t
+bitw_lzcnt_64_lzcnt (uint64_t bit_set)
+{
+  uint64_t result;
+  __asm__ __volatile__ ("lzcnt %1, %0;" : "=r" (result) : "r" (bit_set));
+  return (uint8_t) result;
+}
+#endif
+
+/**
+ * @endcond
+ */
+
+__attribute__((always_inline))
+inline uint8_t
+bitw_lzcnt_64 (uint64_t bit_set)
+{
+#ifdef __ABM__
+  return bitw_lzcnt_64_lzcnt(bit_set);
+#else
+  return bitw_lzcnt_64_plain(bit_set);
+#endif
+}
+
+/* Leading zero count functions - Section end. */
+
+
+
+/*
  * Bit scan reverse functions - Section begin.
  */
 
