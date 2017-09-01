@@ -343,10 +343,9 @@ game_position_solve_impl (ExactSolution *const result,
 
   result->node_count++;
   c = ++stack->active_node;
-  c->move_cursor = c->head_of_legal_move_list;
   c->move_count = adjusted_move_count(stack);
+  c->pv_first_line_created = false;
   const int sub_run_id = 0;
-  bool first_pv_line_created = false;
 
   if (stack->hash_is_on) gts_compute_hash(stack);
   if (log_env->log_is_on) gtl_do_log(result, stack, sub_run_id, log_env);
@@ -363,7 +362,7 @@ game_position_solve_impl (ExactSolution *const result,
 
   if (pv_full_recording && c->move_set) c->alpha -= 1;
 
-  for ( ; c->move_cursor - c->head_of_legal_move_list < c->move_count; c->move_cursor++) {
+  for ( c->move_cursor = c->head_of_legal_move_list; c->move_cursor - c->head_of_legal_move_list < c->move_count; c->move_cursor++) {
 
     if (pv_recording) pve_line = pve_line_create(pve);
     recursive_call_setup(stack);
@@ -375,7 +374,7 @@ game_position_solve_impl (ExactSolution *const result,
       c->alpha = -(c + 1)->alpha;
       c->best_move = (*c->move_cursor)->move;
       if (pv_recording) {
-        first_pv_line_created = true;
+        c->pv_first_line_created = true;
         pve_line_add_move(pve, pve_line, (*c->move_cursor)->move, &(c + 1)->gpx);
         pve_line_delete(pve, *pve_parent_line_p);
         *pve_parent_line_p = pve_line;
@@ -385,8 +384,8 @@ game_position_solve_impl (ExactSolution *const result,
     } else {
       if (pv_recording) {
         if (pv_full_recording && -(c + 1)->alpha == c->alpha) {
-          if (!first_pv_line_created) {
-            first_pv_line_created = true;
+          if (!c->pv_first_line_created) {
+            c->pv_first_line_created = true;
             pve_line_add_move(pve, pve_line, (*c->move_cursor)->move, &(c + 1)->gpx);
             pve_line_delete(pve, *pve_parent_line_p);
             *pve_parent_line_p = pve_line;

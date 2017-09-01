@@ -207,6 +207,7 @@ typedef struct {
   SquareSet       move_set;                    /**< @brief The set of legal moves. */
   Square          best_move;                   /**< @brief The best move for the node. */
   uint8_t         move_count;                  /**< @brief The count of legal moves. */
+  bool            pv_first_line_created;       /**< @brief A flag that signal that a line has been already created at that tree level. */
   gts_mle_t     **head_of_legal_move_list;     /**< @brief A poiter to the first legal move. */
   gts_mle_t     **move_cursor;                 /**< @brief Legal move iterator. */
   int             alpha;                       /**< @brief The node value. */
