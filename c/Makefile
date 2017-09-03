@@ -43,11 +43,11 @@ CC = gcc
 # add -DNDEBUG to disable assertions
 # add -fno-inline to prevent inlining
 ARCH_FLAGS = -mpopcnt -mavx2 -mabm
-CFLAGS = -std=c99 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O0 $(ARCH_FLAGS) -fno-inline
+CFLAGS = -std=c99 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -DNDEBUG
 LDFLAGS =
-CFLAGS_TEST = -std=c99 -pedantic-errors -Wall -g -O0 -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS)
+CFLAGS_TEST = -std=c99 -pedantic-errors -Wall -g -O3 -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS)
 LDFLAGS_TEST =
-ASMFLAGS = -std=c99 -pedantic-errors -Wall -O0 -masm=intel -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS) -fno-inline
+ASMFLAGS = -std=c99 -pedantic-errors -Wall -O3 -masm=intel -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS)
 LIBS = -lm
 TEST_LIBS =
 SRCDIR = src

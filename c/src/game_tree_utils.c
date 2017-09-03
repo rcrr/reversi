@@ -1895,6 +1895,7 @@ game_tree_stack_init (const GamePositionX *const root,
   ground_node_info->pv_first_line_created = false;
   ground_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
   ground_node_info->move_cursor = &stack->legal_move_stack[0];
+  ground_node_info->pve_line = NULL;
   ground_node_info->alpha = out_of_range_defeat_score;
   ground_node_info->beta = - out_of_range_defeat_score;
 
@@ -1902,6 +1903,7 @@ game_tree_stack_init (const GamePositionX *const root,
   game_position_x_copy(root, &first_node_info->gpx);
   first_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
   first_node_info->move_cursor = &stack->legal_move_stack[0];
+  first_node_info->pve_line = NULL;
   first_node_info->alpha = out_of_range_defeat_score;
   first_node_info->beta = - out_of_range_defeat_score;
 
