@@ -31,6 +31,7 @@
  * </tt>
  */
 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -52,8 +53,7 @@
 
 static void
 game_position_solve_impl (ExactSolution *const result,
-                          GameTreeStack *const stack,
-                          PVCell ***pve_parent_line_p);
+                          GameTreeStack *const stack);
 
 static void
 look_ahead_and_sort_moves_by_mobility_count (GameTreeStack *const stack);
@@ -149,8 +149,11 @@ game_position_es_solve (const GamePositionX *const root,
     stack->hash_is_on = true;
   }
 
+  NodeInfo *const c = stack->active_node;
+  if (pv_recording) c->pve_line = pve->root_line;
   first_node_info->move_set = game_position_x_legal_moves(root);
-  game_position_solve_impl(result, stack, &(pve->root_line));
+  game_position_solve_impl(result, stack);
+  if (pv_recording) pve->root_line = c->pve_line;
 
   if (pv_recording && pv_full_recording && !env->pv_no_print) {
     printf("\n --- --- pve_line_with_variants_to_string() START --- ---\n");
@@ -313,31 +316,27 @@ adjusted_move_count (GameTreeStack *const stack)
 }
 
 static void
-pv_create_first_line (GameTreeStack *const stack,
-                      PVCell **pve_line,
-                      PVCell ***pve_parent_line_p)
+pv_create_first_line (GameTreeStack *const stack)
 {
   NodeInfo *const c = stack->active_node;
   c->pv_first_line_created = true;
-  pve_line_add_move(pve, pve_line, (*c->move_cursor)->move, &(c + 1)->gpx);
-  pve_line_delete(pve, *pve_parent_line_p);
-  *pve_parent_line_p = pve_line;
+  pve_line_add_move(pve, c->pve_line, (*c->move_cursor)->move, &(c + 1)->gpx);
+  pve_line_delete(pve, (c - 1)->pve_line);
+  (c - 1)->pve_line = c->pve_line;
 }
 
 static void
-pv_add_variant_line (GameTreeStack *const stack,
-                      PVCell **pve_line,
-                      PVCell ***pve_parent_line_p)
+pv_add_variant_line (GameTreeStack *const stack)
 {
   NodeInfo *const c = stack->active_node;
   if (!c->pv_first_line_created) {
     c->pv_first_line_created = true;
-    pve_line_add_move(pve, pve_line, (*c->move_cursor)->move, &(c + 1)->gpx);
-    pve_line_delete(pve, *pve_parent_line_p);
-    *pve_parent_line_p = pve_line;
+    pve_line_add_move(pve, c->pve_line, (*c->move_cursor)->move, &(c + 1)->gpx);
+    pve_line_delete(pve, (c - 1)->pve_line);
+    (c - 1)->pve_line = c->pve_line;
   } else {
-    pve_line_add_move(pve, pve_line, (*c->move_cursor)->move, &(c + 1)->gpx);
-    pve_line_add_variant(pve, *pve_parent_line_p, pve_line);
+    pve_line_add_move(pve, c->pve_line, (*c->move_cursor)->move, &(c + 1)->gpx);
+    pve_line_add_variant(pve, (c - 1)->pve_line, c->pve_line);
   }
 }
 
@@ -347,6 +346,7 @@ pv_add_variant_line (GameTreeStack *const stack,
  * TODO
  * What to try:
  * - Avoid recursion .... write a "compact" iterative function.
+ * - Avoid the special case of PASSING .....
  *
  * ab(p, alpha, beta)
  * position p; int alpha, beta;
@@ -364,11 +364,9 @@ pv_add_variant_line (GameTreeStack *const stack,
  */
 static void
 game_position_solve_impl (ExactSolution *const result,
-                          GameTreeStack *const stack,
-                          PVCell ***pve_parent_line_p)
+                          GameTreeStack *const stack)
 {
   NodeInfo *c;
-  PVCell **pve_line;
 
   result->node_count++;
   c = ++stack->active_node;
@@ -382,7 +380,7 @@ game_position_solve_impl (ExactSolution *const result,
     result->leaf_count++;
     c->alpha = game_position_x_final_value(&c->gpx);
     c->best_move = pass_move;
-    if (pv_recording) pve_line_add_move(pve, *pve_parent_line_p, pass_move, &(c + 1)->gpx);
+    if (pv_recording) pve_line_add_move(pve, (c - 1)->pve_line, pass_move, &(c + 1)->gpx);
     goto out;
   }
 
@@ -392,24 +390,24 @@ game_position_solve_impl (ExactSolution *const result,
 
   for ( c->move_cursor = c->head_of_legal_move_list; c->move_cursor - c->head_of_legal_move_list < c->move_count; c->move_cursor++) {
 
-    if (pv_recording) pve_line = pve_line_create(pve);
+    if (pv_recording) c->pve_line = pve_line_create(pve);
     recursive_call_setup(stack);
     if (stack->hash_is_on) update_move_flips(stack);
 
-    game_position_solve_impl(result, stack, &pve_line);
+    game_position_solve_impl(result, stack);
 
     if (-(c + 1)->alpha > c->alpha || !c->move_set) {
       c->alpha = -(c + 1)->alpha;
       c->best_move = (*c->move_cursor)->move;
-      if (pv_recording) pv_create_first_line(stack, pve_line, pve_parent_line_p);
+      if (pv_recording) pv_create_first_line(stack);
       if (c->alpha > c->beta) goto out;
       if (!pv_full_recording && c->alpha == c->beta) goto out;
     } else {
       if (pv_recording) {
         if (pv_full_recording && -(c + 1)->alpha == c->alpha)
-          pv_add_variant_line(stack, pve_line, pve_parent_line_p);
+          pv_add_variant_line(stack);
         else
-          pve_line_delete(pve, pve_line);
+          pve_line_delete(pve, c->pve_line);
       }
     }
   }
