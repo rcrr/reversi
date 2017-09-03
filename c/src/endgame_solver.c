@@ -3,7 +3,7 @@
  *
  * @todo [done] Complete the removal of MoveList and MoveList Element from exact_solver.
  *
- * @todo Harmonize the exact_solver algorithm to minimax, full use of the stack and no recursion.
+ * @todo [done] Harmonize the exact_solver algorithm to minimax, full use of the stack and no recursion.
  *
  * @todo Add to the exact_solver logging strategy a second file that logs
  *       when the function returns. There we can add the return value and the

@@ -31,7 +31,6 @@
  * </tt>
  */
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -54,9 +53,6 @@
 static void
 game_position_solve_impl (ExactSolution *const result,
                           GameTreeStack *const stack);
-
-static void
-look_ahead_and_sort_moves_by_mobility_count (GameTreeStack *const stack);
 
 /*
  * Internal variables and constants.
@@ -340,14 +336,7 @@ pv_add_variant_line (GameTreeStack *const stack)
   }
 }
 
-
-
 /*
- * TODO
- * What to try:
- * - Avoid recursion .... write a "compact" iterative function.
- * - Avoid the special case of PASSING .....
- *
  * ab(p, alpha, beta)
  * position p; int alpha, beta;
  * {
@@ -367,7 +356,9 @@ game_position_solve_impl (ExactSolution *const result,
                           GameTreeStack *const stack)
 {
   NodeInfo *c;
+  const NodeInfo *const root = stack->active_node;
 
+ begin:
   result->node_count++;
   c = ++stack->active_node;
   c->move_count = adjusted_move_count(stack);
@@ -381,7 +372,7 @@ game_position_solve_impl (ExactSolution *const result,
     c->alpha = game_position_x_final_value(&c->gpx);
     c->best_move = pass_move;
     if (pv_recording) pve_line_add_move(pve, (c - 1)->pve_line, pass_move, &(c + 1)->gpx);
-    goto out;
+    goto end;
   }
 
   look_ahead_and_sort_moves_by_mobility_count(stack);
@@ -389,19 +380,17 @@ game_position_solve_impl (ExactSolution *const result,
   if (pv_full_recording && c->move_set) c->alpha -= 1;
 
   for ( c->move_cursor = c->head_of_legal_move_list; c->move_cursor - c->head_of_legal_move_list < c->move_count; c->move_cursor++) {
-
     if (pv_recording) c->pve_line = pve_line_create(pve);
     recursive_call_setup(stack);
     if (stack->hash_is_on) update_move_flips(stack);
-
-    game_position_solve_impl(result, stack);
-
+    goto begin;
+  entry:
     if (-(c + 1)->alpha > c->alpha || !c->move_set) {
       c->alpha = -(c + 1)->alpha;
       c->best_move = (*c->move_cursor)->move;
       if (pv_recording) pv_create_first_line(stack);
-      if (c->alpha > c->beta) goto out;
-      if (!pv_full_recording && c->alpha == c->beta) goto out;
+      if (c->alpha > c->beta) goto end;
+      if (!pv_full_recording && c->alpha == c->beta) goto end;
     } else {
       if (pv_recording) {
         if (pv_full_recording && -(c + 1)->alpha == c->alpha)
@@ -411,9 +400,11 @@ game_position_solve_impl (ExactSolution *const result,
       }
     }
   }
- out:
-  stack->active_node--;
-  return;
+
+ end:
+  c = --stack->active_node;
+  if (stack->active_node == root) return;
+  goto entry;
 }
 
 /**
