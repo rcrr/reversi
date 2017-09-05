@@ -56,16 +56,21 @@ typedef struct {
  * @brief It is collecting the info logged into a record by the head write function.
  */
 typedef struct {
-  int        sub_run_id;     /**< @brief Sub run id field. */
-  uint64_t   call_id;        /**< @brief Call id. */
-  uint64_t   hash;           /**< @brief Game position hash. */
-  uint64_t   parent_hash;    /**< @brief Parent game position hash. */
-  SquareSet  blacks;         /**< @brief Blacks field part of the game position. */
-  SquareSet  whites;         /**< @brief Whites field part of the game position. */
-  Player     player;         /**< @brief Player field part of the game position. */
-  char      *json_doc;       /**< @brief Json field. */
-  size_t     json_doc_len;   /**< @brief Json field length. */
-  uint8_t    call_level;     /**< @brief Call level, or depth. */
+  int        sub_run_id;                /**< @brief Sub run id field. */
+  uint64_t   call_id;                   /**< @brief Call id. */
+  uint64_t   hash;                      /**< @brief Game position hash. */
+  uint64_t   parent_hash;               /**< @brief Parent game position hash. */
+  SquareSet  blacks;                    /**< @brief Blacks field part of the game position. */
+  SquareSet  whites;                    /**< @brief Whites field part of the game position. */
+  Player     player;                    /**< @brief Player field part of the game position. */
+  char      *json_doc;                  /**< @brief Json field. */
+  size_t     json_doc_len;              /**< @brief Json field length. */
+  uint8_t    call_level;                /**< @brief Call level, or depth. */
+  uint8_t    empty_count;               /**< @brief Empy square count. */
+  bool       is_leaf;                   /**< @brief A termination node for the tree. */
+  uint8_t    legal_move_count;          /**< @brief Number of legal moves. */
+  uint8_t    legal_move_count_adjusted; /**< @brief Same as legal_move_count, zero is turned to one to account for passing. */
+  uint8_t    legal_move_array[32];      /**< @brief Legal move array (no more than 25 moves has been found in random generated games). */
 } gtl_log_data_h_t;
 
 /**

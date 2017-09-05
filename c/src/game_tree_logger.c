@@ -289,6 +289,10 @@ gtl_do_log (const ExactSolution *const result,
             const gtl_log_env_t *const log_env)
 {
   const NodeInfo* const c = stack->active_node;
+  const bool is_leaf = !game_position_x_has_any_player_any_legal_move(&c->gpx);
+  const SquareSet empties = game_position_x_empties(&c->gpx);
+  const SquareSet legal_moves = game_position_x_legal_moves(&c->gpx);
+  const uint8_t legal_move_count = bitw_bit_count_64(legal_moves);
   gtl_log_data_h_t log_data =
     { .sub_run_id = sub_run_id,
       .call_id = result->node_count,
@@ -299,6 +303,10 @@ gtl_do_log (const ExactSolution *const result,
       .player = c->gpx.player,
       .json_doc = NULL,
       .json_doc_len = 0,
-      .call_level = c - stack->nodes };
+      .call_level = c - stack->nodes,
+      .empty_count = bitw_bit_count_64(empties),
+      .is_leaf = is_leaf,
+      .legal_move_count = legal_move_count,
+      .legal_move_count_adjusted = legal_move_count + ((legal_moves == 0 && !is_leaf) ? 1 : 0) };
   gtl_write_h(log_env, &log_data);
 }

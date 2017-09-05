@@ -5,7 +5,7 @@
 -- http://github.com/rcrr/reversi
 --
 -- Author: Roberto Corradini mailto:rob_corradini@yahoo.it
--- Copyright 2014, 2015 Roberto Corradini. All rights reserved.
+-- Copyright 2014, 2015, 2017 Roberto Corradini. All rights reserved.
 --
 --
 -- License:
@@ -327,15 +327,21 @@ CREATE TABLE game_tree_log_header (run_id       SERIAL     PRIMARY KEY,
 --
 -- DROP TABLE IF EXISTS game_tree_log;
 --
-CREATE TABLE game_tree_log (run_id       INTEGER   REFERENCES game_tree_log_header (run_id) ON DELETE CASCADE,
-                            sub_run_id   INTEGER   NOT NULL,
-                            call_id      INTEGER   NOT NULL,
-                            hash         BIGINT,
-                            parent_hash  BIGINT,
-                            blacks       square_set,
-                            whites       square_set,
-                            player       player,
-                            json_doc     JSON,
+CREATE TABLE game_tree_log (run_id                    INTEGER  REFERENCES game_tree_log_header (run_id) ON DELETE CASCADE,
+                            sub_run_id                INTEGER  NOT NULL,
+                            call_id                   INTEGER  NOT NULL,
+                            hash                      BIGINT,
+                            parent_hash               BIGINT,
+                            blacks                    square_set,
+                            whites                    square_set,
+                            player                    player,
+                            json_doc                  JSON,
+                            call_level                SMALLINT,
+                            empty_count               SMALLINT,
+                            is_leaf                   BOOLEAN,
+                            legal_move_count          SMALLINT,
+                            legal_move_count_adjusted SMALLINT,
+                            legal_move_array          SMALLINT ARRAY,
                             PRIMARY KEY(run_id, sub_run_id, call_id));
 
 CREATE INDEX game_tree_log_hash_idx ON game_tree_log (hash);
@@ -346,14 +352,20 @@ CREATE INDEX game_tree_log_001_idx  ON game_tree_log (run_id, sub_run_id, hash);
 --
 -- DROP TABLE IF EXISTS game_tree_log_staging;
 --
-CREATE TABLE game_tree_log_staging (sub_run_id   INTEGER   NOT NULL,
-                                    call_id      INTEGER   NOT NULL,
-                                    hash         BIGINT,
-                                    parent_hash  BIGINT,
-                                    blacks       square_set,
-                                    whites       square_set,
-                                    player       player,
-                                    json_doc     JSON,
+CREATE TABLE game_tree_log_staging (sub_run_id                INTEGER   NOT NULL,
+                                    call_id                   INTEGER   NOT NULL,
+                                    hash                      BIGINT,
+                                    parent_hash               BIGINT,
+                                    blacks                    square_set,
+                                    whites                    square_set,
+                                    player                    player,
+                                    json_doc                  JSON,
+                                    call_level                SMALLINT,
+                                    empty_count               SMALLINT,
+                                    is_leaf                   BOOLEAN,
+                                    legal_move_count          SMALLINT,
+                                    legal_move_count_adjusted SMALLINT,
+                                    legal_move_array          SMALLINT ARRAY,
                                     PRIMARY KEY(sub_run_id, call_id));
 
 

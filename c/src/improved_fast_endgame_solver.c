@@ -1270,6 +1270,12 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
     gp_hash_stack_fill_point++;
     GamePositionX gpx;
     ifes_game_position_translation(&gpx, board, color);
+    const bool is_leaf = !game_position_x_has_any_player_any_legal_move(&gpx);
+    const SquareSet legal_moves = game_position_x_legal_moves(&gpx);
+    const uint8_t legal_move_count = bitw_bit_count_64(legal_moves);
+    const SquareSet empties = game_position_x_empties(&gpx);
+    const uint8_t empty_count = bitw_bit_count_64(empties);
+    const int legal_move_count_adj = legal_move_count + ((legal_moves == 0 && !is_leaf) ? 1 : 0);
     gtl_log_data_h_t log_data;
     log_data.sub_run_id = 0;
     log_data.call_id = call_count;
@@ -1284,6 +1290,11 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
     assert(json_doc_len <= gtl_max_json_doc_len);
     log_data.json_doc = json_doc;
     log_data.json_doc_len = json_doc_len;
+    log_data.call_level = gp_hash_stack_fill_point;
+    log_data.empty_count = empty_count;
+    log_data.is_leaf = is_leaf;
+    log_data.legal_move_count = legal_move_count;
+    log_data.legal_move_count_adjusted = legal_move_count_adj;
     gtl_write_h(log_env, &log_data);
   }
 
