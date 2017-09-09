@@ -1285,11 +1285,6 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
     log_data.blacks = (&gpx)->blacks;
     log_data.whites = (&gpx)->whites;
     log_data.player = (&gpx)->player;
-    char json_doc[gtl_max_json_doc_len];
-    const int json_doc_len  = gtl_data_h_json_doc(json_doc, gp_hash_stack_fill_point, &gpx);
-    assert(json_doc_len <= gtl_max_json_doc_len);
-    log_data.json_doc = json_doc;
-    log_data.json_doc_len = json_doc_len;
     log_data.call_level = gp_hash_stack_fill_point;
     log_data.empty_count = empty_count;
     log_data.is_leaf = is_leaf;

@@ -123,23 +123,6 @@ square_is_valid_move_t (ut_test_t *const t)
 }
 
 static void
-square_set_to_pg_json_array_t (ut_test_t *const t)
-{
-  //! [square_set_to_pg_json_array usage]
-  size_t length;
-  char pg_json_string[513];
-  length = square_set_to_pg_json_array(pg_json_string, (SquareSet) 0);
-  ut_assert(t, strcmp("[]", pg_json_string) == 0);
-  ut_assert(t, 2 == length);
-  length = square_set_to_pg_json_array(pg_json_string, (SquareSet) 5);
-  ut_assert(t, strcmp("[\"\"A1\"\", \"\"C1\"\"]", pg_json_string) == 0);
-  ut_assert(t, 16 == length);
-  //! [square_set_to_pg_json_array usage]
-  length = square_set_to_pg_json_array(pg_json_string, (SquareSet) 0xFFFFFFFFFFFFFFFF);
-  ut_assert(t, 512 == length);
-}
-
-static void
 square_set_to_string_t (ut_test_t *const t)
 {
   //! [square_set_to_string usage]
@@ -753,7 +736,6 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "square_belongs_to_enum_set", square_belongs_to_enum_set_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "square_is_valid_move", square_is_valid_move_t);
 
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "square_set_to_pg_json_array", square_set_to_pg_json_array_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "square_set_to_string", square_set_to_string_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "square_set_random_selection", square_set_random_selection_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "square_set_to_array", square_set_to_array_t);

@@ -63,8 +63,6 @@ typedef struct {
   SquareSet  blacks;                    /**< @brief Blacks field part of the game position. */
   SquareSet  whites;                    /**< @brief Whites field part of the game position. */
   Player     player;                    /**< @brief Player field part of the game position. */
-  char      *json_doc;                  /**< @brief Json field. */
-  size_t     json_doc_len;              /**< @brief Json field length. */
   uint8_t    call_level;                /**< @brief Call level, or depth. */
   uint8_t    empty_count;               /**< @brief Empy square count. */
   bool       is_leaf;                   /**< @brief A termination node for the tree. */
@@ -79,19 +77,7 @@ typedef struct {
 typedef struct {
   int        sub_run_id;  /**< @brief Sub run id field. */
   uint64_t   call_id;     /**< @brief Call id. */
-  char      *json_doc;    /**< @brief Json field. */
 } gtl_log_data_t_t;
-
-
-
-/**********************************************/
-/* Global constants.                          */
-/**********************************************/
-
-/**
- * @brief The empty square set.
- */
-static const size_t gtl_max_json_doc_len = 4096;
 
 
 
@@ -121,11 +107,6 @@ gtl_init (const char *const file_name_prefix);
 
 extern bool
 gtl_touch_files (const char *const file_name_prefix);
-
-extern int
-gtl_data_h_json_doc (char *const json_doc,
-                     const int call_level,
-                     const GamePositionX *const gpx);
 
 extern void
 gtl_do_log (const ExactSolution *const result,

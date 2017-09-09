@@ -340,52 +340,6 @@ square_is_valid_move (const Square move)
 /******************************************************/
 
 /**
- * @brief Prepares a string representation for the square set used
- * to load a json array by postgresql command COPY.
- *
- * @details The character buffer pointed by `to_string` must have the
- * apppropriate space. The needed space is eight char for each square
- * in the set, when the set is full the buffer must have 512 + 1 (for
- * termination) bytes of space. The minimum is 2 + 1.
- *
- * PostgreSQL command COPY requires that the json array elements are
- * "double quoted", so to obtain a db field equal to `["A1", "C1"]`,
- * the string to be prepared is `[""A1"", ""C1""]`.
- *
- * A sample usage scenario taken from unit tests is here exemplified:
- *
- * @snippet ut_board.c square_set_to_pg_json_array usage
- *
- * @param [out] to_string a string having the given squares represented
- *                        as a postgresql json array
- * @param [in]  squares   the square set to be converted into a string
- * @return                the number of characters in the returned string
- */
-size_t
-square_set_to_pg_json_array (char *const to_string,
-                             const SquareSet squares)
-{
-  char *c = to_string;
-  *c = 0;
-  c += sprintf(c, "[");
-  Square m = A1;
-  bool is_not_first = false;
-  for (SquareSet cursor = 1; cursor != 0; cursor <<= 1, m++) {
-    if ((cursor & squares) != empty_square_set) {
-      const char row = '1' + (m / 8);
-      const char col = 'A' + (m % 8);
-      if (is_not_first) {
-        c += sprintf(c, ", ");
-      }
-      c += sprintf(c, "\"\"%c%c\"\"", col, row);
-      is_not_first = true;
-    }
-  }
-  c += sprintf(c, "]");
-  return c - to_string;
-}
-
-/**
  * @brief Prepares a string representation for the square set.
  *
  * @details The character buffer pointed by `to_string` must have the

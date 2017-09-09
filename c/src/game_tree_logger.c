@@ -117,9 +117,6 @@ gtl_write_h (const gtl_log_env_t *const env,
 {
   assert(env && env->h_file);
   fwrite(data, sizeof(gtl_log_data_h_t), 1, env->h_file);
-  if (data->json_doc) {
-    fwrite(data->json_doc, data->json_doc_len + 1, 1, env->h_file);
-  }
 }
 
 /**
@@ -136,10 +133,7 @@ gtl_write_t (const gtl_log_env_t *const env,
              const gtl_log_data_t_t *const data)
 {
   assert(env && env->t_file);
-  fprintf(env->t_file, "%6d;%8" PRIu64 ";x%s\n",
-          data->sub_run_id,
-          data->call_id,
-          data->json_doc);
+  // To be completed.
 }
 
 /**
@@ -242,46 +236,6 @@ gtl_touch_files (const char *const file_name_prefix)
   return (res_h && res_t);
 }
 
-/**
- * @brief Returns the json_doc used in the head log by exact_solver and ifes solvers.
- *
- * @param [out] json_doc   the newly constucted json string
- * @param [in]  call_level call level value
- * @param [in]  gpx        the current game position
- * @return                 the length of the json_doc string
- */
-int
-gtl_data_h_json_doc (char *const json_doc,
-                     const int call_level,
-                     const GamePositionX *const gpx)
-{
-  char legal_moves_pg_json_array[513];
-  const bool is_leaf = !game_position_x_has_any_player_any_legal_move(gpx);
-  const SquareSet legal_moves = game_position_x_legal_moves(gpx);
-  const uint8_t legal_move_count = bitw_bit_count_64(legal_moves);
-  const SquareSet empties = game_position_x_empties(gpx);
-  const uint8_t empty_count = bitw_bit_count_64(empties);
-  const int legal_move_count_adj = legal_move_count + ((legal_moves == 0 && !is_leaf) ? 1 : 0);
-  square_set_to_pg_json_array(legal_moves_pg_json_array, legal_moves);
-  /*
-   * cl:   call level
-   * ec:   empty count
-   * il:   is leaf
-   * lmc:  legal move count
-   * lmca: legal move count adjusted
-   * lma:  legal move array ([""A1"", ""B4"", ""H8""])
-   */
-  const int len = sprintf(json_doc,
-                          "\"{ \"\"cl\"\": %2d, \"\"ec\"\": %2d, \"\"il\"\": %s, \"\"lmc\"\": %2d, \"\"lmca\"\": %2d, \"\"lma\"\": %s }\"",
-                          call_level,
-                          empty_count,
-                          is_leaf ? "true" : "false",
-                          legal_move_count,
-                          legal_move_count_adj,
-                          legal_moves_pg_json_array);
-  return len;
-}
-
 void
 gtl_do_log (const ExactSolution *const result,
             const GameTreeStack *const stack,
@@ -301,8 +255,6 @@ gtl_do_log (const ExactSolution *const result,
       .blacks = c->gpx.blacks,
       .whites = c->gpx.whites,
       .player = c->gpx.player,
-      .json_doc = NULL,
-      .json_doc_len = 0,
       .call_level = c - stack->nodes,
       .empty_count = bitw_bit_count_64(empties),
       .is_leaf = is_leaf,
