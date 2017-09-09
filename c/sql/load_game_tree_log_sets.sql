@@ -214,7 +214,7 @@ BEGIN
     game_tree_log AS t0
   WHERE
     t0.run_id = run_id_in
-    AND (t0.json_doc->'il')::TEXT::BOOL = TRUE
+    AND t0.is_leaf = TRUE
     AND t0.hash = (SELECT ~t1.hash FROM game_tree_log AS t1 WHERE t1.run_id = run_id_in AND t1.sub_run_id = sub_run_id_in AND t1.call_id = t0.call_id + 1);
 
   PERFORM p_assert(ifes_rec.leaf_count = 20244, 'Ifes game tree leaf count must be 20244.');
@@ -229,7 +229,7 @@ BEGIN
     FROM
       game_tree_log
     WHERE
-      run_id = run_id_in AND sub_run_id = sub_run_id_in AND (json_doc->'il')::TEXT::BOOL = TRUE
+      run_id = run_id_in AND sub_run_id = sub_run_id_in AND is_leaf = TRUE
   ), filtered_leafs AS (
     SELECT call_id, hash
     FROM leafs
