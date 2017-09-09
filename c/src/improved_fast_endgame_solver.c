@@ -1295,6 +1295,12 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
     log_data.is_leaf = is_leaf;
     log_data.legal_move_count = legal_move_count;
     log_data.legal_move_count_adjusted = legal_move_count_adj;
+    uint8_t *m = log_data.legal_move_array;
+    SquareSet remaining_moves = legal_moves;
+    while (remaining_moves) {
+      *m++ = bitw_bit_scan_forward_64(remaining_moves);
+      remaining_moves = bitw_reset_lowest_set_bit_64(remaining_moves);
+    }
     gtl_write_h(log_env, &log_data);
   }
 

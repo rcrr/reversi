@@ -308,5 +308,11 @@ gtl_do_log (const ExactSolution *const result,
       .is_leaf = is_leaf,
       .legal_move_count = legal_move_count,
       .legal_move_count_adjusted = legal_move_count + ((legal_moves == 0 && !is_leaf) ? 1 : 0) };
+  uint8_t *m = log_data.legal_move_array;
+  SquareSet remaining_moves = legal_moves;
+  while (remaining_moves) {
+    *m++ = bitw_bit_scan_forward_64(remaining_moves);
+    remaining_moves = bitw_reset_lowest_set_bit_64(remaining_moves);
+  }
   gtl_write_h(log_env, &log_data);
 }

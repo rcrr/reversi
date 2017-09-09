@@ -341,7 +341,7 @@ CREATE TABLE game_tree_log (run_id                    INTEGER  REFERENCES game_t
                             is_leaf                   BOOLEAN,
                             legal_move_count          SMALLINT,
                             legal_move_count_adjusted SMALLINT,
-                            legal_move_array          SMALLINT ARRAY,
+                            legal_move_array          square ARRAY,
                             PRIMARY KEY(run_id, sub_run_id, call_id));
 
 CREATE INDEX game_tree_log_hash_idx ON game_tree_log (hash);
@@ -365,7 +365,7 @@ CREATE TABLE game_tree_log_staging (sub_run_id                INTEGER   NOT NULL
                                     is_leaf                   BOOLEAN,
                                     legal_move_count          SMALLINT,
                                     legal_move_count_adjusted SMALLINT,
-                                    legal_move_array          SMALLINT ARRAY,
+                                    legal_move_array          square ARRAY,
                                     PRIMARY KEY(sub_run_id, call_id));
 
 

@@ -41,7 +41,7 @@ if [ ! -f $FILE_NAME ]; then
 fi
 
 TABLE_NAME=game_tree_log_staging
-TABLE_NAME_AND_COLUMNS="$TABLE_NAME (sub_run_id, call_id, hash, parent_hash, blacks, whites, player, json_doc, call_level, empty_count, is_leaf, legal_move_count, legal_move_count_adjusted)"
+TABLE_NAME_AND_COLUMNS="$TABLE_NAME (sub_run_id, call_id, hash, parent_hash, blacks, whites, player, json_doc, call_level, empty_count, is_leaf, legal_move_count, legal_move_count_adjusted, legal_move_array)"
 
 psql -U $PSQL_USER -w -d $PSQL_DB -h localhost <<EOF
 

@@ -165,7 +165,7 @@ main (int argc, char *argv[])
       size_t len = fread(json_doc, record.json_doc_len + 1, 1, fp);
       if (len != 1) abort();
     }
-    fprintf(stdout, "%6d;%8" PRIu64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%1d;%s;%2d;%2d;%c;%2d;%2d\n",
+    fprintf(stdout, "%6d;%8" PRIu64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%1d;%s;%2d;%2d;%c;%2d;%2d",
             record.sub_run_id,
             record.call_id,
             (int64_t) record.hash,
@@ -179,6 +179,15 @@ main (int argc, char *argv[])
             record.is_leaf ? 't' : 'f',
             record.legal_move_count,
             record.legal_move_count_adjusted);
+
+    fprintf(stdout, ";{");
+    for (int i = 0; i < record.legal_move_count; i++) {
+      if (i != 0) fprintf(stdout, ",");
+      fprintf(stdout, "%s", square_as_move_to_string(record.legal_move_array[i]));
+    }
+    fprintf(stdout, "}");
+
+    fprintf(stdout, "\n");
   }
 
   fclose(fp);
