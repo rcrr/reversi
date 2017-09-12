@@ -140,7 +140,7 @@ main (int argc, char *argv[])
   FILE *fp = fopen(f_arg, "r");
   assert(fp);
 
-  fprintf(stdout, "%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n",
+  fprintf(stdout, "%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n",
           "SUB_RUN_ID",
           "CALL_ID",
           "HASH",
@@ -148,6 +148,8 @@ main (int argc, char *argv[])
           "BLACKS",
           "WHITES",
           "PLAYER",
+          "ALPHA",
+          "BETA",
           "CALL_LEVEL",
           "EMPTY_COUNT",
           "IS_LEAF",
@@ -155,7 +157,7 @@ main (int argc, char *argv[])
           "LEGAL_MOVE_COUNT_ADJUSTED");
 
   while (fread(&record, sizeof(gtl_log_data_h_t), 1, fp)) {
-    fprintf(stdout, "%6d;%8" PRIu64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%1d;%2d;%2d;%c;%2d;%2d",
+    fprintf(stdout, "%6d;%8" PRIu64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%1d;%+3d;%+3d;%2d;%2d;%c;%2d;%2d",
             record.sub_run_id,
             record.call_id,
             (int64_t) record.hash,
@@ -163,6 +165,8 @@ main (int argc, char *argv[])
             (int64_t) record.blacks,
             (int64_t) record.whites,
             record.player,
+            record.alpha,
+            record.beta,
             record.call_level,
             record.empty_count,
             record.is_leaf ? 't' : 'f',

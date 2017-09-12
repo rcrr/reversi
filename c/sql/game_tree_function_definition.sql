@@ -53,8 +53,8 @@ BEGIN
     VALUES (run_label, engine_id, now(), description) RETURNING run_id INTO new_run_id;
   DROP INDEX IF EXISTS game_tree_log_hash_idx;
   DROP INDEX IF EXISTS game_tree_log_001_idx;
-  INSERT INTO game_tree_log (run_id, sub_run_id, call_id, hash, parent_hash, blacks, whites, player, call_level, empty_count, is_leaf, legal_move_count, legal_move_count_adjusted, legal_move_array)
-    SELECT new_run_id, sub_run_id, call_id, hash, parent_hash, blacks, whites, player, call_level, empty_count, is_leaf, legal_move_count, legal_move_count_adjusted, legal_move_array FROM game_tree_log_staging;
+  INSERT INTO game_tree_log (run_id, sub_run_id, call_id, hash, parent_hash, blacks, whites, player, alpha, beta, call_level, empty_count, is_leaf, legal_move_count, legal_move_count_adjusted, legal_move_array)
+    SELECT new_run_id, sub_run_id, call_id, hash, parent_hash, blacks, whites, player, alpha, beta, call_level, empty_count, is_leaf, legal_move_count, legal_move_count_adjusted, legal_move_array FROM game_tree_log_staging;
   CREATE INDEX game_tree_log_hash_idx ON game_tree_log (hash);
   CREATE INDEX game_tree_log_001_idx  ON game_tree_log (run_id, sub_run_id, hash);
   SELECT COUNT(*) INTO STRICT record_loaded_count FROM game_tree_log WHERE run_id = new_run_id;
@@ -309,11 +309,12 @@ BEGIN
   PERFORM p_assert(rec.hash_distinct_count = rec.rel_distinct_count, 'Hash values and game positions must be one-to-one.');
   distinct_count := rec.hash_distinct_count;
   --
-  SELECT COUNT(*) INTO STRICT legal_move_computation_error_count FROM game_tree_log
-    WHERE
-      run_id = run_id_in
-      AND (legal_move_array = square_set_to_array(game_position_legal_moves((blacks, whites, player)))) = FALSE;
-  PERFORM p_assert(legal_move_computation_error_count = 0, 'Legal move computation error count must be equal to zero.');
+  -- This is very time consuming ...
+  --SELECT COUNT(*) INTO STRICT legal_move_computation_error_count FROM game_tree_log
+  --  WHERE
+  --    run_id = run_id_in
+  --    AND (legal_move_array = square_set_to_array(game_position_legal_moves((blacks, whites, player)))) = FALSE;
+  --PERFORM p_assert(legal_move_computation_error_count = 0, 'Legal move computation error count must be equal to zero.');
 END
 $$ LANGUAGE plpgsql;
 

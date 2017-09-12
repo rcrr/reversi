@@ -63,6 +63,8 @@ typedef struct {
   SquareSet  blacks;                    /**< @brief Blacks field part of the game position. */
   SquareSet  whites;                    /**< @brief Whites field part of the game position. */
   Player     player;                    /**< @brief Player field part of the game position. */
+  int8_t     alpha;                     /**< @brief Alpha value when entering the node. */
+  int8_t     beta;                      /**< @brief Beta value when entering the node. */
   uint8_t    call_level;                /**< @brief Call level, or depth. */
   uint8_t    empty_count;               /**< @brief Empy square count. */
   bool       is_leaf;                   /**< @brief A termination node for the tree. */
