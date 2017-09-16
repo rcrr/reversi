@@ -116,6 +116,7 @@ gtl_write_h (const gtl_log_env_t *const env,
              const gtl_log_data_h_t *const data)
 {
   assert(env && env->h_file);
+  fwrite(&gtl_rec_h, sizeof(gtl_rec_h), 1, env->h_file);
   fwrite(data, sizeof(gtl_log_data_h_t), 1, env->h_file);
 }
 
@@ -132,8 +133,9 @@ void
 gtl_write_t (const gtl_log_env_t *const env,
              const gtl_log_data_t_t *const data)
 {
-  assert(env && env->t_file);
-  // To be completed.
+  assert(env && env->h_file);
+  fwrite(&gtl_rec_t, sizeof(gtl_rec_t), 1, env->h_file);
+  fwrite(data, sizeof(gtl_log_data_t_t), 1, env->h_file);
 }
 
 /**
@@ -269,4 +271,21 @@ gtl_do_log (const ExactSolution *const result,
     remaining_moves = bitw_reset_lowest_set_bit_64(remaining_moves);
   }
   gtl_write_h(log_env, &log_data);
+}
+
+void
+gtl_do_log_tail (const ExactSolution *const result,
+                 const GameTreeStack *const stack,
+                 const unsigned long int sub_run_id,
+                 const gtl_log_env_t *const log_env)
+{
+  const NodeInfo* const c = stack->active_node;
+  gtl_log_data_t_t log_data =
+    { .call_cnt = result->node_count,
+      .alpha = c->alpha,
+      .beta  = c->beta,
+      .call_level = c - stack->nodes,
+      .hash = c->hash,
+    };
+  gtl_write_t(log_env, &log_data);
 }

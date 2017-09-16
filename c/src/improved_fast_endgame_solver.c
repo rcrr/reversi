@@ -1285,6 +1285,8 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
     log_data.blacks = (&gpx)->blacks;
     log_data.whites = (&gpx)->whites;
     log_data.player = (&gpx)->player;
+    log_data.alpha = alpha;
+    log_data.beta = beta;
     log_data.call_level = gp_hash_stack_fill_point;
     log_data.empty_count = empty_count;
     log_data.is_leaf = is_leaf;
@@ -1372,6 +1374,13 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
   ;
 
   if (log_env->log_is_on) {
+    gtl_log_data_t_t log_data;
+    log_data.call_cnt = call_count;
+    log_data.alpha = alpha;
+    log_data.beta = beta;
+    log_data.call_level = gp_hash_stack_fill_point;
+    log_data.hash = gp_hash_stack[gp_hash_stack_fill_point];
+    gtl_write_t(log_env, &log_data);
     gp_hash_stack_fill_point--;
   }
 

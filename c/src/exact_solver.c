@@ -402,6 +402,7 @@ game_position_solve_impl (ExactSolution *const result,
   }
 
  end:
+  if (log_env->log_is_on) gtl_do_log_tail(result, stack, sub_run_id, log_env);
   c = --stack->active_node;
   if (stack->active_node == root) return;
   goto entry;

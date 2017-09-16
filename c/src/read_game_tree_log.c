@@ -39,6 +39,7 @@
 
 #include "game_tree_logger.h"
 #include "main_option_parse.h"
+#include "game_tree_utils.h"
 
 
 
@@ -89,6 +90,14 @@ static const char *documentation =
  */
 
 
+static void
+print_error_and_stop (int ret_code)
+{
+  fprintf(stderr, "read_game_tree_log: format error reading file %s\n", f_arg);
+  exit(ret_code);
+}
+
+
 
 /**
  * @brief Main entry for the Read Game Tree Log dump utility.
@@ -96,7 +105,12 @@ static const char *documentation =
 int
 main (int argc, char *argv[])
 {
-  gtl_log_data_h_t record;
+  gtl_log_data_h_t log_data_h_stack[GAME_TREE_MAX_DEPTH];
+  gtl_log_data_t_t tail_record_structure;
+  gtl_log_data_h_t *head_record = log_data_h_stack + 1; // Position zero is not logged.
+  gtl_log_data_t_t *tail_record = &tail_record_structure;
+  uint8_t rec_type = 0x00;
+  size_t re;
   int opt;
   int oindex = -1;
 
@@ -140,7 +154,7 @@ main (int argc, char *argv[])
   FILE *fp = fopen(f_arg, "r");
   assert(fp);
 
-  fprintf(stdout, "%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n",
+  fprintf(stdout, "%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n",
           "SUB_RUN_ID",
           "CALL_ID",
           "HASH",
@@ -154,33 +168,56 @@ main (int argc, char *argv[])
           "EMPTY_COUNT",
           "IS_LEAF",
           "LEGAL_MOVE_COUNT",
-          "LEGAL_MOVE_COUNT_ADJUSTED");
+          "LEGAL_MOVE_COUNT_ADJUSTED",
+          "T_CALL_CNT",
+          "T_ALPHA",
+          "T_BETA",
+          "LEGAL_MOVE_ARRAY");
 
-  while (fread(&record, sizeof(gtl_log_data_h_t), 1, fp)) {
-    fprintf(stdout, "%6d;%8" PRIu64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%1d;%+3d;%+3d;%2d;%2d;%c;%2d;%2d",
-            record.sub_run_id,
-            record.call_id,
-            (int64_t) record.hash,
-            (int64_t) record.parent_hash,
-            (int64_t) record.blacks,
-            (int64_t) record.whites,
-            record.player,
-            record.alpha,
-            record.beta,
-            record.call_level,
-            record.empty_count,
-            record.is_leaf ? 't' : 'f',
-            record.legal_move_count,
-            record.legal_move_count_adjusted);
+  while ((re = fread(&rec_type, sizeof(rec_type), 1, fp))) {
 
-    fprintf(stdout, ";{");
-    for (int i = 0; i < record.legal_move_count; i++) {
-      if (i != 0) fprintf(stdout, ",");
-      fprintf(stdout, "%s", square_as_move_to_string(record.legal_move_array[i]));
-    }
-    fprintf(stdout, "}");
+    if (rec_type == gtl_rec_h) {
+      re = fread(head_record, sizeof(gtl_log_data_h_t), 1, fp);
+      if (re != 1) print_error_and_stop(-10);
+      if (head_record->call_level != head_record - log_data_h_stack) print_error_and_stop(-13);
+      head_record++;
+    } else if (rec_type == gtl_rec_t) {
+      re = fread(tail_record, sizeof(gtl_log_data_t_t), 1, fp);
+      if (re != 1) print_error_and_stop(-11);
+      head_record--;
+      if (head_record->call_level != head_record - log_data_h_stack) print_error_and_stop(-14);
+      if (head_record->call_level != tail_record->call_level) print_error_and_stop(-15);
+      if (head_record->hash != tail_record->hash) print_error_and_stop(-16);
 
-    fprintf(stdout, "\n");
+      fprintf(stdout, "%6d;%8" PRIu64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%1d;%+3d;%+3d;%2d;%2d;%c;%2d;%2d;%8" PRIu64 ";%+3d;%+3d",
+              head_record->sub_run_id,
+              head_record->call_id,
+              (int64_t) head_record->hash,
+              (int64_t) head_record->parent_hash,
+              (int64_t) head_record->blacks,
+              (int64_t) head_record->whites,
+              head_record->player,
+              head_record->alpha,
+              head_record->beta,
+              head_record->call_level,
+              head_record->empty_count,
+              head_record->is_leaf ? 't' : 'f',
+              head_record->legal_move_count,
+              head_record->legal_move_count_adjusted,
+              tail_record->call_cnt,
+              tail_record->alpha,
+              tail_record->beta);
+
+      fprintf(stdout, ";{");
+      for (int i = 0; i < head_record->legal_move_count; i++) {
+        if (i != 0) fprintf(stdout, ",");
+        fprintf(stdout, "%s", square_as_move_to_string(head_record->legal_move_array[i]));
+      }
+      fprintf(stdout, "}");
+      fprintf(stdout, "\n");
+    } else
+      print_error_and_stop(-12);
+
   }
 
   fclose(fp);

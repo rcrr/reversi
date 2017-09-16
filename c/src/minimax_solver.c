@@ -283,6 +283,7 @@ game_position_solve_impl (ExactSolution *const result,
   }
 
  end:
+  if (log_env->log_is_on) gtl_do_log_tail(result, stack, sub_run_id, log_env);
   c = --stack->active_node;
   if (stack->active_node == root) return;
   goto entry;
@@ -324,6 +325,7 @@ game_position_random_sammpler_impl (ExactSolution *const result,
 
  unroll:
   while (true) {
+    if (log_env->log_is_on) gtl_do_log_tail(result, stack, sub_run_id, log_env);
     c = --stack->active_node;
     if (stack->active_node == root) return;
     c->alpha = - (c + 1)->alpha;

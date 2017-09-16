@@ -57,7 +57,7 @@ typedef struct {
  */
 typedef struct {
   int        sub_run_id;                /**< @brief Sub run id field. */
-  uint64_t   call_id;                   /**< @brief Call id. */
+  uint64_t   call_id;                   /**< @brief Call id, or cumulated visited positions when entering the node. */
   uint64_t   hash;                      /**< @brief Game position hash. */
   uint64_t   parent_hash;               /**< @brief Parent game position hash. */
   SquareSet  blacks;                    /**< @brief Blacks field part of the game position. */
@@ -77,10 +77,22 @@ typedef struct {
  * @brief It is collecting the info logged into a record by the tail write function.
  */
 typedef struct {
-  int        sub_run_id;  /**< @brief Sub run id field. */
-  uint64_t   call_id;     /**< @brief Call id. */
+  uint64_t   call_cnt;    /**< @brief Cumulated visited positions when living the node. */
+  int8_t     alpha;       /**< @brief Alpha value when leaving the node. */
+  int8_t     beta;        /**< @brief Beta value when leaving the node. */
+  uint8_t    call_level;  /**< @brief Call level, or depth. */
+  uint64_t   hash;        /**< @brief Game position hash. */
 } gtl_log_data_t_t;
 
+/**
+ * @brief Identifies the head record type in the binary log file.
+ */
+static const uint8_t gtl_rec_h = 0x01;
+
+/**
+ * @brief Identifies the tail record type in the binary log file.
+ */
+static const uint8_t gtl_rec_t = 0x02;
 
 
 /********************************************************/
@@ -115,6 +127,12 @@ gtl_do_log (const ExactSolution *const result,
             const GameTreeStack *const stack,
             const unsigned long int sub_run_id,
             const gtl_log_env_t *const log_env);
+
+extern void
+gtl_do_log_tail (const ExactSolution *const result,
+                 const GameTreeStack *const stack,
+                 const unsigned long int sub_run_id,
+                 const gtl_log_env_t *const log_env);
 
 
 
