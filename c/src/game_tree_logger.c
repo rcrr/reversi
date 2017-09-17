@@ -75,30 +75,12 @@
  * @param [in] env a pointer to the logging environment
  */
 void
-gtl_open_h (gtl_log_env_t *const env)
+gtl_open_log (gtl_log_env_t *const env)
 {
   assert(env);
   if (env->log_is_on) {
-    env->h_file = fopen(env->h_file_name, "w");
-    assert(env->h_file);
-  }
-}
-
-/**
- * @brief Opens the tail file for logging and writes the header.
- *
- * @invariant Parameter `env` must not be empty.
- * The invariant is guarded by an assertion.
- *
- * @param [in] env a pointer to the logging environment
- */
-void
-gtl_open_t (gtl_log_env_t *const env)
-{
-  assert(env);
-  if (env->log_is_on) {
-    env->t_file = fopen(env->t_file_name, "w");
-    assert(env->t_file);
+    env->file = fopen(env->file_name, "w");
+    assert(env->file);
   }
 }
 
@@ -112,12 +94,12 @@ gtl_open_t (gtl_log_env_t *const env)
  * @param [in] data a pointer to the log record
  */
 void
-gtl_write_h (const gtl_log_env_t *const env,
-             const gtl_log_data_h_t *const data)
+gtl_write_head (const gtl_log_env_t *const env,
+                const gtl_log_data_h_t *const data)
 {
-  assert(env && env->h_file);
-  fwrite(&gtl_rec_h, sizeof(gtl_rec_h), 1, env->h_file);
-  fwrite(data, sizeof(gtl_log_data_h_t), 1, env->h_file);
+  assert(env && env->file);
+  fwrite(&gtl_rec_h, sizeof(gtl_rec_h), 1, env->file);
+  fwrite(data, sizeof(gtl_log_data_h_t), 1, env->file);
 }
 
 /**
@@ -130,12 +112,12 @@ gtl_write_h (const gtl_log_env_t *const env,
  * @param [in] data a pointer to the log record
  */
 void
-gtl_write_t (const gtl_log_env_t *const env,
-             const gtl_log_data_t_t *const data)
+gtl_write_tail (const gtl_log_env_t *const env,
+                const gtl_log_data_t_t *const data)
 {
-  assert(env && env->h_file);
-  fwrite(&gtl_rec_t, sizeof(gtl_rec_t), 1, env->h_file);
-  fwrite(data, sizeof(gtl_log_data_t_t), 1, env->h_file);
+  assert(env && env->file);
+  fwrite(&gtl_rec_t, sizeof(gtl_rec_t), 1, env->file);
+  fwrite(data, sizeof(gtl_log_data_t_t), 1, env->file);
 }
 
 /**
@@ -147,16 +129,14 @@ gtl_write_t (const gtl_log_env_t *const env,
  * @param env the logging environment
  */
 void
-gtl_close (gtl_log_env_t *const env)
+gtl_close_log (gtl_log_env_t *const env)
 {
   assert(env);
   if (env->log_is_on) {
     free(env->file_name_prefix);
-    free(env->h_file_name);
-    free(env->t_file_name);
+    free(env->file_name);
   }
-  if (env->h_file) fclose(env->h_file);
-  if (env->t_file) fclose(env->t_file);
+  if (env->file) fclose(env->file);
   free(env);
 }
 
@@ -173,57 +153,47 @@ gtl_init (const char *const file_name_prefix)
   static const size_t size_of_log_env = sizeof(gtl_log_env_t);
 
   const char *h_suffix = "_h.dat";
-  const char *t_suffix = "_t.dat";
 
   env = (gtl_log_env_t*) malloc(size_of_log_env);
   assert(env);
 
-  env->t_file = NULL;
-  env->h_file = NULL;
+  env->file = NULL;
 
   if (file_name_prefix) {
     env->log_is_on = true;
     const size_t p_len = strlen(file_name_prefix);
     const size_t h_len = strlen(h_suffix);
-    const size_t t_len = strlen(t_suffix);
     env->file_name_prefix = malloc(p_len + 1);
     assert(env->file_name_prefix);
-    env->h_file_name = malloc(p_len + h_len + 1);
-    assert(env->h_file_name);
-    env->t_file_name = malloc(p_len + t_len + 1);
-    assert(env->t_file_name);
+    env->file_name = malloc(p_len + h_len + 1);
+    assert(env->file_name);
     strcpy(env->file_name_prefix, file_name_prefix);
-    strcpy(env->h_file_name, file_name_prefix);
-    strcat(env->h_file_name, h_suffix);
-    strcpy(env->t_file_name, file_name_prefix);
-    strcat(env->t_file_name, t_suffix);
+    strcpy(env->file_name, file_name_prefix);
+    strcat(env->file_name, h_suffix);
   } else {
     env->log_is_on = false;
     env->file_name_prefix = NULL;
-    env->h_file_name = NULL;
-    env->t_file_name = NULL;
+    env->file_name = NULL;
   }
 
   return env;
 }
 
 bool
-gtl_touch_files (const char *const file_name_prefix)
+gtl_touch_log_file (const char *const file_name_prefix)
 {
   static const size_t buf_size = 4096;
 
   char buf[buf_size];
-  bool res_h, res_t;
+  bool res_h;
 
   const char *h_suffix = "_h.dat";
-  const char *t_suffix = "_t.dat";
 
   const size_t p_len = strlen(file_name_prefix);
   const size_t h_len = strlen(h_suffix);
-  const size_t t_len = strlen(t_suffix);
 
-  if (p_len + h_len +t_len + 1 > buf_size) {
-    fprintf(stderr, "buf_size of %zu is too small in function game_tree_logger.c:gtl_touch_files(). Aborting ...\n", buf_size);
+  if (p_len + h_len + 1 > buf_size) {
+    fprintf(stderr, "buf_size of %zu is too small in function game_tree_logger.c:gtl_touch_log_file(). Aborting ...\n", buf_size);
     abort();
   }
 
@@ -231,18 +201,14 @@ gtl_touch_files (const char *const file_name_prefix)
   strcat(buf, h_suffix);
   res_h = fut_touch_file(buf);
 
-  strcpy(buf, file_name_prefix);
-  strcat(buf, t_suffix);
-  res_t = fut_touch_file(buf);
-
-  return (res_h && res_t);
+  return res_h;
 }
 
 void
-gtl_do_log (const ExactSolution *const result,
-            const GameTreeStack *const stack,
-            const unsigned long int sub_run_id,
-            const gtl_log_env_t *const log_env)
+gtl_do_log_head (const ExactSolution *const result,
+                 const GameTreeStack *const stack,
+                 const unsigned long int sub_run_id,
+                 const gtl_log_env_t *const log_env)
 {
   const NodeInfo* const c = stack->active_node;
   const bool is_leaf = !game_position_x_has_any_player_any_legal_move(&c->gpx);
@@ -272,7 +238,7 @@ gtl_do_log (const ExactSolution *const result,
     *m++ = bitw_bit_scan_forward_64(remaining_moves);
     remaining_moves = bitw_reset_lowest_set_bit_64(remaining_moves);
   }
-  gtl_write_h(log_env, &log_data);
+  gtl_write_head(log_env, &log_data);
 }
 
 void
@@ -293,5 +259,5 @@ gtl_do_log_tail (const ExactSolution *const result,
   uint8_t *m = log_data.searched_move_array;
   gts_mle_t **p = c->head_of_legal_move_list;
   while (p < c->move_cursor) *m++ = (*p++)->move;
-  gtl_write_t(log_env, &log_data);
+  gtl_write_tail(log_env, &log_data);
 }

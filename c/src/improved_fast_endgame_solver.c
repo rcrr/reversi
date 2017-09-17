@@ -428,7 +428,7 @@ game_position_ifes_solve (const GamePositionX *const root,
 
   if (log_env->log_is_on) {
     gp_hash_stack[0] = 0;
-    gtl_open_h(log_env);
+    gtl_open_log(log_env);
   }
 
   result = exact_solution_new();
@@ -466,7 +466,7 @@ game_position_ifes_solve (const GamePositionX *const root,
   result->outcome = n.value;
   result->best_move = ifes_square_to_square(n.square);
 
-  gtl_close(log_env);
+  gtl_close_log(log_env);
 
   return result;
 }
@@ -1298,7 +1298,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
       *m++ = bitw_bit_scan_forward_64(remaining_moves);
       remaining_moves = bitw_reset_lowest_set_bit_64(remaining_moves);
     }
-    gtl_write_h(log_env, &log_data);
+    gtl_write_head(log_env, &log_data);
   }
 
   int imov = 0;
@@ -1383,7 +1383,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
     log_data.searched_move_cnt = imov;
     log_data.call_level = gp_hash_stack_fill_point;
     log_data.hash = gp_hash_stack[gp_hash_stack_fill_point];
-    gtl_write_t(log_env, &log_data);
+    gtl_write_tail(log_env, &log_data);
     gp_hash_stack_fill_point--;
   }
 

@@ -561,7 +561,7 @@ main (int argc,
 
   if (l_flag) {
     log_file = l_arg;
-    if (gtl_touch_files(l_arg))
+    if (gtl_touch_log_file(l_arg))
       log_file = l_arg;
     else {
       fprintf(stderr, "Unable to open log files with prefix \"%s\".\n", l_arg);

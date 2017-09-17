@@ -141,7 +141,7 @@ game_position_es_solve (const GamePositionX *const root,
 
   log_env = gtl_init(env->log_file);
   if (log_env->log_is_on) {
-    gtl_open_h(log_env);
+    gtl_open_log(log_env);
     stack->hash_is_on = true;
   }
 
@@ -204,7 +204,7 @@ game_position_es_solve (const GamePositionX *const root,
     }
   }
 
-  gtl_close(log_env);
+  gtl_close_log(log_env);
 
   return result;
 }
@@ -365,7 +365,7 @@ game_position_solve_impl (ExactSolution *const result,
   c->pv_first_line_created = false;
 
   if (stack->hash_is_on) gts_compute_hash(stack);
-  if (log_env->log_is_on) gtl_do_log(result, stack, sub_run_id, log_env);
+  if (log_env->log_is_on) gtl_do_log_head(result, stack, sub_run_id, log_env);
 
   if (!c->move_count) {
     result->leaf_count++;

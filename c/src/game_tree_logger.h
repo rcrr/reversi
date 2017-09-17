@@ -46,10 +46,8 @@
 typedef struct {
   bool       log_is_on;        /**< @brief True when logging is turned on. */
   char      *file_name_prefix; /**< @brief The log file name prefix received by the caller. */
-  char      *t_file_name;      /**< @brief The complete name for the tail file. */
-  FILE      *t_file;           /**< @brief Tail file. */
-  char      *h_file_name;      /**< @brief The complete name for the binary data head file. */
-  FILE      *h_file;           /**< @brief Head binary data file. */
+  char      *file_name;        /**< @brief The complete name for the binary data head file. */
+  FILE      *file;             /**< @brief Head binary data file. */
 } gtl_log_env_t;
 
 /**
@@ -102,40 +100,37 @@ static const uint8_t gtl_rec_t = 0x02;
 /* Function implementations for the GameTreeLog entity. */
 /********************************************************/
 
-extern void
-gtl_open_h (gtl_log_env_t *const env);
-
-extern void
-gtl_open_t (gtl_log_env_t *const env);
-
-extern void
-gtl_write_h (const gtl_log_env_t *const env,
-             const gtl_log_data_h_t *const data);
-
-extern void
-gtl_write_t (const gtl_log_env_t *const env,
-             const gtl_log_data_t_t *const data);
-
-extern void
-gtl_close (gtl_log_env_t *const env);
-
 extern gtl_log_env_t *
 gtl_init (const char *const file_name_prefix);
 
 extern bool
-gtl_touch_files (const char *const file_name_prefix);
+gtl_touch_log_file (const char *const file_name_prefix);
 
 extern void
-gtl_do_log (const ExactSolution *const result,
-            const GameTreeStack *const stack,
-            const unsigned long int sub_run_id,
-            const gtl_log_env_t *const log_env);
+gtl_open_log (gtl_log_env_t *const env);
+
+extern void
+gtl_close_log (gtl_log_env_t *const env);
+
+extern void
+gtl_do_log_head (const ExactSolution *const result,
+                 const GameTreeStack *const stack,
+                 const unsigned long int sub_run_id,
+                 const gtl_log_env_t *const log_env);
 
 extern void
 gtl_do_log_tail (const ExactSolution *const result,
                  const GameTreeStack *const stack,
                  const unsigned long int sub_run_id,
                  const gtl_log_env_t *const log_env);
+
+extern void
+gtl_write_head (const gtl_log_env_t *const env,
+                const gtl_log_data_h_t *const data);
+
+extern void
+gtl_write_tail (const gtl_log_env_t *const env,
+                const gtl_log_data_t_t *const data);
 
 
 
