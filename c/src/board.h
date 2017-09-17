@@ -161,6 +161,11 @@ static const Square pass_move = (Square) 64;
 static const Square invalid_move = (Square) 65;
 
 /**
+ * @brief The unknown move.
+ */
+static const Square unknown_move = (Square) 66;
+
+/**
  * @brief The invalid square.
  */
 static const Square invalid_square = (Square) 65;

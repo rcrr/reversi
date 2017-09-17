@@ -259,8 +259,9 @@ game_position_solve_impl (ExactSolution *const result,
 
   if (gts_is_terminal_node(stack)) {
     result->leaf_count++;
-    c->best_move = invalid_move;
     c->alpha = game_position_x_final_value(&c->gpx);
+    c->best_move = invalid_move;
+    c->move_cursor = c->head_of_legal_move_list;
     goto end;
   }
   if (!c->move_set) {
@@ -278,7 +279,7 @@ game_position_solve_impl (ExactSolution *const result,
     if (- (c + 1)->alpha > c->alpha) {
       c->best_move = (*c->move_cursor)->move;
       c->alpha = - (c + 1)->alpha;
-      if (alpha_beta_pruning) if (c->alpha >= c->beta) goto end;
+      if (alpha_beta_pruning) if (c->alpha >= c->beta) { c->move_cursor++; goto end; }
     }
   }
 
@@ -310,8 +311,8 @@ game_position_random_sammpler_impl (ExactSolution *const result,
 
     if (gts_is_terminal_node(stack)) {
       result->leaf_count++;
-      c->best_move = invalid_move;
       c->alpha = game_position_x_final_value(&c->gpx);
+      c->best_move = invalid_move;
       goto unroll;
     } else if (!c->move_set) {
       if (stack->hash_is_on) {

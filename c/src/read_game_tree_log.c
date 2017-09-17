@@ -154,7 +154,7 @@ main (int argc, char *argv[])
   FILE *fp = fopen(f_arg, "r");
   assert(fp);
 
-  fprintf(stdout, "%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n",
+  fprintf(stdout, "%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n",
           "SUB_RUN_ID",
           "CALL_ID",
           "HASH",
@@ -169,10 +169,13 @@ main (int argc, char *argv[])
           "IS_LEAF",
           "LEGAL_MOVE_COUNT",
           "LEGAL_MOVE_COUNT_ADJUSTED",
+          "PARENT_MOVE",
           "T_CALL_CNT",
           "T_ALPHA",
-          "T_BETA",
-          "LEGAL_MOVE_ARRAY");
+          "T_BEST_MOVE",
+          "T_SEARCHED_MOVE_CNT",
+          "LEGAL_MOVE_ARRAY",
+          "SEARCHED_MOVE_ARRAY");
 
   while ((re = fread(&rec_type, sizeof(rec_type), 1, fp))) {
 
@@ -189,7 +192,7 @@ main (int argc, char *argv[])
       if (head_record->call_level != tail_record->call_level) print_error_and_stop(-15);
       if (head_record->hash != tail_record->hash) print_error_and_stop(-16);
 
-      fprintf(stdout, "%6d;%8" PRIu64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%1d;%+3d;%+3d;%2d;%2d;%c;%2d;%2d;%8" PRIu64 ";%+3d;%+3d",
+      fprintf(stdout, "%6d;%8" PRIu64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%1d;%+3d;%+3d;%2d;%2d;%c;%2d;%2d;%s;%8" PRIu64 ";%+3d;%s;%2d",
               head_record->sub_run_id,
               head_record->call_id,
               (int64_t) head_record->hash,
@@ -204,17 +207,23 @@ main (int argc, char *argv[])
               head_record->is_leaf ? 't' : 'f',
               head_record->legal_move_count,
               head_record->legal_move_count_adjusted,
+              square_as_move_to_string(head_record->parent_move),
               tail_record->call_cnt,
               tail_record->alpha,
-              tail_record->beta);
+              square_as_move_to_string(tail_record->best_move),
+              tail_record->searched_move_cnt);
 
       fprintf(stdout, ";{");
       for (int i = 0; i < head_record->legal_move_count; i++) {
         if (i != 0) fprintf(stdout, ",");
         fprintf(stdout, "%s", square_as_move_to_string(head_record->legal_move_array[i]));
       }
-      fprintf(stdout, "}");
-      fprintf(stdout, "\n");
+      fprintf(stdout, "};{");
+      for (int i = 0; i < tail_record->searched_move_cnt; i++) {
+        if (i != 0) fprintf(stdout, ",");
+        fprintf(stdout, "%s", square_as_move_to_string(tail_record->searched_move_array[i]));
+      }
+      fprintf(stdout, "}\n");
     } else
       print_error_and_stop(-12);
 

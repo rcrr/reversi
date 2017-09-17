@@ -263,7 +263,9 @@ gtl_do_log (const ExactSolution *const result,
       .empty_count = bitw_bit_count_64(empties),
       .is_leaf = is_leaf,
       .legal_move_count = legal_move_count,
-      .legal_move_count_adjusted = legal_move_count + ((legal_moves == 0 && !is_leaf) ? 1 : 0) };
+      .legal_move_count_adjusted = legal_move_count + ((legal_moves == 0 && !is_leaf) ? 1 : 0),
+      .parent_move = (*(c - 1)->move_cursor)->move
+    };
   uint8_t *m = log_data.legal_move_array;
   SquareSet remaining_moves = legal_moves;
   while (remaining_moves) {
@@ -283,9 +285,13 @@ gtl_do_log_tail (const ExactSolution *const result,
   gtl_log_data_t_t log_data =
     { .call_cnt = result->node_count,
       .alpha = c->alpha,
-      .beta  = c->beta,
+      .best_move = c->best_move,
+      .searched_move_cnt =  c->move_cursor - c->head_of_legal_move_list,
       .call_level = c - stack->nodes,
       .hash = c->hash,
     };
+  uint8_t *m = log_data.searched_move_array;
+  gts_mle_t **p = c->head_of_legal_move_list;
+  while (p < c->move_cursor) *m++ = (*p++)->move;
   gtl_write_t(log_env, &log_data);
 }

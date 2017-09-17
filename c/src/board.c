@@ -79,7 +79,7 @@ static const char *const sq_to_s[] = {
   "A6", "B6", "C6", "D6", "E6", "F6", "G6", "H6",
   "A7", "B7", "C7", "D7", "E7", "F7", "G7", "H7",
   "A8", "B8", "C8", "D8", "E8", "F8", "G8", "H8",
-  "--", "NA"
+  "--", "NA", "UN"
 };
 
 /* A square set being all set. */
@@ -225,7 +225,9 @@ square_to_string (const Square sq)
 const char *
 square_as_move_to_string (const Square move)
 {
-  if (move == pass_move) {
+  if (move == unknown_move) {
+    return sq_to_s[66]; // sq_to_s[66] is "UN"
+  } else if (move == pass_move) {
     return sq_to_s[64]; // sq_to_s[64] is "--"
   } else {
     return square_to_string(move);

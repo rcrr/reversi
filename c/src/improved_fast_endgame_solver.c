@@ -1301,18 +1301,19 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
     gtl_write_h(log_env, &log_data);
   }
 
+  int imov = 0;
   if (moves != 0) {
-    for (int i = 0; i < moves; i++) {
-      best_value = goodness[i];
-      best_index = i;
-      for (int j = i + 1; j < moves; j++)
+    for (; imov < moves; imov++) {
+      best_value = goodness[imov];
+      best_index = imov;
+      for (int j = imov + 1; j < moves; j++)
         if (goodness[j] > best_value) {
           best_value = goodness[j];
           best_index = j;
         }
       current_move = move_ptr[best_index];
-      move_ptr[best_index] = move_ptr[i];
-      goodness[best_index] = goodness[i];
+      move_ptr[best_index] = move_ptr[imov];
+      goodness[best_index] = goodness[imov];
 
       move_square = current_move->square;
       holepar = current_move->hole_id;
@@ -1343,6 +1344,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
         if (evaluated_n.value > alpha) {
           alpha = evaluated_n.value;
           if (evaluated_n.value >= beta) { /* Cutoff. */
+            imov++;
             goto end;
           }
         }
@@ -1368,6 +1370,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
                                                        empties,
                                                        -discdiff,
                                                        0));
+      imov++;
     }
   }
  end:
@@ -1377,7 +1380,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
     gtl_log_data_t_t log_data;
     log_data.call_cnt = call_count;
     log_data.alpha = alpha;
-    log_data.beta = beta;
+    log_data.searched_move_cnt = imov;
     log_data.call_level = gp_hash_stack_fill_point;
     log_data.hash = gp_hash_stack[gp_hash_stack_fill_point];
     gtl_write_t(log_env, &log_data);

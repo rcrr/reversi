@@ -1891,18 +1891,20 @@ game_tree_stack_init (const GamePositionX *const root,
   ground_node_info->hash = game_position_x_hash(&ground_node_info->gpx);
   ground_node_info->move_set = 0ULL;
   ground_node_info->best_move = invalid_move;
-  ground_node_info->move_count = 0;
+  ground_node_info->move_count = 1;
   ground_node_info->pv_first_line_created = false;
   ground_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
-  ground_node_info->move_cursor = &stack->legal_move_stack[0];
+  ground_node_info->move_cursor = ground_node_info->head_of_legal_move_list;
   ground_node_info->pve_line = NULL;
   ground_node_info->alpha = out_of_range_defeat_score;
   ground_node_info->beta = - out_of_range_defeat_score;
 
+  (*ground_node_info->move_cursor)->move = unknown_move;
+
   NodeInfo* first_node_info  = &stack->nodes[1];
   game_position_x_copy(root, &first_node_info->gpx);
-  first_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
-  first_node_info->move_cursor = &stack->legal_move_stack[0];
+  first_node_info->head_of_legal_move_list = ground_node_info->head_of_legal_move_list + ground_node_info->move_count;
+  first_node_info->move_cursor = first_node_info->head_of_legal_move_list;
   first_node_info->pve_line = NULL;
   first_node_info->alpha = out_of_range_defeat_score;
   first_node_info->beta = - out_of_range_defeat_score;

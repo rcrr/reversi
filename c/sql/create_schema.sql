@@ -139,7 +139,7 @@ CREATE TYPE game_move AS ENUM (
   'A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5',
   'A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6', 'H6',
   'A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7', 'H7',
-  'A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8', '--');
+  'A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8', '--', 'NA', 'UN');
 
 
   
@@ -342,10 +342,13 @@ CREATE TABLE game_tree_log (run_id                    INTEGER  REFERENCES game_t
                             is_leaf                   BOOLEAN,
                             legal_move_count          SMALLINT,
                             legal_move_count_adjusted SMALLINT,
+                            parent_move               game_move,
                             t_call_cnt                INTEGER,
-                            t_alpha                   INTEGER,
-                            t_beta                    INTEGER,
-                            legal_move_array          square ARRAY,
+                            t_alpha                   SMALLINT,
+                            t_best_move               game_move,
+                            t_searched_move_cnt       SMALLINT,
+                            legal_move_array          game_move ARRAY,
+                            t_searched_move_array     game_move ARRAY,
                             PRIMARY KEY(run_id, sub_run_id, call_id));
 
 CREATE INDEX game_tree_log_hash_idx ON game_tree_log (hash);
@@ -370,10 +373,13 @@ CREATE TABLE game_tree_log_staging (sub_run_id                INTEGER   NOT NULL
                                     is_leaf                   BOOLEAN,
                                     legal_move_count          SMALLINT,
                                     legal_move_count_adjusted SMALLINT,
+                                    parent_move               game_move,
                                     t_call_cnt                INTEGER,
-                                    t_alpha                   INTEGER,
-                                    t_beta                    INTEGER,
-                                    legal_move_array          square ARRAY,
+                                    t_alpha                   SMALLINT,
+                                    t_best_move               game_move,
+                                    t_searched_move_cnt       SMALLINT,
+                                    legal_move_array          game_move ARRAY,
+                                    t_searched_move_array     game_move ARRAY,
                                     PRIMARY KEY(sub_run_id, call_id));
 
 
