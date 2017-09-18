@@ -1238,6 +1238,10 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
   int goodness[64];
   Node evaluated_n;
 
+  gtl_log_data_h_t log_data_head;
+  gtl_log_data_t_t log_data_tail;
+  uint8_t *log_m;
+
   const int oppcol = opponent_color(color);
 
   solution->node_count++;
@@ -1276,29 +1280,29 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
     const SquareSet empties = game_position_x_empties(&gpx);
     const uint8_t empty_count = bitw_bit_count_64(empties);
     const int legal_move_count_adj = legal_move_count + ((legal_moves == 0 && !is_leaf) ? 1 : 0);
-    gtl_log_data_h_t log_data;
-    log_data.sub_run_id = 0;
-    log_data.call_id = call_count;
-    log_data.hash = game_position_x_hash(&gpx);
-    gp_hash_stack[gp_hash_stack_fill_point] = log_data.hash;
-    log_data.parent_hash = gp_hash_stack[gp_hash_stack_fill_point - 1];
-    log_data.blacks = (&gpx)->blacks;
-    log_data.whites = (&gpx)->whites;
-    log_data.player = (&gpx)->player;
-    log_data.alpha = alpha;
-    log_data.beta = beta;
-    log_data.call_level = gp_hash_stack_fill_point;
-    log_data.empty_count = empty_count;
-    log_data.is_leaf = is_leaf;
-    log_data.legal_move_count = legal_move_count;
-    log_data.legal_move_count_adjusted = legal_move_count_adj;
-    uint8_t *m = log_data.legal_move_array;
+    log_data_head.sub_run_id = 0;
+    log_data_head.call_id = call_count;
+    log_data_head.hash = game_position_x_hash(&gpx);
+    gp_hash_stack[gp_hash_stack_fill_point] = log_data_head.hash;
+    log_data_head.parent_hash = gp_hash_stack[gp_hash_stack_fill_point - 1];
+    log_data_head.blacks = (&gpx)->blacks;
+    log_data_head.whites = (&gpx)->whites;
+    log_data_head.player = (&gpx)->player;
+    log_data_head.alpha = alpha;
+    log_data_head.beta = beta;
+    log_data_head.call_level = gp_hash_stack_fill_point;
+    log_data_head.empty_count = empty_count;
+    log_data_head.is_leaf = is_leaf;
+    log_data_head.legal_move_count = legal_move_count;
+    log_data_head.legal_move_count_adjusted = legal_move_count_adj;
+    uint8_t *m = log_data_head.legal_move_array;
     SquareSet remaining_moves = legal_moves;
     while (remaining_moves) {
       *m++ = bitw_bit_scan_forward_64(remaining_moves);
       remaining_moves = bitw_reset_lowest_set_bit_64(remaining_moves);
     }
-    gtl_write_head(log_env, &log_data);
+    gtl_write_head(log_env, &log_data_head);
+    log_m = log_data_tail.searched_move_array;
   }
 
   int imov = 0;
@@ -1316,6 +1320,8 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
       goodness[best_index] = goodness[imov];
 
       move_square = current_move->square;
+      if (log_env->log_is_on)
+        *log_m++ = ifes_square_to_square(move_square);
       holepar = current_move->hole_id;
       flip_count = do_flips(board, move_square, color, oppcol);
       board[move_square] = color;
@@ -1377,13 +1383,12 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
   ;
 
   if (log_env->log_is_on) {
-    gtl_log_data_t_t log_data;
-    log_data.call_cnt = call_count;
-    log_data.alpha = alpha;
-    log_data.searched_move_cnt = imov;
-    log_data.call_level = gp_hash_stack_fill_point;
-    log_data.hash = gp_hash_stack[gp_hash_stack_fill_point];
-    gtl_write_tail(log_env, &log_data);
+    log_data_tail.call_cnt = call_count;
+    log_data_tail.alpha = alpha;
+    log_data_tail.searched_move_cnt = imov;
+    log_data_tail.call_level = gp_hash_stack_fill_point;
+    log_data_tail.hash = gp_hash_stack[gp_hash_stack_fill_point];
+    gtl_write_tail(log_env, &log_data_tail);
     gp_hash_stack_fill_point--;
   }
 
