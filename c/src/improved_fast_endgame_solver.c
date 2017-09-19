@@ -1385,6 +1385,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
   if (log_env->log_is_on) {
     log_data_tail.call_cnt = call_count;
     log_data_tail.alpha = alpha;
+    log_data_tail.best_move = ifes_square_to_square(selected_n.square);
     log_data_tail.searched_move_cnt = imov;
     log_data_tail.call_level = gp_hash_stack_fill_point;
     log_data_tail.hash = gp_hash_stack[gp_hash_stack_fill_point];
