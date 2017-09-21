@@ -140,7 +140,7 @@ static Node
 end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta,
            int color, int empties, int discdiff, int prevmove);
 
-static char *
+static const char *
 ifes_square_to_string (const int sq);
 
 static Square
@@ -461,7 +461,7 @@ game_position_ifes_solve (const GamePositionX *const root,
   }
   /** **/
 
-  n = end_solve(result, board, -64, 64, player, emp, discdiff, 1);
+  n = end_solve(result, board, -64, 64, player, emp, discdiff, 99);
 
   result->outcome = n.value;
   result->best_move = ifes_square_to_square(n.square);
@@ -575,6 +575,8 @@ ifes_game_position_translation (GamePositionX *const gpx,
 static Square
 ifes_square_to_square (const int sq)
 {
+  if (sq == 99) return unknown_move;
+  if (sq == 0) return pass_move;
   const uint8_t col = (sq % 9) - 1;
   const uint8_t row = (sq / 9) - 1;
   return row * 8 + col;
@@ -588,27 +590,19 @@ ifes_square_to_square (const int sq)
  * @param [in] sq the square
  * @return        a string representation for the square
  */
-static char *
+static const char *
 ifes_square_to_string (const int sq)
 {
-  char *symbol;
-
-  static const size_t size_of_square_to_string = 3 * sizeof(char);
-  symbol = (char*) malloc(size_of_square_to_string);
-
-  if (sq < 9 || sq > 80 || (sq % 9) == 0) {
-    *symbol       = 'N';
-    *(symbol + 1) = 'A';
-    *(symbol + 2) = '\0';
-  } else {
-    const uint8_t col = (sq % 9) - 1;
-    const uint8_t row = (sq / 9) - 1;
-    *symbol = 'A' + col;
-    *(symbol + 1) = '1' + row;
-    *(symbol + 2) = '\0';
+  Square s;
+  if (sq == 99) {
+    s = unknown_move;
   }
-
-  return symbol;
+  else if (sq < 9 || sq > 80 || (sq %9) == 0) {
+    s = invalid_move;
+  } else {
+    s = ifes_square_to_square(sq);
+  }
+  return square_as_move_to_string(s);
 }
 
 /**
@@ -1295,6 +1289,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
     log_data_head.is_leaf = is_leaf;
     log_data_head.legal_move_count = legal_move_count;
     log_data_head.legal_move_count_adjusted = legal_move_count_adj;
+    log_data_head.parent_move = ifes_square_to_square(prevmove);
     uint8_t *m = log_data_head.legal_move_array;
     SquareSet remaining_moves = legal_moves;
     while (remaining_moves) {
