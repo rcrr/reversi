@@ -297,9 +297,9 @@ endgame_pv_files: $(ENDGAME_LOG_DIR)
 # _2 has to be removed ....
 .PHONY: dat2csv 
 dat2csv:
-	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/ab_solver_log-ffo-01-simplified-4_h.dat >     $(ENDGAME_LOG_DIR)/ab_solver_log-ffo-01-simplified-4_h.csv
-	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/exact_solver_log-ffo-01_h.dat >               $(ENDGAME_LOG_DIR)/exact_solver_log-ffo-01_h.csv
-	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/ifes_solver_log-ffo-01_h.dat >                $(ENDGAME_LOG_DIR)/ifes_solver_log-ffo-01_h.csv
-	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/minimax_log-ffo-01-simplified-4_h.dat >       $(ENDGAME_LOG_DIR)/minimax_log-ffo-01-simplified-4_h.csv
-	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/rab_solver_log-ffo-01-simplified-4_n3_h.dat > $(ENDGAME_LOG_DIR)/rab_solver_log-ffo-01-simplified-4_n3_h.csv
-	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/random_game_sampler_log-t100_h.dat >          $(ENDGAME_LOG_DIR)/random_game_sampler_log-t100_h.csv
+	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/ab_solver_log-ffo-01-simplified-4.dat >     $(ENDGAME_LOG_DIR)/ab_solver_log-ffo-01-simplified-4.csv
+	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/exact_solver_log-ffo-01.dat >               $(ENDGAME_LOG_DIR)/exact_solver_log-ffo-01.csv
+	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/ifes_solver_log-ffo-01.dat >                $(ENDGAME_LOG_DIR)/ifes_solver_log-ffo-01.csv
+	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/minimax_log-ffo-01-simplified-4.dat >       $(ENDGAME_LOG_DIR)/minimax_log-ffo-01-simplified-4.csv
+	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/rab_solver_log-ffo-01-simplified-4_n3.dat > $(ENDGAME_LOG_DIR)/rab_solver_log-ffo-01-simplified-4_n3.csv
+	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/random_game_sampler_log-t100.dat >          $(ENDGAME_LOG_DIR)/random_game_sampler_log-t100.csv

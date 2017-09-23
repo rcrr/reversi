@@ -95,11 +95,11 @@ gtl_open_log (gtl_log_env_t *const env)
  */
 void
 gtl_write_head (const gtl_log_env_t *const env,
-                const gtl_log_data_h_t *const data)
+                const gtl_log_data_head_t *const data)
 {
   assert(env && env->file);
   fwrite(&gtl_rec_h, sizeof(gtl_rec_h), 1, env->file);
-  fwrite(data, sizeof(gtl_log_data_h_t), 1, env->file);
+  fwrite(data, sizeof(gtl_log_data_head_t), 1, env->file);
 }
 
 /**
@@ -113,11 +113,11 @@ gtl_write_head (const gtl_log_env_t *const env,
  */
 void
 gtl_write_tail (const gtl_log_env_t *const env,
-                const gtl_log_data_t_t *const data)
+                const gtl_log_data_tail_t *const data)
 {
   assert(env && env->file);
   fwrite(&gtl_rec_t, sizeof(gtl_rec_t), 1, env->file);
-  fwrite(data, sizeof(gtl_log_data_t_t), 1, env->file);
+  fwrite(data, sizeof(gtl_log_data_tail_t), 1, env->file);
 }
 
 /**
@@ -152,7 +152,7 @@ gtl_init (const char *const file_name_prefix)
   gtl_log_env_t *env;
   static const size_t size_of_log_env = sizeof(gtl_log_env_t);
 
-  const char *h_suffix = "_h.dat";
+  const char *suffix = ".dat";
 
   env = (gtl_log_env_t*) malloc(size_of_log_env);
   assert(env);
@@ -162,14 +162,14 @@ gtl_init (const char *const file_name_prefix)
   if (file_name_prefix) {
     env->log_is_on = true;
     const size_t p_len = strlen(file_name_prefix);
-    const size_t h_len = strlen(h_suffix);
+    const size_t h_len = strlen(suffix);
     env->file_name_prefix = malloc(p_len + 1);
     assert(env->file_name_prefix);
     env->file_name = malloc(p_len + h_len + 1);
     assert(env->file_name);
     strcpy(env->file_name_prefix, file_name_prefix);
     strcpy(env->file_name, file_name_prefix);
-    strcat(env->file_name, h_suffix);
+    strcat(env->file_name, suffix);
   } else {
     env->log_is_on = false;
     env->file_name_prefix = NULL;
@@ -185,12 +185,12 @@ gtl_touch_log_file (const char *const file_name_prefix)
   static const size_t buf_size = 4096;
 
   char buf[buf_size];
-  bool res_h;
+  bool res;
 
-  const char *h_suffix = "_h.dat";
+  const char *suffix = ".dat";
 
   const size_t p_len = strlen(file_name_prefix);
-  const size_t h_len = strlen(h_suffix);
+  const size_t h_len = strlen(suffix);
 
   if (p_len + h_len + 1 > buf_size) {
     fprintf(stderr, "buf_size of %zu is too small in function game_tree_logger.c:gtl_touch_log_file(). Aborting ...\n", buf_size);
@@ -198,10 +198,10 @@ gtl_touch_log_file (const char *const file_name_prefix)
   }
 
   strcpy(buf, file_name_prefix);
-  strcat(buf, h_suffix);
-  res_h = fut_touch_file(buf);
+  strcat(buf, suffix);
+  res = fut_touch_file(buf);
 
-  return res_h;
+  return res;
 }
 
 void
@@ -215,7 +215,7 @@ gtl_do_log_head (const ExactSolution *const result,
   const SquareSet empties = game_position_x_empties(&c->gpx);
   const SquareSet legal_moves = game_position_x_legal_moves(&c->gpx);
   const uint8_t legal_move_count = bitw_bit_count_64(legal_moves);
-  gtl_log_data_h_t log_data =
+  gtl_log_data_head_t log_data =
     { .sub_run_id = sub_run_id,
       .call_id = result->node_count,
       .hash = c->hash,
@@ -248,7 +248,7 @@ gtl_do_log_tail (const ExactSolution *const result,
                  const gtl_log_env_t *const log_env)
 {
   const NodeInfo* const c = stack->active_node;
-  gtl_log_data_t_t log_data =
+  gtl_log_data_tail_t log_data =
     { .call_cnt = result->node_count,
       .alpha = c->alpha,
       .best_move = c->best_move,

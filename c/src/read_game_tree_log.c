@@ -105,10 +105,10 @@ print_error_and_stop (int ret_code)
 int
 main (int argc, char *argv[])
 {
-  gtl_log_data_h_t log_data_h_stack[GAME_TREE_MAX_DEPTH];
-  gtl_log_data_t_t tail_record_structure;
-  gtl_log_data_h_t *head_record = log_data_h_stack + 1; // Position zero is not logged.
-  gtl_log_data_t_t *tail_record = &tail_record_structure;
+  gtl_log_data_head_t log_data_h_stack[GAME_TREE_MAX_DEPTH];
+  gtl_log_data_tail_t tail_record_structure;
+  gtl_log_data_head_t *head_record = log_data_h_stack + 1; // Position zero is not logged.
+  gtl_log_data_tail_t *tail_record = &tail_record_structure;
   uint8_t rec_type = 0x00;
   size_t re;
   int opt;
@@ -180,12 +180,12 @@ main (int argc, char *argv[])
   while ((re = fread(&rec_type, sizeof(rec_type), 1, fp))) {
 
     if (rec_type == gtl_rec_h) {
-      re = fread(head_record, sizeof(gtl_log_data_h_t), 1, fp);
+      re = fread(head_record, sizeof(gtl_log_data_head_t), 1, fp);
       if (re != 1) print_error_and_stop(-10);
       if (head_record->call_level != head_record - log_data_h_stack) print_error_and_stop(-13);
       head_record++;
     } else if (rec_type == gtl_rec_t) {
-      re = fread(tail_record, sizeof(gtl_log_data_t_t), 1, fp);
+      re = fread(tail_record, sizeof(gtl_log_data_tail_t), 1, fp);
       if (re != 1) print_error_and_stop(-11);
       head_record--;
       if (head_record->call_level != head_record - log_data_h_stack) print_error_and_stop(-14);

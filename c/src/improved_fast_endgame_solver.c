@@ -1232,8 +1232,8 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
   int goodness[64];
   Node evaluated_n;
 
-  gtl_log_data_h_t log_data_head;
-  gtl_log_data_t_t log_data_tail;
+  gtl_log_data_head_t log_data_head;
+  gtl_log_data_tail_t log_data_tail;
   uint8_t *log_m;
 
   const int oppcol = opponent_color(color);

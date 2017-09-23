@@ -5,11 +5,11 @@
  *
  * @todo [done] Harmonize the exact_solver algorithm to minimax, full use of the stack and no recursion.
  *
- * @todo Add to the exact_solver logging strategy a second file that logs
- *       when the function returns. There we can add the return value and the
- *       number of moves searched against the number of legal ones. This can give
- *       back a kpi of the alpha-beta efficiency in cutting irrelevant branches.
- *       It is needed than to develop the postgres tables and procedures to properly handle this new data.
+ * @todo [done] Add to the exact_solver logging strategy a second file that logs
+ *              when the function returns. There we can add the return value and the
+ *              number of moves searched against the number of legal ones. This can give
+ *              back a kpi of the alpha-beta efficiency in cutting irrelevant branches.
+ *              It is needed than to develop the postgres tables and procedures to properly handle this new data.
  *
  * @todo Analyze the effectiveness of the a-b cut operated by es, compare it with a-b, and random a-b. The analysis require to have the tail-log-file tool.
  *
@@ -24,8 +24,8 @@
  *         - The value of all the first level moves is not recorded
  *         - For random game sampler the output is meaningless
  *
- * @todo Meter, and verify, performances of the new harmonized exact_solver vs the legacy one.
- *       Remove the legacy one when tests, and performances are ok.
+ * @todo [done] Meter, and verify, performances of the new harmonized exact_solver vs the legacy one.
+ *              Remove the legacy one when tests, and performances are ok.
  *
  * @todo Refactor game_tree_utils.
  *
@@ -42,7 +42,7 @@
  * @todo Remove GamePositionX and add board_t and game_position_t, where game_position_t has a bit-board for player and one for the opponent.
  *       board_t has also the player moving next.
  *
- * @todo When es searches the full pv the a-b values are tacking values outside of the worst-best outcome (-72 for instance). This is very alarming.
+ * @todo When es searches the full pv the a-b values are taking values outside of the worst-best outcome (-72 for instance). This is very alarming.
  *       The reason is that during the alpha-beta deepening at each iteration alpha is decreased by one.
  *       Is it correct? It seems not, but a full investigation is required. Best done after the tail-log-file is operational.
  *

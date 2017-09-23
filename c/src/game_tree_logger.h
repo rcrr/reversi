@@ -70,7 +70,7 @@ typedef struct {
   uint8_t    legal_move_count_adjusted; /**< @brief Same as legal_move_count, zero is turned to one to account for passing. */
   uint8_t    parent_move;               /**< @brief The move played to reach this position. */
   uint8_t    legal_move_array[32];      /**< @brief Legal move array (no more than 25 moves has been found in random generated games). */
-} gtl_log_data_h_t;
+} gtl_log_data_head_t;
 
 /**
  * @brief It is collecting the info logged into a record by the tail write function.
@@ -83,7 +83,7 @@ typedef struct {
   uint8_t    call_level;               /**< @brief Call level, or depth. */
   uint64_t   hash;                     /**< @brief Game position hash. */
   uint8_t    searched_move_array[32];  /**< @brief Searched move move array. */
-} gtl_log_data_t_t;
+} gtl_log_data_tail_t;
 
 /**
  * @brief Identifies the head record type in the binary log file.
@@ -126,11 +126,11 @@ gtl_do_log_tail (const ExactSolution *const result,
 
 extern void
 gtl_write_head (const gtl_log_env_t *const env,
-                const gtl_log_data_h_t *const data);
+                const gtl_log_data_head_t *const data);
 
 extern void
 gtl_write_tail (const gtl_log_env_t *const env,
-                const gtl_log_data_t_t *const data);
+                const gtl_log_data_tail_t *const data);
 
 
 
