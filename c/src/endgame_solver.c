@@ -34,10 +34,10 @@
  *       Could be relevant to have a binary format that supports multiple stack dumps, in order to log different evolution of the stack during program
  *       execution. The reader than should be able to list the dumps saved in the binary format and to print the requested selection.
  *
- * @todo Refactor the board module. Get rid of all game_position and board structures, prepare the new one with the {player, opponent} definition; see below.
+ * @todo Refactor the board module. Get rid of all game_position and board structures, prepare the new one with the {player, opponent} definition.
  *       Change the definition of game_position and board from: {black, white}, to {player, opponent}. This is a big change, the reason for it is that
  *       all the key for a position in a game hash table, or in a postgres database, are values for a position regardless of the player holding it.
- *       This is redoing the key size to just the two 64 bit square set, no longer requiring the include also the player.
+ *       This is reducing the key size to just the two 64 bit square set, no longer requiring the include also the player.
  *
  * @todo Remove GamePositionX and add board_t and game_position_t, where game_position_t has a bit-board for player and one for the opponent.
  *       board_t has also the player moving next.
@@ -78,7 +78,7 @@
  *       - prepare C procedures that interact with PostgreSQL for generating and storing the random games.
  *       - Establish a procedure to backup and restore the PostgreSQL DB.
  *
- * @todo Develop procedures that consume the position db, computing values and best moves. Moving from olmost completed games backword ...
+ * @todo Develop procedures that consume the position db, computing values and best moves. Moving from almost completed games backword ...
  *
  * @todo Grovth a db of solved, random, game position. Run on the server (Vilya) the batches.
  *
@@ -87,7 +87,7 @@
  * @todo Analyze the parity feature in improved_fast_endgame.
  *
  * @todo Analyze the statistical properties of the solved random games. If needed develop SQL, spreadshet, R procedures to understand the data.
- *       Select one or more patterns (features) anddevelop the appropriate statistics and correlation between game output and position features.
+ *       Select one or more patterns (features) and develop the appropriate statistics and correlation between game output and position features.
  *
  * @todo Select one or more feature and write a proper evaluation function based on the data analysis and the features.
  *       Test the effectiveness of sorting moves in the a-b algorithm based on the new evaluation function.
