@@ -429,7 +429,7 @@ mopool_malloc_free_limited_a_t (ut_test_t *const t)
 static void
 mopool_malloc_free_unlimited_a_t (ut_test_t *const t)
 {
-  static const size_t nobjs = 256;
+  static const size_t nobjs = 258;
 
   typedef struct data_s {
     uint64_t       value;
@@ -446,8 +446,8 @@ mopool_malloc_free_unlimited_a_t (ut_test_t *const t)
   uint64_t count = 0;
 
   const mopool_ext_policy_t policy = MOPOOL_EXT_POLICY_UNLIMITED;
-  const size_t nobjs_initial = 4;
-  const size_t nobjs_extension = 2;
+  const size_t nobjs_initial = 32;
+  const size_t nobjs_extension = 16;
   const size_t nobjs_limit = 0;
 
   errno = 0;
@@ -491,6 +491,8 @@ mopool_malloc_free_unlimited_a_t (ut_test_t *const t)
     ut_assert(t, prev->value == count++);
     prev = prev->prev;
   }
+
+  ut_assert(t, mopool_check_consistency(mop));
 
   mopool_destroy(mop);
   mop = NULL;
