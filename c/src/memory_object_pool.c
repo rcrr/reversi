@@ -38,7 +38,6 @@
 #include <assert.h>
 #include <errno.h>
 #include <alloca.h>
-#include <stdint.h>
 
 #include "memory_object_pool.h"
 #include "sort_utils.h"

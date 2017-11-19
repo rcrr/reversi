@@ -15,7 +15,13 @@
  *
  * @todo [done] Remove json fields in the logging procedures, and from PostgreSQL.
  *
- * @todo Complete the object allocator tool.
+ * @todo [done] Develop an object allocator tool.
+ *
+ * @todo Memory Object Pool refinements:
+ *       - Develop an optional check in the mopool_free function that verifies that the pointer released is a good allocated object.
+ *       - Apply the allocator to core utilities like the red-black trees, and the linked list.
+ *       - Look for all the call to malloc and properly handle the failure that may arise when NULL is returned.
+ *       - Create the call-back functions for check the allocated objects, and for shrink the pool.
  *
  * @todo Change typedef from camel based to _t syntax. In all modules.
  *
@@ -25,7 +31,7 @@
  *         - For random game sampler the output is meaningless
  *
  * @todo [done] Meter, and verify, performances of the new harmonized exact_solver vs the legacy one.
- *              Remove the legacy one when tests, and performances are ok.
+ *              Remove the legacy one when tests, and performances are OK.
  *
  * @todo Refactor game_tree_utils.
  *
@@ -78,15 +84,15 @@
  *       - prepare C procedures that interact with PostgreSQL for generating and storing the random games.
  *       - Establish a procedure to backup and restore the PostgreSQL DB.
  *
- * @todo Develop procedures that consume the position db, computing values and best moves. Moving from almost completed games backword ...
+ * @todo Develop procedures that consume the position db, computing values and best moves. Moving from almost completed games backwards ...
  *
- * @todo Grovth a db of solved, random, game position. Run on the server (Vilya) the batches.
+ * @todo Growth a db of solved, random, game position. Run on the server (Vilya) the batches.
  *
  * @todo Profile exact_solver against improved_fast_endgame_solver.
  *
  * @todo Analyze the parity feature in improved_fast_endgame.
  *
- * @todo Analyze the statistical properties of the solved random games. If needed develop SQL, spreadshet, R procedures to understand the data.
+ * @todo Analyze the statistical properties of the solved random games. If needed develop SQL, spreadsheet, R procedures to understand the data.
  *       Select one or more patterns (features) and develop the appropriate statistics and correlation between game output and position features.
  *
  * @todo Select one or more feature and write a proper evaluation function based on the data analysis and the features.
@@ -181,14 +187,14 @@
  *
  * @todo [done] The solvers do not return a PV, but just the best move and its value.
  *              Now a new sub-module, pve in game_tree_utils, has al the functions that are needed.
- *              It is used by the exact_solver, the other has to be updated if usefull.
+ *              It is used by the exact_solver, the other has to be updated if useful.
  *
  * @todo [done] Refine and refactor the exact_solver implementation.
  *
  * @todo [done] Write SIMD (AVX2) versions of make_move and legal_moves functions.
  *
  * @todo [done] Solvers rab and ab share the same stack solution. Refactor it sharing
- *              the same utilities brougth to a dedicated module.
+ *              the same utilities brought to a dedicated module.
  *       [done] The es solver should do the same.
  *              2016-08-21: legal_moves and make_move functions have an AVX2 version.
  *                          Now malloc/free functions are consuming the largest slice of the es solver.

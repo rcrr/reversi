@@ -140,12 +140,50 @@ mopool_get_nobjs_initial (mopool_t *mop);
 extern size_t
 mopool_get_nobjs_extension (mopool_t *mop);
 
+/**
+ * @brief Returns the capacity limit of the pool.
+ *
+ * @details When the pool is created, the client passes the capacity limit of the pool.
+ *
+ * @param [in] mop the reference to the pool
+ * @return         the size limit
+ */
 extern size_t
 mopool_get_nobjs_limit (mopool_t *mop);
 
+/**
+ * @brief Performs consistency checks on the pool.
+ *
+ * @details The function performs the following checks:
+ *          - `mop` is not `NULL`
+ *          - the memory segments are all connected and reachable following the linked list
+ *          - all the free slots are belonging to the segments
+ *          - the count of free slots is consistent
+ *          - allocated slot count are no more then allocated capacity
+ *
+ *          Further checks not yet implemented are:
+ *          - collects the free slots in a dictionary
+ *          - computes by difference the set of allocated slots
+ *          - performs a call-back to a function provided by the client on all allocated objects
+ *
+ * @param [in] mop the reference to the pool
+ * @return         `true` when the pool is consistent
+ */
 extern bool
 mopool_check_consistency (mopool_t *mop);
 
+/**
+ * @brief Returns a newly created and allocated memory pool
+ *
+ * @details
+ *
+ * @param [in] obj_size         the size in bytes of the object hosted by the pool
+ * @param [in] policy           the extension policy to apply when space is exhausted
+ * @param [in] nobjs_initial    the size allocated, in terms of object count, when the pool is created
+ * @param [in] nobjs_extension  the size further allocated when an extension is performed
+ * @param [in] nobjs_limit      the upper bound of the pool
+ * @return
+ */
 extern mopool_t *
 mopool_create (size_t obj_size,
                mopool_ext_policy_t policy,
@@ -153,17 +191,55 @@ mopool_create (size_t obj_size,
                size_t nobjs_extension,
                size_t nobjs_limit);
 
+/**
+ * @brief Destroies the pool, by releasing to the OS all the allocated resources.
+ *
+ * @details Deallocates a pool created by a call to mopool_create().
+ *
+ *          If `mop` does not point to a valid #mopool_t structure allocated with the above functions,
+ *          undefined behavior occurs.
+ *
+ *          If `mop` is a null pointer, the function does nothing.
+ *
+ *          Notice that this function does not change the value of `mop` itself, hence it still
+ *          points to the same (now invalid) location.
+ *
+ * @param [in] mop the reference to the pool
+ */
 extern void
 mopool_destroy (mopool_t *mop);
 
+/**
+ * @brief Returns a pointer to the newly allocated memory for an object
+ *
+ * @details Allocates a slot from the pool, returning a pointer to the object.
+ *          The newly allocated object is not initialized, remaining with indeterminate values.
+ *
+ * @param [in] mop the reference to the pool
+ * @return         a pointer to the allocated object
+ */
 extern void *
 mopool_malloc (mopool_t *mop);
 
+/**
+ * @brief Release the space, allocated by an object pointed by `ptr`, to the pool.
+ *
+ * @details A block of memory previously allocated by a call to mopool_malloc(), is deallocated,
+ *          and returned to the pool making it available again for further allocations.
+ *
+ *          If `ptr` does not point to a slot of memory allocated with the above functions, the pool gets corrupted.
+ *          Calling the function on a valid slot, but already deallocated causes corruption.
+ *
+ *          If `ptr` is a null pointer, the function does nothing.
+ *
+ *          Notice that this function does not change the value of `ptr` itself, hence it still
+ *          points to the same (now invalid) location.
+ *
+ * @param [in] mop the reference to the pool
+ * @param [in] ptr the reference to the released object
+ */
 extern void
 mopool_free (mopool_t *mop,
              void *ptr);
-
-extern size_t
-mopool_get_nobjs (mopool_t *mop);
 
 #endif
