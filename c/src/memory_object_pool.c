@@ -47,19 +47,20 @@ typedef struct mopool_mseg_s {
 } mopool_mseg_t;
 
 struct mopool_s {
-  size_t                nobjs;             /**< @brief Size of the pool in terms of object count. */
-  size_t                obj_size;          /**< @brief Space consumed in the pool by one object. */
-  size_t                slot_size;         /**< @brief Space consumed in the pool by one object. */
-  size_t                nfree;             /**< @brief Count of the free slots. */
-  void                 *freelist;          /**< @brief Head of the linked list of free slots. */
-  mopool_ext_policy_t   policy;            /**< @brief The policy that governs extensions. */
-  size_t                nobjs_initial;
-  size_t                nobjs_extension;
-  size_t                nobjs_limit;       /**< @brief Define the limit size when the extension policy establishes a cap. */
-  struct mopool_mseg_s *head_of_mseg_list; /**< @brief A reference to the list of memory segments. */
+  size_t                nobjs;             // Size of the pool in terms of object count.
+  size_t                obj_size;          // Space consumed in the pool by one object.
+  size_t                slot_size;         // Space consumed in the pool by one object.
+  size_t                nfree;             // Count of the free slots.
+  void                 *freelist;          // Head of the linked list of free slots.
+  mopool_ext_policy_t   policy;            // The policy that governs extensions.
+  size_t                nobjs_initial;     //
+  size_t                nobjs_extension;   //
+  size_t                nobjs_limit;       // Define the limit size when the extension policy establishes a cap.
+  mopool_mseg_t        *head_of_mseg_list; // A reference to the list of memory segments.
+  size_t                nsegments;         // Count of memory segments.
 };
 
-mopool_mseg_t *
+static mopool_mseg_t *
 mopool_add_memory_segment (mopool_t *mop,
                            size_t nslots)
 {
@@ -72,6 +73,7 @@ mopool_add_memory_segment (mopool_t *mop,
     free(segment);
     return NULL;
   }
+  mop->nsegments++;
 
   void **slot_cursor = (void **) segment->addr;
   for (size_t j = 0; j < nslots - 1; j++) {
@@ -97,10 +99,16 @@ size_t mopool_get_nobjs_initial (mopool_t *mop) { return mop->nobjs_initial; }
 size_t mopool_get_nobjs_extension (mopool_t *mop) { return mop->nobjs_extension; }
 size_t mopool_get_nobjs_limit (mopool_t *mop) { return mop->nobjs_limit; }
 
-
-extern bool
+bool
 mopool_check_consistency (mopool_t *mop)
 {
+  size_t mseg_count = 0;
+  mopool_mseg_t *seg = mop->head_of_mseg_list;
+  while (seg) {
+    mseg_count++;
+    seg = seg->next_mseg;
+  }
+  if (mop->nsegments != mseg_count) return false;
   return true;
 }
 
@@ -130,6 +138,7 @@ mopool_create (size_t obj_size,
   mop->nobjs_extension = nobjs_extension;
   mop->nobjs_limit = nobjs_limit;
   mop->head_of_mseg_list = NULL;
+  mop->nsegments = 0;
 
   mop->head_of_mseg_list = mopool_add_memory_segment(mop, nobjs_initial);
   if (!mop->head_of_mseg_list) {

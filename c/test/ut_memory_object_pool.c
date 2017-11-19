@@ -64,16 +64,22 @@ mopool_create_destroy_t (ut_test_t *const t)
   mopool_t *mop;
 
   mop = mopool_create(1, MOPOOL_EXT_POLICY_FIXED, 4, 0, 0);
-  ut_assert(t, mop != NULL);
+  ut_assert(t, mop);
+  ut_assert(t, mopool_check_consistency(mop));
   mopool_destroy(mop);
+  mop = NULL;
 
   mop = mopool_create(1, MOPOOL_EXT_POLICY_LIMITED, 4, 4, 16);
-  ut_assert(t, mop != NULL);
+  ut_assert(t, mop);
+  ut_assert(t, mopool_check_consistency(mop));
   mopool_destroy(mop);
+  mop = NULL;
 
   mop = mopool_create(1, MOPOOL_EXT_POLICY_UNLIMITED, 4, 4, 0);
-  ut_assert(t, mop != NULL);
+  ut_assert(t, mop);
+  ut_assert(t, mopool_check_consistency(mop));
   mopool_destroy(mop);
+  mop = NULL;
 }
 
 static void
@@ -90,27 +96,33 @@ mopool_malloc_free_fixed_a_t (ut_test_t *const t)
   errno = 0;
 
   mopool_t *mop = mopool_create(sizeof(char), policy, nobjs_initial, nobjs_extension, nobjs_limit);
-  ut_assert(t, mop != NULL);
+  ut_assert(t, mop);
+  ut_assert(t, mopool_check_consistency(mop));
 
   c0 = mopool_malloc(mop);
+  ut_assert(t, mopool_check_consistency(mop));
   for (int i = 1; i < nobjs_initial; i++) {
     c1 = mopool_malloc(mop);
     ut_assert(t, sizeof_void_ptr == (char *) c1 - (char *) c0);
     ut_assert(t, errno == 0);
+    ut_assert(t, mopool_check_consistency(mop));
     c0 = c1;
   }
 
   c1 = mopool_malloc(mop);
-  ut_assert(t, c1 == NULL);
+  ut_assert(t, !c1);
   ut_assert(t, errno == ENOMEM);
+  ut_assert(t, mopool_check_consistency(mop));
 
   errno = 0;
 
   mopool_free(mop, c0);
   c1 = mopool_malloc(mop);
-  ut_assert(t, c1 != NULL);
+  ut_assert(t, c1);
+  ut_assert(t, mopool_check_consistency(mop));
 
   mopool_destroy(mop);
+  mop = NULL;
   ut_assert(t, errno == 0);
 }
 
@@ -142,7 +154,8 @@ mopool_malloc_free_fixed_b_t (ut_test_t *const t)
   errno = 0;
 
   mopool_t *mop = mopool_create(sizeof(data_t), policy, nobjs_initial, nobjs_extension, nobjs_limit);
-  ut_assert(t, mop != NULL);
+  ut_assert(t, mop);
+  ut_assert(t, mopool_check_consistency(mop));
 
   ut_assert(t, nobjs == mopool_get_nobjs(mop));
   ut_assert(t, expected_obj_size == mopool_get_obj_size(mop));
@@ -155,7 +168,8 @@ mopool_malloc_free_fixed_b_t (ut_test_t *const t)
 
   for (size_t i = 0; i < nobjs; i++) {
     data_refs[i] = mopool_malloc(mop);
-    ut_assert(t, data_refs[i] != NULL);
+    ut_assert(t, data_refs[i]);
+    ut_assert(t, mopool_check_consistency(mop));
     data_refs[i]->x0 = 0;
     data_refs[i]->x1 = i;
     data_refs[i]->x2 = i * i;
@@ -180,6 +194,7 @@ mopool_malloc_free_fixed_b_t (ut_test_t *const t)
     ut_assert(t, i * i * i * i == data_refs[i]->x4);
     mopool_free(mop, data_refs[i]);
     data_refs[i] = NULL;
+    ut_assert(t, mopool_check_consistency(mop));
 
     ut_assert(t, nobjs == mopool_get_nobjs(mop));
     ut_assert(t, expected_obj_size == mopool_get_obj_size(mop));
@@ -192,6 +207,7 @@ mopool_malloc_free_fixed_b_t (ut_test_t *const t)
   }
 
   mopool_destroy(mop);
+  mop = NULL;
   ut_assert(t, errno == 0);
 }
 
@@ -220,7 +236,8 @@ mopool_malloc_free_fixed_c_t (ut_test_t *const t)
   errno = 0;
 
   mopool_t *mop = mopool_create(sizeof(data_t), policy, nobjs_initial, nobjs_extension, nobjs_limit);
-  ut_assert(t, mop != NULL);
+  ut_assert(t, mop);
+  ut_assert(t, mopool_check_consistency(mop));
 
   ut_assert(t, nobjs == mopool_get_nobjs(mop));
   ut_assert(t, expected_obj_size == mopool_get_obj_size(mop));
@@ -233,7 +250,8 @@ mopool_malloc_free_fixed_c_t (ut_test_t *const t)
 
   for (size_t i = 0; i < nobjs; i++) {
     data_refs[i] = mopool_malloc(mop);
-    ut_assert(t, data_refs[i] != NULL);
+    ut_assert(t, data_refs[i]);
+    ut_assert(t, mopool_check_consistency(mop));
     data_refs[i]->x = i;
     data_refs[i]->c = i;
 
@@ -245,11 +263,13 @@ mopool_malloc_free_fixed_c_t (ut_test_t *const t)
     ut_assert(t, i == data_refs[i]->c);
     mopool_free(mop, data_refs[i]);
     data_refs[i] = NULL;
+    ut_assert(t, mopool_check_consistency(mop));
 
     ut_assert(t, 0 + i + 1 == mopool_get_nfree(mop));
   }
 
   mopool_destroy(mop);
+  mop = NULL;
   ut_assert(t, errno == 0);
 }
 
@@ -275,7 +295,8 @@ mopool_malloc_free_fixed_d_t (ut_test_t *const t)
   errno = 0;
 
   mopool_t *mop = mopool_create(sizeof(data_t), policy, nobjs_initial, nobjs_extension, nobjs_limit);
-  ut_assert(t, mop != NULL);
+  ut_assert(t, mop);
+  ut_assert(t, mopool_check_consistency(mop));
 
   ut_assert(t, nobjs == mopool_get_nobjs(mop));
   ut_assert(t, expected_obj_size == mopool_get_obj_size(mop));
@@ -288,7 +309,8 @@ mopool_malloc_free_fixed_d_t (ut_test_t *const t)
 
   for (size_t i = 0; i < nobjs; i++) {
     data_refs[i] = mopool_malloc(mop);
-    ut_assert(t, data_refs[i] != NULL);
+    ut_assert(t, data_refs[i]);
+    ut_assert(t, mopool_check_consistency(mop));
     data_refs[i]->x[0] = i;
 
     ut_assert(t, nobjs - i - 1 == mopool_get_nfree(mop));
@@ -298,11 +320,13 @@ mopool_malloc_free_fixed_d_t (ut_test_t *const t)
     ut_assert(t, i == data_refs[i]->x[0]);
     mopool_free(mop, data_refs[i]);
     data_refs[i] = NULL;
+    ut_assert(t, mopool_check_consistency(mop));
 
     ut_assert(t, 0 + i + 1 == mopool_get_nfree(mop));
   }
 
   mopool_destroy(mop);
+  mop = NULL;
   ut_assert(t, errno == 0);
 }
 
@@ -331,7 +355,8 @@ mopool_malloc_free_limited_a_t (ut_test_t *const t)
   errno = 0;
 
   mopool_t *mop = mopool_create(sizeof(data_t), policy, nobjs_initial, nobjs_extension, nobjs_limit);
-  ut_assert(t, mop != NULL);
+  ut_assert(t, mop);
+  ut_assert(t, mopool_check_consistency(mop));
 
   ut_assert(t, nobjs_initial == mopool_get_nobjs(mop));
   ut_assert(t, expected_obj_size == mopool_get_obj_size(mop));
@@ -347,8 +372,9 @@ mopool_malloc_free_limited_a_t (ut_test_t *const t)
 
   for (size_t i = 0; i < nobjs_initial; i++) {
     data_refs[i] = mopool_malloc(mop);
+    ut_assert(t, data_refs[i]);
+    ut_assert(t, mopool_check_consistency(mop));
     if (p) *p = data_refs[i];
-    ut_assert(t, data_refs[i] != NULL);
     data_refs[i]->value = count++;
     data_refs[i]->next = NULL;
     p = &(data_refs[i]->next);
@@ -361,8 +387,9 @@ mopool_malloc_free_limited_a_t (ut_test_t *const t)
 
   for (size_t i = nobjs_initial; i < nobjs; i++) {
     data_refs[i] = mopool_malloc(mop);
+    ut_assert(t, data_refs[i]);
+    ut_assert(t, mopool_check_consistency(mop));
     if (p) *p = data_refs[i];
-    ut_assert(t, data_refs[i] != NULL);
     data_refs[i]->value = count++;
     data_refs[i]->next = NULL;
     p = &(data_refs[i]->next);
@@ -395,6 +422,7 @@ mopool_malloc_free_limited_a_t (ut_test_t *const t)
 
   errno = 0;
   mopool_destroy(mop);
+  mop = NULL;
   ut_assert(t, errno == 0);
 }
 
@@ -425,7 +453,8 @@ mopool_malloc_free_unlimited_a_t (ut_test_t *const t)
   errno = 0;
 
   mopool_t *mop = mopool_create(sizeof(data_t), policy, nobjs_initial, nobjs_extension, nobjs_limit);
-  ut_assert(t, mop != NULL);
+  ut_assert(t, mop);
+  ut_assert(t, mopool_check_consistency(mop));
 
   ut_assert(t, nobjs_initial == mopool_get_nobjs(mop));
   ut_assert(t, expected_obj_size == mopool_get_obj_size(mop));
@@ -438,6 +467,7 @@ mopool_malloc_free_unlimited_a_t (ut_test_t *const t)
 
   obj = mopool_malloc(mop);
   ut_assert(t, obj);
+  ut_assert(t, mopool_check_consistency(mop));
   obj->value = count++;
   obj->prev = obj;
   obj->next = obj;
@@ -445,6 +475,7 @@ mopool_malloc_free_unlimited_a_t (ut_test_t *const t)
   for (size_t i = 1; i < nobjs; i++) {
     new = mopool_malloc(mop);
     ut_assert(t, new);
+    ut_assert(t, mopool_check_consistency(mop));
     new->value = count++;
     prev = obj->prev;
     prev->next = new;
@@ -461,8 +492,8 @@ mopool_malloc_free_unlimited_a_t (ut_test_t *const t)
     prev = prev->prev;
   }
 
-
   mopool_destroy(mop);
+  mop = NULL;
   ut_assert(t, errno == 0);
 }
 

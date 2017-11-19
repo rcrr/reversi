@@ -2,7 +2,11 @@
  * @file
  *
  * @brief Memory object pool module definitions.
- * @details This module defines the #mopool_t entity.
+ *
+ * @details A memory object pool is an allocated space that provides a mechanism
+ * for memory allocation and de-allocation specific for a given structure definition.
+ *
+ * The pool is created with a call to #mopool_create()
  *
  * @par memory_object_pool.h
  * <tt>
@@ -53,14 +57,91 @@ typedef enum {
   MOPOOL_EXT_POLICY_UNLIMITED   /**< Unlimited extension is allowed. */
 } mopool_ext_policy_t;
 
-extern size_t mopool_get_nobjs (mopool_t *mop);
-extern size_t mopool_get_obj_size (mopool_t *mop);
-extern size_t mopool_get_slot_size (mopool_t *mop);
-extern size_t mopool_get_nfree (mopool_t *mop);
-extern mopool_ext_policy_t mopool_get_policy (mopool_t *mop);
-extern size_t mopool_get_nobjs_initial (mopool_t *mop);
-extern size_t mopool_get_nobjs_extension (mopool_t *mop);
-extern size_t mopool_get_nobjs_limit (mopool_t *mop);
+/**
+ * @brief Returns the number of objects that the pool can collects without performing an incremental extension.
+ *
+ * @details It is the allocated space in terms of object count.
+ *
+ * @param [in] mop the reference to the pool
+ * @return         the current size of the pool
+ */
+extern size_t
+mopool_get_nobjs (mopool_t *mop);
+
+/**
+ * @brief Returns the object size.
+ *
+ * @details When the pool is created, the client passes the object size, that is then
+ *          recorded unchanged for the complete lifecycle of the pool.
+ *
+ * @param [in] mop the reference to the pool
+ * @return         the object size
+ */
+extern size_t
+mopool_get_obj_size (mopool_t *mop);
+
+/**
+ * @brief Returns the slot size.
+ *
+ * @details When the pool is created, the memory footprint for one object is computed
+ *          by padding the object size to the next eight byte multiple.
+ *          The slot size is then the real memory consumption for one object in the pool,
+ *          after being computed it is recorded unchanged for the complete lifecycle of the pool.
+ *
+ * @param [in] mop the reference to the pool
+ * @return         the slot size
+ */
+extern size_t
+mopool_get_slot_size (mopool_t *mop);
+
+/**
+ * @brief Returns the count of new objects that can be added to the pool without an incremental extension.
+ *
+ * @details It is the free space in terms of object count.
+ *
+ * @param [in] mop the reference to the pool
+ * @return         the free slots
+ */
+extern size_t
+mopool_get_nfree (mopool_t *mop);
+
+/**
+ * @brief Returns the policy of the pool.
+ *
+ * @details When the pool is created, the client passes the policy of the pool, that is then
+ *          recorded unchanged for the complete lifecycle of the pool.
+ *
+ * @param [in] mop the reference to the pool
+ * @return         the policy of the pool
+ */
+extern mopool_ext_policy_t
+mopool_get_policy (mopool_t *mop);
+
+/**
+ * @brief Returns the initial pool capacity.
+ *
+ * @details When the pool is created, the client passes the initial pool size in terms of
+ *          object capacity, that is then recorded unchanged for the complete lifecycle of the pool.
+ *
+ * @param [in] mop the reference to the pool
+ * @return         the initial pool capacity
+ */
+extern size_t
+mopool_get_nobjs_initial (mopool_t *mop);
+
+/**
+ * @brief Returns the incremental capacity given by one extension.
+ *
+ * @details When the pool is created, the client passes the incremental capacity given by one extension.
+ *
+ * @param [in] mop the reference to the pool
+ * @return         the extension size
+ */
+extern size_t
+mopool_get_nobjs_extension (mopool_t *mop);
+
+extern size_t
+mopool_get_nobjs_limit (mopool_t *mop);
 
 extern bool
 mopool_check_consistency (mopool_t *mop);

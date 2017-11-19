@@ -26,7 +26,7 @@
 MAINS = endgame_solver utest read_pve_dump intel_intrinsics_trial \
         read_game_tree_log gpdb_verify
 
-UTEST_PROGS = ut_utest ut_llist ut_main_option_parse ut_bit_works ut_sha3 ut_prng ut_file_utils ut_sort_utils ut_red_black_tree \
+UTEST_PROGS = ut_utest ut_llist ut_memory_object_pool ut_main_option_parse ut_bit_works ut_sha3 ut_prng ut_file_utils ut_sort_utils ut_red_black_tree \
               ut_board ut_game_position_db ut_game_tree_utils ut_game_position ut_endgame_solver ut_es_pv
 
 #
