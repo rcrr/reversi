@@ -35,20 +35,28 @@ UTEST_PROGS = ut_utest ut_llist ut_memory_object_pool ut_main_option_parse ut_bi
 
 #
 # Add -pg to CFLAGS and DFLAGS to profile.
+#
+
+#
+# Needed for PostgreSQL libpq API
+#
+PG_INCLUDE_DIR = `pg_config --includedir`
+PG_LIB_DIR = `pg_config --pkglibdir`
+PG_LIBS = -lpq
 
 CC = gcc 
-#CFLAGS = -std=c99 -pedantic -Wall -g -O3 -D_POSIX_SOURCE
+#CFLAGS = -std=c99 -pedantic -Wall -g -O3 -D_POSIX_SOURCE 
 #LDFLAGS =
 # add -pg for gprof execution.
 # add -DNDEBUG to disable assertions
 # add -fno-inline to prevent inlining
 ARCH_FLAGS = -mpopcnt -mavx2 -mabm
-CFLAGS = -std=c99 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O0 $(ARCH_FLAGS) -fno-inline
+CFLAGS = -std=c99 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O0 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -fno-inline
 LDFLAGS =
 CFLAGS_TEST = -std=c99 -pedantic-errors -Wall -g -O0 -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS)
 LDFLAGS_TEST =
-ASMFLAGS = -std=c99 -pedantic-errors -Wall -O0 -masm=intel -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS)
-LIBS = -lm
+ASMFLAGS = -std=c99 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -O0 $(ARCH_FLAGS) -masm=intel
+LIBS = -lm -L$(PG_LIB_DIR) $(PG_LIBS)
 TEST_LIBS =
 SRCDIR = src
 TESTDIR = test
@@ -253,6 +261,7 @@ info:
 	@echo "UTEST_OBJS_WITH_MAIN = "$(UTEST_OBJS_WITH_MAIN)
 	@echo "TEST_OBJS_WITH_MAIN = "$(TEST_OBJS_WITH_MAIN)
 	@echo "TEST_OBJS_NO_MAIN = "$(TEST_OBJS_NO_MAIN)
+	@echo "PG_INCLUDE_DIR = "$(PG_INCLUDE_DIR)
 
 
 .PHONY: $(ENDGAME_LOG_DIR)
