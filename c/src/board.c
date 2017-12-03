@@ -1094,6 +1094,17 @@ game_position_x_make_move (const GamePositionX *const current,
   return;
 }
 
+void
+game_position_x_set_initial_position (GamePositionX *const gpx)
+{
+  assert(gpx);
+
+  gpx->blacks = 0x0000000810000000;
+  gpx->whites = 0x0000001008000000;
+  gpx->player = BLACK_PLAYER;
+}
+
+
 
 /**
  * @cond

@@ -126,6 +126,10 @@ prng_mt19937_random_string_az (prng_mt19937_t *prng,
                                char *const rs,
                                const size_t n);
 
+extern uint8_t
+prng_mt19937_extract_from_set64 (prng_mt19937_t *prng,
+                                 uint64_t *set);
+
 
 
 #endif /* PRNG_H */

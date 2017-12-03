@@ -128,8 +128,9 @@ CREATE TYPE square AS ENUM (
 
 --
 -- ENUM game_move
--- This set is composed by 65 elements, the 64 squares, in the same order, and
--- a 65th element representing the PASS_MOVE.
+-- This set is composed by 67 elements, the 64 squares, in the same order,
+-- a 65th element representing the PASS_MOVE, and two more values: NOT AVAILABLE,
+-- and UNKNOWN.
 --
 CREATE TYPE game_move AS ENUM (
   'A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1',

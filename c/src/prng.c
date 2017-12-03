@@ -147,6 +147,7 @@
 
 #include "prng.h"
 #include "time_utils.h"
+#include "bit_works.h"
 
 
 
@@ -706,4 +707,25 @@ prng_mt19937_random_string_az (prng_mt19937_t *prng,
     rs[i] = c;
   }
   rs[n] = '\0';
+}
+
+uint8_t
+prng_mt19937_extract_from_set64 (prng_mt19937_t *prng,
+                                 uint64_t *set)
+{
+  assert(prng);
+  assert(prng->mt);
+  assert(set);
+  assert(*set);
+
+  uint64_t s = *set;
+
+  const uint8_t k = bitw_bit_count_64(s);
+  const double r = prng_mt19937_get_double_in_c0_o1(prng);
+  const uint8_t c = (uint8_t) floor(r * k);
+  for (int i = 0; i < c; i++)
+    s = bitw_reset_lowest_set_bit_64(s);
+  const uint8_t p = bitw_bit_scan_forward_64(s);
+  *set = *set &~(1ULL << p);
+  return p;
 }
