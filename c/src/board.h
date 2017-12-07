@@ -279,8 +279,14 @@ game_position_x_copy (const GamePositionX *const from,
 extern SquareSet
 game_position_x_empties (const GamePositionX *const gpx);
 
-inline static SquareSet
+inline static Player
 game_position_x_get_player (const GamePositionX *const gpx)
+{
+  return gpx->player;
+}
+
+inline static SquareSet
+game_position_x_get_mover (const GamePositionX *const gpx)
 {
   return *((SquareSet *) gpx + gpx->player);
 }

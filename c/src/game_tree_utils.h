@@ -522,9 +522,9 @@ gts_make_move (GameTreeStack *const stack)
   game_position_x_make_move(&c->gpx, move, &(c + 1)->gpx);
   if (stack->hash_is_on) {
     const SquareSet bitmove = 1ULL << move;
-    const SquareSet cu_p = game_position_x_get_player(&c->gpx);
+    const SquareSet cu_m = game_position_x_get_mover(&c->gpx);
     const SquareSet up_o = game_position_x_get_opponent(&(c + 1)->gpx);
-    SquareSet flip_set = up_o & ~(cu_p | bitmove);
+    SquareSet flip_set = up_o & ~(cu_m | bitmove);
     while (flip_set) {
       *flip_cursor++ = bitw_bit_scan_forward_64(flip_set);
       flip_set = bitw_reset_lowest_set_bit_64(flip_set);

@@ -80,11 +80,10 @@ CREATE TABLE regab_prng_gp (seq            SERIAL     PRIMARY KEY,
                             player         PLAYER,
                             --
                             empty_count               SMALLINT,
-                            is_leaf                   BOOLEAN,
+                            legal_move_set            SQUARE_SET,
                             legal_move_count          SMALLINT,
                             legal_move_count_adjusted SMALLINT,
                             parent_move               GAME_MOVE,
-                            legal_move_array          GAME_MOVE ARRAY,
                             --
                             game_value                SMALLINT,
                             best_move                 GAME_MOVE,

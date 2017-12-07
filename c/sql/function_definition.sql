@@ -386,6 +386,40 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION square_set_pp(squares square_set) RETURNS TEXT AS $$
+--
+-- Prints a 2D representation of the square set.
+--
+DECLARE
+  new_line CONSTANT TEXT := E'\n';
+
+  i_sq INTEGER;
+  sq   square_set;
+  ret  TEXT;
+BEGIN
+  ret := '';
+  i_sq := 0;
+  ret := ret || '   a b c d e f g h ' || new_line;
+  FOR i_row IN 1..8 LOOP
+    ret := ret || i_row::TEXT || '  ';
+    FOR i_column IN 1..8 LOOP
+      sq := 1::square_set << i_sq;
+      IF sq & squares <> 0 THEN
+        ret := ret || 'X';
+      ELSE
+        ret := ret || '.';
+      END IF;
+      ret := ret || ' ';
+      i_sq := i_sq + 1;
+    END LOOP;
+    ret := ret || new_line;
+  END LOOP;
+  RETURN ret;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+
+
 CREATE OR REPLACE FUNCTION square_set_from_string(ss_string CHAR(64)) RETURNS square_set AS $$
 --
 -- Returns a square_set from the given string.
@@ -964,7 +998,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 CREATE OR REPLACE FUNCTION game_position_pp(gp game_position) RETURNS TEXT AS $$
 --
--- Executes a game move on the given position.
+-- Prints a 2D representation of the game position.
 --
 DECLARE
   new_line CONSTANT TEXT := E'\n';
@@ -997,6 +1031,25 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
+
+CREATE OR REPLACE FUNCTION game_position_pp_mop(mover square_set, opponent square_set, player player) RETURNS TEXT AS $$
+--
+-- Prints a 2D representation of the game position.
+--
+DECLARE
+  blacks square_set;
+  whites square_set;
+BEGIN
+  IF player = 0 THEN
+    blacks := mover;
+    whites := opponent;
+  ELSE
+    blacks := opponent;
+    whites := mover;
+  END IF;
+  RETURN game_position_pp((blacks, whites, player));
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 CREATE OR REPLACE FUNCTION game_position_final_value(gp game_position) RETURNS SMALLINT AS $$

@@ -57,8 +57,8 @@
 
 typedef struct regab_prng_node_s {
   GamePositionX gpx;
+  SquareSet     legal_move_set;
   uint8_t       empty_count;
-  bool          is_leaf;
   uint8_t       legal_move_count;
   uint8_t       legal_move_count_adjusted;
   uint8_t       parent_move;
@@ -205,9 +205,9 @@ regab_get_db_connection (PGconn **conp,
   /* Prepares statement insert_regab_prng_gp. */
   res = PQprepare(*conp,
                   insert_regab_prng_gp,
-                  "INSERT INTO regab_prng_gp (run_id, sub_run_id, call_id, ins_time, status, cst_time) "
-                  "VALUES ($1, $2, $3, $4, $5, $6);",
-                  6,
+                  "INSERT INTO regab_prng_gp (run_id, sub_run_id, call_id, ins_time, status, cst_time, mover, opponent, player, empty_count, legal_move_set, legal_move_count, legal_move_count_adjusted, parent_move) "
+                  "VALUES ($1, $2, $3, $4, $5, $6, $7::square_set, $8::square_set, $9::player, $10, $11, $12, $13, $14);",
+                  14,
                   NULL);
   PQclear(res);
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
@@ -276,36 +276,67 @@ do_insert_regab_prng_gp (int *result,
                          uint64_t run_id,
                          uint64_t sub_run_id,
                          uint64_t call_id,
-                         char *status)
+                         char *status,
+                         regab_prng_node_t *n)
 {
   PGresult *res = NULL;
 
-  const char* paramValues[6];
+  const char* paramValues[15];
   char run_id_to_s[64];
   char sub_run_id_to_s[64];
   char call_id_to_s[64];
+  char mover_to_s[64];
+  char opponent_to_s[64];
+  char player_to_s[8];
+  char empty_count_to_s[8];
+  char legal_move_set_to_s[64];
+  char legal_move_count_to_s[8];
+  char legal_move_count_adjusted_to_s[8];
+  char parent_move_to_s[8];
 
   if (!result) return;
   if (!status) return;
-  if (!con || (strlen(status) > 3)) {
+  if (!con || (strlen(status) > 3) || !n) {
     *result = -1;
     return;
   }
+
+  const SquareSet mover = game_position_x_get_mover(&n->gpx);
+  const SquareSet opponent = game_position_x_get_opponent(&n->gpx);
+  const Player player = game_position_x_get_player(&n->gpx);
 
   sprintf(run_id_to_s, "%zu", run_id);
   sprintf(sub_run_id_to_s, "%zu", sub_run_id);
   sprintf(call_id_to_s, "%zu", call_id);
 
-  paramValues[0] = run_id_to_s;
-  paramValues[1] = sub_run_id_to_s;
-  paramValues[2] = call_id_to_s;
-  paramValues[3] = "now()";
-  paramValues[4] = status;
-  paramValues[5] = "now()";
+  sprintf(mover_to_s, "%ld", (int64_t) mover);
+  sprintf(opponent_to_s, "%ld", (int64_t) opponent);
+  sprintf(player_to_s, "%u", player);
+
+  sprintf(empty_count_to_s, "%u", n->empty_count);
+  sprintf(legal_move_set_to_s, "%ld", (int64_t) n->legal_move_set);
+  sprintf(legal_move_count_to_s, "%u", n->legal_move_count);
+  sprintf(legal_move_count_adjusted_to_s, "%u", n->legal_move_count_adjusted);
+  sprintf(parent_move_to_s, "%s", square_as_move_to_string(n->parent_move));
+
+  paramValues[ 0] = run_id_to_s;
+  paramValues[ 1] = sub_run_id_to_s;
+  paramValues[ 2] = call_id_to_s;
+  paramValues[ 3] = "now()";
+  paramValues[ 4] = status;
+  paramValues[ 5] = "now()";
+  paramValues[ 6] = mover_to_s;
+  paramValues[ 7] = opponent_to_s;
+  paramValues[ 8] = player_to_s;
+  paramValues[ 9] = empty_count_to_s;
+  paramValues[10] = legal_move_set_to_s;
+  paramValues[11] = legal_move_count_to_s;
+  paramValues[12] = legal_move_count_adjusted_to_s;
+  paramValues[13] = parent_move_to_s;
 
   res = PQexecPrepared(con,
                        insert_regab_prng_gp,
-                       6,
+                       14,
                        paramValues,
                        NULL,
                        NULL,
@@ -598,35 +629,36 @@ main (int argc,
   prng_mt19937_init_by_seed(prng, prng_seed);
 
   for (int igame = 0; igame < n_games; igame++) {
-    printf("igame=%d\n", igame);
     gstack.npos = 0;
     gstack.active_node = gstack.nodes;
     game_position_x_set_initial_position(&gstack.active_node->gpx);
 
     bool has_passed = false;
+    Square parent_move = invalid_move;
 
     while (gstack.npos < REGAB_PRNG_MAX_DEPTH) {
       GamePositionX *curr_gpx = &gstack.active_node->gpx;
       GamePositionX *next_gpx = &(gstack.active_node + 1)->gpx;
 
-      char tmp[256];
-      game_position_x_print(tmp, curr_gpx);
-      printf("\n\n%s\n", tmp);
-      printf("gstack.npos=%zu\n", gstack.npos);
-
       SquareSet move_set = game_position_x_legal_moves(curr_gpx);
+      uint8_t legal_move_count = bitw_bit_count_64(move_set);
+      Square move = pass_move;
 
-      if (move_set) {
+      if ((gstack.active_node->legal_move_set = move_set)) {
         has_passed = false;
-        Square move = prng_mt19937_extract_from_set64(prng, &move_set);
+        move = prng_mt19937_extract_from_set64(prng, &move_set);
         game_position_x_make_move(curr_gpx, move, next_gpx);
-        ;
-        ;
       } else {
         if (has_passed) goto game_completed;
         has_passed = true;
         game_position_x_pass(curr_gpx, next_gpx);
       }
+      gstack.active_node->empty_count = bitw_bit_count_64(game_position_x_empties(curr_gpx));
+      gstack.active_node->legal_move_count = legal_move_count;
+      gstack.active_node->legal_move_count_adjusted = (legal_move_count > 0) ? legal_move_count : 1;
+      gstack.active_node->parent_move = parent_move;
+
+      parent_move = move;
       gstack.npos++;
       gstack.active_node++;
     }
@@ -636,13 +668,11 @@ main (int argc,
     abort();
 
   game_completed:
-    gstack.npos--; // Last pass is removed.
-
-    printf("gstack.npos=%zu\n", gstack.npos);
+    (gstack.active_node - 1)->legal_move_count_adjusted = 0;
 
     /* Load game into the database. */
     for (int ipos = 0; ipos < gstack.npos; ipos++) {
-      do_insert_regab_prng_gp(&result, con, run_id, igame, ipos, "INS");
+      do_insert_regab_prng_gp(&result, con, run_id, igame, ipos, "INS", &gstack.nodes[ipos]);
     }
 
   }

@@ -732,13 +732,22 @@ game_position_x_empties (const GamePositionX *const gpx)
 }
 
 /**
+ * @brief Returns the moving player.
+ *
+ * @param [in] gpx a pointer to the game position structure
+ * @return         the given player
+ */
+extern Player
+game_position_x_get_player (const GamePositionX *const gpx);
+
+/**
  * @brief Returns the square set belonging to the moving player.
  *
  * @param [in] gpx a pointer to the game position structure
  * @return         the set of squares in the board belonging to the given player
  */
 extern SquareSet
-game_position_x_get_player (const GamePositionX *const gpx);
+game_position_x_get_mover (const GamePositionX *const gpx);
 
 /**
  * @brief Returns the square set belonging to the opponent player.
@@ -786,10 +795,10 @@ SquareSet
 game_position_x_legal_moves (const GamePositionX *const gpx)
 {
   const SquareSet e_set = game_position_x_empties(gpx);
-  const SquareSet p_set = game_position_x_get_player(gpx);
+  const SquareSet m_set = game_position_x_get_mover(gpx);
   const SquareSet o_set = game_position_x_get_opponent(gpx);
 
-  const SquareSet result = kogge_stone_b(p_set, o_set, e_set);
+  const SquareSet result = kogge_stone_b(m_set, o_set, e_set);
 
   return result;
 }
@@ -1074,7 +1083,7 @@ game_position_x_make_move (const GamePositionX *const current,
   const Player o = player_opponent(p);
 
   const SquareSet m_set = 1ULL << move;
-  const SquareSet p_set = game_position_x_get_player(current);
+  const SquareSet p_set = game_position_x_get_mover(current);
   const SquareSet o_set = game_position_x_get_opponent(current);
 
   const SquareSet f_set = kogge_stone_gpb(m_set, o_set, p_set);
