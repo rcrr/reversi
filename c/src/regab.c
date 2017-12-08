@@ -206,7 +206,7 @@ regab_get_db_connection (PGconn **conp,
   res = PQprepare(*conp,
                   insert_regab_prng_gp,
                   "INSERT INTO regab_prng_gp (run_id, sub_run_id, call_id, ins_time, status, cst_time, mover, opponent, player, empty_count, legal_move_set, legal_move_count, legal_move_count_adjusted, parent_move) "
-                  "VALUES ($1, $2, $3, $4, $5, $6, $7::square_set, $8::square_set, $9::player, $10, $11, $12, $13, $14);",
+                  "VALUES ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::TIMESTAMP, $5::CHAR(3), $6::TIMESTAMP, $7::SQUARE_SET, $8::SQUARE_SET, $9::PLAYER, $10::SMALLINT, $11::SQUARE_SET, $12::SMALLINT, $13::SMALLINT, $14::GAME_MOVE);",
                   14,
                   NULL);
   PQclear(res);
@@ -271,76 +271,139 @@ do_insert_regab_prng_gp_h (int *result,
 }
 
 static void
-do_insert_regab_prng_gp (int *result,
-                         PGconn *con,
-                         uint64_t run_id,
-                         uint64_t sub_run_id,
-                         uint64_t call_id,
-                         char *status,
-                         regab_prng_node_t *n)
+do_insert_game_regab_prng_gp (int *result,
+                              PGconn *con,
+                              uint64_t run_id,
+                              uint64_t sub_run_id,
+                              regab_prng_stack_t *s)
 {
+  static const size_t pxr = 14; // parameters per record
+  static const size_t command_size = 16384;
+  static const size_t params_size = 8192;
+
+  size_t cl, pl;
+  char *cp, *pp;
+  char command[command_size];
+  char params[params_size];
+  const int nParams = pxr * s->npos;
+  const char *paramValues[REGAB_PRNG_MAX_DEPTH * pxr];
   PGresult *res = NULL;
 
-  const char* paramValues[15];
-  char run_id_to_s[64];
-  char sub_run_id_to_s[64];
-  char call_id_to_s[64];
-  char mover_to_s[64];
-  char opponent_to_s[64];
-  char player_to_s[8];
-  char empty_count_to_s[8];
-  char legal_move_set_to_s[64];
-  char legal_move_count_to_s[8];
-  char legal_move_count_adjusted_to_s[8];
-  char parent_move_to_s[8];
+  for (int i = 0; i < params_size; i++) params[i] = 0;
+  for (int i = 0; i < REGAB_PRNG_MAX_DEPTH * pxr; i++) paramValues[i] = NULL;
 
-  if (!result) return;
-  if (!status) return;
-  if (!con || (strlen(status) > 3) || !n) {
-    *result = -1;
-    return;
+  const char *c0 =
+    "INSERT INTO regab_prng_gp "
+    "(run_id, sub_run_id, call_id, ins_time, status, cst_time, "
+    "mover, opponent, player, empty_count, legal_move_set, "
+    "legal_move_count, legal_move_count_adjusted, parent_move) "
+    "VALUES ";
+
+  const char *c1 =
+    "($%lu::INTEGER, $%lu::INTEGER, $%lu::INTEGER, $%lu::TIMESTAMP, $%lu::CHAR(3), $%lu::TIMESTAMP, "
+    "$%lu::SQUARE_SET, $%lu::SQUARE_SET, $%lu::PLAYER, $%lu::SMALLINT, "
+    "$%lu::SQUARE_SET, $%lu::SMALLINT, $%lu::SMALLINT, $%lu::GAME_MOVE)%s";
+
+  const char *c2 = ", ";
+  const char *c3 = ";";
+
+  cl = snprintf(command, command_size, "%s", c0);
+  cp = command + cl;
+
+  pl = 0;
+  pp = params;
+
+  for (size_t i = 0; i < s->npos; i++) {
+    cl += snprintf(cp, command_size - cl, c1,
+                   1 + i * pxr, 2 + i * pxr, 3 + i * pxr,
+                   4 + i * pxr, 5 + i * pxr, 6 + i * pxr,
+                   7 + i * pxr, 8 + i * pxr, 9 + i * pxr,
+                   10 + i * pxr, 11 + i * pxr, 12 + i * pxr,
+                   13 + i * pxr, 14 + i * pxr, (i < (s->npos - 1)) ? c2 : c3);
+    cp = command + cl;
+
+    if (cl >= command_size) {
+      fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+      abort();
+    }
+
+    const regab_prng_node_t *n = &s->nodes[i];
+    const SquareSet mover = game_position_x_get_mover(&n->gpx);
+    const SquareSet opponent = game_position_x_get_opponent(&n->gpx);
+    const Player player = game_position_x_get_player(&n->gpx);
+
+    pl += snprintf(pp, params_size - pl, "%zu", run_id);
+    paramValues[0 + i * pxr] = pp;
+    pp = params + pl++ + 1;
+    if (pl >= params_size) goto buffer_overflow;
+
+    pl += snprintf(pp, params_size - pl, "%zu", sub_run_id);
+    paramValues[1 + i * pxr] = pp;
+    pp = params + pl++ + 1;
+    if (pl >= params_size) goto buffer_overflow;
+
+    pl += snprintf(pp, params_size - pl, "%zu", i);
+    paramValues[2 + i * pxr] = pp;
+    pp = params + pl++ + 1;
+    if (pl >= params_size) goto buffer_overflow;
+
+    pl += snprintf(pp, params_size - pl, "%s", "now()");
+    paramValues[3 + i * pxr] = pp;
+    pp = params + pl++ + 1;
+    if (pl >= params_size) goto buffer_overflow;
+
+    pl += snprintf(pp, params_size - pl, "%s", "INS");
+    paramValues[4 + i * pxr] = pp;
+    pp = params + pl++ + 1;
+    if (pl >= params_size) goto buffer_overflow;
+
+    pl += snprintf(pp, params_size - pl, "%s", "now()");
+    paramValues[5 + i * pxr] = pp;
+    pp = params + pl++ + 1;
+    if (pl >= params_size) goto buffer_overflow;
+
+    pl += snprintf(pp, params_size - pl, "%ld", (int64_t) mover);
+    paramValues[6 + i * pxr] = pp;
+    pp = params + pl++ + 1;
+    if (pl >= params_size) goto buffer_overflow;
+
+    pl += snprintf(pp, params_size - pl, "%ld", (int64_t) opponent);
+    paramValues[7 + i * pxr] = pp;
+    pp = params + pl++ + 1;
+    if (pl >= params_size) goto buffer_overflow;
+
+    pl += snprintf(pp, params_size - pl, "%u", player);
+    paramValues[8 + i * pxr] = pp;
+    pp = params + pl++ + 1;
+    if (pl >= params_size) goto buffer_overflow;
+
+    pl += snprintf(pp, params_size - pl, "%u", n->empty_count);
+    paramValues[9 + i * pxr] = pp;
+    pp = params + pl++ + 1;
+    if (pl >= params_size) goto buffer_overflow;
+
+    pl += snprintf(pp, params_size - pl, "%ld", (int64_t) n->legal_move_set);
+    paramValues[10 + i * pxr] = pp;
+    pp = params + pl++ + 1;
+    if (pl >= params_size) goto buffer_overflow;
+
+    pl += snprintf(pp, params_size - pl, "%u", n->legal_move_count);
+    paramValues[11 + i * pxr] = pp;
+    pp = params + pl++ + 1;
+    if (pl >= params_size) goto buffer_overflow;
+
+    pl += snprintf(pp, params_size - pl, "%u", n->legal_move_count_adjusted);
+    paramValues[12 + i * pxr] = pp;
+    pp = params + pl++ + 1;
+    if (pl >= params_size) goto buffer_overflow;
+
+    pl += snprintf(pp, params_size - pl, "%s", square_as_move_to_string(n->parent_move));
+    paramValues[13 + i * pxr] = pp;
+    pp = params + pl++ + 1;
+    if (pl >= params_size) goto buffer_overflow;
   }
 
-  const SquareSet mover = game_position_x_get_mover(&n->gpx);
-  const SquareSet opponent = game_position_x_get_opponent(&n->gpx);
-  const Player player = game_position_x_get_player(&n->gpx);
-
-  sprintf(run_id_to_s, "%zu", run_id);
-  sprintf(sub_run_id_to_s, "%zu", sub_run_id);
-  sprintf(call_id_to_s, "%zu", call_id);
-
-  sprintf(mover_to_s, "%ld", (int64_t) mover);
-  sprintf(opponent_to_s, "%ld", (int64_t) opponent);
-  sprintf(player_to_s, "%u", player);
-
-  sprintf(empty_count_to_s, "%u", n->empty_count);
-  sprintf(legal_move_set_to_s, "%ld", (int64_t) n->legal_move_set);
-  sprintf(legal_move_count_to_s, "%u", n->legal_move_count);
-  sprintf(legal_move_count_adjusted_to_s, "%u", n->legal_move_count_adjusted);
-  sprintf(parent_move_to_s, "%s", square_as_move_to_string(n->parent_move));
-
-  paramValues[ 0] = run_id_to_s;
-  paramValues[ 1] = sub_run_id_to_s;
-  paramValues[ 2] = call_id_to_s;
-  paramValues[ 3] = "now()";
-  paramValues[ 4] = status;
-  paramValues[ 5] = "now()";
-  paramValues[ 6] = mover_to_s;
-  paramValues[ 7] = opponent_to_s;
-  paramValues[ 8] = player_to_s;
-  paramValues[ 9] = empty_count_to_s;
-  paramValues[10] = legal_move_set_to_s;
-  paramValues[11] = legal_move_count_to_s;
-  paramValues[12] = legal_move_count_adjusted_to_s;
-  paramValues[13] = parent_move_to_s;
-
-  res = PQexecPrepared(con,
-                       insert_regab_prng_gp,
-                       14,
-                       paramValues,
-                       NULL,
-                       NULL,
-                       0);
+  res = PQexecParams(con, command, nParams, NULL, paramValues, NULL, NULL, 0);
 
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
     fprintf(stderr, "%s", PQerrorMessage(con));
@@ -349,6 +412,11 @@ do_insert_regab_prng_gp (int *result,
     *result = 0;
   }
   PQclear(res);
+
+  return;
+ buffer_overflow:
+  fprintf(stderr, "Error: params buffer is not long enough to contain the list of parameters values.\n");
+  abort();
 }
 
 static void
@@ -671,11 +739,15 @@ main (int argc,
     (gstack.active_node - 1)->legal_move_count_adjusted = 0;
 
     /* Load game into the database. */
-    for (int ipos = 0; ipos < gstack.npos; ipos++) {
-      do_insert_regab_prng_gp(&result, con, run_id, igame, ipos, "INS", &gstack.nodes[ipos]);
-    }
-
+    do_insert_game_regab_prng_gp(&result, con, run_id, igame, &gstack);
   }
+
+  /* Checks that the number of games inserted is consistent with the batch size. */
+  // TO DO
+
+  /* Writes the number of position inserted. */
+  // TO DO
+
 
 
   /*
