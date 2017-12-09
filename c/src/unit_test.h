@@ -344,7 +344,7 @@ ut_run_time_verbosity (const ut_test_t *const t);
       t->failure_count++;                                               \
       fprintf(stdout,                                                   \
               "\nERROR:%s:%d:%s:_assertion_failed_(%s)\n",              \
-              __FILE__, __LINE__, __FUNCTION__, #expr);                 \
+              __FILE__, __LINE__, __func__, #expr);                     \
       fflush(stdout);                                                   \
       abort();                                                          \
     }                                                                   \

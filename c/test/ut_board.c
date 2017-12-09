@@ -316,19 +316,19 @@ game_position_x_empties_t (ut_test_t *const t)
 }
 
 static void
-game_position_x_get_player_t (ut_test_t *const t)
+game_position_x_get_mover_t (ut_test_t *const t)
 {
   GamePositionX gpx;
 
   gpx.blacks = 0x00000000000000FF;
   gpx.whites = 0x000000000000FF00;
   gpx.player = BLACK_PLAYER;
-  ut_assert(t, 0x00000000000000FF == game_position_x_get_player(&gpx));
+  ut_assert(t, 0x00000000000000FF == game_position_x_get_mover(&gpx));
 
   gpx.blacks = 0x00000000000000FF;
   gpx.whites = 0x000000000000FF00;
   gpx.player = WHITE_PLAYER;
-  ut_assert(t, 0x000000000000FF00 == game_position_x_get_player(&gpx));
+  ut_assert(t, 0x000000000000FF00 == game_position_x_get_mover(&gpx));
 }
 
 static void
@@ -747,7 +747,7 @@ main (int argc,
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_print", game_position_x_print_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_empties", game_position_x_empties_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_get_player", game_position_x_get_player_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_get_mover", game_position_x_get_mover_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_get_opponent", game_position_x_get_opponent_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_legal_moves", game_position_x_legal_moves_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_count_difference", game_position_x_count_difference_t);
