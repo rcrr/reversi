@@ -59,25 +59,42 @@ CREATE TABLE regab_prng_gp_h (seq            SERIAL     PRIMARY KEY,
 --
 -- DROP TABLE IF EXISTS regab_prng_gp;
 --
--- seq:        unique auto increment redcord id
--- run_id:     foreign key on the header table
--- sub_run_id: sequence id for a random game
--- call_id:    sequnce id for a game position in a random game
--- ins_time:   insertion timespamp
--- status:     status field (INS, PEN, WIP, CMP)
--- cst_time:   timestamp for the last change on the status field 
--- 
-CREATE TABLE regab_prng_gp (seq            SERIAL     PRIMARY KEY,
-                            run_id         INTEGER    REFERENCES regab_prng_gp_h (seq) ON DELETE CASCADE,
-                            sub_run_id     INTEGER    NOT NULL,
-                            call_id        INTEGER    NOT NULL,
-                            ins_time       TIMESTAMP,
-                            status         CHAR(3),
-                            cst_time       TIMESTAMP,
+-- seq:                       Unique auto increment record id.
+--
+-- batch_id:                  Foreign key on the header table. Fields batch_id, game_id, pos_id together are the key of the relation.
+-- game_id:                   Game id for a random game.
+-- pos_id:                    Position id for a game position in a random game.
+--
+-- ins_time:                  Insertion timespamp.
+-- status:                    Status field (INS for "inserted", WIP for "work in progres", CMP for "computed").
+-- cst_time:                  Timestamp for the last change on the status field 
+--
+-- mover:                     The set of disks owned by the player
+-- opponent:                  The set of disks owned by the opponent
+-- player:                    Player having to move.
+--
+-- empty_count:               Count of empty squares.
+-- legal_move_set:            Set of legal moves for the position.
+-- legal_move_count:          Count of legal moves for the position.
+-- legal_move_count_adjusted: Equal to legal_move_count with the exception of a PASS position, when the value is one instead of zero.
+-- parent_move:               Move just played to arrive at the given game position. 
+--
+-- game_value:                Exact value of the game.
+-- best_move:                 The best move returned by the a-b search, could be that other moves have the same value.
+--
+CREATE TABLE regab_prng_gp (seq                       SERIAL     PRIMARY KEY,
                             --
-                            mover          SQUARE_SET,
-                            opponent       SQUARE_SET,
-                            player         PLAYER,
+                            batch_id                  INTEGER    REFERENCES regab_prng_gp_h (seq) ON DELETE CASCADE,
+                            game_id                   INTEGER    NOT NULL,
+                            pos_id                    INTEGER    NOT NULL,
+                            --
+                            ins_time                  TIMESTAMP,
+                            status                    CHAR(3),
+                            cst_time                  TIMESTAMP,
+                            --
+                            mover                     SQUARE_SET,
+                            opponent                  SQUARE_SET,
+                            player                    PLAYER,
                             --
                             empty_count               SMALLINT,
                             legal_move_set            SQUARE_SET,
@@ -85,9 +102,9 @@ CREATE TABLE regab_prng_gp (seq            SERIAL     PRIMARY KEY,
                             legal_move_count_adjusted SMALLINT,
                             parent_move               GAME_MOVE,
                             --
-                            game_value                SMALLINT,
-                            best_move                 GAME_MOVE,
+                            game_value                SMALLINT   DEFAULT 0,
+                            best_move                 GAME_MOVE  DEFAULT 'UN',
                             --
-                            UNIQUE (run_id, sub_run_id, call_id));
+                            UNIQUE (batch_id, game_id, pos_id));
 
 -- CREATE INDEX regab_prng_gp_idx ON regab_prng_gp (status);

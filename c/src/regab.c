@@ -205,7 +205,7 @@ regab_get_db_connection (PGconn **conp,
   /* Prepares statement insert_regab_prng_gp. */
   res = PQprepare(*conp,
                   insert_regab_prng_gp,
-                  "INSERT INTO regab_prng_gp (run_id, sub_run_id, call_id, ins_time, status, cst_time, mover, opponent, player, empty_count, legal_move_set, legal_move_count, legal_move_count_adjusted, parent_move) "
+                  "INSERT INTO regab_prng_gp (batch_id, game_id, pos_id, ins_time, status, cst_time, mover, opponent, player, empty_count, legal_move_set, legal_move_count, legal_move_count_adjusted, parent_move) "
                   "VALUES ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::TIMESTAMP, $5::CHAR(3), $6::TIMESTAMP, $7::SQUARE_SET, $8::SQUARE_SET, $9::PLAYER, $10::SMALLINT, $11::SQUARE_SET, $12::SMALLINT, $13::SMALLINT, $14::GAME_MOVE);",
                   14,
                   NULL);
@@ -273,13 +273,19 @@ do_insert_regab_prng_gp_h (int *result,
 static void
 do_insert_game_regab_prng_gp (int *result,
                               PGconn *con,
-                              uint64_t run_id,
-                              uint64_t sub_run_id,
+                              uint64_t batch_id,
+                              uint64_t game_id,
                               regab_prng_stack_t *s)
 {
   static const size_t pxr = 14; // parameters per record
   static const size_t command_size = 16384;
   static const size_t params_size = 8192;
+
+  if (!result) return;
+  if (!con || !s) {
+    *result = -1;
+    return;
+  }
 
   size_t cl, pl;
   char *cp, *pp;
@@ -294,7 +300,7 @@ do_insert_game_regab_prng_gp (int *result,
 
   const char *c0 =
     "INSERT INTO regab_prng_gp "
-    "(run_id, sub_run_id, call_id, ins_time, status, cst_time, "
+    "(batch_id, game_id, pos_id, ins_time, status, cst_time, "
     "mover, opponent, player, empty_count, legal_move_set, "
     "legal_move_count, legal_move_count_adjusted, parent_move) "
     "VALUES ";
@@ -332,12 +338,12 @@ do_insert_game_regab_prng_gp (int *result,
     const SquareSet opponent = game_position_x_get_opponent(&n->gpx);
     const Player player = game_position_x_get_player(&n->gpx);
 
-    pl += snprintf(pp, params_size - pl, "%zu", run_id);
+    pl += snprintf(pp, params_size - pl, "%zu", batch_id);
     paramValues[0 + i * pxr] = pp;
     pp = params + pl++ + 1;
     if (pl >= params_size) goto buffer_overflow;
 
-    pl += snprintf(pp, params_size - pl, "%zu", sub_run_id);
+    pl += snprintf(pp, params_size - pl, "%zu", game_id);
     paramValues[1 + i * pxr] = pp;
     pp = params + pl++ + 1;
     if (pl >= params_size) goto buffer_overflow;
@@ -417,6 +423,68 @@ do_insert_game_regab_prng_gp (int *result,
  buffer_overflow:
   fprintf(stderr, "Error: params buffer is not long enough to contain the list of parameters values.\n");
   abort();
+}
+
+static void
+do_check_load_regab_prng_gp_h (int *result,
+                               PGconn *con,
+                               uint64_t batch_id,
+                               uint64_t expected_ngames,
+                               uint64_t expected_npos)
+{
+  PGresult *res = NULL;
+  char command[512];
+  int clen;
+  size_t ngames, npos;
+
+  if (!result) return;
+  if (!con) {
+    *result = -1;
+    return;
+  }
+  *result = 0;
+
+  /* Checks that the game count and the position count do match with the expected values. */
+  clen = snprintf(command,
+                  sizeof(command),
+                  "SELECT count(distinct(game_id)) AS games, count(distinct(game_id, pos_id)) AS positions FROM regab_prng_gp WHERE batch_id = %zu;",
+                  batch_id);
+  if (clen >= sizeof(command)) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL statement.\n");
+    abort();
+  }
+  res = PQexec(con, command);
+  if (PQresultStatus(res) != PGRES_TUPLES_OK
+      || PQntuples(res) != 1
+      || strcmp("games", PQfname(res, 0)) != 0
+      || strcmp("positions", PQfname(res, 1)) != 0) {
+    fprintf(stderr, "Select command has problems.\n");
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  } else {
+    ngames = atol(PQgetvalue(res, 0, 0));
+    npos = atol(PQgetvalue(res, 0, 1));
+    if (ngames != expected_ngames || npos != expected_npos) *result = -1;
+  }
+  PQclear(res);
+  if (*result == -1) return;
+
+  /* Updates the games count in the header table. */
+  clen = snprintf(command,
+                  sizeof(command),
+                  "UPDATE regab_prng_gp_h SET npositions = %zu WHERE seq = %zu;",
+                  npos, batch_id);
+  if (clen >= sizeof(command)) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL statement.\n");
+    abort();
+  }
+  res = PQexec(con, command);
+  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "Select command has problems.\n");
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  }
+  PQclear(res);
 }
 
 static void
@@ -685,8 +753,10 @@ main (int argc,
    * Load the prng game.
    */
 
-  uint64_t run_id;
-  do_insert_regab_prng_gp_h (&result, &run_id, con, "INS", prng_seed, n_games);
+  size_t n_gp_inserted = 0;
+
+  uint64_t batch_id;
+  do_insert_regab_prng_gp_h (&result, &batch_id, con, "INS", prng_seed, n_games);
   if (result == -1) {
     fprintf(stderr, "Error while inserting regab_prng_gp_h record.\n");
     PQfinish(con);
@@ -737,18 +807,25 @@ main (int argc,
 
   game_completed:
     (gstack.active_node - 1)->legal_move_count_adjusted = 0;
+    n_gp_inserted += gstack.npos;
 
     /* Load game into the database. */
-    do_insert_game_regab_prng_gp(&result, con, run_id, igame, &gstack);
+    do_insert_game_regab_prng_gp(&result, con, batch_id, igame, &gstack);
+    if (result == -1) {
+      fprintf(stderr, "Error while loading game number %d.\n", igame);
+      PQfinish(con);
+      return EXIT_FAILURE;
+    }
   }
 
-  /* Checks that the number of games inserted is consistent with the batch size. */
-  // TO DO
-
-  /* Writes the number of position inserted. */
-  // TO DO
-
-
+  /* Checks that the number of games inserted is consistent with the batch size.
+   * Writes the number of position inserted. */
+  do_check_load_regab_prng_gp_h(&result, con, batch_id, n_games, n_gp_inserted);
+  if (result == -1) {
+    fprintf(stderr, "Error while checking regab_prng_gp table after batch insertion.\n");
+    PQfinish(con);
+    return EXIT_FAILURE;
+  }
 
   /*
    * Closes the pseudo random number generator.
