@@ -55,7 +55,7 @@ CFLAGS = -std=c99 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O0 $(ARCH
 LDFLAGS =
 CFLAGS_TEST = -std=c99 -pedantic-errors -Wall -g -O0 -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS)
 LDFLAGS_TEST =
-ASMFLAGS = -std=c99 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -O0 $(ARCH_FLAGS) -masm=intel
+ASMFLAGS = -std=c99 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -O0 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -masm=intel
 LIBS = -lm -L$(PG_LIB_DIR) $(PG_LIBS)
 TEST_LIBS =
 SRCDIR = src
