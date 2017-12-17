@@ -12,7 +12,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014, 2015, 2016, 2017 Roberto Corradini. All rights reserved.
+ * @copyright 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -39,6 +39,7 @@
 #include <assert.h>
 #include <limits.h>
 #include <errno.h>
+#include <inttypes.h>
 
 #include <libpq-fe.h>
 
@@ -46,6 +47,9 @@
 #include "cfg.h"
 #include "prng.h"
 #include "board.h"
+#include "endgame_solver.h"
+#include "exact_solver.h"
+#include "game_tree_utils.h"
 
 
 
@@ -70,6 +74,35 @@ typedef struct regab_prng_stack_s {
   regab_prng_node_t  nodes[REGAB_PRNG_MAX_DEPTH];
 } regab_prng_stack_t;
 
+typedef enum {
+  REGAB_ACTION_GENERATE,  // Generate one batch of random games.
+  REGAB_ACTION_SOLVE,     // Solve the selected games.
+  REGAB_ACTION_INVALID    // Not a valid action.
+} regab_action_t;
+
+typedef struct regab_prng_gp_record_s {
+  int64_t seq;
+  int batch_id;
+  int game_id;
+  int pos_id;
+  char ins_time[32];
+  char status[4];
+  char cst_time[32];
+  int64_t mover;
+  int64_t opponent;
+  uint8_t player;
+  int empty_count;
+  int64_t legal_move_set;
+  int legal_move_count;
+  int legal_move_count_adjusted;
+  uint8_t parent_move;
+  int game_value;
+  uint8_t best_move;
+  int64_t leaf_count;
+  int64_t node_count;
+} regab_prng_gp_record_t;
+
+
 
 /*
  * Static constants.
@@ -78,10 +111,13 @@ typedef struct regab_prng_stack_s {
 static const mop_options_long_t olist[] = {
   {"help",              'h', MOP_NONE},
   {"verbose",           'v', MOP_NONE},
+  {"action",            'a', MOP_REQUIRED},
   {"config-file",       'c', MOP_REQUIRED},
   {"env",               'e', MOP_REQUIRED},
   {"prng-seed",         's', MOP_REQUIRED},
   {"n-games",           'n', MOP_REQUIRED},
+  {"batch-id",          'b', MOP_REQUIRED},
+  {"empty-count",       'y', MOP_REQUIRED},
   {0, 0, 0}
 };
 
@@ -92,10 +128,13 @@ static const char *documentation =
   "Options:\n"
   "  -h, --help        Show help options\n"
   "  -v, --verbose     Verbose output\n"
-  "  -c, --config-file Config file name                                 - Mandatory.\n"
-  "  -e, --env         Environment                                      - Mandatory.\n"
-  "  -s, --prng-seed   Seed used by the Pseudo Random Number Generator  - Default is 0.\n"
-  "  -n, --n-games     Number of random game generated                  - Default is one.\n"
+  "  -a, --action      Action to be performed                              - Mandatory - Must be in [generate|solve].\n"
+  "  -c, --config-file Config file name                                    - Mandatory.\n"
+  "  -e, --env         Environment                                         - Mandatory.\n"
+  "  -s, --prng-seed   Seed used by the Pseudo Random Number Generator     - Default is 0.\n"
+  "  -n, --n-games     Number of random game generated                     - Default is one.\n"
+  "  -b, --batch-id    Batch id                                            - Mandatory when action is solve.\n"
+  "  -y, --empty-count Number of empty squares in the solved game position - Mandatory when action is solve.\n"
   "\n"
   "Description:\n"
   "  To be completed ... .\n"
@@ -121,6 +160,9 @@ static int h_flag = false;
 
 static int v_flag = false;
 
+static int a_flag = false;
+static char *a_arg = NULL;
+
 static int c_flag = false;
 static char *c_arg = NULL;
 
@@ -133,12 +175,18 @@ static char *s_arg = NULL;
 static int n_flag = false;
 static char *n_arg = NULL;
 
+static int b_flag = false;
+static char *b_arg = NULL;
+
+static int y_flag = false;
+static char *y_arg = NULL;
+
+static regab_action_t action = REGAB_ACTION_INVALID;
 static char *config_file = NULL;
 static char *env = NULL;
 static bool verbose = false;
 static uint64_t prng_seed = 0;
 static unsigned long int n_games = 1;
-
 
 /*
  * Prototypes for internal functions.
@@ -472,7 +520,7 @@ do_check_load_regab_prng_gp_h (int *result,
   /* Updates the games count in the header table. */
   clen = snprintf(command,
                   sizeof(command),
-                  "UPDATE regab_prng_gp_h SET npositions = %zu WHERE seq = %zu;",
+                  "UPDATE regab_prng_gp_h SET npositions = %zu, status = 'CMP' WHERE seq = %zu;",
                   npos, batch_id);
   if (clen >= sizeof(command)) {
     fprintf(stderr, "Error: command buffer is not long enough to contain the SQL statement.\n");
@@ -480,7 +528,45 @@ do_check_load_regab_prng_gp_h (int *result,
   }
   res = PQexec(con, command);
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-    fprintf(stderr, "Select command has problems.\n");
+    fprintf(stderr, "Update command has problems.\n");
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  }
+  PQclear(res);
+}
+
+static void
+do_update_solved_position_results (int *result,
+                                   PGconn *con,
+                                   regab_prng_gp_record_t *record)
+{
+  PGresult *res = NULL;
+  char command[512];
+  int clen;
+
+  if (!result) return;
+  if (!con || !record) {
+    *result = -1;
+    return;
+  }
+  *result = 0;
+
+  /* Updates the solved record. */
+  clen = snprintf(command,
+                  sizeof(command),
+                  "UPDATE regab_prng_gp SET "
+                  "game_value = %d, best_move = '%s', leaf_count = %"PRId64", node_count = %"PRId64", "
+                  "status = 'CMP', cst_time = now() "
+                  "WHERE seq = %"PRId64";",
+                  record->game_value, square_as_move_to_string(record->best_move), record->leaf_count,
+                  record->node_count, record->seq);
+  if (clen >= sizeof(command)) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL statement.\n");
+    abort();
+  }
+  res = PQexec(con, command);
+  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "Update command has problems.\n");
     fprintf(stderr, "%s", PQerrorMessage(con));
     *result = -1;
   }
@@ -564,6 +650,102 @@ regab_print_connection_log (int *result,
   return;
 }
 
+static uint8_t
+square_as_move_from_two_chars (char *f)
+{
+  uint8_t move;
+  char *s = f + 1;
+  if (*f == '-' && *s == '-') move = pass_move;
+  else if (*f == 'U' && *s == 'N') move = unknown_move;
+  else if (*f == 'N' && *s == 'A') move = invalid_move;
+  else if (*f >= 'A' && *f <= 'H' && *s >= '1' && *s <= '8') {
+    move = *f - 'A' + 8 * (*s - '1');
+  } else {
+    move = invalid_move; // should never happen ...
+  }
+  return move;
+}
+
+static void
+do_select_position_to_solve (int *result,
+                             PGconn *con,
+                             regab_prng_gp_record_t *record)
+{
+  PGresult *res = NULL;
+  char command[512];
+  int clen;
+
+  size_t ntuples;
+
+  if (!result) return;
+  if (!con) {
+    *result = -1;
+    return;
+  }
+  *result = 0;
+
+  /* Selects and updates at most one record ready to be solved. */
+  clen = snprintf(command,
+                  sizeof(command),
+                  "UPDATE regab_prng_gp SET status = 'WIP', cst_time = now() WHERE seq IN ("
+                  "SELECT seq FROM regab_prng_gp WHERE batch_id = %d AND empty_count = %u AND status = 'INS' "
+                  "ORDER BY (batch_id, game_id, pos_id) LIMIT 1 FOR UPDATE) "
+                  "RETURNING seq, game_id, pos_id, ins_time, status, cst_time, mover, opponent, player, "
+                  "empty_count, legal_move_set, legal_move_count, legal_move_count_adjusted, parent_move",
+                  record->batch_id, record->empty_count);
+  if (clen >= sizeof(command)) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL statement.\n");
+    abort();
+  }
+  res = PQexec(con, command);
+  if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+    fprintf(stderr, "Select for update command has problems.\n");
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  } else {
+    ntuples = PQntuples(res);
+    if (ntuples > 1) *result = -1;
+    else if (ntuples == 1) {
+      if (strcmp("seq", PQfname(res, 0)) != 0
+          || strcmp("game_id", PQfname(res, 1)) != 0
+          || strcmp("pos_id", PQfname(res, 2)) != 0
+          || strcmp("ins_time", PQfname(res, 3)) != 0
+          || strcmp("status", PQfname(res, 4)) != 0
+          || strcmp("cst_time", PQfname(res, 5)) != 0
+          || strcmp("mover", PQfname(res, 6)) != 0
+          || strcmp("opponent", PQfname(res, 7)) != 0
+          || strcmp("player", PQfname(res, 8)) != 0
+          || strcmp("empty_count", PQfname(res, 9)) != 0
+          || strcmp("legal_move_set", PQfname(res, 10)) != 0
+          || strcmp("legal_move_count", PQfname(res, 11)) != 0
+          || strcmp("legal_move_count_adjusted", PQfname(res, 12)) != 0
+          || strcmp("parent_move", PQfname(res, 13)) != 0) {
+        *result = -1;
+      } else { // Everything is ok, and one record is selected.
+        record->seq = atol(PQgetvalue(res, 0, 0));
+        record->game_id = atol(PQgetvalue(res, 0, 1));
+        record->pos_id = atol(PQgetvalue(res, 0, 2));
+        strcpy(record->ins_time, PQgetvalue(res, 0, 3));
+        strcpy(record->status, PQgetvalue(res, 0, 4));
+        strcpy(record->cst_time, PQgetvalue(res, 0, 5));
+        record->mover = atol(PQgetvalue(res, 0, 6));
+        record->opponent = atol(PQgetvalue(res, 0, 7));
+        record->player = atoi(PQgetvalue(res, 0, 8));
+        record->empty_count = atoi(PQgetvalue(res, 0, 9));
+        record->legal_move_set = atol(PQgetvalue(res, 0, 10));
+        record->legal_move_count = atoi(PQgetvalue(res, 0, 11));
+        record->legal_move_count_adjusted = atoi(PQgetvalue(res, 0, 12));
+        record->parent_move = square_as_move_from_two_chars(PQgetvalue(res, 0, 13));
+        *result = 1;
+      }
+    } else { // Ok, but no record selected.
+      *result = 0;
+    }
+  }
+  PQclear(res);
+}
+
+
 
 /**
  * @brief Main entry to the Reversi EndGame Analytics Base.
@@ -579,6 +761,9 @@ main (int argc,
   int opt;
   int oindex = -1;
 
+  uint64_t batch_id = 0;
+  uint8_t empty_count = 0;
+
   mop_init(&options, argc, argv);
   while ((opt = mop_parse_long(&options, olist, &oindex)) != -1) {
     switch (opt) {
@@ -587,6 +772,10 @@ main (int argc,
       break;
     case 'v':
       v_flag = true;
+      break;
+    case 'a':
+      a_flag = true;
+      a_arg = options.optarg;
       break;
     case 'c':
       c_flag = true;
@@ -603,6 +792,14 @@ main (int argc,
     case 'n':
       n_flag = true;
       n_arg = options.optarg;
+      break;
+    case 'b':
+      b_flag = true;
+      b_arg = options.optarg;
+      break;
+    case 'y':
+      y_flag = true;
+      y_arg = options.optarg;
       break;
     case ':':
       fprintf(stderr, "Option parsing failed: %s\n", options.errmsg);
@@ -625,6 +822,17 @@ main (int argc,
   /*
    * Checks command line options for consistency.
    */
+  if (!a_flag) {
+    fprintf(stderr, "Option -a, --action is mandatory.\n");
+    return EXIT_FAILURE;
+  } else {
+    if (strcmp("generate", a_arg) == 0) action = REGAB_ACTION_GENERATE;
+    else if (strcmp("solve", a_arg) == 0) action = REGAB_ACTION_SOLVE;
+    else {
+      fprintf(stderr, "Argument for option -a, --action must be in [generate|solve] domain.\n");
+      return EXIT_FAILURE;
+    }
+  }
   if (!c_flag) {
     fprintf(stderr, "Option -c, --config-file is mandatory.\n");
     return EXIT_FAILURE;
@@ -676,6 +884,46 @@ main (int argc,
       return EXIT_FAILURE;
     }
   }
+  if (b_flag) {
+    char *endptr;
+    errno = 0;    /* To distinguish success/failure after call */
+    batch_id = strtoull(b_arg, &endptr, 10);
+    if ((errno == ERANGE && (batch_id == LONG_MAX || batch_id == LONG_MIN))
+        || (errno != 0 && batch_id == 0)) {
+      perror("strtol");
+      return EXIT_FAILURE;
+    }
+    if (endptr == b_arg) {
+      fprintf(stderr, "No digits were found in batch_id value.\n");
+      return EXIT_FAILURE;
+    }
+    if (*endptr != '\0') {
+      fprintf(stderr, "Further characters after number in batch_id value: %s\n", endptr);
+      return EXIT_FAILURE;
+    }
+  }
+  if (y_flag) {
+    char *endptr;
+    errno = 0;    /* To distinguish success/failure after call */
+    empty_count = strtoul(y_arg, &endptr, 10);
+    if ((errno == ERANGE && (empty_count == LONG_MAX || empty_count == LONG_MIN))
+        || (errno != 0 && empty_count == 0)) {
+      perror("strtoul");
+      return EXIT_FAILURE;
+    }
+    if (endptr == y_arg) {
+      fprintf(stderr, "No digits were found in empty_count value.\n");
+      return EXIT_FAILURE;
+    }
+    if (*endptr != '\0') {
+      fprintf(stderr, "Further characters after number in empty_count value: %s\n", endptr);
+      return EXIT_FAILURE;
+    }
+    if (empty_count > 60) {
+      fprintf(stderr, "Value %u, for variable empty_count is out of range [0..60].\n", empty_count);
+      return EXIT_FAILURE;
+    }
+  }
 
   /* Verifies that the config input file is available for reading. */
   FILE *fp = fopen(config_file, "r");
@@ -723,6 +971,9 @@ main (int argc,
     abort();
   }
 
+  /*
+   * Establishes the connection to the database.
+   */
   PGconn *con = NULL;
 
   regab_get_db_connection(&con, con_info);
@@ -746,16 +997,25 @@ main (int argc,
 
 
 
+  /*
+   * Selects with action to perform.
+   */
+  switch (action) {
+  case REGAB_ACTION_GENERATE: goto regab_action_generate;
+  case REGAB_ACTION_SOLVE: goto regab_action_solve;
+  default: fprintf(stderr, "Out of range action option, aborting...\n"); abort();
+  }
 
-  /* ---- ---- ----- */
+
 
   /*
    * Load the prng game.
    */
+ regab_action_generate:
+  ;
 
   size_t n_gp_inserted = 0;
 
-  uint64_t batch_id;
   do_insert_regab_prng_gp_h (&result, &batch_id, con, "INS", prng_seed, n_games);
   if (result == -1) {
     fprintf(stderr, "Error while inserting regab_prng_gp_h record.\n");
@@ -831,6 +1091,78 @@ main (int argc,
    * Closes the pseudo random number generator.
    */
   prng_mt19937_free(prng);
+
+  goto regab_program_end;
+
+
+
+  /*
+   * Solves the selected games.
+   */
+ regab_action_solve:
+  for (unsigned long int i = 0; i < n_games; i++) {
+    fprintf(stdout, "Solving game %lu of %lu ...\n", i + 1, n_games);
+    regab_prng_gp_record_t record;
+    memset(&record, 0, sizeof(record));
+    record.batch_id = batch_id;
+    record.empty_count = empty_count;
+    do_select_position_to_solve(&result, con, &record);
+    if (result == -1) {
+      fprintf(stderr, "Error while selecting game position to solve.\n");
+      PQfinish(con);
+      return EXIT_FAILURE;
+    } else if (result == 1) {
+      printf("record(seq=%ld, batch_id=%d, game_id=%d, pos_id=%d, cst_time=%s\n",
+             record.seq, record.batch_id, record.game_id, record.pos_id, record.cst_time);
+
+      char buf[1024];
+      GamePositionX gpx;
+      gpx.blacks = (SquareSet) record.mover;
+      gpx.whites = (SquareSet) record.opponent;
+      gpx.player = BLACK_PLAYER;
+      game_position_x_print(buf, &gpx);
+      printf("%s", buf);
+
+      endgame_solver_env_t env =
+        { .log_file = NULL,
+          .pve_dump_file = NULL,
+          .repeats = 0,
+          .pv_recording = false,
+          .pv_full_recording = false,
+          .pv_no_print = false
+        };
+
+      /* Initializes the board module. */
+      board_module_init();
+
+      ExactSolution *solution = game_position_es_solve(&gpx, &env);
+
+      printf("solution(outcome=%d, best_move=%s, leaf_count=%zu, node_count=%zu)\n\n",
+             solution->outcome, square_as_move_to_string(solution->best_move), solution->leaf_count, solution->node_count);
+
+      record.game_value = solution->outcome;
+      record.best_move = solution->best_move;
+      record.leaf_count = solution->leaf_count;
+      record.node_count = solution->node_count;
+
+      do_update_solved_position_results(&result, con, &record);
+
+    } else if (result == 0) {
+      printf("No game position to be solved has been returned by the selection.\n");
+      goto regab_program_end;
+    } else {
+      fprintf(stderr, "Error while selecting game position to solve, unknown return value result=%d.\n", result);
+      PQfinish(con);
+      return EXIT_FAILURE;
+    }
+  }
+  goto regab_program_end;
+
+
+  /*
+   * End of program.
+   */
+ regab_program_end:
 
   /*
    * Closes the connection to the database and cleanup.

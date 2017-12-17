@@ -227,6 +227,8 @@ square_as_move_to_string (const Square move)
 {
   if (move == unknown_move) {
     return sq_to_s[66]; // sq_to_s[66] is "UN"
+  } else if (move == invalid_move) {
+    return sq_to_s[65]; // sq_to_s[64] is "NA"
   } else if (move == pass_move) {
     return sq_to_s[64]; // sq_to_s[64] is "--"
   } else {

@@ -67,7 +67,7 @@ CREATE TABLE regab_prng_gp_h (seq            SERIAL     PRIMARY KEY,
 --
 -- ins_time:                  Insertion timespamp.
 -- status:                    Status field (INS for "inserted", WIP for "work in progres", CMP for "computed").
--- cst_time:                  Timestamp for the last change on the status field 
+-- cst_time:                  Timestamp for the last change on the status field (CST: Change STatus).
 --
 -- mover:                     The set of disks owned by the player
 -- opponent:                  The set of disks owned by the opponent
@@ -104,6 +104,8 @@ CREATE TABLE regab_prng_gp (seq                       SERIAL     PRIMARY KEY,
                             --
                             game_value                SMALLINT   DEFAULT 0,
                             best_move                 GAME_MOVE  DEFAULT 'UN',
+                            leaf_count                BIGINT     DEFAULT 0,
+                            node_count                BIGINT     DEFAULT 0,
                             --
                             UNIQUE (batch_id, game_id, pos_id));
 
