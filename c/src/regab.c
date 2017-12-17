@@ -689,7 +689,7 @@ do_select_position_to_solve (int *result,
                   sizeof(command),
                   "UPDATE regab_prng_gp SET status = 'WIP', cst_time = now() WHERE seq IN ("
                   "SELECT seq FROM regab_prng_gp WHERE batch_id = %d AND empty_count = %u AND status = 'INS' "
-                  "ORDER BY (batch_id, game_id, pos_id) LIMIT 1 FOR UPDATE) "
+                  "LIMIT 1 FOR UPDATE) "
                   "RETURNING seq, game_id, pos_id, ins_time, status, cst_time, mover, opponent, player, "
                   "empty_count, legal_move_set, legal_move_count, legal_move_count_adjusted, parent_move",
                   record->batch_id, record->empty_count);
