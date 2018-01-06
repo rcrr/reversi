@@ -231,6 +231,10 @@ extern SquareSet
 square_set_from_array (const Square sq_array[],
                        const int sq_count);
 
+extern size_t
+square_set_print (char *const to_string,
+                  const SquareSet s);
+
 
 
 /**********************************************/

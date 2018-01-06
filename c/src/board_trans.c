@@ -64,7 +64,7 @@ board_trans_mirror_horizontal (SquareSet s)
 }
 
 SquareSet
-board_trans_flip_diag_H1_A8 (SquareSet s)
+board_trans_flip_diag_a1h8 (SquareSet s)
 {
   SquareSet t;
   const SquareSet k1 = 0x5500550055005500;
@@ -80,7 +80,7 @@ board_trans_flip_diag_H1_A8 (SquareSet s)
 }
 
 SquareSet
-board_trans_flip_diag_A1_H8 (SquareSet s)
+board_trans_flip_diag_h1a8 (SquareSet s)
 {
   SquareSet t;
   const SquareSet k1 = 0xaa00aa00aa00aa00;
@@ -104,11 +104,11 @@ board_trans_rotate_180 (SquareSet s)
 SquareSet
 board_trans_rotate_90c (SquareSet s)
 {
-  return board_trans_flip_vertical(board_trans_flip_diag_H1_A8(s));
+  return board_trans_flip_vertical(board_trans_flip_diag_h1a8(s));
 }
 
 SquareSet
 board_trans_rotate_90a (SquareSet s)
 {
-  return board_trans_flip_diag_H1_A8(board_trans_flip_vertical(s));
+  return board_trans_flip_diag_h1a8(board_trans_flip_vertical(s));
 }

@@ -1,45 +1,50 @@
 /**
  * @file
  *
- * @brief Flipping, mirroring, and rotating boards.
+ * @brief Flipping, mirroring, and rotating square sets.
  *
- * @details Utilities for transforming the board by flip, mirror, and rotation operations.
+ * @details Utilities for transforming the square set by flip, mirror, and rotation operations.
  *
- * Flip and Mirror:
+ * Flip and mirror operations are summarized in the table below:
  *
- *   - flipping vertically
- *   - mirroring horizontally
- *   - flipping along the diagonal
- *   - flipping along the antidiagonal
+ *   - function board_trans_flip_vertical() flipps vertically
+ *   - function board_trans_mirror_horizontal() mirrors horizontally
+ *   - function board_trans_flip_diag_h1a8() flipps along the diagonal `h1-a8`
+ *   - function board_trans_flip_diag_a1h8() flipps along the diagonal `a1-h8`
  *
  * @code
  *
- *    A B C D E F G H   A B C D E F G H   A B C D E F G H   A B C D E F G H
+ *    a b c d e f g h     a b c d e f g h     a b c d e f g h     a b c d e f g h
  *
- * 1  . 1 1 1 1 . . .   . 1 1 1 1 . . .   . 1 1 1 1 . . .   . 1 1 1 1 . . .
- * 2  . 1 . . . 1 . .   . 1 . . . 1 . .   . 1 . . . 1 . .   . 1 . . . 1 . .
- * 3  . 1 . . . 1 . .   . 1 . . . 1 . .   . 1 . . . 1 . .   . 1 . . . 1 . .
- * 4  . 1 . . 1 . . .   . 1 . . 1 . . .   . 1 . . 1 . . .   . 1 . . 1 . . .
- * 5  . 1 1 1 . . . .   . 1 1 1 . . . .   . 1 1 1 . . . .   . 1 1 1 . . . .
- * 6  . 1 . 1 . . . .   . 1 . 1 . . . .   . 1 . 1 . . . .   . 1 . 1 . . . .
- * 7  . 1 . . 1 . . .   . 1 . . 1 . . .   . 1 . . 1 . . .   . 1 . . 1 . . .
- * 8  . 1 . . . 1 . .   . 1 . . . 1 . .   . 1 . . . 1 . .   . 1 . . . 1 . .
+ * 1  . 1 1 1 1 . . .     . 1 1 1 1 . . .     . 1 1 1 1 . . .     . 1 1 1 1 . . .
+ * 2  . 1 . . . 1 . .     . 1 . . . 1 . .     . 1 . . . 1 . .     . 1 . . . 1 . .
+ * 3  . 1 . . . 1 . .     . 1 . . . 1 . .     . 1 . . . 1 . .     . 1 . . . 1 . .
+ * 4  . 1 . . 1 . . .     . 1 . . 1 . . .     . 1 . . 1 . . .     . 1 . . 1 . . .
+ * 5  . 1 1 1 . . . .     . 1 1 1 . . . .     . 1 1 1 . . . .     . 1 1 1 . . . .
+ * 6  . 1 . 1 . . . .     . 1 . 1 . . . .     . 1 . 1 . . . .     . 1 . 1 . . . .
+ * 7  . 1 . . 1 . . .     . 1 . . 1 . . .     . 1 . . 1 . . .     . 1 . . 1 . . .
+ * 8  . 1 . . . 1 . .     . 1 . . . 1 . .     . 1 . . . 1 . .     . 1 . . . 1 . .
  *
- *           -                 |                  /               \
- *     flipVertical     mirrorHorizontal  flipDiagH1A8      flipDiagA1H8
- *           -                 |                /                   \
+ *           -                   |                    /               \
+ *     flip_vertical      mirror_horizontal    flip_diag_h1a8     flip_diag_a1h8
+ *           -                   |                  /                   \
  *
- * 1  . 1 . . . 1 . .   . . . 1 1 1 1 .   . . . . . . . .   . . . . . . . .
- * 2  . 1 . . 1 . . .   . . 1 . . . 1 .   . . . . . . . .   1 1 1 1 1 1 1 1
- * 3  . 1 . 1 . . . .   . . 1 . . . 1 .   1 . . . . 1 1 .   1 . . . 1 . . .
- * 4  . 1 1 1 . . . .   . . . 1 . . 1 .   . 1 . . 1 . . 1   1 . . . 1 1 . .
- * 5  . 1 . . 1 . . .   . . . . 1 1 1 .   . . 1 1 . . . 1   1 . . 1 . . 1 .
- * 6  . 1 . . . 1 . .   . . . . 1 . 1 .   . . . 1 . . . 1   . 1 1 . . . . 1
- * 7  . 1 . . . 1 . .   . . . 1 . . 1 .   1 1 1 1 1 1 1 1   . . . . . . . .
- * 8  . 1 1 1 1 . . .   . . 1 . . . 1 .   . . . . . . . .   . . . . . . . .
+ * 1  . 1 . . . 1 . .     . . . 1 1 1 1 .     . . . . . . . .     . . . . . . . .
+ * 2  . 1 . . 1 . . .     . . 1 . . . 1 .     . . . . . . . .     1 1 1 1 1 1 1 1
+ * 3  . 1 . 1 . . . .     . . 1 . . . 1 .     1 . . . . 1 1 .     1 . . . 1 . . .
+ * 4  . 1 1 1 . . . .     . . . 1 . . 1 .     . 1 . . 1 . . 1     1 . . . 1 1 . .
+ * 5  . 1 . . 1 . . .     . . . . 1 1 1 .     . . 1 1 . . . 1     1 . . 1 . . 1 .
+ * 6  . 1 . . . 1 . .     . . . . 1 . 1 .     . . . 1 . . . 1     . 1 1 . . . . 1
+ * 7  . 1 . . . 1 . .     . . . 1 . . 1 .     1 1 1 1 1 1 1 1     . . . . . . . .
+ * 8  . 1 1 1 1 . . .     . . 1 . . . 1 .     . . . . . . . .     . . . . . . . .
  *
  * @endcode
  *
+ * Three rotation functions are provided by the module:
+ *
+ *   - function board_trans_rotate_180() rotates the square set by 180 degrees
+ *   - function board_trans_rotate_90c() rotates clockwise by 90 degrees
+ *   - function board_trans_rotate_90a() rotates anti-clockwise by 90 degrees
  *
  * @par board_trans.h
  * <tt>
@@ -78,11 +83,13 @@
 /**
  * @brief Flips a square set vertically.
  *
- * @details Row 1 is mapped to row 8 and vice versa.
+ * @details Row `1` is mapped to row `8` and vice versa.
  *
  * @code
  *
- *    A B C D E F G H    A B C D E F G H
+ *    ---- input ----    ---- output ---
+ *
+ *    a b c d e f g h    a b c d e f g h
  *
  * 1  . 1 1 1 1 . . .    . 1 . . . 1 . .
  * 2  . 1 . . . 1 . .    . 1 . . 1 . . .
@@ -104,11 +111,13 @@ board_trans_flip_vertical (SquareSet s);
 /**
  * @brief Mirrors a square set horizontally.
  *
- * @details Column A is mapped to file H and vice versa.
+ * @details Column `a` is mapped to column `h` and vice versa.
  *
  * @code
  *
- *    A B C D E F G H    A B C D E F G H
+ *    ---- input ----    ---- output ---
+ *
+ *    a b c d e f g h    a b c d e f g h
  *
  * 1  . 1 1 1 1 . . .    . . . 1 1 1 1 .
  * 2  . 1 . . . 1 . .    . . 1 . . . 1 .
@@ -128,13 +137,15 @@ extern SquareSet
 board_trans_mirror_horizontal (SquareSet s);
 
 /**
- * @brief Flips a square set about the diagonal H1-A8.
+ * @brief Flips a square set about the diagonal `h1-a8`.
  *
- * @details Square A1 is mapped to H8 and vice versa.
+ * @details Square `a1` is mapped to `h8` and vice versa.
  *
  * @code
  *
- *    A B C D E F G H    A B C D E F G H
+ *    ---- input ----    ---- output ---
+ *
+ *    a b c d e f g h    a b c d e f g h
  *
  * 1  . 1 1 1 1 . . .    . . . . . . . .
  * 2  . 1 . . . 1 . .    . . . . . . . .
@@ -148,19 +159,21 @@ board_trans_mirror_horizontal (SquareSet s);
  * @endcode
  *
  * @param [in] s any square set
- * @return       square set `s` flipped about H1-A8
+ * @return       square set `s` flipped about `h1-a8`
  */
 extern SquareSet
-board_trans_flip_diag_H1_A8 (SquareSet s);
+board_trans_flip_diag_h1a8 (SquareSet s);
 
 /**
- * @brief Flips a square set about the diagonal A1-H8.
+ * @brief Flips a square set about the diagonal `a1-h8`.
  *
- * @details Square H1 is mapped to A8 and vice versa.
+ * @details Square `h1` is mapped to `a8` and vice versa.
  *
  * @code
  *
- *    A B C D E F G H    A B C D E F G H
+ *    ---- input ----    ---- output ---
+ *
+ *    a b c d e f g h    a b c d e f g h
  *
  * 1  . 1 1 1 1 . . .    . . . . . . . .
  * 2  . 1 . . . 1 . .    1 1 1 1 1 1 1 1
@@ -174,19 +187,21 @@ board_trans_flip_diag_H1_A8 (SquareSet s);
  * @endcode
  *
  * @param [in] s any square set
- * @return       square set `s` flipped about A1-H8
+ * @return       square set `s` flipped about `a1-h8`
  */
 extern SquareSet
-board_trans_flip_diag_A1_H8 (SquareSet s);
+board_trans_flip_diag_a1h8 (SquareSet s);
 
 /**
  * @brief Rotate a square set by 180 degrees.
  *
- * @details Square A1 is mapped to H8, and H1 is mapped to A8.
+ * @details Square `a1` is mapped to `h8`, and `b1` is mapped to `g8`.
  *
  * @code
  *
- *    A B C D E F G H    A B C D E F G H
+ *    ---- input ----    ---- output ---
+ *
+ *    a b c d e f g h    a b c d e f g h
  *
  * 1  . 1 1 1 1 . . .    . . 1 . . . 1 .
  * 2  . 1 . . . 1 . .    . . . 1 . . 1 .
@@ -208,11 +223,13 @@ board_trans_rotate_180 (SquareSet s);
 /**
  * @brief Rotates a square set by 90 degrees clockwise.
  *
- * @details Square A1 is mapped to H1, and H1 is mapped to H8.
+ * @details Square `a1` is mapped to `h1`, and `b1` is mapped to `h2`.
  *
  * @code
  *
- *    A B C D E F G H    A B C D E F G H
+ *    ---- input ----    ---- output ---
+ *
+ *    a b c d e f g h    a b c d e f g h
  *
  * 1  . 1 1 1 1 . . .    . . . . . . . .
  * 2  . 1 . . . 1 . .    1 1 1 1 1 1 1 1
@@ -234,11 +251,13 @@ board_trans_rotate_90c (SquareSet s);
 /**
  * @brief Rotates a square set by 90 degrees anticlockwise.
  *
- * @details Square A1 is mapped to A8, and H1 is mapped to A1.
+ * @details Square `a1` is mapped to `a8`, and `b1` is mapped to `a7`.
  *
  * @code
  *
- *    A B C D E F G H    A B C D E F G H
+ *    ---- input ----    ---- output ---
+ *
+ *    a b c d e f g h    a b c d e f g h
  *
  * 1  . 1 1 1 1 . . .    . . . . . . . .
  * 2  . 1 . . . 1 . .    . . . . . . . .

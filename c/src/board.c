@@ -383,6 +383,41 @@ square_set_to_string (char *const to_string,
 }
 
 /**
+ * @brief Prepares a formatted string showing a 2d graphical represention of the square set.
+ *
+ * @details The `to_string` buffer needs to have enough space to
+ * accomodate the generated string. The size of the buffer must be larger
+ * than 212 bytes.
+ *
+ * @invariant Parameter `to_string` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [out] to_string a string being a 2d representation of the square set
+ * @param [in]  s         the square set
+ * @return                the length of the string
+ */
+size_t
+square_set_print (char *const to_string,
+                  const SquareSet s)
+{
+  assert(to_string);
+
+  char *c = to_string;
+  *c = 0;
+  c += sprintf(c, "    a b c d e f g h ");
+  for (int row = 0; row < 8; row++) {
+    c += sprintf(c, "\n %1d  ", row + 1);
+    for (int col = 0; col < 8; col++) {
+      bool is_filled = ((1ULL << (8 * row + col)) & s) != 0ULL;
+      c += sprintf(c, "%c ", is_filled ? '1' : '.');
+    }
+  }
+  c += sprintf(c, "\n");
+  return c - to_string;
+}
+
+
+/**
  * @brief Returns a random square among the given set.
  *
  * @invariant Parameter `prng` must not be null.
