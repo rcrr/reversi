@@ -112,3 +112,9 @@ board_trans_rotate_90a (SquareSet s)
 {
   return board_trans_flip_diag_h1a8(board_trans_flip_vertical(s));
 }
+
+SquareSet
+board_trans_identity (SquareSet s)
+{
+  return s;
+}

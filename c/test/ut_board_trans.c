@@ -41,10 +41,6 @@
 
 
 
-typedef SquareSet (*board_trans_f) (SquareSet);
-
-
-
 static const SquareSet ar            = 0x22120a0e1222221e;
 
 static const SquareSet ar_flipped_v  = 0x1e2222120e0a1222;

@@ -80,6 +80,10 @@
 
 
 
+typedef SquareSet (*board_trans_f) (SquareSet);
+
+
+
 /**
  * @brief Flips a square set vertically.
  *
@@ -275,6 +279,34 @@ board_trans_rotate_90c (SquareSet s);
  */
 extern SquareSet
 board_trans_rotate_90a (SquareSet s);
+
+/**
+ * @brief Returns the square set as it is.
+ *
+ * @details Conceptually it applies a rotation of zero degrees.
+ *
+ * @code
+ *
+ *    ---- input ----    ---- output ---
+ *
+ *    a b c d e f g h    a b c d e f g h
+ *
+ * 1  . 1 1 1 1 . . .    . 1 1 1 1 . . .
+ * 2  . 1 . . . 1 . .    . 1 . . . 1 . .
+ * 3  . 1 . . . 1 . .    . 1 . . . 1 . .
+ * 4  . 1 . . 1 . . .    . 1 . . 1 . . .
+ * 5  . 1 1 1 . . . .    . 1 1 1 . . . .
+ * 6  . 1 . 1 . . . .    . 1 . 1 . . . .
+ * 7  . 1 . . 1 . . .    . 1 . . 1 . . .
+ * 8  . 1 . . . 1 . .    . 1 . . . 1 . .
+ *
+ * @endcode
+ *
+ * @param [in] s any square set
+ * @return       square set `s` rotated by zero degrees
+ */
+extern SquareSet
+board_trans_identity (SquareSet s);
 
 
 
