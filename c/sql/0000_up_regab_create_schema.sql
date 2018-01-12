@@ -1,11 +1,11 @@
 --
--- regab_create_schema.sql
+-- 0000_up_regab_create_schema.sql
 --
 -- This file is part of the reversi program
 -- http://github.com/rcrr/reversi
 --
 -- Author: Roberto Corradini mailto:rob_corradini@yahoo.it
--- Copyright 2017 Roberto Corradini. All rights reserved.
+-- Copyright 2017, 2018 Roberto Corradini. All rights reserved.
 --
 --
 -- License:
@@ -31,23 +31,28 @@
 -- Load the file by running the command: \i regab_create_schema.sql
 --
 --
--- This script creates the schema used by the reversi program.
+-- This script extends the schema used by the reversi program by adding the regab batch,
+-- and positions tables.
 --
 
 SET search_path TO reversi;
 
-DROP TABLE IF EXISTS regab_connection_log;
-DROP TABLE IF EXISTS regab_prng_gp;
-DROP TABLE IF EXISTS regab_prng_gp_h;
-
 --
--- DROP TABLE IF EXISTS regab_prng_gp_h;
+-- Table regab_connection_log logs into the database all the connection done by the regab C program.
 --
 CREATE TABLE regab_connection_log (seq       SERIAL     PRIMARY KEY,
                                    con_time  TIMESTAMP);
 
 --
--- DROP TABLE IF EXISTS regab_prng_gp_h;
+-- Table regab_prng_gp_h contains the batches of random games created by running the regab C program
+-- with the -a generate flag.
+--
+-- seq:                       Unique auto increment record id.
+-- ins_time:                  Insertion timespamp.
+-- status:                    Status field (INS for "inserted", CMP for "completed").
+-- prng_seed:                 Integer used to initialize the PRNG sequence.
+-- ngames:                    Number of games that are part of the batch.
+-- npositions:                Number of game positions collected into the batch.
 --
 CREATE TABLE regab_prng_gp_h (seq            SERIAL     PRIMARY KEY,
                               ins_time       TIMESTAMP,
@@ -57,7 +62,8 @@ CREATE TABLE regab_prng_gp_h (seq            SERIAL     PRIMARY KEY,
                               npositions     INTEGER);
 
 --
--- DROP TABLE IF EXISTS regab_prng_gp;
+-- Table regab_prng_gp contains the game positions belonging to the random games that are part of the baches
+-- described by regab_prng_gp_h table.
 --
 -- seq:                       Unique auto increment record id.
 --
@@ -108,5 +114,3 @@ CREATE TABLE regab_prng_gp (seq                       SERIAL     PRIMARY KEY,
                             node_count                BIGINT     DEFAULT 0,
                             --
                             UNIQUE (batch_id, game_id, pos_id));
-
--- CREATE INDEX regab_prng_gp_idx ON regab_prng_gp (status);
