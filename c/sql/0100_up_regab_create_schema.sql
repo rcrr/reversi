@@ -1,5 +1,5 @@
 --
--- 0000_up_regab_create_schema.sql
+-- 0100_up_regab_create_schema.sql
 --
 -- This file is part of the reversi program
 -- http://github.com/rcrr/reversi

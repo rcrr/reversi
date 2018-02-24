@@ -3,16 +3,16 @@
  *
  * @brief REGAB: Reversi End Game Analytics Base.
  *
- * @details This executable analyzes an end game position and
- *          computes the exact outcome.
+ * @details An utility that generates the data base of reversi game positions
+ * for analytical studies.
  *
- * @par endgame_solver.c
+ * @par regab.c
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2017 Roberto Corradini. All rights reserved.
+ * @copyright 2017, 2018 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -47,6 +47,7 @@
 #include "cfg.h"
 #include "prng.h"
 #include "board.h"
+#include "board_pattern.h"
 #include "endgame_solver.h"
 #include "exact_solver.h"
 #include "game_tree_utils.h"
@@ -75,9 +76,11 @@ typedef struct regab_prng_stack_s {
 } regab_prng_stack_t;
 
 typedef enum {
-  REGAB_ACTION_GENERATE,  // Generate one batch of random games.
-  REGAB_ACTION_SOLVE,     // Solve the selected games.
-  REGAB_ACTION_INVALID    // Not a valid action.
+  REGAB_ACTION_GENERATE,                // Generates one batch of random games.
+  REGAB_ACTION_SOLVE,                   // Solves the selected games.
+  REGAB_ACTION_GENERATE_CLASSIFICATION, // Generates the classification header and classification records.
+  REGAB_ACTION_CLASSIFY,                // Classifies the records by computing the proper index.
+  REGAB_ACTION_INVALID                  // Not a valid action.
 } regab_action_t;
 
 typedef struct regab_prng_gp_record_s {
@@ -102,6 +105,17 @@ typedef struct regab_prng_gp_record_s {
   int64_t node_count;
 } regab_prng_gp_record_t;
 
+typedef struct regab_prng_gp_classification_record_s {
+  int64_t seq;
+  char ins_time[32];
+  char status[4];
+  char cst_time[32];
+  int class_id;
+  int64_t gp_id;
+  int pattern_instance;
+  int index_value;
+} regab_prng_gp_classification_record_t;
+
 
 
 /*
@@ -118,6 +132,7 @@ static const mop_options_long_t olist[] = {
   {"n-games",           'n', MOP_REQUIRED},
   {"batch-id",          'b', MOP_REQUIRED},
   {"empty-count",       'y', MOP_REQUIRED},
+  {"pattern",           'p', MOP_REQUIRED},
   {0, 0, 0}
 };
 
@@ -128,13 +143,14 @@ static const char *documentation =
   "Options:\n"
   "  -h, --help        Show help options\n"
   "  -v, --verbose     Verbose output\n"
-  "  -a, --action      Action to be performed                              - Mandatory - Must be in [generate|solve].\n"
-  "  -c, --config-file Config file name                                    - Mandatory.\n"
-  "  -e, --env         Environment                                         - Mandatory.\n"
-  "  -s, --prng-seed   Seed used by the Pseudo Random Number Generator     - Default is 0.\n"
-  "  -n, --n-games     Number of random game generated                     - Default is one.\n"
-  "  -b, --batch-id    Batch id                                            - Mandatory when action is solve.\n"
-  "  -y, --empty-count Number of empty squares in the solved game position - Mandatory when action is solve.\n"
+  "  -a, --action      Action to be performed                                 - Mandatory - Must be in [generate|solve|gen_class|classify].\n"
+  "  -c, --config-file Config file name                                       - Mandatory.\n"
+  "  -e, --env         Environment                                            - Mandatory.\n"
+  "  -s, --prng-seed   Seed used by the Pseudo Random Number Generator        - Mandatory when action is generate.\n"
+  "  -n, --n-games     Number of random game generated, solved, or classified - Default is one.\n"
+  "  -b, --batch-id    Batch id                                               - Mandatory when action is in [solve|gen_class|classify].\n"
+  "  -y, --empty-count Number of empty squares in the solved game position    - Mandatory when action is in [solve|gen_class|classify].\n"
+  "  -p, --pattern     Board pattern                                          - Mandatory when action is in [gen_class|classify].\n"
   "\n"
   "Description:\n"
   "  To be completed ... .\n"
@@ -142,7 +158,7 @@ static const char *documentation =
   "Author:\n"
   "  Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
   "\n"
-  "Copyright (c) 2017 Roberto Corradini. All rights reserved.\n"
+  "Copyright (c) 2017, 2018 Roberto Corradini. All rights reserved.\n"
   "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
   "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n"
   ;
@@ -181,12 +197,16 @@ static char *b_arg = NULL;
 static int y_flag = false;
 static char *y_arg = NULL;
 
+static int p_flag = false;
+static char *p_arg = NULL;
+
 static regab_action_t action = REGAB_ACTION_INVALID;
 static char *config_file = NULL;
 static char *env = NULL;
 static bool verbose = false;
 static uint64_t prng_seed = 0;
 static unsigned long int n_games = 1;
+static board_pattern_id_t bpi = BOARD_PATTERN_INVALID;
 
 /*
  * Prototypes for internal functions.
@@ -265,6 +285,43 @@ regab_get_db_connection (PGconn **conp,
     return;
   }
 
+}
+
+static void
+do_insert_regab_prng_gp_classification_h (int *result,
+                                          PGconn *con,
+                                          unsigned int pattern_id,
+                                          unsigned int batch_id,
+                                          unsigned int empty_count)
+{
+  PGresult *res = NULL;
+  char command[512];
+  int clen, seq;
+
+  const board_pattern_t *bp = board_patterns + pattern_id;
+
+  /* Inserts the new record in the header table. */
+  clen = snprintf(command,
+                  sizeof(command),
+                  "SELECT insert_regab_prng_gp_classification_h('%s', %u, %u) AS output;",
+                  bp->name, batch_id, empty_count);
+  if (clen >= sizeof(command)) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL statement (3).\n");
+    abort();
+  }
+  res = PQexec(con, command);
+  if (PQresultStatus(res) != PGRES_TUPLES_OK
+      || PQntuples(res) != 1
+      || strcmp("output", PQfname(res, 0)) != 0) {
+    fprintf(stderr, "FUNCTION CALL failed.\n");
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  } else {
+    seq = atol(PQgetvalue(res, 0, 0));
+    printf("Inserted record into table regab_prng_gp_classification_h (pattern_id=%u, batch_id=%u, empty_count=%u), returned key=%d\n",
+           pattern_id, batch_id, empty_count, seq);
+  }
+  PQclear(res);
 }
 
 static void
@@ -377,7 +434,7 @@ do_insert_game_regab_prng_gp (int *result,
     cp = command + cl;
 
     if (cl >= command_size) {
-      fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+      fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command (4).\n");
       abort();
     }
 
@@ -498,7 +555,7 @@ do_check_load_regab_prng_gp_h (int *result,
                   "SELECT count(distinct(game_id)) AS games, count(distinct(game_id, pos_id)) AS positions FROM regab_prng_gp WHERE batch_id = %zu;",
                   batch_id);
   if (clen >= sizeof(command)) {
-    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL statement.\n");
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL statement (5).\n");
     abort();
   }
   res = PQexec(con, command);
@@ -523,7 +580,7 @@ do_check_load_regab_prng_gp_h (int *result,
                   "UPDATE regab_prng_gp_h SET npositions = %zu, status = 'CMP' WHERE seq = %zu;",
                   npos, batch_id);
   if (clen >= sizeof(command)) {
-    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL statement.\n");
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL statement (6).\n");
     abort();
   }
   res = PQexec(con, command);
@@ -561,9 +618,59 @@ do_update_solved_position_results (int *result,
                   record->game_value, square_as_move_to_string(record->best_move), record->leaf_count,
                   record->node_count, record->seq);
   if (clen >= sizeof(command)) {
-    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL statement.\n");
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL statement (7).\n");
     abort();
   }
+  res = PQexec(con, command);
+  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "Update command has problems.\n");
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  }
+  PQclear(res);
+}
+
+static void
+do_update_classification_index (int *result,
+                                PGconn *con,
+                                size_t n,
+                                regab_prng_gp_classification_record_t records[])
+{
+  PGresult *res = NULL;
+  char command[65536];
+  char *cp;
+  size_t cl;
+
+  if (!result) return;
+  if (!con || !records) {
+    *result = -1;
+    return;
+  }
+  *result = 0;
+
+  /* Updates the records with the computed indexes. */
+  const char *c0 =
+    "UPDATE regab_prng_gp_classification AS r "
+    "SET status = b.status, cst_time = b.cst_time, index_value = b.index_value "
+    "FROM (VALUES ";
+  const char *c1 = "(%"PRId64", 'CMP', now(), %u)%s";
+  const char *c2 = ", ";
+  const char *c3 = ") AS b(seq, status, cst_time, index_value) WHERE r.seq = b.seq;";
+
+  cl = snprintf(command, sizeof(command), "%s", c0);
+  cp = command + cl;
+
+  for (size_t i = 0; i < n; i++) {
+    cl += snprintf(cp, sizeof(command) - cl, c1,
+                   records[i].seq, records[i].index_value,
+                   (i < n - 1) ? c2 : c3);
+    cp = command +cl;
+  }
+  if (cl >= sizeof(command)) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command (8).\n");
+    abort();
+  }
+
   res = PQexec(con, command);
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
     fprintf(stderr, "Update command has problems.\n");
@@ -666,6 +773,121 @@ square_as_move_from_two_chars (char *f)
   return move;
 }
 
+static int
+do_select_db_pattern_id (int *result,
+                         PGconn *con,
+                         board_pattern_id_t bpi)
+{
+  PGresult *res = NULL;
+  char command[512];
+  int clen;
+
+  size_t ntuples;
+  int seq;
+
+  if (!result) return -1;
+  if (!con) {
+    *result = -1;
+    return -1;
+  }
+  *result = 0;
+  seq = -1;
+
+  clen = snprintf(command,
+                  sizeof(command),
+                  "SELECT seq FROM regab_prng_patterns WHERE pattern_name = '%s';",
+                  board_patterns[bpi].name);
+  if (clen >= sizeof(command)) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL statement (9).\n");
+    abort();
+  }
+  res = PQexec(con, command);
+  if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+    fprintf(stderr, "Select command has problems.\n");
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  } else {
+    ntuples = PQntuples(res);
+    if (ntuples > 1) *result = -1;
+    else if (ntuples == 1) {
+      if (strcmp("seq", PQfname(res, 0)) != 0) {
+        *result = -1;
+      } else { // Everything is ok, and one record is selected.
+        seq = atol(PQgetvalue(res, 0, 0));
+        *result = 1;
+      }
+    } else { // Ok, but no record selected.
+      *result = 0;
+    }
+  }
+  PQclear(res);
+  return seq;
+}
+
+static int
+do_select_class_id (int *result,
+                    PGconn *con,
+                    board_pattern_id_t bpi,
+                    unsigned int batch_id,
+                    unsigned int empty_count)
+{
+  PGresult *res = NULL;
+  char command[512];
+  int clen;
+
+  size_t ntuples;
+  int pattern_id;
+  int class_id;
+
+  if (!result) return -1;
+  if (!con) {
+    *result = -1;
+    return -1;
+  }
+  *result = 0;
+  pattern_id = -1;
+  class_id = -1;
+
+  pattern_id = do_select_db_pattern_id(result, con, bpi);
+  if (pattern_id < 0 || *result < 0) {
+    fprintf(stderr, "No matching definition for pattern found into the database table regab_prng_patterns.\n");
+    *result = -1;
+    return -1;
+  }
+
+  /* Selects the class_id key. */
+  clen = snprintf(command,
+                  sizeof(command),
+                  "SELECT seq FROM regab_prng_gp_classification_h WHERE pattern_id = %u AND batch_id = %u AND empty_count = %u;",
+                  pattern_id, batch_id, empty_count);
+  if (clen >= sizeof(command)) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL statement (10).\n");
+    abort();
+  }
+  res = PQexec(con, command);
+  if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+    fprintf(stderr, "Select command has problems.\n");
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  } else {
+    ntuples = PQntuples(res);
+    if (ntuples > 1) *result = -1;
+    else if (ntuples == 1) {
+      if (strcmp("seq", PQfname(res, 0)) != 0) {
+        *result = -1;
+      } else { // Everything is ok, and one record is selected.
+        class_id = atol(PQgetvalue(res, 0, 0));
+        *result = 1;
+      }
+    } else { // Ok, but no record selected.
+      *result = 0;
+    }
+  }
+  PQclear(res);
+  if (*result != 1) return -1;
+  return class_id;
+}
+
 static void
 do_select_position_to_solve (int *result,
                              PGconn *con,
@@ -689,12 +911,12 @@ do_select_position_to_solve (int *result,
                   sizeof(command),
                   "UPDATE regab_prng_gp SET status = 'WIP', cst_time = now() WHERE seq IN ("
                   "SELECT seq FROM regab_prng_gp WHERE batch_id = %d AND empty_count = %u AND status = 'INS' "
-                  "LIMIT 1 FOR UPDATE) "
+                  "FOR UPDATE SKIP LOCKED LIMIT 1) "
                   "RETURNING seq, game_id, pos_id, ins_time, status, cst_time, mover, opponent, player, "
                   "empty_count, legal_move_set, legal_move_count, legal_move_count_adjusted, parent_move",
                   record->batch_id, record->empty_count);
   if (clen >= sizeof(command)) {
-    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL statement.\n");
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL statement (11).\n");
     abort();
   }
   res = PQexec(con, command);
@@ -745,6 +967,161 @@ do_select_position_to_solve (int *result,
   PQclear(res);
 }
 
+static void
+do_select_position (int *result,
+                    PGconn *con,
+                    size_t n,
+                    regab_prng_gp_record_t records[])
+{
+  PGresult *res = NULL;
+  char command[16384];
+  char *cp;
+  size_t cl;
+
+  size_t ntuples;
+
+  if (!result) return;
+  if (!con) {
+    *result = -1;
+    return;
+  }
+  *result = 0;
+
+  /* Selects and updates at most one record ready to be solved. */
+  const char *c0 =
+    "SELECT game_id, pos_id, ins_time, status, cst_time, mover, opponent, player "
+    "FROM regab_prng_gp WHERE seq IN (";
+  const char *c1 = "%"PRId64"%s";
+  const char *c2 = ", ";
+  const char *c3 = ");";
+
+  cl = snprintf(command, sizeof(command), "%s", c0);
+  cp = command + cl;
+
+  for (size_t i = 0; i < n; i++) {
+    cl += snprintf(cp, sizeof(command) - cl, c1,
+                   records[i].seq,
+                   (i < n - 1) ? c2 : c3);
+    cp = command +cl;
+  }
+  if (cl >= sizeof(command)) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command (1).\n");
+    abort();
+  }
+
+  //printf("QUERY:\n%s\n", command);
+
+  res = PQexec(con, command);
+  if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+    fprintf(stderr, "Select command has problems.\n");
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  } else {
+    ntuples = PQntuples(res);
+    if (ntuples > n) *result = -1;
+    else if (ntuples > 0) {
+      if (strcmp("game_id", PQfname(res, 0)) != 0
+          || strcmp("pos_id", PQfname(res, 1)) != 0
+          || strcmp("ins_time", PQfname(res, 2)) != 0
+          || strcmp("status", PQfname(res, 3)) != 0
+          || strcmp("cst_time", PQfname(res, 4)) != 0
+          || strcmp("mover", PQfname(res, 5)) != 0
+          || strcmp("opponent", PQfname(res, 6)) != 0
+          || strcmp("player", PQfname(res, 7)) != 0) {
+        *result = -1;
+      } else { // Everything is ok.
+        for (int i = 0; i < ntuples; i++) {
+          records[i].game_id = atol(PQgetvalue(res, i, 0));
+          records[i].pos_id = atol(PQgetvalue(res, i, 1));
+          strcpy(records[i].ins_time, PQgetvalue(res, i, 2));
+          strcpy(records[i].status, PQgetvalue(res, i, 3));
+          strcpy(records[i].cst_time, PQgetvalue(res, i, 4));
+          records[i].mover = atol(PQgetvalue(res, i, 5));
+          records[i].opponent = atol(PQgetvalue(res, i, 6));
+          records[i].player = atoi(PQgetvalue(res, i, 7));
+        }
+        *result = ntuples;
+      }
+    } else { // Ok, but no record selected.
+      *result = 0;
+    }
+  }
+  PQclear(res);
+}
+
+static void
+do_select_index_to_compute (int *result,
+                            PGconn *con,
+                            size_t buffer_size,
+                            int class_id,
+                            regab_prng_gp_classification_record_t records[])
+{
+  PGresult *res = NULL;
+  char command[1024];
+  int clen;
+
+
+  size_t ntuples;
+
+  if (!result) return;
+  if (!con) {
+    *result = -1;
+    return;
+  }
+  *result = 0;
+
+  /* Selects and updates at most one record ready to be solved. */
+  clen = snprintf(command,
+                  sizeof(command),
+                  "WITH updated AS ("
+                  "UPDATE regab_prng_gp_classification SET status = 'WIP', cst_time = now() WHERE seq IN ("
+                  "SELECT seq FROM regab_prng_gp_classification WHERE class_id = %d AND status = 'INS' "
+                  "ORDER BY class_id, gp_id FOR UPDATE SKIP LOCKED LIMIT %zu) "
+                  "RETURNING seq, ins_time, status, cst_time, class_id, gp_id, pattern_instance, index_value) "
+                  "SELECT * FROM updated ORDER BY class_id, gp_id, pattern_instance;",
+                  class_id, buffer_size);
+  if (clen >= sizeof(command)) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL statement (2).\n");
+    abort();
+  }
+  res = PQexec(con, command);
+  if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+    fprintf(stderr, "Select for update command has problems.\n");
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  } else {
+    ntuples = PQntuples(res);
+    if (ntuples > buffer_size) *result = -1;
+    else if (ntuples > 0) {
+      if (strcmp("seq", PQfname(res, 0)) != 0
+          || strcmp("ins_time", PQfname(res, 1)) != 0
+          || strcmp("status", PQfname(res, 2)) != 0
+          || strcmp("cst_time", PQfname(res, 3)) != 0
+          || strcmp("class_id", PQfname(res, 4)) != 0
+          || strcmp("gp_id", PQfname(res, 5)) != 0
+          || strcmp("pattern_instance", PQfname(res, 6)) != 0
+          || strcmp("index_value", PQfname(res, 7)) != 0) {
+        *result = -1;
+      } else { // Everything is ok.
+        for (int i = 0; i < ntuples; i++) {
+          records[i].seq = atol(PQgetvalue(res, i, 0));
+          strcpy(records[i].ins_time, PQgetvalue(res, i, 1));
+          strcpy(records[i].status, PQgetvalue(res, i, 2));
+          strcpy(records[i].cst_time, PQgetvalue(res, i, 3));
+          records[i].class_id = atol(PQgetvalue(res, i, 4));
+          records[i].gp_id = atol(PQgetvalue(res, i, 5));
+          records[i].pattern_instance = atoi(PQgetvalue(res, i, 6));
+          records[i].index_value = atol(PQgetvalue(res, i, 7));
+        }
+        *result = ntuples;
+      }
+    } else { // Ok, but no record selected.
+      *result = 0;
+    }
+  }
+  PQclear(res);
+}
+
 
 
 /**
@@ -756,6 +1133,9 @@ int
 main (int argc,
       char *argv[])
 {
+  /* Initializes the board module. */
+  board_module_init();
+
   regab_prng_stack_t gstack;
 
   int opt;
@@ -801,6 +1181,10 @@ main (int argc,
       y_flag = true;
       y_arg = options.optarg;
       break;
+    case 'p':
+      p_flag = true;
+      p_arg = options.optarg;
+      break;
     case ':':
       fprintf(stderr, "Option parsing failed: %s\n", options.errmsg);
       return EXIT_FAILURE;
@@ -828,8 +1212,10 @@ main (int argc,
   } else {
     if (strcmp("generate", a_arg) == 0) action = REGAB_ACTION_GENERATE;
     else if (strcmp("solve", a_arg) == 0) action = REGAB_ACTION_SOLVE;
+    else if (strcmp("gen_class", a_arg) == 0) action = REGAB_ACTION_GENERATE_CLASSIFICATION;
+    else if (strcmp("classify", a_arg) == 0) action = REGAB_ACTION_CLASSIFY;
     else {
-      fprintf(stderr, "Argument for option -a, --action must be in [generate|solve] domain.\n");
+      fprintf(stderr, "Argument for option -a, --action must be in [generate|solve|gen_class|classify] domain.\n");
       return EXIT_FAILURE;
     }
   }
@@ -924,6 +1310,12 @@ main (int argc,
       return EXIT_FAILURE;
     }
   }
+  if (p_flag) {
+    if (!board_pattern_get_id_by_name(&bpi, p_arg)) {
+      fprintf(stderr, "Pattern %s not found.\n", p_arg);
+      return EXIT_FAILURE;
+    }
+  }
 
   /* Verifies that the config input file is available for reading. */
   FILE *fp = fopen(config_file, "r");
@@ -932,6 +1324,66 @@ main (int argc,
     return EXIT_FAILURE;
   }
   fclose(fp);
+
+  /* Verifies mandatory options when action is generate. */
+  if (action == REGAB_ACTION_GENERATE) {
+    if (!s_flag) {
+      fprintf(stderr, "Option -s, --prng-seed, is mandatory when option -a, --action, has value \"generate\".\n");
+      return EXIT_FAILURE;
+    }
+    if (!n_flag) {
+      fprintf(stderr, "Option -n, --n-games, is mandatory when option -a, --action, has value \"generate\".\n");
+      return EXIT_FAILURE;
+    }
+  }
+
+  /* Verifies mandatory options when action is solve. */
+  if (action == REGAB_ACTION_SOLVE) {
+    if (!b_flag) {
+      fprintf(stderr, "Option -b, --batch-id, is mandatory when option -a, --action, has value \"solve\".\n");
+      return EXIT_FAILURE;
+    }
+    if (!y_flag) {
+      fprintf(stderr, "Option -y, --empty_count, is mandatory when option -a, --action, has value \"solve\".\n");
+      return EXIT_FAILURE;
+    }
+  }
+
+  /* Verifies mandatory options when action is gen_class. */
+  if (action == REGAB_ACTION_GENERATE_CLASSIFICATION) {
+    if (!b_flag) {
+      fprintf(stderr, "Option -b, --batch-id, is mandatory when option -a, --action, has value \"gen_class\".\n");
+      return EXIT_FAILURE;
+    }
+    if (!p_flag) {
+      fprintf(stderr, "Option -p, --pattern, is mandatory when option -a, --action, has value \"gen_class\".\n");
+      return EXIT_FAILURE;
+    }
+    if (!y_flag) {
+      fprintf(stderr, "Option -y, --empty_count, is mandatory when option -a, --action, has value \"gen_class\".\n");
+      return EXIT_FAILURE;
+    }
+  }
+
+  /* Verifies mandatory options when action is classify. */
+  if (action == REGAB_ACTION_CLASSIFY) {
+    if (!p_flag) {
+      fprintf(stderr, "Option -p, --pattern, is mandatory when option -a, --action, has value \"classify\".\n");
+      return EXIT_FAILURE;
+    }
+    if (!b_flag) {
+      fprintf(stderr, "Option -b, --batch-id, is mandatory when option -a, --action, has value \"classify\".\n");
+      return EXIT_FAILURE;
+    }
+    if (!y_flag) {
+      fprintf(stderr, "Option -y, --empty-count, is mandatory when option -a, --action, has value \"classify\".\n");
+      return EXIT_FAILURE;
+    }
+    if (!n_flag) {
+      fprintf(stderr, "Option -n, --n-games, is mandatory when option -a, --action, has value \"classify\".\n");
+      return EXIT_FAILURE;
+    }
+  }
 
   /*
    * Checks on command line options ends here.
@@ -1003,6 +1455,8 @@ main (int argc,
   switch (action) {
   case REGAB_ACTION_GENERATE: goto regab_action_generate;
   case REGAB_ACTION_SOLVE: goto regab_action_solve;
+  case REGAB_ACTION_GENERATE_CLASSIFICATION: goto regab_action_generate_classification;
+  case REGAB_ACTION_CLASSIFY: goto regab_action_classify;
   default: fprintf(stderr, "Out of range action option, aborting...\n"); abort();
   }
 
@@ -1132,9 +1586,6 @@ main (int argc,
           .pv_no_print = false
         };
 
-      /* Initializes the board module. */
-      board_module_init();
-
       ExactSolution *solution = game_position_es_solve(&gpx, &env);
 
       printf("solution(outcome=%d, best_move=%s, leaf_count=%zu, node_count=%zu)\n\n",
@@ -1157,6 +1608,131 @@ main (int argc,
     }
   }
   goto regab_program_end;
+
+
+
+  /*
+   * Generates the classification header and the record.
+   */
+ regab_action_generate_classification:
+  result = 0;
+  do_insert_regab_prng_gp_classification_h(&result, con, bpi, batch_id, empty_count);
+  goto regab_program_end;
+
+
+
+  /*
+   * Classifies the pattern classification records by computing the proper index.
+   */
+ regab_action_classify:
+  ;
+  int class_id = -1;
+  result = 0;
+  class_id = do_select_class_id(&result, con, bpi, batch_id, empty_count);
+  if (result == -1) {
+    fprintf(stderr, "Error while selecting the class_id in table regab_prng_classification_h.\n");
+    PQfinish(con);
+    return EXIT_FAILURE;
+  }
+  if (class_id < 0) {
+    fprintf(stderr, "No value found while selecting the class_id in table regab_prng_classification_h.\n");
+    goto regab_program_end;
+  }
+
+#define REGAB_CLASSIFY_BUFFER_SIZE 1024
+#define REGAB_MAX_IDC_INSTANCES 8
+
+  const size_t i_batch_size = (n_games > REGAB_CLASSIFY_BUFFER_SIZE) ? REGAB_CLASSIFY_BUFFER_SIZE : n_games;
+  for (int icomputed = 0; icomputed < n_games; icomputed += i_batch_size) {
+    regab_prng_gp_classification_record_t gpc_records[REGAB_CLASSIFY_BUFFER_SIZE];
+    regab_prng_gp_record_t gp_records[REGAB_CLASSIFY_BUFFER_SIZE];
+    board_pattern_index_t indexes[REGAB_MAX_IDC_INSTANCES];
+
+    size_t ngpc_records = 0;
+    size_t ngp_records = 0;
+    int64_t gp_id = -1;
+
+    do_select_index_to_compute(&result, con, i_batch_size, class_id, gpc_records);
+    if (result < 0) {
+      fprintf(stderr, "Error while selecting for update a record in the classification table, result=%d.\n", result);
+      PQfinish(con);
+      return EXIT_FAILURE;
+    } else if (result == 0) {
+      printf("No more indexes to compute.\n");
+      break;
+    }
+    ngpc_records = result;
+    for (int i = 0; i < ngpc_records; i++) {
+      if (gpc_records[i].gp_id != gp_id) {
+        gp_id = gpc_records[i].gp_id;
+        gp_records[ngp_records].seq = gp_id;
+        ngp_records++;
+      }
+    }
+    /*
+    printf("ngpc_records=%zu, ngp_records=%zu\n", ngpc_records, ngp_records);
+    for (int i = 0; i < ngpc_records; i++) {
+      printf("seq=%"PRId64", gp_id=%"PRId64", class_id=%d, pattern_instance=%d\n",
+             gpc_records[i].seq, gpc_records[i].gp_id, gpc_records[i].class_id, gpc_records[i].pattern_instance);
+    }
+    for (int i = 0; i < ngp_records; i++) {
+      printf("gp_records[%d].seq=%"PRId64"\n", i, gp_records[i].seq);
+    }
+    */
+
+    do_select_position(&result, con, ngp_records, gp_records);
+    if (result < 0) {
+      fprintf(stderr, "Error while selecting for update a record in the classification table, result=%d.\n", result);
+      PQfinish(con);
+      return EXIT_FAILURE;
+    } else if (result != ngp_records) {
+      printf("Error: game_position records are missing.\n");
+      PQfinish(con);
+      return EXIT_FAILURE;
+    }
+
+    for (int i = 0; i < ngp_records; i++) {
+      //printf("gp_records[%d].seq=%"PRId64"\n", i, gp_records[i].seq);
+
+      board_t board;
+      board.square_sets[0] = (SquareSet) gp_records[i].mover;
+      board.square_sets[1] = (SquareSet) gp_records[i].opponent;
+      board_pattern_compute_indexes(indexes, &board_patterns[bpi], &board);
+
+      /*
+      char gpx_to_s[1024];
+      GamePositionX gpx;
+      gpx.blacks = (SquareSet) gp_records[i].mover;
+      gpx.whites = (SquareSet) gp_records[i].opponent;
+      gpx.player = 0;
+      game_position_x_print(gpx_to_s, &gpx);
+      printf("\n%s\n", gpx_to_s);
+
+      printf("indexes: %u, %u, %u, %u\n",
+             indexes[0],
+             indexes[1],
+             indexes[2],
+             indexes[3]);
+      */
+
+      /* This is not efficient at all!!! */
+      for (int j = 0; j < ngpc_records; j++) {
+        if (gpc_records[j].gp_id == gp_records[i].seq) {
+          gpc_records[j].index_value = indexes[gpc_records[j].pattern_instance];
+        }
+      }
+    }
+
+    do_update_classification_index(&result, con, ngpc_records, gpc_records);
+    if (result < 0) {
+      fprintf(stderr, "Error while storing the indexes into the classification table, result=%d.\n", result);
+      PQfinish(con);
+      return EXIT_FAILURE;
+    }
+  }
+
+  goto regab_program_end;
+
 
 
   /*

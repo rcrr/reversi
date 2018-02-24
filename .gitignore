@@ -44,3 +44,4 @@ field_research/code/edax/4.3/bin
 out
 callgrind.out.*
 .Rhistory
+out_*

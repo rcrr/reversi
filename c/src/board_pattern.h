@@ -94,6 +94,13 @@ board_set_square_sets (board_t *b,
 
 
 
+typedef enum {
+  BOARD_PATTERN_EDGE,                // A1 B1 C1 D1 E1 F1 G1 H1.
+  BOARD_PATTERN_CORNER,              // A1 B1 C1 A2 B2 C2 A3 B3 C3.
+  BOARD_PATTERN_XEDGE,               // A1 B1 C1 D1 E1 F1 G1 H1 B2 G2.
+  BOARD_PATTERN_INVALID              // Not a valid pattern.
+} board_pattern_id_t;
+
 typedef uint16_t board_pattern_index_t;
 
 typedef struct board_pattern_s board_pattern_t;
@@ -101,28 +108,78 @@ typedef struct board_pattern_s board_pattern_t;
 extern SquareSet
 board_pattern_pack_edge (SquareSet s);
 
+extern SquareSet
+board_pattern_pack_corner (SquareSet s);
+
+extern SquareSet
+board_pattern_pack_xedge (SquareSet s);
+
+extern bool
+board_pattern_get_id_by_name (board_pattern_id_t *idp,
+                              char *name);
+
 struct board_pattern_s {
-  unsigned int id;
-  char name[5];
+  board_pattern_id_t id;
+  char name[7];
   unsigned int n_instances;
   unsigned int n_squares;
-  SquareSet principal_pattern;
+  SquareSet masks[8];
   board_trans_f trans_to_principal_f[8]; // array of transformation functions
   SquareSet (*pattern_pack_f) (SquareSet);
 };
 
-static const board_pattern_t
-board_pattern_edge = { 0,
-                       "EDGE",
-                       4,
-                       8,
-                       EDGE_PRINCIPAL_PATTERN,
-                       { board_trans_identity,
-                         board_trans_rotate_90a,
-                         board_trans_rotate_180,
-                         board_trans_rotate_90c,
-                         NULL, NULL, NULL, NULL },
-                       board_pattern_pack_edge };
+static const board_pattern_t board_patterns[] =
+  {
+    { BOARD_PATTERN_EDGE,
+      "EDGE",
+      4,
+      8,
+      { 0x00000000000000ff,
+        0x8080808080808080,
+        0xff00000000000000,
+        0x0101010101010101,
+        0, 0, 0, 0 },
+      { board_trans_identity,
+        board_trans_rotate_90a,
+        board_trans_rotate_180,
+        board_trans_rotate_90c,
+        NULL, NULL, NULL, NULL },
+      board_pattern_pack_edge },
+
+    { BOARD_PATTERN_CORNER,
+      "CORNER",
+      4,
+      9,
+      { 0x0000000000070707,
+        0x0000000000e0e0e0,
+        0xe0e0e00000000000,
+        0x0707070000000000,
+        0, 0, 0, 0 },
+      { board_trans_identity,
+        board_trans_rotate_90a,
+        board_trans_rotate_180,
+        board_trans_rotate_90c,
+        NULL, NULL, NULL, NULL },
+      board_pattern_pack_corner },
+
+    { BOARD_PATTERN_XEDGE,
+        "XEDGE",
+        4,
+        10,
+      { 0x00000000000042ff,
+        0x80c080808080c080,
+        0xff42000000000000,
+        0x0103010101010301,
+        0, 0, 0, 0 },
+      { board_trans_identity,
+        board_trans_rotate_90a,
+        board_trans_rotate_180,
+        board_trans_rotate_90c,
+        NULL, NULL, NULL, NULL },
+      board_pattern_pack_xedge },
+
+    { BOARD_PATTERN_INVALID, "NULL", 0, 0, { 0,0,0,0,0,0,0,0 }, { NULL }, NULL }
+  };
 
 
 

@@ -32,6 +32,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "board_trans.h"
 #include "board_pattern.h"
@@ -84,7 +85,40 @@ board_set_square_sets (board_t *b,
 SquareSet
 board_pattern_pack_edge (SquareSet s)
 {
-  return s & EDGE_PRINCIPAL_PATTERN;
+  return s & 0x00000000000000ff;
+}
+
+SquareSet
+board_pattern_pack_corner (SquareSet s)
+{
+  SquareSet s1, s2, s3;
+  s1 = s & 0x0000000000000007;
+  s2 = s & 0x0000000000000700;
+  s3 = s & 0x0000000000070000;
+  return s1 | (s2 >> 5) | (s3 >> 10);
+}
+
+SquareSet
+board_pattern_pack_xedge (SquareSet s)
+{
+  SquareSet s1, s2, s3;
+  s1 = s & 0x00000000000000ff;
+  s2 = s & 0x0000000000000200;
+  s3 = s & 0x0000000000004000;
+  return s1 | (s2 >> 1) | (s3 >> 5);
+}
+
+bool
+board_pattern_get_id_by_name(board_pattern_id_t *idp,
+                             char *name)
+{
+  for (int i = 0; i < BOARD_PATTERN_INVALID; i++) {
+    if (strcmp(name, board_patterns[i].name) == 0) {
+      *idp = i;
+      return true;
+    }
+  }
+  return false;
 }
 
 

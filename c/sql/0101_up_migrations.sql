@@ -1,11 +1,11 @@
 --
--- 0000_down_regab_create_schema.sql
+-- 0101_up_migrations.sql
 --
 -- This file is part of the reversi program
 -- http://github.com/rcrr/reversi
 --
 -- Author: Roberto Corradini mailto:rob_corradini@yahoo.it
--- Copyright 2017, 2018 Roberto Corradini. All rights reserved.
+-- Copyright 2018 Roberto Corradini. All rights reserved.
 --
 --
 -- License:
@@ -26,16 +26,26 @@
 -- or visit the site <http://www.gnu.org/licenses/>.
 --
 --
--- This script has been tested with PostgreSQL.
--- Start psql by running: psql -U es -w -d es -h localhost
--- Load the file by running the command: \i regab_create_schema.sql
 --
---
--- This script migrates down the regab create schema script.
+-- Introduces the migration concept.
 --
 
 SET search_path TO reversi;
 
-DROP TABLE IF EXISTS regab_connection_log;
-DROP TABLE IF EXISTS regab_prng_gp;
-DROP TABLE IF EXISTS regab_prng_gp_h;
+BEGIN;
+
+--
+-- Table migrations.
+--
+CREATE TABLE migrations (migration_id INTEGER PRIMARY KEY,
+                         ins_time     TIMESTAMP,
+                         label        TEXT,
+                         description  TEXT);
+
+INSERT INTO migrations (migration_id, ins_time, label, description)
+VALUES (0100, now(), 'regab_create_schema', 'creates the basic tables for the regab environment');
+
+INSERT INTO migrations (migration_id, ins_time, label, description)
+VALUES (0101, now(), 'migrations', 'logs migration installation or removal from the database');
+
+COMMIT;
