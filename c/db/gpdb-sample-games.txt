@@ -646,3 +646,20 @@ pve-test-c;bw..............bw..............bw............bw..............bw;b;C1
 #                |1       2       3       4       5       6       7       8       |
 #                |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
 reni-rob-20150426;..wwwwww..bbbbwwwwwwwwww..bbwwww..bbwbwwwwbwwwww..bbw.ww....w..w;b;Reni contro Rob;
+#
+#
+#
+#    a b c d e f g h
+# 1  @ @ @ @ @ @ @ @
+# 2  @ @ @ @ @ @ @ .
+# 3  @ @ @ @ @ @ O @
+# 4  @ @ @ @ @ @ O .
+# 5  O O @ @ O @ O O
+# 6  . O O @ @ . . .
+# 7  . . O O O O O .
+# 8  . O O O O . . .
+# Player to move: WHITE
+#
+#                     |1       2       3       4       5       6       7       8       |
+#                     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+black-wins-by-wipe-out;bbbbbbbbbbbbbbb.bbbbbbwbbbbbbbw.wwbbwbww.wwbb.....wwwww..wwww...;w;White is forced to move in F6, then black wins by wipe out;

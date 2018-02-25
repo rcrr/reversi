@@ -380,6 +380,7 @@ game_position_solve_impl (ExactSolution *const result,
 
   if (pv_full_recording && c->move_set) c->alpha -= 1;
 
+  c->best_move = (*c->head_of_legal_move_list)->move;
   for ( c->move_cursor = c->head_of_legal_move_list; c->move_cursor - c->head_of_legal_move_list < c->move_count; c->move_cursor++) {
     if (pv_recording) c->pve_line = pve_line_create(pve);
     recursive_call_setup(stack);

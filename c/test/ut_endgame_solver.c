@@ -67,6 +67,15 @@ const test_case_t ffo_01_simplified_4[] =
   };
 
 /**
+ * @brief Expected results for test cases coming from French Federation Othello game positions, number 01.
+ */
+const test_case_t black_wins_by_wipe_out[] =
+  {
+    { "black-wins-by-wipe-out", 1, -64, { F6 } }, // black-wins-by-wipe-out;bbbbbbbbbbbbbbb.bbbbbbwbbbbbbbw.wwbbwbww.wwbb.....wwwww..wwww...;w;White is forced to move in F6, then black wins by wipe out;
+    {NULL, 0, 0, {A1}}
+  };
+
+/**
  * @brief Expected results for test cases coming from French Federation Othello game positions, number 05.
  */
 const test_case_t ffo_05[] =
@@ -401,6 +410,13 @@ main (int argc,
                             "es/ffo_05",
                             ffo_05,
                             gpdb_fixture_setup,
+                            game_position_es_solve_t,
+                            gpdb_fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_001,
+                            "es/black_wins_by_wipe_out",
+                            black_wins_by_wipe_out,
+                            gpdb_sample_games_fixture_setup,
                             game_position_es_solve_t,
                             gpdb_fixture_teardown);
 
