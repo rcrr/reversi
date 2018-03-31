@@ -1,0 +1,59 @@
+# seq-68230060
+#
+# REGAB database, seq 68230060.
+# Principal Variation, PV: F8 H6 C8 D8 A8 A7 E1 C2 A5 H3 H2 A3 A1 -- B3 B2 A2 -- -- 
+# Final score is +20
+# Move values: E1: +10, B2: -14, C2: -12, B3: +4, A5: -6, A7: -6, C8: +12, D8: +6, F8: +20
+#
+#   seq    | batch_id | game_id | empty_count | legal_move_count | game_value | best_move |                      game_position_to_string                      | game_position_pp_mop  
+#----------+----------+---------+-------------+------------------+------------+-----------+-------------------------------------------------------------------+-----------------------
+# 68230060 |        7 |       0 |          16 |                9 |         20 | F8        | .www.bbb...wwwb...wwwbb.bbwbbbbb.wwbwwbbwwwwwww..bwwwwww.w..w.bwb |    a b c d e f g h   +
+#          |          |         |             |                  |            |           |                                                                   | 1  . O O O . @ @ @   +
+#          |          |         |             |                  |            |           |                                                                   | 2  . . . O O O @ .   +
+#          |          |         |             |                  |            |           |                                                                   | 3  . . O O O @ @ .   +
+#          |          |         |             |                  |            |           |                                                                   | 4  @ @ O @ @ @ @ @   +
+#          |          |         |             |                  |            |           |                                                                   | 5  . O O @ O O @ @   +
+#          |          |         |             |                  |            |           |                                                                   | 6  O O O O O O O .   +
+#          |          |         |             |                  |            |           |                                                                   | 7  . @ O O O O O O   +
+#          |          |         |             |                  |            |           |                                                                   | 8  . O . . O . @ O   +
+#          |          |         |             |                  |            |           |                                                                   | Player to move: BLACK
+#
+#           |1       2       3       4       5       6       7       8       |
+#           |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+seq-68230060;.www.bbb...wwwb...wwwbb.bbwbbbbb.wwbwwbbwwwwwww..bwwwwww.w..w.bw;b;Taken from the REGAB database having seq 68230060;
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+seq-68230060-e1;.wwwbbbb...bbbb...bwbbb.bbwbbbbb.wwbwwbbwwwwwww..bwwwwww.w..w.bw;w;Taken from the REGAB database having seq 68230060, blacks moves to E1;
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+seq-68230060-b2;.www.bbb.b.wwwb...bwwbb.bbwbbbbb.wwbwwbbwwwwwww..bwwwwww.w..w.bw;w;Taken from the REGAB database having seq 68230060, blacks moves to B2;
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+seq-68230060-c2;.www.bbb..bbbbb...wbwbb.bbwbbbbb.wwbwwbbwwwwwww..bwwwwww.w..w.bw;w;Taken from the REGAB database having seq 68230060, blacks moves to C2;
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+seq-68230060-b3;.www.bbb...wwwb..bbbbbb.bbbbbbbb.wwbwwbbwwwwwww..bwwwwww.w..w.bw;w;Taken from the REGAB database having seq 68230060, blacks moves to B3;
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+seq-68230060-a5;.www.bbb...wwwb...wwwbb.bbwbbbbbbbbbwwbbwwwwwww..bwwwwww.w..w.bw;w;Taken from the REGAB database having seq 68230060, blacks moves to A5;
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+seq-68230060-a7;.www.bbb...wwwb...wwwbb.bbwbbbbb.wbbwwbbwbwwwww.bbwwwwww.w..w.bw;w;Taken from the REGAB database having seq 68230060, blacks moves to A7;
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+seq-68230060-c8;.www.bbb...wwwb...wwwbb.bbwbbbbb.wwbwbbbwwwwbww..bwbwwww.wb.w.bw;w;Taken from the REGAB database having seq 68230060, blacks moves to C8;
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+seq-68230060-d8;.www.bbb...wwwb...wwwbb.bbwbbbbb.wwbwwbbwwwbwbw..bwbbwww.w.bw.bw;w;Taken from the REGAB database having seq 68230060, blacks moves to D8;
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+seq-68230060-f8;.www.bbb...wwwb...wwwbb.bbwbbbbb.wbbwbbbwwwbwbw..bwwbbww.w..wbbw;w;Taken from the REGAB database having seq 68230060, blacks moves to F8;

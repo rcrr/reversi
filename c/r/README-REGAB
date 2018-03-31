@@ -1,0 +1,489 @@
+
+  README-REGAB
+
+  Copyright (c) 2018 Roberto Corradini. All rights reserved.
+
+  This file is part of the reversi program
+  http://github.com/rcrr/reversi
+
+  This program is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by the
+  Free Software Foundation; either version 3, or (at your option) any
+  later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+  or visit the site <http://www.gnu.org/licenses/>.
+
+This file collects some notes on how to use the data into the REGAB database.
+
+
+tst_regab=> SELECT seq, batch_id, game_id, empty_count, legal_move_count, game_value, best_move, game_position_to_string((mover, opponent, player)), game_position_pp_mop(mover, opponent, player) FROM regab_prng_gp WHERE batch_id = 7 AND empty_count = 16;
+   seq    | batch_id | game_id | empty_count | legal_move_count | game_value | best_move |                      game_position_to_string                      | game_position_pp_mop  
+----------+----------+---------+-------------+------------------+------------+-----------+-------------------------------------------------------------------+-----------------------
+ 68230060 |        7 |       0 |          16 |                9 |         20 | F8        | .www.bbb...wwwb...wwwbb.bbwbbbbb.wwbwwbbwwwwwww..bwwwwww.w..w.bwb |    a b c d e f g h   +
+          |          |         |             |                  |            |           |                                                                   | 1  . O O O . @ @ @   +
+          |          |         |             |                  |            |           |                                                                   | 2  . . . O O O @ .   +
+          |          |         |             |                  |            |           |                                                                   | 3  . . O O O @ @ .   +
+          |          |         |             |                  |            |           |                                                                   | 4  @ @ O @ @ @ @ @   +
+          |          |         |             |                  |            |           |                                                                   | 5  . O O @ O O @ @   +
+          |          |         |             |                  |            |           |                                                                   | 6  O O O O O O O .   +
+          |          |         |             |                  |            |           |                                                                   | 7  . @ O O O O O O   +
+          |          |         |             |                  |            |           |                                                                   | 8  . O . . O . @ O   +
+          |          |         |             |                  |            |           |                                                                   | Player to move: BLACK
+ 68230121 |        7 |       1 |          16 |               13 |         52 | H8        | ....w..bb.wwwwbbbbbwwbwbbbwwwwbbb.wwwwwbbbwwww.wb.wwwww.b....ww.b |    a b c d e f g h   +
+          |          |         |             |                  |            |           |                                                                   | 1  . . . . O . . @   +
+          |          |         |             |                  |            |           |                                                                   | 2  @ . O O O O @ @   +
+          |          |         |             |                  |            |           |                                                                   | 3  @ @ @ O O @ O @   +
+          |          |         |             |                  |            |           |                                                                   | 4  @ @ O O O O @ @   +
+          |          |         |             |                  |            |           |                                                                   | 5  @ . O O O O O @   +
+          |          |         |             |                  |            |           |                                                                   | 6  @ @ O O O O . O   +
+          |          |         |             |                  |            |           |                                                                   | 7  @ . O O O O O .   +
+          |          |         |             |                  |            |           |                                                                   | 8  @ . . . . O O .   +
+          |          |         |             |                  |            |           |                                                                   | Player to move: BLACK
+ 68230183 |        7 |       2 |          16 |               12 |         -6 | B8        | ..w.b..w..wbb.wbwwwbbbb..wbwbbbw.bwbbbbbbbwwwbb.bwb.wbwwb..w.wwwb |    a b c d e f g h   +
+          |          |         |             |                  |            |           |                                                                   | 1  . . O . @ . . O   +
+          |          |         |             |                  |            |           |                                                                   | 2  . . O @ @ . O @   +
+          |          |         |             |                  |            |           |                                                                   | 3  O O O @ @ @ @ .   +
+          |          |         |             |                  |            |           |                                                                   | 4  . O @ O @ @ @ O   +
+          |          |         |             |                  |            |           |                                                                   | 5  . @ O @ @ @ @ @   +
+          |          |         |             |                  |            |           |                                                                   | 6  @ @ O O O @ @ .   +
+          |          |         |             |                  |            |           |                                                                   | 7  @ O @ . O @ O O   +
+          |          |         |             |                  |            |           |                                                                   | 8  @ . . O . O O O   +
+          |          |         |             |                  |            |           |                                                                   | Player to move: BLACK
+ 68230244 |        7 |       3 |          16 |                9 |         16 | E1        | bbww....wbw.www..wbbbw..wwbbbwwbb.bbbwwb..bbbwwb..bbbwwb.b.bbwwbb |    a b c d e f g h   +
+          |          |         |             |                  |            |           |                                                                   | 1  @ @ O O . . . .   +
+          |          |         |             |                  |            |           |                                                                   | 2  O @ O . O O O .   +
+          |          |         |             |                  |            |           |                                                                   | 3  . O @ @ @ O . .   +
+          |          |         |             |                  |            |           |                                                                   | 4  O O @ @ @ O O @   +
+          |          |         |             |                  |            |           |                                                                   | 5  @ . @ @ @ O O @   +
+          |          |         |             |                  |            |           |                                                                   | 6  . . @ @ @ O O @   +
+          |          |         |             |                  |            |           |                                                                   | 7  . . @ @ @ O O @   +
+          |          |         |             |                  |            |           |                                                                   | 8  . @ . @ @ O O @   +
+          |          |         |             |                  |            |           |                                                                   | Player to move: BLACK
+ 68230305 |        7 |       4 |          16 |                9 |          6 | A2        | b..w.bw..bww.bb.wwbwwb..wwwbbbbbwbwwb.w.wwbbbw..wbb.bww.bb.wwwwwb |    a b c d e f g h   +
+          |          |         |             |                  |            |           |                                                                   | 1  @ . . O . @ O .   +
+          |          |         |             |                  |            |           |                                                                   | 2  . @ O O . @ @ .   +
+          |          |         |             |                  |            |           |                                                                   | 3  O O @ O O @ . .   +
+          |          |         |             |                  |            |           |                                                                   | 4  O O O @ @ @ @ @   +
+          |          |         |             |                  |            |           |                                                                   | 5  O @ O O @ . O .   +
+          |          |         |             |                  |            |           |                                                                   | 6  O O @ @ @ O . .   +
+          |          |         |             |                  |            |           |                                                                   | 7  O @ @ . @ O O .   +
+          |          |         |             |                  |            |           |                                                                   | 8  @ @ . O O O O O   +
+          |          |         |             |                  |            |           |                                                                   | Player to move: BLACK
+ 68230366 |        7 |       5 |          16 |               12 |         14 | H7        | w..www...www..bbbwwbwbwwwwwwbwww..bbwbwwwwbbww.w.bb.www.b.w.bw.bb |    a b c d e f g h   +
+          |          |         |             |                  |            |           |                                                                   | 1  O . . O O O . .   +
+          |          |         |             |                  |            |           |                                                                   | 2  . O O O . . @ @   +
+          |          |         |             |                  |            |           |                                                                   | 3  @ O O @ O @ O O   +
+          |          |         |             |                  |            |           |                                                                   | 4  O O O O @ O O O   +
+          |          |         |             |                  |            |           |                                                                   | 5  . . @ @ O @ O O   +
+          |          |         |             |                  |            |           |                                                                   | 6  O O @ @ O O . O   +
+          |          |         |             |                  |            |           |                                                                   | 7  . @ @ . O O O .   +
+          |          |         |             |                  |            |           |                                                                   | 8  @ . O . @ O . @   +
+          |          |         |             |                  |            |           |                                                                   | Player to move: BLACK
+ 68230427 |        7 |       6 |          16 |                6 |        -24 | E2        | .w..w.b.w.ww.b.bwwbwwwwwwwwwwwwbwwwwwbb.wwwwbb.bw.wbbbb...b..bbbb |    a b c d e f g h   +
+          |          |         |             |                  |            |           |                                                                   | 1  . O . . O . @ .   +
+          |          |         |             |                  |            |           |                                                                   | 2  O . O O . @ . @   +
+          |          |         |             |                  |            |           |                                                                   | 3  O O @ O O O O O   +
+          |          |         |             |                  |            |           |                                                                   | 4  O O O O O O O @   +
+          |          |         |             |                  |            |           |                                                                   | 5  O O O O O @ @ .   +
+          |          |         |             |                  |            |           |                                                                   | 6  O O O O @ @ . @   +
+          |          |         |             |                  |            |           |                                                                   | 7  O . O @ @ @ @ .   +
+          |          |         |             |                  |            |           |                                                                   | 8  . . @ . . @ @ @   +
+          |          |         |             |                  |            |           |                                                                   | Player to move: BLACK
+ 68230489 |        7 |       7 |          16 |               11 |         28 | F1        | .w.bw.b.wwbbbww..wwbbb..bwwbwbb.bwbwwwbwbw.wwbbbbww.b.b....wwwwbb |    a b c d e f g h   +
+          |          |         |             |                  |            |           |                                                                   | 1  . O . @ O . @ .   +
+          |          |         |             |                  |            |           |                                                                   | 2  O O @ @ @ O O .   +
+          |          |         |             |                  |            |           |                                                                   | 3  . O O @ @ @ . .   +
+          |          |         |             |                  |            |           |                                                                   | 4  @ O O @ O @ @ .   +
+          |          |         |             |                  |            |           |                                                                   | 5  @ O @ O O O @ O   +
+          |          |         |             |                  |            |           |                                                                   | 6  @ O . O O @ @ @   +
+          |          |         |             |                  |            |           |                                                                   | 7  @ O O . @ . @ .   +
+          |          |         |             |                  |            |           |                                                                   | 8  . . . O O O O @   +
+          |          |         |             |                  |            |           |                                                                   | Player to move: BLACK
+ 68230550 |        7 |       8 |          16 |               10 |        -12 | C2        | .bbbbw..wb.bww.bwwbwwwbbwwwbwbbbwwwwbbb..wwwbbbb..wbbw...wb.b...b |    a b c d e f g h   +
+          |          |         |             |                  |            |           |                                                                   | 1  . @ @ @ @ O . .   +
+          |          |         |             |                  |            |           |                                                                   | 2  O @ . @ O O . @   +
+          |          |         |             |                  |            |           |                                                                   | 3  O O @ O O O @ @   +
+          |          |         |             |                  |            |           |                                                                   | 4  O O O @ O @ @ @   +
+          |          |         |             |                  |            |           |                                                                   | 5  O O O O @ @ @ .   +
+          |          |         |             |                  |            |           |                                                                   | 6  . O O O @ @ @ @   +
+          |          |         |             |                  |            |           |                                                                   | 7  . . O @ @ O . .   +
+          |          |         |             |                  |            |           |                                                                   | 8  . O @ . @ . . .   +
+          |          |         |             |                  |            |           |                                                                   | Player to move: BLACK
+ 68230611 |        7 |       9 |          16 |                7 |         -8 | E6        | wwwwbbbbwwwbbbbbwwbbbbbbwwwwbbbb..wwbbb.bbww.bww..bwb....b......b |    a b c d e f g h   +
+          |          |         |             |                  |            |           |                                                                   | 1  O O O O @ @ @ @   +
+          |          |         |             |                  |            |           |                                                                   | 2  O O O @ @ @ @ @   +
+          |          |         |             |                  |            |           |                                                                   | 3  O O @ @ @ @ @ @   +
+          |          |         |             |                  |            |           |                                                                   | 4  O O O O @ @ @ @   +
+          |          |         |             |                  |            |           |                                                                   | 5  . . O O @ @ @ .   +
+          |          |         |             |                  |            |           |                                                                   | 6  @ @ O O . @ O O   +
+          |          |         |             |                  |            |           |                                                                   | 7  . . @ O @ . . .   +
+          |          |         |             |                  |            |           |                                                                   | 8  . @ . . . . . .   +
+          |          |         |             |                  |            |           |                                                                   | Player to move: BLACK
+(10 rows)
+
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+68230060 --BEGIN--
+--------
+EDGE:0 3237
+EDGE:1 5941
+EDGE:2 1517
+EDGE:3   99
+
+rcrr@hypnotic:~/base/prj/reversi/c$ ./build/bin/endgame_solver -f db/gpdb-regab-bid7-ec16.txt -q seq-68230060 -s es -F
+Entry id: seq-68230060
+Description: DESCRIPTION
+Game Position:
+    a b c d e f g h 
+ 1  . O O O . @ @ @ 
+ 2  . . . O O O @ . 
+ 3  . . O O O @ @ . 
+ 4  @ @ O @ @ @ @ @ 
+ 5  . O O @ O O @ @ 
+ 6  O O O O O O O . 
+ 7  . @ O O O O O O 
+ 8  . O . . O . @ O 
+Player to move: BLACK
+
+Solving game position seq-68230060, from source db/gpdb-regab-bid7-ec16.txt, using solver es (exact solver) ...
+
+ --- --- pve_line_with_variants_to_string() START --- ---
+F8  H6  C8  D8  A8  A7  E1  C2. A5  H3  H2  A3  A1.-B3. B2  A2--
+                                                    B2  B3  A2--
+                                                A2--B3  B2  A1--
+                            A3  A5. B3. A1. H3  H2--B2  C2  A2--
+                                        A2  B2. A1  H3  C2.-H2--
+                                                        H2--C2--
+                                            H3  H2  B2  A1--C2--
+                                    H3. B3. A2. A1. C2  H2.-B2--
+                                                        B2--H2--
+                                                H2  C2  A1--B2--
+                                            B2  A1.-A2.-C2.-H2--
+                                                        H2--C2--
+                                                    H2--A2--C2--
+                                                H2.-A1.-A2--C2--
+                                                    A2--A1--C2--
+                                                A2--A1.-C2.-H2--
+                                                        H2--C2--
+                                                    H2--A1--C2--
+                                        H2. B3. A1.-B2  C2  A2--
+                                                A2  B2  A1--C2--
+                                            B2  A1  C2. B3  A2--
+                                                    B3  A2--C2--
+                                        A2  B3  A1.-H2.-B2  C2--
+                                                    B2  C2  H2--
+                                                H2--A1--B2  C2--
+                                    B2  A1  B3. A2  H3  C2.-H2--
+                                                        H2--C2--
+                                            H3  A2. B3  C2.-H2--
+                                                        H2--C2--
+                                                H2  C2. B3  A2--
+                                                    B3  A2--C2--
+                                A1. B2  A2  H3  H2.-A5  B3  C2--
+                                                A5  C2. B3--H2--
+                                                    B3  C2.-H2--
+                                                        H2--C2--
+                                A2  B2  A1  H3  H2.-A5  B3  C2--
+                                                A5  C2. B3--H2--
+                                                    B3  C2.-H2--
+                                                        H2--C2--
+
+ --- --- pve_line_with_variants_to_string() COMPLETED --- ---
+
+    a b c d e f g h 
+ 1  . O O O . @ @ @ 
+ 2  . . . O O O @ . 
+ 3  . . O O O @ @ . 
+ 4  @ @ O @ @ @ @ @ 
+ 5  . O O @ O O @ @ 
+ 6  O O O O O O O . 
+ 7  . @ O O O O O O 
+ 8  . O . . O . @ O 
+Player to move: BLACK
+
+[node_count=640792, leaf_count=118429]
+Final outcome: best move=F8, position value=20
+PV: F8 H6 C8 D8 A8 A7 E1 C2 A5 H3 H2 A3 A1 -- B3 B2 A2 -- -- 
+
+Final state configuration playing main PV:
+    a b c d e f g h 
+ 1  @ @ @ @ @ @ @ @ 
+ 2  @ @ @ @ @ @ @ @ 
+ 3  @ @ O @ @ @ @ O 
+ 4  @ O @ O @ @ O O 
+ 5  @ O O @ @ O O O 
+ 6  @ O @ O @ O O O 
+ 7  @ O @ O O @ O O 
+ 8  @ @ @ @ @ @ @ O 
+Player to move: WHITE
+
+
+E1
+EDGE:0 6519
+EDGE:1 3134
+EDGE:2  763
+EDGE:3  171
+
+tst_regab=> SELECT seq, player, game_position_pp(game_position_make_move((mover, opponent, 0::Player), 'E1')) FROM regab_prng_gp WHERE seq = 68230060;
+   seq    | player |   game_position_pp    
+----------+--------+-----------------------
+ 68230060 |      0 |    a b c d e f g h   +
+          |        | 1  . O O O @ @ @ @   +
+          |        | 2  . . . @ @ @ @ .   +
+          |        | 3  . . @ O @ @ @ .   +
+          |        | 4  @ @ O @ @ @ @ @   +
+          |        | 5  . O O @ O O @ @   +
+          |        | 6  O O O O O O O .   +
+          |        | 7  . @ O O O O O O   +
+          |        | 8  . O . . O . @ O   +
+          |        | Player to move: WHITE
+(1 row)
+
+tst_regab=> SELECT seq, player, game_position_to_string(game_position_make_move((mover, opponent, 0::Player), 'E1')) FROM regab_prng_gp WHERE seq = 68230060;
+   seq    | player |                      game_position_to_string                      
+----------+--------+-------------------------------------------------------------------
+ 68230060 |      0 | .wwwbbbb...bbbb...bwbbb.bbwbbbbb.wwbwwbbwwwwwww..bwwwwww.w..w.bww
+(1 row)
+
+
+B2
+EDGE:0 6357
+EDGE:1 3134
+EDGE:2  763
+EDGE:3  171
+
+tst_regab=> SELECT seq, player, game_position_pp(game_position_make_move((mover, opponent, 0::Player), 'B2')) FROM regab_prng_gp WHERE seq = 68230060;
+   seq    | player |   game_position_pp    
+----------+--------+-----------------------
+ 68230060 |      0 |    a b c d e f g h   +
+          |        | 1  . O O O . @ @ @   +
+          |        | 2  . @ . O O O @ .   +
+          |        | 3  . . @ O O @ @ .   +
+          |        | 4  @ @ O @ @ @ @ @   +
+          |        | 5  . O O @ O O @ @   +
+          |        | 6  O O O O O O O .   +
+          |        | 7  . @ O O O O O O   +
+          |        | 8  . O . . O . @ O   +
+          |        | Player to move: WHITE
+(1 row)
+
+tst_regab=> SELECT seq, player, game_position_to_string(game_position_make_move((mover, opponent, 0::Player), 'B2')) FROM regab_prng_gp WHERE seq = 68230060;
+   seq    | player |                      game_position_to_string                      
+----------+--------+-------------------------------------------------------------------
+ 68230060 |      0 | .www.bbb.b.wwwb...bwwbb.bbwbbbbb.wwbwwbbwwwwwww..bwwwwww.w..w.bww
+(1 row)
+
+
+C2
+EDGE:0 6357
+EDGE:1 3134
+EDGE:2  763
+EDGE:3  171
+
+tst_regab=> SELECT seq, player, game_position_pp(game_position_make_move((mover, opponent, 0::Player), 'C2')) FROM regab_prng_gp WHERE seq = 68230060;
+   seq    | player |   game_position_pp    
+----------+--------+-----------------------
+ 68230060 |      0 |    a b c d e f g h   +
+          |        | 1  . O O O . @ @ @   +
+          |        | 2  . . @ @ @ @ @ .   +
+          |        | 3  . . O @ O @ @ .   +
+          |        | 4  @ @ O @ @ @ @ @   +
+          |        | 5  . O O @ O O @ @   +
+          |        | 6  O O O O O O O .   +
+          |        | 7  . @ O O O O O O   +
+          |        | 8  . O . . O . @ O   +
+          |        | Player to move: WHITE
+(1 row)
+
+tst_regab=> SELECT seq, player, game_position_to_string(game_position_make_move((mover, opponent, 0::Player), 'C2')) FROM regab_prng_gp WHERE seq = 68230060;
+   seq    | player |                      game_position_to_string                      
+----------+--------+-------------------------------------------------------------------
+ 68230060 |      0 | .www.bbb..bbbbb...wbwbb.bbwbbbbb.wwbwwbbwwwwwww..bwwwwww.w..w.bww
+(1 row)
+
+
+B3
+EDGE:0 6357
+EDGE:1 3134
+EDGE:2  763
+EDGE:3  171
+
+tst_regab=> SELECT seq, player, game_position_pp(game_position_make_move((mover, opponent, 0::Player), 'B3')) FROM regab_prng_gp WHERE seq = 68230060;
+   seq    | player |   game_position_pp    
+----------+--------+-----------------------
+ 68230060 |      0 |    a b c d e f g h   +
+          |        | 1  . O O O . @ @ @   +
+          |        | 2  . . . O O O @ .   +
+          |        | 3  . @ @ @ @ @ @ .   +
+          |        | 4  @ @ @ @ @ @ @ @   +
+          |        | 5  . O O @ O O @ @   +
+          |        | 6  O O O O O O O .   +
+          |        | 7  . @ O O O O O O   +
+          |        | 8  . O . . O . @ O   +
+          |        | Player to move: WHITE
+(1 row)
+
+tst_regab=> SELECT seq, player, game_position_to_string(game_position_make_move((mover, opponent, 0::Player), 'B3')) FROM regab_prng_gp WHERE seq = 68230060;
+   seq    | player |                      game_position_to_string                      
+----------+--------+-------------------------------------------------------------------
+ 68230060 |      0 | .www.bbb...wwwb..bbbbbb.bbbbbbbb.wwbwwbbwwwwwww..bwwwwww.w..w.bww
+(1 row)
+
+
+A5
+EDGE:0 6357
+EDGE:1 3134
+EDGE:2  763
+EDGE:3  225
+
+tst_regab=> SELECT seq, player, game_position_pp(game_position_make_move((mover, opponent, 0::Player), 'A5')) FROM regab_prng_gp WHERE seq = 68230060;
+   seq    | player |   game_position_pp    
+----------+--------+-----------------------
+ 68230060 |      0 |    a b c d e f g h   +
+          |        | 1  . O O O . @ @ @   +
+          |        | 2  . . . O O O @ .   +
+          |        | 3  . . O O O @ @ .   +
+          |        | 4  @ @ O @ @ @ @ @   +
+          |        | 5  @ @ @ @ O O @ @   +
+          |        | 6  O O O O O O O .   +
+          |        | 7  . @ O O O O O O   +
+          |        | 8  . O . . O . @ O   +
+          |        | Player to move: WHITE
+(1 row)
+
+tst_regab=> SELECT seq, player, game_position_to_string(game_position_make_move((mover, opponent, 0::Player), 'A5')) FROM regab_prng_gp WHERE seq = 68230060;
+   seq    | player |                      game_position_to_string                      
+----------+--------+-------------------------------------------------------------------
+ 68230060 |      0 | .www.bbb...wwwb...wwwbb.bbwbbbbbbbbbwwbbwwwwwww..bwwwwww.w..w.bww
+(1 row)
+
+
+A7
+EDGE:0 6357
+EDGE:1 3134
+EDGE:2  763
+EDGE:3  177
+
+tst_regab=> SELECT seq, player, game_position_pp(game_position_make_move((mover, opponent, 0::Player), 'A7')) FROM regab_prng_gp WHERE seq = 68230060;
+   seq    | player |   game_position_pp    
+----------+--------+-----------------------
+ 68230060 |      0 |    a b c d e f g h   +
+          |        | 1  . O O O . @ @ @   +
+          |        | 2  . . . O O O @ .   +
+          |        | 3  . . O O O @ @ .   +
+          |        | 4  @ @ O @ @ @ @ @   +
+          |        | 5  . O @ @ O O @ @   +
+          |        | 6  O @ O O O O O .   +
+          |        | 7  @ @ O O O O O O   +
+          |        | 8  . O . . O . @ O   +
+          |        | Player to move: WHITE
+(1 row)
+
+tst_regab=> SELECT seq, player, game_position_to_string(game_position_make_move((mover, opponent, 0::Player), 'A7')) FROM regab_prng_gp WHERE seq = 68230060;
+   seq    | player |                      game_position_to_string                      
+----------+--------+-------------------------------------------------------------------
+ 68230060 |      0 | .www.bbb...wwwb...wwwbb.bbwbbbbb.wbbwwbbwbwwwww.bbwwwwww.w..w.bww
+(1 row)
+
+
+C8
+EDGE:0 6357
+EDGE:1 3134
+EDGE:2 1249
+EDGE:3  171
+
+tst_regab=> SELECT seq, player, game_position_pp(game_position_make_move((mover, opponent, 0::Player), 'C8')) FROM regab_prng_gp WHERE seq = 68230060;
+   seq    | player |   game_position_pp    
+----------+--------+-----------------------
+ 68230060 |      0 |    a b c d e f g h   +
+          |        | 1  . O O O . @ @ @   +
+          |        | 2  . . . O O O @ .   +
+          |        | 3  . . O O O @ @ .   +
+          |        | 4  @ @ O @ @ @ @ @   +
+          |        | 5  . O O @ O @ @ @   +
+          |        | 6  O O O O @ O O .   +
+          |        | 7  . @ O @ O O O O   +
+          |        | 8  . O @ . O . @ O   +
+          |        | Player to move: WHITE
+(1 row)
+
+tst_regab=> SELECT seq, player, game_position_to_string(game_position_make_move((mover, opponent, 0::Player), 'C8')) FROM regab_prng_gp WHERE seq = 68230060;
+   seq    | player |                      game_position_to_string                      
+----------+--------+-------------------------------------------------------------------
+ 68230060 |      0 | .www.bbb...wwwb...wwwbb.bbwbbbbb.wwbwbbbwwwwbww..bwbwwww.wb.w.bww
+(1 row)
+
+
+D8
+EDGE:0 6357
+EDGE:1 3134
+EDGE:2  925
+EDGE:3  171
+
+tst_regab=> SELECT seq, player, game_position_pp(game_position_make_move((mover, opponent, 0::Player), 'D8')) FROM regab_prng_gp WHERE seq = 68230060;
+   seq    | player |   game_position_pp    
+----------+--------+-----------------------
+ 68230060 |      0 |    a b c d e f g h   +
+          |        | 1  . O O O . @ @ @   +
+          |        | 2  . . . O O O @ .   +
+          |        | 3  . . O O O @ @ .   +
+          |        | 4  @ @ O @ @ @ @ @   +
+          |        | 5  . O O @ O O @ @   +
+          |        | 6  O O O @ O @ O .   +
+          |        | 7  . @ O @ @ O O O   +
+          |        | 8  . O . @ O . @ O   +
+          |        | Player to move: WHITE
+(1 row)
+
+tst_regab=> SELECT seq, player, game_position_to_string(game_position_make_move((mover, opponent, 0::Player), 'D8')) FROM regab_prng_gp WHERE seq = 68230060;
+   seq    | player |                      game_position_to_string                      
+----------+--------+-------------------------------------------------------------------
+ 68230060 |      0 | .www.bbb...wwwb...wwwbb.bbwbbbbb.wwbwwbbwwwbwbw..bwbbwww.w.bw.bww
+(1 row)
+
+
+F8
+EDGE:0 6357
+EDGE:1 3134
+EDGE:2  781
+EDGE:3  171
+
+tst_regab=> SELECT seq, player, game_position_pp(game_position_make_move((mover, opponent, 0::Player), 'F8')) FROM regab_prng_gp WHERE seq = 68230060;
+   seq    | player |   game_position_pp    
+----------+--------+-----------------------
+ 68230060 |      0 |    a b c d e f g h   +
+          |        | 1  . O O O . @ @ @   +
+          |        | 2  . . . O O O @ .   +
+          |        | 3  . . O O O @ @ .   +
+          |        | 4  @ @ O @ @ @ @ @   +
+          |        | 5  . O @ @ O @ @ @   +
+          |        | 6  O O O @ O @ O .   +
+          |        | 7  . @ O O @ @ O O   +
+          |        | 8  . O . . O @ @ O   +
+          |        | Player to move: WHITE
+(1 row)
+
+tst_regab=> SELECT seq, player, game_position_to_string(game_position_make_move((mover, opponent, 0::Player), 'F8')) FROM regab_prng_gp WHERE seq = 68230060;
+   seq    | player |                      game_position_to_string                      
+----------+--------+-------------------------------------------------------------------
+ 68230060 |      0 | .www.bbb...wwwb...wwwbb.bbwbbbbb.wbbwbbbwwwbwbw..bwwbbww.w..wbbww
+(1 row)
+
+tst_regab=> 
+
+
+
+
+--------
+68230060 --END--
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------

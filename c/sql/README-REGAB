@@ -1,0 +1,109 @@
+
+  README-REGAB
+
+  Copyright (c) 2018 Roberto Corradini. All rights reserved.
+
+  This file is part of the reversi program
+  http://github.com/rcrr/reversi
+
+  This program is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by the
+  Free Software Foundation; either version 3, or (at your option) any
+  later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+  or visit the site <http://www.gnu.org/licenses/>.
+
+This file describes the generation of the REGAB database. It is work in progress !!!
+
+Everithing is done on the test database.
+
+-- 00 -- Backup the production DB on vilya, then transfer the dump file on the test machine
+ $ nohup time pg_dump -d prd_regab -h localhost -p 5432 -U postgres -v -Fc -Z2 -f 201802240830-vilya-prd_regab.dump > 201802240830-vilya-prd_regab.log 2>&1&
+ 
+-- 01 -- Backup the test DB
+ $ nohup time pg_dump -d tst_regab -h localhost -p 5432 -U postgres -v -Fc -f 201802240930-hypnotic-tst_regab.dump > 201802240930-hypnotic-tst_regab.log 2>&1
+
+-- 02 -- Prepare the empty DB
+ $ sudo su - postgres
+ $ psql -U postgres
+ postgres=# DROP DATABASE tst_regab;
+ postgres=# CREATE DATABASE tst_regab WITH OWNER tst_regab ENCODING 'UTF8' TABLESPACE tst_regab;
+ postgres=# GRANT ALL PRIVILEGES ON DATABASE tst_regab TO tst_regab;
+
+-- 03 -- Restore the database dump
+ $ pg_restore --no-acl --no-owner -v -d tst_regab -p 5432 -h localhost -U tst_regab 201802240830-vilya-prd_regab.dump
+
+-- 04 -- Run database migrations
+ $ psql -U tst_regab -d tst_regab -h localhost
+
+ tst_regab=> SET search_path TO reversi;
+ tst_regab=> time \i 0101_up_migrations.sql;
+ tst_regab=> time \i 0102_up_patterns.sql;
+
+ -- 05 -- Generate the classes for the EDGE pattern
+Paste the lines between the ### sign into a tmp.sh file, and run it.
+###
+#!/bin/bash
+./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 0
+./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 1
+./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 2
+./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 3
+./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 4
+./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 5
+./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 6
+./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 7
+./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 8
+./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 9
+./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 10
+./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 11
+./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 12
+./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 13
+./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 14
+./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 15
+./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 16
+./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 17
+./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 18
+./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 19
+./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 20
+###
+
+-- 06 -- Compute the classification for the EDGE pattern
+Verify the volume of indexes to be conputed by running this query:
+
+tst_regab=> SELECT class_id, status, count(1) FROM regab_prng_gp_classification GROUP BY class_id, status ORDER BY class_id, status;
+
+tst_regab=> SELECT class_id, status, count(1) FROM regab_prng_gp_classification WHERE status <> 'CMP' GROUP BY class_id, status ORDER BY class_id, status;
+
+###
+nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 0 -n 10000000 > ./build/out/tmp_00.log&
+nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 1 -n 10000000 > ./build/out/tmp_01.log&
+nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 2 -n 10000000 > ./build/out/tmp_02.log&
+nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 3 -n 10000000 > ./build/out/tmp_03.log&
+nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 4 -n 10000000 > ./build/out/tmp_04.log&
+nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 5 -n 10000000 > ./build/out/tmp_05.log&
+nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 6 -n 10000000 > ./build/out/tmp_06.log&
+nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 7 -n 10000000 > ./build/out/tmp_07.log&
+nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 8 -n 10000000 > ./build/out/tmp_08.log&
+nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 9 -n 10000000 > ./build/out/tmp_09.log&
+
+nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 10 -n 10000000 > ./build/out/tmp_10.log&
+nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 11 -n 10000000 > ./build/out/tmp_11.log&
+nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 12 -n 10000000 > ./build/out/tmp_12.log&
+nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 13 -n 10000000 > ./build/out/tmp_13.log&
+nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 14 -n 10000000 > ./build/out/tmp_14.log&
+nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 15 -n 10000000 > ./build/out/tmp_15.log&
+nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 16 -n 10000000 > ./build/out/tmp_16.log&
+nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 17 -n 10000000 > ./build/out/tmp_17.log&
+nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 18 -n 10000000 > ./build/out/tmp_18.log&
+nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 19 -n 10000000 > ./build/out/tmp_19.log&
+
+nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 20 -n 10000000 > ./build/out/tmp_20.log&
+###

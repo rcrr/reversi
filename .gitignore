@@ -45,3 +45,6 @@ out
 callgrind.out.*
 .Rhistory
 out_*
+regab_*.csv
+regab_*.ods
+tmp.sh
