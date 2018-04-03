@@ -1,5 +1,5 @@
 --
--- 0104_up_field_nsquares_regab_prng_patterns.sql
+-- 0105_down_pattern_ranges.sql
 --
 -- This file is part of the reversi program
 -- http://github.com/rcrr/reversi
@@ -27,29 +27,21 @@
 --
 --
 --
--- Creates a new field nsquares in table regab_prng_patterns.
--- Field nsquares collects the count of squares used by the pattern.
--- Updates existing records.
---
--- 
+-- Removes migration 0105.
 --
 
 SET search_path TO reversi;
 
 BEGIN;
- 
-INSERT INTO migrations (migration_id, ins_time, label, description)
-VALUES (0104, now(), 'field_nsquares_regab_prng_patterns', 'adds column nsquares to table regab_prng_patterns');
 
-ALTER TABLE regab_prng_patterns ADD nsquares SMALLINT;
+DROP FUNCTION regab_mirror_value_edge_pattern;
+DROP FUNCTION regab_mirror_edge_pattern;
+DROP FUNCTION regab_index_to_transformed_pattern;
+DROP FUNCTION regab_transformed_pattern_to_index;
+DROP FUNCTION populate_regab_prng_pattern_ranges;
 
-UPDATE regab_prng_patterns AS updated_table SET
-  nsquares = tmp_table.nsquares
-FROM (VALUES
-  (1,  8),
-  (2,  9),
-  (3, 10)
-) AS tmp_table(seq, nsquares)
-WHERE tmp_table.seq = updated_table.seq;
+DROP TABLE regab_prng_pattern_ranges;
+
+DELETE FROM migrations WHERE migration_id = 105;
 
 COMMIT;
