@@ -38,6 +38,7 @@
 #include <assert.h>
 
 #include "game_tree_logger.h"
+#include "board_pattern.h"
 #include "minimax_solver.h"
 
 
@@ -64,7 +65,9 @@ game_position_random_sammpler_impl (ExactSolution *const result,
                                     GameTreeStack *const stack,
                                     const gtl_log_env_t *const log_env,
                                     prng_mt19937_t *const prng,
-                                    const unsigned long int sub_run_id);
+                                    const unsigned long int sub_run_id,
+                                    const board_pattern_t *board_pattern,
+                                    uint64_t *pattern_index_frequencies);
 
 static ExactSolution *
 game_position_mab_solve (const GamePositionX *const root,
@@ -73,11 +76,21 @@ game_position_mab_solve (const GamePositionX *const root,
                          const bool randomize_move_order,
                          const bool random_sampler);
 
+static void
+compute_and_store_pattern_indexes (NodeInfo *c,
+                                   const board_pattern_t *board_pattern,
+                                   uint64_t *pattern_index_frequencies);
+
 
 
 /*
  * Internal variables and constants.
  */
+
+static size_t size_of_pattern_index_array = 0;
+
+static const size_t size_of_empty_count_array = 61;
+
 
 /**
  * @endcond
@@ -196,13 +209,28 @@ game_position_mab_solve (const GamePositionX *const root,
   prng_mt19937_t *prng = NULL;
   unsigned long int n_run = 1;
   if (randomize_move_order) {
+    uint64_t prng_seed = env->prng_seed_is_set ? env->prng_seed : prng_uint64_from_clock_random_seed();
     prng = prng_mt19937_new();
-    prng_mt19937_init_by_seed(prng, prng_uint64_from_clock_random_seed());
+    prng_mt19937_init_by_seed(prng, prng_seed);
     if (env->repeats < 1) {
       n_run = 1;
     } else {
       n_run = env->repeats;
     }
+  }
+
+  uint64_t *pattern_index_frequencies = NULL;
+  board_pattern_t *board_pattern = NULL;
+  if (random_sampler && env->board_pattern_index != -1) {
+    board_pattern = (board_pattern_t *) &board_patterns[env->board_pattern_index];
+    /*
+     * [0..60] is the epty count range. Sixtyone are the possible values for empty_count.
+     * bitw_uipow(3, board_pattern->n_squares) are the possible index_values.
+     */
+    size_of_pattern_index_array = bitw_uipow(3, board_pattern->n_squares);
+    pattern_index_frequencies = (uint64_t *) malloc(sizeof(uint64_t) * size_of_pattern_index_array * size_of_empty_count_array);
+    assert(pattern_index_frequencies);
+    for (size_t i = 0; i < sizeof(pattern_index_frequencies); i++) pattern_index_frequencies[i] = 0;
   }
 
   ExactSolution *result = NULL;
@@ -216,7 +244,7 @@ game_position_mab_solve (const GamePositionX *const root,
     exact_solution_set_root(result, root);
 
     if (random_sampler) {
-      game_position_random_sammpler_impl(result, stack, log_env, prng, sub_run_id);
+      game_position_random_sammpler_impl(result, stack, log_env, prng, sub_run_id, board_pattern, pattern_index_frequencies);
     } else {
       game_position_solve_impl(result, stack, log_env, alpha_beta_pruning, randomize_move_order, prng, sub_run_id);
     }
@@ -227,7 +255,23 @@ game_position_mab_solve (const GamePositionX *const root,
     if (sub_run_id != n_run - 1) exact_solution_free(result);
   }
 
+  if (pattern_index_frequencies) {
+    FILE *fp;
+    const char *filepath = "pattern_index_frequencies.csv";
+    if ((fp = fopen(filepath, "w"))) {
+      fprintf(fp, "EMPTY_COUNT;PATTERN_INDEX;COUNT\n");
+      for (size_t ec = 0; ec < size_of_empty_count_array; ec ++)
+        for (size_t idx = 0; idx < size_of_pattern_index_array; idx++)
+          fprintf(fp, "%zu;%zu;%ld\n", ec, idx, pattern_index_frequencies[size_of_pattern_index_array * ec + idx]);
+      fclose(fp);
+    } else {
+      fprintf(stderr, "Unable to open file: %s. Aborting ...", filepath);
+      abort();
+    }
+  }
+
   if (randomize_move_order) prng_mt19937_free(prng);
+  free(pattern_index_frequencies);
   game_tree_stack_free(stack);
   gtl_close_log(log_env);
 
@@ -295,7 +339,9 @@ game_position_random_sammpler_impl (ExactSolution *const result,
                                     GameTreeStack *const stack,
                                     const gtl_log_env_t *const log_env,
                                     prng_mt19937_t *const prng,
-                                    const unsigned long int sub_run_id)
+                                    const unsigned long int sub_run_id,
+                                    const board_pattern_t *board_pattern,
+                                    uint64_t *pattern_index_frequencies)
 {
   NodeInfo *c;
   const NodeInfo *const root = stack->active_node;
@@ -308,6 +354,7 @@ game_position_random_sammpler_impl (ExactSolution *const result,
     prng_mt19937_shuffle_array_p(prng, c->head_of_legal_move_list, c->move_count);
     if (stack->hash_is_on) gts_compute_hash(stack);
     if (log_env->log_is_on) gtl_do_log_head(result, stack, sub_run_id, log_env);
+    if (pattern_index_frequencies) compute_and_store_pattern_indexes(c, board_pattern, pattern_index_frequencies);
 
     if (gts_is_terminal_node(stack)) {
       result->leaf_count++;
@@ -330,6 +377,44 @@ game_position_random_sammpler_impl (ExactSolution *const result,
     c = --stack->active_node;
     if (stack->active_node == root) return;
     c->alpha = - (c + 1)->alpha;
+  }
+}
+
+static void
+increment_pattern_index_frequencies (const uint8_t empty_count,
+                                     const board_pattern_index_t pattern_index,
+                                     uint64_t *pattern_index_frequencies)
+{
+  const size_t array_index = size_of_pattern_index_array * empty_count + pattern_index;
+  pattern_index_frequencies[array_index]++;
+}
+
+static void
+compute_and_store_pattern_indexes (NodeInfo *c,
+                                   const board_pattern_t *bp,
+                                   uint64_t *pattern_index_frequencies)
+{
+  board_pattern_index_t indexes[8];
+  board_t board;
+
+  const uint8_t ec = bitw_bit_count_64(game_position_x_empties(&c->gpx));
+
+  const SquareSet blacks = c->gpx.blacks;
+  const SquareSet whites = c->gpx.whites;
+  const Player player = c->gpx.player;
+
+  board.square_sets[0] = player ? whites : blacks;
+  board.square_sets[1] = player ? blacks : whites;
+
+  board_pattern_compute_indexes(indexes, bp, &board);
+
+  //char buf[256];
+  //game_position_x_print(buf, &c->gpx);
+  //printf("\nempty_cout = %u\n", ec);
+  //printf("%s", buf);
+  for (int i = 0; i < bp->n_instances; i++) {
+    //printf("pattern_instance: %d, index_value = %d\n", i, indexes[i]);
+    increment_pattern_index_frequencies(ec, indexes[i], pattern_index_frequencies);
   }
 }
 

@@ -90,10 +90,6 @@ board_set_square_sets (board_t *b,
 
 
 
-#define EDGE_PRINCIPAL_PATTERN 0x00000000000000ff
-
-
-
 typedef enum {
   BOARD_PATTERN_EDGE,                // A1 B1 C1 D1 E1 F1 G1 H1.
   BOARD_PATTERN_CORNER,              // A1 B1 C1 A2 B2 C2 A3 B3 C3.

@@ -433,3 +433,23 @@ bitw_ror_64 (const uint64_t bit_sequence,
 extern uint64_t
 bitw_rol_64 (const uint64_t bit_sequence,
              const unsigned int shift);
+
+/**
+ * @brief Unsigned integer based power function.
+ *
+ * @param b base for the operation
+ * @param e exponent
+ * @return  the value of `b^e`
+ */
+uint64_t
+bitw_uipow (uint64_t b,
+            uint64_t e)
+{
+  int r = 1;
+  while (e) {
+    if (e & 1) r *= b;
+    e >>= 1;
+    b *= b;
+  }
+  return r;
+}

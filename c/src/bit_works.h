@@ -267,6 +267,10 @@ bitw_rol_64 (const uint64_t bit_sequence,
   return (bit_sequence << shift) | (bit_sequence >> (64 - shift));
 }
 
+extern uint64_t
+bitw_uipow (uint64_t b,
+            uint64_t e);
+
 
 
 #endif /* BIT_WORKS_H */

@@ -251,7 +251,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014, 2015, 2016, 2017 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2015, 2016, 2017, 2018 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -286,6 +286,7 @@
 #include "improved_fast_endgame_solver.h"
 #include "minimax_solver.h"
 #include "exact_solver.h"
+#include "board_pattern.h"
 
 
 
@@ -316,6 +317,8 @@ static const mop_options_long_t olist[] = {
   {"lookup-entry",      'q', MOP_REQUIRED},
   {"solver",            's', MOP_REQUIRED},
   {"repeats",           'n', MOP_REQUIRED},
+  {"prng-seed",         'r', MOP_REQUIRED},
+  {"pattern",           'P', MOP_REQUIRED},
   {"log",               'l', MOP_REQUIRED},
   {"pve-dump",          'd', MOP_REQUIRED},
   {"pv-rec",            'R', MOP_NONE},
@@ -334,6 +337,8 @@ static const char *documentation =
   "  -q, --lookup-entry     Lookup entry             - Mandatory.\n"
   "  -s, --solver           Solver                   - Mandatory - Must be in [es|ifes|rand|minimax|ab|rab].\n"
   "  -n, --repeats          N. of repetitions        - Used with the rand/rab solvers.\n"
+  "  -r, --prng-seed        random generator seed    - Used with rand/rab solvers.\n"
+  "  -P, --pattern          Pattern                  - Used with the rand solver - Must be in [EDGE|CORNER|XEDGE].\n"
   "  -l, --log              Turns logging on         - Requires a filename prefx.\n"
   "  -d, --pve-dump         Dumps PV                 - Requires a filename path. Available only for es solver.\n"
   "  -R, --pv-rec           Collects PV info         - Available only for es solver.\n"
@@ -357,6 +362,8 @@ static const char *documentation =
   "    The rand solver is a way to play a sequence of random game from the given position.\n"
   "    This option works together with the -n flag, that assigns the number of repeats, a sample call is:\n"
   "    $ endgame_solver -f db/gpdb-sample-games.txt -q initial -s rand -n 100 -l logfile\n"
+  "    Or it may be used to compute pattern frequencies:\n"
+  "    $ endgame_solver -f db/gpdb-sample-games.txt -q initial -s rand -n 1000000 -P EDGE\n"
   "\n"
   "  - minimax (minimax solver)\n"
   "    It applies the plain vanilla minimax algorithm, a sample call is:\n"
@@ -373,7 +380,7 @@ static const char *documentation =
   "Author:\n"
   "  Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
   "\n"
-  "Copyright (c) 2013, 2014, 2015, 2016, 2017 Roberto Corradini. All rights reserved.\n"
+  "Copyright (c) 2013, 2014, 2015, 2016, 2017, 2018 Roberto Corradini. All rights reserved.\n"
   "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
   "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n"
   ;
@@ -410,6 +417,12 @@ static char *s_arg = NULL;
 static int n_flag = false;
 static char *n_arg = NULL;
 
+static int r_flag = false;
+static char *r_arg = NULL;
+
+static int P_flag = false;
+static char *P_arg = NULL;
+
 static int l_flag = false;
 static char *l_arg = NULL;
 
@@ -429,6 +442,9 @@ static char *pve_dump_file = NULL;
 static bool pv_rec = false;
 static bool pv_full_rec = false;
 static bool pv_no_print = false;
+static int board_pattern_index = -1;
+static uint64_t prng_seed = 0;
+static bool prng_seed_is_set = false;
 
 
 
@@ -438,6 +454,9 @@ static bool pv_no_print = false;
 
 static int
 egs_select_solver (const char *const id);
+
+static int
+egs_select_pattern (const char *const name);
 
 /**
  * @endcond
@@ -479,6 +498,14 @@ main (int argc,
     case 'n':
       n_flag = true;
       n_arg = options.optarg;
+      break;
+    case 'r':
+      r_flag = true;
+      r_arg = options.optarg;
+      break;
+    case 'P':
+      P_flag = true;
+      P_arg = options.optarg;
       break;
     case 'l':
       l_flag = true;
@@ -565,6 +592,37 @@ main (int argc,
     repeats = 1;
   }
 
+  if (r_flag) {
+    if ((strcmp("rand", solver->id) != 0) && (strcmp("rab", solver->id) != 0)) { // solver is not rab or rand ...
+      fprintf(stderr, "Option -r, --prng-seed can be used only with solvers \"rab\" or \"rand\".\n");
+      return EXIT_FAILURE;
+    }
+    char *endptr;
+    long int r_arg_to_int = strtol(r_arg, &endptr, 10);
+    if (endptr - r_arg != strlen(r_arg)) {
+      fprintf(stderr, "Argument for option -r, --prng-seed: %s is invalid.\n", r_arg);
+      return EXIT_FAILURE;
+    }
+    if (r_arg_to_int < 1) {
+      fprintf(stderr, "Argument for option -r, --prng-seed is %ld, it must be a positive integer.\n", r_arg_to_int);
+      return EXIT_FAILURE;
+    }
+    prng_seed = r_arg_to_int;
+    prng_seed_is_set = true;
+  }
+
+  if (P_flag) {
+    if (strcmp("rand", solver->id) != 0) { // solver is not rab ...
+      fprintf(stderr, "Option -P, --pattern can be used only with solver \"rand\".\n");
+      return EXIT_FAILURE;
+    }
+    board_pattern_index = egs_select_pattern(P_arg);
+    if (board_pattern_index == -1) {
+      fprintf(stderr, "Option -P, --pattern is out of range.\n");
+      return EXIT_FAILURE;
+    }
+  }
+
   if (l_flag) {
     log_file = l_arg;
     if (gtl_touch_log_file(l_arg))
@@ -637,7 +695,10 @@ main (int argc,
       .repeats = 0,
       .pv_recording = false,
       .pv_full_recording = false,
-      .pv_no_print = false
+      .pv_no_print = false,
+      .board_pattern_index = board_pattern_index,
+      .prng_seed_is_set = prng_seed_is_set,
+      .prng_seed = prng_seed
     };
 
   /* Loads the game position database. */
@@ -723,6 +784,18 @@ egs_select_solver (const char *const id)
   for (size_t i = 0; i < solvers_count; i++) {
     endgame_solver_t egs = solvers[i];
     if (strcmp(id, egs.id) == 0) return i;
+  }
+  return -1;
+}
+
+static int
+egs_select_pattern (const char *const name)
+{
+  assert(name);
+  for (size_t i = 0;; i++) {
+    const board_pattern_t *bp = &board_patterns[i];
+    if (bp->id == BOARD_PATTERN_INVALID) break;
+    if (strcmp(name, bp->name) == 0) return i;
   }
   return -1;
 }
