@@ -34,6 +34,8 @@ SET search_path TO reversi;
 
 BEGIN;
 
+DROP TABLE regab_staging_ec_pidx_cnt_tmp;
+
 DROP FUNCTION regab_mirror_value_edge_pattern;
 DROP FUNCTION regab_mirror_edge_pattern;
 DROP FUNCTION regab_index_to_transformed_pattern;

@@ -52,7 +52,6 @@ CREATE TABLE regab_prng_pattern_ranges (seq                   SERIAL    PRIMARY 
                                         pattern_id            INTEGER   REFERENCES regab_prng_patterns(seq) ON DELETE CASCADE,
                                         index_value           INTEGER,
                                         empty_count           SMALLINT,
-                                        is_possible           BOOLEAN   DEFAULT TRUE,
                                         mirror_value          INTEGER   DEFAULT NULL,
                                         principal_index_value INTEGER   DEFAULT NULL,
                                         index_prob_given_ec   DOUBLE PRECISION DEFAULT NULL,
@@ -273,7 +272,7 @@ END $$;
 
 
 ---
----
+--- Populates the mirror_value and principal_index_value field in table regab_prng_pattern_ranges.
 ---
 DO $$
 DECLARE
@@ -298,6 +297,55 @@ BEGIN
   PERFORM p_assert(computed = 3321, 'Expected value is 3321, ((6561 - 3^4) / 2) + 3^4.');
 END $$;
 
+
+--
+-- Table used to load csv file having format:
+--   EMPTY_COUNT;PATTERN_INDEX;COUNT
+--
+-- The CSV file has been produced by a command like this:
+-- rcrr@hypnotic:~/base/prj/reversi/c$ ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q initial -s rand -n 1000000000 -P EDGE -r 628
+--
+CREATE TABLE regab_staging_ec_pidx_cnt_tmp (empty_count   SMALLINT,
+                                            index_value   INTEGER,
+                                            frequency     BIGINT);
+
+---
+--- Loads the CSV file into the tmp staging table.
+---
+\COPY regab_staging_ec_pidx_cnt_tmp  FROM '0105_data_pattern_index_frequencies_EDGE_826_1billion.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
+
+---
+--- Populates the probability field in table regab_prng_patterns
+---
+WITH freq_totals_by_ec AS (
+  SELECT empty_count, sum(frequency) AS cnt
+  FROM regab_staging_ec_pidx_cnt_tmp GROUP BY empty_count
+), frequencies AS (
+  SELECT empty_count, index_value, sum(frequency) AS cnt
+  FROM regab_staging_ec_pidx_cnt_tmp GROUP BY empty_count, index_value ORDER BY empty_count
+), probabilities AS (
+  SELECT
+    f.empty_count AS empty_count,
+    f.index_value AS index_value,
+    f.cnt / ft.cnt AS probability
+  FROM
+    freq_totals_by_ec AS ft
+  LEFT JOIN
+    frequencies AS f ON f.empty_count = ft.empty_count
+  ORDER BY
+    empty_count, index_value
+) UPDATE regab_prng_pattern_ranges AS ta
+SET
+  index_prob_given_ec = probability,
+  cst_time = now(),
+  status = 'CMP'
+FROM probabilities AS tb
+WHERE
+  ta.pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'EDGE') AND
+  ta.index_value = tb.index_value AND
+  ta.empty_count = tb.empty_count;
+
+TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 
 -- End of migration
 COMMIT;
