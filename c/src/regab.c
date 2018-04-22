@@ -80,6 +80,7 @@ typedef enum {
   REGAB_ACTION_SOLVE,                   // Solves the selected games.
   REGAB_ACTION_GENERATE_CLASSIFICATION, // Generates the classification header and classification records.
   REGAB_ACTION_CLASSIFY,                // Classifies the records by computing the proper index.
+  REGAB_ACTION_OFFSPRING,               // Generates the offspring record having status CMS and change status from CMQ to CMR.
   REGAB_ACTION_INVALID                  // Not a valid action.
 } regab_action_t;
 
@@ -103,6 +104,7 @@ typedef struct regab_prng_gp_record_s {
   uint8_t best_move;
   int64_t leaf_count;
   int64_t node_count;
+  int64_t parent_gp_id;
 } regab_prng_gp_record_t;
 
 typedef struct regab_prng_gp_classification_record_s {
@@ -143,7 +145,7 @@ static const char *documentation =
   "Options:\n"
   "  -h, --help        Show help options\n"
   "  -v, --verbose     Verbose output\n"
-  "  -a, --action      Action to be performed                                 - Mandatory - Must be in [generate|solve|gen_class|classify].\n"
+  "  -a, --action      Action to be performed                                 - Mandatory - Must be in [generate|solve|gen_class|classify|offspring].\n"
   "  -c, --config-file Config file name                                       - Mandatory.\n"
   "  -e, --env         Environment                                            - Mandatory.\n"
   "  -s, --prng-seed   Seed used by the Pseudo Random Number Generator        - Mandatory when action is generate.\n"
@@ -273,10 +275,22 @@ regab_get_db_connection (PGconn **conp,
   /* Prepares statement insert_regab_prng_gp. */
   res = PQprepare(*conp,
                   insert_regab_prng_gp,
-                  "INSERT INTO regab_prng_gp (batch_id, game_id, pos_id, ins_time, status, cst_time, mover, opponent, player, empty_count, legal_move_set, legal_move_count, legal_move_count_adjusted, parent_move) "
-                  "VALUES ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::TIMESTAMP, $5::CHAR(3), $6::TIMESTAMP, $7::SQUARE_SET, $8::SQUARE_SET, $9::PLAYER, $10::SMALLINT, $11::SQUARE_SET, $12::SMALLINT, $13::SMALLINT, $14::GAME_MOVE);",
-                  14,
-                  NULL);
+                  "INSERT INTO regab_prng_gp ("
+                  "batch_id, game_id, pos_id, ins_time, status, cst_time, "
+                  "mover, opponent, player, empty_count, legal_move_set, legal_move_count, "
+                  "legal_move_count_adjusted, parent_move, game_value, best_move, leaf_count, node_count, "
+                  "parent_gp_id"
+                  ") "
+                  "VALUES ("
+                  "$1::INTEGER, $2::INTEGER, $3::INTEGER, $4::TIMESTAMP, $5::CHAR(3), $6::TIMESTAMP, "
+                  "$7::SQUARE_SET, $8::SQUARE_SET, $9::PLAYER, $10::SMALLINT, $11::SQUARE_SET, $12::SMALLINT, "
+                  "$13::SMALLINT, $14::GAME_MOVE, $15::SMALLINT, $16::GAME_MOVE, $17::BIGINT, $18::BIGINT, "
+                  "$19::BIGINT"
+                  ")"
+                  "RETURNING seq;",
+                  19, // nParams
+                  NULL // paramTypes
+                  );
   PQclear(res);
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
     fprintf(stderr, "Error while preparing statement, %s", PQerrorMessage(*conp));
@@ -631,6 +645,177 @@ do_update_solved_position_results (int *result,
 }
 
 static void
+do_insert_regab_prng_gp_record (int *result,
+                                uint64_t *seq,
+                                PGconn *con,
+                                regab_prng_gp_record_t *record)
+{
+  PGresult *res = NULL;
+  uint64_t tmp_seq;
+
+  const char* paramValues[19];
+  char batch_id_to_s[64];
+  char game_id_to_s[64];
+  char pos_id_to_s[64];
+  char mover_to_s[64];
+  char opponent_to_s[64];
+  char player_to_s[64];
+  char empty_count_to_s[64];
+  char legal_move_set_to_s[64];
+  char legal_move_count_to_s[64];
+  char legal_move_count_adjusted_to_s[64];
+  char parent_move_to_s[64];
+  char game_value_to_s[64];
+  char best_move_to_s[64];
+  char leaf_count_to_s[64];
+  char node_count_to_s[64];
+  char parent_gp_id_to_s[64];
+
+  if (!result) return;
+  if (!con || !record) {
+    *result = -1;
+    return;
+  }
+
+  sprintf(batch_id_to_s, "%d", record->batch_id);
+  sprintf(game_id_to_s, "%d", record->game_id);
+  sprintf(pos_id_to_s, "%d", record->pos_id);
+  sprintf(mover_to_s, "%ld", (int64_t) record->mover);
+  sprintf(opponent_to_s, "%ld", (int64_t) record->opponent);
+  sprintf(player_to_s, "%u", record->player);
+  sprintf(empty_count_to_s, "%d", record->empty_count);
+  sprintf(legal_move_set_to_s, "%ld", record->legal_move_set);
+  sprintf(legal_move_count_to_s, "%d", record->legal_move_count);
+  sprintf(legal_move_count_adjusted_to_s, "%d", record->legal_move_count_adjusted);
+  sprintf(parent_move_to_s, "%s", square_as_move_to_string(record->parent_move));
+  sprintf(game_value_to_s, "%d", record->game_value);
+  sprintf(best_move_to_s, "%s", square_as_move_to_string(record->best_move));
+  sprintf(leaf_count_to_s, "%ld", record->leaf_count);
+  sprintf(node_count_to_s, "%ld", record->node_count);
+  sprintf(parent_gp_id_to_s, "%ld", record->parent_gp_id);
+
+  paramValues[0]  = batch_id_to_s;
+  paramValues[1]  = game_id_to_s;
+  paramValues[2]  = pos_id_to_s;
+  paramValues[3]  = "now()";
+  paramValues[4]  = record->status;
+  paramValues[5]  = "now()";
+  paramValues[6]  = mover_to_s;
+  paramValues[7]  = opponent_to_s;
+  paramValues[8]  = player_to_s;
+  paramValues[9]  = empty_count_to_s;
+  paramValues[10] = legal_move_set_to_s;
+  paramValues[11] = legal_move_count_to_s;
+  paramValues[12] = legal_move_count_adjusted_to_s;
+  paramValues[13] = parent_move_to_s;
+  paramValues[14] = game_value_to_s;
+  paramValues[15] = best_move_to_s;
+  paramValues[16] = leaf_count_to_s;
+  paramValues[17] = node_count_to_s;
+  paramValues[18] = parent_gp_id_to_s;
+
+  res = PQexecPrepared(con,
+                       insert_regab_prng_gp,
+                       19,
+                       paramValues,
+                       NULL,
+                       NULL,
+                       0);
+
+  if (PQresultStatus(res) != PGRES_TUPLES_OK
+      || PQntuples(res) != 1
+      || strcmp("seq", PQfname(res, 0)) != 0) {
+    fprintf(stderr, "Record insertion into regab_prng_gp command has problems.\n");
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  } else {
+    tmp_seq = atol(PQgetvalue(res, 0, 0));
+    *result = 0;
+  }
+  PQclear(res);
+  if (seq) *seq = tmp_seq;
+}
+
+static void
+do_insert_offspring_and_update_solved_position (int *result,
+                                                PGconn *con,
+                                                regab_prng_gp_record_t *cms_record,
+                                                regab_prng_gp_record_t *cmr_record)
+{
+  PGresult *res = NULL;
+  char command[512];
+  int clen;
+
+  if (!result) return;
+  if (!con) {
+    *result = -1;
+    return;
+  }
+
+  /* Start a transaction. */
+  res = PQexec(con, "BEGIN");
+  PQclear(res);
+  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "BEGIN command failed: %s\n", PQerrorMessage(con));
+    *result = -1;
+    return;
+  }
+
+  do_insert_regab_prng_gp_record(result, NULL, con, cmr_record);
+
+  if (*result != 0) {
+    res = PQexec(con, "ROLLBACK");
+    PQclear(res);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+      fprintf(stderr, "ROLLBACK command failed: %s\n", PQerrorMessage(con));
+      *result = -1;
+      return;
+    } else {
+      fprintf(stderr, "ROLLBACK command executed succesfully.\n");
+      *result = -1;
+      return;
+    }
+  }
+
+  /* Updates the CMQ/CMS record. */
+  clen = snprintf(command,
+                  sizeof(command),
+                  "UPDATE regab_prng_gp SET "
+                  "status = 'CMS', cst_time = now() "
+                  "WHERE seq = %"PRId64";",
+                  cms_record->seq);
+  if (clen >= sizeof(command)) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL statement.\n");
+    abort();
+  }
+  res = PQexec(con, command);
+  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "Update command has problems.\n");
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  }
+  PQclear(res);
+
+  if (*result != 0) {
+    res = PQexec(con, "ROLLBACK");
+    PQclear(res);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+      fprintf(stderr, "ROLLBACK command failed: %s\n", PQerrorMessage(con));
+      *result = -1;
+      return;
+    } else {
+      fprintf(stderr, "ROLLBACK command executed succesfully.\n");
+      *result = -1;
+      return;
+    }
+  }
+
+  /* Close the transaction. */
+  res = PQexec(con, "END");
+  PQclear(res);
+}
+
+static void
 do_update_classification_index (int *result,
                                 PGconn *con,
                                 size_t n,
@@ -886,6 +1071,89 @@ do_select_class_id (int *result,
   PQclear(res);
   if (*result != 1) return -1;
   return class_id;
+}
+
+static void
+do_select_position_to_offspring (int *result,
+                                 PGconn *con,
+                                 regab_prng_gp_record_t *record)
+{
+  PGresult *res = NULL;
+  char command[512];
+  int clen;
+
+  size_t ntuples;
+
+  if (!result) return;
+  if (!con) {
+    *result = -1;
+    return;
+  }
+  *result = 0;
+
+  /* Selects and updates at most one record ready to be processed for generating the offspring. */
+  clen = snprintf(command,
+                  sizeof(command),
+                  "UPDATE regab_prng_gp SET status = 'CMW', cst_time = now() WHERE seq IN ("
+                  "SELECT seq FROM regab_prng_gp WHERE batch_id = %d AND empty_count = %u AND status = 'CMQ' "
+                  "FOR UPDATE SKIP LOCKED LIMIT 1) "
+                  "RETURNING seq, game_id, pos_id, ins_time, status, cst_time, mover, opponent, player, "
+                  "empty_count, legal_move_set, legal_move_count, legal_move_count_adjusted, parent_move, game_value, best_move",
+                  record->batch_id, record->empty_count);
+  if (clen >= sizeof(command)) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL statement (UPDATE ...).\n");
+    abort();
+  }
+  res = PQexec(con, command);
+  if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+    fprintf(stderr, "Select for update command has problems.\n");
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  } else {
+    ntuples = PQntuples(res);
+    if (ntuples > 1) *result = -1;
+    else if (ntuples == 1) {
+      if (strcmp("seq", PQfname(res, 0)) != 0
+          || strcmp("game_id", PQfname(res, 1)) != 0
+          || strcmp("pos_id", PQfname(res, 2)) != 0
+          || strcmp("ins_time", PQfname(res, 3)) != 0
+          || strcmp("status", PQfname(res, 4)) != 0
+          || strcmp("cst_time", PQfname(res, 5)) != 0
+          || strcmp("mover", PQfname(res, 6)) != 0
+          || strcmp("opponent", PQfname(res, 7)) != 0
+          || strcmp("player", PQfname(res, 8)) != 0
+          || strcmp("empty_count", PQfname(res, 9)) != 0
+          || strcmp("legal_move_set", PQfname(res, 10)) != 0
+          || strcmp("legal_move_count", PQfname(res, 11)) != 0
+          || strcmp("legal_move_count_adjusted", PQfname(res, 12)) != 0
+          || strcmp("parent_move", PQfname(res, 13)) != 0
+          || strcmp("game_value", PQfname(res, 14)) != 0
+          || strcmp("best_move", PQfname(res, 15)) != 0) {
+        *result = -1;
+      } else { // Everything is ok, and one record is selected.
+        record->seq = atol(PQgetvalue(res, 0, 0));
+        record->game_id = atol(PQgetvalue(res, 0, 1));
+        record->pos_id = atol(PQgetvalue(res, 0, 2));
+        strcpy(record->ins_time, PQgetvalue(res, 0, 3));
+        strcpy(record->status, PQgetvalue(res, 0, 4));
+        strcpy(record->cst_time, PQgetvalue(res, 0, 5));
+        record->mover = atol(PQgetvalue(res, 0, 6));
+        record->opponent = atol(PQgetvalue(res, 0, 7));
+        record->player = atoi(PQgetvalue(res, 0, 8));
+        record->empty_count = atoi(PQgetvalue(res, 0, 9));
+        record->legal_move_set = atol(PQgetvalue(res, 0, 10));
+        record->legal_move_count = atoi(PQgetvalue(res, 0, 11));
+        record->legal_move_count_adjusted = atoi(PQgetvalue(res, 0, 12));
+        record->parent_move = square_as_move_from_two_chars(PQgetvalue(res, 0, 13));
+        record->game_value = atol(PQgetvalue(res, 0, 14));
+        record->best_move = square_as_move_from_two_chars(PQgetvalue(res, 0, 15));
+        *result = 1;
+      }
+    } else { // Ok, but no record selected.
+      *result = 0;
+    }
+  }
+  PQclear(res);
 }
 
 static void
@@ -1214,8 +1482,9 @@ main (int argc,
     else if (strcmp("solve", a_arg) == 0) action = REGAB_ACTION_SOLVE;
     else if (strcmp("gen_class", a_arg) == 0) action = REGAB_ACTION_GENERATE_CLASSIFICATION;
     else if (strcmp("classify", a_arg) == 0) action = REGAB_ACTION_CLASSIFY;
+    else if (strcmp("offspring", a_arg) == 0) action = REGAB_ACTION_OFFSPRING;
     else {
-      fprintf(stderr, "Argument for option -a, --action must be in [generate|solve|gen_class|classify] domain.\n");
+      fprintf(stderr, "Argument for option -a, --action must be in [generate|solve|gen_class|classify|offspring] domain.\n");
       return EXIT_FAILURE;
     }
   }
@@ -1385,6 +1654,22 @@ main (int argc,
     }
   }
 
+  /* Verifies mandatory options when action is offspring. */
+  if (action == REGAB_ACTION_OFFSPRING) {
+    if (!b_flag) {
+      fprintf(stderr, "Option -b, --batch-id, is mandatory when option -a, --action, has value \"offspring\".\n");
+      return EXIT_FAILURE;
+    }
+    if (!y_flag) {
+      fprintf(stderr, "Option -y, --empty-count, is mandatory when option -a, --action, has value \"offspring\".\n");
+      return EXIT_FAILURE;
+    }
+    if (!n_flag) {
+      fprintf(stderr, "Option -n, --n-games, is mandatory when option -a, --action, has value \"offspring\".\n");
+      return EXIT_FAILURE;
+    }
+  }
+
   /*
    * Checks on command line options ends here.
    */
@@ -1457,6 +1742,7 @@ main (int argc,
   case REGAB_ACTION_SOLVE: goto regab_action_solve;
   case REGAB_ACTION_GENERATE_CLASSIFICATION: goto regab_action_generate_classification;
   case REGAB_ACTION_CLASSIFY: goto regab_action_classify;
+  case REGAB_ACTION_OFFSPRING: goto regab_action_offspring;
   default: fprintf(stderr, "Out of range action option, aborting...\n"); abort();
   }
 
@@ -1669,16 +1955,6 @@ main (int argc,
         ngp_records++;
       }
     }
-    /*
-    printf("ngpc_records=%zu, ngp_records=%zu\n", ngpc_records, ngp_records);
-    for (int i = 0; i < ngpc_records; i++) {
-      printf("seq=%"PRId64", gp_id=%"PRId64", class_id=%d, pattern_instance=%d\n",
-             gpc_records[i].seq, gpc_records[i].gp_id, gpc_records[i].class_id, gpc_records[i].pattern_instance);
-    }
-    for (int i = 0; i < ngp_records; i++) {
-      printf("gp_records[%d].seq=%"PRId64"\n", i, gp_records[i].seq);
-    }
-    */
 
     do_select_position(&result, con, ngp_records, gp_records);
     if (result < 0) {
@@ -1692,28 +1968,10 @@ main (int argc,
     }
 
     for (int i = 0; i < ngp_records; i++) {
-      //printf("gp_records[%d].seq=%"PRId64"\n", i, gp_records[i].seq);
-
       board_t board;
       board.square_sets[0] = (SquareSet) gp_records[i].mover;
       board.square_sets[1] = (SquareSet) gp_records[i].opponent;
       board_pattern_compute_indexes(indexes, &board_patterns[bpi], &board);
-
-      /*
-      char gpx_to_s[1024];
-      GamePositionX gpx;
-      gpx.blacks = (SquareSet) gp_records[i].mover;
-      gpx.whites = (SquareSet) gp_records[i].opponent;
-      gpx.player = 0;
-      game_position_x_print(gpx_to_s, &gpx);
-      printf("\n%s\n", gpx_to_s);
-
-      printf("indexes: %u, %u, %u, %u\n",
-             indexes[0],
-             indexes[1],
-             indexes[2],
-             indexes[3]);
-      */
 
       /* This is not efficient at all!!! */
       for (int j = 0; j < ngpc_records; j++) {
@@ -1729,6 +1987,89 @@ main (int argc,
       PQfinish(con);
       return EXIT_FAILURE;
     }
+  }
+
+  goto regab_program_end;
+
+
+
+  /*
+   * Generates the offspring record.
+   *
+   * From psql the to be processed records for batch_id 1 can be generated as:
+   * psql> UPDATE regab_prng_gp SET status = 'CMQ', cst_time = now() WHERE status = 'CMP' AND batch_id = 1;
+   *
+   *
+   * TO TEST ....
+   * $ ./build/bin/regab -a offspring -c cfg/regab.cfg -e test -n 3 -b 1 -y 21
+   *
+   * SELECT * FROM regab_prng_gp WHERE status = 'CMQ' AND batch_id = 1;
+   * SELECT * FROM regab_prng_gp WHERE status = 'CMW' AND batch_id = 1;
+   * UPDATE regab_prng_gp SET status = 'CMQ' WHERE seq = 40;
+   */
+ regab_action_offspring:
+  ;
+
+  for (size_t i = 0; i < n_games; i++) {
+    printf("Selecting game position to process: %zu of %lu ... ", i + 1, n_games);
+    regab_prng_gp_record_t record, new_record;
+    memset(&record, 0, sizeof(record));
+    record.batch_id = batch_id;
+    record.empty_count = empty_count;
+    do_select_position_to_offspring(&result, con, &record);
+    if (result == 0) {
+      printf("no more game position to process, terminating.\n");
+      break;
+    }
+    printf("selected record [seq = %lu, ", record.seq);
+    printf("best_move = %s, game_value = %+02d]", square_as_move_to_string(record.best_move), record.game_value);
+    // ---
+
+    /* Computes the move. */
+    GamePositionX current_gpx, updated_gpx;
+    current_gpx.player = record.player;
+    current_gpx.blacks = record.player == BLACK_PLAYER ? record.mover : record.opponent;
+    current_gpx.whites = record.player == BLACK_PLAYER ? record.opponent : record.mover;
+    game_position_x_make_move(&current_gpx, record.best_move, &updated_gpx);
+    const SquareSet updated_gpx_empties = game_position_x_empties(&updated_gpx);
+    const SquareSet updated_gpx_legal_moves = game_position_x_legal_moves(&updated_gpx);
+    const int updated_gpx_lmc = bitw_bit_count_64(updated_gpx_legal_moves);
+    const bool updated_gpx_is_leaf = !game_position_x_has_any_player_any_legal_move(&updated_gpx);
+
+    /*
+    char buf[256];
+    game_position_x_print(buf, &current_gpx);
+    printf("current:\n%s", buf);
+    game_position_x_print(buf, &updated_gpx);
+    printf("updated:\n%s", buf);
+    */
+
+    new_record.seq = 0;
+    new_record.batch_id = record.batch_id;
+    new_record.game_id = record.game_id;
+    new_record.pos_id = record.pos_id + 100;
+    strcpy(new_record.ins_time, "");
+    strcpy(new_record.status, "CMR"); // CMR is the offspring label.
+    strcpy(new_record.cst_time, "");
+    new_record.mover = game_position_x_get_mover(&updated_gpx);
+    new_record.opponent = game_position_x_get_opponent(&updated_gpx);
+    new_record.player = game_position_x_get_player(&updated_gpx);
+    new_record.empty_count = bitw_bit_count_64(updated_gpx_empties);
+    new_record.legal_move_set = (int64_t) updated_gpx_legal_moves;
+    new_record.legal_move_count = updated_gpx_lmc;
+    new_record.legal_move_count_adjusted = updated_gpx_lmc + ((updated_gpx_lmc == 0 && !updated_gpx_is_leaf) ? 1 : 0);
+    new_record.parent_move = record.best_move;
+    new_record.game_value = - record.game_value;
+    new_record.best_move = unknown_move;
+    new_record.leaf_count = 0;
+    new_record.node_count = 0;
+    new_record.parent_gp_id = record.seq;
+
+    // Runs the transaction with the new record insertion and the record update.
+    do_insert_offspring_and_update_solved_position(&result, con, &record, &new_record);
+
+    // ---
+    printf("\n");
   }
 
   goto regab_program_end;
