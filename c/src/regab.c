@@ -1270,7 +1270,7 @@ do_select_position (int *result,
     cl += snprintf(cp, sizeof(command) - cl, c1,
                    records[i].seq,
                    (i < n - 1) ? c2 : c3);
-    cp = command +cl;
+    cp = command + cl;
   }
   if (cl >= sizeof(command)) {
     fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command (1).\n");
@@ -1735,7 +1735,7 @@ main (int argc,
 
 
   /*
-   * Selects with action to perform.
+   * Selects which action to perform.
    */
   switch (action) {
   case REGAB_ACTION_GENERATE: goto regab_action_generate;

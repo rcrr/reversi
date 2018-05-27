@@ -115,49 +115,43 @@ aux_verify_transformation (ut_test_t *const t,
  */
 
 static void
-board_trans_dummy_t (ut_test_t *const t)
+board_trans_flip_horizontal_t (ut_test_t *const t)
 {
-  ut_assert(t, true);
+  aux_verify_transformation(t, ar_flipped_v,  ar,            board_trans_flip_horizontal);
+  aux_verify_transformation(t, full,          full,          board_trans_flip_horizontal);
+  aux_verify_transformation(t, empty,         empty,         board_trans_flip_horizontal);
+  aux_verify_transformation(t, half_left,     half_left,     board_trans_flip_horizontal);
+  aux_verify_transformation(t, half_right,    half_right,    board_trans_flip_horizontal);
+  aux_verify_transformation(t, half_top,      half_bottom,   board_trans_flip_horizontal);
+  aux_verify_transformation(t, half_bottom,   half_top,      board_trans_flip_horizontal);
+  aux_verify_transformation(t, row_1,         row_8,         board_trans_flip_horizontal);
+  aux_verify_transformation(t, row_8,         row_1,         board_trans_flip_horizontal);
+  aux_verify_transformation(t, column_a,      column_a,      board_trans_flip_horizontal);
+  aux_verify_transformation(t, column_h,      column_h,      board_trans_flip_horizontal);
+  aux_verify_transformation(t, diag_h1a8,     diag_a1h8,     board_trans_flip_horizontal);
+  aux_verify_transformation(t, diag_a1h8,     diag_h1a8,     board_trans_flip_horizontal);
+  aux_verify_transformation(t, squares_a1_h1, squares_a8_h8, board_trans_flip_horizontal);
+  aux_verify_transformation(t, squares_a8_h8, squares_a1_h1, board_trans_flip_horizontal);
 }
 
 static void
-board_trans_flip_fertical_t (ut_test_t *const t)
+board_trans_flip_vertical_t (ut_test_t *const t)
 {
-  aux_verify_transformation(t, ar_flipped_v,  ar,            board_trans_flip_vertical);
+  aux_verify_transformation(t, ar_mirror_h,   ar,            board_trans_flip_vertical);
   aux_verify_transformation(t, full,          full,          board_trans_flip_vertical);
   aux_verify_transformation(t, empty,         empty,         board_trans_flip_vertical);
-  aux_verify_transformation(t, half_left,     half_left,     board_trans_flip_vertical);
-  aux_verify_transformation(t, half_right,    half_right,    board_trans_flip_vertical);
-  aux_verify_transformation(t, half_top,      half_bottom,   board_trans_flip_vertical);
-  aux_verify_transformation(t, half_bottom,   half_top,      board_trans_flip_vertical);
-  aux_verify_transformation(t, row_1,         row_8,         board_trans_flip_vertical);
-  aux_verify_transformation(t, row_8,         row_1,         board_trans_flip_vertical);
-  aux_verify_transformation(t, column_a,      column_a,      board_trans_flip_vertical);
-  aux_verify_transformation(t, column_h,      column_h,      board_trans_flip_vertical);
+  aux_verify_transformation(t, half_left,     half_right,    board_trans_flip_vertical);
+  aux_verify_transformation(t, half_right,    half_left,     board_trans_flip_vertical);
+  aux_verify_transformation(t, half_top,      half_top,      board_trans_flip_vertical);
+  aux_verify_transformation(t, half_bottom,   half_bottom,   board_trans_flip_vertical);
+  aux_verify_transformation(t, row_1,         row_1,         board_trans_flip_vertical);
+  aux_verify_transformation(t, row_8,         row_8,         board_trans_flip_vertical);
+  aux_verify_transformation(t, column_a,      column_h,      board_trans_flip_vertical);
+  aux_verify_transformation(t, column_h,      column_a,      board_trans_flip_vertical);
   aux_verify_transformation(t, diag_h1a8,     diag_a1h8,     board_trans_flip_vertical);
   aux_verify_transformation(t, diag_a1h8,     diag_h1a8,     board_trans_flip_vertical);
-  aux_verify_transformation(t, squares_a1_h1, squares_a8_h8, board_trans_flip_vertical);
-  aux_verify_transformation(t, squares_a8_h8, squares_a1_h1, board_trans_flip_vertical);
-}
-
-static void
-board_trans_mirror_horizontal_t (ut_test_t *const t)
-{
-  aux_verify_transformation(t, ar_mirror_h,   ar,            board_trans_mirror_horizontal);
-  aux_verify_transformation(t, full,          full,          board_trans_mirror_horizontal);
-  aux_verify_transformation(t, empty,         empty,         board_trans_mirror_horizontal);
-  aux_verify_transformation(t, half_left,     half_right,    board_trans_mirror_horizontal);
-  aux_verify_transformation(t, half_right,    half_left,     board_trans_mirror_horizontal);
-  aux_verify_transformation(t, half_top,      half_top,      board_trans_mirror_horizontal);
-  aux_verify_transformation(t, half_bottom,   half_bottom,   board_trans_mirror_horizontal);
-  aux_verify_transformation(t, row_1,         row_1,         board_trans_mirror_horizontal);
-  aux_verify_transformation(t, row_8,         row_8,         board_trans_mirror_horizontal);
-  aux_verify_transformation(t, column_a,      column_h,      board_trans_mirror_horizontal);
-  aux_verify_transformation(t, column_h,      column_a,      board_trans_mirror_horizontal);
-  aux_verify_transformation(t, diag_h1a8,     diag_a1h8,     board_trans_mirror_horizontal);
-  aux_verify_transformation(t, diag_a1h8,     diag_h1a8,     board_trans_mirror_horizontal);
-  aux_verify_transformation(t, squares_a1_h1, squares_a1_h1, board_trans_mirror_horizontal);
-  aux_verify_transformation(t, squares_a8_h8, squares_a8_h8, board_trans_mirror_horizontal);
+  aux_verify_transformation(t, squares_a1_h1, squares_a1_h1, board_trans_flip_vertical);
+  aux_verify_transformation(t, squares_a8_h8, squares_a8_h8, board_trans_flip_vertical);
 }
 
 static void
@@ -198,6 +192,27 @@ board_trans_flip_diag_a1h8_t (ut_test_t *const t)
   aux_verify_transformation(t, diag_h1a8,     diag_h1a8,     board_trans_flip_diag_a1h8);
   aux_verify_transformation(t, squares_a1_a8, squares_a1_h1, board_trans_flip_diag_a1h8);
   aux_verify_transformation(t, squares_h1_h8, squares_a8_h8, board_trans_flip_diag_a1h8);
+}
+
+static void
+board_trans_identity_t (ut_test_t *const t)
+{
+  aux_verify_transformation(t, ar,            ar,            board_trans_identity);
+  aux_verify_transformation(t, full,          full,          board_trans_identity);
+  aux_verify_transformation(t, empty,         empty,         board_trans_identity);
+  aux_verify_transformation(t, half_right,    half_right,    board_trans_identity);
+  aux_verify_transformation(t, half_left,     half_left,     board_trans_identity);
+  aux_verify_transformation(t, half_top,      half_top,      board_trans_identity);
+  aux_verify_transformation(t, half_bottom,   half_bottom,   board_trans_identity);
+  aux_verify_transformation(t, row_1,         row_1,         board_trans_identity);
+  aux_verify_transformation(t, row_8,         row_8,         board_trans_identity);
+  aux_verify_transformation(t, column_h,      column_h,      board_trans_identity);
+  aux_verify_transformation(t, column_a,      column_a,      board_trans_identity);
+  aux_verify_transformation(t, diag_a1h8,     diag_a1h8,     board_trans_identity);
+  aux_verify_transformation(t, diag_h1a8,     diag_h1a8,     board_trans_identity);
+  aux_verify_transformation(t, squares_a1_h1, squares_a1_h1, board_trans_identity);
+  aux_verify_transformation(t, squares_a8_h8, squares_a8_h8, board_trans_identity);
+  aux_verify_transformation(t, squares_a1_b1, squares_a1_b1, board_trans_identity);
 }
 
 static void
@@ -277,11 +292,11 @@ main (int argc,
 
   ut_suite_t *const s = ut_suite_new(&config, "board_trans");
 
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_trans_dummy", board_trans_dummy_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_trans_flip_fertical", board_trans_flip_fertical_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_trans_mirror_horizontal", board_trans_mirror_horizontal_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_trans_flip_horizontal", board_trans_flip_horizontal_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_trans_flip_vertical", board_trans_flip_vertical_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_trans_flip_diag_h1a8", board_trans_flip_diag_h1a8_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_trans_flip_diag_a1h8", board_trans_flip_diag_a1h8_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_trans_identity", board_trans_identity_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_trans_rotate_180", board_trans_rotate_180_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_trans_rotate_90c", board_trans_rotate_90c_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_trans_rotate_90a", board_trans_rotate_90a_t);

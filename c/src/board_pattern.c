@@ -108,6 +108,91 @@ board_pattern_pack_xedge (SquareSet s)
   return s1 | (s2 >> 1) | (s3 >> 5);
 }
 
+SquareSet
+board_pattern_pack_r2 (SquareSet s)
+{
+  return (s >> 8) & 0x00000000000000ff;
+}
+
+SquareSet
+board_pattern_pack_r3 (SquareSet s)
+{
+  return (s >> 16) & 0x00000000000000ff;
+}
+
+SquareSet
+board_pattern_pack_r4 (SquareSet s)
+{
+  return (s >> 24) & 0x00000000000000ff;
+}
+
+SquareSet
+board_pattern_pack_diag4 (SquareSet s)
+{
+  const SquareSet diag4 = 0x0000000001020408;
+  const SquareSet mask  = 0x000000000000000f;
+  s &= diag4;
+  s |= s >> 16;
+  s |= s >>  8;
+  return s & mask;
+}
+
+SquareSet
+board_pattern_pack_diag5 (SquareSet s)
+{
+  const SquareSet diag5 = 0x0000000102040810;
+  const SquareSet mask  = 0x000000000000001f;
+  s &= diag5;
+  s |= s >> 32;
+  s |= s >> 16;
+  s |= s >>  8;
+  return s & mask;
+}
+
+SquareSet
+board_pattern_pack_diag6 (SquareSet s)
+{
+  const SquareSet diag6 = 0x0000010204081020;
+  const SquareSet mask  = 0x000000000000003f;
+  s &= diag6;
+  s |= s >> 32;
+  s |= s >> 16;
+  s |= s >>  8;
+  return s & mask;
+}
+
+SquareSet
+board_pattern_pack_diag7 (SquareSet s)
+{
+  const SquareSet diag7 = 0x0001020408102040;
+  const SquareSet mask  = 0x000000000000007f;
+  s &= diag7;
+  s |= s >> 32;
+  s |= s >> 16;
+  s |= s >>  8;
+  return s & mask;
+}
+
+SquareSet
+board_pattern_pack_diag8 (SquareSet s)
+{
+  const SquareSet diag8 = 0x0102040810204080;
+  const SquareSet mask  = 0x00000000000000ff;
+  s &= diag8;
+  s |= s >> 32;
+  s |= s >> 16;
+  s |= s >>  8;
+  return s & mask;
+}
+
+SquareSet
+board_pattern_pack_2x5cor (SquareSet s)
+{
+  const SquareSet mask0  = 0x000000000000001f;
+  const SquareSet mask1  = 0x0000000000001f00;
+  return (s & mask0) | ((s & mask1) >> 3);
+}
+
 bool
 board_pattern_get_id_by_name(board_pattern_id_t *idp,
                              char *name)

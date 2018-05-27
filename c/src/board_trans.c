@@ -38,7 +38,7 @@
 #include "board_trans.h"
 
 SquareSet
-board_trans_flip_vertical (SquareSet s)
+board_trans_flip_horizontal (SquareSet s)
 {
   return
     ((s << 56)                     ) |
@@ -52,7 +52,7 @@ board_trans_flip_vertical (SquareSet s)
 }
 
 SquareSet
-board_trans_mirror_horizontal (SquareSet s)
+board_trans_flip_vertical (SquareSet s)
 {
   const SquareSet k1 = 0x5555555555555555;
   const SquareSet k2 = 0x3333333333333333;
@@ -98,19 +98,19 @@ board_trans_flip_diag_h1a8 (SquareSet s)
 SquareSet
 board_trans_rotate_180 (SquareSet s)
 {
-  return board_trans_mirror_horizontal(board_trans_flip_vertical(s));
+  return board_trans_flip_vertical(board_trans_flip_horizontal(s));
 }
 
 SquareSet
 board_trans_rotate_90c (SquareSet s)
 {
-  return board_trans_flip_vertical(board_trans_flip_diag_h1a8(s));
+  return board_trans_flip_horizontal(board_trans_flip_diag_h1a8(s));
 }
 
 SquareSet
 board_trans_rotate_90a (SquareSet s)
 {
-  return board_trans_flip_diag_h1a8(board_trans_flip_vertical(s));
+  return board_trans_flip_diag_h1a8(board_trans_flip_horizontal(s));
 }
 
 SquareSet

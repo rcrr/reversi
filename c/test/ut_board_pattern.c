@@ -57,218 +57,33 @@ static const SquareSet zebra_o = 0x00000000000000aa;
  * Auxiliary functions.
  */
 
+static void
+aux_check_expected_indexes (ut_test_t *const t,
+                            board_pattern_id_t p_id,
+                            SquareSet m,
+                            SquareSet o,
+                            board_pattern_index_t *expected_indexes)
+{
+  const board_pattern_t *p;
+  int n;
+  board_t board;
+  board_t *b;
+  board_pattern_index_t computed_indexes[8];
+
+  p = &board_patterns[p_id];
+  n = p->n_instances;
+  b = &board;
+
+  board_set_square_sets(b, m, o);
+  board_pattern_compute_indexes(computed_indexes, p, b);
+  for (int i = 0; i < n; i++) ut_assert(t, expected_indexes[i] == computed_indexes[i]);
+}
+
 
 
 /*
  * Test functions.
  */
-
-static void
-board_pattern_dummy_t (ut_test_t *const t)
-{
-  ut_assert(t, true);
-}
-
-static void
-board_pattern_compute_indexes_edge_t (ut_test_t *const t)
-{
-  board_t board;
-  board_t *b;
-  SquareSet m, o;
-  board_pattern_index_t indexes[4];
-  board_pattern_index_t expected[4];
-  b = &board;
-
-  m = empty;
-  o = empty;
-  expected[0] =    0;
-  expected[1] =    0;
-  expected[2] =    0;
-  expected[3] =    0;
-  board_set_square_sets(b, m, o);
-  board_pattern_compute_indexes(indexes, &board_patterns[BOARD_PATTERN_EDGE], b);
-  for (int i = 0; i < 4; i++) ut_assert(t, expected[i] == indexes[i]);
-
-  m = full;
-  o = empty;
-  expected[0] = 3280;
-  expected[1] = 3280;
-  expected[2] = 3280;
-  expected[3] = 3280;
-  board_set_square_sets(b, m, o);
-  board_pattern_compute_indexes(indexes, &board_patterns[BOARD_PATTERN_EDGE], b);
-  for (int i = 0; i < 4; i++) ut_assert(t, expected[i] == indexes[i]);
-
-  m = empty;
-  o = full;
-  expected[0] = 6560;
-  expected[1] = 6560;
-  expected[2] = 6560;
-  expected[3] = 6560;
-  board_set_square_sets(b, m, o);
-  board_pattern_compute_indexes(indexes, &board_patterns[BOARD_PATTERN_EDGE], b);
-  for (int i = 0; i < 4; i++) ut_assert(t, expected[i] == indexes[i]);
-
-  m = border;
-  o = empty;
-  expected[0] = 3280;
-  expected[1] = 3280;
-  expected[2] = 3280;
-  expected[3] = 3280;
-  board_set_square_sets(b, m, o);
-  board_pattern_compute_indexes(indexes, &board_patterns[BOARD_PATTERN_EDGE], b);
-  for (int i = 0; i < 4; i++) ut_assert(t, expected[i] == indexes[i]);
-
-  m = empty;
-  o = border;
-  expected[0] = 6560;
-  expected[1] = 6560;
-  expected[2] = 6560;
-  expected[3] = 6560;
-  board_set_square_sets(b, m, o);
-  board_pattern_compute_indexes(indexes, &board_patterns[BOARD_PATTERN_EDGE], b);
-  for (int i = 0; i < 4; i++) ut_assert(t, expected[i] == indexes[i]);
-
-  m = n_edge;
-  o = empty;
-  expected[0] = 3280;
-  expected[1] =    1;
-  expected[2] =    0;
-  expected[3] = 2187;
-  board_set_square_sets(b, m, o);
-  board_pattern_compute_indexes(indexes, &board_patterns[BOARD_PATTERN_EDGE], b);
-  for (int i = 0; i < 4; i++) ut_assert(t, expected[i] == indexes[i]);
-
-  m = e_edge;
-  o = empty;
-  expected[0] = 2187;
-  expected[1] = 3280;
-  expected[2] =    1;
-  expected[3] =    0;
-  board_set_square_sets(b, m, o);
-  board_pattern_compute_indexes(indexes, &board_patterns[BOARD_PATTERN_EDGE], b);
-  for (int i = 0; i < 4; i++) ut_assert(t, expected[i] == indexes[i]);
-
-  m = s_edge;
-  o = empty;
-  expected[0] =    0;
-  expected[1] = 2187;
-  expected[2] = 3280;
-  expected[3] =    1;
-  board_set_square_sets(b, m, o);
-  board_pattern_compute_indexes(indexes, &board_patterns[BOARD_PATTERN_EDGE], b);
-  for (int i = 0; i < 4; i++) ut_assert(t, expected[i] == indexes[i]);
-
-  m = w_edge;
-  o = empty;
-  expected[0] =    1;
-  expected[1] =    0;
-  expected[2] = 2187;
-  expected[3] = 3280;
-  board_set_square_sets(b, m, o);
-  board_pattern_compute_indexes(indexes, &board_patterns[BOARD_PATTERN_EDGE], b);
-  for (int i = 0; i < 4; i++) ut_assert(t, expected[i] == indexes[i]);
-
-  m = empty;
-  o = n_edge;
-  expected[0] = 6560;
-  expected[1] =    2;
-  expected[2] =    0;
-  expected[3] = 4374;
-  board_set_square_sets(b, m, o);
-  board_pattern_compute_indexes(indexes, &board_patterns[BOARD_PATTERN_EDGE], b);
-  for (int i = 0; i < 4; i++) ut_assert(t, expected[i] == indexes[i]);
-
-  m = empty;
-  o = e_edge;
-  expected[0] = 4374;
-  expected[1] = 6560;
-  expected[2] =    2;
-  expected[3] =    0;
-  board_set_square_sets(b, m, o);
-  board_pattern_compute_indexes(indexes, &board_patterns[BOARD_PATTERN_EDGE], b);
-  for (int i = 0; i < 4; i++) ut_assert(t, expected[i] == indexes[i]);
-
-  m = empty;
-  o = s_edge;
-  expected[0] =    0;
-  expected[1] = 4374;
-  expected[2] = 6560;
-  expected[3] =    2;
-  board_set_square_sets(b, m, o);
-  board_pattern_compute_indexes(indexes, &board_patterns[BOARD_PATTERN_EDGE], b);
-  for (int i = 0; i < 4; i++) ut_assert(t, expected[i] == indexes[i]);
-
-  m = empty;
-  o = w_edge;
-  expected[0] =    2;
-  expected[1] =    0;
-  expected[2] = 4374;
-  expected[3] = 6560;
-  board_set_square_sets(b, m, o);
-  board_pattern_compute_indexes(indexes, &board_patterns[BOARD_PATTERN_EDGE], b);
-  for (int i = 0; i < 4; i++) ut_assert(t, expected[i] == indexes[i]);
-
-  m = zebra_e;
-  o = empty;
-  expected[0] =  820;
-  expected[1] =    0;
-  expected[2] =    0;
-  expected[3] = 2187;
-  board_set_square_sets(b, m, o);
-  board_pattern_compute_indexes(indexes, &board_patterns[BOARD_PATTERN_EDGE], b);
-  for (int i = 0; i < 4; i++) ut_assert(t, expected[i] == indexes[i]);
-
-  m = empty;
-  o = zebra_e;
-  expected[0] = 1640;
-  expected[1] =    0;
-  expected[2] =    0;
-  expected[3] = 4374;
-  board_set_square_sets(b, m, o);
-  board_pattern_compute_indexes(indexes, &board_patterns[BOARD_PATTERN_EDGE], b);
-  for (int i = 0; i < 4; i++) ut_assert(t, expected[i] == indexes[i]);
-
-  m = zebra_o;
-  o = empty;
-  expected[0] = 2460;
-  expected[1] =    1;
-  expected[2] =    0;
-  expected[3] =    0;
-  board_set_square_sets(b, m, o);
-  board_pattern_compute_indexes(indexes, &board_patterns[BOARD_PATTERN_EDGE], b);
-  for (int i = 0; i < 4; i++) ut_assert(t, expected[i] == indexes[i]);
-
-  m = empty;
-  o = zebra_o;
-  expected[0] = 4920;
-  expected[1] =    2;
-  expected[2] =    0;
-  expected[3] =    0;
-  board_set_square_sets(b, m, o);
-  board_pattern_compute_indexes(indexes, &board_patterns[BOARD_PATTERN_EDGE], b);
-  for (int i = 0; i < 4; i++) ut_assert(t, expected[i] == indexes[i]);
-
-  m = zebra_e;
-  o = zebra_o;
-  expected[0] = 5740;
-  expected[1] =    2;
-  expected[2] =    0;
-  expected[3] = 2187;
-  board_set_square_sets(b, m, o);
-  board_pattern_compute_indexes(indexes, &board_patterns[BOARD_PATTERN_EDGE], b);
-  for (int i = 0; i < 4; i++) ut_assert(t, expected[i] == indexes[i]);
-
-  m = zebra_o;
-  o = zebra_e;
-  expected[0] = 4100;
-  expected[1] =    1;
-  expected[2] =    0;
-  expected[3] = 4374;
-  board_set_square_sets(b, m, o);
-  board_pattern_compute_indexes(indexes, &board_patterns[BOARD_PATTERN_EDGE], b);
-  for (int i = 0; i < 4; i++) ut_assert(t, expected[i] == indexes[i]);
-}
 
 static void
 board_patterns_t (ut_test_t *const t)
@@ -287,6 +102,96 @@ board_patterns_t (ut_test_t *const t)
   }
 }
 
+static void
+board_pattern_compute_indexes_edge_t (ut_test_t *const t)
+{
+  aux_check_expected_indexes(t, BOARD_PATTERN_EDGE, empty, empty, (board_pattern_index_t[]) {0, 0, 0, 0});
+  aux_check_expected_indexes(t, BOARD_PATTERN_EDGE, full, empty, (board_pattern_index_t[]) {3280, 3280, 3280, 3280});
+  aux_check_expected_indexes(t, BOARD_PATTERN_EDGE, empty, full, (board_pattern_index_t[]) {6560, 6560, 6560, 6560});
+  aux_check_expected_indexes(t, BOARD_PATTERN_EDGE, border, empty, (board_pattern_index_t[]) {3280, 3280, 3280, 3280});
+  aux_check_expected_indexes(t, BOARD_PATTERN_EDGE, empty, border, (board_pattern_index_t[]) {6560, 6560, 6560, 6560});
+  aux_check_expected_indexes(t, BOARD_PATTERN_EDGE, n_edge, empty, (board_pattern_index_t[]) {3280, 1, 0, 2187});
+  aux_check_expected_indexes(t, BOARD_PATTERN_EDGE, e_edge, empty, (board_pattern_index_t[]) {2187, 3280, 1, 0});
+  aux_check_expected_indexes(t, BOARD_PATTERN_EDGE, s_edge, empty, (board_pattern_index_t[]) {0, 2187, 3280, 1});
+  aux_check_expected_indexes(t, BOARD_PATTERN_EDGE, w_edge, empty, (board_pattern_index_t[]) {1, 0, 2187, 3280});
+  aux_check_expected_indexes(t, BOARD_PATTERN_EDGE, empty, n_edge, (board_pattern_index_t[]) {6560, 2, 0, 4374});
+  aux_check_expected_indexes(t, BOARD_PATTERN_EDGE, empty, e_edge, (board_pattern_index_t[]) {4374, 6560, 2, 0});
+  aux_check_expected_indexes(t, BOARD_PATTERN_EDGE, empty, s_edge, (board_pattern_index_t[]) {0, 4374, 6560, 2});
+  aux_check_expected_indexes(t, BOARD_PATTERN_EDGE, empty, w_edge, (board_pattern_index_t[]) {2, 0, 4374, 6560});
+  aux_check_expected_indexes(t, BOARD_PATTERN_EDGE, zebra_e, empty, (board_pattern_index_t[]) {820, 0, 0, 2187});
+  aux_check_expected_indexes(t, BOARD_PATTERN_EDGE, empty, zebra_e, (board_pattern_index_t[]) {1640, 0, 0, 4374});
+  aux_check_expected_indexes(t, BOARD_PATTERN_EDGE, zebra_o, empty, (board_pattern_index_t[]) {2460, 1, 0, 0});
+  aux_check_expected_indexes(t, BOARD_PATTERN_EDGE, empty, zebra_o, (board_pattern_index_t[]) {4920, 2, 0, 0});
+  aux_check_expected_indexes(t, BOARD_PATTERN_EDGE, zebra_e, zebra_o, (board_pattern_index_t[]) {5740, 2, 0, 2187});
+  aux_check_expected_indexes(t, BOARD_PATTERN_EDGE, zebra_o, zebra_e, (board_pattern_index_t[]) {4100, 1, 0, 4374});
+}
+
+static void
+board_pattern_compute_indexes_corner_t (ut_test_t *const t)
+{
+  aux_check_expected_indexes(t, BOARD_PATTERN_CORNER, empty, empty, (board_pattern_index_t[]) {0, 0, 0, 0});
+}
+
+static void
+board_pattern_compute_indexes_xedge_t (ut_test_t *const t)
+{
+  ut_assert(t, true);
+}
+
+static void
+board_pattern_compute_indexes_r2_t (ut_test_t *const t)
+{
+  ut_assert(t, true);
+}
+
+static void
+board_pattern_compute_indexes_r3_t (ut_test_t *const t)
+{
+  ut_assert(t, true);
+}
+
+static void
+board_pattern_compute_indexes_r4_t (ut_test_t *const t)
+{
+  ut_assert(t, true);
+}
+
+static void
+board_pattern_compute_indexes_diag4_t (ut_test_t *const t)
+{
+  ut_assert(t, true);
+}
+
+static void
+board_pattern_compute_indexes_diag5_t (ut_test_t *const t)
+{
+  ut_assert(t, true);
+}
+
+static void
+board_pattern_compute_indexes_diag6_t (ut_test_t *const t)
+{
+  ut_assert(t, true);
+}
+
+static void
+board_pattern_compute_indexes_diag7_t (ut_test_t *const t)
+{
+  ut_assert(t, true);
+}
+
+static void
+board_pattern_compute_indexes_diag8_t (ut_test_t *const t)
+{
+  ut_assert(t, true);
+}
+
+static void
+board_pattern_compute_indexes_2x5cor_t (ut_test_t *const t)
+{
+  ut_assert(t, true);
+}
+
 
 
 /**
@@ -301,9 +206,19 @@ main (int argc,
 
   ut_suite_t *const s = ut_suite_new(&config, "board_pattern");
 
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_dummy", board_pattern_dummy_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_edge", board_pattern_compute_indexes_edge_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_patterns", board_patterns_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_edge", board_pattern_compute_indexes_edge_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_corner", board_pattern_compute_indexes_corner_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_xedge", board_pattern_compute_indexes_xedge_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_r2", board_pattern_compute_indexes_r2_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_r3", board_pattern_compute_indexes_r3_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_r4", board_pattern_compute_indexes_r4_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_diag4", board_pattern_compute_indexes_diag4_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_diag5", board_pattern_compute_indexes_diag5_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_diag6", board_pattern_compute_indexes_diag6_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_diag7", board_pattern_compute_indexes_diag7_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_diag8", board_pattern_compute_indexes_diag8_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_2x5cor", board_pattern_compute_indexes_2x5cor_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);

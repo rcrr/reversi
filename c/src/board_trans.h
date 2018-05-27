@@ -7,10 +7,10 @@
  *
  * Flip and mirror operations are summarized in the table below:
  *
- *   - function board_trans_flip_vertical() flipps vertically
- *   - function board_trans_mirror_horizontal() mirrors horizontally
- *   - function board_trans_flip_diag_h1a8() flipps along the diagonal `h1-a8`
- *   - function board_trans_flip_diag_a1h8() flipps along the diagonal `a1-h8`
+ *   - function board_trans_flip_horizontal() flips horizontally
+ *   - function board_trans_flip_vertical() flips vertically
+ *   - function board_trans_flip_diag_h1a8() flips along the diagonal `h1-a8`
+ *   - function board_trans_flip_diag_a1h8() flips along the diagonal `a1-h8`
  *
  * @code
  *
@@ -26,7 +26,7 @@
  * 8  . 1 . . . 1 . .     . 1 . . . 1 . .     . 1 . . . 1 . .     . 1 . . . 1 . .
  *
  *           -                   |                    /               \
- *     flip_vertical      mirror_horizontal    flip_diag_h1a8     flip_diag_a1h8
+ *     flip_horizontal      flip_vertical     flip_diag_h1a8      flip_diag_a1h8
  *           -                   |                  /                   \
  *
  * 1  . 1 . . . 1 . .     . . . 1 1 1 1 .     . . . . . . . .     . . . . . . . .
@@ -45,6 +45,38 @@
  *   - function board_trans_rotate_180() rotates the square set by 180 degrees
  *   - function board_trans_rotate_90c() rotates clockwise by 90 degrees
  *   - function board_trans_rotate_90a() rotates anti-clockwise by 90 degrees
+ *
+ * A rotation of zero degrees is obtained by calling:
+ *
+ *   - function board_trans_identity() leaves the square set as it is
+ *
+ * @code
+ *
+ *    a b c d e f g h     a b c d e f g h     a b c d e f g h     a b c d e f g h
+ *
+ * 1  . 1 1 1 1 . . .     . 1 1 1 1 . . .     . 1 1 1 1 . . .     . 1 1 1 1 . . .
+ * 2  . 1 . . . 1 . .     . 1 . . . 1 . .     . 1 . . . 1 . .     . 1 . . . 1 . .
+ * 3  . 1 . . . 1 . .     . 1 . . . 1 . .     . 1 . . . 1 . .     . 1 . . . 1 . .
+ * 4  . 1 . . 1 . . .     . 1 . . 1 . . .     . 1 . . 1 . . .     . 1 . . 1 . . .
+ * 5  . 1 1 1 . . . .     . 1 1 1 . . . .     . 1 1 1 . . . .     . 1 1 1 . . . .
+ * 6  . 1 . 1 . . . .     . 1 . 1 . . . .     . 1 . 1 . . . .     . 1 . 1 . . . .
+ * 7  . 1 . . 1 . . .     . 1 . . 1 . . .     . 1 . . 1 . . .     . 1 . . 1 . . .
+ * 8  . 1 . . . 1 . .     . 1 . . . 1 . .     . 1 . . . 1 . .     . 1 . . . 1 . .
+ *
+ *           .               --> + -->              -->                 <--
+ *       identity           rorate_180          rorate_90c          rorate_90a
+ *           .               <-- + <--              <--                 -->
+ *
+ * 1  . 1 1 1 1 . . .     . . 1 . . . 1 .     . . . . . . . .     . . . . . . . .
+ * 2  . 1 . . . 1 . .     . . . 1 . . 1 .     1 1 1 1 1 1 1 1     . . . . . . . .
+ * 3  . 1 . . . 1 . .     . . . . 1 . 1 .     . . . 1 . . . 1     . 1 1 . . . . 1
+ * 4  . 1 . . 1 . . .     . . . . 1 1 1 .     . . 1 1 . . . 1     1 . . 1 . . 1 .
+ * 5  . 1 1 1 . . . .     . . . 1 . . 1 .     . 1 . . 1 . . 1     1 . . . 1 1 . .
+ * 6  . 1 . 1 . . . .     . . 1 . . . 1 .     1 . . . . 1 1 .     1 . . . 1 . . .
+ * 7  . 1 . . 1 . . .     . . 1 . . . 1 .     . . . . . . . .     1 1 1 1 1 1 1 1
+ * 8  . 1 . . . 1 . .     . . . 1 1 1 1 .     . . . . . . . .     . . . . . . . .
+ *
+ * @endcode
  *
  * @par board_trans.h
  * <tt>
@@ -110,7 +142,7 @@ typedef SquareSet (*board_trans_f) (SquareSet);
  * @return       square set `s` flipped vertically
  */
 extern SquareSet
-board_trans_flip_vertical (SquareSet s);
+board_trans_flip_horizontal (SquareSet s);
 
 /**
  * @brief Mirrors a square set horizontally.
@@ -138,7 +170,7 @@ board_trans_flip_vertical (SquareSet s);
  * @return       square set `s` mirrored horizontally
  */
 extern SquareSet
-board_trans_mirror_horizontal (SquareSet s);
+board_trans_flip_vertical (SquareSet s);
 
 /**
  * @brief Flips a square set about the diagonal `h1-a8`.
