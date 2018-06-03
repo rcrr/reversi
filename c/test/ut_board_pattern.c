@@ -471,6 +471,8 @@ aux_check_expected_indexes (ut_test_t *const t,
   n = p->n_instances;
   b = &board;
 
+  ut_assert(t, (m & o) == empty);
+
   board_set_square_sets(b, m, o);
   board_pattern_compute_indexes(computed_indexes, p, b);
   for (int i = 0; i < n; i++) ut_assert(t, expected_indexes[i] == computed_indexes[i]);
@@ -648,8 +650,6 @@ board_pattern_compute_indexes_diag4_t (ut_test_t *const t)
       {w_r3,     w_r4,     {   63,     0,     0,     5 }},
       {border,   empty,    {   28,    28,    28,    28 }},
       {empty,    border,   {   56,    56,    56,    56 }},
-      {border,   empty,    {   28,    28,    28,    28 }},
-      {empty,    border,   {   56,    56,    56,    56 }},
       {bord_1,   empty,    {   12,    12,    12,    12 }},
       {empty,    bord_1,   {   24,    24,    24,    24 }},
       {bord_2,   bord_3,   {    0,     0,     0,     0 }},
@@ -677,9 +677,40 @@ board_pattern_compute_indexes_diag5_t (ut_test_t *const t)
 {
   struct board_pattern_test_s test_data[] =
     {
-      {empty,    empty,    {    0,     0,     0,     0}},
-      {full,     empty,    {  121,   121,   121,   121}},
-      {empty,    full,     {  242,   242,   242,   242}},
+      {empty,    empty,    {    0,     0,     0,     0 }},
+      {full,     empty,    {  121,   121,   121,   121 }},
+      {empty,    full,     {  242,   242,   242,   242 }},
+      {n_edge,   empty,    {   81,     1,     0,     0 }},
+      {e_edge,   empty,    {    0,    81,     1,     0 }},
+      {s_edge,   empty,    {    0,     0,    81,     1 }},
+      {w_edge,   empty,    {    1,     0,     0,    81 }},
+      {empty,    n_r2,     {   54,     6,     0,     0 }},
+      {empty,    e_r2,     {    0,    54,     6,     0 }},
+      {empty,    s_r2,     {    0,     0,    54,     6 }},
+      {empty,    w_r2,     {    6,     0,     0,    54 }},
+      {n_r3,     n_r4,     {   15,    63,     2,   162 }},
+      {e_r3,     e_r4,     {  162,    15,    63,     2 }},
+      {s_r3,     s_r4,     {    2,   162,    15,    63 }},
+      {w_r3,     w_r4,     {   63,     2,   162,    15 }},
+      {border,   empty,    {   82,    82,    82,    82 }},
+      {empty,    border,   {  164,   164,   164,   164 }},
+      {bord_1,   empty,    {   30,    30,    30,    30 }},
+      {empty,    bord_1,   {   60,    60,    60,    60 }},
+      {bord_2,   bord_3,   {    9,     9,     9,     9 }},
+      {border,   bord_1,   {  142,   142,   142,   142 }},
+      {bord_1,   border,   {  194,   194,   194,   194 }},
+      {nw_3x3,   ne_3x3,   {    9,    18,     0,     0 }},
+      {ne_3x3,   se_3x3,   {    0,     9,    18,     0 }},
+      {se_3x3,   sw_3x3,   {    0,     0,     9,    18 }},
+      {sw_3x3,   nw_3x3,   {   18,     0,     0,     9 }},
+      {nw_7x7,   empty,    {  121,    40,    39,   120 }},
+      {ne_7x7,   empty,    {  120,   121,    40,    39 }},
+      {se_7x7,   empty,    {   39,   120,   121,    40 }},
+      {sw_7x7,   empty,    {   40,    39,   120,   121 }},
+      {empty,    nw_7x7,   {  242,    80,    78,   240 }},
+      {empty,    ne_7x7,   {  240,   242,    80,    78 }},
+      {empty,    se_7x7,   {   78,   240,   242,    80 }},
+      {empty,    sw_7x7,   {   80,    78,   240,   242 }},
     };
 
   aux_check_expected_indexes_array(t, BOARD_PATTERN_DIAG5, test_data, sizeof(test_data) / sizeof(struct board_pattern_test_s));
@@ -693,6 +724,37 @@ board_pattern_compute_indexes_diag6_t (ut_test_t *const t)
       {empty,    empty,    {    0,     0,     0,     0 }},
       {full,     empty,    {  364,   364,   364,   364 }},
       {empty,    full,     {  728,   728,   728,   728 }},
+      {n_edge,   empty,    {  243,     1,     0,     0 }},
+      {e_edge,   empty,    {    0,   243,     1,     0 }},
+      {s_edge,   empty,    {    0,     0,   243,     1 }},
+      {w_edge,   empty,    {    1,     0,     0,   243 }},
+      {empty,    n_r2,     {  162,     6,     0,     0 }},
+      {empty,    e_r2,     {    0,   162,     6,     0 }},
+      {empty,    s_r2,     {    0,     0,   162,     6 }},
+      {empty,    w_r2,     {    6,     0,     0,   162 }},
+      {n_r3,     n_r4,     {   45,    63,     7,   405 }},
+      {e_r3,     e_r4,     {  405,    45,    63,     7 }},
+      {s_r3,     s_r4,     {    7,   405,    45,    63 }},
+      {w_r3,     w_r4,     {   63,     7,   405,    45 }},
+      {border,   empty,    {  244,   244,   244,   244 }},
+      {empty,    border,   {  488,   488,   488,   488 }},
+      {bord_1,   empty,    {   84,    84,    84,    84 }},
+      {empty,    bord_1,   {  168,   168,   168,   168 }},
+      {bord_2,   bord_3,   {   36,    36,    36,    36 }},
+      {border,   bord_1,   {  412,   412,   412,   412 }},
+      {bord_1,   border,   {  572,   572,   572,   572 }},
+      {nw_3x3,   ne_3x3,   {  486,     1,     2,   243 }},
+      {ne_3x3,   se_3x3,   {  243,   486,     1,     2 }},
+      {se_3x3,   sw_3x3,   {    2,   243,   486,     1 }},
+      {sw_3x3,   nw_3x3,   {    1,     2,   243,   486 }},
+      {nw_7x7,   empty,    {  364,   121,   120,   363 }},
+      {ne_7x7,   empty,    {  363,   364,   121,   120 }},
+      {se_7x7,   empty,    {  120,   363,   364,   121 }},
+      {sw_7x7,   empty,    {  121,   120,   363,   364 }},
+      {empty,    nw_7x7,   {  728,   242,   240,   726 }},
+      {empty,    ne_7x7,   {  726,   728,   242,   240 }},
+      {empty,    se_7x7,   {  240,   726,   728,   242 }},
+      {empty,    sw_7x7,   {  242,   240,   726,   728 }},
     };
 
   aux_check_expected_indexes_array(t, BOARD_PATTERN_DIAG6, test_data, sizeof(test_data) / sizeof(struct board_pattern_test_s));
