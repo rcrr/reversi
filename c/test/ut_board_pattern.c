@@ -594,9 +594,43 @@ board_pattern_compute_indexes_r2_t (ut_test_t *const t)
 {
   struct board_pattern_test_s test_data[] =
     {
-      {empty,    empty,    {     0,     0,     0,     0}},
-      {full,     empty,    {  3280,  3280,  3280,  3280}},
-      {empty,    full,     {  6560,  6560,  6560,  6560}},
+      {empty,    empty,    {     0,     0,     0,     0 }},
+      {full,     empty,    {  3280,  3280,  3280,  3280 }},
+      {empty,    full,     {  6560,  6560,  6560,  6560 }},
+      {n_edge,   empty,    {     0,     1,     0,  2187 }},
+      {e_edge,   empty,    {  2187,     0,     1,     0 }},
+      {s_edge,   empty,    {     0,  2187,     0,     1 }},
+      {w_edge,   empty,    {     1,     0,  2187,     0 }},
+      {empty,    n_r2,     {  6560,     6,     0,  1458 }},
+      {empty,    e_r2,     {  1458,  6560,     6,     0 }},
+      {empty,    s_r2,     {    0,   1458,  6560,     6 }},
+      {empty,    w_r2,     {    6,      0,  1458,  6560 }},
+
+      /*
+      {n_r3,     n_r4,     {   15,    63,     2,   162 }},
+      {e_r3,     e_r4,     {  162,    15,    63,     2 }},
+      {s_r3,     s_r4,     {    2,   162,    15,    63 }},
+      {w_r3,     w_r4,     {   63,     2,   162,    15 }},
+      {border,   empty,    {   82,    82,    82,    82 }},
+      {empty,    border,   {  164,   164,   164,   164 }},
+      {bord_1,   empty,    {   30,    30,    30,    30 }},
+      {empty,    bord_1,   {   60,    60,    60,    60 }},
+      {bord_2,   bord_3,   {    9,     9,     9,     9 }},
+      {border,   bord_1,   {  142,   142,   142,   142 }},
+      {bord_1,   border,   {  194,   194,   194,   194 }},
+      {nw_3x3,   ne_3x3,   {    9,    18,     0,     0 }},
+      {ne_3x3,   se_3x3,   {    0,     9,    18,     0 }},
+      {se_3x3,   sw_3x3,   {    0,     0,     9,    18 }},
+      {sw_3x3,   nw_3x3,   {   18,     0,     0,     9 }},
+      {nw_7x7,   empty,    {  121,    40,    39,   120 }},
+      {ne_7x7,   empty,    {  120,   121,    40,    39 }},
+      {se_7x7,   empty,    {   39,   120,   121,    40 }},
+      {sw_7x7,   empty,    {   40,    39,   120,   121 }},
+      {empty,    nw_7x7,   {  242,    80,    78,   240 }},
+      {empty,    ne_7x7,   {  240,   242,    80,    78 }},
+      {empty,    se_7x7,   {   78,   240,   242,    80 }},
+      {empty,    sw_7x7,   {   80,    78,   240,   242 }},
+       */
     };
 
   aux_check_expected_indexes_array(t, BOARD_PATTERN_R2, test_data, sizeof(test_data) / sizeof(struct board_pattern_test_s));
@@ -610,6 +644,8 @@ board_pattern_compute_indexes_r3_t (ut_test_t *const t)
       {empty,    empty,    {     0,     0,     0,     0 }},
       {full,     empty,    {  3280,  3280,  3280,  3280 }},
       {empty,    full,     {  6560,  6560,  6560,  6560 }},
+      /*
+       */
     };
 
   aux_check_expected_indexes_array(t, BOARD_PATTERN_R3, test_data, sizeof(test_data) / sizeof(struct board_pattern_test_s));
@@ -623,6 +659,8 @@ board_pattern_compute_indexes_r4_t (ut_test_t *const t)
       {empty,    empty,    {    0,     0,     0,     0}},
       {full,     empty,    { 3280,  3280,  3280,  3280}},
       {empty,    full,     { 6560,  6560,  6560,  6560}},
+      /*
+       */
     };
 
   aux_check_expected_indexes_array(t, BOARD_PATTERN_R4, test_data, sizeof(test_data) / sizeof(struct board_pattern_test_s));
@@ -816,36 +854,33 @@ board_pattern_compute_indexes_diag8_t (ut_test_t *const t)
       {e_edge,   empty,    { 2187,  2187 }},
       {s_edge,   empty,    {    1,  2187 }},
       {w_edge,   empty,    {    1,     1 }},
-
       {empty,    n_r2,     { 1458,     6 }},
-      /*
-      {empty,    e_r2,     { 1458,   486,     6,     2 }},
-      {empty,    s_r2,     {    2,  1458,   486,     6 }},
-      {empty,    w_r2,     {    6,     2,  1458,   486 }},
-      {n_r3,     n_r4,     {  135,    63,    21,   405 }},
-      {e_r3,     e_r4,     {  405,   135,    63,    21 }},
-      {s_r3,     s_r4,     {   21,   405,   135,    63 }},
-      {w_r3,     w_r4,     {   63,    21,   405,   135 }},
-      {border,   empty,    {  730,   730,   730,   730 }},
-      {empty,    border,   { 1460,  1460,  1460,  1460 }},
-      {bord_1,   empty,    {  246,   246,   246,   246 }},
-      {empty,    bord_1,   {  492,   492,   492,   492 }},
-      {bord_2,   bord_3,   {  144,   144,   144,   144 }},
-      {border,   bord_1,   { 1222,  1222,  1222,  1222 }},
-      {bord_1,   border,   { 1706,  1706,  1706,  1706 }},
-      {nw_3x3,   ne_3x3,   { 1944,     4,     8,   972 }},
-      {ne_3x3,   se_3x3,   {  972,  1944,     4,     8 }},
-      {se_3x3,   sw_3x3,   {    8,   972,  1944,     4 }},
-      {sw_3x3,   nw_3x3,   {    4,     8,   972,  1944 }},
-      {nw_7x7,   empty,    { 1093,   364,   363,  1092 }},
-      {ne_7x7,   empty,    { 1092,  1093,   364,   363 }},
-      {se_7x7,   empty,    {  363,  1092,  1093,   364 }},
-      {sw_7x7,   empty,    {  364,   363,  1092,  1093 }},
-      {empty,    nw_7x7,   { 2186,   728,   726,  2184 }},
-      {empty,    ne_7x7,   { 2184,  2186,   728,   726 }},
-      {empty,    se_7x7,   {  726,  2184,  2186,   728 }},
-      {empty,    sw_7x7,   {  728,   726,  2184,  2186 }},
-       */
+      {empty,    e_r2,     { 1458,  1458 }},
+      {empty,    s_r2,     {    6,  1458 }},
+      {empty,    w_r2,     {    6,     6 }},
+      {n_r3,     n_r4,     {  405,    63 }},
+      {e_r3,     e_r4,     {  405,   405 }},
+      {s_r3,     s_r4,     {   63,   405 }},
+      {w_r3,     w_r4,     {   63,    63 }},
+      {border,   empty,    { 2188,  2188 }},
+      {empty,    border,   { 4376,  4376 }},
+      {bord_1,   empty,    {  732,   732 }},
+      {empty,    bord_1,   { 1464,  1464 }},
+      {bord_2,   bord_3,   {  468,   468 }},
+      {border,   bord_1,   { 3652,  3652 }},
+      {bord_1,   border,   { 5108,  5108 }},
+      {nw_3x3,   ne_3x3,   { 6318,    13 }},
+      {ne_3x3,   se_3x3,   { 3159,  6318 }},
+      {se_3x3,   sw_3x3,   {   26,  3159 }},
+      {sw_3x3,   nw_3x3,   {   13,    26 }},
+      {nw_7x7,   empty,    { 1092,  1093 }},
+      {ne_7x7,   empty,    { 3279,  1092 }},
+      {se_7x7,   empty,    { 1092,  3279 }},
+      {sw_7x7,   empty,    { 1093,  1092 }},
+      {empty,    nw_7x7,   { 2184,  2186 }},
+      {empty,    ne_7x7,   { 6558,  2184 }},
+      {empty,    se_7x7,   { 2184,  6558 }},
+      {empty,    sw_7x7,   { 2186,  2184 }},
     };
 
   aux_check_expected_indexes_array(t, BOARD_PATTERN_DIAG8, test_data, sizeof(test_data) / sizeof(struct board_pattern_test_s));
