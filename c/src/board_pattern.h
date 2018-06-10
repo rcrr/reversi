@@ -1,16 +1,16 @@
 /**
  * @file
  *
- * @todo Complete the PATTERN basic programs in board_pattern and board_transformation modules.
- *       Patterns needed are:
- *       - EDGE
- *       - CORNER
- *       - XEDGE
- *       - R2, R3, R4
- *       - DIAG4, DIAG5, DIAG6, DIAG7, DIAG8
- *       - 2X5COR
- *       Change the REGAB_DB definition by adding a board_pattern_id column (unique) that matches with the enum defined in this class.
- *       Add to the database the missing definition.
+ * @todo [done] Complete the PATTERN basic programs in board_pattern and board_transformation modules.
+ *              Patterns needed are:
+ *               - EDGE
+ *               - CORNER
+ *               - XEDGE
+ *               - R2, R3, R4
+ *               - DIAG4, DIAG5, DIAG6, DIAG7, DIAG8
+ *               - 2X5COR
+ *              Change the REGAB_DB definition by adding a board_pattern_id column (unique) that matches with the enum defined in this class.
+ *              Add to the database the missing definition.
  *
  * @todo Complete the regab_prng_pattern_ranges for all patterns.
  *       The EDGE statistics have been computed by:
