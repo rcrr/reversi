@@ -257,13 +257,16 @@ game_position_mab_solve (const GamePositionX *const root,
 
   if (pattern_index_frequencies) {
     FILE *fp;
-    const char *filepath = "pattern_index_frequencies.csv";
+    char filepath[512];
+    int len = snprintf(filepath, 512, "data_pattern_index_frequencies_%s_%zu_%zu.csv", board_pattern->name, env->prng_seed, n_run);
+    if (len > 512 - 1) fprintf(stderr, "Warning file name is too long, it has been truncated.\n");
     if ((fp = fopen(filepath, "w"))) {
       fprintf(fp, "EMPTY_COUNT;PATTERN_INDEX;COUNT\n");
       for (size_t ec = 0; ec < size_of_empty_count_array; ec ++)
         for (size_t idx = 0; idx < size_of_pattern_index_array; idx++)
           fprintf(fp, "%zu;%zu;%ld\n", ec, idx, pattern_index_frequencies[size_of_pattern_index_array * ec + idx]);
       fclose(fp);
+      fprintf(stdout, "Data file \"%s\" has been written succesfully.\n", filepath);
     } else {
       fprintf(stderr, "Unable to open file: %s. Aborting ...", filepath);
       abort();
@@ -408,12 +411,7 @@ compute_and_store_pattern_indexes (NodeInfo *c,
 
   board_pattern_compute_indexes(indexes, bp, &board);
 
-  //char buf[256];
-  //game_position_x_print(buf, &c->gpx);
-  //printf("\nempty_cout = %u\n", ec);
-  //printf("%s", buf);
   for (int i = 0; i < bp->n_instances; i++) {
-    //printf("pattern_instance: %d, index_value = %d\n", i, indexes[i]);
     increment_pattern_index_frequencies(ec, indexes[i], pattern_index_frequencies);
   }
 }
