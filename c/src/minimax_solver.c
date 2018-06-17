@@ -235,7 +235,7 @@ game_position_mab_solve (const GamePositionX *const root,
 
   ExactSolution *result = NULL;
   GameTreeStack *stack = game_tree_stack_new();
-  for (unsigned long int sub_run_id = 0; sub_run_id < n_run; sub_run_id++) {
+  for (unsigned long long int sub_run_id = 0; sub_run_id < n_run; sub_run_id++) {
 
     game_tree_stack_init(root, stack);
     if (log_env->log_is_on) stack->hash_is_on = true;
@@ -245,6 +245,7 @@ game_position_mab_solve (const GamePositionX *const root,
 
     if (random_sampler) {
       game_position_random_sammpler_impl(result, stack, log_env, prng, sub_run_id, board_pattern, pattern_index_frequencies);
+      if (pattern_index_frequencies && sub_run_id % 999999 == 0) { fprintf(stdout, "processed %06lluM games.\n", sub_run_id / 999999); fflush(stdout); }
     } else {
       game_position_solve_impl(result, stack, log_env, alpha_beta_pruning, randomize_move_order, prng, sub_run_id);
     }
