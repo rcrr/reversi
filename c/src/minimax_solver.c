@@ -207,7 +207,7 @@ game_position_mab_solve (const GamePositionX *const root,
   if (log_env->log_is_on) gtl_open_log(log_env);
 
   prng_mt19937_t *prng = NULL;
-  unsigned long int n_run = 1;
+  unsigned long long int n_run = 1;
   if (randomize_move_order) {
     uint64_t prng_seed = env->prng_seed_is_set ? env->prng_seed : prng_uint64_from_clock_random_seed();
     prng = prng_mt19937_new();
@@ -259,7 +259,7 @@ game_position_mab_solve (const GamePositionX *const root,
   if (pattern_index_frequencies) {
     FILE *fp;
     char filepath[512];
-    int len = snprintf(filepath, 512, "data_pattern_index_frequencies_%s_%zu_%zu.csv", board_pattern->name, env->prng_seed, n_run);
+    int len = snprintf(filepath, 512, "data_pattern_index_frequencies_%s_%zu_%llu.csv", board_pattern->name, env->prng_seed, n_run);
     if (len > 512 - 1) fprintf(stderr, "Warning file name is too long, it has been truncated.\n");
     if ((fp = fopen(filepath, "w"))) {
       fprintf(fp, "EMPTY_COUNT;PATTERN_INDEX;COUNT\n");

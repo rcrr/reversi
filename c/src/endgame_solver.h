@@ -44,15 +44,15 @@
  *          In this way the call to the solver is standardized by a single signature.
  */
 typedef struct {
-  char    *log_file;            /**< @brief When not NULL turns on logging. It defines the log file name prefix. */
-  char    *pve_dump_file;       /**< @brief PVE dump file name and path. */
-  int      repeats;             /**< @brief The number of repetitions for the random sampler. */
-  bool     pv_recording;        /**< @brief Turns on the principal variation recording. */
-  bool     pv_full_recording;   /**< @brief Drives the logic governing game tree pruning to consider the branches with equal value. */
-  bool     pv_no_print;         /**< @brief Turns off the PV variants printing when `pv_full_recording` is `true`. */
-  int      board_pattern_index; /**< @brief Defines the pattern id. Used by the rand solver when option -P is active. */
-  bool     prng_seed_is_set;    /**< @brief When true the prng_seed has been defined. */
-  uint64_t prng_seed;           /**< @brief Pseudo Random Number Generator seed. */
+  char                   *log_file;            /**< @brief When not NULL turns on logging. It defines the log file name prefix. */
+  char                   *pve_dump_file;       /**< @brief PVE dump file name and path. */
+  unsigned long long int  repeats;             /**< @brief The number of repetitions for the random sampler. */
+  bool                    pv_recording;        /**< @brief Turns on the principal variation recording. */
+  bool                    pv_full_recording;   /**< @brief Drives the logic governing game tree pruning to consider the branches with equal value. */
+  bool                    pv_no_print;         /**< @brief Turns off the PV variants printing when `pv_full_recording` is `true`. */
+  int                     board_pattern_index; /**< @brief Defines the pattern id. Used by the rand solver when option -P is active. */
+  bool                    prng_seed_is_set;    /**< @brief When true the prng_seed has been defined. */
+  uint64_t                prng_seed;           /**< @brief Pseudo Random Number Generator seed. */
 } endgame_solver_env_t;
 
 /**
