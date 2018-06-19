@@ -436,7 +436,7 @@ static int N_flag = false;
 static char *input_file = NULL;
 static char *lookup_entry = NULL;
 static int solver_index = -1;
-static int repeats = 0;
+static unsigned long long int repeats = 0;
 static char *log_file = NULL;
 static char *pve_dump_file = NULL;
 static bool pv_rec = false;
@@ -578,13 +578,13 @@ main (int argc,
       return -7;
     }
     char *endptr;
-    long int n_arg_to_int = strtol(n_arg, &endptr, 10);
+    long long int n_arg_to_int = strtoll(n_arg, &endptr, 10);
     if (endptr - n_arg != strlen(n_arg)) {
       fprintf(stderr, "Argument for option -n, --repeats: %s is invalid.\n", n_arg);
       return -8;
     }
     if (n_arg_to_int < 1) {
-      fprintf(stderr, "Argument for option -n, --repeats is %ld, it must be a positive integer.\n", n_arg_to_int);
+      fprintf(stderr, "Argument for option -n, --repeats is %lld, it must be a positive integer.\n", n_arg_to_int);
       return -9;
     }
     repeats = n_arg_to_int;
