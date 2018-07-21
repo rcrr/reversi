@@ -33,9 +33,57 @@
 SET search_path TO reversi;
 
 BEGIN;
-ALTER TABLE regab_prng_patterns DROP CONSTRAINT regab_prng_patterns_app_key;
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = '2X5COR');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'DIAG8');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'DIAG7');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'DIAG6');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'DIAG5');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'DIAG4');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'R4');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'R3');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'R2');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'XEDGE');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'CORNER');
 
-ALTER TABLE regab_prng_patterns DROP COLUMN pattern_id;
+DROP FUNCTION regab_mirror_value_2x5cor_pattern;
+DROP FUNCTION regab_mirror_value_diag8_pattern;
+DROP FUNCTION regab_mirror_value_diag7_pattern;
+DROP FUNCTION regab_mirror_value_diag6_pattern;
+DROP FUNCTION regab_mirror_value_diag5_pattern;
+DROP FUNCTION regab_mirror_value_diag4_pattern;
+DROP FUNCTION regab_mirror_value_xedge_pattern;
+DROP FUNCTION regab_mirror_value_corner_pattern;
+DROP FUNCTION regab_mirror_value_r4_pattern;
+DROP FUNCTION regab_mirror_value_r3_pattern;
+DROP FUNCTION regab_mirror_value_r2_pattern;
+
+DROP FUNCTION square_set_flip_diag_a1h8;
+DROP FUNCTION square_set_flip_vertical;
+
+DROP FUNCTION square_set_pattern_unpack_2x5cor;
+DROP FUNCTION square_set_pattern_pack_2x5cor;
+DROP FUNCTION square_set_pattern_unpack_diag8;
+DROP FUNCTION square_set_pattern_pack_diag8;
+DROP FUNCTION square_set_pattern_unpack_diag7;
+DROP FUNCTION square_set_pattern_pack_diag7;
+DROP FUNCTION square_set_pattern_unpack_diag6;
+DROP FUNCTION square_set_pattern_pack_diag6;
+DROP FUNCTION square_set_pattern_unpack_diag5;
+DROP FUNCTION square_set_pattern_pack_diag5;
+DROP FUNCTION square_set_pattern_unpack_diag4;
+DROP FUNCTION square_set_pattern_pack_diag4;
+DROP FUNCTION square_set_pattern_unpack_xedge;
+DROP FUNCTION square_set_pattern_pack_xedge;
+DROP FUNCTION square_set_pattern_unpack_corner;
+DROP FUNCTION square_set_pattern_pack_corner;
+
+DROP FUNCTION regab_update_prob_into_pattern_ranges_from_staging;
+
+ALTER FUNCTION ragab_populate_pattern_ranges RENAME TO populate_regab_prng_pattern_ranges;
+
+ALTER TABLE regab_prng_patterns DROP CONSTRAINT regab_prng_patterns_name_id_key;
+
+ALTER TABLE regab_prng_patterns DROP COLUMN pattern_name_id;
 
 DELETE FROM regab_prng_patterns WHERE pattern_name = '2X5COR';
 

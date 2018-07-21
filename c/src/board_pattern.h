@@ -17,6 +17,14 @@
  *       $ time ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q initial -s rand -n 1000000000 -P EDGE -r 628
  *
  * @todo Verify how the { pattern_id, instance_id, index } are mapped to-from a position configuration.
+ *       Build a new table regab_prng_gp_pattern_class with the following colums:
+ *       - gp_ig                             The table KEY, referencing the regab_prng_gp table
+ *       - EDGE_0, EDGE_1, EDGE_2, EDGE_3    Pattern Index Value (50 colums, type INTEGER)
+ *       - CORNER_0, ....
+ *       - ...
+ *       - 2X5COR_0, ... , 2X5COR_7
+ *       The tale is then populated by .... ??? to be decided C or PGPLSQL ???
+ *       Remove the gp_classification_h and gp_classification table are TOO BIG !!! And the classification option in REGAB.
  *
  * @todo Build a structure and the relative machinery for generetaing / accessing the "general index" PATTERN_CONF_IDX
  *       The structure considers unpossible configurations and symmetries.

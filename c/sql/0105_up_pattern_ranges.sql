@@ -59,7 +59,7 @@ CREATE TABLE regab_prng_pattern_ranges (seq                   SERIAL    PRIMARY 
                                         UNIQUE (pattern_id, index_value, empty_count),
                                         CHECK (status IN ('INS', 'WIP', 'CMP')));
 
-                                        
+                             
 --
 -- Populates the table regab_prng_pattern_ranges with the data appropriate for the function argument.
 --

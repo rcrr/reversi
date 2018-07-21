@@ -194,8 +194,8 @@ board_pattern_pack_2x5cor (SquareSet s)
 }
 
 bool
-board_pattern_get_id_by_name(board_pattern_id_t *idp,
-                             char *name)
+board_pattern_get_id_by_name (board_pattern_id_t *idp,
+                              char *name)
 {
   for (int i = 0; i < BOARD_PATTERN_INVALID; i++) {
     if (strcmp(name, board_patterns[i].name) == 0) {
