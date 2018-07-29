@@ -12,9 +12,9 @@
  *              Change the REGAB_DB definition by adding a board_pattern_id column (unique) that matches with the enum defined in this class.
  *              Add to the database the missing definition.
  *
- * @todo Complete the regab_prng_pattern_ranges for all patterns.
- *       The EDGE statistics have been computed by:
- *       $ time ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q initial -s rand -n 1000000000 -P EDGE -r 628
+ * @todo [done] Complete the regab_prng_pattern_ranges for all patterns.
+ *              The EDGE statistics have been computed by:
+ *              $ time ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q initial -s rand -n 1000000000 -P EDGE -r 628
  *
  * @todo Verify how the { pattern_id, instance_id, index } are mapped to-from a position configuration.
  *       Build a new table regab_prng_gp_pattern_class with the following colums:
