@@ -330,6 +330,7 @@ $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
 --
 CREATE FUNCTION regab_gp_compute_pattern_indexes (mover          square_set,
                                                   opponent       square_set,
+                                                  principal      BOOL,
                                                   OUT i_edge_0   INTEGER,
                                                   OUT i_edge_1   INTEGER,
                                                   OUT i_edge_2   INTEGER,
@@ -399,6 +400,8 @@ DECLARE
   op_flip_dh  square_set := square_set_flip_diag_h1a8(opponent);
   op_flip_ho  square_set := square_set_flip_horizontal(opponent);
   op_flip_da  square_set := square_set_flip_diag_a1h8(opponent);
+  ---
+  pid BIGINT;
 BEGIN
   i_edge_0   := regab_transformed_pattern_to_index(square_set_pattern_pack_edge(mo_identity),
                                                    square_set_pattern_pack_edge(op_identity));
@@ -512,6 +515,22 @@ BEGIN
   i_2x5cor_7 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x5cor(mo_flip_da),
                                                    square_set_pattern_pack_2x5cor(op_flip_da));
 
+  --- Transform the index value to its principal value (mirror of minimal value).
+  IF principal THEN
+    --- EDGE
+    SELECT seq INTO STRICT pid FROM regab_prng_patterns WHERE pattern_name_id = 0;
+    SELECT principal_index_value INTO STRICT i_edge_0 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND empty_count = 0 AND index_value = i_edge_0;
+    SELECT principal_index_value INTO STRICT i_edge_1 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND empty_count = 0 AND index_value = i_edge_1;
+    SELECT principal_index_value INTO STRICT i_edge_2 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND empty_count = 0 AND index_value = i_edge_2;
+    SELECT principal_index_value INTO STRICT i_edge_3 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND empty_count = 0 AND index_value = i_edge_3;
+    --- CORNER
+    SELECT seq INTO STRICT pid FROM regab_prng_patterns WHERE pattern_name_id = 1;
+    SELECT principal_index_value INTO STRICT i_corner_0 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND empty_count = 0 AND index_value = i_corner_0;
+    SELECT principal_index_value INTO STRICT i_corner_1 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND empty_count = 0 AND index_value = i_corner_1;
+    SELECT principal_index_value INTO STRICT i_corner_2 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND empty_count = 0 AND index_value = i_corner_2;
+    SELECT principal_index_value INTO STRICT i_corner_3 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND empty_count = 0 AND index_value = i_corner_3;
+  END IF;
+  
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
 
@@ -523,7 +542,8 @@ DECLARE
   black player := 0::player;
   pattern_index_values RECORD;
 BEGIN
-  SELECT * INTO pattern_index_values FROM regab_gp_compute_pattern_indexes(mo, op);
+  SELECT * INTO pattern_index_values FROM regab_gp_compute_pattern_indexes(mo, op, FALSE);
+  ---
   PERFORM p_assert(pattern_index_values.i_edge_0 =   40, 'Expected value for i_edge_0 is   40.');
   PERFORM p_assert(pattern_index_values.i_edge_1 =  702, 'Expected value for i_edge_1 is  702.');
   PERFORM p_assert(pattern_index_values.i_edge_2 =  717, 'Expected value for i_edge_2 is  717.');
@@ -585,6 +605,22 @@ BEGIN
   PERFORM p_assert(pattern_index_values.i_2x5cor_5 = 16758, 'Expected value for i_2x5cor_5 is 16758.');
   PERFORM p_assert(pattern_index_values.i_2x5cor_6 = 38871, 'Expected value for i_2x5cor_6 is 38871.');
   PERFORM p_assert(pattern_index_values.i_2x5cor_7 =  9730, 'Expected value for i_2x5cor_7 is  9730.');
+  ---
+  ---
+  SELECT * INTO pattern_index_values FROM regab_gp_compute_pattern_indexes(mo, op, TRUE);
+  ---
+  --- ARE WRONG !!!!! the function does not return the PRINCIPAL PATTERN INDEX VALUE ..... TO BE CORRECTED ....
+  ---
+  PERFORM p_assert(pattern_index_values.i_edge_0 =   40, 'Expected value for i_edge_0 is   40.');
+  PERFORM p_assert(pattern_index_values.i_edge_1 =  234, 'Expected value for i_edge_1 is  234.');
+  PERFORM p_assert(pattern_index_values.i_edge_2 =  717, 'Expected value for i_edge_2 is  717.');
+  PERFORM p_assert(pattern_index_values.i_edge_3 =  253, 'Expected value for i_edge_3 is  253.');
+  ---
+  PERFORM p_assert(pattern_index_values.i_corner_0 = 10057, 'Expected value for i_corner_0 is 10057.');
+  PERFORM p_assert(pattern_index_values.i_corner_1 = 13284, 'Expected value for i_corner_1 is 13284.');
+  PERFORM p_assert(pattern_index_values.i_corner_2 = 10545, 'Expected value for i_corner_2 is 10545.');
+  PERFORM p_assert(pattern_index_values.i_corner_3 = 19368, 'Expected value for i_corner_3 is 19368.');
+
 END $$;
 
 --
@@ -637,7 +673,7 @@ BEGIN
       rec_create_cnt := rec_create_cnt + 1;
     END IF;
 
-    SELECT * INTO gp_pattern_class_n_rec FROM regab_gp_compute_pattern_indexes(game_position_rec.mover, game_position_rec.opponent);
+    SELECT * INTO gp_pattern_class_n_rec FROM regab_gp_compute_pattern_indexes(game_position_rec.mover, game_position_rec.opponent, FALSE);
 
     IF (gp_pattern_class_o_rec IS NULL
         OR gp_pattern_class_o_rec.status <> 'CMP'
@@ -762,6 +798,19 @@ BEGIN
 
 END;
 $$ LANGUAGE plpgsql VOLATILE;
+
+
+--- Tests.
+DO $$
+DECLARE
+  mo square_set := 2337477075470322191::BIGINT;
+  op square_set := 6633411755847992320::BIGINT;
+  black player := 0::player;
+  pattern_index_values RECORD;
+BEGIN
+  SELECT * INTO pattern_index_values FROM regab_gp_compute_pattern_indexes(mo, op, FALSE);
+  PERFORM p_assert(pattern_index_values.i_edge_0 =   40, 'Expected value for i_edge_0 is   40.');
+END $$;
 
 
 

@@ -34,7 +34,7 @@ SET search_path TO reversi;
 
 BEGIN;
 
-ALTER TABLE regab_prng_patterns DROP COLUMN nsquares;
+--ALTER TABLE regab_prng_patterns DROP COLUMN nsquares;
 
 DELETE FROM migrations WHERE migration_id = 104;
 

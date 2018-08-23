@@ -41,15 +41,15 @@ BEGIN;
 INSERT INTO migrations (migration_id, ins_time, label, description)
 VALUES (0104, now(), 'field_nsquares_regab_prng_patterns', 'adds column nsquares to table regab_prng_patterns');
 
-ALTER TABLE regab_prng_patterns ADD nsquares SMALLINT;
+--ALTER TABLE regab_prng_patterns ADD nsquares SMALLINT;
 
-UPDATE regab_prng_patterns AS updated_table SET
-  nsquares = tmp_table.nsquares
-FROM (VALUES
-  (1,  8),
-  (2,  9),
-  (3, 10)
-) AS tmp_table(seq, nsquares)
-WHERE tmp_table.seq = updated_table.seq;
+--UPDATE regab_prng_patterns AS updated_table SET
+--  nsquares = tmp_table.nsquares
+--FROM (VALUES
+--  (1,  8),
+--  (2,  9),
+--  (3, 10)
+--) AS tmp_table(seq, nsquares)
+--WHERE tmp_table.seq = updated_table.seq;
 
 COMMIT;
