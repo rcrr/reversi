@@ -63,7 +63,7 @@ CREATE TABLE regab_prng_pattern_ranges (seq                   SERIAL    PRIMARY 
 --
 -- Populates the table regab_prng_pattern_ranges with the data appropriate for the function argument.
 --
-CREATE FUNCTION populate_regab_prng_pattern_ranges (patter_name_arg CHAR(6))
+CREATE FUNCTION ragab_populate_pattern_ranges (pattern_name_arg CHAR(6))
 RETURNS INTEGER
 AS $$
 DECLARE
@@ -72,7 +72,7 @@ DECLARE
   index_count INTEGER;
 BEGIN
   nrecords := 0;
-  SELECT INTO pattern_rec seq, pattern_name, nsquares, ninstances FROM regab_prng_patterns WHERE pattern_name = patter_name_arg;
+  SELECT INTO pattern_rec seq, pattern_name, nsquares, ninstances FROM regab_prng_patterns WHERE pattern_name = pattern_name_arg;
   IF pattern_rec.seq IS NULL THEN
     RAISE EXCEPTION 'Pattern record in table regab_prng_patterns has not been found.';
   END IF;
@@ -80,16 +80,16 @@ BEGIN
 
   WITH RECURSIVE index_value_range AS (
     SELECT
-      0::SMALLINT AS val
-    UNION ALL SELECT val + 1::SMALLINT AS val
+      0::INTEGER AS val
+    UNION ALL SELECT val + 1::INTEGER AS val
     FROM
       index_value_range
     WHERE
       index_value_range.val < index_count - 1
   ), empty_count_range AS (
     SELECT
-      0::SMALLINT AS val
-    UNION ALL SELECT val + 1::SMALLINT AS val
+      0::INTEGER AS val
+    UNION ALL SELECT val + 1::INTEGER AS val
     FROM
       empty_count_range
     WHERE
@@ -111,6 +111,7 @@ BEGIN
   RETURN nrecords;
 END;
 $$ LANGUAGE plpgsql VOLATILE;
+
 
 
 --
@@ -147,7 +148,7 @@ BEGIN
   
   RETURN index_value;
 END;
-$$ LANGUAGE plpgsql IMMUTABLE;
+$$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
 
 --- Tests.
 DO $$
@@ -194,7 +195,7 @@ BEGIN
   
   RETURN;
 END;
-$$ LANGUAGE plpgsql IMMUTABLE;
+$$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
 
 --- Tests.
 DO $$
@@ -280,7 +281,7 @@ DECLARE
   pid INTEGER;
 BEGIN
   SELECT seq INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
-  PERFORM populate_regab_prng_pattern_ranges(pn);
+  PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_edge_pattern(index_value) WHERE pattern_id = pid;
   UPDATE regab_prng_pattern_ranges SET principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
 END $$;

@@ -40,7 +40,7 @@ DROP FUNCTION regab_mirror_value_edge_pattern;
 DROP FUNCTION regab_mirror_edge_pattern;
 DROP FUNCTION regab_index_to_transformed_pattern;
 DROP FUNCTION regab_transformed_pattern_to_index;
-DROP FUNCTION populate_regab_prng_pattern_ranges;
+DROP FUNCTION ragab_populate_pattern_ranges;
 
 DROP TABLE regab_prng_pattern_ranges;
 
