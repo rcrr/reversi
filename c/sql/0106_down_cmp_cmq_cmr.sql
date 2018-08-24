@@ -35,7 +35,6 @@ SET search_path TO reversi;
 BEGIN;
 
 DROP INDEX regab_prng_gp_parent_gp_id_idx;
-DROP INDEX regab_prng_gp_classification_gp_id_idx;
 
 ALTER TABLE regab_prng_gp DROP COLUMN parent_gp_id;
 

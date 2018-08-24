@@ -34,10 +34,6 @@ SET search_path TO reversi;
 
 BEGIN;
 
-DROP FUNCTION insert_regab_prng_gp_classification_h;
-
-DROP TABLE regab_prng_gp_classification;
-DROP TABLE regab_prng_gp_classification_h;
 DROP TABLE regab_prng_patterns;
 
 DROP INDEX regab_prng_gp_bes_idx;

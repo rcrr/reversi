@@ -58,9 +58,8 @@ ALTER TABLE regab_prng_gp ADD COLUMN parent_gp_id BIGINT DEFAULT NULL REFERENCES
 ALTER TABLE regab_prng_gp ADD CONSTRAINT status_chk CHECK (status IN ('INS', 'WIP', 'CMP', 'CMQ', 'CMW', 'CMR', 'CMS'));
 
 --
--- These indexes are needed to effectively delete records in regab_prng_gp.
+-- This index is needed to effectively delete records in regab_prng_gp.
 --
-CREATE INDEX regab_prng_gp_classification_gp_id_idx ON regab_prng_gp_classification (gp_id);
 CREATE INDEX regab_prng_gp_parent_gp_id_idx ON regab_prng_gp (parent_gp_id);
 
 -- End of migration

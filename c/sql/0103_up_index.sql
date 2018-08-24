@@ -27,8 +27,7 @@
 --
 --
 --
--- Creates a new index, regab_prng_gp_classification_csg_idx, that expedites the regab classify procedure.
--- It avoid to have a filter operation.
+-- TBD
 --
 
 SET search_path TO reversi;
@@ -36,8 +35,8 @@ SET search_path TO reversi;
 BEGIN;
  
 INSERT INTO migrations (migration_id, ins_time, label, description)
-VALUES (0103, now(), 'regab_prng_gp_classification_csg_idx', 'creates a new index on regab_prng_gp_classification that avoids a filter operation during the run of the regab classify procedure');
+VALUES (0103, now(), '0103_empty_migration', 'TBD');
 
-CREATE INDEX regab_prng_gp_classification_csg_idx ON regab_prng_gp_classification (class_id, status, gp_id);
+
 
 COMMIT;
