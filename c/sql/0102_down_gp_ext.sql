@@ -1,5 +1,5 @@
 --
--- 0103_down_index.sql
+-- 0102_down_gp_ext.sql
 --
 -- This file is part of the reversi program
 -- http://github.com/rcrr/reversi
@@ -27,15 +27,15 @@
 --
 --
 --
--- Removes migration 0103.
+-- Removes migration 0102.
 --
 
 SET search_path TO reversi;
 
 BEGIN;
 
+DROP INDEX regab_prng_gp_bes_idx;
 
-
-DELETE FROM migrations WHERE migration_id = 103;
+DELETE FROM migrations WHERE migration_id = 102;
 
 COMMIT;

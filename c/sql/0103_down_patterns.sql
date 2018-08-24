@@ -1,5 +1,5 @@
 --
--- 0103_up_index.sql
+-- 0103_down_patterns.sql
 --
 -- This file is part of the reversi program
 -- http://github.com/rcrr/reversi
@@ -27,16 +27,15 @@
 --
 --
 --
--- TBD
+-- Removes migration 0103.
 --
 
 SET search_path TO reversi;
 
 BEGIN;
- 
-INSERT INTO migrations (migration_id, ins_time, label, description)
-VALUES (0103, now(), '0103_empty_migration', 'TBD');
 
+DROP TABLE regab_prng_patterns;
 
+DELETE FROM migrations WHERE migration_id = 103;
 
 COMMIT;

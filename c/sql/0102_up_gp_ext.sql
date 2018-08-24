@@ -1,5 +1,5 @@
 --
--- 0102_down_patterns.sql
+-- 0102_up_gp_ext.sql
 --
 -- This file is part of the reversi program
 -- http://github.com/rcrr/reversi
@@ -27,17 +27,16 @@
 --
 --
 --
--- Removes patterns.
+-- Extends and enhances the regab_prng_gp table.
 --
 
 SET search_path TO reversi;
 
 BEGIN;
+ 
+INSERT INTO migrations (migration_id, ins_time, label, description)
+VALUES (0102, now(), 'gp_ext', 'game position extentions and indexes');
 
-DROP TABLE regab_prng_patterns;
-
-DROP INDEX regab_prng_gp_bes_idx;
-
-DELETE FROM migrations WHERE migration_id = 102;
+CREATE INDEX regab_prng_gp_bes_idx ON regab_prng_gp (batch_id, empty_count, status);
 
 COMMIT;

@@ -1,5 +1,5 @@
 --
--- 0102_up_patterns.sql
+-- 0103_up_patterns.sql
 --
 -- This file is part of the reversi program
 -- http://github.com/rcrr/reversi
@@ -35,9 +35,7 @@ SET search_path TO reversi;
 BEGIN;
  
 INSERT INTO migrations (migration_id, ins_time, label, description)
-VALUES (0102, now(), 'patterns', 'creates basic tables for patterns and game position classification');
-
-CREATE INDEX regab_prng_gp_bes_idx ON regab_prng_gp (batch_id, empty_count, status);
+VALUES (0103, now(), 'patterns', 'creates basic tables for patterns and game position classification');
 
 ---
 --- Table regab_prng_patterns
@@ -53,7 +51,7 @@ CREATE TABLE regab_prng_patterns (seq             SERIAL      PRIMARY KEY,
                                   CONSTRAINT ninstances_is_positive CHECK(ninstances > 0),
                                   CONSTRAINT nsquares_is_positive CHECK(nsquares > 0));
 ---
---- Creates the EDGE, CORNER, and XEDGE patterns.
+--- Populates the patter table with EDGE, CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, and 2X5COR patterns.
 ---
 INSERT INTO regab_prng_patterns (ins_time, pattern_name_id, pattern_name, ninstances, nsquares, description)
   SELECT * FROM (VALUES
@@ -70,7 +68,5 @@ INSERT INTO regab_prng_patterns (ins_time, pattern_name_id, pattern_name, ninsta
     (now(), 10, 'DIAG8',   2,  8, 'Eight square diagonal, H1-G2-F3-E4-D5-C6-B7-A8'),
     (now(), 11, '2X5COR',  8, 10, 'Ten square, asymmetric corner')
   ) AS tmp_table(ins_time, pattern_name_id, pattern_name, ninstances, nsquares, description);
-
-
 
 COMMIT;
