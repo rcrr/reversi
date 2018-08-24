@@ -34,6 +34,12 @@ SET search_path TO reversi;
 
 BEGIN;
 
+DROP INDEX regab_prng_gp_parent_gp_id_idx;
+
+ALTER TABLE regab_prng_gp DROP COLUMN parent_gp_id;
+
+ALTER TABLE regab_prng_gp DROP CONSTRAINT status_chk;
+
 DROP INDEX regab_prng_gp_bes_idx;
 
 DELETE FROM migrations WHERE migration_id = 102;
