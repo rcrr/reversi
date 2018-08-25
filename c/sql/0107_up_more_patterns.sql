@@ -408,26 +408,6 @@ END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
 
 --
--- Mirrors a square set horizontally.
--- Column A is mapped to column H and vice versa.
---
-CREATE FUNCTION square_set_flip_vertical (s square_set)
-RETURNS square_set
-AS $$
-DECLARE
-  k1 square_set := (x'5555555555555555')::BIGINT;
-  k2 square_set := (x'3333333333333333')::BIGINT;
-  k4 square_set := (x'0f0f0f0f0f0f0f0f')::BIGINT;
-  r square_set := s;
-BEGIN
-  r := ((r >> 1) & k1) | ((r & k1) << 1);
-  r := ((r >> 2) & k2) | ((r & k2) << 2);
-  r := ((r >> 4) & k4) | ((r & k4) << 4);
-  RETURN r;
-END;
-$$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
-
---
 -- Flips a square set about the diagonal A1-H8.
 -- Square H1 is mapped to A8 and vice versa.
 --

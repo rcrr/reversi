@@ -123,7 +123,7 @@ CREATE FUNCTION regab_transformed_pattern_to_index (mover    square_set,
 RETURNS INTEGER
 AS $$
 DECLARE
-  max_pattern_size INTEGER := 12;
+  max_pattern_size INTEGER := 12; -- !!! Increase the value if a pattern has more than 12 squares.
   index_value      INTEGER :=  0;
   ---
   is_m BOOLEAN;
@@ -236,7 +236,7 @@ BEGIN
   
   RETURN;
 END;
-$$ LANGUAGE plpgsql IMMUTABLE;
+$$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
 
 --- Tests.
 DO $$
@@ -247,6 +247,7 @@ END $$;
 
 --
 -- Computes the mirror value for the given index, for the EDGE pattern.
+-- Patterns EDGE, R2, R3, and R4 have the same mapping.
 --
 CREATE FUNCTION regab_mirror_value_edge_pattern (index_value INTEGER)
 RETURNS INTEGER
@@ -256,14 +257,24 @@ DECLARE
   op square_set;
   mirror_value INTEGER;
 BEGIN
-
+  -- step 0: index to transformed patterrn
   SELECT mover, opponent INTO mo, op FROM regab_index_to_transformed_pattern(index_value);
-  SELECT mirror_mover, mirror_opponent INTO mo, op FROM regab_mirror_edge_pattern(mo, op);
-  mirror_value := regab_transformed_pattern_to_index(mo, op);
+    
+  -- step 1: transformed pattern to instance zero pattern
+  -- not required.
   
+  -- step 2: mirror transformation
+  mo := square_set_flip_vertical(mo); op := square_set_flip_vertical(op);
+  
+  -- step 3: instance zero pattern to transformed pattern
+  -- not required
+  
+  -- step 4: transformed pattern to index
+  mirror_value := regab_transformed_pattern_to_index(mo, op);
+
   RETURN mirror_value;
 END;
-$$ LANGUAGE plpgsql IMMUTABLE;
+$$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
 
 --- Tests.
 DO $$
