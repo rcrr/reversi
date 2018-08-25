@@ -44,41 +44,12 @@ DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_
 DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'R2');
 DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'XEDGE');
 DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'CORNER');
-
-DROP FUNCTION regab_mirror_value_2x5cor_pattern;
-DROP FUNCTION regab_mirror_value_diag8_pattern;
-DROP FUNCTION regab_mirror_value_diag7_pattern;
-DROP FUNCTION regab_mirror_value_diag6_pattern;
-DROP FUNCTION regab_mirror_value_diag5_pattern;
-DROP FUNCTION regab_mirror_value_diag4_pattern;
-DROP FUNCTION regab_mirror_value_xedge_pattern;
-DROP FUNCTION regab_mirror_value_corner_pattern;
-DROP FUNCTION regab_mirror_value_r4_pattern;
-DROP FUNCTION regab_mirror_value_r3_pattern;
-DROP FUNCTION regab_mirror_value_r2_pattern;
-
-DROP FUNCTION square_set_flip_diag_a1h8;
-DROP FUNCTION square_set_flip_vertical;
-
-DROP FUNCTION square_set_pattern_unpack_2x5cor;
-DROP FUNCTION square_set_pattern_pack_2x5cor;
-DROP FUNCTION square_set_pattern_unpack_diag8;
-DROP FUNCTION square_set_pattern_pack_diag8;
-DROP FUNCTION square_set_pattern_unpack_diag7;
-DROP FUNCTION square_set_pattern_pack_diag7;
-DROP FUNCTION square_set_pattern_unpack_diag6;
-DROP FUNCTION square_set_pattern_pack_diag6;
-DROP FUNCTION square_set_pattern_unpack_diag5;
-DROP FUNCTION square_set_pattern_pack_diag5;
-DROP FUNCTION square_set_pattern_unpack_diag4;
-DROP FUNCTION square_set_pattern_pack_diag4;
-DROP FUNCTION square_set_pattern_unpack_xedge;
-DROP FUNCTION square_set_pattern_pack_xedge;
-DROP FUNCTION square_set_pattern_unpack_corner;
-DROP FUNCTION square_set_pattern_pack_corner;
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'EDGE');
 
 DROP FUNCTION regab_update_prob_into_pattern_ranges_from_staging;
 
 DELETE FROM migrations WHERE migration_id = 107;
 
 COMMIT;
+
+VACUUM ANALYZE regab_prng_pattern_ranges;

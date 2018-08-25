@@ -37,22 +37,6 @@ BEGIN;
 DROP FUNCTION regab_gp_populate_pattern_class_table;
 DROP FUNCTION regab_gp_compute_pattern_indexes;
 
-DROP FUNCTION square_set_rotate_180;
-DROP FUNCTION square_set_rotate_90c;
-DROP FUNCTION square_set_rotate_90a;
-DROP FUNCTION square_set_flip_horizontal;
-DROP FUNCTION square_set_flip_diag_h1a8;
-DROP FUNCTION square_set_identity_trans;
-
-DROP FUNCTION square_set_pattern_unpack_r4;
-DROP FUNCTION square_set_pattern_pack_r4;
-DROP FUNCTION square_set_pattern_unpack_r3;
-DROP FUNCTION square_set_pattern_pack_r3;
-DROP FUNCTION square_set_pattern_unpack_r2;
-DROP FUNCTION square_set_pattern_pack_r2;
-DROP FUNCTION square_set_pattern_unpack_edge;
-DROP FUNCTION square_set_pattern_pack_edge;
-
 DROP TABLE regab_prng_gp_pattern_class;
 
 DELETE FROM migrations WHERE migration_id = 108;

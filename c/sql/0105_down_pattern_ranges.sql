@@ -36,10 +36,7 @@ BEGIN;
 
 DROP TABLE regab_staging_ec_pidx_cnt_tmp;
 
-DROP FUNCTION regab_mirror_value_edge_pattern;
-DROP FUNCTION regab_mirror_edge_pattern;
-DROP FUNCTION regab_index_to_transformed_pattern;
-DROP FUNCTION regab_transformed_pattern_to_index;
+--DROP FUNCTION regab_mirror_edge_pattern;
 DROP FUNCTION ragab_populate_pattern_ranges;
 
 DROP TABLE regab_prng_pattern_ranges;

@@ -34,7 +34,55 @@ SET search_path TO reversi;
 
 BEGIN;
 
+DROP FUNCTION regab_mirror_value_2x5cor_pattern;
+DROP FUNCTION regab_mirror_value_diag8_pattern;
+DROP FUNCTION regab_mirror_value_diag7_pattern;
+DROP FUNCTION regab_mirror_value_diag6_pattern;
+DROP FUNCTION regab_mirror_value_diag5_pattern;
+DROP FUNCTION regab_mirror_value_diag4_pattern;
+DROP FUNCTION regab_mirror_value_r4_pattern;
+DROP FUNCTION regab_mirror_value_r3_pattern;
+DROP FUNCTION regab_mirror_value_r2_pattern;
+DROP FUNCTION regab_mirror_value_xedge_pattern;
+DROP FUNCTION regab_mirror_value_corner_pattern;
+DROP FUNCTION regab_mirror_value_edge_pattern;
+
+DROP FUNCTION regab_transformed_pattern_to_index;
+DROP FUNCTION regab_index_to_transformed_pattern;
+
+DROP FUNCTION square_set_pattern_unpack_2x5cor;
+DROP FUNCTION square_set_pattern_pack_2x5cor;
+DROP FUNCTION square_set_pattern_unpack_diag8;
+DROP FUNCTION square_set_pattern_pack_diag8;
+DROP FUNCTION square_set_pattern_unpack_diag7;
+DROP FUNCTION square_set_pattern_pack_diag7;
+DROP FUNCTION square_set_pattern_unpack_diag6;
+DROP FUNCTION square_set_pattern_pack_diag6;
+DROP FUNCTION square_set_pattern_unpack_diag5;
+DROP FUNCTION square_set_pattern_pack_diag5;
+DROP FUNCTION square_set_pattern_unpack_diag4;
+DROP FUNCTION square_set_pattern_pack_diag4;
+DROP FUNCTION square_set_pattern_unpack_r4;
+DROP FUNCTION square_set_pattern_pack_r4;
+DROP FUNCTION square_set_pattern_unpack_r3;
+DROP FUNCTION square_set_pattern_pack_r3;
+DROP FUNCTION square_set_pattern_unpack_r2;
+DROP FUNCTION square_set_pattern_pack_r2;
+DROP FUNCTION square_set_pattern_unpack_xedge;
+DROP FUNCTION square_set_pattern_pack_xedge;
+DROP FUNCTION square_set_pattern_unpack_corner;
+DROP FUNCTION square_set_pattern_pack_corner;
+DROP FUNCTION square_set_pattern_unpack_edge;
+DROP FUNCTION square_set_pattern_pack_edge;
+
+DROP FUNCTION square_set_rotate_180;
+DROP FUNCTION square_set_rotate_90c;
+DROP FUNCTION square_set_rotate_90a;
+DROP FUNCTION square_set_flip_diag_h1a8;
+DROP FUNCTION square_set_flip_diag_a1h8;
 DROP FUNCTION square_set_flip_vertical;
+DROP FUNCTION square_set_flip_horizontal;
+DROP FUNCTION square_set_identity_trans;
 
 DELETE FROM migrations WHERE migration_id = 104;
 
