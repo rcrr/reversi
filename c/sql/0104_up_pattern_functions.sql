@@ -48,6 +48,24 @@ BEGIN
   RETURN s;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  ar            square_set := (x'22120a0e1222221e')::BIGINT;
+  ar_flipped_v  square_set := (x'1e2222120e0a1222')::BIGINT;
+  ar_mirror_h   square_set := (x'4448507048444478')::BIGINT;
+  ar_flip_h1a8  square_set := (x'00ff888c92610000')::BIGINT;
+  ar_flip_a1h8  square_set := (x'000086493111ff00')::BIGINT;
+  ar_rotate_180 square_set := (x'7844444870504844')::BIGINT;
+  ar_rotate_90c square_set := (x'000061928c88ff00')::BIGINT;
+  ar_rotate_90a square_set := (x'00ff113149860000')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_identity_trans((x'0000000000000000')::square_set) = (x'0000000000000000')::square_set, '0000000000000000');
+  PERFORM p_assert(square_set_identity_trans((x'ffffffffffffffff')::square_set) = (x'ffffffffffffffff')::square_set, 'ffffffffffffffff');
+  PERFORM p_assert(square_set_identity_trans((x'0000000000000001')::square_set) = (x'0000000000000001')::square_set, '0000000000000001');
+  PERFORM p_assert(square_set_identity_trans((x'8000000000000000')::square_set) = (x'8000000000000000')::square_set, '8000000000000000');
+  PERFORM p_assert(square_set_identity_trans(ar) = ar, 'Expected result is ar.');
+END $$;
 
 --
 -- Mirrors a square set vertically.
@@ -79,6 +97,19 @@ BEGIN
   RETURN r;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  ar            square_set := (x'22120a0e1222221e')::BIGINT;
+  ar_flipped_v  square_set := (x'1e2222120e0a1222')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_flip_horizontal((x'0000000000000000')::square_set) = (x'0000000000000000')::square_set, '0000000000000000');
+  PERFORM p_assert(square_set_flip_horizontal((x'ffffffffffffffff')::square_set) = (x'ffffffffffffffff')::square_set, 'ffffffffffffffff');
+  PERFORM p_assert(square_set_flip_horizontal((x'00000000000000ff')::square_set) = (x'ff00000000000000')::square_set, 'ff00000000000000');
+  PERFORM p_assert(square_set_flip_horizontal((x'ffffffff00000000')::square_set) = (x'00000000ffffffff')::square_set, '00000000ffffffff');
+  PERFORM p_assert(square_set_flip_horizontal((x'0101010101010101')::square_set) = (x'0101010101010101')::square_set, '0101010101010101');
+  PERFORM p_assert(square_set_flip_horizontal(ar) = ar_flipped_v, 'Expected result is ar_flipped_v.');
+END $$;
 
 --
 -- Mirrors a square set horizontally.
@@ -99,6 +130,17 @@ BEGIN
   RETURN r;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  ar            square_set := (x'22120a0e1222221e')::BIGINT;
+  ar_mirror_h   square_set := (x'4448507048444478')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_flip_vertical((x'0000000000000000')::square_set) = (x'0000000000000000')::square_set, '0000000000000000');
+  PERFORM p_assert(square_set_flip_vertical((x'ffffffffffffffff')::square_set) = (x'ffffffffffffffff')::square_set, 'ffffffffffffffff');
+  PERFORM p_assert(square_set_flip_vertical((x'0000000000000001')::square_set) = (x'0000000000000080')::square_set, '0000000000000080');
+  PERFORM p_assert(square_set_flip_vertical(ar) = ar_mirror_h, 'Expected result is ar_mirror_h.');
+END $$;
 
 --
 -- Flips a square set along the diagonal a1-h8.
@@ -123,6 +165,19 @@ BEGIN
   RETURN r;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  ar            square_set := (x'22120a0e1222221e')::BIGINT;
+  ar_flip_a1h8  square_set := (x'000086493111ff00')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_flip_diag_a1h8((x'0000000000000000')::square_set) = (x'0000000000000000')::square_set, '0000000000000000');
+  PERFORM p_assert(square_set_flip_diag_a1h8((x'ffffffffffffffff')::square_set) = (x'ffffffffffffffff')::square_set, 'ffffffffffffffff');
+  PERFORM p_assert(square_set_flip_diag_a1h8((x'0000000000000080')::square_set) = (x'0100000000000000')::square_set, '0100000000000000');
+  PERFORM p_assert(square_set_flip_diag_a1h8((x'0100000000000000')::square_set) = (x'0000000000000080')::square_set, '0000000000000080');
+  PERFORM p_assert(square_set_flip_diag_a1h8((x'0100000000000080')::square_set) = (x'0100000000000080')::square_set, '0100000000000080');
+  PERFORM p_assert(square_set_flip_diag_a1h8(ar) = ar_flip_a1h8, 'Expected result is ar_flip_a1h8.');
+END $$;
 
 --
 -- Flips a square set about the diagonal h1-a8
@@ -148,6 +203,19 @@ BEGIN
   RETURN r;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  ar            square_set := (x'22120a0e1222221e')::BIGINT;
+  ar_flip_h1a8  square_set := (x'00ff888c92610000')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_flip_diag_h1a8((x'0000000000000000')::square_set) = (x'0000000000000000')::square_set, '0000000000000000');
+  PERFORM p_assert(square_set_flip_diag_h1a8((x'ffffffffffffffff')::square_set) = (x'ffffffffffffffff')::square_set, 'ffffffffffffffff');
+  PERFORM p_assert(square_set_flip_diag_h1a8((x'0000000000000001')::square_set) = (x'8000000000000000')::square_set, '8000000000000000');
+  PERFORM p_assert(square_set_flip_diag_h1a8((x'8000000000000000')::square_set) = (x'0000000000000001')::square_set, '0000000000000001');
+  PERFORM p_assert(square_set_flip_diag_h1a8((x'8000000000000001')::square_set) = (x'8000000000000001')::square_set, '8000000000000001');
+  PERFORM p_assert(square_set_flip_diag_h1a8(ar) = ar_flip_h1a8, 'Expected result is ar_flip_h1a8.');
+END $$;
 
 --
 -- Rotates 90 degrees anti-clockwise
@@ -159,6 +227,16 @@ BEGIN
   RETURN square_set_flip_diag_h1a8(square_set_flip_horizontal(s));
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  ar            square_set := (x'22120a0e1222221e')::BIGINT;
+  ar_rotate_90a square_set := (x'00ff113149860000')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_rotate_90a((x'0000000000000000')::square_set) = (x'0000000000000000')::square_set, '0000000000000000');
+  PERFORM p_assert(square_set_rotate_90a((x'ffffffffffffffff')::square_set) = (x'ffffffffffffffff')::square_set, 'ffffffffffffffff');
+  PERFORM p_assert(square_set_rotate_90a(ar) = ar_rotate_90a, 'Expected result is ar_rotate_90a.');
+END $$;
 
 --
 -- Rotates 90 degrees clockwise
@@ -170,6 +248,16 @@ BEGIN
   RETURN square_set_flip_horizontal(square_set_flip_diag_h1a8(s));
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  ar            square_set := (x'22120a0e1222221e')::BIGINT;
+  ar_rotate_90c square_set := (x'000061928c88ff00')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_rotate_90c((x'0000000000000000')::square_set) = (x'0000000000000000')::square_set, '0000000000000000');
+  PERFORM p_assert(square_set_rotate_90c((x'ffffffffffffffff')::square_set) = (x'ffffffffffffffff')::square_set, 'ffffffffffffffff');
+  PERFORM p_assert(square_set_rotate_90c(ar) = ar_rotate_90c, 'Expected result is ar_rotate_90c.');
+END $$;
 
 --
 -- Rotates 180 degrees
@@ -181,6 +269,16 @@ BEGIN
   RETURN square_set_flip_vertical(square_set_flip_horizontal(s));
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  ar            square_set := (x'22120a0e1222221e')::BIGINT;
+  ar_rotate_180 square_set := (x'7844444870504844')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_rotate_180((x'0000000000000000')::square_set) = (x'0000000000000000')::square_set, '0000000000000000');
+  PERFORM p_assert(square_set_rotate_180((x'ffffffffffffffff')::square_set) = (x'ffffffffffffffff')::square_set, 'ffffffffffffffff');
+  PERFORM p_assert(square_set_rotate_180(ar) = ar_rotate_180, 'Expected result is ar_rotate_180.');
+END $$;
 
 --
 -- PACK and UNPACK functions.
@@ -199,6 +297,16 @@ BEGIN
   RETURN (s & s1);
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_      square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_     square_set := (x'0000000000000000')::BIGINT;
+  first_row  square_set := (x'00000000000000ff')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_pack_edge(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_edge(full_) = first_row, 'Expected result is first_row.');
+END $$;
 
 --
 -- Un-packs EDGE pattern.
@@ -213,6 +321,15 @@ BEGIN
   RETURN s & s1;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  empty_     square_set := (x'0000000000000000')::BIGINT;
+  first_row  square_set := (x'00000000000000ff')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_unpack_edge(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_unpack_edge(first_row) = first_row, 'Expected result is first_row.');
+END $$;
 
 --
 -- Packs CORNER pattern.
@@ -229,6 +346,22 @@ BEGIN
   RETURN (s & s1) | ((s & s2) >> 5) | ((s & s3) >> 10);
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_              square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_             square_set := (x'0000000000000000')::BIGINT;
+  nw_corner          square_set := (x'0000000000070707')::BIGINT;
+  packed_corner_mask square_set := (x'00000000000001ff')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_pack_corner(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_corner(full_) = packed_corner_mask, 'Expected result is packed_corner_mask.');
+  PERFORM p_assert(square_set_pattern_pack_corner(nw_corner) = packed_corner_mask, 'Expected result is packed_corner_mask.');
+  PERFORM p_assert(square_set_pattern_pack_corner((x'0000000000000007')::square_set) = (x'0000000000000007')::square_set, 'Expected result is 0000000000000007.');
+  PERFORM p_assert(square_set_pattern_pack_corner((x'0000000000000700')::square_set) = (x'0000000000000038')::square_set, 'Expected result is 0000000000000038.');
+  PERFORM p_assert(square_set_pattern_pack_corner((x'0000000000070000')::square_set) = (x'00000000000001c0')::square_set, 'Expected result is 00000000000001c0.');
+  PERFORM p_assert(square_set_pattern_pack_corner((x'0000000000040404')::square_set) = (x'0000000000000124')::square_set, 'Expected result is 0000000000000124.');
+END $$;
 
 --
 -- Un-packs CORNER pattern.
@@ -245,6 +378,21 @@ BEGIN
   RETURN (s & s1) | ((s & s2) << 5) | ((s & s3) << 10);
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_              square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_             square_set := (x'0000000000000000')::BIGINT;
+  nw_corner          square_set := (x'0000000000070707')::BIGINT;
+  packed_corner_mask square_set := (x'00000000000001ff')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_unpack_corner(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_unpack_corner(packed_corner_mask) = nw_corner, 'Expected result is nw_corner.');
+  PERFORM p_assert(square_set_pattern_unpack_corner((x'0000000000000007')::square_set) = (x'0000000000000007')::square_set, 'Expected result is 0000000000000007.');
+  PERFORM p_assert(square_set_pattern_unpack_corner((x'0000000000000038')::square_set) = (x'0000000000000700')::square_set, 'Expected result is 0000000000000700.');
+  PERFORM p_assert(square_set_pattern_unpack_corner((x'00000000000001c0')::square_set) = (x'0000000000070000')::square_set, 'Expected result is 0000000000070000.');
+  PERFORM p_assert(square_set_pattern_unpack_corner((x'0000000000000124')::square_set) = (x'0000000000040404')::square_set, 'Expected result is 0000000000040404.');
+END $$;
 
 --
 -- Packs XEDGE pattern.
@@ -261,6 +409,23 @@ BEGIN
   RETURN (s & s1) | ((s & s2) >> 1) | ((s & s3) >> 5);
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_             square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_            square_set := (x'0000000000000000')::BIGINT;
+  n_xedge           square_set := (x'00000000000042ff')::BIGINT;
+  packed_xedge_mask square_set := (x'00000000000003ff')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_pack_xedge(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_xedge(full_) = packed_xedge_mask, 'Expected result is packed_xedge_mask.');
+  PERFORM p_assert(square_set_pattern_pack_xedge(n_xedge) = packed_xedge_mask, 'Expected result is packed_xedge_mask.');
+  PERFORM p_assert(square_set_pattern_pack_xedge((x'00000000000000ff')::square_set) = (x'00000000000000ff')::square_set, 'Expected result is 00000000000000ff.');
+  PERFORM p_assert(square_set_pattern_pack_xedge((x'000000000000ff00')::square_set) = (x'0000000000000300')::square_set, 'Expected result is 0000000000000300.');
+  PERFORM p_assert(square_set_pattern_pack_xedge((x'0000000000000200')::square_set) = (x'0000000000000100')::square_set, 'Expected result is 0000000000000100.');
+  PERFORM p_assert(square_set_pattern_pack_xedge((x'0000000000004000')::square_set) = (x'0000000000000200')::square_set, 'Expected result is 0000000000000200.');
+  PERFORM p_assert(square_set_pattern_pack_xedge((x'ffffffffffffbd00')::square_set) = empty_, 'Expected result is empty_');
+END $$;
 
 --
 -- Un-packs XEDGE pattern.
@@ -277,6 +442,21 @@ BEGIN
   RETURN (s & s1) | ((s & s2) << 1) | ((s & s3) << 5);
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_             square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_            square_set := (x'0000000000000000')::BIGINT;
+  n_xedge           square_set := (x'00000000000042ff')::BIGINT;
+  packed_xedge_mask square_set := (x'00000000000003ff')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_unpack_xedge(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_unpack_xedge(packed_xedge_mask) = n_xedge, 'Expected result is n_xedge.');
+  PERFORM p_assert(square_set_pattern_unpack_xedge((x'00000000000000ff')::square_set) = (x'00000000000000ff')::square_set, 'Expected result is 00000000000000ff.');
+  PERFORM p_assert(square_set_pattern_unpack_xedge((x'0000000000000300')::square_set) = (x'0000000000004200')::square_set, 'Expected result is 0000000000004200.');
+  PERFORM p_assert(square_set_pattern_unpack_xedge((x'0000000000000100')::square_set) = (x'0000000000000200')::square_set, 'Expected result is 0000000000000200.');
+  PERFORM p_assert(square_set_pattern_unpack_xedge((x'0000000000000200')::square_set) = (x'0000000000004000')::square_set, 'Expected result is 0000000000004000.');
+END $$;
 
 --
 -- Packs R2 pattern.
@@ -291,6 +471,25 @@ BEGIN
   RETURN (s & s1) >> 8;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_      square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_     square_set := (x'0000000000000000')::BIGINT;
+  first_row  square_set := (x'00000000000000ff')::BIGINT;
+  second_row square_set := (x'000000000000ff00')::BIGINT;
+  third_row  square_set := (x'0000000000ff0000')::BIGINT;
+  fourth_row square_set := (x'00000000ff000000')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_pack_r2(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_r2(full_) = first_row, 'Expected result is first_row.');
+  PERFORM p_assert(square_set_pattern_pack_r2(first_row) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_r2(second_row) = first_row, 'Expected result is first_row.');
+  PERFORM p_assert(square_set_pattern_pack_r2(third_row) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_r2(fourth_row) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_r2((x'0101010101010101')::square_set) = (x'0000000000000001')::square_set, 'Expected result is 0000000000000001.');
+  PERFORM p_assert(square_set_pattern_pack_r2((x'8080808080808080')::square_set) = (x'0000000000000080')::square_set, 'Expected result is 0000000000000080.');
+END $$;
 
 --
 -- Un-packs R2 pattern.
@@ -305,6 +504,18 @@ BEGIN
   RETURN (s & s1) << 8;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  empty_     square_set := (x'0000000000000000')::BIGINT;
+  first_row  square_set := (x'00000000000000ff')::BIGINT;
+  second_row square_set := (x'000000000000ff00')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_unpack_r2(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_unpack_r2(first_row) = second_row, 'Expected result is second_row.');
+  PERFORM p_assert(square_set_pattern_unpack_r2((x'0000000000000001')::square_set) = (x'0000000000000100')::square_set, 'Expected result is 0000000000000100.');
+  PERFORM p_assert(square_set_pattern_unpack_r2((x'0000000000000080')::square_set) = (x'0000000000008000')::square_set, 'Expected result is 0000000000008000.');
+END $$;
 
 --
 -- Packs R3 pattern.
@@ -319,6 +530,25 @@ BEGIN
   RETURN (s & s1) >> 16;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_      square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_     square_set := (x'0000000000000000')::BIGINT;
+  first_row  square_set := (x'00000000000000ff')::BIGINT;
+  second_row square_set := (x'000000000000ff00')::BIGINT;
+  third_row  square_set := (x'0000000000ff0000')::BIGINT;
+  fourth_row square_set := (x'00000000ff000000')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_pack_r3(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_r3(full_) = first_row, 'Expected result is first_row.');
+  PERFORM p_assert(square_set_pattern_pack_r3(first_row) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_r3(second_row) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_r3(third_row) = first_row, 'Expected result is first_row.');
+  PERFORM p_assert(square_set_pattern_pack_r3(fourth_row) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_r3((x'0101010101010101')::square_set) = (x'0000000000000001')::square_set, 'Expected result is 0000000000000001.');
+  PERFORM p_assert(square_set_pattern_pack_r3((x'8080808080808080')::square_set) = (x'0000000000000080')::square_set, 'Expected result is 0000000000000080.');
+END $$;
 
 --
 -- Un-packs R3 pattern.
@@ -333,6 +563,18 @@ BEGIN
   RETURN (s & s1) << 16;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  empty_     square_set := (x'0000000000000000')::BIGINT;
+  first_row  square_set := (x'00000000000000ff')::BIGINT;
+  third_row  square_set := (x'0000000000ff0000')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_unpack_r3(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_unpack_r3(first_row) = third_row, 'Expected result is third_row.');
+  PERFORM p_assert(square_set_pattern_unpack_r3((x'0000000000000001')::square_set) = (x'0000000000010000')::square_set, 'Expected result is 0000000000010000.');
+  PERFORM p_assert(square_set_pattern_unpack_r3((x'0000000000000080')::square_set) = (x'0000000000800000')::square_set, 'Expected result is 0000000000800000.');
+END $$;
 
 --
 -- Packs R4 pattern.
@@ -347,6 +589,25 @@ BEGIN
   RETURN (s & s1) >> 24;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_      square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_     square_set := (x'0000000000000000')::BIGINT;
+  first_row  square_set := (x'00000000000000ff')::BIGINT;
+  second_row square_set := (x'000000000000ff00')::BIGINT;
+  third_row  square_set := (x'0000000000ff0000')::BIGINT;
+  fourth_row square_set := (x'00000000ff000000')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_pack_r4(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_r4(full_) = first_row, 'Expected result is first_row.');
+  PERFORM p_assert(square_set_pattern_pack_r4(first_row) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_r4(second_row) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_r4(third_row) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_r4(fourth_row) = first_row, 'Expected result is first_row.');
+  PERFORM p_assert(square_set_pattern_pack_r4((x'0101010101010101')::square_set) = (x'0000000000000001')::square_set, 'Expected result is 0000000000000001.');
+  PERFORM p_assert(square_set_pattern_pack_r4((x'8080808080808080')::square_set) = (x'0000000000000080')::square_set, 'Expected result is 0000000000000080.');
+END $$;
 
 --
 -- Un-packs R4 pattern.
@@ -361,6 +622,18 @@ BEGIN
   RETURN (s & s1) << 24;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  empty_     square_set := (x'0000000000000000')::BIGINT;
+  first_row  square_set := (x'00000000000000ff')::BIGINT;
+  fourth_row square_set := (x'00000000ff000000')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_unpack_r4(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_unpack_r4(first_row) = fourth_row, 'Expected result is fourth_row.');
+  PERFORM p_assert(square_set_pattern_unpack_r4((x'0000000000000001')::square_set) = (x'0000000001000000')::square_set, 'Expected result is 0000000001000000.');
+  PERFORM p_assert(square_set_pattern_unpack_r4((x'0000000000000080')::square_set) = (x'0000000080000000')::square_set, 'Expected result is 0000000080000000.');
+END $$;
 
 --
 -- Packs DIAG4 pattern.
@@ -382,6 +655,21 @@ BEGIN
   RETURN r2 & s2;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_             square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_            square_set := (x'0000000000000000')::BIGINT;
+  packed_diag4_mask square_set := (x'000000000000000f')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_pack_diag4(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_diag4(full_) = packed_diag4_mask, 'Expected result is packed_diag4_mask.');
+  PERFORM p_assert(square_set_pattern_pack_diag4((x'0000000000000008')::square_set) = (x'0000000000000008')::square_set, 'Expected result is 0000000000000008.');
+  PERFORM p_assert(square_set_pattern_pack_diag4((x'0000000000000400')::square_set) = (x'0000000000000004')::square_set, 'Expected result is 0000000000000004.');
+  PERFORM p_assert(square_set_pattern_pack_diag4((x'0000000000020000')::square_set) = (x'0000000000000002')::square_set, 'Expected result is 0000000000000002.');
+  PERFORM p_assert(square_set_pattern_pack_diag4((x'0000000001000000')::square_set) = (x'0000000000000001')::square_set, 'Expected result is 0000000000000001.');
+  PERFORM p_assert(square_set_pattern_pack_diag4((x'fffffffffefdfbf7')::square_set) = (x'0000000000000000')::square_set, 'Expected result is 0000000000000000.');
+END $$;
 
 --
 -- Un-packs DIAG4 pattern.
@@ -399,6 +687,21 @@ BEGIN
   RETURN r & s1;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_             square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_            square_set := (x'0000000000000000')::BIGINT;
+  packed_diag4_mask square_set := (x'000000000000000f')::BIGINT;
+  diag4             square_set := (x'0000000001020408')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_unpack_diag4(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_unpack_diag4(packed_diag4_mask) = diag4, 'Expected result is diag4.');
+  PERFORM p_assert(square_set_pattern_unpack_diag4((x'0000000000000008')::square_set) = (x'0000000000000008')::square_set, 'Expected result is 0000000000000008.');
+  PERFORM p_assert(square_set_pattern_unpack_diag4((x'0000000000000004')::square_set) = (x'0000000000000400')::square_set, 'Expected result is 0000000000000400.');
+  PERFORM p_assert(square_set_pattern_unpack_diag4((x'0000000000000002')::square_set) = (x'0000000000020000')::square_set, 'Expected result is 0000000000020000.');
+  PERFORM p_assert(square_set_pattern_unpack_diag4((x'0000000000000001')::square_set) = (x'0000000001000000')::square_set, 'Expected result is 0000000001000000.');
+END $$;
 
 --
 -- Packs DIAG5 pattern.
@@ -422,6 +725,22 @@ BEGIN
   RETURN r3 & s2;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_             square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_            square_set := (x'0000000000000000')::BIGINT;
+  packed_diag5_mask square_set := (x'000000000000001f')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_pack_diag5(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_diag5(full_) = packed_diag5_mask, 'Expected result is packed_diag5_mask.');
+  PERFORM p_assert(square_set_pattern_pack_diag5((x'0000000000000010')::square_set) = (x'0000000000000010')::square_set, 'Expected result is 0000000000000010.');
+  PERFORM p_assert(square_set_pattern_pack_diag5((x'0000000000000800')::square_set) = (x'0000000000000008')::square_set, 'Expected result is 0000000000000008.');
+  PERFORM p_assert(square_set_pattern_pack_diag5((x'0000000000040000')::square_set) = (x'0000000000000004')::square_set, 'Expected result is 0000000000000004.');
+  PERFORM p_assert(square_set_pattern_pack_diag5((x'0000000002000000')::square_set) = (x'0000000000000002')::square_set, 'Expected result is 0000000000000002.');
+  PERFORM p_assert(square_set_pattern_pack_diag5((x'0000000100000000')::square_set) = (x'0000000000000001')::square_set, 'Expected result is 0000000000000001.');
+  PERFORM p_assert(square_set_pattern_pack_diag5((x'fffffffefdfbf7ef')::square_set) = (x'0000000000000000')::square_set, 'Expected result is 0000000000000000.');
+END $$;
 
 --
 -- Un-packs DIAG5 pattern.
@@ -440,6 +759,22 @@ BEGIN
   RETURN r & s1;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_             square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_            square_set := (x'0000000000000000')::BIGINT;
+  packed_diag5_mask square_set := (x'000000000000001f')::BIGINT;
+  diag5             square_set := (x'0000000102040810')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_unpack_diag5(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_unpack_diag5(packed_diag5_mask) = diag5, 'Expected result is diag5.');
+  PERFORM p_assert(square_set_pattern_unpack_diag5((x'0000000000000010')::square_set) = (x'0000000000000010')::square_set, 'Expected result is 0000000000000010.');
+  PERFORM p_assert(square_set_pattern_unpack_diag5((x'0000000000000008')::square_set) = (x'0000000000000800')::square_set, 'Expected result is 0000000000000800.');
+  PERFORM p_assert(square_set_pattern_unpack_diag5((x'0000000000000004')::square_set) = (x'0000000000040000')::square_set, 'Expected result is 0000000000040000.');
+  PERFORM p_assert(square_set_pattern_unpack_diag5((x'0000000000000002')::square_set) = (x'0000000002000000')::square_set, 'Expected result is 0000000002000000.');
+  PERFORM p_assert(square_set_pattern_unpack_diag5((x'0000000000000001')::square_set) = (x'0000000100000000')::square_set, 'Expected result is 0000000100000000.');
+END $$;
 
 --
 -- Packs DIAG6 pattern.
@@ -463,6 +798,23 @@ BEGIN
   RETURN r3 & s2;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_             square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_            square_set := (x'0000000000000000')::BIGINT;
+  packed_diag6_mask square_set := (x'000000000000003f')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_pack_diag6(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_diag6(full_) = packed_diag6_mask, 'Expected result is packed_diag6_mask.');
+  PERFORM p_assert(square_set_pattern_pack_diag6((x'0000000000000020')::square_set) = (x'0000000000000020')::square_set, 'Expected result is 0000000000000020.');
+  PERFORM p_assert(square_set_pattern_pack_diag6((x'0000000000001000')::square_set) = (x'0000000000000010')::square_set, 'Expected result is 0000000000000010.');
+  PERFORM p_assert(square_set_pattern_pack_diag6((x'0000000000080000')::square_set) = (x'0000000000000008')::square_set, 'Expected result is 0000000000000008.');
+  PERFORM p_assert(square_set_pattern_pack_diag6((x'0000000004000000')::square_set) = (x'0000000000000004')::square_set, 'Expected result is 0000000000000004.');
+  PERFORM p_assert(square_set_pattern_pack_diag6((x'0000000200000000')::square_set) = (x'0000000000000002')::square_set, 'Expected result is 0000000000000002.');
+  PERFORM p_assert(square_set_pattern_pack_diag6((x'0000010000000000')::square_set) = (x'0000000000000001')::square_set, 'Expected result is 0000000000000001.');
+  PERFORM p_assert(square_set_pattern_pack_diag6((x'fffffefdfbf7efdf')::square_set) = (x'0000000000000000')::square_set, 'Expected result is 0000000000000000.');
+END $$;
 
 --
 -- Un-packs DIAG6 pattern.
@@ -481,6 +833,23 @@ BEGIN
   RETURN r & s1;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_             square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_            square_set := (x'0000000000000000')::BIGINT;
+  packed_diag6_mask square_set := (x'000000000000003f')::BIGINT;
+  diag6             square_set := (x'0000010204081020')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_unpack_diag6(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_unpack_diag6(packed_diag6_mask) = diag6, 'Expected result is diag6.');
+  PERFORM p_assert(square_set_pattern_unpack_diag6((x'0000000000000020')::square_set) = (x'0000000000000020')::square_set, 'Expected result is 0000000000000020.');
+  PERFORM p_assert(square_set_pattern_unpack_diag6((x'0000000000000010')::square_set) = (x'0000000000001000')::square_set, 'Expected result is 0000000000001000.');
+  PERFORM p_assert(square_set_pattern_unpack_diag6((x'0000000000000008')::square_set) = (x'0000000000080000')::square_set, 'Expected result is 0000000000080000.');
+  PERFORM p_assert(square_set_pattern_unpack_diag6((x'0000000000000004')::square_set) = (x'0000000004000000')::square_set, 'Expected result is 0000000004000000.');
+  PERFORM p_assert(square_set_pattern_unpack_diag6((x'0000000000000002')::square_set) = (x'0000000200000000')::square_set, 'Expected result is 0000000200000000.');
+  PERFORM p_assert(square_set_pattern_unpack_diag6((x'0000000000000001')::square_set) = (x'0000010000000000')::square_set, 'Expected result is 0000010000000000.');
+END $$;
 
 --
 -- Packs DIAG7 pattern.
@@ -504,6 +873,24 @@ BEGIN
   RETURN r3 & s2;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_             square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_            square_set := (x'0000000000000000')::BIGINT;
+  packed_diag7_mask square_set := (x'000000000000007f')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_pack_diag7(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_diag7(full_) = packed_diag7_mask, 'Expected result is packed_diag7_mask.');
+  PERFORM p_assert(square_set_pattern_pack_diag7((x'0000000000000040')::square_set) = (x'0000000000000040')::square_set, 'Expected result is 0000000000000040.');
+  PERFORM p_assert(square_set_pattern_pack_diag7((x'0000000000002000')::square_set) = (x'0000000000000020')::square_set, 'Expected result is 0000000000000020.');
+  PERFORM p_assert(square_set_pattern_pack_diag7((x'0000000000100000')::square_set) = (x'0000000000000010')::square_set, 'Expected result is 0000000000000010.');
+  PERFORM p_assert(square_set_pattern_pack_diag7((x'0000000008000000')::square_set) = (x'0000000000000008')::square_set, 'Expected result is 0000000000000008.');
+  PERFORM p_assert(square_set_pattern_pack_diag7((x'0000000400000000')::square_set) = (x'0000000000000004')::square_set, 'Expected result is 0000000000000004.');
+  PERFORM p_assert(square_set_pattern_pack_diag7((x'0000020000000000')::square_set) = (x'0000000000000002')::square_set, 'Expected result is 0000000000000002.');
+  PERFORM p_assert(square_set_pattern_pack_diag7((x'0001000000000000')::square_set) = (x'0000000000000001')::square_set, 'Expected result is 0000000000000001.');
+  PERFORM p_assert(square_set_pattern_pack_diag7((x'fffefdfbf7efdfbf')::square_set) = (x'0000000000000000')::square_set, 'Expected result is 0000000000000000.');
+END $$;
 
 --
 -- Un-packs DIAG7 pattern.
@@ -522,6 +909,24 @@ BEGIN
   RETURN r & s1;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_             square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_            square_set := (x'0000000000000000')::BIGINT;
+  packed_diag7_mask square_set := (x'000000000000007f')::BIGINT;
+  diag7             square_set := (x'0001020408102040')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_unpack_diag7(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_unpack_diag7(packed_diag7_mask) = diag7, 'Expected result is diag7.');
+  PERFORM p_assert(square_set_pattern_unpack_diag7((x'0000000000000040')::square_set) = (x'0000000000000040')::square_set, 'Expected result is 0000000000000040.');
+  PERFORM p_assert(square_set_pattern_unpack_diag7((x'0000000000000020')::square_set) = (x'0000000000002000')::square_set, 'Expected result is 0000000000002000.');
+  PERFORM p_assert(square_set_pattern_unpack_diag7((x'0000000000000010')::square_set) = (x'0000000000100000')::square_set, 'Expected result is 0000000000100000.');
+  PERFORM p_assert(square_set_pattern_unpack_diag7((x'0000000000000008')::square_set) = (x'0000000008000000')::square_set, 'Expected result is 0000000008000000.');
+  PERFORM p_assert(square_set_pattern_unpack_diag7((x'0000000000000004')::square_set) = (x'0000000400000000')::square_set, 'Expected result is 0000000400000000.');
+  PERFORM p_assert(square_set_pattern_unpack_diag7((x'0000000000000002')::square_set) = (x'0000020000000000')::square_set, 'Expected result is 0000020000000000.');
+  PERFORM p_assert(square_set_pattern_unpack_diag7((x'0000000000000001')::square_set) = (x'0001000000000000')::square_set, 'Expected result is 0001000000000000.');
+END $$;
 
 --
 -- Packs DIAG8 pattern.
@@ -545,6 +950,25 @@ BEGIN
   RETURN r3 & s2;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_             square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_            square_set := (x'0000000000000000')::BIGINT;
+  packed_diag8_mask square_set := (x'00000000000000ff')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_pack_diag8(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_diag8(full_) = packed_diag8_mask, 'Expected result is packed_diag8_mask.');
+  PERFORM p_assert(square_set_pattern_pack_diag8((x'0000000000000080')::square_set) = (x'0000000000000080')::square_set, 'Expected result is 0000000000000080.');
+  PERFORM p_assert(square_set_pattern_pack_diag8((x'0000000000004000')::square_set) = (x'0000000000000040')::square_set, 'Expected result is 0000000000000040.');
+  PERFORM p_assert(square_set_pattern_pack_diag8((x'0000000000200000')::square_set) = (x'0000000000000020')::square_set, 'Expected result is 0000000000000020.');
+  PERFORM p_assert(square_set_pattern_pack_diag8((x'0000000010000000')::square_set) = (x'0000000000000010')::square_set, 'Expected result is 0000000000000010.');
+  PERFORM p_assert(square_set_pattern_pack_diag8((x'0000000800000000')::square_set) = (x'0000000000000008')::square_set, 'Expected result is 0000000000000008.');
+  PERFORM p_assert(square_set_pattern_pack_diag8((x'0000040000000000')::square_set) = (x'0000000000000004')::square_set, 'Expected result is 0000000000000004.');
+  PERFORM p_assert(square_set_pattern_pack_diag8((x'0002000000000000')::square_set) = (x'0000000000000002')::square_set, 'Expected result is 0000000000000002.');
+  PERFORM p_assert(square_set_pattern_pack_diag8((x'0100000000000000')::square_set) = (x'0000000000000001')::square_set, 'Expected result is 0000000000000001.');
+  PERFORM p_assert(square_set_pattern_pack_diag8((x'fefdfbf7efdfbf7f')::square_set) = (x'0000000000000000')::square_set, 'Expected result is 0000000000000000.');
+END $$;
 
 --
 -- Un-packs DIAG8 pattern.
@@ -563,6 +987,25 @@ BEGIN
   RETURN r & s1;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_             square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_            square_set := (x'0000000000000000')::BIGINT;
+  packed_diag8_mask square_set := (x'00000000000000ff')::BIGINT;
+  diag8             square_set := (x'0102040810204080')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_unpack_diag8(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_unpack_diag8(packed_diag8_mask) = diag8, 'Expected result is diag8.');
+  PERFORM p_assert(square_set_pattern_unpack_diag8((x'0000000000000080')::square_set) = (x'0000000000000080')::square_set, 'Expected result is 0000000000000080.');
+  PERFORM p_assert(square_set_pattern_unpack_diag8((x'0000000000000040')::square_set) = (x'0000000000004000')::square_set, 'Expected result is 0000000000004000.');
+  PERFORM p_assert(square_set_pattern_unpack_diag8((x'0000000000000020')::square_set) = (x'0000000000200000')::square_set, 'Expected result is 0000000000200000.');
+  PERFORM p_assert(square_set_pattern_unpack_diag8((x'0000000000000010')::square_set) = (x'0000000010000000')::square_set, 'Expected result is 0000000010000000.');
+  PERFORM p_assert(square_set_pattern_unpack_diag8((x'0000000000000008')::square_set) = (x'0000000800000000')::square_set, 'Expected result is 0000000800000000.');
+  PERFORM p_assert(square_set_pattern_unpack_diag8((x'0000000000000004')::square_set) = (x'0000040000000000')::square_set, 'Expected result is 0000040000000000.');
+  PERFORM p_assert(square_set_pattern_unpack_diag8((x'0000000000000002')::square_set) = (x'0002000000000000')::square_set, 'Expected result is 0002000000000000.');
+  PERFORM p_assert(square_set_pattern_unpack_diag8((x'0000000000000001')::square_set) = (x'0100000000000000')::square_set, 'Expected result is 0100000000000000.');
+END $$;
 
 --
 -- Packs 2X5COR pattern.
@@ -578,6 +1021,21 @@ BEGIN
   RETURN (s & s1) | ((s & s2) >> 3);
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_              square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_             square_set := (x'0000000000000000')::BIGINT;
+  nw_2x5cor          square_set := (x'0000000000001f1f')::BIGINT;
+  packed_2x5cor_mask square_set := (x'00000000000003ff')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_pack_2x5cor(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_2x5cor(full_) = packed_2x5cor_mask, 'Expected result is packed_2x5cor_mask.');
+  PERFORM p_assert(square_set_pattern_pack_2x5cor(nw_2x5cor) = packed_2x5cor_mask, 'Expected result is packed_2x5cor_mask.');
+  PERFORM p_assert(square_set_pattern_pack_2x5cor((x'000000000000001f')::square_set) = (x'000000000000001f')::square_set, 'Expected result is 000000000000001f.');
+  PERFORM p_assert(square_set_pattern_pack_2x5cor((x'0000000000001f00')::square_set) = (x'00000000000003e0')::square_set, 'Expected result is 00000000000003e0.');
+  PERFORM p_assert(square_set_pattern_pack_2x5cor((x'ffffffffffffe0e0')::square_set) = (x'0000000000000000')::square_set, 'Expected result is 0000000000000000.');
+END $$;
 
 --
 -- Un-packs 2X5COR pattern.
@@ -588,11 +1046,24 @@ RETURNS square_set
 AS $$
 DECLARE
   s1 square_set := (x'000000000000001f')::BIGINT;
-  s2 square_set := (x'0000000000001f00')::BIGINT;
+  s2 square_set := (x'00000000000003e0')::BIGINT;
 BEGIN
   RETURN (s & s1) | ((s & s2) << 3);
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_              square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_             square_set := (x'0000000000000000')::BIGINT;
+  nw_2x5cor          square_set := (x'0000000000001f1f')::BIGINT;
+  packed_2x5cor_mask square_set := (x'00000000000003ff')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_unpack_2x5cor(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_unpack_2x5cor(packed_2x5cor_mask) = nw_2x5cor, 'Expected result is nw_2x5cor.');
+  PERFORM p_assert(square_set_pattern_unpack_2x5cor((x'000000000000001f')::square_set) = (x'000000000000001f')::square_set, 'Expected result is 000000000000001f.');
+  PERFORM p_assert(square_set_pattern_unpack_2x5cor((x'00000000000003e0')::square_set) = (x'0000000000001f00')::square_set, 'Expected result is 0000000000001f00.');
+END $$;
 
 --
 --
