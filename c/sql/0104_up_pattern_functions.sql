@@ -1160,7 +1160,7 @@ BEGIN
 END $$;
 
 --
---
+-- MIRROR functions.
 --
 
 --
@@ -1193,11 +1193,24 @@ BEGIN
   RETURN mirror_value;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
-
 --- Tests.
 DO $$
+DECLARE
+  n INTEGER := 3^8 - 1;
 BEGIN
-  PERFORM p_assert(regab_mirror_value_edge_pattern(125) = 6183, 'Expected value is 6183.');
+  PERFORM p_assert(regab_mirror_value_edge_pattern( 125) = 6183, 'Expected value is 6183.');
+  PERFORM p_assert(regab_mirror_value_edge_pattern(6183) =  125, 'Expected value is  125.');
+  PERFORM p_assert(regab_mirror_value_edge_pattern( 702) =  234, 'Expected value is  234.');
+  PERFORM p_assert(regab_mirror_value_edge_pattern( 234) =  702, 'Expected value is  702.');
+  PERFORM p_assert(regab_mirror_value_edge_pattern(   0) =    0, 'Expected value is    0.');
+  PERFORM p_assert(regab_mirror_value_edge_pattern(3280) = 3280, 'Expected value is 3280.');
+  PERFORM p_assert(regab_mirror_value_edge_pattern(6560) = 6560, 'Expected value is 6560.');
+  PERFORM p_assert(regab_mirror_value_edge_pattern(4372) = 4372, 'Expected value is 4372.');
+  PERFORM p_assert(regab_mirror_value_edge_pattern(5602) = 3182, 'Expected value is 3182.');
+  FOR i IN 0..n LOOP
+    --RAISE NOTICE 'i=%', i;
+    PERFORM p_assert(regab_mirror_value_edge_pattern(regab_mirror_value_edge_pattern(i)) = i, 'Comuputing mirror of mirror of an edge pattern index should return itself');
+  END LOOP;
 END $$;
 
 --
@@ -1231,6 +1244,25 @@ BEGIN
   RETURN mirror_value;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests.
+DO $$
+DECLARE
+  n INTEGER := 3^9 - 1;
+BEGIN
+  PERFORM p_assert(regab_mirror_value_corner_pattern(    0) =     0, 'Expected value is     0.');
+  PERFORM p_assert(regab_mirror_value_corner_pattern( 9841) =  9841, 'Expected value is  9841.');
+  PERFORM p_assert(regab_mirror_value_corner_pattern(19682) = 19682, 'Expected value is 19682.');
+  PERFORM p_assert(regab_mirror_value_corner_pattern( 7522) =  7522, 'Expected value is  7522.');
+  PERFORM p_assert(regab_mirror_value_corner_pattern(    9) =   729, 'Expected value is   729.');
+  PERFORM p_assert(regab_mirror_value_corner_pattern(   18) =  1458, 'Expected value is  1458.');
+  PERFORM p_assert(regab_mirror_value_corner_pattern(    3) =    27, 'Expected value is    27.');
+  PERFORM p_assert(regab_mirror_value_corner_pattern(  243) =  2187, 'Expected value is  2187.');
+  PERFORM p_assert(regab_mirror_value_corner_pattern(13796) = 19172, 'Expected value is 19172.');
+  FOR i IN 0..n LOOP
+    --RAISE NOTICE 'i=%', i;
+    PERFORM p_assert(regab_mirror_value_corner_pattern(regab_mirror_value_corner_pattern(i)) = i, 'Comuputing mirror of mirror of a corner pattern index should return itself');
+  END LOOP;
+END $$;
 
 --
 -- Computes the mirror value for the given index, for the XEDGE pattern.
@@ -1263,59 +1295,83 @@ BEGIN
   RETURN mirror_value;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests.
+DO $$
+DECLARE
+  n INTEGER := 3^10 - 1;
+BEGIN
+  PERFORM p_assert(regab_mirror_value_xedge_pattern(    0) =     0, 'Expected value is     0.');
+  PERFORM p_assert(regab_mirror_value_xedge_pattern(29524) = 29524, 'Expected value is 29524.');
+  PERFORM p_assert(regab_mirror_value_xedge_pattern(59048) = 59048, 'Expected value is 59048.');
+  PERFORM p_assert(regab_mirror_value_xedge_pattern(52447) = 36125, 'Expected value is 36125.');
+  PERFORM p_assert(regab_mirror_value_xedge_pattern( 6561) = 19683, 'Expected value is 19683.');
+  FOR i IN 0..n LOOP
+    --RAISE NOTICE 'i=%', i;
+    PERFORM p_assert(regab_mirror_value_xedge_pattern(regab_mirror_value_xedge_pattern(i)) = i, 'Comuputing mirror of mirror of a xedge pattern index should return itself');
+  END LOOP;
+END $$;
 
 --
 -- Computes the mirror value for the given index, for the R2 pattern.
--- Patterns EDGE, R2, R3, and R4 have the same mapping.
 --
 CREATE FUNCTION regab_mirror_value_r2_pattern (index_value INTEGER)
 RETURNS INTEGER
 AS $$
-DECLARE
-  mo square_set;
-  op square_set;
-  mirror_value INTEGER;
 BEGIN
-  -- step 0: index to transformed patterrn
-  SELECT mover, opponent INTO mo, op FROM regab_index_to_transformed_pattern(index_value);
-    
-  -- step 1: transformed pattern to instance zero pattern
-  mo := mo << 8; op := op << 8;
-  
-  -- step 2: mirror transformation
-  mo := square_set_flip_vertical(mo); op := square_set_flip_vertical(op);
-  
-  -- step 3: instance zero pattern to transformed pattern
-  mo := mo >> 8; op := op >> 8;
-  
-  -- step 4: transformed pattern to index
-  mirror_value := regab_transformed_pattern_to_index(mo, op);
-
-  RETURN mirror_value;
+  RETURN regab_mirror_value_edge_pattern(index_value);
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests.
+DO $$
+DECLARE
+  n INTEGER := 3^8 - 1;
+BEGIN
+  PERFORM p_assert(regab_mirror_value_r2_pattern( 125) = 6183, 'Expected value is 6183.');
+  PERFORM p_assert(regab_mirror_value_r2_pattern(6183) =  125, 'Expected value is  125.');
+  PERFORM p_assert(regab_mirror_value_r2_pattern( 702) =  234, 'Expected value is  234.');
+  PERFORM p_assert(regab_mirror_value_r2_pattern( 234) =  702, 'Expected value is  702.');
+  PERFORM p_assert(regab_mirror_value_r2_pattern(   0) =    0, 'Expected value is    0.');
+  PERFORM p_assert(regab_mirror_value_r2_pattern(3280) = 3280, 'Expected value is 3280.');
+  PERFORM p_assert(regab_mirror_value_r2_pattern(6560) = 6560, 'Expected value is 6560.');
+  PERFORM p_assert(regab_mirror_value_r2_pattern(4372) = 4372, 'Expected value is 4372.');
+  PERFORM p_assert(regab_mirror_value_r2_pattern(5602) = 3182, 'Expected value is 3182.');
+  FOR i IN 0..n LOOP
+    --RAISE NOTICE 'i=%', i;
+    PERFORM p_assert(regab_mirror_value_r2_pattern(regab_mirror_value_r2_pattern(i)) = i, 'Comuputing mirror of mirror of an r2 pattern index should return itself');
+  END LOOP;
+END $$;
 
 --
--- See function documenattion for R2 pattern.
+-- See function documenattion for EDGE pattern.
 --
 CREATE FUNCTION regab_mirror_value_r3_pattern (index_value INTEGER)
 RETURNS INTEGER
 AS $$
 BEGIN
-  RETURN regab_mirror_value_r2_pattern(index_value);
+  RETURN regab_mirror_value_edge_pattern(index_value);
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests.
+DO $$
+BEGIN
+  PERFORM p_assert(regab_mirror_value_r3_pattern(64) = 2592, 'Expected value is 2592.');
+END $$;
 
 --
--- See function documenattion for R2 pattern.
+-- See function documenattion for EDGE pattern.
 --
 CREATE FUNCTION regab_mirror_value_r4_pattern (index_value INTEGER)
 RETURNS INTEGER
 AS $$
 BEGIN
-  RETURN regab_mirror_value_r2_pattern(index_value);
+  RETURN regab_mirror_value_edge_pattern(index_value);
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests.
+DO $$
+BEGIN
+  PERFORM p_assert(regab_mirror_value_r4_pattern(2244) = 892, 'Expected value is 892.');
+END $$;
 
 --
 -- Computes the mirror value for the given index, for the DIAG4 pattern.
