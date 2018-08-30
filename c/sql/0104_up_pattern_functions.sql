@@ -1404,6 +1404,21 @@ BEGIN
   RETURN mirror_value;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests.
+DO $$
+DECLARE
+  n INTEGER := 3^4 - 1;
+BEGIN
+  PERFORM p_assert(regab_mirror_value_diag4_pattern( 0) =  0, 'Expected value is  0.');
+  PERFORM p_assert(regab_mirror_value_diag4_pattern(40) = 40, 'Expected value is 40.');
+  PERFORM p_assert(regab_mirror_value_diag4_pattern(80) = 80, 'Expected value is 80.');
+  PERFORM p_assert(regab_mirror_value_diag4_pattern(53) = 79, 'Expected value is 79.');
+  PERFORM p_assert(regab_mirror_value_diag4_pattern( 7) = 45, 'Expected value is 45.');
+  FOR i IN 0..n LOOP
+    --RAISE NOTICE 'i=%', i;
+    PERFORM p_assert(regab_mirror_value_diag4_pattern(regab_mirror_value_diag4_pattern(i)) = i, 'Comuputing mirror of mirror of an diag4 pattern index should return itself');
+  END LOOP;
+END $$;
 
 --
 -- Computes the mirror value for the given index, for the DIAG5 pattern.
@@ -1436,6 +1451,21 @@ BEGIN
   RETURN mirror_value;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests.
+DO $$
+DECLARE
+  n INTEGER := 3^5 - 1;
+BEGIN
+  PERFORM p_assert(regab_mirror_value_diag5_pattern(  0) =   0, 'Expected value is   0.');
+  PERFORM p_assert(regab_mirror_value_diag5_pattern(121) = 121, 'Expected value is 121.');
+  PERFORM p_assert(regab_mirror_value_diag5_pattern(242) = 242, 'Expected value is 242.');
+  PERFORM p_assert(regab_mirror_value_diag5_pattern( 15) =  63, 'Expected value is  63.');
+  PERFORM p_assert(regab_mirror_value_diag5_pattern(  7) = 135, 'Expected value is 135.');
+  FOR i IN 0..n LOOP
+    --RAISE NOTICE 'i=%', i;
+    PERFORM p_assert(regab_mirror_value_diag5_pattern(regab_mirror_value_diag5_pattern(i)) = i, 'Comuputing mirror of mirror of an diag5 pattern index should return itself');
+  END LOOP;
+END $$;
 
 --
 -- Computes the mirror value for the given index, for the DIAG6 pattern.
@@ -1468,6 +1498,21 @@ BEGIN
   RETURN mirror_value;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests.
+DO $$
+DECLARE
+  n INTEGER := 3^6 - 1;
+BEGIN
+  PERFORM p_assert(regab_mirror_value_diag6_pattern(  0) =   0, 'Expected value is   0.');
+  PERFORM p_assert(regab_mirror_value_diag6_pattern(364) = 364, 'Expected value is 364.');
+  PERFORM p_assert(regab_mirror_value_diag6_pattern(728) = 728, 'Expected value is 728.');
+  PERFORM p_assert(regab_mirror_value_diag6_pattern(715) = 377, 'Expected value is 377.');
+  PERFORM p_assert(regab_mirror_value_diag6_pattern(  7) = 405, 'Expected value is 405.');
+  FOR i IN 0..n LOOP
+    --RAISE NOTICE 'i=%', i;
+    PERFORM p_assert(regab_mirror_value_diag6_pattern(regab_mirror_value_diag6_pattern(i)) = i, 'Comuputing mirror of mirror of an diag6 pattern index should return itself');
+  END LOOP;
+END $$;
 
 --
 -- Computes the mirror value for the given index, for the DIAG7 pattern.
@@ -1500,6 +1545,21 @@ BEGIN
   RETURN mirror_value;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests.
+DO $$
+DECLARE
+  n INTEGER := 3^7 - 1;
+BEGIN
+  PERFORM p_assert(regab_mirror_value_diag7_pattern(   0) =    0, 'Expected value is    0.');
+  PERFORM p_assert(regab_mirror_value_diag7_pattern(1093) = 1093, 'Expected value is 1093.');
+  PERFORM p_assert(regab_mirror_value_diag7_pattern(2186) = 2186, 'Expected value is 2186.');
+  PERFORM p_assert(regab_mirror_value_diag7_pattern(2173) = 1133, 'Expected value is 1133.');
+  PERFORM p_assert(regab_mirror_value_diag7_pattern(   7) = 1215, 'Expected value is 1215.');
+  FOR i IN 0..n LOOP
+    --RAISE NOTICE 'i=%', i;
+    PERFORM p_assert(regab_mirror_value_diag7_pattern(regab_mirror_value_diag7_pattern(i)) = i, 'Comuputing mirror of mirror of an diag7 pattern index should return itself');
+  END LOOP;
+END $$;
 
 --
 -- Computes the mirror value for the given index, for the DIAG8 pattern.
@@ -1532,6 +1592,21 @@ BEGIN
   RETURN mirror_value;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests.
+DO $$
+DECLARE
+  n INTEGER := 3^8 - 1;
+BEGIN
+  PERFORM p_assert(regab_mirror_value_diag8_pattern(   0) =    0, 'Expected value is    0.');
+  PERFORM p_assert(regab_mirror_value_diag8_pattern(3280) = 3280, 'Expected value is 3280.');
+  PERFORM p_assert(regab_mirror_value_diag8_pattern(6560) = 6560, 'Expected value is 6560.');
+  PERFORM p_assert(regab_mirror_value_diag8_pattern(6520) = 3320, 'Expected value is 3320.');
+  PERFORM p_assert(regab_mirror_value_diag8_pattern(   7) = 3645, 'Expected value is 3645.');
+  FOR i IN 0..n LOOP
+    --RAISE NOTICE 'i=%', i;
+    PERFORM p_assert(regab_mirror_value_diag8_pattern(regab_mirror_value_diag8_pattern(i)) = i, 'Comuputing mirror of mirror of an diag8 pattern index should return itself');
+  END LOOP;
+END $$;
 
 --
 -- Computes the mirror value for the given index, for the 2X5COR pattern.
@@ -1543,5 +1618,10 @@ BEGIN
   RETURN NULL;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests.
+DO $$
+BEGIN
+  PERFORM p_assert(regab_mirror_value_2x5cor_pattern(0) IS NULL, 'Expected value is NULL.');
+END $$;
 
 COMMIT;
