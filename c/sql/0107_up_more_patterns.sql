@@ -40,7 +40,7 @@ VALUES (0107, now(), 'load_patterns', 'loads patterns, pattern ranges, and patte
 ---
 --- Populates the patter table with EDGE, CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, and 2X5COR patterns.
 ---
-INSERT INTO regab_prng_patterns (ins_time, pattern_name_id, pattern_name, ninstances, nsquares, description)
+INSERT INTO regab_prng_patterns (ins_time, pattern_id, pattern_name, ninstances, nsquares, description)
   SELECT * FROM (VALUES
     (now(),  0, 'EDGE',    4,  8, 'The edge of the board'),
     (now(),  1, 'CORNER',  4,  9, 'The 3x3 corner'),
@@ -54,7 +54,7 @@ INSERT INTO regab_prng_patterns (ins_time, pattern_name_id, pattern_name, ninsta
     (now(),  9, 'DIAG7',   4,  7, 'Seven square diagonal, G1-F2-E3-D4-C5-B6-A7'),
     (now(), 10, 'DIAG8',   2,  8, 'Eight square diagonal, H1-G2-F3-E4-D5-C6-B7-A8'),
     (now(), 11, '2X5COR',  8, 10, 'Ten square, asymmetric corner')
-  ) AS tmp_table(ins_time, pattern_name_id, pattern_name, ninstances, nsquares, description);
+  ) AS tmp_table(ins_time, pattern_id, pattern_name, ninstances, nsquares, description);
 
 ---
 --- Creates entries in regab_prng_pattern_ranges.
@@ -63,88 +63,88 @@ INSERT INTO regab_prng_patterns (ins_time, pattern_name_id, pattern_name, ninsta
 DO $$
 DECLARE
   pn CHAR(6);
-  pid INTEGER;
+  pid SMALLINT;
 BEGIN
   pn := 'EDGE';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
-  SELECT seq INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
+  SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_edge_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   --
   pn := 'CORNER';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
-  SELECT seq INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
+  SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_corner_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   --
   pn := 'XEDGE';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
-  SELECT seq INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
+  SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_xedge_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   --
   pn := 'R2';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
-  SELECT seq INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
+  SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_r2_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   --
   pn := 'R3';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
-  SELECT seq INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
+  SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_r3_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   --
   pn := 'R4';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
-  SELECT seq INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
+  SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_r4_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   --
   pn := 'DIAG4';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
-  SELECT seq INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
+  SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag4_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   --
   pn := 'DIAG5';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
-  SELECT seq INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
+  SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag5_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   --
   pn := 'DIAG6';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
-  SELECT seq INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
+  SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag6_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   --
   pn := 'DIAG7';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
-  SELECT seq INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
+  SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag7_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   --
   pn := 'DIAG8';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
-  SELECT seq INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
+  SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag8_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   --
   pn := '2X5COR';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
-  SELECT seq INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
+  SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_2x5cor_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;

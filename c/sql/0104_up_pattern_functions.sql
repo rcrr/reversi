@@ -1640,8 +1640,8 @@ DECLARE
   index_count INTEGER;
 BEGIN
   nrecords := 0;
-  SELECT INTO pattern_rec seq, pattern_name, nsquares, ninstances FROM regab_prng_patterns WHERE pattern_name = pattern_name_arg;
-  IF pattern_rec.seq IS NULL THEN
+  SELECT INTO pattern_rec pattern_id, pattern_name, nsquares, ninstances FROM regab_prng_patterns WHERE pattern_name = pattern_name_arg;
+  IF pattern_rec.pattern_id IS NULL THEN
     RAISE EXCEPTION 'Pattern record in table regab_prng_patterns has not been found.';
   END IF;
   index_count := 3^pattern_rec.nsquares;
@@ -1672,9 +1672,9 @@ BEGIN
       empty_count_range AS ecr
   )
   INSERT INTO regab_prng_pattern_ranges (pattern_id, index_value, empty_count)
-  SELECT pattern_rec.seq, index_value, empty_count FROM pattern_range_key;
+    SELECT pattern_rec.pattern_id, index_value, empty_count FROM pattern_range_key;
 
-  SELECT count(1) INTO nrecords FROM regab_prng_pattern_ranges WHERE pattern_id = pattern_rec.seq;
+  SELECT count(1) INTO nrecords FROM regab_prng_pattern_ranges WHERE pattern_id = pattern_rec.pattern_id;
   
   RETURN nrecords;
 END;
@@ -1688,11 +1688,11 @@ $$ LANGUAGE plpgsql VOLATILE;
 -- Populates the index_prob_given_ec field in table regab_prng_pattern_ranges taking data from
 -- the staging table regab_staging_ec_pidx_cnt_tmp (empty_count, index_value, frequency).
 --
--- Checks that the pattern_name_in is an entry in the regab_prng_patterns table.
+-- Checks that the pattern_name_arg is an entry in the regab_prng_patterns table.
 -- Checks that there are the expected number of records belonging to the given pattern in table regab_prng_pattern_ranges.
 -- Checks that there are the expected number of records in the staging table.
 --
-CREATE FUNCTION regab_update_prob_into_pattern_ranges_from_staging (pattern_name_in CHARACTER(6))
+CREATE FUNCTION regab_update_prob_into_pattern_ranges_from_staging (pattern_name_arg CHARACTER(6))
 RETURNS INTEGER
 AS $$
 DECLARE
@@ -1705,11 +1705,11 @@ DECLARE
   nrec_counted_in_staging BIGINT;
 BEGIN
 
-  SELECT seq, pattern_name_id, ninstances, nsquares INTO pid, pnid, ni, ns
-    FROM regab_prng_patterns WHERE pattern_name = pattern_name_in;
+  SELECT pattern_id, ninstances, nsquares INTO pid, ni, ns
+    FROM regab_prng_patterns WHERE pattern_name = pattern_name_arg;
   IF pid IS NULL THEN
     RAISE EXCEPTION 'Record not found in table regab_prng_patterns matching pattern_name "%".',
-      pattern_name_in;
+      pattern_name_arg;
   END IF;
 
   SELECT 3^ns*61 INTO nrec_expected;
@@ -1718,7 +1718,7 @@ BEGIN
 
   IF nrec_counted_in_table <> nrec_expected THEN
     RAISE EXCEPTION 'The number of record belonging to the "%" pattern must be %, found %.',
-      pattern_name_in, nrec_expected, nrec_counted_in_table;
+      pattern_name_arg, nrec_expected, nrec_counted_in_table;
   END IF;
 
   IF nrec_counted_in_staging <> nrec_expected THEN
@@ -1955,17 +1955,15 @@ BEGIN
   --- Transform the index value to its principal value (mirror of minimal value).
   IF principal THEN
     --- EDGE
-    SELECT seq INTO STRICT pid FROM regab_prng_patterns WHERE pattern_name_id = 0;
-    SELECT principal_index_value INTO STRICT i_edge_0 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND empty_count = 0 AND index_value = i_edge_0;
-    SELECT principal_index_value INTO STRICT i_edge_1 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND empty_count = 0 AND index_value = i_edge_1;
-    SELECT principal_index_value INTO STRICT i_edge_2 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND empty_count = 0 AND index_value = i_edge_2;
-    SELECT principal_index_value INTO STRICT i_edge_3 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND empty_count = 0 AND index_value = i_edge_3;
+    SELECT principal_index_value INTO STRICT i_edge_0 FROM regab_prng_pattern_ranges WHERE pattern_id = 0 AND empty_count = 0 AND index_value = i_edge_0;
+    SELECT principal_index_value INTO STRICT i_edge_1 FROM regab_prng_pattern_ranges WHERE pattern_id = 0 AND empty_count = 0 AND index_value = i_edge_1;
+    SELECT principal_index_value INTO STRICT i_edge_2 FROM regab_prng_pattern_ranges WHERE pattern_id = 0 AND empty_count = 0 AND index_value = i_edge_2;
+    SELECT principal_index_value INTO STRICT i_edge_3 FROM regab_prng_pattern_ranges WHERE pattern_id = 0 AND empty_count = 0 AND index_value = i_edge_3;
     --- CORNER
-    SELECT seq INTO STRICT pid FROM regab_prng_patterns WHERE pattern_name_id = 1;
-    SELECT principal_index_value INTO STRICT i_corner_0 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND empty_count = 0 AND index_value = i_corner_0;
-    SELECT principal_index_value INTO STRICT i_corner_1 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND empty_count = 0 AND index_value = i_corner_1;
-    SELECT principal_index_value INTO STRICT i_corner_2 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND empty_count = 0 AND index_value = i_corner_2;
-    SELECT principal_index_value INTO STRICT i_corner_3 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND empty_count = 0 AND index_value = i_corner_3;
+    SELECT principal_index_value INTO STRICT i_corner_0 FROM regab_prng_pattern_ranges WHERE pattern_id = 1 AND empty_count = 0 AND index_value = i_corner_0;
+    SELECT principal_index_value INTO STRICT i_corner_1 FROM regab_prng_pattern_ranges WHERE pattern_id = 1 AND empty_count = 0 AND index_value = i_corner_1;
+    SELECT principal_index_value INTO STRICT i_corner_2 FROM regab_prng_pattern_ranges WHERE pattern_id = 1 AND empty_count = 0 AND index_value = i_corner_2;
+    SELECT principal_index_value INTO STRICT i_corner_3 FROM regab_prng_pattern_ranges WHERE pattern_id = 1 AND empty_count = 0 AND index_value = i_corner_3;
   END IF;
   
 END;

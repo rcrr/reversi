@@ -35,14 +35,13 @@ SET search_path TO reversi;
 BEGIN;
  
 INSERT INTO migrations (migration_id, ins_time, label, description)
-VALUES (0103, now(), 'patterns', 'creates basic tables for patterns and game position classification');
+VALUES (0103, now(), 'patterns', 'creates tables for patterns and game position classification');
 
 ---
 --- Table regab_prng_patterns
 --- Patterns are enumarated exactly as the board_pattern_id_t enum as defined in board_pattern.h
 ---
-CREATE TABLE regab_prng_patterns (seq             SERIAL      PRIMARY KEY,
-                                  pattern_name_id INTEGER     NOT NULL UNIQUE,
+CREATE TABLE regab_prng_patterns (pattern_id      SMALLINT    PRIMARY KEY,
                                   pattern_name    CHAR(6)     NOT NULL UNIQUE,
                                   ins_time        TIMESTAMP,
                                   ninstances      SMALLINT    NOT NULL,
@@ -54,17 +53,17 @@ CREATE TABLE regab_prng_patterns (seq             SERIAL      PRIMARY KEY,
 --
 -- Table regab_prng_pattern_ranges
 --
-CREATE TABLE regab_prng_pattern_ranges (seq                   SERIAL    PRIMARY KEY,
+CREATE TABLE regab_prng_pattern_ranges (seq                   BIGSERIAL        PRIMARY KEY,
                                         ---
-                                        ins_time              TIMESTAMP DEFAULT now(),
-                                        status                CHAR(3)   DEFAULT 'INS',
-                                        cst_time              TIMESTAMP DEFAULT now(),
+                                        ins_time              TIMESTAMP        DEFAULT now(),
+                                        status                CHAR(3)          DEFAULT 'INS',
+                                        cst_time              TIMESTAMP        DEFAULT now(),
                                         ---
-                                        pattern_id            INTEGER   REFERENCES regab_prng_patterns(seq) ON DELETE CASCADE,
+                                        pattern_id            SMALLINT         REFERENCES regab_prng_patterns(pattern_id) ON DELETE CASCADE,
                                         index_value           INTEGER,
                                         empty_count           SMALLINT,
-                                        mirror_value          INTEGER   DEFAULT NULL,
-                                        principal_index_value INTEGER   DEFAULT NULL,
+                                        mirror_value          INTEGER          DEFAULT NULL,
+                                        principal_index_value INTEGER          DEFAULT NULL,
                                         index_prob_given_ec   DOUBLE PRECISION DEFAULT NULL,
                                         ---
                                         UNIQUE (pattern_id, index_value, empty_count),

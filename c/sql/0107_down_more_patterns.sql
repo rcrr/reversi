@@ -33,18 +33,18 @@
 SET search_path TO reversi;
 
 BEGIN;
-DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = '2X5COR');
-DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'DIAG8');
-DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'DIAG7');
-DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'DIAG6');
-DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'DIAG5');
-DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'DIAG4');
-DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'R4');
-DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'R3');
-DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'R2');
-DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'XEDGE');
-DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'CORNER');
-DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'EDGE');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = '2X5COR');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = 'DIAG8');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = 'DIAG7');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = 'DIAG6');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = 'DIAG5');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = 'DIAG4');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = 'R4');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = 'R3');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = 'R2');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = 'XEDGE');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = 'CORNER');
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = 'EDGE');
 
 DELETE FROM regab_prng_patterns WHERE pattern_name = '2X5COR';
 DELETE FROM regab_prng_patterns WHERE pattern_name = 'DIAG8';
