@@ -1624,4 +1624,60 @@ BEGIN
   PERFORM p_assert(regab_mirror_value_2x5cor_pattern(0) IS NULL, 'Expected value is NULL.');
 END $$;
 
+--
+--
+--
+
+--
+-- Populates the table regab_prng_pattern_ranges with the data appropriate for the function argument.
+--
+CREATE FUNCTION ragab_populate_pattern_ranges (pattern_name_arg CHAR(6))
+RETURNS INTEGER
+AS $$
+DECLARE
+  nrecords INTEGER;
+  pattern_rec RECORD;
+  index_count INTEGER;
+BEGIN
+  nrecords := 0;
+  SELECT INTO pattern_rec seq, pattern_name, nsquares, ninstances FROM regab_prng_patterns WHERE pattern_name = pattern_name_arg;
+  IF pattern_rec.seq IS NULL THEN
+    RAISE EXCEPTION 'Pattern record in table regab_prng_patterns has not been found.';
+  END IF;
+  index_count := 3^pattern_rec.nsquares;
+
+  WITH RECURSIVE index_value_range AS (
+    SELECT
+      0::INTEGER AS val
+    UNION ALL SELECT val + 1::INTEGER AS val
+    FROM
+      index_value_range
+    WHERE
+      index_value_range.val < index_count - 1
+  ), empty_count_range AS (
+    SELECT
+      0::INTEGER AS val
+    UNION ALL SELECT val + 1::INTEGER AS val
+    FROM
+      empty_count_range
+    WHERE
+      empty_count_range.val < 60   
+  ), pattern_range_key AS (
+    SELECT
+      ivr.val AS index_value,
+      ecr.val AS empty_count
+    FROM
+      index_value_range AS ivr
+    CROSS JOIN
+      empty_count_range AS ecr
+  )
+  INSERT INTO regab_prng_pattern_ranges (pattern_id, index_value, empty_count)
+  SELECT pattern_rec.seq, index_value, empty_count FROM pattern_range_key;
+
+  SELECT count(1) INTO nrecords FROM regab_prng_pattern_ranges WHERE pattern_id = pattern_rec.seq;
+  
+  RETURN nrecords;
+END;
+$$ LANGUAGE plpgsql VOLATILE;
+
 COMMIT;

@@ -37,8 +37,6 @@ BEGIN;
 DROP FUNCTION regab_gp_populate_pattern_class_table;
 DROP FUNCTION regab_gp_compute_pattern_indexes;
 
-DROP TABLE regab_prng_gp_pattern_class;
-
 DELETE FROM migrations WHERE migration_id = 108;
 
 COMMIT;

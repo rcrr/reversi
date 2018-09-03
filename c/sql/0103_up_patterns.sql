@@ -50,6 +50,111 @@ CREATE TABLE regab_prng_patterns (seq             SERIAL      PRIMARY KEY,
                                   description     TEXT,
                                   CONSTRAINT ninstances_is_positive CHECK(ninstances > 0),
                                   CONSTRAINT nsquares_is_positive CHECK(nsquares > 0));
+
+--
+-- Table regab_prng_pattern_ranges
+--
+CREATE TABLE regab_prng_pattern_ranges (seq                   SERIAL    PRIMARY KEY,
+                                        ---
+                                        ins_time              TIMESTAMP DEFAULT now(),
+                                        status                CHAR(3)   DEFAULT 'INS',
+                                        cst_time              TIMESTAMP DEFAULT now(),
+                                        ---
+                                        pattern_id            INTEGER   REFERENCES regab_prng_patterns(seq) ON DELETE CASCADE,
+                                        index_value           INTEGER,
+                                        empty_count           SMALLINT,
+                                        mirror_value          INTEGER   DEFAULT NULL,
+                                        principal_index_value INTEGER   DEFAULT NULL,
+                                        index_prob_given_ec   DOUBLE PRECISION DEFAULT NULL,
+                                        ---
+                                        UNIQUE (pattern_id, index_value, empty_count),
+                                        CHECK (status IN ('INS', 'WIP', 'CMP')));
+
+--
+-- Table used to load csv file having format:
+--   EMPTY_COUNT;PATTERN_INDEX;COUNT
+--
+-- The CSV file has been produced by a command like this:
+-- rcrr@hypnotic:~/base/prj/reversi/c$ ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q initial -s rand -n 1000000000 -P EDGE -r 628
+--
+CREATE TABLE regab_staging_ec_pidx_cnt_tmp (empty_count   SMALLINT,
+                                            index_value   INTEGER,
+                                            frequency     BIGINT);
+
+--
+-- The table is an extension of regab_prng_gp.
+-- It records the index values for all the pattern instances corresponding to the game position being referenced.
+--
+CREATE TABLE regab_prng_gp_pattern_class (gp_id      BIGINT PRIMARY KEY REFERENCES regab_prng_gp(seq) ON DELETE CASCADE,
+                                          ---
+                                          ins_time   TIMESTAMP DEFAULT now(),
+                                          status     CHAR(3)   DEFAULT 'INS',
+                                          cst_time   TIMESTAMP DEFAULT now(),
+                                          ---
+                                          i_edge_0   INTEGER,
+                                          i_edge_1   INTEGER,
+                                          i_edge_2   INTEGER,
+                                          i_edge_3   INTEGER,
+                                          ---
+                                          i_corner_0 INTEGER,
+                                          i_corner_1 INTEGER,
+                                          i_corner_2 INTEGER,
+                                          i_corner_3 INTEGER,
+                                          ---
+                                          i_xedge_0  INTEGER,
+                                          i_xedge_1  INTEGER,
+                                          i_xedge_2  INTEGER,
+                                          i_xedge_3  INTEGER,
+                                          ---
+                                          i_r2_0     INTEGER,
+                                          i_r2_1     INTEGER,
+                                          i_r2_2     INTEGER,
+                                          i_r2_3     INTEGER,
+                                          ---
+                                          i_r3_0     INTEGER,
+                                          i_r3_1     INTEGER,
+                                          i_r3_2     INTEGER,
+                                          i_r3_3     INTEGER,
+                                          ---
+                                          i_r4_0     INTEGER,
+                                          i_r4_1     INTEGER,
+                                          i_r4_2     INTEGER,
+                                          i_r4_3     INTEGER,
+                                          ---
+                                          i_diag4_0  INTEGER,
+                                          i_diag4_1  INTEGER,
+                                          i_diag4_2  INTEGER,
+                                          i_diag4_3  INTEGER,
+                                          ---
+                                          i_diag5_0  INTEGER,
+                                          i_diag5_1  INTEGER,
+                                          i_diag5_2  INTEGER,
+                                          i_diag5_3  INTEGER,
+                                          ---
+                                          i_diag6_0  INTEGER,
+                                          i_diag6_1  INTEGER,
+                                          i_diag6_2  INTEGER,
+                                          i_diag6_3  INTEGER,
+                                          ---
+                                          i_diag7_0  INTEGER,
+                                          i_diag7_1  INTEGER,
+                                          i_diag7_2  INTEGER,
+                                          i_diag7_3  INTEGER,
+                                          ---
+                                          i_diag8_0  INTEGER,
+                                          i_diag8_1  INTEGER,
+                                          ---
+                                          i_2x5cor_0 INTEGER,
+                                          i_2x5cor_1 INTEGER,
+                                          i_2x5cor_2 INTEGER,
+                                          i_2x5cor_3 INTEGER,
+                                          i_2x5cor_4 INTEGER,
+                                          i_2x5cor_5 INTEGER,
+                                          i_2x5cor_6 INTEGER,
+                                          i_2x5cor_7 INTEGER,
+                                          ---
+                                          CHECK (status IN ('INS', 'WIP', 'CMP')));
+
 ---
 --- Populates the patter table with EDGE, CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, and 2X5COR patterns.
 ---

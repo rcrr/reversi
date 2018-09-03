@@ -34,6 +34,12 @@ SET search_path TO reversi;
 
 BEGIN;
 
+DROP TABLE regab_prng_gp_pattern_class;
+
+DROP TABLE regab_staging_ec_pidx_cnt_tmp;
+
+DROP TABLE regab_prng_pattern_ranges;
+
 DROP TABLE regab_prng_patterns;
 
 DELETE FROM migrations WHERE migration_id = 103;

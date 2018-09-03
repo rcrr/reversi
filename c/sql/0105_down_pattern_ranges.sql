@@ -34,13 +34,6 @@ SET search_path TO reversi;
 
 BEGIN;
 
-DROP TABLE regab_staging_ec_pidx_cnt_tmp;
-
---DROP FUNCTION regab_mirror_edge_pattern;
-DROP FUNCTION ragab_populate_pattern_ranges;
-
-DROP TABLE regab_prng_pattern_ranges;
-
 DELETE FROM migrations WHERE migration_id = 105;
 
 COMMIT;

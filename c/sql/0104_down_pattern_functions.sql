@@ -34,6 +34,9 @@ SET search_path TO reversi;
 
 BEGIN;
 
+DROP FUNCTION ragab_populate_pattern_ranges;
+
+
 DROP FUNCTION regab_mirror_value_2x5cor_pattern;
 DROP FUNCTION regab_mirror_value_diag8_pattern;
 DROP FUNCTION regab_mirror_value_diag7_pattern;
