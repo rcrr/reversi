@@ -55,19 +55,28 @@ CREATE TABLE regab_prng_patterns (pattern_id      SMALLINT    PRIMARY KEY,
 --
 CREATE TABLE regab_prng_pattern_ranges (seq                   BIGSERIAL        PRIMARY KEY,
                                         ---
-                                        ins_time              TIMESTAMP        DEFAULT now(),
-                                        status                CHAR(3)          DEFAULT 'INS',
-                                        cst_time              TIMESTAMP        DEFAULT now(),
-                                        ---
                                         pattern_id            SMALLINT         REFERENCES regab_prng_patterns(pattern_id) ON DELETE CASCADE,
                                         index_value           INTEGER,
-                                        empty_count           SMALLINT,
+                                        ---
                                         mirror_value          INTEGER          DEFAULT NULL,
                                         principal_index_value INTEGER          DEFAULT NULL,
-                                        index_prob_given_ec   DOUBLE PRECISION DEFAULT NULL,
                                         ---
-                                        UNIQUE (pattern_id, index_value, empty_count),
-                                        CHECK (status IN ('INS', 'WIP', 'CMP')));
+                                        UNIQUE (pattern_id, index_value)
+                                        );
+
+--
+-- Table regab_prng_pattern_probs
+--
+-- Example query:
+-- SELECT empty_count AS ec, index_prob_given_ec AS prob FROM regab_prng_pattern_probs AS ps JOIN regab_prng_pattern_ranges AS rs ON ps.range_id = rs.seq WHERE rs. pattern_id = 0 AND index_value = 360 ORDER BY empty_count;
+--
+CREATE TABLE regab_prng_pattern_probs (range_id           BIGINT            REFERENCES regab_prng_pattern_ranges(seq) ON DELETE CASCADE,
+                                       empty_count        SMALLINT,
+                                       ---
+                                       index_prob_given_ec DOUBLE PRECISION DEFAULT NULL,
+                                       ---
+                                       UNIQUE (range_id, empty_count)
+                                       );
 
 --
 -- Table used to load csv file having format:

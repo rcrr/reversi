@@ -64,3 +64,4 @@ DELETE FROM migrations WHERE migration_id = 107;
 COMMIT;
 
 VACUUM ANALYZE regab_prng_pattern_ranges;
+VACUUM ANALYZE regab_prng_pattern_probs;

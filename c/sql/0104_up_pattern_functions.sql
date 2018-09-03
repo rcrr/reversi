@@ -1654,27 +1654,62 @@ BEGIN
       index_value_range
     WHERE
       index_value_range.val < index_count - 1
-  ), empty_count_range AS (
+  ), pattern_range_key AS (
+    SELECT val AS index_value FROM index_value_range
+  )
+  INSERT INTO regab_prng_pattern_ranges (pattern_id, index_value)
+    SELECT pattern_rec.pattern_id, index_value FROM pattern_range_key;
+
+  SELECT count(1) INTO nrecords FROM regab_prng_pattern_ranges WHERE pattern_id = pattern_rec.pattern_id;
+  
+  RETURN nrecords;
+END;
+$$ LANGUAGE plpgsql VOLATILE;
+
+--
+-- Populates the table regab_prng_pattern_ranges with the data appropriate for the function argument.
+--
+CREATE FUNCTION ragab_populate_pattern_probs (pattern_name_arg CHAR(6))
+RETURNS INTEGER
+AS $$
+DECLARE
+  nrecords INTEGER;
+  pattern_rec RECORD;
+BEGIN
+  nrecords := 0;
+  SELECT INTO pattern_rec pattern_id, pattern_name, nsquares, ninstances FROM regab_prng_patterns WHERE pattern_name = pattern_name_arg;
+  IF pattern_rec.pattern_id IS NULL THEN
+    RAISE EXCEPTION 'Pattern record in table regab_prng_patterns has not been found.';
+  END IF;
+
+  WITH RECURSIVE empty_count_range AS (
     SELECT
       0::INTEGER AS val
     UNION ALL SELECT val + 1::INTEGER AS val
     FROM
       empty_count_range
     WHERE
-      empty_count_range.val < 60   
-  ), pattern_range_key AS (
+      empty_count_range.val < 60
+  ), pattern_ranges AS (
     SELECT
-      ivr.val AS index_value,
+      seq AS range_id
+    FROM
+      regab_prng_pattern_ranges
+    WHERE
+      pattern_id = pattern_rec.pattern_id
+  ), pattern_prob_key AS (
+    SELECT
+      pr.range_id AS range_id,
       ecr.val AS empty_count
     FROM
-      index_value_range AS ivr
+      pattern_ranges AS pr
     CROSS JOIN
       empty_count_range AS ecr
   )
-  INSERT INTO regab_prng_pattern_ranges (pattern_id, index_value, empty_count)
-    SELECT pattern_rec.pattern_id, index_value, empty_count FROM pattern_range_key;
+  INSERT INTO regab_prng_pattern_probs (range_id, empty_count)
+    SELECT range_id, empty_count FROM pattern_prob_key;
 
-  SELECT count(1) INTO nrecords FROM regab_prng_pattern_ranges WHERE pattern_id = pattern_rec.pattern_id;
+  SELECT count(1) INTO nrecords FROM regab_prng_pattern_probs WHERE range_id IN (SELECT seq FROM regab_prng_pattern_ranges WHERE pattern_id = pattern_rec.pattern_id);
   
   RETURN nrecords;
 END;
@@ -1685,19 +1720,18 @@ $$ LANGUAGE plpgsql VOLATILE;
 --
 
 --
--- Populates the index_prob_given_ec field in table regab_prng_pattern_ranges taking data from
+-- Populates the index_prob_given_ec field in table regab_prng_pattern_probs taking data from
 -- the staging table regab_staging_ec_pidx_cnt_tmp (empty_count, index_value, frequency).
 --
 -- Checks that the pattern_name_arg is an entry in the regab_prng_patterns table.
--- Checks that there are the expected number of records belonging to the given pattern in table regab_prng_pattern_ranges.
+-- Checks that there are the expected number of records belonging to the given pattern in table regab_prng_pattern_probs.
 -- Checks that there are the expected number of records in the staging table.
 --
-CREATE FUNCTION regab_update_prob_into_pattern_ranges_from_staging (pattern_name_arg CHARACTER(6))
+CREATE FUNCTION regab_update_prob_into_pattern_probs_from_staging (pattern_name_arg CHARACTER(6))
 RETURNS INTEGER
 AS $$
 DECLARE
   pid INTEGER;
-  pnid INTEGER;
   ni SMALLINT;
   ns SMALLINT;
   nrec_expected BIGINT;
@@ -1713,7 +1747,8 @@ BEGIN
   END IF;
 
   SELECT 3^ns*61 INTO nrec_expected;
-  SELECT count(1) INTO nrec_counted_in_table FROM regab_prng_pattern_ranges WHERE pattern_id = pid;
+  SELECT count(1) INTO nrec_counted_in_table FROM regab_prng_pattern_probs
+    WHERE range_id IN (SELECT seq FROM regab_prng_pattern_ranges WHERE pattern_id = pid);
   SELECT count(1) INTO nrec_counted_in_staging FROM regab_staging_ec_pidx_cnt_tmp;
 
   IF nrec_counted_in_table <> nrec_expected THEN
@@ -1730,8 +1765,8 @@ BEGIN
     SELECT empty_count, sum(frequency) AS cnt
     FROM regab_staging_ec_pidx_cnt_tmp GROUP BY empty_count
   ), frequencies AS (
-    SELECT empty_count, index_value, sum(frequency) AS cnt
-    FROM regab_staging_ec_pidx_cnt_tmp GROUP BY empty_count, index_value ORDER BY empty_count
+    SELECT empty_count, index_value, frequency AS cnt
+    FROM regab_staging_ec_pidx_cnt_tmp
   ), probabilities AS (
     SELECT
       f.empty_count AS empty_count,
@@ -1741,20 +1776,28 @@ BEGIN
       freq_totals_by_ec AS ft
     LEFT JOIN
       frequencies AS f ON f.empty_count = ft.empty_count
-    ORDER BY
-      empty_count, index_value
-  ) UPDATE regab_prng_pattern_ranges AS ta
+  ), pattern_ranges AS (
+    SELECT
+      seq AS prid, index_value FROM regab_prng_pattern_ranges WHERE pattern_id = pid
+  ), update_table AS (
+    SELECT
+      pr.empty_count AS empty_count,
+      pr.index_value AS index_value,
+      pr.probability AS probability,
+      pa.prid AS range_id
+    FROM
+      probabilities AS pr
+    LEFT JOIN
+      pattern_ranges AS pa ON pa.index_value = pr.index_value
+  ) UPDATE regab_prng_pattern_probs AS ta
   SET
-    index_prob_given_ec = probability,
-    cst_time = now(),
-    status = 'CMP'
-  FROM probabilities AS tb
+    index_prob_given_ec = probability
+  FROM update_table AS tb
   WHERE
-    ta.pattern_id = pid AND
-    ta.index_value = tb.index_value AND
+    ta.range_id = tb.range_id AND
     ta.empty_count = tb.empty_count;
   
-  RETURN pnid;
+  RETURN nrec_expected;
 END;
 $$ LANGUAGE plpgsql VOLATILE;
 

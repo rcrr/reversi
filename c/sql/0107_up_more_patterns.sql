@@ -71,6 +71,7 @@ BEGIN
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_edge_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := 'CORNER';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
@@ -78,6 +79,7 @@ BEGIN
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_corner_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := 'XEDGE';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
@@ -85,6 +87,7 @@ BEGIN
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_xedge_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := 'R2';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
@@ -92,6 +95,7 @@ BEGIN
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_r2_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := 'R3';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
@@ -99,6 +103,7 @@ BEGIN
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_r3_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := 'R4';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
@@ -106,6 +111,7 @@ BEGIN
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_r4_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := 'DIAG4';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
@@ -113,6 +119,7 @@ BEGIN
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag4_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := 'DIAG5';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
@@ -120,6 +127,7 @@ BEGIN
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag5_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := 'DIAG6';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
@@ -127,6 +135,7 @@ BEGIN
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag6_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := 'DIAG7';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
@@ -134,6 +143,7 @@ BEGIN
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag7_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := 'DIAG8';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
@@ -141,6 +151,7 @@ BEGIN
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag8_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := '2X5COR';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
@@ -148,6 +159,7 @@ BEGIN
   PERFORM ragab_populate_pattern_ranges(pn);
   UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_2x5cor_pattern(index_value),
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  PERFORM ragab_populate_pattern_probs(pn);
   --
 END $$;
 
@@ -156,99 +168,100 @@ COMMIT;
 --
 -- Loads probabilities.
 -- Populates the index_prob_given_ec field.
+VACUUM ANALYZE regab_prng_pattern_ranges;
 --
 -- EDGE
 --
-VACUUM ANALYZE regab_prng_pattern_ranges;
+VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_EDGE_826_1billion.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
-SELECT regab_update_prob_into_pattern_ranges_from_staging('EDGE');
+SELECT regab_update_prob_into_pattern_probs_from_staging('EDGE');
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- CORNER
 --
-VACUUM ANALYZE regab_prng_pattern_ranges;
+VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_CORNER_112_116_292_298_372_378_973_977_32000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
-SELECT regab_update_prob_into_pattern_ranges_from_staging('CORNER');
+SELECT regab_update_prob_into_pattern_probs_from_staging('CORNER');
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- XEDGE
 --
-VACUUM ANALYZE regab_prng_pattern_ranges;
+VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_XEDGE_112_116_292_298_372_378_973_977_80000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
-SELECT regab_update_prob_into_pattern_ranges_from_staging('XEDGE');
+SELECT regab_update_prob_into_pattern_probs_from_staging('XEDGE');
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- R2
 --
-VACUUM ANALYZE regab_prng_pattern_ranges;
+VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_R2_628_1000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
-SELECT regab_update_prob_into_pattern_ranges_from_staging('R2');
+SELECT regab_update_prob_into_pattern_probs_from_staging('R2');
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- R3
 --
-VACUUM ANALYZE regab_prng_pattern_ranges;
+VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_R3_628_1000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
-SELECT regab_update_prob_into_pattern_ranges_from_staging('R3');
+SELECT regab_update_prob_into_pattern_probs_from_staging('R3');
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- R4
 --
-VACUUM ANALYZE regab_prng_pattern_ranges;
+VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_R4_628_1000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
-SELECT regab_update_prob_into_pattern_ranges_from_staging('R4');
+SELECT regab_update_prob_into_pattern_probs_from_staging('R4');
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- DIAG4
 --
-VACUUM ANALYZE regab_prng_pattern_ranges;
+VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_DIAG4_628_1000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
-SELECT regab_update_prob_into_pattern_ranges_from_staging('DIAG4');
+SELECT regab_update_prob_into_pattern_probs_from_staging('DIAG4');
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- DIAG5
 --
-VACUUM ANALYZE regab_prng_pattern_ranges;
+VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_DIAG5_628_1000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
-SELECT regab_update_prob_into_pattern_ranges_from_staging('DIAG5');
+SELECT regab_update_prob_into_pattern_probs_from_staging('DIAG5');
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- DIAG6
 --
-VACUUM ANALYZE regab_prng_pattern_ranges;
+VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_DIAG6_628_1000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
-SELECT regab_update_prob_into_pattern_ranges_from_staging('DIAG6');
+SELECT regab_update_prob_into_pattern_probs_from_staging('DIAG6');
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- DIAG7
 --
-VACUUM ANALYZE regab_prng_pattern_ranges;
+VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_DIAG7_628_1000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
-SELECT regab_update_prob_into_pattern_ranges_from_staging('DIAG7');
+SELECT regab_update_prob_into_pattern_probs_from_staging('DIAG7');
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- DIAG8
 --
-VACUUM ANALYZE regab_prng_pattern_ranges;
+VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_DIAG8_628_1000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
-SELECT regab_update_prob_into_pattern_ranges_from_staging('DIAG8');
+SELECT regab_update_prob_into_pattern_probs_from_staging('DIAG8');
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- 2X5COR
 --
-VACUUM ANALYZE regab_prng_pattern_ranges;
+VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_2X5COR_112_116_292_298_372_378_973_977_80000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
-SELECT regab_update_prob_into_pattern_ranges_from_staging('2X5COR');
+SELECT regab_update_prob_into_pattern_probs_from_staging('2X5COR');
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
