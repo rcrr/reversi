@@ -46,7 +46,18 @@ DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_
 DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'CORNER');
 DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT seq FROM regab_prng_patterns WHERE pattern_name = 'EDGE');
 
-DROP FUNCTION regab_update_prob_into_pattern_ranges_from_staging;
+DELETE FROM regab_prng_patterns WHERE pattern_name = '2X5COR';
+DELETE FROM regab_prng_patterns WHERE pattern_name = 'DIAG8';
+DELETE FROM regab_prng_patterns WHERE pattern_name = 'DIAG7';
+DELETE FROM regab_prng_patterns WHERE pattern_name = 'DIAG6';
+DELETE FROM regab_prng_patterns WHERE pattern_name = 'DIAG5';
+DELETE FROM regab_prng_patterns WHERE pattern_name = 'DIAG4';
+DELETE FROM regab_prng_patterns WHERE pattern_name = 'R4';
+DELETE FROM regab_prng_patterns WHERE pattern_name = 'R3';
+DELETE FROM regab_prng_patterns WHERE pattern_name = 'R2';
+DELETE FROM regab_prng_patterns WHERE pattern_name = 'XEDGE';
+DELETE FROM regab_prng_patterns WHERE pattern_name = 'CORNER';
+DELETE FROM regab_prng_patterns WHERE pattern_name = 'EDGE';
 
 DELETE FROM migrations WHERE migration_id = 107;
 

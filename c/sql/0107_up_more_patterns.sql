@@ -35,81 +35,26 @@ SET search_path TO reversi;
 BEGIN;
  
 INSERT INTO migrations (migration_id, ins_time, label, description)
-VALUES (0107, now(), 'more_patterns', 'adds all patterns needed by the GLEM implementation as described by M. Buro in his papers');
+VALUES (0107, now(), 'load_patterns', 'loads patterns, pattern ranges, and pattern statistics');
 
---
--- Populates the index_prob_given_ec field in table regab_prng_pattern_ranges taking data from
--- the staging table regab_staging_ec_pidx_cnt_tmp (empty_count, index_value, frequency).
---
--- Checks that the pattern_name_in is an entry in the regab_prng_patterns table.
--- Checks that there are the expected number of records belonging to the given pattern in table regab_prng_pattern_ranges.
--- Checks that there are the expected number of records in the staging table.
---
-CREATE FUNCTION regab_update_prob_into_pattern_ranges_from_staging (pattern_name_in CHARACTER(6))
-RETURNS INTEGER
-AS $$
-DECLARE
-  pid INTEGER;
-  pnid INTEGER;
-  ni SMALLINT;
-  ns SMALLINT;
-  nrec_expected BIGINT;
-  nrec_counted_in_table BIGINT;
-  nrec_counted_in_staging BIGINT;
-BEGIN
-
-  SELECT seq, pattern_name_id, ninstances, nsquares INTO pid, pnid, ni, ns
-    FROM regab_prng_patterns WHERE pattern_name = pattern_name_in;
-  IF pid IS NULL THEN
-    RAISE EXCEPTION 'Record not found in table regab_prng_patterns matching pattern_name "%".',
-      pattern_name_in;
-  END IF;
-
-  SELECT 3^ns*61 INTO nrec_expected;
-  SELECT count(1) INTO nrec_counted_in_table FROM regab_prng_pattern_ranges WHERE pattern_id = pid;
-  SELECT count(1) INTO nrec_counted_in_staging FROM regab_staging_ec_pidx_cnt_tmp;
-
-  IF nrec_counted_in_table <> nrec_expected THEN
-    RAISE EXCEPTION 'The number of record belonging to the "%" pattern must be %, found %.',
-      pattern_name_in, nrec_expected, nrec_counted_in_table;
-  END IF;
-
-  IF nrec_counted_in_staging <> nrec_expected THEN
-    RAISE EXCEPTION 'The number of record found in the staging table must be %, found %.',
-      nrec_expected, nrec_counted_in_staging;
-  END IF;
-  
-  WITH freq_totals_by_ec AS (
-    SELECT empty_count, sum(frequency) AS cnt
-    FROM regab_staging_ec_pidx_cnt_tmp GROUP BY empty_count
-  ), frequencies AS (
-    SELECT empty_count, index_value, sum(frequency) AS cnt
-    FROM regab_staging_ec_pidx_cnt_tmp GROUP BY empty_count, index_value ORDER BY empty_count
-  ), probabilities AS (
-    SELECT
-      f.empty_count AS empty_count,
-      f.index_value AS index_value,
-      f.cnt / ft.cnt AS probability
-    FROM
-      freq_totals_by_ec AS ft
-    LEFT JOIN
-      frequencies AS f ON f.empty_count = ft.empty_count
-    ORDER BY
-      empty_count, index_value
-  ) UPDATE regab_prng_pattern_ranges AS ta
-  SET
-    index_prob_given_ec = probability,
-    cst_time = now(),
-    status = 'CMP'
-  FROM probabilities AS tb
-  WHERE
-    ta.pattern_id = pid AND
-    ta.index_value = tb.index_value AND
-    ta.empty_count = tb.empty_count;
-  
-  RETURN pnid;
-END;
-$$ LANGUAGE plpgsql VOLATILE;
+---
+--- Populates the patter table with EDGE, CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, and 2X5COR patterns.
+---
+INSERT INTO regab_prng_patterns (ins_time, pattern_name_id, pattern_name, ninstances, nsquares, description)
+  SELECT * FROM (VALUES
+    (now(),  0, 'EDGE',    4,  8, 'The edge of the board'),
+    (now(),  1, 'CORNER',  4,  9, 'The 3x3 corner'),
+    (now(),  2, 'XEDGE',   4, 10, 'The edge of the board plus X squares'),
+    (now(),  3, 'R2',      4,  8, 'Second row, A2-B2-C2-D2-E2-F2-G2-H2'),
+    (now(),  4, 'R3',      4,  8, 'Third row, A3-B3-C3-D3-E3-F3-G3-H3'),
+    (now(),  5, 'R4',      4,  8, 'Fourth row, A4-B4-C4-D4-E4-F4-G4-H4'),
+    (now(),  6, 'DIAG4',   4,  4, 'Four square diagonal, D1-C2-B3-A4'),
+    (now(),  7, 'DIAG5',   4,  5, 'Five square diagonal, E1-D2-C3-B4-A5'),
+    (now(),  8, 'DIAG6',   4,  6, 'Six square diagonal, F1-E2-D3-C4-B5-A6'),
+    (now(),  9, 'DIAG7',   4,  7, 'Seven square diagonal, G1-F2-E3-D4-C5-B6-A7'),
+    (now(), 10, 'DIAG8',   2,  8, 'Eight square diagonal, H1-G2-F3-E4-D5-C6-B7-A8'),
+    (now(), 11, '2X5COR',  8, 10, 'Ten square, asymmetric corner')
+  ) AS tmp_table(ins_time, pattern_name_id, pattern_name, ninstances, nsquares, description);
 
 ---
 --- Creates entries in regab_prng_pattern_ranges.
@@ -205,21 +150,6 @@ BEGIN
     principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   --
 END $$;
-
---- To be extended on all pattern, this is EDGE, but a where condition is missing ....
---- Tests.
---DO $$
---DECLARE
---  computed INTEGER;
---BEGIN
---  SELECT count(distinct(index_value)) INTO computed FROM regab_prng_pattern_ranges;
---  PERFORM p_assert(computed = 6561, 'Expected value is 6561.');
---  --
---  SELECT count(distinct(principal_index_value)) INTO computed FROM regab_prng_pattern_ranges;
---  PERFORM p_assert(computed = 3321, 'Expected value is 3321, ((6561 - 3^4) / 2) + 3^4.');
---END $$;
-
-
 
 COMMIT;
 

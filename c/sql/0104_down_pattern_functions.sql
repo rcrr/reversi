@@ -37,6 +37,8 @@ BEGIN;
 DROP FUNCTION regab_gp_populate_pattern_class_table;
 DROP FUNCTION regab_gp_compute_pattern_indexes;
 
+DROP FUNCTION regab_update_prob_into_pattern_ranges_from_staging;
+
 DROP FUNCTION ragab_populate_pattern_ranges;
 
 DROP FUNCTION regab_mirror_value_2x5cor_pattern;

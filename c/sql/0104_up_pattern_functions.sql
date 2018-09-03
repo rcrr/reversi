@@ -1685,6 +1685,84 @@ $$ LANGUAGE plpgsql VOLATILE;
 --
 
 --
+-- Populates the index_prob_given_ec field in table regab_prng_pattern_ranges taking data from
+-- the staging table regab_staging_ec_pidx_cnt_tmp (empty_count, index_value, frequency).
+--
+-- Checks that the pattern_name_in is an entry in the regab_prng_patterns table.
+-- Checks that there are the expected number of records belonging to the given pattern in table regab_prng_pattern_ranges.
+-- Checks that there are the expected number of records in the staging table.
+--
+CREATE FUNCTION regab_update_prob_into_pattern_ranges_from_staging (pattern_name_in CHARACTER(6))
+RETURNS INTEGER
+AS $$
+DECLARE
+  pid INTEGER;
+  pnid INTEGER;
+  ni SMALLINT;
+  ns SMALLINT;
+  nrec_expected BIGINT;
+  nrec_counted_in_table BIGINT;
+  nrec_counted_in_staging BIGINT;
+BEGIN
+
+  SELECT seq, pattern_name_id, ninstances, nsquares INTO pid, pnid, ni, ns
+    FROM regab_prng_patterns WHERE pattern_name = pattern_name_in;
+  IF pid IS NULL THEN
+    RAISE EXCEPTION 'Record not found in table regab_prng_patterns matching pattern_name "%".',
+      pattern_name_in;
+  END IF;
+
+  SELECT 3^ns*61 INTO nrec_expected;
+  SELECT count(1) INTO nrec_counted_in_table FROM regab_prng_pattern_ranges WHERE pattern_id = pid;
+  SELECT count(1) INTO nrec_counted_in_staging FROM regab_staging_ec_pidx_cnt_tmp;
+
+  IF nrec_counted_in_table <> nrec_expected THEN
+    RAISE EXCEPTION 'The number of record belonging to the "%" pattern must be %, found %.',
+      pattern_name_in, nrec_expected, nrec_counted_in_table;
+  END IF;
+
+  IF nrec_counted_in_staging <> nrec_expected THEN
+    RAISE EXCEPTION 'The number of record found in the staging table must be %, found %.',
+      nrec_expected, nrec_counted_in_staging;
+  END IF;
+  
+  WITH freq_totals_by_ec AS (
+    SELECT empty_count, sum(frequency) AS cnt
+    FROM regab_staging_ec_pidx_cnt_tmp GROUP BY empty_count
+  ), frequencies AS (
+    SELECT empty_count, index_value, sum(frequency) AS cnt
+    FROM regab_staging_ec_pidx_cnt_tmp GROUP BY empty_count, index_value ORDER BY empty_count
+  ), probabilities AS (
+    SELECT
+      f.empty_count AS empty_count,
+      f.index_value AS index_value,
+      f.cnt / ft.cnt AS probability
+    FROM
+      freq_totals_by_ec AS ft
+    LEFT JOIN
+      frequencies AS f ON f.empty_count = ft.empty_count
+    ORDER BY
+      empty_count, index_value
+  ) UPDATE regab_prng_pattern_ranges AS ta
+  SET
+    index_prob_given_ec = probability,
+    cst_time = now(),
+    status = 'CMP'
+  FROM probabilities AS tb
+  WHERE
+    ta.pattern_id = pid AND
+    ta.index_value = tb.index_value AND
+    ta.empty_count = tb.empty_count;
+  
+  RETURN pnid;
+END;
+$$ LANGUAGE plpgsql VOLATILE;
+
+--
+--
+--
+
+--
 -- Given a board configuration returns the values taken by the pattern indexes.
 --
 CREATE FUNCTION regab_gp_compute_pattern_indexes (mover          square_set,
