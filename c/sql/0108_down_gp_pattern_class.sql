@@ -34,9 +34,6 @@ SET search_path TO reversi;
 
 BEGIN;
 
-DROP FUNCTION regab_gp_populate_pattern_class_table;
-DROP FUNCTION regab_gp_compute_pattern_indexes;
-
 DELETE FROM migrations WHERE migration_id = 108;
 
 COMMIT;
