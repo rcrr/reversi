@@ -1810,7 +1810,7 @@ $$ LANGUAGE plpgsql VOLATILE;
 --
 CREATE FUNCTION regab_gp_compute_pattern_indexes (mover          square_set,
                                                   opponent       square_set,
-                                                  principal      BOOL,
+                                                  is_principal   BOOL,
                                                   OUT i_edge_0   INTEGER,
                                                   OUT i_edge_1   INTEGER,
                                                   OUT i_edge_2   INTEGER,
@@ -1996,22 +1996,85 @@ BEGIN
                                                    square_set_pattern_pack_2x5cor(op_flip_da));
 
   --- Transform the index value to its principal value (mirror of minimal value).
-  IF principal THEN
+  IF is_principal THEN
     --- EDGE
-    SELECT principal_index_value INTO STRICT i_edge_0 FROM regab_prng_pattern_ranges WHERE pattern_id = 0 AND empty_count = 0 AND index_value = i_edge_0;
-    SELECT principal_index_value INTO STRICT i_edge_1 FROM regab_prng_pattern_ranges WHERE pattern_id = 0 AND empty_count = 0 AND index_value = i_edge_1;
-    SELECT principal_index_value INTO STRICT i_edge_2 FROM regab_prng_pattern_ranges WHERE pattern_id = 0 AND empty_count = 0 AND index_value = i_edge_2;
-    SELECT principal_index_value INTO STRICT i_edge_3 FROM regab_prng_pattern_ranges WHERE pattern_id = 0 AND empty_count = 0 AND index_value = i_edge_3;
+    pid := 0;
+    SELECT principal_index_value INTO STRICT i_edge_0   FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_edge_0;
+    SELECT principal_index_value INTO STRICT i_edge_1   FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_edge_1;
+    SELECT principal_index_value INTO STRICT i_edge_2   FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_edge_2;
+    SELECT principal_index_value INTO STRICT i_edge_3   FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_edge_3;
     --- CORNER
-    SELECT principal_index_value INTO STRICT i_corner_0 FROM regab_prng_pattern_ranges WHERE pattern_id = 1 AND empty_count = 0 AND index_value = i_corner_0;
-    SELECT principal_index_value INTO STRICT i_corner_1 FROM regab_prng_pattern_ranges WHERE pattern_id = 1 AND empty_count = 0 AND index_value = i_corner_1;
-    SELECT principal_index_value INTO STRICT i_corner_2 FROM regab_prng_pattern_ranges WHERE pattern_id = 1 AND empty_count = 0 AND index_value = i_corner_2;
-    SELECT principal_index_value INTO STRICT i_corner_3 FROM regab_prng_pattern_ranges WHERE pattern_id = 1 AND empty_count = 0 AND index_value = i_corner_3;
+    pid := 1;
+    SELECT principal_index_value INTO STRICT i_corner_0 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_corner_0;
+    SELECT principal_index_value INTO STRICT i_corner_1 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_corner_1;
+    SELECT principal_index_value INTO STRICT i_corner_2 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_corner_2;
+    SELECT principal_index_value INTO STRICT i_corner_3 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_corner_3;
+    --- XEDGE
+    pid := 2;
+    SELECT principal_index_value INTO STRICT i_xedge_0  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_xedge_0;
+    SELECT principal_index_value INTO STRICT i_xedge_1  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_xedge_1;
+    SELECT principal_index_value INTO STRICT i_xedge_2  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_xedge_2;
+    SELECT principal_index_value INTO STRICT i_xedge_3  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_xedge_3;
+    --- R2
+    pid := 3;
+    SELECT principal_index_value INTO STRICT i_r2_0     FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_r2_0;
+    SELECT principal_index_value INTO STRICT i_r2_1     FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_r2_1;
+    SELECT principal_index_value INTO STRICT i_r2_2     FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_r2_2;
+    SELECT principal_index_value INTO STRICT i_r2_3     FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_r2_3;
+    --- R3
+    pid := 4;
+    SELECT principal_index_value INTO STRICT i_r3_0     FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_r3_0;
+    SELECT principal_index_value INTO STRICT i_r3_1     FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_r3_1;
+    SELECT principal_index_value INTO STRICT i_r3_2     FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_r3_2;
+    SELECT principal_index_value INTO STRICT i_r3_3     FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_r3_3;
+    --- R4
+    pid := 5;
+    SELECT principal_index_value INTO STRICT i_r4_0     FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_r4_0;
+    SELECT principal_index_value INTO STRICT i_r4_1     FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_r4_1;
+    SELECT principal_index_value INTO STRICT i_r4_2     FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_r4_2;
+    SELECT principal_index_value INTO STRICT i_r4_3     FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_r4_3;
+    --- DIAG4
+    pid := 6;
+    SELECT principal_index_value INTO STRICT i_diag4_0  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag4_0;
+    SELECT principal_index_value INTO STRICT i_diag4_1  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag4_1;
+    SELECT principal_index_value INTO STRICT i_diag4_2  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag4_2;
+    SELECT principal_index_value INTO STRICT i_diag4_3  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag4_3;
+    --- DIAG5
+    pid := 7;
+    SELECT principal_index_value INTO STRICT i_diag5_0  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag5_0;
+    SELECT principal_index_value INTO STRICT i_diag5_1  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag5_1;
+    SELECT principal_index_value INTO STRICT i_diag5_2  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag5_2;
+    SELECT principal_index_value INTO STRICT i_diag5_3  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag5_3;
+    --- DIAG6
+    pid := 8;
+    SELECT principal_index_value INTO STRICT i_diag6_0  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag6_0;
+    SELECT principal_index_value INTO STRICT i_diag6_1  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag6_1;
+    SELECT principal_index_value INTO STRICT i_diag6_2  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag6_2;
+    SELECT principal_index_value INTO STRICT i_diag6_3  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag6_3;
+    --- DIAG7
+    pid := 9;
+    SELECT principal_index_value INTO STRICT i_diag7_0  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag7_0;
+    SELECT principal_index_value INTO STRICT i_diag7_1  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag7_1;
+    SELECT principal_index_value INTO STRICT i_diag7_2  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag7_2;
+    SELECT principal_index_value INTO STRICT i_diag7_3  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag7_3;
+    --- DIAG8
+    pid := 10;
+    SELECT principal_index_value INTO STRICT i_diag8_0  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag8_0;
+    SELECT principal_index_value INTO STRICT i_diag8_1  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag8_1;
+    --- 2X5COR
+    pid := 11;
+    SELECT principal_index_value INTO STRICT i_2x5cor_0 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_0;
+    SELECT principal_index_value INTO STRICT i_2x5cor_1 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_1;
+    SELECT principal_index_value INTO STRICT i_2x5cor_2 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_2;
+    SELECT principal_index_value INTO STRICT i_2x5cor_3 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_3;
+    SELECT principal_index_value INTO STRICT i_2x5cor_4 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_4;
+    SELECT principal_index_value INTO STRICT i_2x5cor_5 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_5;
+    SELECT principal_index_value INTO STRICT i_2x5cor_6 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_6;
+    SELECT principal_index_value INTO STRICT i_2x5cor_7 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_7;    
   END IF;
   
 END;
-$$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
-
+$$ LANGUAGE plpgsql VOLATILE;
 --- Tests.
 DO $$
 DECLARE
@@ -2020,9 +2083,8 @@ DECLARE
   black player := 0::player;
   pattern_index_values RECORD;
   --
-  is_principal BOOL;
+  is_principal BOOL := FALSE; -- could not be true before loading the regab_prng_pattern_probs table.
 BEGIN
-  is_principal := FALSE;
   SELECT * INTO pattern_index_values FROM regab_gp_compute_pattern_indexes(mo, op, is_principal);
   ---
   PERFORM p_assert(pattern_index_values.i_edge_0 =   40, 'Expected value for i_edge_0 is   40.');
@@ -2086,23 +2148,6 @@ BEGIN
   PERFORM p_assert(pattern_index_values.i_2x5cor_5 = 16758, 'Expected value for i_2x5cor_5 is 16758.');
   PERFORM p_assert(pattern_index_values.i_2x5cor_6 = 38871, 'Expected value for i_2x5cor_6 is 38871.');
   PERFORM p_assert(pattern_index_values.i_2x5cor_7 =  9730, 'Expected value for i_2x5cor_7 is  9730.');
-  ---
-  ---
-  is_principal := FALSE; --- has to be moved after data loading, and turned TRUE.
-  SELECT * INTO pattern_index_values FROM regab_gp_compute_pattern_indexes(mo, op, is_principal);
-  ---
-  --- ARE WRONG !!!!! the function does not return the PRINCIPAL PATTERN INDEX VALUE ..... TO BE CORRECTED ....
-  ---
-  PERFORM p_assert(pattern_index_values.i_edge_0 =   40, 'Expected value for i_edge_0 is   40.'); --  40
-  PERFORM p_assert(pattern_index_values.i_edge_1 =  702, 'Expected value for i_edge_1 is  234.'); -- 234
-  PERFORM p_assert(pattern_index_values.i_edge_2 =  717, 'Expected value for i_edge_2 is  717.'); -- 717
-  PERFORM p_assert(pattern_index_values.i_edge_3 = 2439, 'Expected value for i_edge_3 is  253.'); -- 253
-  ---
-  PERFORM p_assert(pattern_index_values.i_corner_0 = 10057, 'Expected value for i_corner_0 is 10057.');
-  PERFORM p_assert(pattern_index_values.i_corner_1 = 13284, 'Expected value for i_corner_1 is 13284.');
-  PERFORM p_assert(pattern_index_values.i_corner_2 = 10545, 'Expected value for i_corner_2 is 10545.');
-  PERFORM p_assert(pattern_index_values.i_corner_3 = 19368, 'Expected value for i_corner_3 is 19368.');
-
 END $$;
 
 --
@@ -2130,6 +2175,7 @@ DECLARE
     WHERE batch_id = batch_id_c AND empty_count > empty_count_min AND empty_count < empty_count_max AND status = ANY (status_c);
   gp_pattern_class_o_rec RECORD;
   gp_pattern_class_n_rec RECORD;
+  is_principal_index BOOL := TRUE;
 BEGIN
 
   rec_selected_cnt := 0;
@@ -2155,7 +2201,8 @@ BEGIN
       rec_create_cnt := rec_create_cnt + 1;
     END IF;
 
-    SELECT * INTO gp_pattern_class_n_rec FROM regab_gp_compute_pattern_indexes(game_position_rec.mover, game_position_rec.opponent, FALSE);
+    is_principal_index := FALSE;
+    SELECT * INTO gp_pattern_class_n_rec FROM regab_gp_compute_pattern_indexes(game_position_rec.mover, game_position_rec.opponent, is_principal_index);
 
     IF (gp_pattern_class_o_rec IS NULL
         OR gp_pattern_class_o_rec.status <> 'CMP'

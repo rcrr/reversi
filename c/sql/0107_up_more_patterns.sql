@@ -69,98 +69,178 @@ BEGIN
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
   SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
-  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_edge_pattern(index_value),
-    principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_edge_pattern(index_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := 'CORNER';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
   SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
-  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_corner_pattern(index_value),
-    principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_corner_pattern(index_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := 'XEDGE';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
   SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
-  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_xedge_pattern(index_value),
-    principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_xedge_pattern(index_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := 'R2';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
   SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
-  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_r2_pattern(index_value),
-    principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_r2_pattern(index_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := 'R3';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
   SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
-  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_r3_pattern(index_value),
-    principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_r3_pattern(index_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := 'R4';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
   SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
-  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_r4_pattern(index_value),
-    principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_r4_pattern(index_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := 'DIAG4';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
   SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
-  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag4_pattern(index_value),
-    principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag4_pattern(index_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := 'DIAG5';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
   SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
-  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag5_pattern(index_value),
-    principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag5_pattern(index_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := 'DIAG6';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
   SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
-  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag6_pattern(index_value),
-    principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag6_pattern(index_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := 'DIAG7';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
   SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
-  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag7_pattern(index_value),
-    principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag7_pattern(index_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := 'DIAG8';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
   SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
-  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag8_pattern(index_value),
-    principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag8_pattern(index_value)  WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   PERFORM ragab_populate_pattern_probs(pn);
   --
   pn := '2X5COR';
   RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
   SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
   PERFORM ragab_populate_pattern_ranges(pn);
-  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_2x5cor_pattern(index_value),
-    principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_2x5cor_pattern(index_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   PERFORM ragab_populate_pattern_probs(pn);
   --
+END $$;
+
+--
+-- This is a functional thest that cannot be run before having populated the regab_prng_pattern_probs table.
+-- Calling the function regab_gp_compute_pattern_indexes(mo, op, is_principal) with the boolena parameter is_principal
+-- being TRUE require the described data being loaded.
+--
+-- Tests.
+DO $$
+DECLARE
+  mo square_set := 2337477075470322191::BIGINT;
+  op square_set := 6633411755847992320::BIGINT;
+  black player := 0::player;
+  pattern_index_values RECORD;
+  --
+  is_principal BOOL := TRUE; -- could not be true before loading the regab_prng_pattern_probs table.
+BEGIN
+  SELECT * INTO pattern_index_values FROM regab_gp_compute_pattern_indexes(mo, op, is_principal);
+  ---
+  PERFORM p_assert(pattern_index_values.i_edge_0 =   40, 'Expected value for i_edge_0 is   40.');
+  PERFORM p_assert(pattern_index_values.i_edge_1 =  234, 'Expected value for i_edge_1 is  234.');
+  PERFORM p_assert(pattern_index_values.i_edge_2 =  717, 'Expected value for i_edge_2 is  717.');
+  PERFORM p_assert(pattern_index_values.i_edge_3 =  253, 'Expected value for i_edge_3 is  253.');
+  ---
+  PERFORM p_assert(pattern_index_values.i_corner_0 = 10057, 'Expected value for i_corner_0 is 10057.');
+  PERFORM p_assert(pattern_index_values.i_corner_1 = 13284, 'Expected value for i_corner_1 is 13284.');
+  PERFORM p_assert(pattern_index_values.i_corner_2 = 9873, 'Expected value for i_corner_2 is 9873.');
+  PERFORM p_assert(pattern_index_values.i_corner_3 = 16704, 'Expected value for i_corner_3 is 16704.');
+  ---
+  PERFORM p_assert(pattern_index_values.i_xedge_0 = 36045, 'Expected value for i_xedge_0 is 36045.');
+  PERFORM p_assert(pattern_index_values.i_xedge_1 = 33507, 'Expected value for i_xedge_1 is 33507.');
+  PERFORM p_assert(pattern_index_values.i_xedge_2 = 34740, 'Expected value for i_xedge_2 is 34740.');
+  PERFORM p_assert(pattern_index_values.i_xedge_3 = 35244, 'Expected value for i_xedge_3 is 35244.');
+  ---
+  PERFORM p_assert(pattern_index_values.i_r2_0 = 1302, 'Expected value for i_r2_0 is 1302.');
+  PERFORM p_assert(pattern_index_values.i_r2_1 = 1526, 'Expected value for i_r2_1 is 1526.');
+  PERFORM p_assert(pattern_index_values.i_r2_2 = 1131, 'Expected value for i_r2_2 is 1131.');
+  PERFORM p_assert(pattern_index_values.i_r2_3 = 1741, 'Expected value for i_r2_3 is 1741.');
+  --- 
+  PERFORM p_assert(pattern_index_values.i_r3_0 =  715, 'Expected value for i_r3_0 is  715.');
+  PERFORM p_assert(pattern_index_values.i_r3_1 =  661, 'Expected value for i_r3_1 is  661.');
+  PERFORM p_assert(pattern_index_values.i_r3_2 = 3632, 'Expected value for i_r3_2 is 3632.');
+  PERFORM p_assert(pattern_index_values.i_r3_3 = 4103, 'Expected value for i_r3_3 is 4103.');
+  ---
+  PERFORM p_assert(pattern_index_values.i_r4_0 = 1451, 'Expected value for i_r4_0 is 1451.');
+  PERFORM p_assert(pattern_index_values.i_r4_1 =  725, 'Expected value for i_r4_1 is  725.');
+  PERFORM p_assert(pattern_index_values.i_r4_2 =  467, 'Expected value for i_r4_2 is  467.');
+  PERFORM p_assert(pattern_index_values.i_r4_3 = 3644, 'Expected value for i_r4_3 is 3644.');
+  ---
+  PERFORM p_assert(pattern_index_values.i_diag4_0 = 16, 'Expected value for i_diag4_0 is 16.');
+  PERFORM p_assert(pattern_index_values.i_diag4_1 =  2, 'Expected value for i_diag4_1 is  2.');
+  PERFORM p_assert(pattern_index_values.i_diag4_2 = 68, 'Expected value for i_diag4_2 is 68.');
+  PERFORM p_assert(pattern_index_values.i_diag4_3 = 17, 'Expected value for i_diag4_3 is 17.');
+  ---
+  PERFORM p_assert(pattern_index_values.i_diag5_0 =  39, 'Expected value for i_diag5_0 is  39.');
+  PERFORM p_assert(pattern_index_values.i_diag5_1 = 101, 'Expected value for i_diag5_1 is 101.');
+  PERFORM p_assert(pattern_index_values.i_diag5_2 = 206, 'Expected value for i_diag5_2 is 206.');
+  PERFORM p_assert(pattern_index_values.i_diag5_3 =  26, 'Expected value for i_diag5_3 is  26.');
+  ---
+  PERFORM p_assert(pattern_index_values.i_diag6_0 =  73, 'Expected value for i_diag6_0 is  73.');
+  PERFORM p_assert(pattern_index_values.i_diag6_1 = 404, 'Expected value for i_diag6_1 is 404.');
+  PERFORM p_assert(pattern_index_values.i_diag6_2 =  26, 'Expected value for i_diag6_2 is  26.');
+  PERFORM p_assert(pattern_index_values.i_diag6_3 = 373, 'Expected value for i_diag6_3 is 373.');
+  ---
+  PERFORM p_assert(pattern_index_values.i_diag7_0 = 228, 'Expected value for i_diag7_0 is 228.');
+  PERFORM p_assert(pattern_index_values.i_diag7_1 = 322, 'Expected value for i_diag7_1 is 322.');
+  PERFORM p_assert(pattern_index_values.i_diag7_2 = 240, 'Expected value for i_diag7_2 is 240.');
+  PERFORM p_assert(pattern_index_values.i_diag7_3 = 482, 'Expected value for i_diag7_3 is 482.');
+  ---
+  PERFORM p_assert(pattern_index_values.i_diag8_0 = 2184, 'Expected value for i_diag8_0 is 2184.');
+  PERFORM p_assert(pattern_index_values.i_diag8_1 = 1201, 'Expected value for i_diag8_1 is 1201.');
+  ---
+  PERFORM p_assert(pattern_index_values.i_2x5cor_0 = 11704, 'Expected value for i_2x5cor_0 is 11704.');
+  PERFORM p_assert(pattern_index_values.i_2x5cor_1 = 41040, 'Expected value for i_2x5cor_1 is 41040.');
+  PERFORM p_assert(pattern_index_values.i_2x5cor_2 = 49074, 'Expected value for i_2x5cor_2 is 49074.');
+  PERFORM p_assert(pattern_index_values.i_2x5cor_3 = 23337, 'Expected value for i_2x5cor_3 is 23337.');
+  PERFORM p_assert(pattern_index_values.i_2x5cor_4 = 21222, 'Expected value for i_2x5cor_4 is 21222.');
+  PERFORM p_assert(pattern_index_values.i_2x5cor_5 = 16758, 'Expected value for i_2x5cor_5 is 16758.');
+  PERFORM p_assert(pattern_index_values.i_2x5cor_6 = 38871, 'Expected value for i_2x5cor_6 is 38871.');
+  PERFORM p_assert(pattern_index_values.i_2x5cor_7 =  9730, 'Expected value for i_2x5cor_7 is  9730.');
 END $$;
 
 COMMIT;
