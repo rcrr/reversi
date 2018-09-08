@@ -1,5 +1,5 @@
 --
--- 0107_up_more_patterns.sql
+-- 0107_up_pattern_data.sql
 --
 -- This file is part of the reversi program
 -- http://github.com/rcrr/reversi
@@ -35,7 +35,7 @@ SET search_path TO reversi;
 BEGIN;
  
 INSERT INTO migrations (migration_id, ins_time, label, description)
-VALUES (0107, now(), 'load_patterns', 'loads patterns, pattern ranges, and pattern statistics');
+VALUES (0107, now(), 'pattern_data', 'loads patterns, pattern ranges, and pattern statistics');
 
 ---
 --- Populates the patter table with EDGE, CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR, and DIAG3 patterns.

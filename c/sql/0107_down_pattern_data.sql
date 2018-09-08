@@ -1,5 +1,5 @@
 --
--- 0107_down_more_patterns.sql
+-- 0107_down_pattern_data.sql
 --
 -- This file is part of the reversi program
 -- http://github.com/rcrr/reversi
@@ -27,7 +27,7 @@
 --
 --
 --
--- Removes more_patterns.
+-- Removes pattern_data.
 --
 
 SET search_path TO reversi;
