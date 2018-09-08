@@ -2294,10 +2294,10 @@ END $$;
 --
 -- => SELECT * FROM regab_gp_populate_pattern_class_table(1, 20, 30, '{CMR,CMS}', FALSE, FALSE);
 -- 
-CREATE FUNCTION regab_gp_populate_pattern_class_table (batch_id_in          INTEGER,
-                                                       empty_count_min_in   INTEGER,
-                                                       empty_count_max_in   INTEGER,
-                                                       status_in            CHAR(3)[],
+CREATE FUNCTION regab_gp_populate_pattern_class_table (batch_id_arg         INTEGER,
+                                                       empty_count_min_arg  INTEGER,
+                                                       empty_count_max_arg  INTEGER,
+                                                       status_arg           CHAR(3)[],
                                                        verb                 BOOL,
                                                        simulation           BOOL,
                                                        OUT rec_selected_cnt BIGINT,
@@ -2309,7 +2309,7 @@ DECLARE
   game_position_cur CURSOR (batch_id_c INTEGER, empty_count_min INTEGER, empty_count_max INTEGER, status_c CHAR(3)[])
     FOR SELECT seq, status, empty_count, mover, opponent
     FROM regab_prng_gp
-    WHERE batch_id = batch_id_c AND empty_count > empty_count_min AND empty_count < empty_count_max AND status = ANY (status_c);
+    WHERE batch_id = batch_id_c AND empty_count >= empty_count_min AND empty_count <= empty_count_max AND status = ANY (status_c);
   gp_pattern_class_o_rec RECORD;
   gp_pattern_class_n_rec RECORD;
   is_principal_index BOOL := TRUE;
@@ -2319,7 +2319,7 @@ BEGIN
   rec_create_cnt := 0;
   rec_update_cnt := 0;
 
-  OPEN game_position_cur(batch_id_in, empty_count_min_in, empty_count_max_in, status_in);
+  OPEN game_position_cur(batch_id_arg, empty_count_min_arg, empty_count_max_arg, status_arg);
 
   LOOP
     FETCH game_position_cur INTO game_position_rec;
