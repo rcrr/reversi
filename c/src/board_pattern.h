@@ -283,6 +283,24 @@
  * @endcode
  *
  *
+ * The `DIAG3` pattern has four instances ranging from `[0..3]`:
+ *
+ * @code
+ *
+ *    a b c d e f g h     a b c d e f g h     a b c d e f g h     a b c d e f g h
+ *
+ * 1  . . c . . . . .     . . . . . a . .     . . . . . . . .     . . . . . . . .
+ * 2  . b . . . . . .     . . . . . . b .     . . . . . . . .     . . . . . . . .
+ * 3  a . . . . . . .     . . . . . . . c     . . . . . . . .     . . . . . . . .
+ * 4  . . . . . . . .     . . . . . . . .     . . . . . . . .     . . . . . . . .
+ * 5  . . . . . . . .     . . . . . . . .     . . . . . . . .     . . . . . . . .
+ * 6  . . . . . . . .     . . . . . . . .     . . . . . . . a     c . . . . . . .
+ * 7  . . . . . . . .     . . . . . . . .     . . . . . . b .     . b . . . . . .
+ * 8  . . . . . . . .     . . . . . . . .     . . . . . c . .     . . a . . . . .
+ *
+ * @endcode
+ *
+ *
  * @par board_pattern.h
  * <tt>
  * This file is part of the reversi program
@@ -348,6 +366,11 @@ board_set_square_sets (board_t *b,
  * End of board_t definitions
  */
 
+/*
+ * The entry order in the board_pattern_id_t enum MUST match the
+ * pattern_id given in the regab database.
+ */
+
 /**
  * @enum board_pattern_id_t
  * @brief Patterns are a defined set of squares of the board.
@@ -365,6 +388,7 @@ typedef enum {
   BOARD_PATTERN_DIAG7,               /**< A7 B6 C5 D4 E3 F2 G1 */
   BOARD_PATTERN_DIAG8,               /**< A8 B7 C6 D5 E4 F3 G2 H1 */
   BOARD_PATTERN_2X5COR,              /**< A1 B1 C1 D1 E1 A2 B2 C2 D2 E2 */
+  BOARD_PATTERN_DIAG3,               /**< A3 B2 C1 */
   BOARD_PATTERN_INVALID              /**< Not a valid pattern. */
 } board_pattern_id_t;
 
@@ -407,6 +431,9 @@ board_pattern_pack_diag8 (SquareSet s);
 
 extern SquareSet
 board_pattern_pack_2x5cor (SquareSet s);
+
+extern SquareSet
+board_pattern_pack_diag3 (SquareSet s);
 
 /**
  * @brief Returns `true` when `name` matches with valid pattern, otherwise `false`.
@@ -627,6 +654,22 @@ static const board_pattern_t board_patterns[] =
         board_trans_flip_horizontal,
         board_trans_flip_diag_a1h8 },
       board_pattern_pack_2x5cor },
+
+    { BOARD_PATTERN_DIAG3,
+      "DIAG3",
+      4,
+      3,
+      { 0x0000000000010204,
+        0x0000000000804020,
+        0x2040800000000000,
+        0x0402010000000000,
+        0, 0, 0, 0 },
+      { board_trans_identity,
+        board_trans_rotate_90a,
+        board_trans_rotate_180,
+        board_trans_rotate_90c,
+        NULL, NULL, NULL, NULL },
+      board_pattern_pack_diag3 },
 
     { BOARD_PATTERN_INVALID, "NULL", 0, 0, { 0,0,0,0,0,0,0,0 }, { NULL }, NULL }
   };

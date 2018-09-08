@@ -42,6 +42,7 @@ DROP FUNCTION regab_update_prob_into_pattern_probs_from_staging;
 DROP FUNCTION ragab_populate_pattern_probs;
 DROP FUNCTION ragab_populate_pattern_ranges;
 
+DROP FUNCTION regab_mirror_value_diag3_pattern;
 DROP FUNCTION regab_mirror_value_2x5cor_pattern;
 DROP FUNCTION regab_mirror_value_diag8_pattern;
 DROP FUNCTION regab_mirror_value_diag7_pattern;
@@ -58,6 +59,8 @@ DROP FUNCTION regab_mirror_value_edge_pattern;
 DROP FUNCTION regab_transformed_pattern_to_index;
 DROP FUNCTION regab_index_to_transformed_pattern;
 
+DROP FUNCTION square_set_pattern_unpack_diag3;
+DROP FUNCTION square_set_pattern_pack_diag3;
 DROP FUNCTION square_set_pattern_unpack_2x5cor;
 DROP FUNCTION square_set_pattern_pack_2x5cor;
 DROP FUNCTION square_set_pattern_unpack_diag8;

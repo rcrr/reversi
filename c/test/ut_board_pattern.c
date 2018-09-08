@@ -1026,6 +1026,50 @@ board_pattern_compute_indexes_2x5cor_t (ut_test_t *const t)
   aux_check_expected_indexes_array(t, BOARD_PATTERN_2X5COR, test_data, sizeof(test_data) / sizeof(struct board_pattern_test_s));
 }
 
+static void
+board_pattern_compute_indexes_diag3_t (ut_test_t *const t)
+{
+  struct board_pattern_test_s test_data[] =
+    {
+      {empty,    empty,    {    0,     0,     0,     0 }},
+      {full,     empty,    {   13,    13,    13,    13 }},
+      {empty,    full,     {   26,    26,    26,    26 }},
+      {n_edge,   empty,    {    9,     1,     0,     0 }},
+      {e_edge,   empty,    {    0,     9,     1,     0 }},
+      {s_edge,   empty,    {    0,     0,     9,     1 }},
+      {w_edge,   empty,    {    1,     0,     0,     9 }},
+      {empty,    n_r2,     {    6,     6,     0,     0 }},
+      {empty,    e_r2,     {    0,     6,     6,     0 }},
+      {empty,    s_r2,     {    0,     0,     6,     6 }},
+      {empty,    w_r2,     {    6,     0,     0,     6 }},
+      {n_r3,     n_r4,     {    1,     9,     0,     0 }},
+      {e_r3,     e_r4,     {    0,     1,     9,     0 }},
+      {s_r3,     s_r4,     {    0,     0,     1,     9 }},
+      {w_r3,     w_r4,     {    9,     0,     0,     1 }},
+      {border,   empty,    {   10,    10,    10,    10 }},
+      {empty,    border,   {   20,    20,    20,    20 }},
+      {bord_1,   empty,    {    3,     3,     3,     3 }},
+      {empty,    bord_1,   {    6,     6,     6,     6 }},
+      {bord_2,   bord_3,   {    0,     0,     0,     0 }},
+      {border,   bord_1,   {   16,    16,    16,    16 }},
+      {bord_1,   border,   {   23,    23,    23,    23 }},
+      {nw_3x3,   ne_3x3,   {   13,    26,     0,     0 }},
+      {ne_3x3,   se_3x3,   {    0,    13,    26,     0 }},
+      {se_3x3,   sw_3x3,   {    0,     0,    13,    26 }},
+      {sw_3x3,   nw_3x3,   {   26,     0,     0,    13 }},
+      {nw_7x7,   empty,    {   13,     4,     3,    12 }},
+      {ne_7x7,   empty,    {   12,    13,     4,     3 }},
+      {se_7x7,   empty,    {    3,    12,    13,     4 }},
+      {sw_7x7,   empty,    {    4,     3,    12,    13 }},
+      {empty,    nw_7x7,   {   26,     8,     6,    24 }},
+      {empty,    ne_7x7,   {   24,    26,     8,     6 }},
+      {empty,    se_7x7,   {    6,    24,    26,     8 }},
+      {empty,    sw_7x7,   {    8,     6,    24,    26 }},
+    };
+
+  aux_check_expected_indexes_array(t, BOARD_PATTERN_DIAG3, test_data, sizeof(test_data) / sizeof(struct board_pattern_test_s));
+}
+
 
 
 /**
@@ -1053,6 +1097,7 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_diag7", board_pattern_compute_indexes_diag7_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_diag8", board_pattern_compute_indexes_diag8_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_2x5cor", board_pattern_compute_indexes_2x5cor_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_diag3", board_pattern_compute_indexes_diag3_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);

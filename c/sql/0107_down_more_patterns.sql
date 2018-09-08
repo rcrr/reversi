@@ -33,6 +33,7 @@
 SET search_path TO reversi;
 
 BEGIN;
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = 'DIAG3');
 DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = '2X5COR');
 DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = 'DIAG8');
 DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = 'DIAG7');
@@ -46,6 +47,7 @@ DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM
 DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = 'CORNER');
 DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = 'EDGE');
 
+DELETE FROM regab_prng_patterns WHERE pattern_name = 'DIAG3';
 DELETE FROM regab_prng_patterns WHERE pattern_name = '2X5COR';
 DELETE FROM regab_prng_patterns WHERE pattern_name = 'DIAG8';
 DELETE FROM regab_prng_patterns WHERE pattern_name = 'DIAG7';

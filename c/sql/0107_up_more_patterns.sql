@@ -38,7 +38,7 @@ INSERT INTO migrations (migration_id, ins_time, label, description)
 VALUES (0107, now(), 'load_patterns', 'loads patterns, pattern ranges, and pattern statistics');
 
 ---
---- Populates the patter table with EDGE, CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, and 2X5COR patterns.
+--- Populates the patter table with EDGE, CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR, and DIAG3 patterns.
 ---
 INSERT INTO regab_prng_patterns (ins_time, pattern_id, pattern_name, ninstances, nsquares, description)
   SELECT * FROM (VALUES
@@ -53,7 +53,8 @@ INSERT INTO regab_prng_patterns (ins_time, pattern_id, pattern_name, ninstances,
     (now(),  8, 'DIAG6',   4,  6, 'Six square diagonal, F1-E2-D3-C4-B5-A6'),
     (now(),  9, 'DIAG7',   4,  7, 'Seven square diagonal, G1-F2-E3-D4-C5-B6-A7'),
     (now(), 10, 'DIAG8',   2,  8, 'Eight square diagonal, H1-G2-F3-E4-D5-C6-B7-A8'),
-    (now(), 11, '2X5COR',  8, 10, 'Ten square, asymmetric corner')
+    (now(), 11, '2X5COR',  8, 10, 'Ten square, asymmetric corner'),
+    (now(), 12, 'DIAG3',   4,  3, 'Three square diagonal, C1-B2-A3')
   ) AS tmp_table(ins_time, pattern_id, pattern_name, ninstances, nsquares, description);
 
 ---
@@ -161,6 +162,14 @@ BEGIN
   UPDATE regab_prng_pattern_ranges SET principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   PERFORM ragab_populate_pattern_probs(pn);
   --
+  pn := 'DIAG3';
+  RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
+  SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
+  PERFORM ragab_populate_pattern_ranges(pn);
+  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag3_pattern(index_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  PERFORM ragab_populate_pattern_probs(pn);
+  --
 END $$;
 
 --
@@ -241,6 +250,11 @@ BEGIN
   PERFORM p_assert(pattern_index_values.i_2x5cor_5 = 16758, 'Expected value for i_2x5cor_5 is 16758.');
   PERFORM p_assert(pattern_index_values.i_2x5cor_6 = 38871, 'Expected value for i_2x5cor_6 is 38871.');
   PERFORM p_assert(pattern_index_values.i_2x5cor_7 =  9730, 'Expected value for i_2x5cor_7 is  9730.');
+  ---
+  PERFORM p_assert(pattern_index_values.i_diag3_0 = 13, 'Expected value for i_diag3_0 is 13.');
+  PERFORM p_assert(pattern_index_values.i_diag3_1 =  6, 'Expected value for i_diag3_1 is  6.');
+  PERFORM p_assert(pattern_index_values.i_diag3_2 = 14, 'Expected value for i_diag3_2 is 14.');
+  PERFORM p_assert(pattern_index_values.i_diag3_3 = 17, 'Expected value for i_diag3_3 is 17.');
 END $$;
 
 COMMIT;
@@ -252,6 +266,7 @@ VACUUM ANALYZE regab_prng_pattern_ranges;
 --
 -- EDGE
 --
+SELECT 'Loading frequencies for the EDGE pattern ...' AS message;
 VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_EDGE_826_1billion.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
@@ -260,6 +275,7 @@ TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- CORNER
 --
+SELECT 'Loading frequencies for the CORNER pattern ...' AS message;
 VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_CORNER_112_116_292_298_372_378_973_977_32000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
@@ -268,6 +284,7 @@ TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- XEDGE
 --
+SELECT 'Loading frequencies for the XEDGE pattern ...' AS message;
 VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_XEDGE_112_116_292_298_372_378_973_977_80000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
@@ -276,6 +293,7 @@ TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- R2
 --
+SELECT 'Loading frequencies for the R2 pattern ...' AS message;
 VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_R2_628_1000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
@@ -284,6 +302,7 @@ TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- R3
 --
+SELECT 'Loading frequencies for the R3 pattern ...' AS message;
 VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_R3_628_1000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
@@ -292,6 +311,7 @@ TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- R4
 --
+SELECT 'Loading frequencies for the R4 pattern ...' AS message;
 VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_R4_628_1000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
@@ -300,6 +320,7 @@ TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- DIAG4
 --
+SELECT 'Loading frequencies for the DIAG4 pattern ...' AS message;
 VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_DIAG4_628_1000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
@@ -308,6 +329,7 @@ TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- DIAG5
 --
+SELECT 'Loading frequencies for the DIAG5 pattern ...' AS message;
 VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_DIAG5_628_1000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
@@ -316,6 +338,7 @@ TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- DIAG6
 --
+SELECT 'Loading frequencies for the DIAG6 pattern ...' AS message;
 VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_DIAG6_628_1000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
@@ -324,6 +347,7 @@ TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- DIAG7
 --
+SELECT 'Loading frequencies for the DIAG7 pattern ...' AS message;
 VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_DIAG7_628_1000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
@@ -332,6 +356,7 @@ TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- DIAG8
 --
+SELECT 'Loading frequencies for the DIAG8 pattern ...' AS message;
 VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_DIAG8_628_1000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
@@ -340,8 +365,18 @@ TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 --
 -- 2X5COR
 --
+SELECT 'Loading frequencies for the 2X5COR pattern ...' AS message;
 VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_2X5COR_112_116_292_298_372_378_973_977_80000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
 SELECT regab_update_prob_into_pattern_probs_from_staging('2X5COR');
+TRUNCATE regab_staging_ec_pidx_cnt_tmp;
+--
+-- DIAG3
+--
+SELECT 'Loading frequencies for the DIAG3 pattern ...' AS message;
+VACUUM ANALYZE regab_prng_pattern_probs;
+TRUNCATE regab_staging_ec_pidx_cnt_tmp;
+\COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_DIAG3_628_1000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
+SELECT regab_update_prob_into_pattern_probs_from_staging('DIAG3');
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;

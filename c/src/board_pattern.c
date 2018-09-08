@@ -193,6 +193,17 @@ board_pattern_pack_2x5cor (SquareSet s)
   return (s & mask0) | ((s & mask1) >> 3);
 }
 
+SquareSet
+board_pattern_pack_diag3 (SquareSet s)
+{
+  const SquareSet diag3 = 0x0000000000010204;
+  const SquareSet mask  = 0x0000000000000007;
+  s &= diag3;
+  s |= s >> 16;
+  s |= s >>  8;
+  return s & mask;
+}
+
 bool
 board_pattern_get_id_by_name (board_pattern_id_t *idp,
                               char *name)

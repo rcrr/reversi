@@ -161,6 +161,11 @@ CREATE TABLE regab_prng_gp_pattern_class (gp_id      BIGINT PRIMARY KEY REFERENC
                                           i_2x5cor_6 INTEGER,
                                           i_2x5cor_7 INTEGER,
                                           ---
+                                          i_diag3_0  INTEGER,
+                                          i_diag3_1  INTEGER,
+                                          i_diag3_2  INTEGER,
+                                          i_diag3_3  INTEGER,
+                                          ---
                                           CHECK (status IN ('INS', 'WIP', 'CMP')));
 
 COMMIT;

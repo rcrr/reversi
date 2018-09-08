@@ -338,7 +338,7 @@ static const char *documentation =
   "  -s, --solver           Solver                   - Mandatory - Must be in [es|ifes|rand|minimax|ab|rab].\n"
   "  -n, --repeats          N. of repetitions        - Used with the rand/rab solvers.\n"
   "  -r, --prng-seed        random generator seed    - Used with rand/rab solvers.\n"
-  "  -P, --pattern          Pattern                  - Used with the rand solver - Must be in [EDGE|CORNER|XEDGE].\n"
+  "  -P, --pattern          Pattern                  - Used with the rand solver - Must be in [EDGE|CORNER|XEDGE|R2|R3|R4|DIAG4|DIAG5|DIAG6|DIAG7|DIAG8|2X5COR|DIAG3].\n"
   "  -l, --log              Turns logging on         - Requires a filename prefx.\n"
   "  -d, --pve-dump         Dumps PV                 - Requires a filename path. Available only for es solver.\n"
   "  -R, --pv-rec           Collects PV info         - Available only for es solver.\n"

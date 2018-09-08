@@ -1066,6 +1066,72 @@ BEGIN
 END $$;
 
 --
+-- Packs DIAG3 pattern.
+-- Transforms instance zero pattern to packed pattern.
+--
+CREATE FUNCTION square_set_pattern_pack_diag3 (s square_set)
+RETURNS square_set
+AS $$
+DECLARE
+  s1 square_set := (x'0000000000010204')::BIGINT;
+  s2 square_set := (x'0000000000000007')::BIGINT;
+  r0 square_set;
+  r1 square_set;
+  r2 square_set;
+BEGIN
+  r0 := s & s1;
+  r1 := (r0 >> 16) | r0;
+  r2 := (r1 >>  8) | r1;
+  RETURN r2 & s2;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_             square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_            square_set := (x'0000000000000000')::BIGINT;
+  packed_diag3_mask square_set := (x'0000000000000007')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_pack_diag3(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_diag3(full_) = packed_diag3_mask, 'Expected result is packed_diag4_mask.');
+  PERFORM p_assert(square_set_pattern_pack_diag3((x'0000000000000004')::square_set) = (x'0000000000000004')::square_set, 'Expected result is 0000000000000004.');
+  PERFORM p_assert(square_set_pattern_pack_diag3((x'0000000000000200')::square_set) = (x'0000000000000002')::square_set, 'Expected result is 0000000000000002.');
+  PERFORM p_assert(square_set_pattern_pack_diag3((x'0000000000010000')::square_set) = (x'0000000000000001')::square_set, 'Expected result is 0000000000000001.');
+  PERFORM p_assert(square_set_pattern_pack_diag3((x'fffffffffffefdfb')::square_set) = (x'0000000000000000')::square_set, 'Expected result is 0000000000000000.');
+END $$;
+
+--
+-- Un-packs DIAG3 pattern.
+-- Transforms packed pattern to instance zero pattern.
+--
+CREATE FUNCTION square_set_pattern_unpack_diag3 (s square_set)
+RETURNS square_set
+AS $$
+DECLARE
+  s1 square_set := (x'0000000000010204')::BIGINT;
+  r square_set;
+BEGIN
+  r := s | (s <<  8);
+  r := r | (r << 16);
+  RETURN r & s1;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_             square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_            square_set := (x'0000000000000000')::BIGINT;
+  packed_diag3_mask square_set := (x'0000000000000007')::BIGINT;
+  diag3             square_set := (x'0000000000010204')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_unpack_diag3(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_unpack_diag3(packed_diag3_mask) = diag3, 'Expected result is diag3.');
+  PERFORM p_assert(square_set_pattern_unpack_diag3((x'0000000000000004')::square_set) = (x'0000000000000004')::square_set, 'Expected result is 0000000000000004.');
+  PERFORM p_assert(square_set_pattern_unpack_diag3((x'0000000000000002')::square_set) = (x'0000000000000200')::square_set, 'Expected result is 0000000000000200.');
+  PERFORM p_assert(square_set_pattern_unpack_diag3((x'0000000000000001')::square_set) = (x'0000000000010000')::square_set, 'Expected result is 0000000000010000.');
+END $$;
+
+--
 --
 --
 
@@ -1625,6 +1691,53 @@ BEGIN
 END $$;
 
 --
+-- Computes the mirror value for the given index, for the DIAG3 pattern.
+--
+CREATE FUNCTION regab_mirror_value_diag3_pattern (index_value INTEGER)
+RETURNS INTEGER
+AS $$
+DECLARE
+  mo square_set;
+  op square_set;
+  mirror_value INTEGER;
+BEGIN
+  -- step 0: index to transformed patterrn
+  SELECT mover, opponent INTO mo, op FROM regab_index_to_transformed_pattern(index_value);
+    
+  -- step 1: transformed pattern to instance zero pattern
+  mo := square_set_pattern_unpack_diag3(mo);
+  op := square_set_pattern_unpack_diag3(op);
+  
+  -- step 2: mirror transformation
+  mo := square_set_flip_diag_a1h8(mo); op := square_set_flip_diag_a1h8(op);
+  
+  -- step 3: instance zero pattern to transformed pattern
+  mo := square_set_pattern_pack_diag3(mo);
+  op := square_set_pattern_pack_diag3(op);
+  
+  -- step 4: transformed pattern to index
+  mirror_value := regab_transformed_pattern_to_index(mo, op);
+
+  RETURN mirror_value;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests.
+DO $$
+DECLARE
+  n INTEGER := 3^3 - 1;
+BEGIN
+  PERFORM p_assert(regab_mirror_value_diag3_pattern( 0) =  0, 'Expected value is  0.');
+  PERFORM p_assert(regab_mirror_value_diag3_pattern(13) = 13, 'Expected value is 13.');
+  PERFORM p_assert(regab_mirror_value_diag3_pattern(26) = 26, 'Expected value is 26.');
+  PERFORM p_assert(regab_mirror_value_diag3_pattern(19) = 11, 'Expected value is 11.');
+  PERFORM p_assert(regab_mirror_value_diag3_pattern(15) =  7, 'Expected value is  7.');
+  FOR i IN 0..n LOOP
+    --RAISE NOTICE 'i=%', i;
+    PERFORM p_assert(regab_mirror_value_diag3_pattern(regab_mirror_value_diag3_pattern(i)) = i, 'Comuputing mirror of mirror of an diag3 pattern index should return itself');
+  END LOOP;
+END $$;
+
+--
 --
 --
 
@@ -1860,7 +1973,11 @@ CREATE FUNCTION regab_gp_compute_pattern_indexes (mover          square_set,
                                                   OUT i_2x5cor_4 INTEGER,
                                                   OUT i_2x5cor_5 INTEGER,
                                                   OUT i_2x5cor_6 INTEGER,
-                                                  OUT i_2x5cor_7 INTEGER)
+                                                  OUT i_2x5cor_7 INTEGER,
+                                                  OUT i_diag3_0  INTEGER,
+                                                  OUT i_diag3_1  INTEGER,
+                                                  OUT i_diag3_2  INTEGER,
+                                                  OUT i_diag3_3  INTEGER)
 AS $$
 DECLARE
   mo_identity square_set := mover;
@@ -1994,6 +2111,15 @@ BEGIN
                                                    square_set_pattern_pack_2x5cor(op_flip_ho));
   i_2x5cor_7 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x5cor(mo_flip_da),
                                                    square_set_pattern_pack_2x5cor(op_flip_da));
+  ---
+  i_diag3_0  := regab_transformed_pattern_to_index(square_set_pattern_pack_diag3(mo_identity),
+                                                   square_set_pattern_pack_diag3(op_identity));
+  i_diag3_1  := regab_transformed_pattern_to_index(square_set_pattern_pack_diag3(mo_rot_90a),
+                                                   square_set_pattern_pack_diag3(op_rot_90a));
+  i_diag3_2  := regab_transformed_pattern_to_index(square_set_pattern_pack_diag3(mo_rot_180),
+                                                   square_set_pattern_pack_diag3(op_rot_180));
+  i_diag3_3  := regab_transformed_pattern_to_index(square_set_pattern_pack_diag3(mo_rot_90c),
+                                                   square_set_pattern_pack_diag3(op_rot_90c));
 
   --- Transform the index value to its principal value (mirror of minimal value).
   IF is_principal THEN
@@ -2071,6 +2197,12 @@ BEGIN
     SELECT principal_index_value INTO STRICT i_2x5cor_5 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_5;
     SELECT principal_index_value INTO STRICT i_2x5cor_6 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_6;
     SELECT principal_index_value INTO STRICT i_2x5cor_7 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_7;    
+    --- DIAG3
+    pid := 12;
+    SELECT principal_index_value INTO STRICT i_diag3_0  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag3_0;
+    SELECT principal_index_value INTO STRICT i_diag3_1  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag3_1;
+    SELECT principal_index_value INTO STRICT i_diag3_2  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag3_2;
+    SELECT principal_index_value INTO STRICT i_diag3_3  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag3_3;
   END IF;
   
 END;
@@ -2148,6 +2280,11 @@ BEGIN
   PERFORM p_assert(pattern_index_values.i_2x5cor_5 = 16758, 'Expected value for i_2x5cor_5 is 16758.');
   PERFORM p_assert(pattern_index_values.i_2x5cor_6 = 38871, 'Expected value for i_2x5cor_6 is 38871.');
   PERFORM p_assert(pattern_index_values.i_2x5cor_7 =  9730, 'Expected value for i_2x5cor_7 is  9730.');
+  ---
+  PERFORM p_assert(pattern_index_values.i_diag3_0 = 13, 'Expected value for i_diag3_0 is 13.');
+  PERFORM p_assert(pattern_index_values.i_diag3_1 =  6, 'Expected value for i_diag3_1 is  6.');
+  PERFORM p_assert(pattern_index_values.i_diag3_2 = 14, 'Expected value for i_diag3_2 is 14.');
+  PERFORM p_assert(pattern_index_values.i_diag3_3 = 17, 'Expected value for i_diag3_3 is 17.');
 END $$;
 
 --
@@ -2256,8 +2393,12 @@ BEGIN
         OR gp_pattern_class_o_rec.i_2x5cor_5 <> gp_pattern_class_n_rec.i_2x5cor_5
         OR gp_pattern_class_o_rec.i_2x5cor_6 <> gp_pattern_class_n_rec.i_2x5cor_6
         OR gp_pattern_class_o_rec.i_2x5cor_7 <> gp_pattern_class_n_rec.i_2x5cor_7
+        OR gp_pattern_class_o_rec.i_diag3_0  <> gp_pattern_class_n_rec.i_diag3_0
+        OR gp_pattern_class_o_rec.i_diag3_1  <> gp_pattern_class_n_rec.i_diag3_1
+        OR gp_pattern_class_o_rec.i_diag3_2  <> gp_pattern_class_n_rec.i_diag3_2
+        OR gp_pattern_class_o_rec.i_diag3_3  <> gp_pattern_class_n_rec.i_diag3_3
        ) THEN
-       
+
       IF verb THEN
         RAISE NOTICE 'UPDATE gp_id = %.', game_position_rec.seq;
       END IF;
@@ -2314,7 +2455,11 @@ BEGIN
                                                i_2x5cor_4 = gp_pattern_class_n_rec.i_2x5cor_4,
                                                i_2x5cor_5 = gp_pattern_class_n_rec.i_2x5cor_5,
                                                i_2x5cor_6 = gp_pattern_class_n_rec.i_2x5cor_6,
-                                               i_2x5cor_7 = gp_pattern_class_n_rec.i_2x5cor_7
+                                               i_2x5cor_7 = gp_pattern_class_n_rec.i_2x5cor_7,
+                                               i_diag3_0  = gp_pattern_class_n_rec.i_diag3_0,
+                                               i_diag3_1  = gp_pattern_class_n_rec.i_diag3_1,
+                                               i_diag3_2  = gp_pattern_class_n_rec.i_diag3_2,
+                                               i_diag3_3  = gp_pattern_class_n_rec.i_diag3_3
           WHERE gp_id = game_position_rec.seq;
       END IF;
         
