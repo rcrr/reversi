@@ -45,65 +45,40 @@ Everithing is done on the test database.
  $ psql -U tst_regab -d tst_regab -h localhost
 
  tst_regab=> SET search_path TO reversi;
- tst_regab=> time \i 0101_up_migrations.sql;
- tst_regab=> time \i 0102_up_patterns.sql;
+ tst_regab=> \i 0101_up_migrations.sql;
+ tst_regab=> \i 0102_up_gp_ext.sql
+ tst_regab=> \i 0103_up_patterns.sql
+ tst_regab=> \i 0104_up_pattern_functions.sql
+ tst_regab=> \i 0107_up_pattern_data.sql
 
- -- 05 -- Generate the classes for the EDGE pattern
-Paste the lines between the ### sign into a tmp.sh file, and run it.
-###
-#!/bin/bash
-./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 0
-./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 1
-./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 2
-./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 3
-./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 4
-./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 5
-./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 6
-./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 7
-./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 8
-./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 9
-./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 10
-./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 11
-./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 12
-./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 13
-./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 14
-./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 15
-./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 16
-./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 17
-./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 18
-./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 19
-./build/bin/regab -v -a gen_class -c cfg/regab.cfg -e test -b 3 -p EDGE -y 20
-###
+-- 05 -- Test the procedure
 
--- 06 -- Compute the classification for the EDGE pattern
-Verify the volume of indexes to be conputed by running this query:
+ $ ./build/bin/regab -h
+ tst_regab=> SELECT * FROM regab_prng_gp_h;
+ tst_regab=> SELECT batch_id, empty_count, status, count(1) FROM regab_prng_gp GROUP BY batch_id, empty_count, status ORDER BY batch_id, empty_count, status;
+ 
+ $ ./build/bin/regab -v -a generate -c cfg/regab.cfg -e test -s 777 -n 7
+ tst_regab=> SELECT * FROM regab_prng_gp_h;
+ ### take notice of the seq of the new record just created
 
-tst_regab=> SELECT class_id, status, count(1) FROM regab_prng_gp_classification GROUP BY class_id, status ORDER BY class_id, status;
+ ### substitute the ??? with the proper value.
+ $ ./build/bin/regab -v -a solve -c cfg/regab.cfg -e test -b ??? -n 10 -y 10
 
-tst_regab=> SELECT class_id, status, count(1) FROM regab_prng_gp_classification WHERE status <> 'CMP' GROUP BY class_id, status ORDER BY class_id, status;
+ tst_regab=> SELECT empty_count, status, count(1) FROM regab_prng_gp WHERE batch_id = ??? AND empty_count < 12 GROUP BY empty_count, status ORDER BY empty_count, status;
+ tst_regab=> UPDATE regab_prng_gp SET status = 'CMQ', cst_time = now() WHERE status = 'CMP' AND batch_id = ???;
+ $ ./build/bin/regab -v -a offspring -c cfg/regab.cfg -e test -b ??? -y 10 -n 20
 
-###
-nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 0 -n 10000000 > ./build/out/tmp_00.log&
-nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 1 -n 10000000 > ./build/out/tmp_01.log&
-nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 2 -n 10000000 > ./build/out/tmp_02.log&
-nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 3 -n 10000000 > ./build/out/tmp_03.log&
-nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 4 -n 10000000 > ./build/out/tmp_04.log&
-nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 5 -n 10000000 > ./build/out/tmp_05.log&
-nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 6 -n 10000000 > ./build/out/tmp_06.log&
-nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 7 -n 10000000 > ./build/out/tmp_07.log&
-nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 8 -n 10000000 > ./build/out/tmp_08.log&
-nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 9 -n 10000000 > ./build/out/tmp_09.log&
+ tst_regab=> SELECT empty_count, status, count(1) FROM regab_prng_gp WHERE batch_id = ??? AND empty_count < 12 GROUP BY empty_count, status ORDER BY empty_count, status;
 
-nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 10 -n 10000000 > ./build/out/tmp_10.log&
-nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 11 -n 10000000 > ./build/out/tmp_11.log&
-nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 12 -n 10000000 > ./build/out/tmp_12.log&
-nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 13 -n 10000000 > ./build/out/tmp_13.log&
-nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 14 -n 10000000 > ./build/out/tmp_14.log&
-nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 15 -n 10000000 > ./build/out/tmp_15.log&
-nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 16 -n 10000000 > ./build/out/tmp_16.log&
-nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 17 -n 10000000 > ./build/out/tmp_17.log&
-nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 18 -n 10000000 > ./build/out/tmp_18.log&
-nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 19 -n 10000000 > ./build/out/tmp_19.log&
+ ### The meaning of the two arguments TRUE, FALSE is "verbose", "simulation".
+ tst_regab=> SELECT * FROM regab_gp_populate_pattern_class_table(???, 0, 20, '{CMR,CMS}', TRUE, FALSE);
+     
+ tst_regab=> SELECT * FROM regab_prng_gp_pattern_class;
+ tst_regab=> SELECT a.empty_count AS ec, count(a.seq) AS cnt, count(b.gp_id) AS classified FROM regab_prng_gp AS a LEFT JOIN regab_prng_gp_pattern_class AS b ON a.seq = b.gp_id
+               WHERE a.batch_id = ??? AND a.status IN ('CMS', 'CMR') GROUP BY a.empty_count ORDER BY a.empty_count;
+     
+ ### substitute the ??? with the proper value.
+ tst_regab=> DELETE FROM regab_prng_gp_h WHERE seq = ???;
 
-nohup time ./build/bin/regab -v -a classify -c cfg/regab.cfg -e test -p EDGE -b 3 -y 20 -n 10000000 > ./build/out/tmp_20.log&
-###
+ ### eventually reset the sequence ...
+ tst_regab=> ALTER SEQUENCE regab_prng_gp_h_seq_seq RESTART WITH ???;
