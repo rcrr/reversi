@@ -34,6 +34,7 @@ SET search_path TO reversi;
 
 BEGIN;
 
+DROP FUNCTION regab_action_extract_drop_tmp_tables;
 DROP FUNCTION regab_action_extract_create_tmp_tables;
 DROP FUNCTION regab_action_extract_count_pattern_freqs;
 DROP FUNCTION regab_action_extract_count_positions;

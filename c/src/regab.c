@@ -41,6 +41,7 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <ctype.h>
+#include <time.h>
 
 #include <libpq-fe.h>
 
@@ -1034,6 +1035,78 @@ do_select_position_to_solve (int *result,
 }
 
 static void
+do_action_extract_create_tmp_tables (int *result,
+                                     PGconn *con,
+                                     bool verbose)
+{
+  static const size_t command_size = 1024;
+
+  PGresult *res = NULL;
+  char command[command_size];
+  size_t cl;
+
+  if (!result) return;
+  if (!con) {
+    *result = -1;
+    return;
+  }
+  *result = 0;
+
+  const char *c0 = "SELECT regab_action_extract_create_tmp_tables();";
+
+  cl = snprintf(command, command_size, "%s", c0);
+  if (cl >= command_size) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+    abort();
+  }
+  res = PQexec(con, command);
+  if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  } else {
+    if (verbose) fprintf(stdout, "Procedure regab_action_extract_create_tmp_tables() executed succesfully.\n");
+    *result = 0;
+  }
+  PQclear(res);
+}
+
+static void
+do_action_extract_drop_tmp_tables (int *result,
+                                   PGconn *con,
+                                   bool verbose)
+{
+  static const size_t command_size = 1024;
+
+  PGresult *res = NULL;
+  char command[command_size];
+  size_t cl;
+
+  if (!result) return;
+  if (!con) {
+    *result = -1;
+    return;
+  }
+  *result = 0;
+
+  const char *c0 = "SELECT regab_action_extract_drop_tmp_tables();";
+
+  cl = snprintf(command, command_size, "%s", c0);
+  if (cl >= command_size) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+    abort();
+  }
+  res = PQexec(con, command);
+  if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  } else {
+    if (verbose) fprintf(stdout, "Procedure regab_action_extract_drop_tmp_tables() executed succesfully.\n");
+    *result = 0;
+  }
+  PQclear(res);
+}
+
+static void
 do_action_extract_check_patterns (int *result,
                                   PGconn *con,
                                   bool verbose,
@@ -2002,6 +2075,20 @@ main (int argc,
 
   printf("Action extract is not implemented yet.\n");
 
+  time_t current_time = (time_t) -1;
+  char* c_time_string = NULL;
+
+  /* Obtain current time as seconds elapsed since the Epoch. */
+  current_time = time(NULL);
+  assert(current_time != ((time_t) -1));
+
+  /* Convert to local time format. */
+  c_time_string = ctime(&current_time);
+  assert(c_time_string);
+
+  /* ctime() has already added a terminating newline character. */
+  if (verbose) fprintf(stdout, "Current time is %s", c_time_string);
+
   for (size_t i = 0; i < batch_id_cnt; i++) {
     printf("batch_ids[%zu] = %lu\n", i, batch_ids[i]);
   }
@@ -2043,15 +2130,29 @@ main (int argc,
   }
 
   /* - 02 - TO BE COMPLETED. Open output file. */
-  ofp = fopen(output_file_name, "rw");
+  ofp = fopen(output_file_name, "w");
   if (!ofp) {
     fprintf(stderr, "Unable to open output file: %s\n", output_file_name);
     res = PQexec(con, "ROLLBACK");
     PQfinish(con);
     return EXIT_FAILURE;
   }
+  if (verbose) fprintf(stdout, "Binary output file \"%s\" opened succesfully.\n", output_file_name);
+  fwrite(&current_time, sizeof(time_t), 1, ofp);
+  // TO DO: ADD fwrite of input data ...
+  fflush(ofp);
+  if (verbose) fprintf(stdout, "Header data written succesfully to binary output file \"%s\".\n", output_file_name);
+
 
   /* - 03 - Creates the DB temporary table. */
+  do_action_extract_create_tmp_tables(&result, con, verbose);
+  if (result != 0) {
+    res = PQexec(con, "ROLLBACK");
+    PQfinish(con);
+    fclose(ofp);
+    return EXIT_FAILURE;
+  }
+
   /* - 04 - Collects from the DB the game positions statistics and writes them to the binary file. */
   /* - 05 - Collects from the DB the pattern index statistics, writes them to the binary file ... */
 
@@ -2062,9 +2163,19 @@ main (int argc,
   /* - 09 - Closes the cursor. */
 
   /* - 10 - Drops the DB temporary table. */
+  do_action_extract_drop_tmp_tables(&result, con, verbose);
+  if (result != 0) {
+    res = PQexec(con, "ROLLBACK");
+    PQfinish(con);
+    fclose(ofp);
+    return EXIT_FAILURE;
+  }
 
   /* - 11 - Clean up output file. */
-  fclose(ofp);
+  int fclose_ret = fclose(ofp);
+  assert(fclose_ret == 0);
+  (void) fclose_ret; /* Suppress the warning "unused variable" rised when compiling without assertions. */
+
 
   /* -12 - Closes the DB transaction. */
   res = PQexec(con, "END");

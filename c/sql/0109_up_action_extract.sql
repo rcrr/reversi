@@ -257,11 +257,17 @@ BEGIN
                                                          CONSTRAINT rae_tmp_freqs_pk PRIMARY KEY (pattern_id, index_value)
                                                          );
 
-  --
-  -- This index is needed .... to be verified .... .
-  --
-  CREATE INDEX regab_action_extract_tmp_freqs_pid_piv ON regab_action_extract_tmp_freqs (pattern_id, principal_index_value);
+END;
+$$ LANGUAGE plpgsql VOLATILE;
 
+--
+--
+--
+CREATE FUNCTION regab_action_extract_drop_tmp_tables ()
+RETURNS VOID
+AS $$
+BEGIN
+  DROP TABLE regab_action_extract_tmp_freqs;
 END;
 $$ LANGUAGE plpgsql VOLATILE;
 
