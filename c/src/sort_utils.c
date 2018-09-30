@@ -64,7 +64,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2014, 2015, 2017 Roberto Corradini. All rights reserved.
+ * @copyright 2014, 2015, 2017, 2018 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -355,6 +355,52 @@ sort_utils_pointer_icmp (const void *const a,
 
 
 
+/* (char **) */
+
+/**
+ * @brief Compares lexicographically `(char **)` values pointed by `a` and `b`.
+ *
+ * @details Compare function that returns:
+ *          - `greater then 0` when `a` is greater than `b`
+ *          - `equal to 0`     when `a` is equal to `b`
+ *          - `less than 0`    when `a` is less then `b`
+ *
+ * @param a a pointer to the first `(char *)` value
+ * @param b a pointer to the second `(char *)` value
+ * @return  an integer value based on the comparison of `a` and `b`
+ */
+int
+sort_utils_string_cmp (const void *const a,
+                       const void *const b)
+{
+  const char **x = (const char **) a;
+  const char **y = (const char **) b;
+  return strcmp(*x, *y);
+}
+
+/**
+ * @brief Compares lexicographically `(char **)` values pointed by `a` and `b`.
+ *
+ * @details Compare function that returns:
+ *          - `less then 0`    when `a` is greater than `b`
+ *          - `equal to 0`     when `a` is equal to `b`
+ *          - `greater than 0` when `a` is less then `b`
+ *
+ * @param a a pointer to the first `(char *)` value
+ * @param b a pointer to the second `(char *)` value
+ * @return  an integer value based on the comparison of `a` and `b`
+ */
+int
+sort_utils_string_icmp (const void *const a,
+                        const void *const b)
+{
+  const char **x = (const char **) a;
+  const char **y = (const char **) b;
+  return strcmp(*y, *x);
+}
+
+
+
 /*********************************/
 /* Sort function implementations */
 /*********************************/
@@ -550,6 +596,22 @@ sort_utils_insertionsort_asc_p (void **const a,
                                 const size_t count)
 {
   sort_utils_insertionsort(a, count, sizeof(void *), sort_utils_pointer_cmp);
+}
+
+/**
+ * @brief Sorts in ascending order the `a` array of pointers to strings.
+ *
+ * @details The vector of pointersto strings `a` having length equal to `count` is sorted
+ *          in place in ascending order applying the insertion-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_insertionsort_asc_string (char **const a,
+                                     const int count)
+{
+  sort_utils_insertionsort(a, count, sizeof(char *), sort_utils_string_cmp);
 }
 
 

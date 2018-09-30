@@ -142,6 +142,18 @@ sort_utils_pointer_icmp (const void *const a,
                          const void *const b);
 
 
+
+/* (char *) */
+
+extern int
+sort_utils_string_cmp (const void *const a,
+                       const void *const b);
+
+extern int
+sort_utils_string_icmp (const void *const a,
+                        const void *const b);
+
+
 /***************************************/
 /* Insertion-sort function prototypes. */
 /***************************************/
@@ -188,6 +200,9 @@ extern void
 sort_utils_insertionsort_asc_p (void **const a,
                                 const size_t count);
 
+extern void
+sort_utils_insertionsort_asc_string (char **const a,
+                                     const int count);
 
 
 

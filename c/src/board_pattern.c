@@ -210,7 +210,7 @@ board_pattern_get_id_by_name (board_pattern_id_t *idp,
 {
   for (int i = 0; i < BOARD_PATTERN_INVALID; i++) {
     if (strcmp(name, board_patterns[i].name) == 0) {
-      *idp = i;
+      if (idp) *idp = i;
       return true;
     }
   }

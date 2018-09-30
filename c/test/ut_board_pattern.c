@@ -513,6 +513,26 @@ board_patterns_t (ut_test_t *const t)
 }
 
 static void
+board_pattern_get_id_by_name_t (ut_test_t *const t) {
+  board_pattern_id_t idp;
+  bool is_valid_pattern;
+  char *pattern;
+
+  pattern = "EDGE";
+  is_valid_pattern = board_pattern_get_id_by_name(&idp, pattern);
+  ut_assert(t, is_valid_pattern == true);
+  ut_assert(t, idp == BOARD_PATTERN_EDGE);
+
+  pattern = "EDGE";
+  is_valid_pattern = board_pattern_get_id_by_name(NULL, pattern);
+  ut_assert(t, is_valid_pattern == true);
+
+  pattern = "ABCD";
+  is_valid_pattern = board_pattern_get_id_by_name(&idp, pattern);
+  ut_assert(t, is_valid_pattern == false);
+}
+
+static void
 board_pattern_compute_indexes_edge_t (ut_test_t *const t)
 {
   struct board_pattern_test_s test_data[] =
@@ -1085,6 +1105,7 @@ main (int argc,
   ut_suite_t *const s = ut_suite_new(&config, "board_pattern");
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_patterns", board_patterns_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_get_id_by_name", board_pattern_get_id_by_name_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_edge", board_pattern_compute_indexes_edge_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_corner", board_pattern_compute_indexes_corner_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_xedge", board_pattern_compute_indexes_xedge_t);

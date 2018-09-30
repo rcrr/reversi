@@ -1293,6 +1293,32 @@ sort_utils_int64_t_compare_t (ut_test_t *const t)
   ut_assert(t, sort_utils_int64_t_cmp(&a, &b) < 0);
 }
 
+static void
+sort_utils_string_compare_t (ut_test_t *const t)
+{
+  char *a;
+  char *b;
+
+  a = "ABC";
+  b = "XYZ";
+  ut_assert(t, sort_utils_string_cmp(&a, &b)  < 0);
+  ut_assert(t, sort_utils_string_icmp(&a, &b) > 0);
+
+  a = "ABC";
+  b = "ABC";
+  ut_assert(t, sort_utils_string_cmp(&a, &b)  == 0);
+  ut_assert(t, sort_utils_string_icmp(&a, &b) == 0);
+
+  a = "ABC";
+  b = "ABCD";
+  ut_assert(t, sort_utils_string_cmp(&a, &b)  < 0);
+  ut_assert(t, sort_utils_string_icmp(&a, &b) > 0);
+
+  a = "ABCD";
+  b = "ABC";
+  ut_assert(t, sort_utils_string_cmp(&a, &b)  > 0);
+  ut_assert(t, sort_utils_string_icmp(&a, &b) < 0);
+}
 
 
 /********************************************/
@@ -1735,6 +1761,7 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sort_utils_int_compare", sort_utils_int_compare_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sort_utils_uint64_t_compare", sort_utils_uint64_t_compare_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sort_utils_int64_t_compare", sort_utils_int64_t_compare_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sort_utils_string_compare", sort_utils_string_compare_t);
 
   /* Qsort. */
   ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,

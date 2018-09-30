@@ -40,10 +40,12 @@
 #include <limits.h>
 #include <errno.h>
 #include <inttypes.h>
+#include <ctype.h>
 
 #include <libpq-fe.h>
 
 #include "main_option_parse.h"
+#include "file_utils.h"
 #include "cfg.h"
 #include "prng.h"
 #include "board.h"
@@ -51,6 +53,7 @@
 #include "endgame_solver.h"
 #include "exact_solver.h"
 #include "game_tree_utils.h"
+#include "sort_utils.h"
 
 
 
@@ -79,6 +82,7 @@ typedef enum {
   REGAB_ACTION_GENERATE,                // Generates one batch of random games.
   REGAB_ACTION_SOLVE,                   // Solves the selected games.
   REGAB_ACTION_OFFSPRING,               // Generates the offspring record having status CMS and change status from CMQ to CMR.
+  REGAB_ACTION_EXTRACT,                 // Extracts classified solved positions.
   REGAB_ACTION_INVALID                  // Not a valid action.
 } regab_action_t;
 
@@ -121,7 +125,9 @@ static const mop_options_long_t olist[] = {
   {"n-games",           'n', MOP_REQUIRED},
   {"batch-id",          'b', MOP_REQUIRED},
   {"empty-count",       'y', MOP_REQUIRED},
+  {"position-status",   'u', MOP_REQUIRED},
   {"pattern",           'p', MOP_REQUIRED},
+  {"out-file",          'o', MOP_REQUIRED},
   {0, 0, 0}
 };
 
@@ -130,15 +136,18 @@ static const char *documentation =
   "  regab [OPTION...] - Reversi EndGame Analytics Base\n"
   "\n"
   "Options:\n"
-  "  -h, --help        Show help options\n"
-  "  -v, --verbose     Verbose output\n"
-  "  -a, --action      Action to be performed                                 - Mandatory - Must be in [generate|solve|offspring].\n"
-  "  -c, --config-file Config file name                                       - Mandatory.\n"
-  "  -e, --env         Environment                                            - Mandatory.\n"
-  "  -s, --prng-seed   Seed used by the Pseudo Random Number Generator        - Mandatory when action is generate.\n"
-  "  -n, --n-games     Number of random game generated, solved, or classified - Default is one.\n"
-  "  -b, --batch-id    Batch id                                               - Mandatory when action is in [solve].\n"
-  "  -y, --empty-count Number of empty squares in the solved game position    - Mandatory when action is in [solve].\n"
+  "  -h, --help            Show help options\n"
+  "  -v, --verbose         Verbose output\n"
+  "  -a, --action          Action to be performed                                      - Mandatory - Must be in [generate|solve|offspring|extract].\n"
+  "  -c, --config-file     Config file name                                            - Mandatory.\n"
+  "  -e, --env             Environment                                                 - Mandatory.\n"
+  "  -s, --prng-seed       Seed used by the Pseudo Random Number Generator             - Mandatory when action is generate.\n"
+  "  -n, --n-games         Number of random game generated, solved, or classified      - Default is one.\n"
+  "  -b, --batch-id        Batch id                                                    - Mandatory when action is in [solve].\n"
+  "  -y, --empty-count     Number of empty squares in the solved game position         - Mandatory when action is in [solve].\n"
+  "  -u, --position-status One or more status flag for the selection of game positions - Mandatory when action is in [extract].\n"
+  "  -p, --pattern         One or more patterns                                        - Mandatory when action is in [extract].\n"
+  "  -o, --out-file        The output file name                                        - Mandatory when action is in [extract].\n"
   "\n"
   "Description:\n"
   "  To be completed ... .\n"
@@ -184,6 +193,15 @@ static char *b_arg = NULL;
 
 static int y_flag = false;
 static char *y_arg = NULL;
+
+static int u_flag = false;
+static char *u_arg = NULL;
+
+static int p_flag = false;
+static char *p_arg = NULL;
+
+static int o_flag = false;
+static char *o_arg = NULL;
 
 static regab_action_t action = REGAB_ACTION_INVALID;
 static char *config_file = NULL;
@@ -1015,6 +1033,169 @@ do_select_position_to_solve (int *result,
   PQclear(res);
 }
 
+static void
+do_action_extract_check_patterns (int *result,
+                                  PGconn *con,
+                                  bool verbose,
+                                  board_pattern_id_t *patterns,
+                                  size_t pattern_cnt)
+{
+  static const size_t command_size = 1024;
+
+  PGresult *res = NULL;
+  char command[command_size];
+  size_t cl;
+  char *cp;
+
+  size_t ntuples;
+
+  if (!result) return;
+  if (!con) {
+    *result = -1;
+    return;
+  }
+  *result = 0;
+
+  const char *c0 = "SELECT * FROM regab_action_extract_check_patterns('{";
+  const char *c1 = "%d%s";
+  const char *c2 = ", ";
+  const char *c3 = "}');";
+
+  cl = snprintf(command, command_size, "%s", c0);
+  cp = command + cl;
+
+  for (size_t i = 0; i < pattern_cnt; i++) {
+    cl += snprintf(cp, command_size - cl, c1,
+                   patterns[i], (i < pattern_cnt - 1) ? c2 : c3);
+    cp = command + cl;
+    if (cl >= command_size) {
+      fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command (4).\n");
+      abort();
+    }
+  }
+  res = PQexec(con, command);
+  if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+    fprintf(stderr, "Select for command has problems.\n");
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  } else {
+    ntuples = PQntuples(res);
+    if (verbose) {
+      fprintf(stdout, "_____________________________________\n");
+      fprintf(stdout, "\nSearched patterns: ");
+      for (size_t i = 0; i < pattern_cnt; i++) fprintf(stdout, "%d, ", patterns[i]);
+      fprintf(stdout, "\n");
+      fprintf(stdout, "Patterns found matching the query\n");
+      fprintf(stdout, "____________________________________________________\n");
+      fprintf(stdout, "      |            |        |            |          \n");
+      fprintf(stdout, " ---- | pattern_id | status | ninstances | nsquares \n");
+      fprintf(stdout, "______|_____  _____|________|____________|__________\n");
+      for (size_t i = 0; i < ntuples; i++) {
+        int pattern_id = atol(PQgetvalue(res, i, 0));
+        char *pattern_name = PQgetvalue(res, i, 1);
+        int ninstances = atol(PQgetvalue(res, i, 2));
+        int nsquares = atol(PQgetvalue(res, i, 3));
+        fprintf(stdout, " %04zu |     %6d | %6s |         %2d |       %2d\n", i, pattern_id, pattern_name, ninstances, nsquares);
+      }
+      fprintf(stdout, "\n");
+    }
+    if (ntuples != pattern_cnt) {
+      fprintf(stdout, "Error: the database does not contain all the requested pattern values, number of tuples found is %zu, searched is %lu \n", ntuples, pattern_cnt);
+      *result = 1;
+    } else {
+      *result = 0;
+    }
+  }
+
+  PQclear(res);
+}
+
+static void
+do_action_extract_check_batches (int *result,
+                                 PGconn *con,
+                                 bool verbose,
+                                 uint64_t *batch_ids,
+                                 size_t batch_id_cnt)
+{
+  static const size_t command_size = 1024;
+
+  PGresult *res = NULL;
+  char command[command_size];
+  size_t cl;
+  char *cp;
+
+  size_t ntuples;
+
+  if (!result) return;
+  if (!con) {
+    *result = -1;
+    return;
+  }
+  *result = 0;
+
+  const char *c0 = "SELECT * FROM regab_action_extract_check_batches('{";
+  const char *c1 = "%d%s";
+  const char *c2 = ", ";
+  const char *c3 = "}');";
+
+  cl = snprintf(command, command_size, "%s", c0);
+  cp = command + cl;
+
+  for (size_t i = 0; i < batch_id_cnt; i++) {
+    cl += snprintf(cp, command_size - cl, c1,
+                   batch_ids[i], (i < batch_id_cnt - 1) ? c2 : c3);
+    cp = command + cl;
+    if (cl >= command_size) {
+      fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command (4).\n");
+      abort();
+    }
+  }
+  res = PQexec(con, command);
+  if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+    fprintf(stderr, "Select for command has problems.\n");
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  } else {
+    ntuples = PQntuples(res);
+    if (verbose) {
+      fprintf(stdout, "_____________________________________\n");
+      fprintf(stdout, "\nSearched batch_ids: ");
+      for (size_t i = 0; i < batch_id_cnt; i++) fprintf(stdout, "%lu, ", batch_ids[i]);
+      fprintf(stdout, "\n");
+      fprintf(stdout, "Batch ids found matching the query\n");
+      fprintf(stdout, "_____________________________________\n");
+      fprintf(stdout, "      |          |        |          \n");
+      fprintf(stdout, " ---- | batch_id | status |   ngames \n");
+      fprintf(stdout, "______|__________|________|__________\n");
+      for (size_t i = 0; i < ntuples; i++) {
+        uint64_t batch_id = atol(PQgetvalue(res, i, 0));
+        char *status = PQgetvalue(res, i, 1);
+        int64_t ngames = atol(PQgetvalue(res, i, 2));
+        fprintf(stdout, " %04zu | %8lu |   %s  | %8ld\n", i, batch_id, status, ngames);
+      }
+      fprintf(stdout, "\n");
+    }
+    if (ntuples != batch_id_cnt) {
+      fprintf(stdout, "Error: the database does not contain all the requested batch_id values, number of tuples found is %zu, searched is %lu \n", ntuples, batch_id_cnt);
+      *result = 1;
+    } else {
+      for (size_t i = 0; i < ntuples; i++) {
+        uint64_t batch_id = atol(PQgetvalue(res, i, 0));
+        char *status = PQgetvalue(res, i, 1);
+        if (strcmp(status, "CMP") != 0) {
+          fprintf(stdout, "Error: batch_id %lu has status %s. It must be CMP\n", batch_id, status);
+          *result = 2;
+          goto end;
+        }
+      }
+      *result = 0;
+    }
+  }
+
+ end:
+  PQclear(res);
+}
+
 
 
 /**
@@ -1035,7 +1216,20 @@ main (int argc,
   int oindex = -1;
 
   uint64_t batch_id = 0;
+  size_t batch_id_cnt = 0;
+  uint64_t *batch_ids = NULL;
+
   uint8_t empty_count = 0;
+
+  size_t position_status_cnt = 0;
+  char *position_status_buffer = NULL;
+  char **position_statuses = NULL;
+
+  size_t pattern_cnt = 0;
+  char *pattern_buffer = NULL;
+  board_pattern_id_t *patterns = NULL;
+
+  char *output_file_name = NULL;
 
   mop_init(&options, argc, argv);
   while ((opt = mop_parse_long(&options, olist, &oindex)) != -1) {
@@ -1074,6 +1268,18 @@ main (int argc,
       y_flag = true;
       y_arg = options.optarg;
       break;
+    case 'u':
+      u_flag = true;
+      u_arg = options.optarg;
+      break;
+    case 'p':
+      p_flag = true;
+      p_arg = options.optarg;
+      break;
+    case 'o':
+      o_flag = true;
+      o_arg = options.optarg;
+      break;
     case ':':
       fprintf(stderr, "Option parsing failed: %s\n", options.errmsg);
       return EXIT_FAILURE;
@@ -1102,8 +1308,9 @@ main (int argc,
     if (strcmp("generate", a_arg) == 0) action = REGAB_ACTION_GENERATE;
     else if (strcmp("solve", a_arg) == 0) action = REGAB_ACTION_SOLVE;
     else if (strcmp("offspring", a_arg) == 0) action = REGAB_ACTION_OFFSPRING;
+    else if (strcmp("extract", a_arg) == 0) action = REGAB_ACTION_EXTRACT;
     else {
-      fprintf(stderr, "Argument for option -a, --action must be in [generate|solve|offspring] domain.\n");
+      fprintf(stderr, "Argument for option -a, --action must be in [generate|solve|offspring|extract] domain.\n");
       return EXIT_FAILURE;
     }
   }
@@ -1158,23 +1365,67 @@ main (int argc,
       return EXIT_FAILURE;
     }
   }
+  /*
+   * The --batch-id parameter could have one single value or a set of values.
+   * Multiple values are separated by commas witout spaces.
+   *
+   * -b 7
+   * -b 1,5,95
+   */
   if (b_flag) {
+    int parse_mode = 1; // 0 means digits, 1 means separator.
+    char *beginptr = b_arg;
     char *endptr;
-    errno = 0;    /* To distinguish success/failure after call */
-    batch_id = strtoull(b_arg, &endptr, 10);
-    if ((errno == ERANGE && (batch_id == LONG_MAX || batch_id == LONG_MIN))
-        || (errno != 0 && batch_id == 0)) {
-      perror("strtol");
+    batch_id_cnt = 1;
+    while (*beginptr) {
+      if (',' == *beginptr) {
+        if (parse_mode != 0) {
+          fprintf(stderr, "Wrong format in batch_id value.\n");
+          return EXIT_FAILURE;
+        }
+        batch_id_cnt++;
+        parse_mode = 1;
+      } else if (isdigit(*beginptr)) parse_mode = 0;
+      else {
+        fprintf(stderr, "Wrong character in batch_id value.\n");
+        return EXIT_FAILURE;
+      }
+      beginptr++;
+    }
+    if (parse_mode != 0) {
+      fprintf(stderr, "The value for batch_id option couldn't end with a comma.\n");
       return EXIT_FAILURE;
     }
-    if (endptr == b_arg) {
-      fprintf(stderr, "No digits were found in batch_id value.\n");
+    batch_ids = (uint64_t *) malloc(sizeof(uint64_t) * batch_id_cnt);
+    if (!batch_ids) {
+      fprintf(stderr, "Unable to allocate memory for batch_ids array.\n");
       return EXIT_FAILURE;
+    }
+    beginptr = b_arg;
+    for (size_t i = 0; i < batch_id_cnt; i++) {
+      errno = 0;    /* To distinguish success/failure after call */
+      batch_id = strtoull(beginptr, &endptr, 10);
+      if ((errno == ERANGE && batch_id == ULONG_MAX)
+          || (errno != 0 && batch_id == 0)) {
+        perror("strtoull");
+        return EXIT_FAILURE;
+      }
+      batch_ids[i] = batch_id;
+      beginptr = endptr + 1;
     }
     if (*endptr != '\0') {
       fprintf(stderr, "Further characters after number in batch_id value: %s\n", endptr);
       return EXIT_FAILURE;
     }
+  }
+  sort_utils_insertionsort_asc_u64(batch_ids, batch_id_cnt);
+  uint64_t previous = batch_ids[0];
+  for (size_t i = 1; i < batch_id_cnt; i++) {
+    if (previous == batch_ids[i]) {
+      fprintf(stderr, "Duplicated values in batch_id option: %lu\n", previous);
+      return EXIT_FAILURE;
+    }
+    previous = batch_ids[i];
   }
   if (y_flag) {
     char *endptr;
@@ -1195,6 +1446,146 @@ main (int argc,
     }
     if (empty_count > 60) {
       fprintf(stderr, "Value %u, for variable empty_count is out of range [0..60].\n", empty_count);
+      return EXIT_FAILURE;
+    }
+  }
+  if (u_flag) {
+    position_status_buffer = (char *) malloc(strlen(u_arg) + 1);
+    if (!position_status_buffer) {
+      fprintf(stderr, "Unable to allocate memory for position_status_buffer array.\n");
+      return EXIT_FAILURE;
+    }
+    int parse_mode = 1; // 0 means char, 1 means separator.
+    char *beginptr = u_arg;
+    char *c = position_status_buffer;
+    position_status_cnt = 1;
+    while (*beginptr) {
+      *c = *beginptr;
+      if (',' == *beginptr) {
+        *c = '\0';
+        if (parse_mode != 0) {
+          fprintf(stderr, "Wrong format in position_status value.\n");
+          return EXIT_FAILURE;
+        }
+        position_status_cnt++;
+        parse_mode = 1;
+      } else if (isupper(*beginptr)) parse_mode = 0;
+      else {
+        fprintf(stderr, "Wrong character in position_status value.\n");
+        return EXIT_FAILURE;
+      }
+      c++;
+      beginptr++;
+    }
+    if (parse_mode != 0) {
+      fprintf(stderr, "The value for position_status option couldn't end with a comma.\n");
+      return EXIT_FAILURE;
+    }
+    position_statuses = (char **) malloc(sizeof(char *) * position_status_cnt);
+    if (!position_statuses) {
+      fprintf(stderr, "Unable to allocate memory for position_statuses array.\n");
+      return EXIT_FAILURE;
+    }
+    c = position_status_buffer;
+    parse_mode = 1;
+    size_t j = 0;
+    for (size_t i = 0; i < strlen(u_arg) + 1; i++, c++) {
+      if (parse_mode == 1) {
+        position_statuses[j++] = c;
+        parse_mode = 0;
+      }
+      if (*c == '\0') parse_mode = 1;
+    }
+    if (position_status_cnt != j) {
+      fprintf(stderr, "Error when generation tokens from position_status_buffer.\n");
+      return EXIT_FAILURE;
+    }
+    sort_utils_insertionsort_asc_string(position_statuses, position_status_cnt);
+    for (size_t i = 1; i < position_status_cnt; i++) {
+      const int compare = strcmp(position_statuses[i - 1], position_statuses[i]);
+      if (compare == 0) {
+        fprintf(stderr, "Duplicate value in position_statuses, %s.\n", position_statuses[i]);
+        return EXIT_FAILURE;
+      }
+    }
+    for (size_t i = 0; i < position_status_cnt; i++) {
+      if (strlen(position_statuses[i]) != 3) {
+        fprintf(stderr, "Status values must have a length equal to three characters. Value %s is not valid.\n", position_statuses[i]);
+        return EXIT_FAILURE;
+      }
+    }
+  }
+  if (p_flag) {
+    bool is_valid_pattern;
+    pattern_buffer = (char *) malloc(strlen(p_arg) + 1);
+    if (!pattern_buffer) {
+      fprintf(stderr, "Unable to allocate memory for pattern_buffer array.\n");
+      return EXIT_FAILURE;
+    }
+    int parse_mode = 1; // 0 means char, 1 means separator.
+    char *beginptr = p_arg;
+    char *c = pattern_buffer;
+    pattern_cnt = 1;
+    while (*beginptr) {
+      *c = *beginptr;
+      if (',' == *beginptr) {
+        *c = '\0';
+        if (parse_mode != 0) {
+          fprintf(stderr, "Wrong format in pattern value.\n");
+          return EXIT_FAILURE;
+        }
+        pattern_cnt++;
+        parse_mode = 1;
+      } else if (isalnum(*beginptr)) parse_mode = 0;
+      else {
+        fprintf(stderr, "Wrong character in position_status value.\n");
+        return EXIT_FAILURE;
+      }
+      c++;
+      beginptr++;
+    }
+    if (parse_mode != 0) {
+      fprintf(stderr, "The value for pattern option couldn't end with a comma.\n");
+      return EXIT_FAILURE;
+    }
+    patterns = (board_pattern_id_t *) malloc(sizeof(board_pattern_id_t) * pattern_cnt);
+    if (!patterns) {
+      fprintf(stderr, "Unable to allocate memory for patterns array.\n");
+      return EXIT_FAILURE;
+    }
+    c = pattern_buffer;
+    parse_mode = 1;
+    size_t j = 0;
+    for (size_t i = 0; i < strlen(p_arg) + 1; i++, c++) {
+      if (parse_mode == 1) {
+        is_valid_pattern = board_pattern_get_id_by_name(&patterns[j], c);
+        if (!is_valid_pattern) {
+          fprintf(stderr, "Pattern %s does not exists.\n", c);
+          return EXIT_FAILURE;
+        }
+        j++;
+        parse_mode = 0;
+      }
+      if (*c == '\0') parse_mode = 1;
+    }
+    if (pattern_cnt != j) {
+      fprintf(stderr, "Error when generation tokens from pattern_buffer.\n");
+      return EXIT_FAILURE;
+    }
+    sort_utils_insertionsort(patterns, pattern_cnt, sizeof(board_pattern_id_t), sort_utils_int_cmp);
+    for (size_t i = 1; i < pattern_cnt; i++) {
+      if (patterns[i] == patterns[i -1]) {
+        fprintf(stderr, "Duplicate entry in pattern list: %s\n", board_patterns[patterns[i]].name);
+        return EXIT_FAILURE;
+      }
+    }
+  }
+  if (o_flag) {
+    if (fut_touch_file(o_arg)) {
+      output_file_name = o_arg;
+      if (verbose) fprintf(stdout, "Output file \"%s\" has been overwritten.\n", o_arg);
+    } else {
+      fprintf(stderr, "Unable to open for writing file: \"%s\"\n", o_arg);
       return EXIT_FAILURE;
     }
   }
@@ -1224,6 +1615,10 @@ main (int argc,
     if (!b_flag) {
       fprintf(stderr, "Option -b, --batch-id, is mandatory when option -a, --action, has value \"solve\".\n");
       return EXIT_FAILURE;
+      if (batch_id_cnt > 1) {
+        fprintf(stderr, "Multiple values for option -b, --batch-id, are not supported when option -a, --action, has value \"solve\".\n");
+        return EXIT_FAILURE;
+      }
     }
     if (!y_flag) {
       fprintf(stderr, "Option -y, --empty_count, is mandatory when option -a, --action, has value \"solve\".\n");
@@ -1236,6 +1631,10 @@ main (int argc,
     if (!b_flag) {
       fprintf(stderr, "Option -b, --batch-id, is mandatory when option -a, --action, has value \"offspring\".\n");
       return EXIT_FAILURE;
+      if (batch_id_cnt > 1) {
+        fprintf(stderr, "Multiple values for option -b, --batch-id, are not supported when option -a, --action, has value \"offspring\".\n");
+        return EXIT_FAILURE;
+      }
     }
     if (!y_flag) {
       fprintf(stderr, "Option -y, --empty-count, is mandatory when option -a, --action, has value \"offspring\".\n");
@@ -1243,6 +1642,26 @@ main (int argc,
     }
     if (!n_flag) {
       fprintf(stderr, "Option -n, --n-games, is mandatory when option -a, --action, has value \"offspring\".\n");
+      return EXIT_FAILURE;
+    }
+  }
+
+  /* Verifies mandatory options when action is extract. */
+  if (action == REGAB_ACTION_EXTRACT) {
+    if (!b_flag) {
+      fprintf(stderr, "Option -b, --batch-id, is mandatory when option -a, --action, has value \"extract\".\n");
+      return EXIT_FAILURE;
+    }
+    if (!u_flag) {
+      fprintf(stderr, "Option -u, --position-status, is mandatory when option -a, --action, has value \"extract\".\n");
+      return EXIT_FAILURE;
+    }
+    if (!p_flag) {
+      fprintf(stderr, "Option -p, --pattern, is mandatory when option -a, --action, has value \"extract\".\n");
+      return EXIT_FAILURE;
+    }
+    if (!o_flag) {
+      fprintf(stderr, "Option -o, --out-file, is mandatory when option -a, --action, has value \"extract\".\n");
       return EXIT_FAILURE;
     }
   }
@@ -1318,6 +1737,7 @@ main (int argc,
   case REGAB_ACTION_GENERATE: goto regab_action_generate;
   case REGAB_ACTION_SOLVE: goto regab_action_solve;
   case REGAB_ACTION_OFFSPRING: goto regab_action_offspring;
+  case REGAB_ACTION_EXTRACT: goto regab_action_extract;
   default: fprintf(stderr, "Out of range action option, aborting...\n"); abort();
   }
 
@@ -1554,6 +1974,110 @@ main (int argc,
   goto regab_program_end;
 
 
+  /*
+   * Extracts the selected, solved and classified positions from the regab database.
+   *
+   * Steps:
+   *  - 00 - Starts a DB transaction.
+   *  - 01 - Checks that the imput data (batch_id, pattern) is consistent with the DB data.
+   *  - 02 - Opens the output binary file, and writes the header.
+   *  - 03 - Creates the DB temporary table.
+   *  - 04 - Collects from the DB the game positions statistics and writes them to the binary file.
+   *  - 05 - Collects from the DB the pattern index statistics, writes them to the binary file,
+   *         and accumulates the data into the DB temp table.
+   *         This step is organized as a LOOP indexed by pattern_id.
+   *  - 06 - Assigns the global variable index value to each record in the DB temp table.
+   *         This action generates the mapping between pattern_id, index_value tuples and the GLM global variables.
+   *         Writes the mapping, direct and inverse, to the binary file.
+   *  - 07 - Creates the CURSOR variable over the query collecting game_positions, game_value, pattern values.
+   *  - 08 - Iterates by chunks of data collected from the cusrsor, and writes them into the binary file.
+   *  - 09 - Closes the cursor.
+   *  - 10 - Drops the DB temporary table.
+   *  - 11 - Closes the output file.
+   *  - 12 - Commits the DB transaction.
+   *
+   */
+ regab_action_extract:
+  ;
+
+  printf("Action extract is not implemented yet.\n");
+
+  for (size_t i = 0; i < batch_id_cnt; i++) {
+    printf("batch_ids[%zu] = %lu\n", i, batch_ids[i]);
+  }
+
+  for (size_t i = 0; i < position_status_cnt; i++) {
+    printf("position_statuses[%zu] = %s\n", i, position_statuses[i]);
+  }
+
+  for (size_t i = 0; i < pattern_cnt; i++) {
+    printf("pattern[%zu] = %d, %s\n", i, patterns[i], board_patterns[patterns[i]].name);
+  }
+
+  PGresult *res = NULL;
+  FILE *ofp = NULL;
+
+  /* - 00 - Starts a DB transaction. */
+  res = PQexec(con, "BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ");
+  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "PQexec: BEGIN command failed: %s", PQerrorMessage(con));
+    PQfinish(con);
+    return EXIT_FAILURE;
+  }
+  PQclear(res);
+
+  /* - 01.a - Checks batch_id argument data. */
+  do_action_extract_check_batches(&result, con, verbose, batch_ids, batch_id_cnt);
+  if (result != 0) {
+    res = PQexec(con, "ROLLBACK");
+    PQfinish(con);
+    return EXIT_FAILURE;
+  }
+
+  /* - 01.b - Checks pattern argument data. */
+  do_action_extract_check_patterns(&result, con, verbose, patterns, pattern_cnt);
+  if (result != 0) {
+    res = PQexec(con, "ROLLBACK");
+    PQfinish(con);
+    return EXIT_FAILURE;
+  }
+
+  /* - 02 - TO BE COMPLETED. Open output file. */
+  ofp = fopen(output_file_name, "rw");
+  if (!ofp) {
+    fprintf(stderr, "Unable to open output file: %s\n", output_file_name);
+    res = PQexec(con, "ROLLBACK");
+    PQfinish(con);
+    return EXIT_FAILURE;
+  }
+
+  /* - 03 - Creates the DB temporary table. */
+  /* - 04 - Collects from the DB the game positions statistics and writes them to the binary file. */
+  /* - 05 - Collects from the DB the pattern index statistics, writes them to the binary file ... */
+
+  /* - 06 - Assigns the global variable index value ... */
+  /* - 07 - Creates the CURSOR variable ... */
+  /* - 08 - Iterates over chunks of data retrieved from the cursor. */
+
+  /* - 09 - Closes the cursor. */
+
+  /* - 10 - Drops the DB temporary table. */
+
+  /* - 11 - Clean up output file. */
+  fclose(ofp);
+
+  /* -12 - Closes the DB transaction. */
+  res = PQexec(con, "END");
+  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "PQexec: END command failed: %s", PQerrorMessage(con));
+    PQfinish(con);
+    return EXIT_FAILURE;
+  }
+  PQclear(res);
+
+  goto regab_program_end;
+
+
 
   /*
    * End of program.
@@ -1569,6 +2093,11 @@ main (int argc,
    * Frees resources.
    */
   cfg_free(config);
+  free(batch_ids);
+  free(position_status_buffer);
+  free(position_statuses);
+  free(pattern_buffer);
+  free(patterns);
 
   return 0;
 }

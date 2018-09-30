@@ -441,6 +441,7 @@ board_pattern_pack_diag3 (SquareSet s);
  *
  * @details When `true` is returned the value referenced by `idp` is updated
  *          with the proper pattern id, otherwise nothing happens.
+ *          If `idp` is `NULL` no udate occurs.
  *
  * @param [out] idp  pattern id
  * @param [in]  name pattern name
