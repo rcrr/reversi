@@ -55,6 +55,7 @@
 #include "exact_solver.h"
 #include "game_tree_utils.h"
 #include "sort_utils.h"
+#include "solved_classified_gp.h"
 
 
 
@@ -109,8 +110,6 @@ typedef struct regab_prng_gp_record_s {
   int64_t node_count;
   int64_t parent_gp_id;
 } regab_prng_gp_record_t;
-
-
 
 /*
  * Static constants.
@@ -1034,6 +1033,120 @@ do_select_position_to_solve (int *result,
   PQclear(res);
 }
 
+// regab_action_extract_count_pattern_freqs
+// regab_action_extract_count_positions
+static void
+do_action_extract_count_pattern_freqs (int *result,
+                                       PGconn *con,
+                                       bool verbose)
+{
+  fprintf(stdout, "do_action_extract_count_pattern_freqs: START\n");
+  static const size_t command_size = 1024;
+
+  PGresult *res = NULL;
+  char command[command_size];
+  size_t cl;
+  char *cp;
+
+  if (!result) return;
+  if (!con) {
+    *result = -1;
+    return;
+  }
+  *result = 0;
+
+  const char *c0 = "SELECT pattern_id, index_value, mirror_value, principal_index_value, "
+    "cnt_0, cnt_1, cnt_2, cnt_3, cnt_4, cnt_5, cnt_6, cnt_7, total_cnt, relative_frequency, "
+    "theoretical_probability FROM regab_action_extract_count_pattern_freqs(";
+
+  fprintf(stdout, "do_action_extract_count_pattern_freqs: FINISH\n");
+}
+
+
+static void
+do_action_extract_count_positions (int *result,
+                                   PGconn *con,
+                                   bool verbose,
+                                   uint8_t empty_count,
+                                   size_t batch_id_cnt,
+                                   uint64_t *batch_ids,
+                                   size_t position_status_cnt,
+                                   char **position_statuses,
+                                   regab_ext_cnt_pos_table_t *return_table)
+{
+  static const size_t command_size = 1024;
+
+  PGresult *res = NULL;
+  char command[command_size];
+  size_t cl;
+  char *cp;
+
+  if (!result) return;
+  if (!con) {
+    *result = -1;
+    return;
+  }
+  *result = 0;
+
+  const char *c0 = "SELECT batch_id, status, game_position_cnt, classified_cnt FROM regab_action_extract_count_positions(";
+
+  cl = snprintf(command, command_size, "%s", c0);
+  cp = command + cl;
+  if (cl >= command_size) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+    abort();
+  }
+
+  cl += snprintf(cp, command_size - cl, "%d, '{", empty_count);
+  cp = command + cl;
+  if (cl >= command_size) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+    abort();
+  }
+
+  for (size_t i = 0; i < batch_id_cnt; i++) {
+    cl += snprintf(cp, command_size - cl, "%zu%s", batch_ids[i], (i < batch_id_cnt - 1) ? ", " : "}', '{");
+    cp = command + cl;
+    if (cl >= command_size) {
+      fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+      abort();
+    }
+  }
+
+  for (size_t i = 0; i < position_status_cnt; i++) {
+    cl += snprintf(cp, command_size - cl, "\"%s\"%s", position_statuses[i], (i < position_status_cnt - 1) ? ", " : "}');");
+    cp = command + cl;
+    if (cl >= command_size) {
+      fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+      abort();
+    }
+  }
+
+  res = PQexec(con, command);
+  if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  } else {
+    return_table->ntuples = PQntuples(res);
+    return_table->records = (regab_ext_cnt_pos_record_t *) malloc(sizeof(regab_ext_cnt_pos_record_t) * return_table->ntuples);
+    if (!batch_ids) {
+      fprintf(stderr, "Unable to allocate memory for return_table->records array.\n");
+      abort();
+    }
+    for (size_t i = 0; i < return_table->ntuples; i++) {
+      regab_ext_cnt_pos_record_t *rec = &return_table->records[i];
+      rec->batch_id = atoi(PQgetvalue(res, i, 0));
+      strcpy(rec->status, PQgetvalue(res, i, 1));
+      rec->game_position_cnt = atol(PQgetvalue(res, i, 2));
+      rec->classified_cnt = atol(PQgetvalue(res, i, 3));
+    }
+
+    if (verbose) fprintf(stdout, "Procedure regab_action_extract_count_positions() executed succesfully.\n");
+    *result = 0;
+  }
+  PQclear(res);
+}
+
 static void
 do_action_extract_create_tmp_tables (int *result,
                                      PGconn *con,
@@ -1161,8 +1274,8 @@ do_action_extract_check_patterns (int *result,
       fprintf(stdout, "Patterns found matching the query\n");
       fprintf(stdout, "____________________________________________________\n");
       fprintf(stdout, "      |            |        |            |          \n");
-      fprintf(stdout, " ---- | pattern_id | status | ninstances | nsquares \n");
-      fprintf(stdout, "______|_____  _____|________|____________|__________\n");
+      fprintf(stdout, " ---- | pattern_id |  name  | ninstances | nsquares \n");
+      fprintf(stdout, "______|____________|________|____________|__________\n");
       for (size_t i = 0; i < ntuples; i++) {
         int pattern_id = atol(PQgetvalue(res, i, 0));
         char *pattern_name = PQgetvalue(res, i, 1);
@@ -2074,6 +2187,13 @@ main (int argc,
   ;
 
   printf("Action extract is not implemented yet.\n");
+  regab_ext_cnt_pos_table_t position_summary;
+  position_summary.ntuples = 0;
+  position_summary.records = NULL;
+
+  regab_ext_cnt_pattern_freq_table_t pattern_freq_summary;
+  pattern_freq_summary.ntuples = 0;
+  pattern_freq_summary.records = NULL;
 
   time_t current_time = (time_t) -1;
   char* c_time_string = NULL;
@@ -2129,7 +2249,7 @@ main (int argc,
     return EXIT_FAILURE;
   }
 
-  /* - 02 - TO BE COMPLETED. Open output file. */
+  /* - 02 - Opens output file. */
   ofp = fopen(output_file_name, "w");
   if (!ofp) {
     fprintf(stderr, "Unable to open output file: %s\n", output_file_name);
@@ -2139,10 +2259,15 @@ main (int argc,
   }
   if (verbose) fprintf(stdout, "Binary output file \"%s\" opened succesfully.\n", output_file_name);
   fwrite(&current_time, sizeof(time_t), 1, ofp);
-  // TO DO: ADD fwrite of input data ...
+  fwrite(&batch_id_cnt, sizeof(size_t), 1, ofp);
+  fwrite(batch_ids, sizeof(uint64_t), batch_id_cnt, ofp);
+  fwrite(&empty_count, sizeof(uint8_t), 1, ofp);
+  fwrite(&position_status_cnt, sizeof(size_t), 1, ofp);
+  fwrite(position_status_buffer, 4, position_status_cnt, ofp);
+  fwrite(&pattern_cnt, sizeof(size_t), 1, ofp);
+  fwrite(patterns, sizeof(board_pattern_id_t), pattern_cnt, ofp);
   fflush(ofp);
   if (verbose) fprintf(stdout, "Header data written succesfully to binary output file \"%s\".\n", output_file_name);
-
 
   /* - 03 - Creates the DB temporary table. */
   do_action_extract_create_tmp_tables(&result, con, verbose);
@@ -2154,7 +2279,34 @@ main (int argc,
   }
 
   /* - 04 - Collects from the DB the game positions statistics and writes them to the binary file. */
+  do_action_extract_count_positions(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses, &position_summary);
+  if (verbose) {
+      fprintf(stdout, "\n");
+      fprintf(stdout, "------------------------\n");
+      fprintf(stdout, " Position Summary Table \n");
+      fprintf(stdout, "------------------------\n");
+      fprintf(stdout, "________________________________________________________\n");
+      fprintf(stdout, "      |          |        |            |\n");
+      fprintf(stdout, " ---- | batch_id | status |   gp_cnt   | classified_cnt\n");
+      fprintf(stdout, "______|__________|________|____________|________________\n");
+      for (size_t i = 0; i < position_summary.ntuples; i++) {
+        regab_ext_cnt_pos_record_t *rec = &position_summary.records[i];
+        fprintf(stdout, " %04zu | %8d |   %s  | %10zu |     %10zu\n", i, rec->batch_id, rec->status, rec->game_position_cnt, rec->classified_cnt);
+      }
+      fprintf(stdout, "\n");
+  }
+  fwrite(&position_summary.ntuples, sizeof(size_t), 1, ofp);
+  fwrite(position_summary.records, sizeof(regab_ext_cnt_pos_record_t), position_summary.ntuples, ofp);
+  if (verbose) fprintf(stdout, "Position summary table written succesfully to binary output file \"%s\".\n", output_file_name);
+
   /* - 05 - Collects from the DB the pattern index statistics, writes them to the binary file ... */
+  do_action_extract_count_pattern_freqs(&result, con, verbose);
+  /*
+    IN empty_count_arg    INTEGER,
+    IN batch_id_array_arg INTEGER[],
+    IN status_array_arg   CHARACTER(3)[],
+    IN pattern_id_arg     INTEGER,
+  */
 
   /* - 06 - Assigns the global variable index value ... */
   /* - 07 - Creates the CURSOR variable ... */
@@ -2186,6 +2338,7 @@ main (int argc,
   }
   PQclear(res);
 
+  free(position_summary.records);
   goto regab_program_end;
 
 

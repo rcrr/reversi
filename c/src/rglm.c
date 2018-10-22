@@ -38,6 +38,8 @@
 #include <time.h>
 
 #include "main_option_parse.h"
+#include "board_pattern.h"
+#include "solved_classified_gp.h"
 
 
 
@@ -55,11 +57,14 @@ static mop_options_t options;
 
 static int h_flag = false;
 
+static int v_flag = false;
+
 static int i_flag = false;
 static char *i_arg = NULL;
 
 static mop_options_long_t olist[] = {
   {"help",       'h', MOP_NONE},
+  {"verbose",    'v', MOP_NONE},
   {"input-file", 'i', MOP_REQUIRED},
   {0, 0, 0}
 };
@@ -69,8 +74,9 @@ static const char *documentation =
   "read_game_tree_log [OPTION...] - Loads a Game Tree Log dump file\n"
   "\n"
   "Options:\n"
-  "-h, --help           Show help options\n"
-  "-i, --input-file     Input file name - Mandatory\n"
+  "  -h, --help       Show help options\n"
+  "  -v, --verbose    Verbose output\n"
+  "  -i, --input-file Input file name - Mandatory\n"
   "\n"
   "Description:\n"
   "To be completed ...\n"
@@ -105,6 +111,22 @@ main (int argc, char *argv[])
 {
   time_t current_time = (time_t) -1;
   char* c_time_string = NULL;
+  size_t batch_id_cnt = 0;
+  uint64_t *batch_ids = NULL;
+  uint8_t empty_count = 0;
+  size_t position_status_cnt = 0;
+  char *position_status_buffer = NULL;
+  char **position_statuses = NULL;
+  size_t pattern_cnt = 0;
+  board_pattern_id_t *patterns = NULL;
+
+  regab_ext_cnt_pos_table_t position_summary;
+  position_summary.ntuples = 0;
+  position_summary.records = NULL;
+
+  size_t solved_classified_gp_cnt = 0;
+
+  bool verbose = false;
 
   size_t re;
   int opt;
@@ -115,6 +137,9 @@ main (int argc, char *argv[])
     switch (opt) {
     case 'h':
       h_flag = true;
+      break;
+    case 'v':
+      v_flag = true;
       break;
     case 'i':
       i_flag = true;
@@ -131,6 +156,9 @@ main (int argc, char *argv[])
       abort();
     }
   }
+
+  /* Outpust verbose comments. */
+  if (v_flag) verbose = true;
 
   /* Prints documentation and returns, when help option is active. */
   if (h_flag) {
@@ -156,9 +184,96 @@ main (int argc, char *argv[])
   assert(c_time_string);
 
   /* ctime() has already added a terminating newline character. */
-  fprintf(stdout, "Input file started to be written on %s", c_time_string);
+  if (verbose) fprintf(stdout, "Input file started to be written on %s", c_time_string);
+
+  /* Reads the batch_id_cnt, batch_ids input fields.*/
+  re = fread(&batch_id_cnt, sizeof(size_t), 1, ifp);
+  if (re != 1) print_error_and_stop(-20);
+  batch_ids = (uint64_t *) malloc(sizeof(uint64_t) * batch_id_cnt);
+  if (!batch_ids) {
+    fprintf(stderr, "Unable to allocate memory for batch_ids array.\n");
+    return EXIT_FAILURE;
+  }
+  re = fread(batch_ids, sizeof(uint64_t), batch_id_cnt, ifp);
+  if (re != batch_id_cnt) print_error_and_stop(-30);
+  if (verbose) {
+    fprintf(stdout, "Selected batch_id values: ");
+    for (size_t i = 0; i < batch_id_cnt; i++ ) {
+      fprintf(stdout, "%zu", batch_ids[i]);
+      fprintf(stdout, "%s", (i < batch_id_cnt - 1) ? ", ": "\n");
+    }
+  }
+
+  /* Reads the empty_count input field.*/
+  re = fread(&empty_count, sizeof(uint8_t), 1, ifp);
+  if (re != 1) print_error_and_stop(-40);
+  if (verbose) fprintf(stdout, "Selected empty_count value: %u\n", empty_count);
+
+  /* Reads the position_status_cnt, position_statuses, position_status_buffer input fields.*/
+  re = fread(&position_status_cnt, sizeof(size_t), 1, ifp);
+  if (re != 1) print_error_and_stop(-50);
+  position_status_buffer = (char *) malloc(4 * position_status_cnt); // status has length 3, plus one for string termination.
+  if (!position_status_buffer) {
+    fprintf(stderr, "Unable to allocate memory for position_status_buffer array.\n");
+    return EXIT_FAILURE;
+  }
+  re = fread(position_status_buffer, 4, position_status_cnt, ifp);
+  if (re != position_status_cnt) print_error_and_stop(-60);
+  position_statuses = (char **) malloc(sizeof(char *) * position_status_cnt);
+  if (!position_statuses) {
+    fprintf(stderr, "Unable to allocate memory for position_statuses array.\n");
+    return EXIT_FAILURE;
+  }
+  for (size_t i = 0; i < position_status_cnt; i++ ) {
+    position_statuses[i] = position_status_buffer + 4 * i;
+  }
+  if (verbose) {
+    fprintf(stdout, "Selected position_statuses values: ");
+    for (size_t i = 0; i < position_status_cnt; i++ ) {
+      fprintf(stdout, "%s", position_statuses[i]);
+      fprintf(stdout, "%s", (i < position_status_cnt - 1) ? ", ": "\n");
+    }
+  }
+
+  /* Reads the pattern_cnt, patterns input fields.*/
+  re = fread(&pattern_cnt, sizeof(size_t), 1, ifp);
+  if (re != 1) print_error_and_stop(-70);
+  patterns = (board_pattern_id_t *) malloc(sizeof(board_pattern_id_t) * pattern_cnt);
+  if (!patterns) {
+    fprintf(stderr, "Unable to allocate memory for patterns array.\n");
+    return EXIT_FAILURE;
+  }
+  re = fread(patterns, sizeof(board_pattern_id_t), pattern_cnt, ifp);
+  if (re != pattern_cnt) print_error_and_stop(-80);
+  if (verbose) {
+    fprintf(stdout, "Selected patterns values: ");
+    for (size_t i = 0; i < pattern_cnt; i++ ) {
+      fprintf(stdout, "%s", board_patterns[patterns[i]].name);
+      fprintf(stdout, "%s", (i < pattern_cnt - 1) ? ", ": "\n");
+    }
+  }
+
+  /* Reads the position summary table. */
+  re = fread(&position_summary.ntuples, sizeof(size_t), 1, ifp);
+  if (re != 1) print_error_and_stop(-90);
+  position_summary.records = (regab_ext_cnt_pos_record_t *) malloc(sizeof(regab_ext_cnt_pos_record_t) * position_summary.ntuples);
+  if (!position_summary.records) {
+    fprintf(stderr, "Unable to allocate memory for position_summary.records array.\n");
+    abort();
+  }
+  re = fread(position_summary.records, sizeof(regab_ext_cnt_pos_record_t), position_summary.ntuples, ifp);
+  if (re != position_summary.ntuples) print_error_and_stop(-100);
+  for (size_t i = 0; i < position_summary.ntuples; i++) solved_classified_gp_cnt += position_summary.records[i].classified_cnt;
+  if (verbose) fprintf(stdout, "Position summary table read, solved_classified_gp_cnt: %zu\n", solved_classified_gp_cnt);
 
   fclose(ifp);
+
+  /* Frees resources. */
+  free(position_summary.records);
+  free(patterns);
+  free(position_statuses);
+  free(position_status_buffer);
+  free(batch_ids);
 
   return EXIT_SUCCESS;
 }
