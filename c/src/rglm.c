@@ -2,7 +2,7 @@
  * @file
  *
  * @brief RGLM, Revrsi Generalized Linear Model.
- * @details Solves the ptoblem stated in the input file ...
+ * @details Solves the problem stated in the input file ...
  *
  * @par rglm.c
  * <tt>
@@ -123,6 +123,10 @@ main (int argc, char *argv[])
   regab_ext_cnt_pos_table_t position_summary;
   position_summary.ntuples = 0;
   position_summary.records = NULL;
+
+  regab_ext_cnt_pattern_freq_table_t pattern_freq_summary;
+  pattern_freq_summary.ntuples = 0;
+  pattern_freq_summary.records = NULL;
 
   size_t solved_classified_gp_cnt = 0;
 
@@ -264,11 +268,50 @@ main (int argc, char *argv[])
   re = fread(position_summary.records, sizeof(regab_ext_cnt_pos_record_t), position_summary.ntuples, ifp);
   if (re != position_summary.ntuples) print_error_and_stop(-100);
   for (size_t i = 0; i < position_summary.ntuples; i++) solved_classified_gp_cnt += position_summary.records[i].classified_cnt;
-  if (verbose) fprintf(stdout, "Position summary table read, solved_classified_gp_cnt: %zu\n", solved_classified_gp_cnt);
+  if (verbose) fprintf(stdout, "Position summary table has been read succesfully, solved_classified_gp_cnt: %zu\n", solved_classified_gp_cnt);
+
+  /* Reads the pattern frequency summary table. */
+  re = fread(&pattern_freq_summary.ntuples, sizeof(size_t), 1, ifp);
+  if (re != 1) print_error_and_stop(-110);
+  pattern_freq_summary.records = (regab_ext_cnt_pattern_freq_record_t *) malloc(sizeof(regab_ext_cnt_pattern_freq_record_t) * pattern_freq_summary.ntuples);
+  if (!pattern_freq_summary.records) {
+    fprintf(stderr, "Unable to allocate memory for pattern_freq_summary.records array.\n");
+    abort();
+  }
+  re = fread(pattern_freq_summary.records, sizeof(regab_ext_cnt_pattern_freq_record_t), pattern_freq_summary.ntuples, ifp);
+  if (re != pattern_freq_summary.ntuples) print_error_and_stop(-120);
+  if (verbose) fprintf(stdout, "Pattern summary table has been read succesfully, records count: %zu\n", pattern_freq_summary.ntuples);
+
+  //printf("glm_variable_id;pattern_id;principal_index_value;total_cnt;relative_frequency;theoretical_frequency\n");
+  int pattern_id = -1;
+  int64_t total_cnt = -1;
+  double relative_frequency = -1.;
+  double theoretical_probability = -1.;
+  for (size_t i = 0; i < pattern_freq_summary.ntuples; i++) {
+    regab_ext_cnt_pattern_freq_record_t *rec = &pattern_freq_summary.records[i];
+    if (rec->pattern_id != pattern_id) {
+      total_cnt = 0;
+      relative_frequency = 0.;
+      theoretical_probability = 0.;
+      pattern_id = rec->pattern_id;
+    }
+    total_cnt += rec->total_cnt;
+    relative_frequency += rec->relative_frequency;
+    theoretical_probability += rec->theoretical_probability;
+    //printf("%lld;%d;%d;%ld;%f;%f\n", rec->glm_variable_id, rec->pattern_id,rec->principal_index_value,rec->total_cnt,rec->relative_frequency,rec->theoretical_probability);
+    if (verbose && (i + 1 == pattern_freq_summary.ntuples || (rec + 1)->pattern_id != pattern_id)) {
+      const char *pattern_name = board_patterns[pattern_id].name;
+      const int64_t gp_cnt = total_cnt / board_patterns[pattern_id].n_instances;
+      printf("  Pattern id: %2d [%6s], total_cnt = %8ld, gp_cnt = %8ld, relative_frequency = %1.2f, theoretical_probability = %1.2f\n",
+             pattern_id, pattern_name, total_cnt, gp_cnt, relative_frequency, theoretical_probability);
+    }
+  }
+  // CHECK to be added !!!
 
   fclose(ifp);
 
   /* Frees resources. */
+  free(pattern_freq_summary.records);
   free(position_summary.records);
   free(patterns);
   free(position_statuses);

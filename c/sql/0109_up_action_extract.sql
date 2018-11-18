@@ -111,46 +111,47 @@ END;
 $$ LANGUAGE plpgsql VOLATILE;
 
 --
--- Usage example:
--- tst_regab=> SELECT * FROM regab_action_extract_count_pattern_freqs(20, '{3}', '{"CMR", "CMS"}', 12);
+-- Cursor cb holds a table with these fields:
+--  - glm_variable_id         INTEGER           - PRIMARY KEY - the generalized linear mmodel global variable id
+--  - pattern_id              INTEGER           - |
+--  - principal_index_value   INTEGER           - | UNIQUE - pattern_id identifies the pattern in the regab_prng_patterns table, principal_index_value is what it is
+--  - total_cnt               BIGINT            - total count of occurences in the batch set of the pattern, and the mirror, counted for all the pattern instances
+--  - relative_frequency      DOUBLE PRECISION  - frequency in the data
+--  - theoretical_probability DOUBLE PRECISION  - expected frequency (computed using an huge set)
 --
-CREATE FUNCTION regab_action_extract_count_pattern_freqs (IN empty_count_arg    INTEGER,
-                                                          IN batch_id_array_arg INTEGER[],
-                                                          IN status_array_arg   CHARACTER(3)[],
-                                                          IN pattern_id_arg     INTEGER,
-                                                          ---
-                                                          OUT pattern_id              INTEGER,
-                                                          OUT index_value             INTEGER,
-                                                          OUT mirror_value            INTEGER,
-                                                          OUT principal_index_value   INTEGER,
-                                                          OUT cnt_0                   BIGINT,
-                                                          OUT cnt_1                   BIGINT,
-                                                          OUT cnt_2                   BIGINT,
-                                                          OUT cnt_3                   BIGINT,
-                                                          OUT cnt_4                   BIGINT,
-                                                          OUT cnt_5                   BIGINT,
-                                                          OUT cnt_6                   BIGINT,
-                                                          OUT cnt_7                   BIGINT,
-                                                          OUT total_cnt               BIGINT,
-                                                          OUT relative_frequency      DOUBLE PRECISION,
-                                                          OUT theoretical_probability DOUBLE PRECISION)
-RETURNS SETOF record
+-- Usage example:
+-- tst_regab=> BEGIN;
+-- tst_regab=> SELECT * FROM regab_action_extract_count_pattern_freqs(20, '{8}', '{"CMR", "CMS"}', '{6, 12}', 'ca', 'cb');
+-- tst_regab=> FETCH ALL FROM ca;
+-- tst_regab=> FETCH ALL FROM cb;
+-- tst_regab=> END;
+--
+-- For debugging purposes the temporary tables are accessible within the transaction.
+-- If no error occurs, and before sending the END command, data is available with commands like:
+-- tst_regab=> SELECT * FROM regab_action_extract_count_pattern_freqs_tmp_table_a;
+-- tst_regab=> SELECT * FROM regab_action_extract_count_pattern_freqs_tmp_table_b;
+--
+CREATE FUNCTION regab_action_extract_count_pattern_freqs (empty_count_arg          INTEGER,
+                                                          batch_id_array_arg       INTEGER[],
+                                                          status_array_arg         CHARACTER(3)[],
+                                                          pattern_id_array_arg     INTEGER[],
+                                                          cursor_a_arg             REFCURSOR,
+                                                          cursor_b_arg             REFCURSOR)
+RETURNS TABLE (cur_name REFCURSOR, row_cnt BIGINT)
 AS $$
 DECLARE
-  pattern_name     CHARACTER(6);
-  ninstances       SMALLINT;
-  nsquares         SMALLINT;
-  index_value_cnt  INTEGER;
-  tmp_table_exists BOOL;
-  nsamples         BIGINT;
+  pattern_name           CHARACTER(6);
+  ninstances             SMALLINT;
+  nsquares               SMALLINT;
+  index_value_cnt        INTEGER;
+  tmp_table_exists       BOOL;
+  nsamples               BIGINT;
+  pattern_id_current     INTEGER;
+  pattern_id_cardinality INTEGER;
+  status_cardinality     INTEGER;
 BEGIN
 
-  --RAISE NOTICE 'STEP -00- TRX - CLOCK: % - %', (SELECT transaction_timestamp()), (SELECT clock_timestamp());
-
-  SELECT ta.pattern_name, ta.ninstances, ta.nsquares INTO pattern_name, ninstances, nsquares FROM regab_prng_patterns AS ta WHERE ta.pattern_id = pattern_id_arg;
-  index_value_cnt := 3^nsquares;
-  
-  --RAISE NOTICE 'STEP -01- TRX - CLOCK: % - %', (SELECT transaction_timestamp()), (SELECT clock_timestamp());
+  --RAISE NOTICE '--A-- timeofday: %', timeofday();
 
   SELECT EXISTS INTO tmp_table_exists (
     SELECT 1
@@ -159,87 +160,152 @@ BEGIN
     AND    table_name = 'regab_action_extract_count_pattern_freqs_tmp_table_a'
     );
   IF tmp_table_exists THEN
-    RAISE EXCEPTION 'tmp_table_exists = %', tmp_table_exists;
+    RAISE EXCEPTION 'regab_action_extract_count_pattern_freqs_tmp_table_a: tmp_table_exists = %', tmp_table_exists;
   END IF;
   
-  CREATE TEMPORARY TABLE regab_action_extract_count_pattern_freqs_tmp_table_a (index_value             INTEGER PRIMARY KEY,
-                                                                               pattern_id              INTEGER, 
+  CREATE TEMPORARY TABLE regab_action_extract_count_pattern_freqs_tmp_table_a (pattern_id              INTEGER,
+                                                                               index_value             INTEGER, 
                                                                                mirror_value            INTEGER,
                                                                                principal_index_value   INTEGER,
-                                                                               cnt_0                   BIGINT DEFAULT 0,
-                                                                               cnt_1                   BIGINT DEFAULT 0,
-                                                                               cnt_2                   BIGINT DEFAULT 0,
-                                                                               cnt_3                   BIGINT DEFAULT 0,
-                                                                               cnt_4                   BIGINT DEFAULT 0,
-                                                                               cnt_5                   BIGINT DEFAULT 0,
-                                                                               cnt_6                   BIGINT DEFAULT 0,
-                                                                               cnt_7                   BIGINT DEFAULT 0,
+                                                                               cnt_0                   BIGINT,
+                                                                               cnt_1                   BIGINT,
+                                                                               cnt_2                   BIGINT,
+                                                                               cnt_3                   BIGINT,
+                                                                               cnt_4                   BIGINT,
+                                                                               cnt_5                   BIGINT,
+                                                                               cnt_6                   BIGINT,
+                                                                               cnt_7                   BIGINT,
                                                                                total_cnt               BIGINT,
                                                                                relative_frequency      DOUBLE PRECISION,
-                                                                               theoretical_probability DOUBLE PRECISION
+                                                                               theoretical_probability DOUBLE PRECISION,
+                                                                               PRIMARY KEY (pattern_id, index_value)
                                                                                ) ON COMMIT DROP;
+
+  SELECT EXISTS INTO tmp_table_exists (
+    SELECT 1
+    FROM   information_schema.tables 
+    WHERE  table_schema LIKE 'pg_temp%'
+    AND    table_name = 'regab_action_extract_count_pattern_freqs_tmp_table_b'
+    );
+  IF tmp_table_exists THEN
+    RAISE EXCEPTION 'regab_action_extract_count_pattern_freqs_tmp_table_b: tmp_table_exists = %', tmp_table_exists;
+  END IF;
   
-  --RAISE NOTICE 'STEP -02- TRX - CLOCK: % - %', (SELECT transaction_timestamp()), (SELECT clock_timestamp());
+  CREATE TEMPORARY TABLE regab_action_extract_count_pattern_freqs_tmp_table_b (glm_variable_id         BIGINT,
+                                                                               pattern_id              INTEGER,
+                                                                               principal_index_value   INTEGER,
+                                                                               total_cnt               BIGINT,
+                                                                               relative_frequency      DOUBLE PRECISION,
+                                                                               theoretical_probability DOUBLE PRECISION,
+                                                                               PRIMARY KEY (glm_variable_id),
+                                                                               UNIQUE (pattern_id, principal_index_value)
+                                                                               ) ON COMMIT DROP;
 
-  WITH RECURSIVE index_value_range AS (
-    SELECT
-      0::INTEGER AS val
-    UNION ALL SELECT val + 1::INTEGER AS val
-    FROM index_value_range
-    WHERE index_value_range.val < index_value_cnt - 1
-  )
-  INSERT INTO regab_action_extract_count_pattern_freqs_tmp_table_a
-    (index_value, pattern_id, mirror_value, principal_index_value, theoretical_probability)
-    SELECT ta.val, pattern_id_arg, para.mirror_value, para.principal_index_value, papr.index_prob_given_ec
-      FROM
-        index_value_range AS ta
-      LEFT JOIN
-        regab_prng_pattern_ranges AS para ON ta.val = para.index_value
-      LEFT JOIN
-        regab_prng_pattern_probs AS papr ON para.seq = papr.range_id
-      WHERE
-        para.pattern_id = pattern_id_arg AND papr.empty_count = empty_count_arg;
-        
-  --RAISE NOTICE 'STEP -03- TRX - CLOCK: % - %', (SELECT transaction_timestamp()), (SELECT clock_timestamp());
+  SELECT array_length(status_array_arg, 1) INTO status_cardinality;
+  SELECT array_length(pattern_id_array_arg, 1) INTO pattern_id_cardinality;
 
-  FOR i IN 0..(ninstances - 1) LOOP
-    --RAISE NOTICE '  Computing frequencies on pattern instance n. %', i;
+  --RAISE NOTICE '--B-- timeofday: %', timeofday();
 
-    EXECUTE format(
-    'WITH index_values AS (
-      SELECT
-        pc.i_%s_%s AS iv
-      FROM
-        regab_prng_gp AS gp
-      RIGHT JOIN
-        regab_prng_gp_pattern_class AS pc
-      ON
-        gp.seq = pc.gp_id
-      WHERE
-        gp.empty_count = $1 AND
-        gp.status = ANY ($2) AND
-        gp.batch_id = ANY ($3)
-    ), grouped_values AS (
-      SELECT iv AS iv, count(1) AS cnt FROM index_values GROUP BY iv ORDER BY iv
-    )
-    UPDATE regab_action_extract_count_pattern_freqs_tmp_table_a AS ta
-      SET cnt_%s = tb.cnt FROM grouped_values AS tb WHERE tb.iv = ta.index_value;', lower(pattern_name), i, i
-    ) USING empty_count_arg, status_array_arg, batch_id_array_arg;
+  IF (status_cardinality IS NOT NULL AND pattern_id_cardinality IS NOT NULL) THEN
+    FOREACH pattern_id_current IN ARRAY pattern_id_array_arg LOOP
 
-    --RAISE NOTICE '  STEP -04.%- TRX - CLOCK: % - %', i, (SELECT transaction_timestamp()), (SELECT clock_timestamp());  
-  END LOOP;
+      --RAISE NOTICE '--C.1-- pattern_id_current=%, timeofday: %', pattern_id_current, timeofday();
 
-  UPDATE regab_action_extract_count_pattern_freqs_tmp_table_a AS ta
-    SET total_cnt = ta.cnt_0 + ta.cnt_1 + ta.cnt_2 + ta.cnt_3 + ta.cnt_4 + ta.cnt_5 + ta.cnt_6 + ta.cnt_7;
+      SELECT ta.pattern_name, ta.ninstances, ta.nsquares INTO pattern_name, ninstances, nsquares FROM regab_prng_patterns AS ta WHERE ta.pattern_id = pattern_id_current;
+      index_value_cnt := 3^nsquares;
 
-  SELECT sum(ta.total_cnt) INTO nsamples FROM regab_action_extract_count_pattern_freqs_tmp_table_a AS ta;
+      WITH RECURSIVE index_value_range AS (
+        SELECT
+          0::INTEGER AS val
+        UNION ALL SELECT val + 1::INTEGER AS val
+        FROM index_value_range
+        WHERE index_value_range.val < index_value_cnt - 1
+      )
+      INSERT INTO regab_action_extract_count_pattern_freqs_tmp_table_a
+        (index_value, pattern_id, mirror_value, principal_index_value, theoretical_probability)
+        SELECT ta.val, pattern_id_current, para.mirror_value, para.principal_index_value, papr.index_prob_given_ec
+        FROM
+          index_value_range AS ta
+        LEFT JOIN
+          regab_prng_pattern_ranges AS para ON ta.val = para.index_value
+        LEFT JOIN
+          regab_prng_pattern_probs AS papr ON para.seq = papr.range_id
+        WHERE
+          para.pattern_id = pattern_id_current AND papr.empty_count = empty_count_arg;
 
-  UPDATE regab_action_extract_count_pattern_freqs_tmp_table_a AS ta
-    SET relative_frequency = ta.total_cnt::DOUBLE PRECISION / nsamples::DOUBLE PRECISION;
-    
-  --RAISE NOTICE 'STEP -02- TRX - CLOCK: % - %', (SELECT transaction_timestamp()), (SELECT clock_timestamp());
+      --RAISE NOTICE '--C.2-- pattern_id_current=%, timeofday: %', pattern_id_current, timeofday();
 
-  RETURN QUERY
+      FOR i IN 0..(ninstances - 1) LOOP
+
+        EXECUTE format(
+        'WITH index_values AS (
+          SELECT
+            pc.i_%s_%s AS iv
+          FROM
+            regab_prng_gp AS gp
+          RIGHT JOIN
+            regab_prng_gp_pattern_class AS pc
+          ON
+            gp.seq = pc.gp_id
+          WHERE
+            gp.empty_count = $1 AND
+            gp.status = ANY ($2) AND
+            gp.batch_id = ANY ($3)
+        ), grouped_values AS (
+          SELECT iv AS iv, count(1) AS cnt FROM index_values GROUP BY iv ORDER BY iv
+        )
+        UPDATE regab_action_extract_count_pattern_freqs_tmp_table_a AS ta
+          SET (cnt_%s) = (SELECT tb.cnt FROM grouped_values AS tb WHERE tb.iv = ta.index_value) WHERE ta.pattern_id = $4;',
+          lower(pattern_name), i, i
+        ) USING empty_count_arg, status_array_arg, batch_id_array_arg, pattern_id_current;
+      
+      END LOOP;
+
+      --RAISE NOTICE '--C.3-- pattern_id_current=%, timeofday: %', pattern_id_current, timeofday();
+
+      UPDATE regab_action_extract_count_pattern_freqs_tmp_table_a AS ta
+        SET total_cnt = COALESCE(ta.cnt_0, 0) + COALESCE(ta.cnt_1, 0) + COALESCE(ta.cnt_2, 0) + COALESCE(ta.cnt_3, 0) +
+          COALESCE(ta.cnt_4, 0) + COALESCE(ta.cnt_5, 0) + COALESCE(ta.cnt_6, 0) + COALESCE(ta.cnt_7, 0);
+
+      --RAISE NOTICE '--C.4-- pattern_id_current=%, timeofday: %', pattern_id_current, timeofday();
+
+      SELECT sum(ta.total_cnt) INTO nsamples FROM regab_action_extract_count_pattern_freqs_tmp_table_a AS ta WHERE ta.pattern_id = pattern_id_current;
+
+      --RAISE NOTICE '--C.5-- pattern_id_current=%, timeofday: %', pattern_id_current, timeofday();
+
+      UPDATE regab_action_extract_count_pattern_freqs_tmp_table_a AS ta
+        SET relative_frequency = ta.total_cnt::DOUBLE PRECISION / nsamples::DOUBLE PRECISION
+        WHERE ta.pattern_id = pattern_id_current;
+
+      --RAISE NOTICE '--C.6-- pattern_id_current=%, timeofday: %', pattern_id_current, timeofday();
+
+    END LOOP;
+  END IF;
+
+  INSERT INTO regab_action_extract_count_pattern_freqs_tmp_table_b
+    (glm_variable_id, pattern_id, principal_index_value, total_cnt, relative_frequency, theoretical_probability)
+  SELECT
+    ROW_NUMBER () OVER (ORDER BY pattern_id, principal_index_value) - 1 AS glm_variable_id,
+    pattern_id,
+    principal_index_value,
+    total_cnt,
+    relative_frequency,
+    theoretical_probability
+  FROM (SELECT
+          pattern_id,
+          principal_index_value,
+          sum(total_cnt) AS total_cnt,
+          sum(relative_frequency) AS relative_frequency,
+          sum(theoretical_probability) AS theoretical_probability
+        FROM
+          regab_action_extract_count_pattern_freqs_tmp_table_a
+        WHERE
+          total_cnt > 0
+        GROUP BY
+          pattern_id, principal_index_value
+       ) AS ta;
+  
+  OPEN cursor_a_arg FOR
   SELECT
     ta.pattern_id,
     ta.index_value,
@@ -248,7 +314,24 @@ BEGIN
     ta.cnt_0, ta.cnt_1, ta.cnt_2, ta.cnt_3, ta.cnt_4, ta.cnt_5, ta.cnt_6, ta.cnt_7, ta.total_cnt,
     ta.relative_frequency,
     ta.theoretical_probability
-  FROM regab_action_extract_count_pattern_freqs_tmp_table_a AS ta ORDER BY index_value;
+  FROM regab_action_extract_count_pattern_freqs_tmp_table_a AS ta ORDER BY pattern_id, index_value;
+  cur_name := cursor_a_arg;
+  SELECT count(1) INTO row_cnt FROM regab_action_extract_count_pattern_freqs_tmp_table_a;
+  RETURN NEXT;
+
+  OPEN cursor_b_arg FOR
+  SELECT
+    tb.glm_variable_id,
+    tb.pattern_id,
+    tb.principal_index_value,
+    tb.total_cnt,
+    tb.relative_frequency,
+    tb.theoretical_probability
+  FROM regab_action_extract_count_pattern_freqs_tmp_table_b AS tb ORDER BY glm_variable_id;
+  cur_name := cursor_b_arg;
+  SELECT count(1) INTO row_cnt FROM regab_action_extract_count_pattern_freqs_tmp_table_b;
+  RETURN NEXT;
+  
 END;
 $$ LANGUAGE plpgsql VOLATILE;
 

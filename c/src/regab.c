@@ -1033,14 +1033,14 @@ do_select_position_to_solve (int *result,
   PQclear(res);
 }
 
-// regab_action_extract_count_pattern_freqs
-// regab_action_extract_count_positions
 static void
-do_action_extract_count_pattern_freqs (int *result,
-                                       PGconn *con,
-                                       bool verbose)
+do_action_extract_pattern_freqs_cursor_fetch (int *result,
+                                              PGconn *con,
+                                              bool verbose,
+                                              const char *sql_cursor_name,
+                                              size_t chunk_size,
+                                              regab_ext_cnt_pattern_freq_table_t *return_table)
 {
-  fprintf(stdout, "do_action_extract_count_pattern_freqs: START\n");
   static const size_t command_size = 1024;
 
   PGresult *res = NULL;
@@ -1055,11 +1055,139 @@ do_action_extract_count_pattern_freqs (int *result,
   }
   *result = 0;
 
-  const char *c0 = "SELECT pattern_id, index_value, mirror_value, principal_index_value, "
-    "cnt_0, cnt_1, cnt_2, cnt_3, cnt_4, cnt_5, cnt_6, cnt_7, total_cnt, relative_frequency, "
-    "theoretical_probability FROM regab_action_extract_count_pattern_freqs(";
+  const char *c0 = "FETCH FORWARD ";
 
-  fprintf(stdout, "do_action_extract_count_pattern_freqs: FINISH\n");
+  cl = snprintf(command, command_size, "%s", c0);
+  cp = command + cl;
+  if (cl >= command_size) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+    abort();
+  }
+
+  cl += snprintf(cp, command_size - cl, "%zu FROM %s;", chunk_size, sql_cursor_name);
+  cp = command + cl;
+  if (cl >= command_size) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+    abort();
+  }
+
+  //fprintf(stdout, "query command: %s\n", command);
+
+  res = PQexec(con, command);
+  if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  } else {
+    return_table->ntuples = PQntuples(res);
+    for (size_t i = 0; i < return_table->ntuples; i++) {
+      return_table->records[i].glm_variable_id = atol(PQgetvalue(res, i, 0));
+      return_table->records[i].pattern_id = atol(PQgetvalue(res, i, 1));
+      return_table->records[i].principal_index_value = atol(PQgetvalue(res, i, 2));
+      return_table->records[i].total_cnt = atol(PQgetvalue(res, i, 3));
+      return_table->records[i].relative_frequency = atof(PQgetvalue(res, i, 4));
+      return_table->records[i].theoretical_probability = atof(PQgetvalue(res, i, 4));
+    }
+    *result = 0;
+  }
+  PQclear(res);
+}
+
+static void
+do_action_extract_pattern_freqs_prepare_cursor (int *result,
+                                                PGconn *con,
+                                                bool verbose,
+                                                uint8_t empty_count,
+                                                size_t batch_id_cnt,
+                                                uint64_t *batch_ids,
+                                                size_t position_status_cnt,
+                                                char **position_statuses,
+                                                size_t pattern_cnt,
+                                                board_pattern_id_t *patterns,
+                                                const char *sql_cursor_name_a,
+                                                const char *sql_cursor_name_b,
+                                                size_t *record_cnt_a)
+{
+  static const size_t command_size = 1024;
+
+  PGresult *res = NULL;
+  char command[command_size];
+  size_t cl;
+  char *cp;
+
+  if (!result) return;
+  if (!con) {
+    *result = -1;
+    return;
+  }
+  *result = 0;
+
+  const char *c0 = "SELECT * FROM regab_action_extract_count_pattern_freqs(";
+
+  cl = snprintf(command, command_size, "%s", c0);
+  cp = command + cl;
+  if (cl >= command_size) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+    abort();
+  }
+
+  cl += snprintf(cp, command_size - cl, "%d, '{", empty_count);
+  cp = command + cl;
+  if (cl >= command_size) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+    abort();
+  }
+
+  for (size_t i = 0; i < batch_id_cnt; i++) {
+    cl += snprintf(cp, command_size - cl, "%zu%s", batch_ids[i], (i < batch_id_cnt - 1) ? ", " : "}', '{");
+    cp = command + cl;
+    if (cl >= command_size) {
+      fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+      abort();
+    }
+  }
+
+  for (size_t i = 0; i < position_status_cnt; i++) {
+    cl += snprintf(cp, command_size - cl, "\"%s\"%s", position_statuses[i], (i < position_status_cnt - 1) ? ", " : "}', '{");
+    cp = command + cl;
+    if (cl >= command_size) {
+      fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+      abort();
+    }
+  }
+
+  for (size_t i = 0; i < pattern_cnt; i++) {
+    cl += snprintf(cp, command_size - cl, "%d%s", patterns[i], (i < pattern_cnt - 1) ? ", " : "}', ");
+    cp = command + cl;
+    if (cl >= command_size) {
+      fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+      abort();
+    }
+  }
+
+  cl += snprintf(cp, command_size - cl, "'%s', '%s');", sql_cursor_name_a, sql_cursor_name_b);
+  cp = command + cl;
+  if (cl >= command_size) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+    abort();
+  }
+
+  //fprintf(stdout, "query command: %s\n", command);
+
+  res = PQexec(con, command);
+  if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  } else {
+    if (PQntuples(res) != 2) {
+      *result = -2;
+      if (verbose) fprintf(stdout, "Procedure regab_action_extract_count_pattern_freqs() returned wrong number of records.\n");
+    } else {
+      *record_cnt_a = atol(PQgetvalue(res, 1, 1)); // second row, second field: the row count.
+      *result = 0;
+      if (verbose) fprintf(stdout, "Procedure regab_action_extract_count_pattern_freqs() executed succesfully.\n");
+    }
+  }
+  PQclear(res);
 }
 
 
@@ -1129,7 +1257,7 @@ do_action_extract_count_positions (int *result,
   } else {
     return_table->ntuples = PQntuples(res);
     return_table->records = (regab_ext_cnt_pos_record_t *) malloc(sizeof(regab_ext_cnt_pos_record_t) * return_table->ntuples);
-    if (!batch_ids) {
+    if (!return_table->records) {
       fprintf(stderr, "Unable to allocate memory for return_table->records array.\n");
       abort();
     }
@@ -2191,9 +2319,18 @@ main (int argc,
   position_summary.ntuples = 0;
   position_summary.records = NULL;
 
+  const size_t pattern_freq_summary_chunk_size = 1024;
+  const char *sql_cursor_name_pattern_freqs_debug = "sql_cursor_name_pattern_freqs_debug";
+  const char *sql_cursor_name_pattern_freqs = "sql_cursor_name_pattern_freqs";
+  size_t pattern_freq_summary_total_record_cnt = 0;
+  size_t pattern_freq_summary_fetched_record_cnt = 0;
   regab_ext_cnt_pattern_freq_table_t pattern_freq_summary;
   pattern_freq_summary.ntuples = 0;
-  pattern_freq_summary.records = NULL;
+  pattern_freq_summary.records = (regab_ext_cnt_pattern_freq_record_t *) malloc(sizeof(regab_ext_cnt_pattern_freq_record_t) * pattern_freq_summary_chunk_size);
+  if (!pattern_freq_summary.records) {
+    fprintf(stderr, "Unable to allocate memory for pattern_freq_summary.records array.\n");
+    abort();
+  }
 
   time_t current_time = (time_t) -1;
   char* c_time_string = NULL;
@@ -2286,8 +2423,8 @@ main (int argc,
       fprintf(stdout, " Position Summary Table \n");
       fprintf(stdout, "------------------------\n");
       fprintf(stdout, "________________________________________________________\n");
-      fprintf(stdout, "      |          |        |            |\n");
-      fprintf(stdout, " ---- | batch_id | status |   gp_cnt   | classified_cnt\n");
+      fprintf(stdout, "      |          |        |            |                \n");
+      fprintf(stdout, " ---- | batch_id | status |   gp_cnt   | classified_cnt \n");
       fprintf(stdout, "______|__________|________|____________|________________\n");
       for (size_t i = 0; i < position_summary.ntuples; i++) {
         regab_ext_cnt_pos_record_t *rec = &position_summary.records[i];
@@ -2298,15 +2435,31 @@ main (int argc,
   fwrite(&position_summary.ntuples, sizeof(size_t), 1, ofp);
   fwrite(position_summary.records, sizeof(regab_ext_cnt_pos_record_t), position_summary.ntuples, ofp);
   if (verbose) fprintf(stdout, "Position summary table written succesfully to binary output file \"%s\".\n", output_file_name);
+  free(position_summary.records);
 
   /* - 05 - Collects from the DB the pattern index statistics, writes them to the binary file ... */
-  do_action_extract_count_pattern_freqs(&result, con, verbose);
-  /*
-    IN empty_count_arg    INTEGER,
-    IN batch_id_array_arg INTEGER[],
-    IN status_array_arg   CHARACTER(3)[],
-    IN pattern_id_arg     INTEGER,
-  */
+  do_action_extract_pattern_freqs_prepare_cursor(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses,
+                                                 pattern_cnt, patterns, sql_cursor_name_pattern_freqs_debug, sql_cursor_name_pattern_freqs,
+                                                 &pattern_freq_summary_total_record_cnt);
+  fwrite(&pattern_freq_summary_total_record_cnt, sizeof(size_t), 1, ofp);
+
+  for (;;) {
+    do_action_extract_pattern_freqs_cursor_fetch(&result, con, verbose,sql_cursor_name_pattern_freqs, pattern_freq_summary_chunk_size, &pattern_freq_summary);
+    pattern_freq_summary_fetched_record_cnt += pattern_freq_summary.ntuples;
+    if (pattern_freq_summary.ntuples == 0) {
+      if (pattern_freq_summary_fetched_record_cnt != pattern_freq_summary_total_record_cnt) {
+        res = PQexec(con, "ROLLBACK");
+        PQfinish(con);
+        fclose(ofp);
+        fprintf(stderr, "Records count mismatch, do_action_extract_pattern_freqs_cursor_fetch returned an unexpectd number of records.\n");
+        return EXIT_FAILURE;
+      }
+      break;
+    }
+    fwrite(pattern_freq_summary.records, sizeof(regab_ext_cnt_pattern_freq_record_t), pattern_freq_summary.ntuples, ofp);
+  }
+  free(pattern_freq_summary.records);
+  if (verbose) fprintf(stdout, "Pattern frequency summary table written succesfully to binary output file \"%s\".\n", output_file_name);
 
   /* - 06 - Assigns the global variable index value ... */
   /* - 07 - Creates the CURSOR variable ... */
@@ -2338,7 +2491,6 @@ main (int argc,
   }
   PQclear(res);
 
-  free(position_summary.records);
   goto regab_program_end;
 
 

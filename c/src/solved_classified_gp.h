@@ -49,18 +49,9 @@ typedef struct regab_ext_cnt_pos_table_s {
 } regab_ext_cnt_pos_table_t;
 
 typedef struct regab_ext_cnt_pattern_freq_record_s {
+  long long int glm_variable_id;
   int pattern_id;
-  int index_value;
-  int mirror_value;
   int principal_index_value;
-  int64_t cnt_0;
-  int64_t cnt_1;
-  int64_t cnt_2;
-  int64_t cnt_3;
-  int64_t cnt_4;
-  int64_t cnt_5;
-  int64_t cnt_6;
-  int64_t cnt_7;
   int64_t total_cnt;
   double relative_frequency;
   double theoretical_probability;
