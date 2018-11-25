@@ -1034,6 +1034,101 @@ do_select_position_to_solve (int *result,
 }
 
 static void
+do_action_extract_game_pos_prepare_corsor (int *result,
+                                           PGconn *con,
+                                           bool verbose,
+                                           uint8_t empty_count,
+                                           size_t batch_id_cnt,
+                                           uint64_t *batch_ids,
+                                           size_t position_status_cnt,
+                                           char **position_statuses,
+                                           size_t pattern_cnt,
+                                           board_pattern_id_t *patterns,
+                                           const char *sql_cursor_name,
+                                           size_t *record_cnt)
+{
+  static const size_t command_size = 1024;
+
+  PGresult *res = NULL;
+  char command[command_size];
+  size_t cl;
+  char *cp;
+
+  if (!result) return;
+  if (!con) {
+    *result = -1;
+    return;
+  }
+  *result = 0;
+
+  const char *c0 = "SELECT * FROM regab_action_extract_game_pos_prepare_cursor(";
+
+  cl = snprintf(command, command_size, "%s", c0);
+  cp = command + cl;
+  if (cl >= command_size) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+    abort();
+  }
+
+  cl += snprintf(cp, command_size - cl, "%d, '{", empty_count);
+  cp = command + cl;
+  if (cl >= command_size) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+    abort();
+  }
+
+  for (size_t i = 0; i < batch_id_cnt; i++) {
+    cl += snprintf(cp, command_size - cl, "%zu%s", batch_ids[i], (i < batch_id_cnt - 1) ? ", " : "}', '{");
+    cp = command + cl;
+    if (cl >= command_size) {
+      fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+      abort();
+    }
+  }
+
+  for (size_t i = 0; i < position_status_cnt; i++) {
+    cl += snprintf(cp, command_size - cl, "\"%s\"%s", position_statuses[i], (i < position_status_cnt - 1) ? ", " : "}', '{");
+    cp = command + cl;
+    if (cl >= command_size) {
+      fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+      abort();
+    }
+  }
+
+  for (size_t i = 0; i < pattern_cnt; i++) {
+    cl += snprintf(cp, command_size - cl, "%d%s", patterns[i], (i < pattern_cnt - 1) ? ", " : "}', ");
+    cp = command + cl;
+    if (cl >= command_size) {
+      fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+      abort();
+    }
+  }
+
+  cl += snprintf(cp, command_size - cl, "'%s');", sql_cursor_name);
+  cp = command + cl;
+  if (cl >= command_size) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+    abort();
+  }
+
+  res = PQexec(con, command);
+  if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  } else {
+    if (PQntuples(res) != 1) {
+      fprintf(stdout, "Procedure do_action_extract_game_pos_prepare_corsor() returned wrong number of records.\n");
+      *result = -2;
+    } else {
+      *record_cnt = atol(PQgetvalue(res, 0, 0)); // first row, first field: the row count.
+      *result = 0;
+      if (verbose) fprintf(stdout, "Procedure do_action_extract_game_pos_prepare_corsor() executed succesfully.\n");
+    }
+  }
+  PQclear(res);
+}
+
+static void
 do_action_extract_pattern_freqs_cursor_fetch (int *result,
                                               PGconn *con,
                                               bool verbose,
@@ -1071,8 +1166,6 @@ do_action_extract_pattern_freqs_cursor_fetch (int *result,
     abort();
   }
 
-  //fprintf(stdout, "query command: %s\n", command);
-
   res = PQexec(con, command);
   if (PQresultStatus(res) != PGRES_TUPLES_OK) {
     fprintf(stderr, "%s", PQerrorMessage(con));
@@ -1085,7 +1178,7 @@ do_action_extract_pattern_freqs_cursor_fetch (int *result,
       return_table->records[i].principal_index_value = atol(PQgetvalue(res, i, 2));
       return_table->records[i].total_cnt = atol(PQgetvalue(res, i, 3));
       return_table->records[i].relative_frequency = atof(PQgetvalue(res, i, 4));
-      return_table->records[i].theoretical_probability = atof(PQgetvalue(res, i, 4));
+      return_table->records[i].theoretical_probability = atof(PQgetvalue(res, i, 5));
     }
     *result = 0;
   }
@@ -1105,7 +1198,7 @@ do_action_extract_pattern_freqs_prepare_cursor (int *result,
                                                 board_pattern_id_t *patterns,
                                                 const char *sql_cursor_name_a,
                                                 const char *sql_cursor_name_b,
-                                                size_t *record_cnt_a)
+                                                size_t *record_cnt_b)
 {
   static const size_t command_size = 1024;
 
@@ -1171,8 +1264,6 @@ do_action_extract_pattern_freqs_prepare_cursor (int *result,
     abort();
   }
 
-  //fprintf(stdout, "query command: %s\n", command);
-
   res = PQexec(con, command);
   if (PQresultStatus(res) != PGRES_TUPLES_OK) {
     fprintf(stderr, "%s", PQerrorMessage(con));
@@ -1182,7 +1273,7 @@ do_action_extract_pattern_freqs_prepare_cursor (int *result,
       *result = -2;
       if (verbose) fprintf(stdout, "Procedure regab_action_extract_count_pattern_freqs() returned wrong number of records.\n");
     } else {
-      *record_cnt_a = atol(PQgetvalue(res, 1, 1)); // second row, second field: the row count.
+      *record_cnt_b = atol(PQgetvalue(res, 1, 1)); // second row, second field: the row count.
       *result = 0;
       if (verbose) fprintf(stdout, "Procedure regab_action_extract_count_pattern_freqs() executed succesfully.\n");
     }
@@ -2299,8 +2390,7 @@ main (int argc,
    *  - 04 - Collects from the DB the game positions statistics and writes them to the binary file.
    *  - 05 - Collects from the DB the pattern index statistics, writes them to the binary file,
    *         and accumulates the data into the DB temp table.
-   *         This step is organized as a LOOP indexed by pattern_id.
-   *  - 06 - Assigns the global variable index value to each record in the DB temp table.
+   *         This step also assigns the global variable index value to each record in the DB temp table.
    *         This action generates the mapping between pattern_id, index_value tuples and the GLM global variables.
    *         Writes the mapping, direct and inverse, to the binary file.
    *  - 07 - Creates the CURSOR variable over the query collecting game_positions, game_value, pattern values.
@@ -2331,6 +2421,9 @@ main (int argc,
     fprintf(stderr, "Unable to allocate memory for pattern_freq_summary.records array.\n");
     abort();
   }
+
+  const char *sql_cursor_name_solved_and_classified_gps = "sql_cursor_name_solved_and_classified_gps";
+  size_t solved_and_classified_gps_total_record_cnt = 0;
 
   time_t current_time = (time_t) -1;
   char* c_time_string = NULL;
@@ -2437,14 +2530,14 @@ main (int argc,
   if (verbose) fprintf(stdout, "Position summary table written succesfully to binary output file \"%s\".\n", output_file_name);
   free(position_summary.records);
 
-  /* - 05 - Collects from the DB the pattern index statistics, writes them to the binary file ... */
+  /* - 05 - Collects from the DB the pattern index statistics, assigns the global variable index value, writes them to the binary file ... */
   do_action_extract_pattern_freqs_prepare_cursor(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses,
                                                  pattern_cnt, patterns, sql_cursor_name_pattern_freqs_debug, sql_cursor_name_pattern_freqs,
                                                  &pattern_freq_summary_total_record_cnt);
   fwrite(&pattern_freq_summary_total_record_cnt, sizeof(size_t), 1, ofp);
 
   for (;;) {
-    do_action_extract_pattern_freqs_cursor_fetch(&result, con, verbose,sql_cursor_name_pattern_freqs, pattern_freq_summary_chunk_size, &pattern_freq_summary);
+    do_action_extract_pattern_freqs_cursor_fetch(&result, con, verbose, sql_cursor_name_pattern_freqs, pattern_freq_summary_chunk_size, &pattern_freq_summary);
     pattern_freq_summary_fetched_record_cnt += pattern_freq_summary.ntuples;
     if (pattern_freq_summary.ntuples == 0) {
       if (pattern_freq_summary_fetched_record_cnt != pattern_freq_summary_total_record_cnt) {
@@ -2461,8 +2554,15 @@ main (int argc,
   free(pattern_freq_summary.records);
   if (verbose) fprintf(stdout, "Pattern frequency summary table written succesfully to binary output file \"%s\".\n", output_file_name);
 
-  /* - 06 - Assigns the global variable index value ... */
   /* - 07 - Creates the CURSOR variable ... */
+  do_action_extract_game_pos_prepare_corsor(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses,
+                                            pattern_cnt, patterns, sql_cursor_name_solved_and_classified_gps, &solved_and_classified_gps_total_record_cnt);
+  fwrite(&solved_and_classified_gps_total_record_cnt, sizeof(size_t), 1, ofp);
+
+  // TO DO --- !!! create a record composed by a fixed size data and a "variable length record" for i000,1001,...
+  // two malloc are needed ....
+  // write the record definition in solved_classified_gp.h
+
   /* - 08 - Iterates over chunks of data retrieved from the cursor. */
 
   /* - 09 - Closes the cursor. */

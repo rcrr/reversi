@@ -128,6 +128,9 @@ main (int argc, char *argv[])
   pattern_freq_summary.ntuples = 0;
   pattern_freq_summary.records = NULL;
 
+  regab_ext_solved_and_classified_gp_table_t scgp_data;
+  scgp_data.ntuples = 0;
+
   size_t solved_classified_gp_cnt = 0;
 
   bool verbose = false;
@@ -302,11 +305,16 @@ main (int argc, char *argv[])
     if (verbose && (i + 1 == pattern_freq_summary.ntuples || (rec + 1)->pattern_id != pattern_id)) {
       const char *pattern_name = board_patterns[pattern_id].name;
       const int64_t gp_cnt = total_cnt / board_patterns[pattern_id].n_instances;
-      printf("  Pattern id: %2d [%6s], total_cnt = %8ld, gp_cnt = %8ld, relative_frequency = %1.2f, theoretical_probability = %1.2f\n",
+      printf("  Pattern id: %2d [%6s], total_cnt = %8ld, gp_cnt = %8ld, cumulated relative frequency = %1.4f, cumulated theoretical probability = %1.4f\n",
              pattern_id, pattern_name, total_cnt, gp_cnt, relative_frequency, theoretical_probability);
     }
   }
-  // CHECK to be added !!!
+  // Checks could be added, the total_cnt has to be equal to the number of gp x ninstances ...
+
+  /* Read the number of record for the solved and classified game position table. */
+  re = fread(&scgp_data.ntuples, sizeof(size_t), 1, ifp);
+  if (re != 1) print_error_and_stop(-130);
+  printf("scgp_data.ntuples = %zu\n", scgp_data.ntuples);
 
   fclose(ifp);
 

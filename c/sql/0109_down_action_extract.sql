@@ -34,12 +34,15 @@ SET search_path TO reversi;
 
 BEGIN;
 
+DROP FUNCTION regab_action_extract_game_pos_prepare_cursor;
 DROP FUNCTION regab_action_extract_drop_tmp_tables;
 DROP FUNCTION regab_action_extract_create_tmp_tables;
 DROP FUNCTION regab_action_extract_count_pattern_freqs;
 DROP FUNCTION regab_action_extract_count_positions;
 DROP FUNCTION regab_action_extract_check_patterns;
 DROP FUNCTION regab_action_extract_check_batches;
+
+DROP TABLE regab_prng_gp_pattern_class_instance_names;
 
 DELETE FROM migrations WHERE migration_id = 109;
 

@@ -62,6 +62,9 @@ typedef struct regab_ext_cnt_pattern_freq_table_s {
   regab_ext_cnt_pattern_freq_record_t *records;
 } regab_ext_cnt_pattern_freq_table_t;
 
+typedef struct regab_ext_solved_and_classified_gp_table_s {
+  size_t ntuples;
+} regab_ext_solved_and_classified_gp_table_t;
 
 
 #endif /* SOLVED_CLASSIFIED_GP_H */
