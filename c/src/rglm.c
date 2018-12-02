@@ -39,7 +39,7 @@
 
 #include "main_option_parse.h"
 #include "board_pattern.h"
-#include "solved_classified_gp.h"
+#include "rglm_data_files.h"
 
 
 
@@ -104,7 +104,7 @@ print_error_and_stop (int ret_code)
 
 
 /**
- * @brief Main entry for the Read Game Tree Log dump utility.
+ * @brief Main entry for the RGLM ( Reversi Generalized Linear Model ) program.
  */
 int
 main (int argc, char *argv[])

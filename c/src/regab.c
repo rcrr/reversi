@@ -55,7 +55,7 @@
 #include "exact_solver.h"
 #include "game_tree_utils.h"
 #include "sort_utils.h"
-#include "solved_classified_gp.h"
+#include "rglm_data_files.h"
 
 
 
@@ -2561,7 +2561,7 @@ main (int argc,
 
   // TO DO --- !!! create a record composed by a fixed size data and a "variable length record" for i000,1001,...
   // two malloc are needed ....
-  // write the record definition in solved_classified_gp.h
+  // write the record definition in rglm_data_files.h
 
   /* - 08 - Iterates over chunks of data retrieved from the cursor. */
 

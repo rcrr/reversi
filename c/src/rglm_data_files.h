@@ -4,7 +4,7 @@
  * @brief Solved and classified game position module definitions.
  * @details This module defines tables and records read and written to binary files.
  *
- * @par solved_classified_gp.h
+ * @par rglm_data_files.h
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
@@ -31,8 +31,8 @@
  * </tt>
  */
 
-#ifndef SOLVED_CLASSIFIED_GP_H
-#define SOLVED_CLASSIFIED_GP_H
+#ifndef RGLM_DATA_FILES_H
+#define RGLM_DATA_FILES_H
 
 
 
@@ -67,4 +67,4 @@ typedef struct regab_ext_solved_and_classified_gp_table_s {
 } regab_ext_solved_and_classified_gp_table_t;
 
 
-#endif /* SOLVED_CLASSIFIED_GP_H */
+#endif /* RGLM_DATA_FILES_H */
