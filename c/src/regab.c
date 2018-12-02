@@ -1134,7 +1134,7 @@ do_action_extract_pattern_freqs_cursor_fetch (int *result,
                                               bool verbose,
                                               const char *sql_cursor_name,
                                               size_t chunk_size,
-                                              regab_ext_cnt_pattern_freq_table_t *return_table)
+                                              rglmdf_pattern_freq_summary_table_t *return_table)
 {
   static const size_t command_size = 1024;
 
@@ -1291,7 +1291,7 @@ do_action_extract_count_positions (int *result,
                                    uint64_t *batch_ids,
                                    size_t position_status_cnt,
                                    char **position_statuses,
-                                   regab_ext_cnt_pos_table_t *return_table)
+                                   rglmdf_position_summary_table_t *return_table)
 {
   static const size_t command_size = 1024;
 
@@ -1347,13 +1347,13 @@ do_action_extract_count_positions (int *result,
     *result = -1;
   } else {
     return_table->ntuples = PQntuples(res);
-    return_table->records = (regab_ext_cnt_pos_record_t *) malloc(sizeof(regab_ext_cnt_pos_record_t) * return_table->ntuples);
+    return_table->records = (rglmdf_position_summary_record_t *) malloc(sizeof(rglmdf_position_summary_record_t) * return_table->ntuples);
     if (!return_table->records) {
       fprintf(stderr, "Unable to allocate memory for return_table->records array.\n");
       abort();
     }
     for (size_t i = 0; i < return_table->ntuples; i++) {
-      regab_ext_cnt_pos_record_t *rec = &return_table->records[i];
+      rglmdf_position_summary_record_t *rec = &return_table->records[i];
       rec->batch_id = atoi(PQgetvalue(res, i, 0));
       strcpy(rec->status, PQgetvalue(res, i, 1));
       rec->game_position_cnt = atol(PQgetvalue(res, i, 2));
@@ -2405,7 +2405,7 @@ main (int argc,
   ;
 
   printf("Action extract is not implemented yet.\n");
-  regab_ext_cnt_pos_table_t position_summary;
+  rglmdf_position_summary_table_t position_summary;
   position_summary.ntuples = 0;
   position_summary.records = NULL;
 
@@ -2414,9 +2414,9 @@ main (int argc,
   const char *sql_cursor_name_pattern_freqs = "sql_cursor_name_pattern_freqs";
   size_t pattern_freq_summary_total_record_cnt = 0;
   size_t pattern_freq_summary_fetched_record_cnt = 0;
-  regab_ext_cnt_pattern_freq_table_t pattern_freq_summary;
+  rglmdf_pattern_freq_summary_table_t pattern_freq_summary;
   pattern_freq_summary.ntuples = 0;
-  pattern_freq_summary.records = (regab_ext_cnt_pattern_freq_record_t *) malloc(sizeof(regab_ext_cnt_pattern_freq_record_t) * pattern_freq_summary_chunk_size);
+  pattern_freq_summary.records = (rglmdf_pattern_freq_summary_record_t *) malloc(sizeof(rglmdf_pattern_freq_summary_record_t) * pattern_freq_summary_chunk_size);
   if (!pattern_freq_summary.records) {
     fprintf(stderr, "Unable to allocate memory for pattern_freq_summary.records array.\n");
     abort();
@@ -2520,13 +2520,13 @@ main (int argc,
       fprintf(stdout, " ---- | batch_id | status |   gp_cnt   | classified_cnt \n");
       fprintf(stdout, "______|__________|________|____________|________________\n");
       for (size_t i = 0; i < position_summary.ntuples; i++) {
-        regab_ext_cnt_pos_record_t *rec = &position_summary.records[i];
+        rglmdf_position_summary_record_t *rec = &position_summary.records[i];
         fprintf(stdout, " %04zu | %8d |   %s  | %10zu |     %10zu\n", i, rec->batch_id, rec->status, rec->game_position_cnt, rec->classified_cnt);
       }
       fprintf(stdout, "\n");
   }
   fwrite(&position_summary.ntuples, sizeof(size_t), 1, ofp);
-  fwrite(position_summary.records, sizeof(regab_ext_cnt_pos_record_t), position_summary.ntuples, ofp);
+  fwrite(position_summary.records, sizeof(rglmdf_position_summary_record_t), position_summary.ntuples, ofp);
   if (verbose) fprintf(stdout, "Position summary table written succesfully to binary output file \"%s\".\n", output_file_name);
   free(position_summary.records);
 
@@ -2549,7 +2549,7 @@ main (int argc,
       }
       break;
     }
-    fwrite(pattern_freq_summary.records, sizeof(regab_ext_cnt_pattern_freq_record_t), pattern_freq_summary.ntuples, ofp);
+    fwrite(pattern_freq_summary.records, sizeof(rglmdf_pattern_freq_summary_record_t), pattern_freq_summary.ntuples, ofp);
   }
   free(pattern_freq_summary.records);
   if (verbose) fprintf(stdout, "Pattern frequency summary table written succesfully to binary output file \"%s\".\n", output_file_name);

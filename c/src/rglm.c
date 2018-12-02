@@ -109,6 +109,10 @@ print_error_and_stop (int ret_code)
 int
 main (int argc, char *argv[])
 {
+  size_t a = sizeof(rglmdf_position_summary_record_t);
+  size_t b = sizeof(rglmdf_pattern_freq_summary_record_t);
+  printf("a=%zu, b=%zu\n", a, b);
+
   time_t current_time = (time_t) -1;
   char* c_time_string = NULL;
   size_t batch_id_cnt = 0;
@@ -120,15 +124,15 @@ main (int argc, char *argv[])
   size_t pattern_cnt = 0;
   board_pattern_id_t *patterns = NULL;
 
-  regab_ext_cnt_pos_table_t position_summary;
+  rglmdf_position_summary_table_t position_summary;
   position_summary.ntuples = 0;
   position_summary.records = NULL;
 
-  regab_ext_cnt_pattern_freq_table_t pattern_freq_summary;
+  rglmdf_pattern_freq_summary_table_t pattern_freq_summary;
   pattern_freq_summary.ntuples = 0;
   pattern_freq_summary.records = NULL;
 
-  regab_ext_solved_and_classified_gp_table_t scgp_data;
+  rglmdf_solved_and_classified_gp_table_t scgp_data;
   scgp_data.ntuples = 0;
 
   size_t solved_classified_gp_cnt = 0;
@@ -263,12 +267,12 @@ main (int argc, char *argv[])
   /* Reads the position summary table. */
   re = fread(&position_summary.ntuples, sizeof(size_t), 1, ifp);
   if (re != 1) print_error_and_stop(-90);
-  position_summary.records = (regab_ext_cnt_pos_record_t *) malloc(sizeof(regab_ext_cnt_pos_record_t) * position_summary.ntuples);
+  position_summary.records = (rglmdf_position_summary_record_t *) malloc(sizeof(rglmdf_position_summary_record_t) * position_summary.ntuples);
   if (!position_summary.records) {
     fprintf(stderr, "Unable to allocate memory for position_summary.records array.\n");
     abort();
   }
-  re = fread(position_summary.records, sizeof(regab_ext_cnt_pos_record_t), position_summary.ntuples, ifp);
+  re = fread(position_summary.records, sizeof(rglmdf_position_summary_record_t), position_summary.ntuples, ifp);
   if (re != position_summary.ntuples) print_error_and_stop(-100);
   for (size_t i = 0; i < position_summary.ntuples; i++) solved_classified_gp_cnt += position_summary.records[i].classified_cnt;
   if (verbose) fprintf(stdout, "Position summary table has been read succesfully, solved_classified_gp_cnt: %zu\n", solved_classified_gp_cnt);
@@ -276,12 +280,12 @@ main (int argc, char *argv[])
   /* Reads the pattern frequency summary table. */
   re = fread(&pattern_freq_summary.ntuples, sizeof(size_t), 1, ifp);
   if (re != 1) print_error_and_stop(-110);
-  pattern_freq_summary.records = (regab_ext_cnt_pattern_freq_record_t *) malloc(sizeof(regab_ext_cnt_pattern_freq_record_t) * pattern_freq_summary.ntuples);
+  pattern_freq_summary.records = (rglmdf_pattern_freq_summary_record_t *) malloc(sizeof(rglmdf_pattern_freq_summary_record_t) * pattern_freq_summary.ntuples);
   if (!pattern_freq_summary.records) {
     fprintf(stderr, "Unable to allocate memory for pattern_freq_summary.records array.\n");
     abort();
   }
-  re = fread(pattern_freq_summary.records, sizeof(regab_ext_cnt_pattern_freq_record_t), pattern_freq_summary.ntuples, ifp);
+  re = fread(pattern_freq_summary.records, sizeof(rglmdf_pattern_freq_summary_record_t), pattern_freq_summary.ntuples, ifp);
   if (re != pattern_freq_summary.ntuples) print_error_and_stop(-120);
   if (verbose) fprintf(stdout, "Pattern summary table has been read succesfully, records count: %zu\n", pattern_freq_summary.ntuples);
 
@@ -291,7 +295,7 @@ main (int argc, char *argv[])
   double relative_frequency = -1.;
   double theoretical_probability = -1.;
   for (size_t i = 0; i < pattern_freq_summary.ntuples; i++) {
-    regab_ext_cnt_pattern_freq_record_t *rec = &pattern_freq_summary.records[i];
+    rglmdf_pattern_freq_summary_record_t *rec = &pattern_freq_summary.records[i];
     if (rec->pattern_id != pattern_id) {
       total_cnt = 0;
       relative_frequency = 0.;
