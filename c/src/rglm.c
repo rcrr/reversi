@@ -109,10 +109,6 @@ print_error_and_stop (int ret_code)
 int
 main (int argc, char *argv[])
 {
-  size_t a = sizeof(rglmdf_position_summary_record_t);
-  size_t b = sizeof(rglmdf_pattern_freq_summary_record_t);
-  printf("a=%zu, b=%zu\n", a, b);
-
   time_t current_time = (time_t) -1;
   char* c_time_string = NULL;
   size_t batch_id_cnt = 0;

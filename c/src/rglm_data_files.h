@@ -108,12 +108,35 @@ typedef struct rglmdf_pattern_freq_summary_table_s {
 } rglmdf_pattern_freq_summary_table_t;
 
 /**
+ * @brief Reversi GLM data file record definition for the solved and classified game position table.
+ *
+ * @details Each record is identified by either the `row_n` counter or the `gp_id` field.
+ *
+ * NEEDS MORE EXPLANATION ....
+ */
+typedef struct rglmdf_solved_and_classified_gp_record_s {
+  int64_t row_n;       /**< @brief Row number. */
+  int64_t gp_id;       /**< @brief Game Position Id, as defined by REGAB table regab_prng_gp. */
+  int64_t mover;       /**< @brief Game position board definition for mover. */
+  int64_t opponent;    /**< @brief Game position board definition for opponent. */
+  int8_t game_value;   /**< @brief Game value for the position. */
+  uint32_t *ivalues;   /**< @brief Array of pattern index values, or glm variables. */
+} rglmdf_solved_and_classified_gp_record_t;
+
+/**
  * @brief Reversi GLM data file table holding the game positons being solved and classified.
  *
  * @details The table contains the count of pattern occurrencies grouped by (pattern_id, principal_index_value).
  */
 typedef struct rglmdf_solved_and_classified_gp_table_s {
-  uint64_t ntuples;   /**< @brief Number of records. */
+  uint64_t ntuples;                                    /**< @brief Number of records. */
+  rglmdf_solved_and_classified_gp_record_t *records;   /**< @brief Records of the table. */
 } rglmdf_solved_and_classified_gp_table_t;
+
+typedef struct rglmdf_general_data_s {
+  time_t file_creation_time;
+  // ... more ... more ... more
+  // ...
+} rglmdf_general_data_t;
 
 #endif /* RGLM_DATA_FILES_H */

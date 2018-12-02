@@ -1129,6 +1129,62 @@ do_action_extract_game_pos_prepare_corsor (int *result,
 }
 
 static void
+do_action_extract_game_pos_cursor_fetch (int *result,
+                                         PGconn *con,
+                                         bool verbose,
+                                         const char *sql_cursor_name,
+                                         size_t chunk_size,
+                                         rglmdf_solved_and_classified_gp_table_t *return_table)
+{
+  static const size_t command_size = 1024;
+
+  PGresult *res = NULL;
+  char command[command_size];
+  size_t cl;
+  char *cp;
+
+  if (!result) return;
+  if (!con) {
+    *result = -1;
+    return;
+  }
+  *result = 0;
+
+  const char *c0 = "FETCH FORWARD ";
+
+  cl = snprintf(command, command_size, "%s", c0);
+  cp = command + cl;
+  if (cl >= command_size) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+    abort();
+  }
+
+  cl += snprintf(cp, command_size - cl, "%zu FROM %s;", chunk_size, sql_cursor_name);
+  cp = command + cl;
+  if (cl >= command_size) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+    abort();
+  }
+
+  res = PQexec(con, command);
+  if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+    fprintf(stderr, "%s", PQerrorMessage(con));
+    *result = -1;
+  } else {
+    return_table->ntuples = PQntuples(res);
+    for (size_t i = 0; i < return_table->ntuples; i++) {
+      return_table->records[i].row_n = atol(PQgetvalue(res, i, 0));
+      return_table->records[i].gp_id = atol(PQgetvalue(res, i, 1));
+      return_table->records[i].mover = atol(PQgetvalue(res, i, 2));
+      return_table->records[i].opponent = atol(PQgetvalue(res, i, 3));
+      return_table->records[i].game_value = atoi(PQgetvalue(res, i, 4));
+    }
+    *result = 0;
+  }
+  PQclear(res);
+}
+
+static void
 do_action_extract_pattern_freqs_cursor_fetch (int *result,
                                               PGconn *con,
                                               bool verbose,
@@ -2422,8 +2478,13 @@ main (int argc,
     abort();
   }
 
-  const char *sql_cursor_name_solved_and_classified_gps = "sql_cursor_name_solved_and_classified_gps";
-  size_t solved_and_classified_gps_total_record_cnt = 0;
+  const size_t gps_data_chunk_size = 4096;
+  const char *sql_cursor_name_gps_data = "sql_cursor_name_gps_data";
+  size_t gps_data_total_record_cnt = 0;
+  size_t gps_data_fetched_record_cnt = 0;
+  rglmdf_solved_and_classified_gp_table_t gps_data;
+  gps_data.ntuples = 0;
+  gps_data.records = (rglmdf_solved_and_classified_gp_record_t *) malloc(sizeof(rglmdf_solved_and_classified_gp_record_t) * gps_data_chunk_size);
 
   time_t current_time = (time_t) -1;
   char* c_time_string = NULL;
@@ -2556,12 +2617,27 @@ main (int argc,
 
   /* - 07 - Creates the CURSOR variable ... */
   do_action_extract_game_pos_prepare_corsor(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses,
-                                            pattern_cnt, patterns, sql_cursor_name_solved_and_classified_gps, &solved_and_classified_gps_total_record_cnt);
-  fwrite(&solved_and_classified_gps_total_record_cnt, sizeof(size_t), 1, ofp);
+                                            pattern_cnt, patterns, sql_cursor_name_gps_data, &gps_data_total_record_cnt);
+  fwrite(&gps_data_total_record_cnt, sizeof(size_t), 1, ofp);
 
   // TO DO --- !!! create a record composed by a fixed size data and a "variable length record" for i000,1001,...
   // two malloc are needed ....
-  // write the record definition in rglm_data_files.h
+  for (;;) {
+    do_action_extract_game_pos_cursor_fetch(&result, con, verbose, sql_cursor_name_gps_data, gps_data_chunk_size, &gps_data);
+    gps_data_fetched_record_cnt += gps_data.ntuples;
+    if (gps_data.ntuples == 0) {
+      if (gps_data_fetched_record_cnt != gps_data_total_record_cnt) {
+        res = PQexec(con, "ROLLBACK");
+        PQfinish(con);
+        fclose(ofp);
+        fprintf(stderr, "Records count mismatch, do_action_extract_game_pos_cursor_fetch returned an unexpectd number of records.\n");
+        return EXIT_FAILURE;
+      }
+      break;
+    }
+    // fwrite();
+  }
+  free(gps_data.records);
 
   /* - 08 - Iterates over chunks of data retrieved from the cursor. */
 
