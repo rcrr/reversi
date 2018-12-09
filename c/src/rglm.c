@@ -109,10 +109,13 @@ print_error_and_stop (int ret_code)
 int
 main (int argc, char *argv[])
 {
-  time_t current_time = (time_t) -1;
-  char* c_time_string = NULL;
-  size_t batch_id_cnt = 0;
-  uint64_t *batch_ids = NULL;
+
+  rglmdf_general_data_t data;
+  rglmdf_general_data_init(&data);
+
+  uint64_t u, v, *up;
+  char buf[512];
+
   uint8_t empty_count = 0;
   size_t position_status_cnt = 0;
   char *position_status_buffer = NULL;
@@ -128,8 +131,9 @@ main (int argc, char *argv[])
   pattern_freq_summary.ntuples = 0;
   pattern_freq_summary.records = NULL;
 
-  rglmdf_solved_and_classified_gp_table_t scgp_data;
-  scgp_data.ntuples = 0;
+  rglmdf_solved_and_classified_gp_table_t gps_data;
+  gps_data.ntuples = 0;
+  gps_data.records = NULL;
 
   size_t solved_classified_gp_cnt = 0;
 
@@ -183,32 +187,28 @@ main (int argc, char *argv[])
   FILE *ifp = fopen(i_arg, "r");
   assert(ifp);
 
-  re = fread(&current_time, sizeof(time_t), 1, ifp);
+  /* Reads the File Creation time field. */
+  re = fread(&u, sizeof(uint64_t), 1, ifp);
   if (re != 1) print_error_and_stop(-10);
-
-  /* Convert to local time format. */
-  c_time_string = ctime(&current_time);
-  assert(c_time_string);
-
-  /* ctime() has already added a terminating newline character. */
-  if (verbose) fprintf(stdout, "Input file started to be written on %s", c_time_string);
+  rglmdf_set_file_creation_time(&data, u);
+  if (verbose) {
+    rglmdf_get_file_creation_time_as_string(&data, buf);
+    fprintf(stdout, "Input file started to be written on (UTC) %s", buf);
+  }
 
   /* Reads the batch_id_cnt, batch_ids input fields.*/
-  re = fread(&batch_id_cnt, sizeof(size_t), 1, ifp);
+  re = fread(&u, sizeof(uint64_t), 1, ifp);
   if (re != 1) print_error_and_stop(-20);
-  batch_ids = (uint64_t *) malloc(sizeof(uint64_t) * batch_id_cnt);
-  if (!batch_ids) {
+  v = rglmdf_set_batch_id_cnt(&data, u);
+  if (v != u) {
     fprintf(stderr, "Unable to allocate memory for batch_ids array.\n");
     return EXIT_FAILURE;
   }
-  re = fread(batch_ids, sizeof(uint64_t), batch_id_cnt, ifp);
-  if (re != batch_id_cnt) print_error_and_stop(-30);
+  up = rglmdf_get_batch_ids(&data);
+  re = fread(up, sizeof(uint64_t), u, ifp);
+  if (re != u) print_error_and_stop(-30);
   if (verbose) {
-    fprintf(stdout, "Selected batch_id values: ");
-    for (size_t i = 0; i < batch_id_cnt; i++ ) {
-      fprintf(stdout, "%zu", batch_ids[i]);
-      fprintf(stdout, "%s", (i < batch_id_cnt - 1) ? ", ": "\n");
-    }
+    rglmdf_batch_ids_to_text_stream(&data, stdout);
   }
 
   /* Reads the empty_count input field.*/
@@ -312,19 +312,42 @@ main (int argc, char *argv[])
   // Checks could be added, the total_cnt has to be equal to the number of gp x ninstances ...
 
   /* Read the number of record for the solved and classified game position table. */
-  re = fread(&scgp_data.ntuples, sizeof(size_t), 1, ifp);
+  re = fread(&gps_data.ntuples, sizeof(size_t), 1, ifp);
   if (re != 1) print_error_and_stop(-130);
-  printf("scgp_data.ntuples = %zu\n", scgp_data.ntuples);
+  printf("gps_data.ntuples = %zu\n", gps_data.ntuples);
+  gps_data.records = (rglmdf_solved_and_classified_gp_record_t *) malloc(sizeof(rglmdf_solved_and_classified_gp_record_t) * gps_data.ntuples);
+  if (!gps_data.records) {
+    fprintf(stderr, "Unable to allocate memory for gps_data.records array.\n");
+    return EXIT_FAILURE;
+  }
+  /* Reads the sequence of chunk of records. Each chunk is organized as: chunk size n, n records, n irecords. */
+  size_t data_chunk_size = 0;
+  rglmdf_solved_and_classified_gp_record_t *r = gps_data.records;
+  for(;;) {
+    re = fread(&data_chunk_size, sizeof(size_t), 1, ifp);
+    if (re != 1) print_error_and_stop(-140);
+    printf("data_chunk_size=%zu\n", data_chunk_size);
+    if (data_chunk_size == 0) break;
+    re = fread(r, sizeof(rglmdf_solved_and_classified_gp_record_t), data_chunk_size, ifp);
+    if (re != data_chunk_size) print_error_and_stop(-150);
+    r += data_chunk_size;
+  }
+
+  for (size_t i = 0; i < gps_data.ntuples; i++) {
+    //printf("%8zu, %8zu, %ld\n", i, gps_data.records[i].row_n, gps_data.records[i].gp_id);
+  }
+
 
   fclose(ifp);
 
   /* Frees resources. */
+  free(gps_data.records);
   free(pattern_freq_summary.records);
   free(position_summary.records);
   free(patterns);
   free(position_statuses);
   free(position_status_buffer);
-  free(batch_ids);
+  rglmdf_general_data_release(&data);
 
   return EXIT_SUCCESS;
 }

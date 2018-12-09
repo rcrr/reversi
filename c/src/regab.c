@@ -2478,7 +2478,7 @@ main (int argc,
     abort();
   }
 
-  const size_t gps_data_chunk_size = 4096;
+  const size_t gps_data_chunk_size = 256; // 4096
   const char *sql_cursor_name_gps_data = "sql_cursor_name_gps_data";
   size_t gps_data_total_record_cnt = 0;
   size_t gps_data_fetched_record_cnt = 0;
@@ -2488,6 +2488,7 @@ main (int argc,
 
   time_t current_time = (time_t) -1;
   char* c_time_string = NULL;
+  uint64_t u;
 
   /* Obtain current time as seconds elapsed since the Epoch. */
   current_time = time(NULL);
@@ -2549,8 +2550,10 @@ main (int argc,
     return EXIT_FAILURE;
   }
   if (verbose) fprintf(stdout, "Binary output file \"%s\" opened succesfully.\n", output_file_name);
-  fwrite(&current_time, sizeof(time_t), 1, ofp);
-  fwrite(&batch_id_cnt, sizeof(size_t), 1, ofp);
+  u = current_time;
+  fwrite(&u, sizeof(uint64_t), 1, ofp);
+  u = batch_id_cnt;
+  fwrite(&u, sizeof(uint64_t), 1, ofp);
   fwrite(batch_ids, sizeof(uint64_t), batch_id_cnt, ofp);
   fwrite(&empty_count, sizeof(uint8_t), 1, ofp);
   fwrite(&position_status_cnt, sizeof(size_t), 1, ofp);
@@ -2624,6 +2627,7 @@ main (int argc,
   // two malloc are needed ....
   for (;;) {
     do_action_extract_game_pos_cursor_fetch(&result, con, verbose, sql_cursor_name_gps_data, gps_data_chunk_size, &gps_data);
+    fwrite(&gps_data.ntuples, sizeof(size_t), 1, ofp);
     gps_data_fetched_record_cnt += gps_data.ntuples;
     if (gps_data.ntuples == 0) {
       if (gps_data_fetched_record_cnt != gps_data_total_record_cnt) {
@@ -2635,7 +2639,7 @@ main (int argc,
       }
       break;
     }
-    // fwrite();
+    fwrite(gps_data.records, sizeof(rglmdf_solved_and_classified_gp_record_t), gps_data.ntuples, ofp);
   }
   free(gps_data.records);
 

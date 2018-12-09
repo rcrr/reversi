@@ -4,6 +4,14 @@
  * @brief Solved and classified game position module definitions.
  * @details This module defines tables and records read and written to binary files.
  *
+ * The file has this format:
+ *   - 8 bytes field, read/written as `uint64_t`, converted to a `time_t` value.
+ *     Meaning: the file creation time.
+ *     Ref: `file_creation_time`, scalar.
+ *   - 8 bytes field, read/written as `uint64_t`, converted to a `size_t` value.
+ *     Meaning: count for batch_id entries.
+ *     Ref: `batch_id_cnt`, scalar.
+ *
  * @par rglm_data_files.h
  * <tt>
  * This file is part of the reversi program
@@ -33,6 +41,9 @@
 
 #ifndef RGLM_DATA_FILES_H
 #define RGLM_DATA_FILES_H
+
+#include <inttypes.h>
+#include <time.h>
 
 /*
  * Structures used to write and read binary files relay on "fixed" size fields, this is to make the code
@@ -133,10 +144,95 @@ typedef struct rglmdf_solved_and_classified_gp_table_s {
   rglmdf_solved_and_classified_gp_record_t *records;   /**< @brief Records of the table. */
 } rglmdf_solved_and_classified_gp_table_t;
 
+/**
+ * @brief Reversi GLM data file general data structure.
+ *
+ * @details The type contains all the info saved/retrieved from a GLM Data File.
+ */
 typedef struct rglmdf_general_data_s {
-  time_t file_creation_time;
+  time_t file_creation_time;   /**< @brief Creation time of the data file. */
+  size_t batch_id_cnt;         /**< @brief Count of batch id entries. */
+  uint64_t *batch_ids;         /**< @brief Array of batch_id values. */
   // ... more ... more ... more
   // ...
 } rglmdf_general_data_t;
+
+/**
+ * @brief Initializes the general data structure.
+ *
+ * @details Variables are set as follow:
+ *  - `file_creation_time` is set to zero (Thu Jan  1 00:0:00 1970 (UTC))
+ *  - `batch_id_cnt` is set to zero
+ *  - `batch_ids` is set to `NULL`
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] gd reference to the general data structure
+ */
+extern void
+rglmdf_general_data_init (rglmdf_general_data_t *gd);
+
+/**
+ * @brief Sets the attribute field `file_creation_time`.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] gd reference to the general data structure
+ * @param [in]     t  new updated value
+ */
+extern void
+rglmdf_set_file_creation_time (rglmdf_general_data_t *gd,
+                               time_t t);
+
+/**
+ * @brief Gets the attribute field `file_creation_time`.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the value of the field
+ */
+extern time_t
+rglmdf_get_file_creation_time (rglmdf_general_data_t *gd);
+
+/**
+ * @brief Translates the field `file_creation_time` as a character string.
+ *
+ * @details Conversion happens as UTC value.
+ *          The generated string is saved in the `buf` array.
+ *          The buffer referenced by `buf` must be longer than `26` chars.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `buf` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in]  gd  reference to the general data structure
+ * @param [out] buf reference to the character buffer
+ */
+extern void
+rglmdf_get_file_creation_time_as_string (rglmdf_general_data_t *gd,
+                                         char *buf);
+
+extern size_t
+rglmdf_set_batch_id_cnt (rglmdf_general_data_t *gd,
+                         size_t cnt);
+
+extern size_t
+rglmdf_get_batch_id_cnt (rglmdf_general_data_t *gd);
+
+extern uint64_t *
+rglmdf_get_batch_ids (rglmdf_general_data_t *gd);
+
+extern void
+rglmdf_batch_ids_to_text_stream (rglmdf_general_data_t *gd,
+                                 FILE *stream);
+
+extern void
+rglmdf_general_data_release (rglmdf_general_data_t *gd);
 
 #endif /* RGLM_DATA_FILES_H */
