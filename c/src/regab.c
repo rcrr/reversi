@@ -2559,7 +2559,11 @@ main (int argc,
   fwrite(&position_status_cnt, sizeof(size_t), 1, ofp);
   fwrite(position_status_buffer, 4, position_status_cnt, ofp);
   fwrite(&pattern_cnt, sizeof(size_t), 1, ofp);
-  fwrite(patterns, sizeof(board_pattern_id_t), pattern_cnt, ofp);
+  for (size_t i = 0; i < pattern_cnt; i++) {
+    int16_t tmp = patterns[i];
+    fwrite(&tmp, sizeof(int16_t), 1, ofp);
+  }
+  //fwrite(patterns, sizeof(board_pattern_id_t), pattern_cnt, ofp);
   fflush(ofp);
   if (verbose) fprintf(stdout, "Header data written succesfully to binary output file \"%s\".\n", output_file_name);
 

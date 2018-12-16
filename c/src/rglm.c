@@ -107,21 +107,18 @@ print_error_and_stop (int ret_code)
  * @brief Main entry for the RGLM ( Reversi Generalized Linear Model ) program.
  */
 int
-main (int argc, char *argv[])
+main (int argc,
+      char *argv[])
 {
+  uint64_t u64, v64, *u64p;
+  int16_t i16;
+  uint8_t u8;
+  char **cpp;
+  board_pattern_id_t *bpip;
+  char buf[512];
 
   rglmdf_general_data_t data;
   rglmdf_general_data_init(&data);
-
-  uint64_t u, v, *up;
-  char buf[512];
-
-  uint8_t empty_count = 0;
-  size_t position_status_cnt = 0;
-  char *position_status_buffer = NULL;
-  char **position_statuses = NULL;
-  size_t pattern_cnt = 0;
-  board_pattern_id_t *patterns = NULL;
 
   rglmdf_position_summary_table_t position_summary;
   position_summary.ntuples = 0;
@@ -188,77 +185,63 @@ main (int argc, char *argv[])
   assert(ifp);
 
   /* Reads the File Creation time field. */
-  re = fread(&u, sizeof(uint64_t), 1, ifp);
+  re = fread(&u64, sizeof(uint64_t), 1, ifp);
   if (re != 1) print_error_and_stop(-10);
-  rglmdf_set_file_creation_time(&data, u);
+  rglmdf_set_file_creation_time(&data, u64);
   if (verbose) {
     rglmdf_get_file_creation_time_as_string(&data, buf);
     fprintf(stdout, "Input file started to be written on (UTC) %s", buf);
   }
 
   /* Reads the batch_id_cnt, batch_ids input fields.*/
-  re = fread(&u, sizeof(uint64_t), 1, ifp);
+  re = fread(&u64, sizeof(uint64_t), 1, ifp);
   if (re != 1) print_error_and_stop(-20);
-  v = rglmdf_set_batch_id_cnt(&data, u);
-  if (v != u) {
+  v64 = rglmdf_set_batch_id_cnt(&data, u64);
+  if (v64 != u64) {
     fprintf(stderr, "Unable to allocate memory for batch_ids array.\n");
     return EXIT_FAILURE;
   }
-  up = rglmdf_get_batch_ids(&data);
-  re = fread(up, sizeof(uint64_t), u, ifp);
-  if (re != u) print_error_and_stop(-30);
+  u64p = rglmdf_get_batch_ids(&data);
+  re = fread(u64p, sizeof(uint64_t), u64, ifp);
+  if (re != u64) print_error_and_stop(-30);
   if (verbose) {
     rglmdf_batch_ids_to_text_stream(&data, stdout);
   }
 
   /* Reads the empty_count input field.*/
-  re = fread(&empty_count, sizeof(uint8_t), 1, ifp);
+  re = fread(&u8, sizeof(uint8_t), 1, ifp);
   if (re != 1) print_error_and_stop(-40);
-  if (verbose) fprintf(stdout, "Selected empty_count value: %u\n", empty_count);
+  rglmdf_set_empty_count(&data, u8);
+  if (verbose) fprintf(stdout, "Selected empty_count value: %u\n", u8);
 
   /* Reads the position_status_cnt, position_statuses, position_status_buffer input fields.*/
-  re = fread(&position_status_cnt, sizeof(size_t), 1, ifp);
+  re = fread(&u64, sizeof(uint64_t), 1, ifp);
   if (re != 1) print_error_and_stop(-50);
-  position_status_buffer = (char *) malloc(4 * position_status_cnt); // status has length 3, plus one for string termination.
-  if (!position_status_buffer) {
-    fprintf(stderr, "Unable to allocate memory for position_status_buffer array.\n");
-    return EXIT_FAILURE;
-  }
-  re = fread(position_status_buffer, 4, position_status_cnt, ifp);
-  if (re != position_status_cnt) print_error_and_stop(-60);
-  position_statuses = (char **) malloc(sizeof(char *) * position_status_cnt);
-  if (!position_statuses) {
+  v64 = rglmdf_set_position_status_cnt(&data, u64);
+  if (v64 != u64) {
     fprintf(stderr, "Unable to allocate memory for position_statuses array.\n");
     return EXIT_FAILURE;
   }
-  for (size_t i = 0; i < position_status_cnt; i++ ) {
-    position_statuses[i] = position_status_buffer + 4 * i;
-  }
-  if (verbose) {
-    fprintf(stdout, "Selected position_statuses values: ");
-    for (size_t i = 0; i < position_status_cnt; i++ ) {
-      fprintf(stdout, "%s", position_statuses[i]);
-      fprintf(stdout, "%s", (i < position_status_cnt - 1) ? ", ": "\n");
-    }
-  }
+  cpp = rglmdf_get_position_statuses(&data);
+  re = fread(*cpp, RGLM_POSITION_STATUS_BUF_SIZE, u64, ifp);
+  if (re != u64) print_error_and_stop(-60);
+  if (verbose) rglmdf_position_statuses_to_text_stream(&data, stdout);
 
   /* Reads the pattern_cnt, patterns input fields.*/
-  re = fread(&pattern_cnt, sizeof(size_t), 1, ifp);
+  re = fread(&u64, sizeof(uint64_t), 1, ifp);
   if (re != 1) print_error_and_stop(-70);
-  patterns = (board_pattern_id_t *) malloc(sizeof(board_pattern_id_t) * pattern_cnt);
-  if (!patterns) {
+  v64 = rglmdf_set_pattern_cnt(&data, u64);
+  if (v64 != u64) {
     fprintf(stderr, "Unable to allocate memory for patterns array.\n");
     return EXIT_FAILURE;
   }
-  re = fread(patterns, sizeof(board_pattern_id_t), pattern_cnt, ifp);
-  if (re != pattern_cnt) print_error_and_stop(-80);
-  if (verbose) {
-    fprintf(stdout, "Selected patterns values: ");
-    for (size_t i = 0; i < pattern_cnt; i++ ) {
-      fprintf(stdout, "%s", board_patterns[patterns[i]].name);
-      fprintf(stdout, "%s", (i < pattern_cnt - 1) ? ", ": "\n");
-    }
+  bpip = rglmdf_get_patterns(&data);
+  for (size_t i = 0; i < u64; i++) {
+    re = fread(&i16, sizeof(int16_t), 1, ifp);
+    if (re != 1) print_error_and_stop(-80);
+    bpip[i] = i16;
   }
+  if (verbose) rglmdf_patterns_to_text_stream(&data, stdout);
 
   /* Reads the position summary table. */
   re = fread(&position_summary.ntuples, sizeof(size_t), 1, ifp);
@@ -344,9 +327,6 @@ main (int argc, char *argv[])
   free(gps_data.records);
   free(pattern_freq_summary.records);
   free(position_summary.records);
-  free(patterns);
-  free(position_statuses);
-  free(position_status_buffer);
   rglmdf_general_data_release(&data);
 
   return EXIT_SUCCESS;

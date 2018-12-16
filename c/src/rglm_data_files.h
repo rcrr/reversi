@@ -1,16 +1,71 @@
 /**
  * @file
  *
- * @brief Solved and classified game position module definitions.
- * @details This module defines tables and records read and written to binary files.
+ * @brief Reversi Generalized Linear Model data files.
+ * @details This module defines data files, tables, and records being read and written to/from binary files.
  *
- * The file has this format:
- *   - 8 bytes field, read/written as `uint64_t`, converted to a `time_t` value.
- *     Meaning: the file creation time.
- *     Ref: `file_creation_time`, scalar.
- *   - 8 bytes field, read/written as `uint64_t`, converted to a `size_t` value.
- *     Meaning: count for batch_id entries.
- *     Ref: `batch_id_cnt`, scalar.
+ * The `regab` program may extract data from the REGAB database and generate an appropriate binary file.
+ * This file may be read using the `rglm` program.
+ * Please consult the documentation of the two programs for further details on their usage.
+ *
+ * The ` Solved and Patern Classified Set of Game Positions` is stored in a binary file using
+ * the format here described.
+ * <p>
+ * --- Header ---
+ *   - `8 bytes` field, read/written as `uint64_t`, converted to a `time_t` value.<br>
+ *     Meaning: the file creation time.<br>
+ *     Ref: `file_creation_time`, scalar.<br>
+ *   - `8 bytes` field, read/written as `uint64_t`, converted to a `size_t` value.<br>
+ *     Meaning: count for batch_id entries.<br>
+ *     Ref: `batch_id_cnt`, scalar.<br>
+ *   - `8 bytes` field x `batch_id_cnt` times, read/written as multiple times `uint64_t`, not converted.<br>
+ *     Meaning: array of batch_id entries.<br>
+ *     Ref: `barch_ids`, array.<br>
+ *   - `1 byte` field, read/written as `uint8_t`, not converted.<br>
+ *     Meaning: board empty square count.<br>
+ *     Ref: `empty_count`, scalar.<br>
+ *   - `8 bytes` field, read/written as `uint64_t`, converted to a `size_t` value.<br>
+ *     Meaning: count of status entries.<br>
+ *     Ref: `position_status_cnt`, scalar.<br>
+ *   - `RGLM_POSITION_STATUS_BUF_SIZE bytes` field x `position_status_cnt` times, read/written as multiple times `char[RGLM_POSITION_STATUS_BUF_SIZE * position_status_cnt]`, not converted.<br>
+ *     Meaning: buffer of position status entries.<br>
+ *     Ref: `position_status_buffer`, array.<br>
+ *     Macro `RGLM_POSITION_STATUS_BUF_SIZE` is defined as `4`<br>
+ *   - `8 bytes` field, read/written as `uint64_t`, converted to a `size_t` value.<br>
+ *     Meaning: count of patterns.<br>
+ *     Ref: `pattern_cnt`, scalar.<br>
+ *   - `2 bytes` field x `pattern_cnt` times, read/written as multiple times `int16_t`, converted to `enum`.<br>
+ *     Meaning: array of pattern entries.<br>
+ *     Ref: `patterns`, array.<br>
+ * <p>
+ * --- Summary Tables. Position Summary Table, Pattern Frequency Summary Table. ---
+ *   - `8 bytes` field, read/written as `uint64_t`, converted to `size_t` value.<br>
+ *     Meaning: count of records in the position summary table.<br>
+ *     Ref: `position_summary.ntuples`<br>
+ *   - `1 rglmdf_position_summary_record_t` field x `position_summary.ntuples` times.<br>
+ *     Meaning: the set of records in the table.<br>
+ *     Ref: `position_summary.records`, array.<br>
+ *   - `8 bytes` field, read/written as `uint64_t`, converted to `size_t` value.<br>
+ *     Meaning: count of records in the pattern frequency summary table.<br>
+ *     Ref: `pattern_freq_summary.ntuples`<br>
+ *   - `1 rglmdf_pattern_freq_summary_record_t` field x `pattern_freq_summary.ntuples` times.<br>
+ *     Meaning: the set of records in the table.<br>
+ *     Ref: `pattern_freq_summary.records`, array.<br>
+ * <p>
+ * --- Game Positions ---
+ *   - `8 bytes` field, read/written as `uint64_t`, converted to `size_t` value.<br>
+ *     Meaning: count of records in the game position table.<br>
+ *     Ref: `gps_data.ntuples`<br>
+ *   - Sequence of data chunks:<br>
+ *      - `8 bytes` field, read/written as `uint64_t`, converted to `size_t` value.<br>
+ *        Meaning: data chunk size ( number of game positions in this data chunk ).<br>
+ *        Ref: `data_chunk_size`
+ *      - `1 rglmdf_solved_and_classified_gp_record_t` field x `data_chunk_size` times.<br>
+ *        Meaning: the set of records in the data chunk.<br>
+ *        Ref: `gps_data.records`, array ( each data chunk is collected in the array following the previos one ).<br>
+ *      - ABC<br>
+ *        tbd<br>
+ *   - XYZ
  *
  * @par rglm_data_files.h
  * <tt>
@@ -42,8 +97,13 @@
 #ifndef RGLM_DATA_FILES_H
 #define RGLM_DATA_FILES_H
 
+/* Position status has length 3, plus one char for proper termination. */
+#define RGLM_POSITION_STATUS_BUF_SIZE 4
+
 #include <inttypes.h>
 #include <time.h>
+
+#include "board_pattern.h"
 
 /*
  * Structures used to write and read binary files relay on "fixed" size fields, this is to make the code
@@ -67,10 +127,10 @@
  * The record has a fized size and needs 24 bytes.
  */
 typedef struct rglmdf_position_summary_record_s {
-  int32_t batch_id;            /**< @brief Key field, maps the batch_id::regab_prng_gp field in the REGAB database. */
-  char status[4];              /**< @brief Key field, maps the status::regab_prng_gp field in the REGAB database. */
-  int64_t game_position_cnt;   /**< @brief Count of game position matching the key values in the regab_prng_gp table. */
-  int64_t classified_cnt;      /**< @brief Count of classified game position in table regab_prng_pattern_class referenced by the selection. */
+  int32_t batch_id;                             /**< @brief Key field, maps the batch_id::regab_prng_gp field in the REGAB database. */
+  char status[RGLM_POSITION_STATUS_BUF_SIZE];   /**< @brief Key field, maps the status::regab_prng_gp field in the REGAB database. */
+  int64_t game_position_cnt;                    /**< @brief Count of game position matching the key values in the regab_prng_gp table. */
+  int64_t classified_cnt;                       /**< @brief Count of classified game position in table regab_prng_pattern_class referenced by the selection. */
 } rglmdf_position_summary_record_t;
 
 /**
@@ -150,11 +210,17 @@ typedef struct rglmdf_solved_and_classified_gp_table_s {
  * @details The type contains all the info saved/retrieved from a GLM Data File.
  */
 typedef struct rglmdf_general_data_s {
-  time_t file_creation_time;   /**< @brief Creation time of the data file. */
-  size_t batch_id_cnt;         /**< @brief Count of batch id entries. */
-  uint64_t *batch_ids;         /**< @brief Array of batch_id values. */
-  // ... more ... more ... more
-  // ...
+  time_t file_creation_time;                                  /**< @brief Creation time of the data file. */
+  size_t batch_id_cnt;                                        /**< @brief Count of batch id entries. */
+  uint64_t *batch_ids;                                        /**< @brief Array of batch_id values. */
+  uint8_t empty_count;                                        /**< @brief Empty square count. */
+  size_t position_status_cnt;                                 /**< @brief Count of statuses of game positions. */
+  char *position_status_buffer;                               /**< @brief Text buffer for status labels. */
+  char **position_statuses;                                   /**< @brief Array of terminated strings representing status labels. */
+  size_t pattern_cnt;                                         /**< @brief Count of patterns. */
+  board_pattern_id_t *patterns;                               /**< @brief Array of patterns. */
+  rglmdf_position_summary_table_t position_summary;           /**< @brief Aggregated data for positions. */
+  rglmdf_pattern_freq_summary_table_t pattern_freq_summary;   /**< @brief Aggregated data for pattern frequencies. */
 } rglmdf_general_data_t;
 
 /**
@@ -218,6 +284,21 @@ extern void
 rglmdf_get_file_creation_time_as_string (rglmdf_general_data_t *gd,
                                          char *buf);
 
+/**
+ * @brief Allocates memory for the batch_ids array.
+ *
+ * @details Allocates memory for the batch_id array calling malloc.
+ *          If allocation is succesfull sets the batch_id_cnt value and returns it.
+ *          Allocated memory is zeroed.
+ *          If the batch_ids array was already allocated it is freed.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in, out] gd  reference to the general data structure
+ * @param [in]      cnt batch id count
+ * @return              on success `cnt` otherwise zero
+ */
 extern size_t
 rglmdf_set_batch_id_cnt (rglmdf_general_data_t *gd,
                          size_t cnt);
@@ -234,5 +315,40 @@ rglmdf_batch_ids_to_text_stream (rglmdf_general_data_t *gd,
 
 extern void
 rglmdf_general_data_release (rglmdf_general_data_t *gd);
+
+extern uint8_t
+rglmdf_get_empty_count (rglmdf_general_data_t *gd);
+
+extern void
+rglmdf_set_empty_count (rglmdf_general_data_t *gd,
+                        uint8_t empty_count);
+
+extern size_t
+rglmdf_set_position_status_cnt (rglmdf_general_data_t *gd,
+                                size_t cnt);
+
+extern size_t
+rglmdf_get_position_status_cnt (rglmdf_general_data_t *gd);
+
+extern char **
+rglmdf_get_position_statuses (rglmdf_general_data_t *gd);
+
+extern void
+rglmdf_position_statuses_to_text_stream (rglmdf_general_data_t *gd,
+                                         FILE *stream);
+
+extern size_t
+rglmdf_set_pattern_cnt (rglmdf_general_data_t *gd,
+                        size_t cnt);
+
+extern size_t
+rglmdf_get_pattern_cnt (rglmdf_general_data_t *gd);
+
+extern board_pattern_id_t *
+rglmdf_get_patterns (rglmdf_general_data_t *gd);
+
+extern void
+rglmdf_patterns_to_text_stream (rglmdf_general_data_t *gd,
+                                FILE *stream);
 
 #endif /* RGLM_DATA_FILES_H */
