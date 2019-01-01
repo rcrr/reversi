@@ -67,6 +67,25 @@
  *        tbd<br>
  *   - XYZ
  *
+ * @todo Complete the verbose logging in rglm program
+ *
+ * @todo Change data types not written to file to size_t
+ *
+ * @todo Complete file format documentation
+ *
+ * @todo Complete documentation in rglm_data_files.h
+ *
+ * @todo Write INDEX_VALUE to RGLM_VARIABLE conversion function
+ *
+ * @todo Add output flags in rglm for different data tables:
+ *       - game position
+ *       - game position translated to RGLM_VARIABLES
+ *       - Summary Tables
+ *
+ * @todo Write SHA hash signature for the files
+ *
+ * @todo Verify memory leaks
+ *
  * @par rglm_data_files.h
  * <tt>
  * This file is part of the reversi program

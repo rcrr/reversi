@@ -1337,12 +1337,14 @@ do_action_extract_pattern_freqs_prepare_cursor (int *result,
     } else {
       *record_cnt_b = atol(PQgetvalue(res, 1, 1)); // second row, second field: the row count.
       *result = 0;
-      if (verbose) fprintf(stdout, "Procedure regab_action_extract_count_pattern_freqs() executed succesfully.\n");
+      if (verbose) {
+        fprintf(stdout, "Pattern Frequency Summary Table has %zu records (it is also the number of the variables of the GLM).\n", *record_cnt_b);
+        fprintf(stdout, "Procedure regab_action_extract_count_pattern_freqs() executed succesfully.\n");
+      }
     }
   }
   PQclear(res);
 }
-
 
 static void
 do_action_extract_count_positions (int *result,
@@ -1422,79 +1424,22 @@ do_action_extract_count_positions (int *result,
       rec->classified_cnt = atol(PQgetvalue(res, i, 3));
     }
 
-    if (verbose) fprintf(stdout, "Procedure regab_action_extract_count_positions() executed succesfully.\n");
-    *result = 0;
-  }
-  PQclear(res);
-}
-
-static void
-do_action_extract_create_tmp_tables (int *result,
-                                     PGconn *con,
-                                     bool verbose)
-{
-  static const size_t command_size = 1024;
-
-  PGresult *res = NULL;
-  char command[command_size];
-  size_t cl;
-
-  if (!result) return;
-  if (!con) {
-    *result = -1;
-    return;
-  }
-  *result = 0;
-
-  const char *c0 = "SELECT regab_action_extract_create_tmp_tables();";
-
-  cl = snprintf(command, command_size, "%s", c0);
-  if (cl >= command_size) {
-    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-    abort();
-  }
-  res = PQexec(con, command);
-  if (PQresultStatus(res) != PGRES_TUPLES_OK) {
-    fprintf(stderr, "%s", PQerrorMessage(con));
-    *result = -1;
-  } else {
-    if (verbose) fprintf(stdout, "Procedure regab_action_extract_create_tmp_tables() executed succesfully.\n");
-    *result = 0;
-  }
-  PQclear(res);
-}
-
-static void
-do_action_extract_drop_tmp_tables (int *result,
-                                   PGconn *con,
-                                   bool verbose)
-{
-  static const size_t command_size = 1024;
-
-  PGresult *res = NULL;
-  char command[command_size];
-  size_t cl;
-
-  if (!result) return;
-  if (!con) {
-    *result = -1;
-    return;
-  }
-  *result = 0;
-
-  const char *c0 = "SELECT regab_action_extract_drop_tmp_tables();";
-
-  cl = snprintf(command, command_size, "%s", c0);
-  if (cl >= command_size) {
-    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-    abort();
-  }
-  res = PQexec(con, command);
-  if (PQresultStatus(res) != PGRES_TUPLES_OK) {
-    fprintf(stderr, "%s", PQerrorMessage(con));
-    *result = -1;
-  } else {
-    if (verbose) fprintf(stdout, "Procedure regab_action_extract_drop_tmp_tables() executed succesfully.\n");
+    if (verbose) {
+      fprintf(stdout, "Procedure regab_action_extract_count_positions() executed succesfully.\n");
+      fprintf(stdout, "\n");
+      fprintf(stdout, "   ----------------------------\n");
+      fprintf(stdout, "      Position Summary Table   \n");
+      fprintf(stdout, "   ----------------------------\n");
+      fprintf(stdout, "________________________________________________________\n");
+      fprintf(stdout, "      |          |        |            |                \n");
+      fprintf(stdout, " ---- | batch_id | status |   gp_cnt   | classified_cnt \n");
+      fprintf(stdout, "______|__________|________|____________|________________\n");
+      for (size_t i = 0; i < return_table->ntuples; i++) {
+        rglmdf_position_summary_record_t *rec = &return_table->records[i];
+        fprintf(stdout, " %04zu | %8d |   %s  | %10zu |     %10zu\n", i, rec->batch_id, rec->status, rec->game_position_cnt, rec->classified_cnt);
+      }
+      fprintf(stdout, "\n");
+    }
     *result = 0;
   }
   PQclear(res);
@@ -1548,10 +1493,9 @@ do_action_extract_check_patterns (int *result,
   } else {
     ntuples = PQntuples(res);
     if (verbose) {
-      fprintf(stdout, "_____________________________________\n");
+      fprintf(stdout, "____________________________________________________\n");
       fprintf(stdout, "\nSearched patterns: ");
-      for (size_t i = 0; i < pattern_cnt; i++) fprintf(stdout, "%d, ", patterns[i]);
-      fprintf(stdout, "\n");
+      for (size_t i = 0; i < pattern_cnt; i++) fprintf(stdout, "%d%s", patterns[i], i == pattern_cnt - 1 ? "\n" : ", ");
       fprintf(stdout, "Patterns found matching the query\n");
       fprintf(stdout, "____________________________________________________\n");
       fprintf(stdout, "      |            |        |            |          \n");
@@ -1627,8 +1571,7 @@ do_action_extract_check_batches (int *result,
     if (verbose) {
       fprintf(stdout, "_____________________________________\n");
       fprintf(stdout, "\nSearched batch_ids: ");
-      for (size_t i = 0; i < batch_id_cnt; i++) fprintf(stdout, "%lu, ", batch_ids[i]);
-      fprintf(stdout, "\n");
+      for (size_t i = 0; i < batch_id_cnt; i++) fprintf(stdout, "%lu%s", batch_ids[i], i == batch_id_cnt - 1 ? "\n" : ", ");
       fprintf(stdout, "Batch ids found matching the query\n");
       fprintf(stdout, "_____________________________________\n");
       fprintf(stdout, "      |          |        |          \n");
@@ -2448,25 +2391,20 @@ main (int argc,
    *  - 00 - Starts a DB transaction.
    *  - 01 - Checks that the imput data (batch_id, pattern) is consistent with the DB data.
    *  - 02 - Opens the output binary file, and writes the header.
-   *  - 03 - Creates the DB temporary table.
    *  - 04 - Collects from the DB the game positions statistics and writes them to the binary file.
    *  - 05 - Collects from the DB the pattern index statistics, writes them to the binary file,
    *         and accumulates the data into the DB temp table.
    *         This step also assigns the global variable index value to each record in the DB temp table.
    *         This action generates the mapping between pattern_id, index_value tuples and the GLM global variables.
-   *         Writes the mapping, direct and inverse, to the binary file.
    *  - 07 - Creates the CURSOR variable over the query collecting game_positions, game_value, pattern values.
    *  - 08 - Iterates by chunks of data collected from the cusrsor, and writes them into the binary file.
-   *  - 09 - Closes the cursor.
-   *  - 10 - Drops the DB temporary table.
    *  - 11 - Closes the output file.
-   *  - 12 - Commits the DB transaction.
+   *  - 12 - Commits the DB transaction, this action deletes the temporary database tables and the cursor variable.
    *
    */
  regab_action_extract:
   ;
 
-  printf("Action extract is not implemented yet.\n");
   rglmdf_position_summary_table_t position_summary;
   position_summary.ntuples = 0;
   position_summary.records = NULL;
@@ -2512,18 +2450,6 @@ main (int argc,
   /* ctime() has already added a terminating newline character. */
   if (verbose) fprintf(stdout, "Current time is %s", c_time_string);
 
-  for (size_t i = 0; i < batch_id_cnt; i++) {
-    printf("batch_ids[%zu] = %lu\n", i, batch_ids[i]);
-  }
-
-  for (size_t i = 0; i < position_status_cnt; i++) {
-    printf("position_statuses[%zu] = %s\n", i, position_statuses[i]);
-  }
-
-  for (size_t i = 0; i < pattern_cnt; i++) {
-    printf("pattern[%zu] = %d, %s\n", i, patterns[i], board_patterns[patterns[i]].name);
-  }
-
   PGresult *res = NULL;
   FILE *ofp = NULL;
 
@@ -2550,6 +2476,14 @@ main (int argc,
     res = PQexec(con, "ROLLBACK");
     PQfinish(con);
     return EXIT_FAILURE;
+  }
+
+  /* - 01.c - Logs selected statuses for the game positions. */
+  if (verbose) {
+    fprintf(stdout, "Searched position statuses: ");
+    for (size_t i = 0; i < position_status_cnt; i++) {
+      fprintf(stdout, "%s%s", position_statuses[i], i == position_status_cnt - 1 ? "\n\n" : ", ");
+    }
   }
 
   /* - 02 - Opens output file. */
@@ -2581,32 +2515,8 @@ main (int argc,
   fflush(ofp);
   if (verbose) fprintf(stdout, "Header data written succesfully to binary output file \"%s\".\n", output_file_name);
 
-  /* - 03 - Creates the DB temporary table. */
-  do_action_extract_create_tmp_tables(&result, con, verbose);
-  if (result != 0) {
-    res = PQexec(con, "ROLLBACK");
-    PQfinish(con);
-    fclose(ofp);
-    return EXIT_FAILURE;
-  }
-
   /* - 04 - Collects from the DB the game positions statistics and writes them to the binary file. */
   do_action_extract_count_positions(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses, &position_summary);
-  if (verbose) {
-      fprintf(stdout, "\n");
-      fprintf(stdout, "------------------------\n");
-      fprintf(stdout, " Position Summary Table \n");
-      fprintf(stdout, "------------------------\n");
-      fprintf(stdout, "________________________________________________________\n");
-      fprintf(stdout, "      |          |        |            |                \n");
-      fprintf(stdout, " ---- | batch_id | status |   gp_cnt   | classified_cnt \n");
-      fprintf(stdout, "______|__________|________|____________|________________\n");
-      for (size_t i = 0; i < position_summary.ntuples; i++) {
-        rglmdf_position_summary_record_t *rec = &position_summary.records[i];
-        fprintf(stdout, " %04zu | %8d |   %s  | %10zu |     %10zu\n", i, rec->batch_id, rec->status, rec->game_position_cnt, rec->classified_cnt);
-      }
-      fprintf(stdout, "\n");
-  }
   u64 = position_summary.ntuples;
   fwrite(&u64, sizeof(uint64_t), 1, ofp);
   fwrite(position_summary.records, sizeof(rglmdf_position_summary_record_t), position_summary.ntuples, ofp);
@@ -2665,17 +2575,6 @@ main (int argc,
   }
   free(gps_data.records);
   free(gps_data.iarray);
-
-  /* - 09 - Closes the cursor. */
-
-  /* - 10 - Drops the DB temporary table. */
-  do_action_extract_drop_tmp_tables(&result, con, verbose);
-  if (result != 0) {
-    res = PQexec(con, "ROLLBACK");
-    PQfinish(con);
-    fclose(ofp);
-    return EXIT_FAILURE;
-  }
 
   /* - 11 - Clean up output file. */
   int fclose_ret = fclose(ofp);

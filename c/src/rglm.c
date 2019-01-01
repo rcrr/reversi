@@ -306,18 +306,20 @@ main (int argc,
     iarrayp += ni * data_chunk_size;
   }
 
-  printf("\n\n\n");
-  printf("I;ROW_N;GP_ID;GAME_VALUE");
-  for (size_t j = 0; j < ni; j++)
-    printf(";I_%03zu", j);
-  printf("\n");
-  for (size_t i = 0; i < data.positions.ntuples; i++) {
-    printf("%8zu; %8zu; %10ld; %3d",
-           i, data.positions.records[i].row_n, data.positions.records[i].gp_id, data.positions.records[i].game_value);
-    for (size_t j = 0; j < ni; j++) {
-      printf(";%8u", data.positions.iarray[i * ni + j]);
-    }
+  if (false) {
+    printf("\n\n\n");
+    printf("I;ROW_N;GP_ID;GAME_VALUE");
+    for (size_t j = 0; j < ni; j++)
+      printf(";I_%03zu", j);
     printf("\n");
+    for (size_t i = 0; i < data.positions.ntuples; i++) {
+      printf("%8zu; %8zu; %10ld; %3d",
+             i, data.positions.records[i].row_n, data.positions.records[i].gp_id, data.positions.records[i].game_value);
+      for (size_t j = 0; j < ni; j++) {
+        printf(";%8u", data.positions.iarray[i * ni + j]);
+      }
+      printf("\n");
+    }
   }
 
   fclose(ifp);

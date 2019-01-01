@@ -5,7 +5,7 @@
 -- http://github.com/rcrr/reversi
 --
 -- Author: Roberto Corradini mailto:rob_corradini@yahoo.it
--- Copyright 2018 Roberto Corradini. All rights reserved.
+-- Copyright 2018, 2019 Roberto Corradini. All rights reserved.
 --
 --
 -- License:
@@ -416,61 +416,6 @@ BEGIN
   SELECT count(1) INTO row_cnt FROM regab_action_extract_count_pattern_freqs_tmp_table_b;
   RETURN NEXT;
   
-END;
-$$ LANGUAGE plpgsql VOLATILE;
-
---
---
---
-CREATE FUNCTION regab_action_extract_create_tmp_tables ()
-RETURNS VOID
-AS $$
-BEGIN
-
-  --
-  -- TODO:
-  -- The table shall be reduced to: global_variable_index, patter_id, principal_index_value, toatal_cnt.
-  --
-  -- In function regab_action_extract_count_pattern_freqs first:
-  -- GROUP BY pattern_id, principal_index_value and SUM total_cnt ...
-  -- then INSERT into this table before returning the results ...
-  --
-  -- Finally SORT and assign the global_variable_index.
-  -- UPDATE ....
-  -- ,rank() over (order by pattern_id, principal_index_value asc) as global_variable_index
-  --
-  -- The INDEX regab_action_extract_tmp_freqs_pid_piv is not needed.
-  --
-  CREATE TEMPORARY TABLE regab_action_extract_tmp_freqs (pattern_id              INTEGER,
-                                                         index_value             INTEGER,
-                                                         mirror_value            INTEGER,
-                                                         principal_index_value   INTEGER,
-                                                         cnt_0                   BIGINT,
-                                                         cnt_1                   BIGINT,
-                                                         cnt_2                   BIGINT,
-                                                         cnt_3                   BIGINT,
-                                                         cnt_4                   BIGINT,
-                                                         cnt_5                   BIGINT,
-                                                         cnt_6                   BIGINT,
-                                                         cnt_7                   BIGINT,
-                                                         total_cnt               BIGINT,
-                                                         relative_frequency      DOUBLE PRECISION,
-                                                         theoretical_probability DOUBLE PRECISION,
-                                                         ---
-                                                         CONSTRAINT rae_tmp_freqs_pk PRIMARY KEY (pattern_id, index_value)
-                                                         );
-
-END;
-$$ LANGUAGE plpgsql VOLATILE;
-
---
---
---
-CREATE FUNCTION regab_action_extract_drop_tmp_tables ()
-RETURNS VOID
-AS $$
-BEGIN
-  DROP TABLE regab_action_extract_tmp_freqs;
 END;
 $$ LANGUAGE plpgsql VOLATILE;
 

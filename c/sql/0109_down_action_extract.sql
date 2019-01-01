@@ -1,11 +1,11 @@
 --
--- 0103_down_action_extract.sql
+-- 0109_down_action_extract.sql
 --
 -- This file is part of the reversi program
 -- http://github.com/rcrr/reversi
 --
 -- Author: Roberto Corradini mailto:rob_corradini@yahoo.it
--- Copyright 2018 Roberto Corradini. All rights reserved.
+-- Copyright 2018, 2019 Roberto Corradini. All rights reserved.
 --
 --
 -- License:
@@ -35,8 +35,6 @@ SET search_path TO reversi;
 BEGIN;
 
 DROP FUNCTION regab_action_extract_game_pos_prepare_cursor;
-DROP FUNCTION regab_action_extract_drop_tmp_tables;
-DROP FUNCTION regab_action_extract_create_tmp_tables;
 DROP FUNCTION regab_action_extract_count_pattern_freqs;
 DROP FUNCTION regab_action_extract_count_positions;
 DROP FUNCTION regab_action_extract_check_patterns;
