@@ -73,7 +73,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2018 Roberto Corradini. All rights reserved.
+ * @copyright 2018, 2019 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -197,11 +197,20 @@ typedef struct rglmdf_solved_and_classified_gp_record_s {
 /**
  * @brief Reversi GLM data file table holding the game positons being solved and classified.
  *
- * @details The table contains the count of pattern occurrencies grouped by (pattern_id, principal_index_value).
+ * @details The table is build with a record having a fixed set of fields organized into the
+ *          the type #rglmdf_solved_and_classified_gp_record_t, and a variable set of index values
+ *          that depends on the pattern set.
+ *          The index values are collected into the `iarray` field that is dynamically allocated with a size
+ *          equal to `ntuples` multiplied by `n_index_values_per_record`.
+ *          Each record has a pointer `ivalues` that for convinience references the first index value for the
+ *          game position.
+ *          Index values are ordered by `(pattern_id, instance_number)`.
  */
 typedef struct rglmdf_solved_and_classified_gp_table_s {
   uint64_t ntuples;                                    /**< @brief Number of records. */
+  size_t n_index_values_per_record;                    /**< @brief */
   rglmdf_solved_and_classified_gp_record_t *records;   /**< @brief Records of the table. */
+  uint32_t *iarray;                                    /**< @brief */
 } rglmdf_solved_and_classified_gp_table_t;
 
 /**
@@ -221,7 +230,11 @@ typedef struct rglmdf_general_data_s {
   board_pattern_id_t *patterns;                               /**< @brief Array of patterns. */
   rglmdf_position_summary_table_t position_summary;           /**< @brief Aggregated data for positions. */
   rglmdf_pattern_freq_summary_table_t pattern_freq_summary;   /**< @brief Aggregated data for pattern frequencies. */
+  rglmdf_solved_and_classified_gp_table_t positions;          /**< @brief TAble of game positions. */
 } rglmdf_general_data_t;
+
+extern bool
+rglmdf_verify_type_sizes (void);
 
 /**
  * @brief Initializes the general data structure.
@@ -350,5 +363,49 @@ rglmdf_get_patterns (rglmdf_general_data_t *gd);
 extern void
 rglmdf_patterns_to_text_stream (rglmdf_general_data_t *gd,
                                 FILE *stream);
+
+extern size_t
+rglmdf_set_position_summary_ntuples (rglmdf_general_data_t *gd,
+                                     size_t ntuples);
+
+extern size_t
+rglmdf_get_position_summary_ntuples (rglmdf_general_data_t *gd);
+
+extern rglmdf_position_summary_record_t *
+rglmdf_get_position_summary_records (rglmdf_general_data_t *gd);
+
+extern void
+rglmdf_position_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
+                                            FILE *stream);
+
+extern size_t
+rglmdf_set_pattern_freq_summary_ntuples (rglmdf_general_data_t *gd,
+                                         size_t ntuples);
+
+extern size_t
+rglmdf_get_pattern_freq_summary_ntuples (rglmdf_general_data_t *gd);
+
+extern rglmdf_pattern_freq_summary_record_t *
+rglmdf_get_pattern_freq_summary_records (rglmdf_general_data_t *gd);
+
+extern void
+rglmdf_pattern_freq_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
+                                                FILE *stream);
+
+extern size_t
+rglmdf_set_positions_ntuples (rglmdf_general_data_t *gd,
+                              size_t ntuples);
+
+extern size_t
+rglmdf_get_positions_ntuples (rglmdf_general_data_t *gd);
+
+extern rglmdf_solved_and_classified_gp_record_t *
+rglmdf_get_positions_records (rglmdf_general_data_t *gd);
+
+extern size_t
+rglmdf_get_positions_n_index_values_per_record (rglmdf_general_data_t *gd);
+
+extern uint32_t *
+rglmdf_get_positions_iarray (rglmdf_general_data_t *gd);
 
 #endif /* RGLM_DATA_FILES_H */

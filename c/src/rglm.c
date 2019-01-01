@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2018 Roberto Corradini. All rights reserved.
+ * @copyright 2018, 2019 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -116,23 +116,14 @@ main (int argc,
   char **cpp;
   board_pattern_id_t *bpip;
   char buf[512];
+  rglmdf_position_summary_record_t *psrp;
+  rglmdf_pattern_freq_summary_record_t *pfsrp;
+  rglmdf_solved_and_classified_gp_record_t *scgprp;
+  uint32_t *iarrayp;
+  uint64_t data_chunk_size;
 
   rglmdf_general_data_t data;
   rglmdf_general_data_init(&data);
-
-  rglmdf_position_summary_table_t position_summary;
-  position_summary.ntuples = 0;
-  position_summary.records = NULL;
-
-  rglmdf_pattern_freq_summary_table_t pattern_freq_summary;
-  pattern_freq_summary.ntuples = 0;
-  pattern_freq_summary.records = NULL;
-
-  rglmdf_solved_and_classified_gp_table_t gps_data;
-  gps_data.ntuples = 0;
-  gps_data.records = NULL;
-
-  size_t solved_classified_gp_cnt = 0;
 
   bool verbose = false;
 
@@ -178,6 +169,12 @@ main (int argc,
   if (!i_arg) {
     fprintf(stderr, "Option -i, --input-file is mandatory.\n");
     return -3;
+  }
+
+  /* Checks size of types. */
+  if (!rglmdf_verify_type_sizes()) {
+    fprintf(stderr, "Data types read from, or written to, the binary file have a size that is not consistent with the original one.\n");
+    return EXIT_FAILURE;
   }
 
   /* Opens the binary file for reading. */
@@ -244,89 +241,88 @@ main (int argc,
   if (verbose) rglmdf_patterns_to_text_stream(&data, stdout);
 
   /* Reads the position summary table. */
-  re = fread(&position_summary.ntuples, sizeof(size_t), 1, ifp);
+  re = fread(&u64, sizeof(uint64_t), 1, ifp);
   if (re != 1) print_error_and_stop(-90);
-  position_summary.records = (rglmdf_position_summary_record_t *) malloc(sizeof(rglmdf_position_summary_record_t) * position_summary.ntuples);
-  if (!position_summary.records) {
-    fprintf(stderr, "Unable to allocate memory for position_summary.records array.\n");
-    abort();
+  v64 = rglmdf_set_position_summary_ntuples(&data, u64);
+  if (v64 != u64) {
+    fprintf(stderr, "Unable to allocate memory for the records of position summary table.\n");
+    return EXIT_FAILURE;
   }
-  re = fread(position_summary.records, sizeof(rglmdf_position_summary_record_t), position_summary.ntuples, ifp);
-  if (re != position_summary.ntuples) print_error_and_stop(-100);
-  for (size_t i = 0; i < position_summary.ntuples; i++) solved_classified_gp_cnt += position_summary.records[i].classified_cnt;
-  if (verbose) fprintf(stdout, "Position summary table has been read succesfully, solved_classified_gp_cnt: %zu\n", solved_classified_gp_cnt);
+  psrp = rglmdf_get_position_summary_records(&data);
+  re = fread(psrp, sizeof(rglmdf_position_summary_record_t), u64, ifp);
+  if (re != u64) print_error_and_stop(-100);
+  if (verbose) rglmdf_position_summary_cnt_to_text_stream(&data, stdout);
 
   /* Reads the pattern frequency summary table. */
-  re = fread(&pattern_freq_summary.ntuples, sizeof(size_t), 1, ifp);
+  re = fread(&u64, sizeof(uint64_t), 1, ifp);
   if (re != 1) print_error_and_stop(-110);
-  pattern_freq_summary.records = (rglmdf_pattern_freq_summary_record_t *) malloc(sizeof(rglmdf_pattern_freq_summary_record_t) * pattern_freq_summary.ntuples);
-  if (!pattern_freq_summary.records) {
-    fprintf(stderr, "Unable to allocate memory for pattern_freq_summary.records array.\n");
-    abort();
+  v64 = rglmdf_set_pattern_freq_summary_ntuples(&data, u64);
+  if (v64 != u64) {
+    fprintf(stderr, "Unable to allocate memory for the records of pattern freq summary table.\n");
+    return EXIT_FAILURE;
   }
-  re = fread(pattern_freq_summary.records, sizeof(rglmdf_pattern_freq_summary_record_t), pattern_freq_summary.ntuples, ifp);
-  if (re != pattern_freq_summary.ntuples) print_error_and_stop(-120);
-  if (verbose) fprintf(stdout, "Pattern summary table has been read succesfully, records count: %zu\n", pattern_freq_summary.ntuples);
+  pfsrp = rglmdf_get_pattern_freq_summary_records(&data);
+  re = fread(pfsrp, sizeof(rglmdf_pattern_freq_summary_record_t), u64, ifp);
+  if (re != u64) print_error_and_stop(-120);
+  if (verbose) rglmdf_pattern_freq_summary_cnt_to_text_stream(&data, stdout);
 
-  //printf("glm_variable_id;pattern_id;principal_index_value;total_cnt;relative_frequency;theoretical_frequency\n");
-  int pattern_id = -1;
-  int64_t total_cnt = -1;
-  double relative_frequency = -1.;
-  double theoretical_probability = -1.;
-  for (size_t i = 0; i < pattern_freq_summary.ntuples; i++) {
-    rglmdf_pattern_freq_summary_record_t *rec = &pattern_freq_summary.records[i];
-    if (rec->pattern_id != pattern_id) {
-      total_cnt = 0;
-      relative_frequency = 0.;
-      theoretical_probability = 0.;
-      pattern_id = rec->pattern_id;
-    }
-    total_cnt += rec->total_cnt;
-    relative_frequency += rec->relative_frequency;
-    theoretical_probability += rec->theoretical_probability;
-    //printf("%lld;%d;%d;%ld;%f;%f\n", rec->glm_variable_id, rec->pattern_id,rec->principal_index_value,rec->total_cnt,rec->relative_frequency,rec->theoretical_probability);
-    if (verbose && (i + 1 == pattern_freq_summary.ntuples || (rec + 1)->pattern_id != pattern_id)) {
-      const char *pattern_name = board_patterns[pattern_id].name;
-      const int64_t gp_cnt = total_cnt / board_patterns[pattern_id].n_instances;
-      printf("  Pattern id: %2d [%6s], total_cnt = %8ld, gp_cnt = %8ld, cumulated relative frequency = %1.4f, cumulated theoretical probability = %1.4f\n",
-             pattern_id, pattern_name, total_cnt, gp_cnt, relative_frequency, theoretical_probability);
-    }
-  }
-  // Checks could be added, the total_cnt has to be equal to the number of gp x ninstances ...
+  /* Populates irecords size. */
+
 
   /* Read the number of record for the solved and classified game position table. */
-  re = fread(&gps_data.ntuples, sizeof(size_t), 1, ifp);
+  re = fread(&u64, sizeof(uint64_t), 1, ifp);
   if (re != 1) print_error_and_stop(-130);
-  printf("gps_data.ntuples = %zu\n", gps_data.ntuples);
-  gps_data.records = (rglmdf_solved_and_classified_gp_record_t *) malloc(sizeof(rglmdf_solved_and_classified_gp_record_t) * gps_data.ntuples);
-  if (!gps_data.records) {
-    fprintf(stderr, "Unable to allocate memory for gps_data.records array.\n");
+  v64 = rglmdf_set_positions_ntuples(&data, u64);
+  if (v64 != u64) {
+    fprintf(stderr, "Unable to allocate memory for the positions table.\n");
     return EXIT_FAILURE;
   }
   /* Reads the sequence of chunk of records. Each chunk is organized as: chunk size n, n records, n irecords. */
-  size_t data_chunk_size = 0;
-  rglmdf_solved_and_classified_gp_record_t *r = gps_data.records;
-  for(;;) {
-    re = fread(&data_chunk_size, sizeof(size_t), 1, ifp);
+  scgprp = rglmdf_get_positions_records(&data);
+  iarrayp = rglmdf_get_positions_iarray(&data);
+  const size_t ni = rglmdf_get_positions_n_index_values_per_record(&data);
+  size_t n_record_read = 0;
+  for (;;) {
+    re = fread(&data_chunk_size, sizeof(uint64_t), 1, ifp);
     if (re != 1) print_error_and_stop(-140);
-    printf("data_chunk_size=%zu\n", data_chunk_size);
-    if (data_chunk_size == 0) break;
-    re = fread(r, sizeof(rglmdf_solved_and_classified_gp_record_t), data_chunk_size, ifp);
+    n_record_read += data_chunk_size;
+    if (n_record_read > u64) {
+      fprintf(stderr, "Data chunks cumulated so far are more than expected.\n");
+      return EXIT_FAILURE;
+    }
+    if (data_chunk_size == 0) {
+      if (n_record_read != u64) {
+        fprintf(stderr, "Data chunks being read are less than expected.\n");
+        fprintf(stderr, "Expected = %lu, number of record read = %zu\n", u64, n_record_read);
+        return EXIT_FAILURE;
+      }
+      break;
+    }
+    re = fread(scgprp, sizeof(rglmdf_solved_and_classified_gp_record_t), data_chunk_size, ifp);
     if (re != data_chunk_size) print_error_and_stop(-150);
-    r += data_chunk_size;
+    re = fread(iarrayp, sizeof(uint32_t) * ni, data_chunk_size, ifp);
+    if (re != data_chunk_size) print_error_and_stop(-160);
+    scgprp += data_chunk_size;
+    iarrayp += ni * data_chunk_size;
   }
 
-  for (size_t i = 0; i < gps_data.ntuples; i++) {
-    //printf("%8zu, %8zu, %ld\n", i, gps_data.records[i].row_n, gps_data.records[i].gp_id);
+  printf("\n\n\n");
+  printf("I;ROW_N;GP_ID;GAME_VALUE");
+  for (size_t j = 0; j < ni; j++)
+    printf(";I_%03zu", j);
+  printf("\n");
+  for (size_t i = 0; i < data.positions.ntuples; i++) {
+    printf("%8zu; %8zu; %10ld; %3d",
+           i, data.positions.records[i].row_n, data.positions.records[i].gp_id, data.positions.records[i].game_value);
+    for (size_t j = 0; j < ni; j++) {
+      printf(";%8u", data.positions.iarray[i * ni + j]);
+    }
+    printf("\n");
   }
-
 
   fclose(ifp);
 
   /* Frees resources. */
-  free(gps_data.records);
-  free(pattern_freq_summary.records);
-  free(position_summary.records);
   rglmdf_general_data_release(&data);
 
   return EXIT_SUCCESS;

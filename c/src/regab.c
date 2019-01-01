@@ -12,7 +12,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2017, 2018 Roberto Corradini. All rights reserved.
+ * @copyright 2017, 2018, 2019 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -1034,7 +1034,7 @@ do_select_position_to_solve (int *result,
 }
 
 static void
-do_action_extract_game_pos_prepare_corsor (int *result,
+do_action_extract_game_pos_prepare_cursor (int *result,
                                            PGconn *con,
                                            bool verbose,
                                            uint8_t empty_count,
@@ -1117,12 +1117,12 @@ do_action_extract_game_pos_prepare_corsor (int *result,
     *result = -1;
   } else {
     if (PQntuples(res) != 1) {
-      fprintf(stdout, "Procedure do_action_extract_game_pos_prepare_corsor() returned wrong number of records.\n");
+      fprintf(stdout, "Procedure do_action_extract_game_pos_prepare_cursor() returned wrong number of records.\n");
       *result = -2;
     } else {
       *record_cnt = atol(PQgetvalue(res, 0, 0)); // first row, first field: the row count.
       *result = 0;
-      if (verbose) fprintf(stdout, "Procedure do_action_extract_game_pos_prepare_corsor() executed succesfully.\n");
+      if (verbose) fprintf(stdout, "Procedure do_action_extract_game_pos_prepare_cursor() executed succesfully.\n");
     }
   }
   PQclear(res);
@@ -1142,13 +1142,15 @@ do_action_extract_game_pos_cursor_fetch (int *result,
   char command[command_size];
   size_t cl;
   char *cp;
+  size_t ni;
 
   if (!result) return;
-  if (!con) {
+  if (!con || !return_table) {
     *result = -1;
     return;
   }
   *result = 0;
+  ni = return_table->n_index_values_per_record;
 
   const char *c0 = "FETCH FORWARD ";
 
@@ -1178,6 +1180,10 @@ do_action_extract_game_pos_cursor_fetch (int *result,
       return_table->records[i].mover = atol(PQgetvalue(res, i, 2));
       return_table->records[i].opponent = atol(PQgetvalue(res, i, 3));
       return_table->records[i].game_value = atoi(PQgetvalue(res, i, 4));
+      return_table->records[i].ivalues = return_table->iarray + i * ni;
+      for (size_t j = 0; j < ni; j++) {
+        return_table->iarray[i * ni + j] = atol(PQgetvalue(res, i, 5 + j));
+      }
     }
     *result = 0;
   }
@@ -2484,11 +2490,16 @@ main (int argc,
   size_t gps_data_fetched_record_cnt = 0;
   rglmdf_solved_and_classified_gp_table_t gps_data;
   gps_data.ntuples = 0;
+  gps_data.n_index_values_per_record = 0;
+  for (size_t i = 0; i < pattern_cnt; i++)
+    gps_data.n_index_values_per_record += board_patterns[patterns[i]].n_instances;
   gps_data.records = (rglmdf_solved_and_classified_gp_record_t *) malloc(sizeof(rglmdf_solved_and_classified_gp_record_t) * gps_data_chunk_size);
+  gps_data.iarray = (uint32_t *) malloc(sizeof(uint32_t) * gps_data.n_index_values_per_record * gps_data_chunk_size);
 
   time_t current_time = (time_t) -1;
   char* c_time_string = NULL;
-  uint64_t u;
+  uint8_t u8;
+  uint64_t u64;
 
   /* Obtain current time as seconds elapsed since the Epoch. */
   current_time = time(NULL);
@@ -2550,20 +2561,23 @@ main (int argc,
     return EXIT_FAILURE;
   }
   if (verbose) fprintf(stdout, "Binary output file \"%s\" opened succesfully.\n", output_file_name);
-  u = current_time;
-  fwrite(&u, sizeof(uint64_t), 1, ofp);
-  u = batch_id_cnt;
-  fwrite(&u, sizeof(uint64_t), 1, ofp);
-  fwrite(batch_ids, sizeof(uint64_t), batch_id_cnt, ofp);
-  fwrite(&empty_count, sizeof(uint8_t), 1, ofp);
-  fwrite(&position_status_cnt, sizeof(size_t), 1, ofp);
-  fwrite(position_status_buffer, 4, position_status_cnt, ofp);
-  fwrite(&pattern_cnt, sizeof(size_t), 1, ofp);
+  u64 = current_time;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  u64 = batch_id_cnt;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  u64 = *batch_ids;
+  fwrite(&u64, sizeof(uint64_t), batch_id_cnt, ofp);
+  u8 = empty_count;
+  fwrite(&u8, sizeof(uint8_t), 1, ofp);
+  u64 = position_status_cnt;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  fwrite(position_status_buffer, RGLM_POSITION_STATUS_BUF_SIZE, position_status_cnt, ofp);
+  u64 = pattern_cnt;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
   for (size_t i = 0; i < pattern_cnt; i++) {
-    int16_t tmp = patterns[i];
-    fwrite(&tmp, sizeof(int16_t), 1, ofp);
+    int16_t i16 = patterns[i];
+    fwrite(&i16, sizeof(int16_t), 1, ofp);
   }
-  //fwrite(patterns, sizeof(board_pattern_id_t), pattern_cnt, ofp);
   fflush(ofp);
   if (verbose) fprintf(stdout, "Header data written succesfully to binary output file \"%s\".\n", output_file_name);
 
@@ -2593,7 +2607,8 @@ main (int argc,
       }
       fprintf(stdout, "\n");
   }
-  fwrite(&position_summary.ntuples, sizeof(size_t), 1, ofp);
+  u64 = position_summary.ntuples;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
   fwrite(position_summary.records, sizeof(rglmdf_position_summary_record_t), position_summary.ntuples, ofp);
   if (verbose) fprintf(stdout, "Position summary table written succesfully to binary output file \"%s\".\n", output_file_name);
   free(position_summary.records);
@@ -2602,7 +2617,8 @@ main (int argc,
   do_action_extract_pattern_freqs_prepare_cursor(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses,
                                                  pattern_cnt, patterns, sql_cursor_name_pattern_freqs_debug, sql_cursor_name_pattern_freqs,
                                                  &pattern_freq_summary_total_record_cnt);
-  fwrite(&pattern_freq_summary_total_record_cnt, sizeof(size_t), 1, ofp);
+  u64 = pattern_freq_summary_total_record_cnt;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
 
   for (;;) {
     do_action_extract_pattern_freqs_cursor_fetch(&result, con, verbose, sql_cursor_name_pattern_freqs, pattern_freq_summary_chunk_size, &pattern_freq_summary);
@@ -2622,16 +2638,17 @@ main (int argc,
   free(pattern_freq_summary.records);
   if (verbose) fprintf(stdout, "Pattern frequency summary table written succesfully to binary output file \"%s\".\n", output_file_name);
 
-  /* - 07 - Creates the CURSOR variable ... */
-  do_action_extract_game_pos_prepare_corsor(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses,
+  /* - 07 - Creates the CURSOR variable, and writes the total amount of expected records. */
+  do_action_extract_game_pos_prepare_cursor(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses,
                                             pattern_cnt, patterns, sql_cursor_name_gps_data, &gps_data_total_record_cnt);
-  fwrite(&gps_data_total_record_cnt, sizeof(size_t), 1, ofp);
+  u64 = gps_data_total_record_cnt;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
 
-  // TO DO --- !!! create a record composed by a fixed size data and a "variable length record" for i000,1001,...
-  // two malloc are needed ....
+  /* - 08 - Iterates over chunks of data retrieved from the cursor. */
   for (;;) {
     do_action_extract_game_pos_cursor_fetch(&result, con, verbose, sql_cursor_name_gps_data, gps_data_chunk_size, &gps_data);
-    fwrite(&gps_data.ntuples, sizeof(size_t), 1, ofp);
+    u64 = gps_data.ntuples;
+    fwrite(&u64, sizeof(uint64_t), 1, ofp);
     gps_data_fetched_record_cnt += gps_data.ntuples;
     if (gps_data.ntuples == 0) {
       if (gps_data_fetched_record_cnt != gps_data_total_record_cnt) {
@@ -2644,10 +2661,10 @@ main (int argc,
       break;
     }
     fwrite(gps_data.records, sizeof(rglmdf_solved_and_classified_gp_record_t), gps_data.ntuples, ofp);
+    fwrite(gps_data.iarray, sizeof(uint32_t) * gps_data.n_index_values_per_record, gps_data.ntuples, ofp);
   }
   free(gps_data.records);
-
-  /* - 08 - Iterates over chunks of data retrieved from the cursor. */
+  free(gps_data.iarray);
 
   /* - 09 - Closes the cursor. */
 

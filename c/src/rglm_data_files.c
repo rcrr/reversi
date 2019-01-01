@@ -9,7 +9,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2018 Roberto Corradini. All rights reserved.
+ * @copyright 2018, 2019 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -38,6 +38,27 @@
 
 #include "rglm_data_files.h"
 
+extern bool
+rglmdf_verify_type_sizes (void)
+{
+  if (sizeof(char) != 1) return false;
+
+  if (sizeof( uint8_t) != 1) return false;
+  if (sizeof(uint16_t) != 2) return false;
+  if (sizeof(uint32_t) != 4) return false;
+  if (sizeof(uint64_t) != 8) return false;
+  if (sizeof(  int8_t) != 1) return false;
+  if (sizeof( int16_t) != 2) return false;
+  if (sizeof( int32_t) != 4) return false;
+  if (sizeof( int64_t) != 8) return false;
+
+  if (sizeof(rglmdf_position_summary_record_t) != 24) return false;
+  if (sizeof(rglmdf_pattern_freq_summary_record_t) != 40) return false;
+  if (sizeof(rglmdf_solved_and_classified_gp_record_t) != 48) return false;
+
+  return true;
+}
+
 void
 rglmdf_general_data_init (rglmdf_general_data_t *gd)
 {
@@ -56,11 +77,19 @@ rglmdf_general_data_init (rglmdf_general_data_t *gd)
   gd->position_summary.records = NULL;
   gd->pattern_freq_summary.ntuples = 0;
   gd->pattern_freq_summary.records = NULL;
+
+  gd->positions.ntuples = 0;
+  gd->positions.n_index_values_per_record = 0;
+  gd->positions.records = NULL;
+  gd->positions.iarray = NULL;
 }
 
 void
 rglmdf_general_data_release (rglmdf_general_data_t *gd)
 {
+  free(gd->positions.iarray);
+  free(gd->positions.records);
+  free(gd->position_summary.records);
   free(gd->patterns);
   free(gd->position_statuses);
   free(gd->position_status_buffer);
@@ -250,4 +279,184 @@ rglmdf_patterns_to_text_stream (rglmdf_general_data_t *gd,
     fprintf(stream, "%s", board_patterns[gd->patterns[i]].name);
     fprintf(stream, "%s", (i < gd->pattern_cnt - 1) ? ", ": "\n");
   }
+}
+
+size_t
+rglmdf_set_position_summary_ntuples (rglmdf_general_data_t *gd,
+                                     size_t ntuples)
+{
+  assert(gd);
+
+  const size_t s = sizeof(rglmdf_position_summary_record_t) * ntuples;
+  rglmdf_position_summary_record_t *arr;
+  arr = (rglmdf_position_summary_record_t *) malloc(s);
+  if (arr) {
+    free(gd->position_summary.records);
+    gd->position_summary.records = arr;
+    memset(gd->position_summary.records, 0, s);
+    gd->position_summary.ntuples = ntuples;
+    return ntuples;
+  } else {
+    return 0;
+  }
+}
+
+size_t
+rglmdf_get_position_summary_ntuples (rglmdf_general_data_t *gd)
+{
+  assert(gd);
+  return gd->position_summary.ntuples;
+}
+
+rglmdf_position_summary_record_t *
+rglmdf_get_position_summary_records (rglmdf_general_data_t *gd)
+{
+  assert(gd);
+  return gd->position_summary.records;
+}
+
+void
+rglmdf_position_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
+                                            FILE *stream)
+{
+  assert(gd);
+  size_t solved_classified_gp_cnt = 0;
+  for (size_t i = 0; i < gd->position_summary.ntuples; i++)
+    solved_classified_gp_cnt += gd->position_summary.records[i].classified_cnt;
+  fprintf(stream, "Position Summary Table: number of tuples = %zu; game position count = %zu\n",
+          gd->position_summary.ntuples, solved_classified_gp_cnt);
+}
+
+size_t
+rglmdf_set_pattern_freq_summary_ntuples (rglmdf_general_data_t *gd,
+                                         size_t ntuples)
+{
+  assert(gd);
+
+  const size_t s = sizeof(rglmdf_pattern_freq_summary_record_t) * ntuples;
+  rglmdf_pattern_freq_summary_record_t *arr;
+  arr = (rglmdf_pattern_freq_summary_record_t *) malloc(s);
+  if (arr) {
+    free(gd->pattern_freq_summary.records);
+    gd->pattern_freq_summary.records = arr;
+    memset(gd->pattern_freq_summary.records, 0, s);
+    gd->pattern_freq_summary.ntuples = ntuples;
+    return ntuples;
+  } else {
+    return 0;
+  }
+}
+
+size_t
+rglmdf_get_pattern_freq_summary_ntuples (rglmdf_general_data_t *gd)
+{
+  assert(gd);
+  return gd->pattern_freq_summary.ntuples;
+}
+
+rglmdf_pattern_freq_summary_record_t *
+rglmdf_get_pattern_freq_summary_records (rglmdf_general_data_t *gd)
+{
+  assert(gd);
+  return gd->pattern_freq_summary.records;
+}
+
+void
+rglmdf_pattern_freq_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
+                                                FILE *stream)
+{
+  assert(gd);
+  fprintf(stream, "Pattern Frequency Summary Table: number of tuples = %zu\n",
+          gd->pattern_freq_summary.ntuples);
+
+  int pattern_id = -1;
+  int64_t total_cnt = -1;
+  double relative_frequency = -1.;
+  double theoretical_probability = -1.;
+  for (size_t i = 0; i < gd->pattern_freq_summary.ntuples; i++) {
+    rglmdf_pattern_freq_summary_record_t *rec = &gd->pattern_freq_summary.records[i];
+    if (rec->pattern_id != pattern_id) {
+      total_cnt = 0;
+      relative_frequency = 0.;
+      theoretical_probability = 0.;
+      pattern_id = rec->pattern_id;
+    }
+    total_cnt += rec->total_cnt;
+    relative_frequency += rec->relative_frequency;
+    theoretical_probability += rec->theoretical_probability;
+    if (i + 1 == gd->pattern_freq_summary.ntuples || (rec + 1)->pattern_id != pattern_id) {
+      const char *pattern_name = board_patterns[pattern_id].name;
+      const int64_t gp_cnt = total_cnt / board_patterns[pattern_id].n_instances;
+      printf("  Pattern id: %2d [%6s], total_cnt = %8ld, gp_cnt = %8ld, cumulated relative frequency = %1.4f, cumulated theoretical probability = %1.4f\n",
+             pattern_id, pattern_name, total_cnt, gp_cnt, relative_frequency, theoretical_probability);
+    }
+  }
+}
+
+// -------------
+
+size_t
+rglmdf_set_positions_ntuples (rglmdf_general_data_t *gd,
+                              size_t ntuples)
+{
+  assert(gd);
+
+  size_t n_index_values_per_record = 0;
+  for (size_t i = 0; i < gd->pattern_cnt; i++) {
+    board_pattern_id_t pid = gd->patterns[i];
+    n_index_values_per_record += board_patterns[pid].n_instances;
+  }
+  const size_t si = sizeof(uint32_t) * n_index_values_per_record * ntuples;
+  uint32_t *iarr;
+  iarr = (uint32_t *) malloc(si);
+  if (iarr) {
+    free(gd->positions.iarray);
+    gd->positions.iarray = iarr;
+    memset(gd->positions.iarray, 0, si);
+    ;
+    const size_t s = sizeof(rglmdf_solved_and_classified_gp_record_t) * ntuples;
+    rglmdf_solved_and_classified_gp_record_t *arr;
+    arr = (rglmdf_solved_and_classified_gp_record_t *) malloc(s);
+    if (arr) {
+      free(gd->positions.records);
+      gd->positions.records = arr;
+      memset(gd->positions.records, 0, s);
+      gd->positions.ntuples = ntuples;
+      gd->positions.n_index_values_per_record = n_index_values_per_record;
+      return ntuples;
+    } else {
+      free(iarr);
+      return 0;
+    }
+  } else {
+    return 0;
+  }
+}
+
+size_t
+rglmdf_get_positions_ntuples (rglmdf_general_data_t *gd)
+{
+  assert(gd);
+  return gd->positions.ntuples;
+}
+
+rglmdf_solved_and_classified_gp_record_t *
+rglmdf_get_positions_records (rglmdf_general_data_t *gd)
+{
+  assert(gd);
+  return gd->positions.records;
+}
+
+size_t
+rglmdf_get_positions_n_index_values_per_record (rglmdf_general_data_t *gd)
+{
+  assert(gd);
+  return gd->positions.n_index_values_per_record;
+}
+
+uint32_t *
+rglmdf_get_positions_iarray (rglmdf_general_data_t *gd)
+{
+  assert(gd);
+  return gd->positions.iarray;
 }
