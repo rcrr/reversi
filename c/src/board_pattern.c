@@ -9,7 +9,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2018 Roberto Corradini. All rights reserved.
+ * @copyright 2018, 2019 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -89,6 +89,12 @@ board_pattern_pack_edge (SquareSet s)
 }
 
 SquareSet
+board_pattern_unpack_edge (SquareSet s)
+{
+  return s & 0x00000000000000ff;
+}
+
+SquareSet
 board_pattern_pack_corner (SquareSet s)
 {
   SquareSet s1, s2, s3;
@@ -96,6 +102,16 @@ board_pattern_pack_corner (SquareSet s)
   s2 = s & 0x0000000000000700;
   s3 = s & 0x0000000000070000;
   return s1 | (s2 >> 5) | (s3 >> 10);
+}
+
+SquareSet
+board_pattern_unpack_corner (SquareSet s)
+{
+  SquareSet s1, s2, s3;
+  s1 = s & 0x0000000000000007;
+  s2 = s & 0x0000000000000038;
+  s3 = s & 0x00000000000001c0;
+  return s1 | (s2 << 5) | (s3 << 10);
 }
 
 SquareSet
@@ -109,9 +125,25 @@ board_pattern_pack_xedge (SquareSet s)
 }
 
 SquareSet
+board_pattern_unpack_xedge (SquareSet s)
+{
+  SquareSet s1, s2, s3;
+  s1 = s & 0x00000000000000ff;
+  s2 = s & 0x0000000000000100;
+  s3 = s & 0x0000000000000200;
+  return s1 | (s2 << 1) | (s3 << 5);
+}
+
+SquareSet
 board_pattern_pack_r2 (SquareSet s)
 {
   return (s >> 8) & 0x00000000000000ff;
+}
+
+SquareSet
+board_pattern_unpack_r2 (SquareSet s)
+{
+  return (s & 0x00000000000000ff) << 8;
 }
 
 SquareSet
@@ -121,9 +153,21 @@ board_pattern_pack_r3 (SquareSet s)
 }
 
 SquareSet
+board_pattern_unpack_r3 (SquareSet s)
+{
+  return (s & 0x00000000000000ff) << 16;
+}
+
+SquareSet
 board_pattern_pack_r4 (SquareSet s)
 {
   return (s >> 24) & 0x00000000000000ff;
+}
+
+SquareSet
+board_pattern_unpack_r4 (SquareSet s)
+{
+  return (s & 0x00000000000000ff) << 24;
 }
 
 SquareSet
@@ -135,6 +179,17 @@ board_pattern_pack_diag4 (SquareSet s)
   s |= s >> 16;
   s |= s >>  8;
   return s & mask;
+}
+
+SquareSet
+board_pattern_unpack_diag4 (SquareSet s)
+{
+  const SquareSet diag4 = 0x0000000001020408;
+  const SquareSet mask  = 0x000000000000000f;
+  s &= mask;
+  s |= (s <<  8);
+  s |= (s << 16);
+  return s & diag4;
 }
 
 SquareSet
@@ -150,6 +205,18 @@ board_pattern_pack_diag5 (SquareSet s)
 }
 
 SquareSet
+board_pattern_unpack_diag5 (SquareSet s)
+{
+  const SquareSet diag5 = 0x0000000102040810;
+  const SquareSet mask  = 0x000000000000001f;
+  s &= mask;
+  s |= (s <<  8);
+  s |= (s << 16);
+  s |= (s << 32);
+  return s & diag5;
+}
+
+SquareSet
 board_pattern_pack_diag6 (SquareSet s)
 {
   const SquareSet diag6 = 0x0000010204081020;
@@ -159,6 +226,18 @@ board_pattern_pack_diag6 (SquareSet s)
   s |= s >> 16;
   s |= s >>  8;
   return s & mask;
+}
+
+SquareSet
+board_pattern_unpack_diag6 (SquareSet s)
+{
+  const SquareSet diag6 = 0x0000010204081020;
+  const SquareSet mask  = 0x000000000000003f;
+  s &= mask;
+  s |= (s <<  8);
+  s |= (s << 16);
+  s |= (s << 32);
+  return s & diag6;
 }
 
 SquareSet
@@ -174,6 +253,18 @@ board_pattern_pack_diag7 (SquareSet s)
 }
 
 SquareSet
+board_pattern_unpack_diag7 (SquareSet s)
+{
+  const SquareSet diag7 = 0x0001020408102040;
+  const SquareSet mask  = 0x000000000000007f;
+  s &= mask;
+  s |= (s <<  8);
+  s |= (s << 16);
+  s |= (s << 32);
+  return s & diag7;
+}
+
+SquareSet
 board_pattern_pack_diag8 (SquareSet s)
 {
   const SquareSet diag8 = 0x0102040810204080;
@@ -186,11 +277,31 @@ board_pattern_pack_diag8 (SquareSet s)
 }
 
 SquareSet
+board_pattern_unpack_diag8 (SquareSet s)
+{
+  const SquareSet diag8 = 0x0102040810204080;
+  const SquareSet mask  = 0x00000000000000ff;
+  s &= mask;
+  s |= (s <<  8);
+  s |= (s << 16);
+  s |= (s << 32);
+  return s & diag8;
+}
+
+SquareSet
 board_pattern_pack_2x5cor (SquareSet s)
 {
   const SquareSet mask0  = 0x000000000000001f;
   const SquareSet mask1  = 0x0000000000001f00;
   return (s & mask0) | ((s & mask1) >> 3);
+}
+
+SquareSet
+board_pattern_unpack_2x5cor (SquareSet s)
+{
+  const SquareSet mask0  = 0x000000000000001f;
+  const SquareSet mask1  = 0x00000000000003e0;
+  return (s & mask0) | ((s & mask1) << 3);
 }
 
 SquareSet
@@ -202,6 +313,17 @@ board_pattern_pack_diag3 (SquareSet s)
   s |= s >> 16;
   s |= s >>  8;
   return s & mask;
+}
+
+SquareSet
+board_pattern_unpack_diag3 (SquareSet s)
+{
+  const SquareSet diag3 = 0x0000000000010204;
+  const SquareSet mask  = 0x0000000000000007;
+  s &= mask;
+  s |= (s <<  8);
+  s |= (s << 16);
+  return s & diag3;
 }
 
 bool
@@ -216,8 +338,6 @@ board_pattern_get_id_by_name (board_pattern_id_t *idp,
   }
   return false;
 }
-
-
 
 void
 board_pattern_compute_indexes (board_pattern_index_t *indexes,
@@ -261,4 +381,105 @@ board_pattern_compute_indexes (board_pattern_index_t *indexes,
   }
 
   return;
+}
+
+void
+board_pattern_compute_principal_indexes (board_pattern_index_t *principals,
+                                         const board_pattern_index_t *indexes,
+                                         const board_pattern_t *const p)
+{
+  static bool initialized = false;
+  static board_pattern_index_t a[BOARD_PATTERN_INDEX_TABLE_SIZE];
+  static board_pattern_index_t *ap[BOARD_PATTERN_COUNT];
+
+  if (!initialized) {
+    board_pattern_index_t *p = a;
+    size_t s = 0;
+    for (board_pattern_id_t bp = 0; bp < BOARD_PATTERN_INVALID; bp++) {
+      const unsigned long int n = board_patterns[bp].n_configurations;
+      ap[bp] = p;
+      for (board_pattern_index_t idx = 0; idx < n; idx++) {
+        board_pattern_index_t principal_index_value, mirror_index_value;
+        board_t board;
+        SquareSet m, o;
+        board_pattern_index_to_packed(&board, idx);
+        m = board_patterns[bp].pattern_unpack_f(board_get_mover_square_set(&board));
+        o = board_patterns[bp].pattern_unpack_f(board_get_opponent_square_set(&board));
+        m = board_patterns[bp].pattern_mirror_f(m);
+        o = board_patterns[bp].pattern_mirror_f(o);
+        m = board_patterns[bp].pattern_pack_f(m);
+        o = board_patterns[bp].pattern_pack_f(o);
+        board_set_square_sets(&board, m, o);
+        mirror_index_value = board_pattern_packed_to_index(&board, board_patterns[bp].n_squares);
+        principal_index_value = mirror_index_value < idx ? mirror_index_value : idx;
+        *p++ = principal_index_value;
+      }
+      s += n;
+    }
+    if (s != BOARD_PATTERN_INDEX_TABLE_SIZE) {
+      fprintf(stderr, "Macro BOARD_PATTERN_INDEX_TABLE_SIZE has a definition not compatible with board_patterns definition. Aborting ... \n");
+      abort();
+    }
+    initialized = true;
+  }
+
+  for (unsigned int i = 0; i < p->n_instances; i++) {
+    principals[i] = *(ap[p->id] + indexes[i]);
+  }
+}
+
+board_pattern_index_t
+board_pattern_packed_to_index (board_t *packed,
+                               unsigned int n_squares)
+{
+  board_pattern_index_t idx;
+  int k;
+  SquareSet m, o, x, mask;
+
+  m = board_get_mover_square_set(packed);
+  o = board_get_opponent_square_set(packed);
+  mask = 0x0000000000000001;
+
+  k = 1;
+  idx = 0;
+  for (int i = 0; i < n_squares; i++) {
+    x = m & mask;
+    idx += k * x;
+    x = o & mask;
+    idx += k * x * 2;
+    m >>= 1;
+    o >>= 1;
+    k *= 3;
+  }
+
+  return idx;
+}
+
+void
+board_pattern_index_to_packed (board_t *packed,
+                               board_pattern_index_t index)
+{
+  SquareSet m, o, c;
+
+  m = 0x0000000000000000;
+  o = 0x0000000000000000;
+  c = 0x0000000000000001;
+
+  while (index) {
+    switch (index % 3) {
+    case 2:
+      o |= c;
+      break;
+    case 1:
+      m |= c;
+      break;
+    case 0:
+      ;
+    }
+    index /= 3;
+    c <<= 1;
+  }
+
+  board_set_mover_square_set(packed, m);
+  board_set_opponent_square_set(packed, o);
 }

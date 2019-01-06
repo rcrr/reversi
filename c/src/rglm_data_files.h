@@ -8,6 +8,11 @@
  * This file may be read using the `rglm` program.
  * Please consult the documentation of the two programs for further details on their usage.
  *
+ * Structures used to write and read binary files relay on "fixed" size fields, this is to make the code
+ * more robust in case of an architectural change. Saved files should be readable also by different
+ * hardware and software platforms.
+ * The function #rglmdf_verify_type_sizes checks that the data types have the expected storage definition.
+ *
  * The ` Solved and Patern Classified Set of Game Positions` is stored in a binary file using
  * the format here described.
  * <p>
@@ -15,25 +20,32 @@
  *   - `8 bytes` field, read/written as `uint64_t`, converted to a `time_t` value.<br>
  *     Meaning: the file creation time.<br>
  *     Ref: `file_creation_time`, scalar.<br>
+ *<br>
  *   - `8 bytes` field, read/written as `uint64_t`, converted to a `size_t` value.<br>
  *     Meaning: count for batch_id entries.<br>
  *     Ref: `batch_id_cnt`, scalar.<br>
+ *<br>
  *   - `8 bytes` field x `batch_id_cnt` times, read/written as multiple times `uint64_t`, not converted.<br>
  *     Meaning: array of batch_id entries.<br>
  *     Ref: `barch_ids`, array.<br>
+ *<br>
  *   - `1 byte` field, read/written as `uint8_t`, not converted.<br>
  *     Meaning: board empty square count.<br>
  *     Ref: `empty_count`, scalar.<br>
+ *<br>
  *   - `8 bytes` field, read/written as `uint64_t`, converted to a `size_t` value.<br>
  *     Meaning: count of status entries.<br>
  *     Ref: `position_status_cnt`, scalar.<br>
+ *<br>
  *   - `RGLM_POSITION_STATUS_BUF_SIZE bytes` field x `position_status_cnt` times, read/written as multiple times `char[RGLM_POSITION_STATUS_BUF_SIZE * position_status_cnt]`, not converted.<br>
  *     Meaning: buffer of position status entries.<br>
  *     Ref: `position_status_buffer`, array.<br>
- *     Macro `RGLM_POSITION_STATUS_BUF_SIZE` is defined as `4`<br>
+ *     Macro `RGLM_POSITION_STATUS_BUF_SIZE` is defined being equal to `4`<br>
+ *<br>
  *   - `8 bytes` field, read/written as `uint64_t`, converted to a `size_t` value.<br>
  *     Meaning: count of patterns.<br>
  *     Ref: `pattern_cnt`, scalar.<br>
+ *<br>
  *   - `2 bytes` field x `pattern_cnt` times, read/written as multiple times `int16_t`, converted to `enum`.<br>
  *     Meaning: array of pattern entries.<br>
  *     Ref: `patterns`, array.<br>
@@ -41,13 +53,16 @@
  * --- Summary Tables. Position Summary Table, Pattern Frequency Summary Table. ---
  *   - `8 bytes` field, read/written as `uint64_t`, converted to `size_t` value.<br>
  *     Meaning: count of records in the position summary table.<br>
- *     Ref: `position_summary.ntuples`<br>
+ *     Ref: `position_summary.ntuples`, scalar.<br>
+ *<br>
  *   - `1 rglmdf_position_summary_record_t` field x `position_summary.ntuples` times.<br>
  *     Meaning: the set of records in the table.<br>
  *     Ref: `position_summary.records`, array.<br>
+ *<br>
  *   - `8 bytes` field, read/written as `uint64_t`, converted to `size_t` value.<br>
  *     Meaning: count of records in the pattern frequency summary table.<br>
- *     Ref: `pattern_freq_summary.ntuples`<br>
+ *     Ref: `pattern_freq_summary.ntuples`, scalar.<br>
+ *<br>
  *   - `1 rglmdf_pattern_freq_summary_record_t` field x `pattern_freq_summary.ntuples` times.<br>
  *     Meaning: the set of records in the table.<br>
  *     Ref: `pattern_freq_summary.records`, array.<br>
@@ -55,27 +70,25 @@
  * --- Game Positions ---
  *   - `8 bytes` field, read/written as `uint64_t`, converted to `size_t` value.<br>
  *     Meaning: count of records in the game position table.<br>
- *     Ref: `gps_data.ntuples`<br>
+ *     Ref: `positions.ntuples`, scalar.<br>
+ *<br>
  *   - Sequence of data chunks:<br>
  *      - `8 bytes` field, read/written as `uint64_t`, converted to `size_t` value.<br>
  *        Meaning: data chunk size ( number of game positions in this data chunk ).<br>
- *        Ref: `data_chunk_size`
+ *        Ref: `data_chunk_size`, scalar.<br>
+ *        Notice: when `data_chunk_size` is equal to zero the sequence is exhausted.<br>
+ *<br>
  *      - `1 rglmdf_solved_and_classified_gp_record_t` field x `data_chunk_size` times.<br>
  *        Meaning: the set of records in the data chunk.<br>
- *        Ref: `gps_data.records`, array ( each data chunk is collected in the array following the previos one ).<br>
- *      - ABC<br>
- *        tbd<br>
- *   - XYZ
- *
- * @todo Complete the verbose logging in rglm program
- *
- * @todo Change data types not written to file to size_t
- *
- * @todo Complete file format documentation
+ *        Ref: `positions.records`, array ( each data chunk is collected in the array following the previos one ).<br>
+ *<br>
+ *      - `uint32_t` field x `n_index_values_per_record` x `data_chunk_size` times.<br>
+ *        Meaning: the array of pattern index values in the data chunk.<br>
+ *        Ref: `positions.iarray`, array ( each data chunk is collected in the array following the previos one ).<br>
+ *        Notice: the value `n_index_values_per_record` is computed summin up the field count for each pattern being selected.
+ *<br>
  *
  * @todo Complete documentation in rglm_data_files.h
- *
- * @todo Write INDEX_VALUE to RGLM_VARIABLE conversion function
  *
  * @todo Add output flags in rglm for different data tables:
  *       - game position
@@ -119,16 +132,13 @@
 /* Position status has length 3, plus one char for proper termination. */
 #define RGLM_POSITION_STATUS_BUF_SIZE 4
 
+/* This is a conventional out of range value. */
+#define RGLM_INVALID_GLM_VARIABLE_ID UINT32_MAX
+
 #include <inttypes.h>
 #include <time.h>
 
 #include "board_pattern.h"
-
-/*
- * Structures used to write and read binary files relay on "fixed" size fields, this is to make the code
- * more robust in case of an architectural change. Saved files should be readable also by different
- * hardware and software platforms.
- */
 
 /**
  * @brief Reversi GLM data file record definition for the position summary table.
@@ -158,7 +168,7 @@ typedef struct rglmdf_position_summary_record_s {
  * @details The table contains the count of game positions grouped by batch_is and status.
  */
 typedef struct rglmdf_position_summary_table_s {
-  uint64_t ntuples;                            /**< @brief Number of records. */
+  size_t ntuples;                              /**< @brief Number of records. */
   rglmdf_position_summary_record_t *records;   /**< @brief Records of the table. */
 } rglmdf_position_summary_table_t;
 
@@ -193,7 +203,7 @@ typedef struct rglmdf_pattern_freq_summary_record_s {
  * @details The table contains the count of pattern occurrencies grouped by (pattern_id, principal_index_value).
  */
 typedef struct rglmdf_pattern_freq_summary_table_s {
-  uint64_t ntuples;                                /**< @brief Number of records. */
+  size_t ntuples;                                  /**< @brief Number of records. */
   rglmdf_pattern_freq_summary_record_t *records;   /**< @brief Records of the table. */
 } rglmdf_pattern_freq_summary_table_t;
 
@@ -202,7 +212,7 @@ typedef struct rglmdf_pattern_freq_summary_table_s {
  *
  * @details Each record is identified by either the `row_n` counter or the `gp_id` field.
  *
- * NEEDS MORE EXPLANATION ....
+ * The record has a fized size and needs 40 bytes.
  */
 typedef struct rglmdf_solved_and_classified_gp_record_s {
   int64_t row_n;       /**< @brief Row number. */
@@ -210,26 +220,23 @@ typedef struct rglmdf_solved_and_classified_gp_record_s {
   int64_t mover;       /**< @brief Game position board definition for mover. */
   int64_t opponent;    /**< @brief Game position board definition for opponent. */
   int8_t game_value;   /**< @brief Game value for the position. */
-  uint32_t *ivalues;   /**< @brief Array of pattern index values, or glm variables. */
 } rglmdf_solved_and_classified_gp_record_t;
 
 /**
  * @brief Reversi GLM data file table holding the game positons being solved and classified.
  *
  * @details The table is build with a record having a fixed set of fields organized into the
- *          the type #rglmdf_solved_and_classified_gp_record_t, and a variable set of index values
+ *          the type #rglmdf_solved_and_classified_gp_record_t, and a variable set of pattern index values
  *          that depends on the pattern set.
- *          The index values are collected into the `iarray` field that is dynamically allocated with a size
+ *          The pattern index values are collected into the `iarray` field that is dynamically allocated with a size
  *          equal to `ntuples` multiplied by `n_index_values_per_record`.
- *          Each record has a pointer `ivalues` that for convinience references the first index value for the
- *          game position.
- *          Index values are ordered by `(pattern_id, instance_number)`.
+ *          Pattern index values are ordered by `(pattern_id, instance_number)`.
  */
 typedef struct rglmdf_solved_and_classified_gp_table_s {
-  uint64_t ntuples;                                    /**< @brief Number of records. */
-  size_t n_index_values_per_record;                    /**< @brief */
+  size_t ntuples;                                      /**< @brief Number of records. */
+  size_t n_index_values_per_record;                    /**< @brief Count of pattern index values fields. */
   rglmdf_solved_and_classified_gp_record_t *records;   /**< @brief Records of the table. */
-  uint32_t *iarray;                                    /**< @brief */
+  uint32_t *iarray;                                    /**< @brief Pattern index values records. */
 } rglmdf_solved_and_classified_gp_table_t;
 
 /**
@@ -249,7 +256,9 @@ typedef struct rglmdf_general_data_s {
   board_pattern_id_t *patterns;                               /**< @brief Array of patterns. */
   rglmdf_position_summary_table_t position_summary;           /**< @brief Aggregated data for positions. */
   rglmdf_pattern_freq_summary_table_t pattern_freq_summary;   /**< @brief Aggregated data for pattern frequencies. */
-  rglmdf_solved_and_classified_gp_table_t positions;          /**< @brief TAble of game positions. */
+  rglmdf_solved_and_classified_gp_table_t positions;          /**< @brief Table of game positions. */
+  uint32_t **reverse_map_a;                                   /**< @brief Maps pattern_id to the first entry belonging to the pattern in reverse_map_b. */
+  uint32_t *reverse_map_b;                                    /**< @brief Maps pattern_id and principal index value to the glm variable id. */
 } rglmdf_general_data_t;
 
 extern bool
@@ -426,5 +435,20 @@ rglmdf_get_positions_n_index_values_per_record (rglmdf_general_data_t *gd);
 
 extern uint32_t *
 rglmdf_get_positions_iarray (rglmdf_general_data_t *gd);
+
+extern void
+rglmdf_build_reverse_map (rglmdf_general_data_t *gd);
+
+extern uint32_t
+rglmdf_map_pid_and_piv_to_glm_vid (rglmdf_general_data_t *gd,
+                                   uint32_t pattern_id,
+                                   uint32_t principal_index_value);
+
+extern void
+rglmdf_transform_piv_to_glm_variable_id (rglmdf_general_data_t *gd);
+
+extern void
+rglmdf_gp_table_to_csv_file (rglmdf_general_data_t *gd,
+                             FILE *f);
 
 #endif /* RGLM_DATA_FILES_H */

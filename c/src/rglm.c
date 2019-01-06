@@ -62,44 +62,54 @@ static int v_flag = false;
 static int i_flag = false;
 static char *i_arg = NULL;
 
+static int P_flag = false;
+static char *P_arg = NULL;
+
+static int T_flag = false;
+static char *T_arg = NULL;
+
 static mop_options_long_t olist[] = {
-  {"help",       'h', MOP_NONE},
-  {"verbose",    'v', MOP_NONE},
-  {"input-file", 'i', MOP_REQUIRED},
+  {"help",              'h', MOP_NONE},
+  {"verbose",           'v', MOP_NONE},
+  {"input-file",        'i', MOP_REQUIRED},
+  {"extract-gp-table",  'P', MOP_REQUIRED},
+  {"extract-gp-ttable", 'T', MOP_REQUIRED},
   {0, 0, 0}
 };
 
 static const char *documentation =
   "Usage:\n"
-  "read_game_tree_log [OPTION...] - Loads a Game Tree Log dump file\n"
+  "rglm [OPTION...] - Reversi Generalized Linear Model solver\n"
   "\n"
   "Options:\n"
-  "  -h, --help       Show help options\n"
-  "  -v, --verbose    Verbose output\n"
-  "  -i, --input-file Input file name - Mandatory\n"
+  "  -h, --help              Show help options\n"
+  "  -v, --verbose           Verbose output\n"
+  "  -i, --input-file        Input file name - Mandatory\n"
+  "  -P, --extract-gp-table  Dumps the solved and classified game position table in a CSV format\n"
+  "  -P, --extract-gp-ttable Dumps the solved and classified game position transformed table in a CSV format\n"
   "\n"
   "Description:\n"
-  "To be completed ...\n"
+  "The Reversi Generalized Linear Model solver is the main entry to a set of utilities dedicated to process a set of solved and classified game position retrieved from a binary imput file.\n"
   "\n"
   "Author:\n"
   "Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
   "\n"
-  "Copyright (c) 2018 Roberto Corradini. All rights reserved.\n"
+  "Copyright (c) 2018, 2019 Roberto Corradini. All rights reserved.\n"
   "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
   "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n"
   ;
 
-/**
- * @endcond
- */
-
-
+/* Static functions. */
 static void
 print_error_and_stop (int ret_code)
 {
   fprintf(stderr, "rglm: format error reading file %s\n", i_arg);
   exit(ret_code);
 }
+
+/**
+ * @endcond
+ */
 
 
 
@@ -127,6 +137,8 @@ main (int argc,
 
   bool verbose = false;
 
+  FILE *ofp = NULL;
+
   size_t re;
   int opt;
   int oindex = -1;
@@ -143,6 +155,14 @@ main (int argc,
     case 'i':
       i_flag = true;
       i_arg = options.optarg;
+      break;
+    case 'P':
+      P_flag = true;
+      P_arg = options.optarg;
+      break;
+    case 'T':
+      T_flag = true;
+      T_arg = options.optarg;
       break;
     case ':':
       fprintf(stderr, "Option parsing failed: %s\n", options.errmsg);
@@ -266,8 +286,19 @@ main (int argc,
   if (re != u64) print_error_and_stop(-120);
   if (verbose) rglmdf_pattern_freq_summary_cnt_to_text_stream(&data, stdout);
 
-  /* Populates irecords size. */
-
+  /* Creates the mapping betweeen (pattern_id, principal_index_value) --> glm_variable_id */
+  rglmdf_build_reverse_map(&data);
+  if (verbose) fprintf(stdout, "Reverse map has been computed.\n");
+  size_t k = 0;
+  for (size_t i = 0; i < data.pattern_cnt; i++) {
+    int pid = data.patterns[i];
+    size_t n = 1;
+    for (size_t j = 0; j < board_patterns[pid].n_squares; j++) n *= 3;
+    for (size_t j = 0; j < n; j++) {
+      //printf("[%2zu,%6s,%6zu] ==> %12u\n", i, board_patterns[pid].name, j, data.reverse_map_b[k]);
+      k++;
+    }
+  }
 
   /* Read the number of record for the solved and classified game position table. */
   re = fread(&u64, sizeof(uint64_t), 1, ifp);
@@ -305,24 +336,38 @@ main (int argc,
     scgprp += data_chunk_size;
     iarrayp += ni * data_chunk_size;
   }
+  if (verbose) fprintf(stdout, "All solved and classified game positions has been read succesfully.\n");
 
-  if (false) {
-    printf("\n\n\n");
-    printf("I;ROW_N;GP_ID;GAME_VALUE");
-    for (size_t j = 0; j < ni; j++)
-      printf(";I_%03zu", j);
-    printf("\n");
-    for (size_t i = 0; i < data.positions.ntuples; i++) {
-      printf("%8zu; %8zu; %10ld; %3d",
-             i, data.positions.records[i].row_n, data.positions.records[i].gp_id, data.positions.records[i].game_value);
-      for (size_t j = 0; j < ni; j++) {
-        printf(";%8u", data.positions.iarray[i * ni + j]);
-      }
-      printf("\n");
+  /* Closes the binary imput file. */
+  fclose(ifp);
+
+  /* If P flag is turned on, dumps the game position table to the output file. */
+  if (P_arg) {
+    ofp = fopen(P_arg, "w");
+    if (!ofp) {
+      fprintf(stderr, "Unable to open output file: %s\n", P_arg);
+      return EXIT_FAILURE;
     }
+    rglmdf_gp_table_to_csv_file(&data, ofp);
+    fclose(ofp);
+    if (verbose) fprintf(stdout, "Game positions dumped to CSV file: \"%s\".\n", P_arg);
   }
 
-  fclose(ifp);
+  /* Transforms the pattern principal index values to the corresponding global GLM variable id, in the game position table. */
+  rglmdf_transform_piv_to_glm_variable_id(&data);
+  if (verbose) fprintf(stdout, "Pattern principal index values have been translated to global GLM variable id.\n");
+
+  /* If T flag is turned on, dumps the game position transformed table to the output file. */
+  if (T_arg) {
+    ofp = fopen(T_arg, "w");
+    if (!ofp) {
+      fprintf(stderr, "Unable to open output file: %s\n", T_arg);
+      return EXIT_FAILURE;
+    }
+    rglmdf_gp_table_to_csv_file(&data, ofp);
+    fclose(ofp);
+    if (verbose) fprintf(stdout, "Transformed game positions dumped to CSV file: \"%s\".\n", T_arg);
+  }
 
   /* Frees resources. */
   rglmdf_general_data_release(&data);

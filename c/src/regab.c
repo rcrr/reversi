@@ -1180,7 +1180,6 @@ do_action_extract_game_pos_cursor_fetch (int *result,
       return_table->records[i].mover = atol(PQgetvalue(res, i, 2));
       return_table->records[i].opponent = atol(PQgetvalue(res, i, 3));
       return_table->records[i].game_value = atoi(PQgetvalue(res, i, 4));
-      return_table->records[i].ivalues = return_table->iarray + i * ni;
       for (size_t j = 0; j < ni; j++) {
         return_table->iarray[i * ni + j] = atol(PQgetvalue(res, i, 5 + j));
       }
@@ -2422,7 +2421,7 @@ main (int argc,
     abort();
   }
 
-  const size_t gps_data_chunk_size = 256; // 4096
+  const size_t gps_data_chunk_size = 4096; // 4096 // 256
   const char *sql_cursor_name_gps_data = "sql_cursor_name_gps_data";
   size_t gps_data_total_record_cnt = 0;
   size_t gps_data_fetched_record_cnt = 0;
@@ -2575,6 +2574,7 @@ main (int argc,
   }
   free(gps_data.records);
   free(gps_data.iarray);
+  if (verbose) fprintf(stdout, "Game Position Records written succesfully. Total record count is %zu.\n", gps_data_total_record_cnt);
 
   /* - 11 - Clean up output file. */
   int fclose_ret = fclose(ofp);
@@ -2590,6 +2590,7 @@ main (int argc,
     return EXIT_FAILURE;
   }
   PQclear(res);
+  if (verbose) fprintf(stdout, "Database transaction and output fle \"%s\" have been closed.\n", output_file_name);
 
   goto regab_program_end;
 

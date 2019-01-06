@@ -393,6 +393,9 @@ typedef enum {
   BOARD_PATTERN_INVALID              /**< Not a valid pattern. */
 } board_pattern_id_t;
 
+#define BOARD_PATTERN_COUNT BOARD_PATTERN_INVALID
+#define BOARD_PATTERN_INDEX_TABLE_SIZE 6561 + 19683 + 59049 + 6561 + 6561 + 6561 + 81 + 243 + 729 + 2187 + 6561 + 59049 + 27
+
 typedef uint16_t board_pattern_index_t;
 
 typedef struct board_pattern_s board_pattern_t;
@@ -401,40 +404,79 @@ extern SquareSet
 board_pattern_pack_edge (SquareSet s);
 
 extern SquareSet
+board_pattern_unpack_edge (SquareSet s);
+
+extern SquareSet
 board_pattern_pack_corner (SquareSet s);
+
+extern SquareSet
+board_pattern_unpack_corner (SquareSet s);
 
 extern SquareSet
 board_pattern_pack_xedge (SquareSet s);
 
 extern SquareSet
+board_pattern_unpack_xedge (SquareSet s);
+
+extern SquareSet
 board_pattern_pack_r2 (SquareSet s);
+
+extern SquareSet
+board_pattern_unpack_r2 (SquareSet s);
 
 extern SquareSet
 board_pattern_pack_r3 (SquareSet s);
 
 extern SquareSet
+board_pattern_unpack_r3 (SquareSet s);
+
+extern SquareSet
 board_pattern_pack_r4 (SquareSet s);
+
+extern SquareSet
+board_pattern_unpack_r4 (SquareSet s);
 
 extern SquareSet
 board_pattern_pack_diag4 (SquareSet s);
 
 extern SquareSet
+board_pattern_unpack_diag4 (SquareSet s);
+
+extern SquareSet
 board_pattern_pack_diag5 (SquareSet s);
+
+extern SquareSet
+board_pattern_unpack_diag5 (SquareSet s);
 
 extern SquareSet
 board_pattern_pack_diag6 (SquareSet s);
 
 extern SquareSet
+board_pattern_unpack_diag6 (SquareSet s);
+
+extern SquareSet
 board_pattern_pack_diag7 (SquareSet s);
+
+extern SquareSet
+board_pattern_unpack_diag7 (SquareSet s);
 
 extern SquareSet
 board_pattern_pack_diag8 (SquareSet s);
 
 extern SquareSet
+board_pattern_unpack_diag8 (SquareSet s);
+
+extern SquareSet
 board_pattern_pack_2x5cor (SquareSet s);
 
 extern SquareSet
+board_pattern_unpack_2x5cor (SquareSet s);
+
+extern SquareSet
 board_pattern_pack_diag3 (SquareSet s);
+
+extern SquareSet
+board_pattern_unpack_diag3 (SquareSet s);
 
 /**
  * @brief Returns `true` when `name` matches with valid pattern, otherwise `false`.
@@ -456,9 +498,12 @@ struct board_pattern_s {
   char name[7];
   unsigned int n_instances;
   unsigned int n_squares;
+  unsigned long int n_configurations;
   SquareSet masks[8];
   board_trans_f trans_to_principal_f[8]; // array of transformation functions
   SquareSet (*pattern_pack_f) (SquareSet);
+  SquareSet (*pattern_unpack_f) (SquareSet);
+  SquareSet (*pattern_mirror_f) (SquareSet);
 };
 
 static const board_pattern_t board_patterns[] =
@@ -467,6 +512,7 @@ static const board_pattern_t board_patterns[] =
       "EDGE",
       4,
       8,
+      6561,
       { 0x00000000000000ff,
         0x8080808080808080,
         0xff00000000000000,
@@ -477,12 +523,15 @@ static const board_pattern_t board_patterns[] =
         board_trans_rotate_180,
         board_trans_rotate_90c,
         NULL, NULL, NULL, NULL },
-      board_pattern_pack_edge },
+      board_pattern_pack_edge,
+      board_pattern_unpack_edge,
+      board_trans_flip_vertical },
 
     { BOARD_PATTERN_CORNER,
       "CORNER",
       4,
       9,
+      19683,
       { 0x0000000000070707,
         0x0000000000e0e0e0,
         0xe0e0e00000000000,
@@ -493,12 +542,15 @@ static const board_pattern_t board_patterns[] =
         board_trans_rotate_180,
         board_trans_rotate_90c,
         NULL, NULL, NULL, NULL },
-      board_pattern_pack_corner },
+      board_pattern_pack_corner,
+      board_pattern_unpack_corner,
+      board_trans_flip_diag_a1h8 },
 
     { BOARD_PATTERN_XEDGE,
-        "XEDGE",
-        4,
-        10,
+      "XEDGE",
+      4,
+      10,
+      59049,
       { 0x00000000000042ff,
         0x80c080808080c080,
         0xff42000000000000,
@@ -509,12 +561,15 @@ static const board_pattern_t board_patterns[] =
         board_trans_rotate_180,
         board_trans_rotate_90c,
         NULL, NULL, NULL, NULL },
-      board_pattern_pack_xedge },
+      board_pattern_pack_xedge,
+      board_pattern_unpack_xedge,
+      board_trans_flip_vertical },
 
     { BOARD_PATTERN_R2,
       "R2",
       4,
       8,
+      6561,
       { 0x000000000000ff00,
         0x4040404040404040,
         0x00ff000000000000,
@@ -525,12 +580,15 @@ static const board_pattern_t board_patterns[] =
         board_trans_rotate_180,
         board_trans_rotate_90c,
         NULL, NULL, NULL, NULL },
-      board_pattern_pack_r2 },
+      board_pattern_pack_r2,
+      board_pattern_unpack_r2,
+      board_trans_flip_vertical },
 
     { BOARD_PATTERN_R3,
       "R3",
       4,
       8,
+      6561,
       { 0x0000000000ff0000,
         0x2020202020202020,
         0x0000ff0000000000,
@@ -541,12 +599,15 @@ static const board_pattern_t board_patterns[] =
         board_trans_rotate_180,
         board_trans_rotate_90c,
         NULL, NULL, NULL, NULL },
-      board_pattern_pack_r3 },
+      board_pattern_pack_r3,
+      board_pattern_unpack_r3,
+      board_trans_flip_vertical },
 
     { BOARD_PATTERN_R4,
       "R4",
       4,
       8,
+      6561,
       { 0x00000000ff000000,
         0x1010101010101010,
         0x000000ff00000000,
@@ -557,12 +618,15 @@ static const board_pattern_t board_patterns[] =
         board_trans_rotate_180,
         board_trans_rotate_90c,
         NULL, NULL, NULL, NULL },
-      board_pattern_pack_r4 },
+      board_pattern_pack_r4,
+      board_pattern_unpack_r4,
+      board_trans_flip_vertical },
 
     { BOARD_PATTERN_DIAG4,
       "DIAG4",
       4,
       4,
+      81,
       { 0x0000000001020408,
         0x0000000080402010,
         0x1020408000000000,
@@ -573,12 +637,15 @@ static const board_pattern_t board_patterns[] =
         board_trans_rotate_180,
         board_trans_rotate_90c,
         NULL, NULL, NULL, NULL },
-      board_pattern_pack_diag4 },
+      board_pattern_pack_diag4,
+      board_pattern_unpack_diag4,
+      board_trans_flip_diag_a1h8 },
 
     { BOARD_PATTERN_DIAG5,
       "DIAG5",
       4,
       5,
+      243,
       { 0x0000000102040810,
         0x0000008040201008,
         0x0810204080000000,
@@ -589,12 +656,15 @@ static const board_pattern_t board_patterns[] =
         board_trans_rotate_180,
         board_trans_rotate_90c,
         NULL, NULL, NULL, NULL },
-      board_pattern_pack_diag5 },
+      board_pattern_pack_diag5,
+      board_pattern_unpack_diag5,
+      board_trans_flip_diag_a1h8 },
 
     { BOARD_PATTERN_DIAG6,
       "DIAG6",
       4,
       6,
+      729,
       { 0x0000010204081020,
         0x0000804020100804,
         0x0408102040800000,
@@ -605,12 +675,15 @@ static const board_pattern_t board_patterns[] =
         board_trans_rotate_180,
         board_trans_rotate_90c,
         NULL, NULL, NULL, NULL },
-      board_pattern_pack_diag6 },
+      board_pattern_pack_diag6,
+      board_pattern_unpack_diag6,
+      board_trans_flip_diag_a1h8 },
 
     { BOARD_PATTERN_DIAG7,
       "DIAG7",
       4,
       7,
+      2187,
       { 0x0001020408102040,
         0x0080402010080402,
         0x0204081020408000,
@@ -621,24 +694,30 @@ static const board_pattern_t board_patterns[] =
         board_trans_rotate_180,
         board_trans_rotate_90c,
         NULL, NULL, NULL, NULL },
-      board_pattern_pack_diag7 },
+      board_pattern_pack_diag7,
+      board_pattern_unpack_diag7,
+      board_trans_flip_diag_a1h8 },
 
     { BOARD_PATTERN_DIAG8,
       "DIAG8",
       2,
       8,
+      6561,
       { 0x0102040810204080,
         0x8040201008040201,
         0, 0, 0, 0, 0, 0 },
       { board_trans_identity,
         board_trans_rotate_90a,
         NULL, NULL, NULL, NULL, NULL, NULL },
-      board_pattern_pack_diag8 },
+      board_pattern_pack_diag8,
+      board_pattern_unpack_diag8,
+      board_trans_flip_diag_a1h8 },
 
     { BOARD_PATTERN_2X5COR,
       "2X5COR",
       8,
       10,
+      59049,
       { 0x0000000000001f1f,
         0x000000c0c0c0c0c0,
         0xf8f8000000000000,
@@ -655,12 +734,15 @@ static const board_pattern_t board_patterns[] =
         board_trans_flip_diag_h1a8,
         board_trans_flip_horizontal,
         board_trans_flip_diag_a1h8 },
-      board_pattern_pack_2x5cor },
+      board_pattern_pack_2x5cor,
+      board_pattern_unpack_2x5cor,
+      board_trans_identity },
 
     { BOARD_PATTERN_DIAG3,
       "DIAG3",
       4,
       3,
+      27,
       { 0x0000000000010204,
         0x0000000000804020,
         0x2040800000000000,
@@ -671,17 +753,29 @@ static const board_pattern_t board_patterns[] =
         board_trans_rotate_180,
         board_trans_rotate_90c,
         NULL, NULL, NULL, NULL },
-      board_pattern_pack_diag3 },
+      board_pattern_pack_diag3,
+      board_pattern_unpack_diag3,
+      board_trans_flip_diag_a1h8 },
 
-    { BOARD_PATTERN_INVALID, "NULL", 0, 0, { 0,0,0,0,0,0,0,0 }, { NULL }, NULL }
+    { BOARD_PATTERN_INVALID, "NULL", 0, 0, 0, { 0,0,0,0,0,0,0,0 }, { NULL }, NULL, NULL, NULL }
   };
-
 
 extern void
 board_pattern_compute_indexes (board_pattern_index_t *indexes,
                                const board_pattern_t *const p,
                                const board_t *const b);
 
+extern void
+board_pattern_compute_principal_indexes (board_pattern_index_t *principals,
+                                         const board_pattern_index_t *indexes,
+                                         const board_pattern_t *const p);
 
+extern board_pattern_index_t
+board_pattern_packed_to_index (board_t *packed,
+                               unsigned int n_squares);
+
+extern void
+board_pattern_index_to_packed (board_t *packed,
+                               board_pattern_index_t index);
 
 #endif
