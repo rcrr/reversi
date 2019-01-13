@@ -88,17 +88,6 @@
  *        Notice: the value `n_index_values_per_record` is computed summin up the field count for each pattern being selected.
  *<br>
  *
- * @todo Complete documentation in rglm_data_files.h
- *
- * @todo Add output flags in rglm for different data tables:
- *       - game position
- *       - game position translated to RGLM_VARIABLES
- *       - Summary Tables
- *
- * @todo Write SHA hash signature for the files
- *
- * @todo Verify memory leaks
- *
  * @par rglm_data_files.h
  * <tt>
  * This file is part of the reversi program
@@ -261,16 +250,16 @@ typedef struct rglmdf_general_data_s {
   uint32_t *reverse_map_b;                                    /**< @brief Maps pattern_id and principal index value to the glm variable id. */
 } rglmdf_general_data_t;
 
+/**
+ * @brief Checks that data type have the expected sizeof.
+ *
+ * @return true when checks are ok
+ */
 extern bool
 rglmdf_verify_type_sizes (void);
 
 /**
  * @brief Initializes the general data structure.
- *
- * @details Variables are set as follow:
- *  - `file_creation_time` is set to zero (Thu Jan  1 00:0:00 1970 (UTC))
- *  - `batch_id_cnt` is set to zero
- *  - `batch_ids` is set to `NULL`
  *
  * @invariant Parameter `gd` must be not `NULL`.
  * The invariant is guarded by an assertion.
@@ -344,111 +333,474 @@ extern size_t
 rglmdf_set_batch_id_cnt (rglmdf_general_data_t *gd,
                          size_t cnt);
 
+/**
+ * @brief Getter function for the `batch_id_cnt` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `batch_id_cnt` field
+ */
 extern size_t
 rglmdf_get_batch_id_cnt (rglmdf_general_data_t *gd);
 
+/**
+ * @brief Getter function for the `batch_ids` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `batch_ids` field
+ */
 extern uint64_t *
 rglmdf_get_batch_ids (rglmdf_general_data_t *gd);
 
+/**
+ * @brief Outputs to `stream` a text message with the list of batch id.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd     reference to the general data structure
+ * @param [in] stream the output file handler
+ */
 extern void
 rglmdf_batch_ids_to_text_stream (rglmdf_general_data_t *gd,
                                  FILE *stream);
 
+/**
+ * @brief Frees all the allocated memory in the substructures of `gd`.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd     reference to the general data structure
+ */
 extern void
 rglmdf_general_data_release (rglmdf_general_data_t *gd);
 
+/**
+ * @brief Getter function for the `empty_count` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `empty_count` field
+ */
 extern uint8_t
 rglmdf_get_empty_count (rglmdf_general_data_t *gd);
 
+/**
+ * @brief Setter function for the `empty_count` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd          reference to the general data structure
+ * @param [in] empty_count new value for the `empty_count` field
+ */
 extern void
 rglmdf_set_empty_count (rglmdf_general_data_t *gd,
                         uint8_t empty_count);
 
+/**
+ * @brief Setter function for the `position_status_cnt` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd  reference to the general data structure
+ * @param [in] cnt new value for the `position_status_cnt` field
+ */
 extern size_t
 rglmdf_set_position_status_cnt (rglmdf_general_data_t *gd,
                                 size_t cnt);
 
+/**
+ * @brief Getter function for the `position_status_cnt` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `position_status_cnt` field
+ */
 extern size_t
 rglmdf_get_position_status_cnt (rglmdf_general_data_t *gd);
 
+/**
+ * @brief Getter function for the `position_statuses` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `position_statuses` field
+ */
 extern char **
 rglmdf_get_position_statuses (rglmdf_general_data_t *gd);
 
+/**
+ * @brief Outputs to `stream` a text message with the list of statuses.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd     reference to the general data structure
+ * @param [in] stream the output file handler
+ */
 extern void
 rglmdf_position_statuses_to_text_stream (rglmdf_general_data_t *gd,
                                          FILE *stream);
 
+/**
+ * @brief Setter function for the `pattern_cnt` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd  reference to the general data structure
+ * @param [in] cnt new value for the `pattern_cnt` field
+ */
 extern size_t
 rglmdf_set_pattern_cnt (rglmdf_general_data_t *gd,
                         size_t cnt);
 
+/**
+ * @brief Getter function for the `pattern_cnt` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `pattern_cnt` field
+ */
 extern size_t
 rglmdf_get_pattern_cnt (rglmdf_general_data_t *gd);
 
+/**
+ * @brief Getter function for the `patterns` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `patterns` field
+ */
 extern board_pattern_id_t *
 rglmdf_get_patterns (rglmdf_general_data_t *gd);
 
+/**
+ * @brief Outputs to `stream` a text message with the list of patterns.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd     reference to the general data structure
+ * @param [in] stream the output file handler
+ */
 extern void
 rglmdf_patterns_to_text_stream (rglmdf_general_data_t *gd,
                                 FILE *stream);
 
+/**
+ * @brief Initializes the `position_summary` field.
+ *
+ * @details Appropriate memory is allocated for the requested number of records.
+ *          If the table was already allocated it is freed.
+ *          The field `position_summary.ntuples` is update with the new value if
+ *          the allocation is succesful.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] gd      reference to the general data structure
+ * @param [in]     ntuples the new capacity of the table
+ * @return                 the number of allocated records
+ */
 extern size_t
 rglmdf_set_position_summary_ntuples (rglmdf_general_data_t *gd,
                                      size_t ntuples);
 
+/**
+ * @brief Getter function for the `position_summary.ntuples` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `patterns` field
+ */
 extern size_t
 rglmdf_get_position_summary_ntuples (rglmdf_general_data_t *gd);
 
+/**
+ * @brief Getter function for the `position_summary.records` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `patterns` field
+ */
 extern rglmdf_position_summary_record_t *
 rglmdf_get_position_summary_records (rglmdf_general_data_t *gd);
 
+/**
+ * @brief Outputs to `stream` a text message with a short description of the position summary table.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd     reference to the general data structure
+ * @param [in] stream the output file handler
+ */
 extern void
 rglmdf_position_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
                                             FILE *stream);
 
+/**
+ * @brief Initializes the `pattern_freq_summary` field.
+ *
+ * @details Appropriate memory is allocated for the requested number of records.
+ *          If the table was already allocated it is freed.
+ *          The function allocates memory also for the reverse map structures.
+ *          The field `position_summary.ntuples` is update with the new value if
+ *          the allocation is succesful.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] gd      reference to the general data structure
+ * @param [in]     ntuples the new capacity of the table
+ * @return                 the number of allocated records
+ */
 extern size_t
 rglmdf_set_pattern_freq_summary_ntuples (rglmdf_general_data_t *gd,
                                          size_t ntuples);
 
+/**
+ * @brief Getter function for the `pattern_freq_summary.ntuples` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `patterns` field
+ */
 extern size_t
 rglmdf_get_pattern_freq_summary_ntuples (rglmdf_general_data_t *gd);
 
+/**
+ * @brief Getter function for the `pattern_freq_summary.records` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `patterns` field
+ */
 extern rglmdf_pattern_freq_summary_record_t *
 rglmdf_get_pattern_freq_summary_records (rglmdf_general_data_t *gd);
 
+/**
+ * @brief Outputs to `stream` a text message with a short description of the pattern frequency summary table.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd     reference to the general data structure
+ * @param [in] stream the output file handler
+ */
 extern void
 rglmdf_pattern_freq_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
                                                 FILE *stream);
 
+/**
+ * @brief Initializes the `positions` table.
+ *
+ * @details Appropriate memory is allocated for the requested number of records.
+ *          If the table was already allocated it is freed.
+ *          The function allocates memory for two arrays of data, `positions.records`
+ *          and `positions.iarray`.
+ *          The field `positions.ntuples` is updated with the new value if
+ *          the allocation is succesful, as well as the field `positions.n_index_values_per_record`.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] gd      reference to the general data structure
+ * @param [in]     ntuples the new capacity of the table
+ * @return                 the number of allocated records
+ */
 extern size_t
 rglmdf_set_positions_ntuples (rglmdf_general_data_t *gd,
                               size_t ntuples);
 
+/**
+ * @brief Getter function for the `positions.ntuples` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `patterns` field
+ */
 extern size_t
 rglmdf_get_positions_ntuples (rglmdf_general_data_t *gd);
 
+/**
+ * @brief Getter function for the `positions.records` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `patterns` field
+ */
 extern rglmdf_solved_and_classified_gp_record_t *
 rglmdf_get_positions_records (rglmdf_general_data_t *gd);
 
+/**
+ * @brief Getter function for the `positions.n_index_values_per_record` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `patterns` field
+ */
 extern size_t
 rglmdf_get_positions_n_index_values_per_record (rglmdf_general_data_t *gd);
 
+/**
+ * @brief Getter function for the `positions.iarray` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `patterns` field
+ */
 extern uint32_t *
 rglmdf_get_positions_iarray (rglmdf_general_data_t *gd);
 
+/**
+ * @brief Computes and populates the reverse map structures.
+ *
+ * @details This function has to be called once just after having populated
+ *          the Pattern Frequency Summary Table.
+ *          The pocedure populates the data in the array `reverse_map_b`.
+ *          The data in `reverse_map_a`, as well as the memory allocation are
+ *          prepared before by the call to #rglmdf_set_pattern_freq_summary_ntuples.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ */
 extern void
 rglmdf_build_reverse_map (rglmdf_general_data_t *gd);
 
+/**
+ * @brief Queries the glm variable id.
+ *
+ * @details The function does not check input values to be in the proper ranges.
+ *          Unexpected behavior may occur when out of range value are used.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd                    reference to the general data structure
+ * @param [in] pattern_id            pattern id key
+ * @param [in] principal_index_value principal index value key
+ * @return                           the corresponding value for the `glm_variable_id`
+ */
 extern uint32_t
 rglmdf_map_pid_and_piv_to_glm_vid (rglmdf_general_data_t *gd,
                                    uint32_t pattern_id,
                                    uint32_t principal_index_value);
 
+/**
+ * @brief Transforms the `positions.iarray` values.
+ *
+ * @details This function has to be called two times, once with thw parameter `first_step`
+ *          set to `true`, and a second time with the parameter set to `false`.
+ *          The first call transforms the pattern index values to the principal values.
+ *          The second call traansforms the pattern principal index values to the `glm_variable_id`
+ *          value.
+ *          The function can be called after the `positions` table has been fully populated.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] gd         reference to the general data structure
+ * @param [in]     first_step governs the transformation to apply
+ */
 extern void
-rglmdf_transform_piv_to_glm_variable_id (rglmdf_general_data_t *gd);
+rglmdf_transform_piv_to_glm_variable_id (rglmdf_general_data_t *gd,
+                                         bool first_step);
 
+/**
+ * @brief Outputs to `f` the game positions table in CSV format.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @param [in] f  the output file handler
+ */
 extern void
 rglmdf_gp_table_to_csv_file (rglmdf_general_data_t *gd,
                              FILE *f);
+
+/**
+ * @brief Outputs to `f` the position summary table in CSV format.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @param [in] f  the output file handler
+ */
+extern void
+rglmdf_ps_table_to_csv_file (rglmdf_general_data_t *gd,
+                             FILE *f);
+
+/**
+ * @brief Outputs to `f` the pattern frequency summary table in CSV format.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @param [in] f  the output file handler
+ */
+extern void
+rglmdf_pfs_table_to_csv_file (rglmdf_general_data_t *gd,
+                              FILE *f);
+
+/**
+ * @brief Computes sha3 digest and write it to a new file.
+ *
+ * @details Opens the file named `file_name`, computes the SHA3-256 digest,
+ *          then write it to a new file having a name composed as `file_name`
+ *          plus the suffix `SHA3-256`. Following the digest there are two spaces
+ *          followed by the name of the imput file.
+ *
+ *          Running from the command line:<br>
+ *          `rhash --sha3-256 file_name > file_name.SHA3-256`<br>
+ *          it is possible to obtain the same result.
+ *
+ * @invariant Parameter `file_name` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] file_name name of the file being digested
+ */
+extern int
+rglmdf_generate_sha3_file_digest (char *file_name);
 
 #endif /* RGLM_DATA_FILES_H */

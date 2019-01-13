@@ -768,7 +768,8 @@ board_pattern_compute_indexes (board_pattern_index_t *indexes,
 extern void
 board_pattern_compute_principal_indexes (board_pattern_index_t *principals,
                                          const board_pattern_index_t *indexes,
-                                         const board_pattern_t *const p);
+                                         const board_pattern_t *const p,
+                                         const bool one_value);
 
 extern board_pattern_index_t
 board_pattern_packed_to_index (board_t *packed,

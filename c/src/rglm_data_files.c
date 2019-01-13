@@ -35,7 +35,7 @@
 #include <string.h>
 #include <assert.h>
 
-
+#include "sha3.h"
 #include "rglm_data_files.h"
 
 #define RGLM_MAX_PATTERN_CNT 1024
@@ -95,10 +95,12 @@ rglmdf_general_data_init (rglmdf_general_data_t *gd)
 void
 rglmdf_general_data_release (rglmdf_general_data_t *gd)
 {
+  assert(gd);
   free(gd->reverse_map_b);
   free(gd->reverse_map_a);
   free(gd->positions.iarray);
   free(gd->positions.records);
+  free(gd->pattern_freq_summary.records);
   free(gd->position_summary.records);
   free(gd->patterns);
   free(gd->position_statuses);
@@ -469,17 +471,18 @@ rglmdf_set_positions_ntuples (rglmdf_general_data_t *gd,
   uint32_t *iarr;
   iarr = (uint32_t *) malloc(si);
   if (iarr) {
-    free(gd->positions.iarray);
-    gd->positions.iarray = iarr;
-    memset(gd->positions.iarray, 0, si);
-    ;
     const size_t s = sizeof(rglmdf_solved_and_classified_gp_record_t) * ntuples;
     rglmdf_solved_and_classified_gp_record_t *arr;
     arr = (rglmdf_solved_and_classified_gp_record_t *) malloc(s);
     if (arr) {
+      free(gd->positions.iarray);
+      gd->positions.iarray = iarr;
+      memset(gd->positions.iarray, 0, si);
+
       free(gd->positions.records);
       gd->positions.records = arr;
       memset(gd->positions.records, 0, s);
+
       gd->positions.ntuples = ntuples;
       gd->positions.n_index_values_per_record = n_index_values_per_record;
       return ntuples;
@@ -535,7 +538,6 @@ rglmdf_build_reverse_map (rglmdf_general_data_t *gd)
     const int32_t pid = t->records[i].pattern_id;
     const int32_t piv = t->records[i].principal_index_value;
     gd->reverse_map_a[pid][piv] = i;
-    printf("pid=%d, piv=%d, i=%zu\n", pid, piv, i);
   }
 }
 
@@ -549,11 +551,13 @@ rglmdf_map_pid_and_piv_to_glm_vid (rglmdf_general_data_t *gd,
 }
 
 void
-rglmdf_transform_piv_to_glm_variable_id (rglmdf_general_data_t *gd)
+rglmdf_transform_piv_to_glm_variable_id (rglmdf_general_data_t *gd,
+                                         bool first_step)
 {
   assert(gd);
 
   uint32_t idx[RGLM_MAX_PATTERN_CNT * RGLM_MAX_PATTERN_INSTANCE_CNT];
+
   if (gd->pattern_cnt > RGLM_MAX_PATTERN_CNT) {
     fprintf(stderr, "gd->pattern_cnt > RGLM_MAX_PATTERN_CNT. gd->pattern_cnt = %zu. Aborting ...\n", gd->pattern_cnt);
     abort();
@@ -570,18 +574,22 @@ rglmdf_transform_piv_to_glm_variable_id (rglmdf_general_data_t *gd)
       idx[k++] = pid;
     }
   }
-  for (size_t i = 0; i < k; i++) printf("---- idx[%zu]=%u\n", i, idx[i]);
 
   const size_t ni = rglmdf_get_positions_n_index_values_per_record(gd);
-  printf("ni=%zu\n", ni);
   for (size_t i = 0; i < gd->positions.ntuples; i++) {
-    printf("i=%zu\n", i);
     for (size_t j = 0; j < ni; j++) {
-      const uint32_t index_value = gd->positions.iarray[i * ni + j];
-      const uint32_t principal_index_value = gd->positions.iarray[i * ni + j]; // ATTENZIONE !!! chiamare la funzione ...
+      uint32_t output;
+      board_pattern_index_t index_value, principal_index_value;
       const uint32_t pattern_id = idx[j];
-      printf("i=%zu, j=%zu, principal_index_value=%u, pattern_id=%u\n", i, j, principal_index_value, pattern_id);
-      gd->positions.iarray[i * ni + j] = rglmdf_map_pid_and_piv_to_glm_vid(gd, pattern_id, principal_index_value);
+      if (first_step) {
+        index_value = gd->positions.iarray[i * ni + j];
+        board_pattern_compute_principal_indexes(&principal_index_value, &index_value, &board_patterns[pattern_id], true);
+        output = principal_index_value;
+      } else {
+        principal_index_value = gd->positions.iarray[i * ni + j];
+        output = rglmdf_map_pid_and_piv_to_glm_vid(gd, pattern_id, principal_index_value);
+      }
+      gd->positions.iarray[i * ni + j] = output;
     }
   }
 }
@@ -604,4 +612,78 @@ rglmdf_gp_table_to_csv_file (rglmdf_general_data_t *gd,
     }
     fprintf(f, "\n");
   }
+}
+
+void
+rglmdf_ps_table_to_csv_file (rglmdf_general_data_t *gd,
+                             FILE *f)
+{
+  assert(gd);
+  rglmdf_position_summary_record_t *r = rglmdf_get_position_summary_records(gd);
+  size_t n = rglmdf_get_position_summary_ntuples(gd);
+  fprintf(f, " SEQ;BATCH_ID;STATUS; GAME_POSITION_CNT;    CLASSIFIED_CNT\n");
+  for (size_t i = 0; i < n; i++) {
+    fprintf(f, "%04zu;%8d;%6s;%18ld;%18ld\n", i, r[i].batch_id, r[i].status, r[i].game_position_cnt, r[i].classified_cnt);
+  }
+}
+
+void
+rglmdf_pfs_table_to_csv_file (rglmdf_general_data_t *gd,
+                              FILE *f)
+{
+  assert(gd);
+  rglmdf_pattern_freq_summary_record_t *r = rglmdf_get_pattern_freq_summary_records(gd);
+  size_t n = rglmdf_get_pattern_freq_summary_ntuples(gd);
+  fprintf(f, "     SEQ; GLM_VARIABLE_ID; PATTERN_ID; PRINCIPAL_INDEX_VALUE;   TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_FREQUENCY\n");
+  for (size_t i = 0; i < n; i++) {
+    fprintf(f, "%08zu;%16ld;%11d;%22d;%12ld;%19.6f;%22.6f\n", i, r[i].glm_variable_id, r[i].pattern_id, r[i].principal_index_value, r[i].total_cnt, r[i].relative_frequency, r[i].theoretical_probability);
+  }
+}
+
+int
+rglmdf_generate_sha3_file_digest (char *file_name)
+{
+  assert(file_name);
+
+  static const size_t buf_size = 64 * 1024;
+  static const size_t digest_file_name_size = 1024;
+  char buf[buf_size];
+  size_t re, file_name_len;
+  sha3_ctx_t ctx;
+  char msg_digest[sha3_256_digest_lenght];
+  char msg_digest_to_s[2 * sha3_256_digest_lenght + 1];
+  FILE *ifp, *ofp;
+  char digest_file_name[digest_file_name_size];
+  const char *suffix = ".SHA3-256";
+
+  memset(digest_file_name, '\0', sizeof(digest_file_name));
+  file_name_len = snprintf(digest_file_name, digest_file_name_size, "%s%s", file_name, suffix);
+  if (file_name_len + 1 > digest_file_name_size) {
+    fprintf(stderr, "Error in function rglmdf_generate_sha3_file_digest, the buffer size for the file name is too small. Aborting ...\n");
+    abort();
+  }
+
+  ifp = fopen(file_name, "r");
+  if (!ifp) {
+    return 1;
+  }
+
+  sha3_init(&ctx, sha3_256_digest_lenght);
+
+  do {
+    re = fread(buf, 1, buf_size, ifp);
+    sha3_update(&ctx, buf, re);
+  } while (re != 0);
+
+  fclose(ifp);
+  sha3_final(&ctx, msg_digest);
+  sha3_msg_digest_to_string(msg_digest_to_s, msg_digest, sha3_256_digest_lenght);
+
+  ofp = fopen(digest_file_name, "w");
+  if (!ofp) {
+    return 2;
+  }
+  fprintf(ofp, "%s  %s\n", msg_digest_to_s, file_name);
+  fclose(ofp);
+  return 0;
 }

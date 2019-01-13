@@ -2498,8 +2498,7 @@ main (int argc,
   fwrite(&u64, sizeof(uint64_t), 1, ofp);
   u64 = batch_id_cnt;
   fwrite(&u64, sizeof(uint64_t), 1, ofp);
-  u64 = *batch_ids;
-  fwrite(&u64, sizeof(uint64_t), batch_id_cnt, ofp);
+  fwrite(batch_ids, sizeof(uint64_t), batch_id_cnt, ofp);
   u8 = empty_count;
   fwrite(&u8, sizeof(uint8_t), 1, ofp);
   u64 = position_status_cnt;
@@ -2582,7 +2581,7 @@ main (int argc,
   (void) fclose_ret; /* Suppress the warning "unused variable" rised when compiling without assertions. */
 
 
-  /* -12 - Closes the DB transaction. */
+  /* - 12 - Closes the DB transaction. */
   res = PQexec(con, "END");
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
     fprintf(stderr, "PQexec: END command failed: %s", PQerrorMessage(con));
@@ -2590,7 +2589,17 @@ main (int argc,
     return EXIT_FAILURE;
   }
   PQclear(res);
-  if (verbose) fprintf(stdout, "Database transaction and output fle \"%s\" have been closed.\n", output_file_name);
+  if (verbose) fprintf(stdout, "Database transaction and output file \"%s\" have been closed.\n", output_file_name);
+
+  /* - 13 - Computes the SHA3 digest. */
+  int ret_code;
+  ret_code = rglmdf_generate_sha3_file_digest(output_file_name);
+  if (ret_code != 0) {
+    fprintf(stderr, "Unabelo to compute and write SHA3-256 digest file.\n");
+    PQfinish(con);
+    return EXIT_FAILURE;
+  }
+  if (verbose) fprintf(stdout, "Computed SHA3-256 digest, written to file.\n");
 
   goto regab_program_end;
 

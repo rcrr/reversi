@@ -386,11 +386,14 @@ board_pattern_compute_indexes (board_pattern_index_t *indexes,
 void
 board_pattern_compute_principal_indexes (board_pattern_index_t *principals,
                                          const board_pattern_index_t *indexes,
-                                         const board_pattern_t *const p)
+                                         const board_pattern_t *const p,
+                                         const bool one_value)
 {
   static bool initialized = false;
   static board_pattern_index_t a[BOARD_PATTERN_INDEX_TABLE_SIZE];
   static board_pattern_index_t *ap[BOARD_PATTERN_COUNT];
+
+  size_t n_values;
 
   if (!initialized) {
     board_pattern_index_t *p = a;
@@ -423,7 +426,8 @@ board_pattern_compute_principal_indexes (board_pattern_index_t *principals,
     initialized = true;
   }
 
-  for (unsigned int i = 0; i < p->n_instances; i++) {
+  n_values = one_value ? 1 : p->n_instances;
+  for (unsigned int i = 0; i < n_values; i++) {
     principals[i] = *(ap[p->id] + indexes[i]);
   }
 }

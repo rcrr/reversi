@@ -531,7 +531,7 @@ aux_check_expected_indexes (ut_test_t *const t,
   board_set_square_sets(b, m, o);
   board_pattern_compute_indexes(computed_indexes, p, b);
   for (int i = 0; i < n; i++) ut_assert(t, expected_indexes[i] == computed_indexes[i]);
-  board_pattern_compute_principal_indexes(computed_principal_indexes, computed_indexes, p);
+  board_pattern_compute_principal_indexes(computed_principal_indexes, computed_indexes, p, false);
   for (int i = 0; i < n; i++) ut_assert(t, expected_principal_indexes[i] == computed_principal_indexes[i]);
 }
 
@@ -551,6 +551,21 @@ aux_check_expected_indexes_array (ut_test_t *const t,
 /*
  * Test functions.
  */
+
+static void
+board_pattern_compute_principal_indexes_one_value_t (ut_test_t *const t)
+{
+  const bool one_value = true;
+
+  const board_pattern_t *p;
+  board_pattern_index_t index;
+  board_pattern_index_t computed_principal_index;
+
+  p = &board_patterns[BOARD_PATTERN_DIAG3];
+  index = 24;
+  board_pattern_compute_principal_indexes(&computed_principal_index, &index, p, one_value);
+  ut_assert(t, computed_principal_index == 8);
+}
 
 static void
 board_patterns_t (ut_test_t *const t)
@@ -1546,6 +1561,8 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_diag8", board_pattern_compute_indexes_diag8_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_2x5cor", board_pattern_compute_indexes_2x5cor_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_diag3", board_pattern_compute_indexes_diag3_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_principal_indexes_one_value", board_pattern_compute_principal_indexes_one_value_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);

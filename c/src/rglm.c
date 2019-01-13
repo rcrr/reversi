@@ -62,8 +62,17 @@ static int v_flag = false;
 static int i_flag = false;
 static char *i_arg = NULL;
 
+static int A_flag = false;
+static char *A_arg = NULL;
+
+static int B_flag = false;
+static char *B_arg = NULL;
+
 static int P_flag = false;
 static char *P_arg = NULL;
+
+static int Q_flag = false;
+static char *Q_arg = NULL;
 
 static int T_flag = false;
 static char *T_arg = NULL;
@@ -72,7 +81,10 @@ static mop_options_long_t olist[] = {
   {"help",              'h', MOP_NONE},
   {"verbose",           'v', MOP_NONE},
   {"input-file",        'i', MOP_REQUIRED},
+  {"extract-ps-table",  'A', MOP_REQUIRED},
+  {"extract-pfs-table", 'B', MOP_REQUIRED},
   {"extract-gp-table",  'P', MOP_REQUIRED},
+  {"extract-gp-ptable", 'Q', MOP_REQUIRED},
   {"extract-gp-ttable", 'T', MOP_REQUIRED},
   {0, 0, 0}
 };
@@ -85,8 +97,11 @@ static const char *documentation =
   "  -h, --help              Show help options\n"
   "  -v, --verbose           Verbose output\n"
   "  -i, --input-file        Input file name - Mandatory\n"
-  "  -P, --extract-gp-table  Dumps the solved and classified game position table in a CSV format\n"
-  "  -P, --extract-gp-ttable Dumps the solved and classified game position transformed table in a CSV format\n"
+  "  -A, --extract-ps-table  Dumps the position summary table in a CSV format\n"
+  "  -B, --extract-pfs-table Dumps the pattern frequency summary table in a CSV format\n"
+  "  -P, --extract-gp-table  Dumps the solved and classified game position table in a CSV format, with original pattern indexes\n"
+  "  -Q, --extract-gp-ptable Dumps the solved and classified game position table in a CSV format, with principal pattern indexes\n"
+  "  -T, --extract-gp-ttable Dumps the solved and classified game position table transformed to glm_variable_id in a CSV format\n"
   "\n"
   "Description:\n"
   "The Reversi Generalized Linear Model solver is the main entry to a set of utilities dedicated to process a set of solved and classified game position retrieved from a binary imput file.\n"
@@ -156,9 +171,21 @@ main (int argc,
       i_flag = true;
       i_arg = options.optarg;
       break;
+    case 'A':
+      A_flag = true;
+      A_arg = options.optarg;
+      break;
+    case 'B':
+      B_flag = true;
+      B_arg = options.optarg;
+      break;
     case 'P':
       P_flag = true;
       P_arg = options.optarg;
+      break;
+    case 'Q':
+      Q_flag = true;
+      Q_arg = options.optarg;
       break;
     case 'T':
       T_flag = true;
@@ -289,16 +316,6 @@ main (int argc,
   /* Creates the mapping betweeen (pattern_id, principal_index_value) --> glm_variable_id */
   rglmdf_build_reverse_map(&data);
   if (verbose) fprintf(stdout, "Reverse map has been computed.\n");
-  size_t k = 0;
-  for (size_t i = 0; i < data.pattern_cnt; i++) {
-    int pid = data.patterns[i];
-    size_t n = 1;
-    for (size_t j = 0; j < board_patterns[pid].n_squares; j++) n *= 3;
-    for (size_t j = 0; j < n; j++) {
-      //printf("[%2zu,%6s,%6zu] ==> %12u\n", i, board_patterns[pid].name, j, data.reverse_map_b[k]);
-      k++;
-    }
-  }
 
   /* Read the number of record for the solved and classified game position table. */
   re = fread(&u64, sizeof(uint64_t), 1, ifp);
@@ -341,6 +358,30 @@ main (int argc,
   /* Closes the binary imput file. */
   fclose(ifp);
 
+  /* If A flag is turned on, dumps the position summary table to the output file. */
+  if (A_arg) {
+    ofp = fopen(A_arg, "w");
+    if (!ofp) {
+      fprintf(stderr, "Unable to open output file: %s\n", A_arg);
+      return EXIT_FAILURE;
+    }
+    rglmdf_ps_table_to_csv_file(&data, ofp);
+    fclose(ofp);
+    if (verbose) fprintf(stdout, "Position summary table dumped to CSV file: \"%s\".\n", A_arg);
+  }
+
+  /* If B flag is turned on, dumps the position summary table to the output file. */
+  if (B_arg) {
+    ofp = fopen(B_arg, "w");
+    if (!ofp) {
+      fprintf(stderr, "Unable to open output file: %s\n", B_arg);
+      return EXIT_FAILURE;
+    }
+    rglmdf_pfs_table_to_csv_file(&data, ofp);
+    fclose(ofp);
+    if (verbose) fprintf(stdout, "Pattern frequencies summary table dumped to CSV file: \"%s\".\n", B_arg);
+  }
+
   /* If P flag is turned on, dumps the game position table to the output file. */
   if (P_arg) {
     ofp = fopen(P_arg, "w");
@@ -353,8 +394,23 @@ main (int argc,
     if (verbose) fprintf(stdout, "Game positions dumped to CSV file: \"%s\".\n", P_arg);
   }
 
+  /* Transforms the pattern index values to the principal ones. */
+  rglmdf_transform_piv_to_glm_variable_id(&data, true);
+
+  /* If Q flag is turned on, dumps the game position transformed table to the output file. */
+  if (Q_arg) {
+    ofp = fopen(Q_arg, "w");
+    if (!ofp) {
+      fprintf(stderr, "Unable to open output file: %s\n", Q_arg);
+      return EXIT_FAILURE;
+    }
+    rglmdf_gp_table_to_csv_file(&data, ofp);
+    fclose(ofp);
+    if (verbose) fprintf(stdout, "Game positions, with pattern indexes being remapped to principal values, dumped to CSV file: \"%s\".\n", Q_arg);
+  }
+
   /* Transforms the pattern principal index values to the corresponding global GLM variable id, in the game position table. */
-  rglmdf_transform_piv_to_glm_variable_id(&data);
+  rglmdf_transform_piv_to_glm_variable_id(&data, false);
   if (verbose) fprintf(stdout, "Pattern principal index values have been translated to global GLM variable id.\n");
 
   /* If T flag is turned on, dumps the game position transformed table to the output file. */
@@ -368,6 +424,12 @@ main (int argc,
     fclose(ofp);
     if (verbose) fprintf(stdout, "Transformed game positions dumped to CSV file: \"%s\".\n", T_arg);
   }
+
+  /*
+   *
+   * Ready to compute ...
+   *
+   */
 
   /* Frees resources. */
   rglmdf_general_data_release(&data);
