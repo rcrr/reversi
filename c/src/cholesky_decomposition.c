@@ -36,6 +36,39 @@
 
 #include "cholesky_decomposition.h"
 
+double
+chol_vector_magnitude (double *v,
+                       size_t n,
+                       double *abs_min,
+                       size_t *abs_min_pos,
+                       double *abs_max,
+                       size_t *abs_max_pos)
+{
+  double sum, abs;
+
+  if (n > 0) {
+    if (abs_min) {
+      *abs_min = fabs(v[0]);
+      if (abs_min_pos)
+        *abs_min_pos = 0;
+    }
+    if (abs_max) {
+      *abs_max = fabs(v[0]);
+      if (abs_max_pos)
+        *abs_max_pos = 0;
+    }
+  }
+
+  sum = 0.0;
+  for (size_t i = 0; i < n; i++) {
+    sum += v[i] * v[i];
+    abs = fabs(v[i]);
+    if (abs_min) if (abs < *abs_min) { *abs_min = abs; if (abs_min_pos) *abs_min_pos = i; }
+    if (abs_max) if (abs > *abs_max) { *abs_max = abs; if (abs_max_pos) *abs_max_pos = i; }
+  }
+  return sqrt(sum);
+}
+
 void
 chol_zero_vector (double *v,
                   size_t n)
@@ -97,6 +130,37 @@ chol_free_matrix (double **m)
     free(m[0]);
     free(m);
   }
+}
+
+double
+chol_test0 (double *v,
+           double *u,
+           size_t n)
+{
+  double sum;
+  sum = 0.0;
+  for (size_t i = 0; i < n; i++)
+    sum += v[i] * u[i];
+  return sum;
+}
+
+double
+chol_test1 (double *v,
+            double *u,
+            size_t n)
+{
+  size_t nn;
+  double sum;
+
+  nn = n / 16;
+  sum = 0.0;
+  for (size_t i = 0; i < nn; i++)
+    for (size_t j = 0; j < 8; j++)
+      sum += v[j] * u[j];
+
+  for (size_t i = nn * 16; i < n; i++)
+    sum += v[i] * u[i];
+  return sum;
 }
 
 void

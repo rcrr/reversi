@@ -167,6 +167,7 @@ rgmlut_big_b_eval (rglmdf_general_data_t *data,
   assert(de);
 
   size_t idi, idj;
+  double z;
 
   /* Vector of glm variables id belonging to a solved and classified game position. */
   uint32_t *glm_variable_id;
@@ -182,12 +183,12 @@ rgmlut_big_b_eval (rglmdf_general_data_t *data,
   /* Computes the upper triangle of the B matrix. */
   for (size_t k = 0; k < emme; k++) {
     glm_variable_id = &data->positions.iarray[k * nq];
+    z = de[k] * (de[k] + r[k] * (1 - 2 * e[k]));
     for (size_t i = 0; i < nq; i++)
       for (size_t j = 0; j < nq; j++) {
         idi = glm_variable_id[i];
         idj = glm_variable_id[j];
-        //if (idj >= idi) big_b[idi][idj] += de[k] * de[k]; // GAUSS-NEWTON
-        if (idj >= idi) big_b[idi][idj] += (de[k] * de[k]) + (r[k] * e[k] * (1 - e[k]) * (1 - 2 * e[k])); // NEWTON
+        if (idj >= idi) big_b[idi][idj] += z;
       }
   }
 }

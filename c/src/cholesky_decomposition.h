@@ -35,6 +35,25 @@
 #define CHOLESKY_DECOMPOSITION_H
 
 /**
+ * @brief Computes the magnitude of the `v` vector.
+ *
+ * @param [in]  v       pointer to vector
+ * @param [in]  n       number of elements
+ * @param [out] min     minimum value
+ * @param [out] min_pos position of the min
+ * @param [out] max     maximum value
+ * @param [out] max_pos position of the max
+ * @return              the modulus of the vector
+ */
+double
+chol_vector_magnitude (double *v,
+                       size_t n,
+                       double *abs_min,
+                       size_t *abs_min_pos,
+                       double *abs_max,
+                       size_t *abs_max_pos);
+
+/**
  * @brief Sets to zero all elements of the vector.
  *
  * @param [in, out] v pointer to vector
@@ -43,6 +62,16 @@
 extern void
 chol_zero_vector (double *v,
                   size_t n);
+
+extern double
+chol_test0 (double *v,
+            double *u,
+            size_t n);
+
+extern double
+chol_test1 (double *v,
+            double *u,
+            size_t n);
 
 /**
  * @brief Allocates a vector of doubles having length equal to`n`.
