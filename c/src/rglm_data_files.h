@@ -175,15 +175,18 @@ typedef struct rglmdf_position_summary_table_s {
  * The group by operation executes three sums collecting the aggregated data stored into the fields `total_cnt`,
  * `relative_frequency`, `theoretical_probability`.
  *
- * The record has a fized size and needs 40 bytes.
+ * The weight is set to `0.5` when the model is not yet optimized.
+ *
+ * The record has a fixed size and needs 48 bytes.
  */
 typedef struct rglmdf_pattern_freq_summary_record_s {
   int64_t glm_variable_id;         /**< @brief It is the unique variable index for the GLM (Generalized Linear Model). */
   int32_t pattern_id;              /**< @brief Board Pattern Id, as defined by REGAB table regab_prng_patterns. */
   int32_t principal_index_value;   /**< @brief Principal Index Value for Pattern as defined by REGAB table regab_prng_pattern_ranges. */
   int64_t total_cnt;               /**< @brief Number of times that the pattern, or its mirror, is found  in the game position selection. */
-  double relative_frequency;       /**< @brief Relative frequency of the pattern in the data. */
-  double theoretical_probability;  /**< @brief Expected probability. */
+  double relative_frequency;       /**< @brief Relative frequency of the pattern configuration in the data. */
+  double theoretical_probability;  /**< @brief Expected probability of the pattern configuration. */
+  double weight;                   /**< @brief Weight of the pattern configuration in the evaluation function. */
 } rglmdf_pattern_freq_summary_record_t;
 
 /**
@@ -782,6 +785,19 @@ rglmdf_ps_table_to_csv_file (rglmdf_general_data_t *gd,
 extern void
 rglmdf_pfs_table_to_csv_file (rglmdf_general_data_t *gd,
                               FILE *f);
+
+/**
+ * @brief Outputs to `f` the optimized weights table in CSV format.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @param [in] f  the output file handler
+ */
+extern void
+rglmdf_weights_table_to_csv_file (rglmdf_general_data_t *gd,
+                                  FILE *f);
 
 /**
  * @brief Computes sha3 digest and write it to a new file.

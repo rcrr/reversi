@@ -37,13 +37,13 @@
 /**
  * @brief Computes the magnitude of the `v` vector.
  *
- * @param [in]  v       pointer to vector
- * @param [in]  n       number of elements
- * @param [out] min     minimum value
- * @param [out] min_pos position of the min
- * @param [out] max     maximum value
- * @param [out] max_pos position of the max
- * @return              the modulus of the vector
+ * @param [in]  v           pointer to vector
+ * @param [in]  n           number of elements
+ * @param [out] abs_min     minimum value
+ * @param [out] abs_min_pos position of the min
+ * @param [out] abs_max     maximum value
+ * @param [out] abs_max_pos position of the max
+ * @return                  the modulus of the vector
  */
 double
 chol_vector_magnitude (double *v,

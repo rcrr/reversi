@@ -1240,6 +1240,7 @@ do_action_extract_pattern_freqs_cursor_fetch (int *result,
       return_table->records[i].total_cnt = atol(PQgetvalue(res, i, 3));
       return_table->records[i].relative_frequency = atof(PQgetvalue(res, i, 4));
       return_table->records[i].theoretical_probability = atof(PQgetvalue(res, i, 5));
+      return_table->records[i].weight = 0.0; // Weight is set to 0.0 that is the neutral value (game value equal to zero) for the evaluation function.
     }
     *result = 0;
   }

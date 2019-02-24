@@ -56,7 +56,7 @@ rglmdf_verify_type_sizes (void)
   if (sizeof( int64_t) != 8) return false;
 
   if (sizeof(rglmdf_position_summary_record_t) != 24) return false;
-  if (sizeof(rglmdf_pattern_freq_summary_record_t) != 40) return false;
+  if (sizeof(rglmdf_pattern_freq_summary_record_t) != 48) return false;
   if (sizeof(rglmdf_solved_and_classified_gp_record_t) != 40) return false;
 
   if (sizeof(double) != 8) return false;
@@ -450,8 +450,8 @@ rglmdf_pattern_freq_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
     if (i + 1 == gd->pattern_freq_summary.ntuples || (rec + 1)->pattern_id != pattern_id) {
       const char *pattern_name = board_patterns[pattern_id].name;
       const int64_t gp_cnt = total_cnt / board_patterns[pattern_id].n_instances;
-      printf("  Pattern id: %2d [%6s], total_cnt = %8ld, gp_cnt = %8ld, cumulated relative frequency = %1.4f, cumulated theoretical probability = %1.4f\n",
-             pattern_id, pattern_name, total_cnt, gp_cnt, relative_frequency, theoretical_probability);
+      fprintf(stream, "  Pattern id: %2d [%6s], total_cnt = %8ld, gp_cnt = %8ld, cumulated relative frequency = %1.4f, cumulated theoretical probability = %1.4f\n",
+              pattern_id, pattern_name, total_cnt, gp_cnt, relative_frequency, theoretical_probability);
     }
   }
 }
@@ -634,10 +634,20 @@ rglmdf_pfs_table_to_csv_file (rglmdf_general_data_t *gd,
   assert(gd);
   rglmdf_pattern_freq_summary_record_t *r = rglmdf_get_pattern_freq_summary_records(gd);
   size_t n = rglmdf_get_pattern_freq_summary_ntuples(gd);
-  fprintf(f, "     SEQ; GLM_VARIABLE_ID; PATTERN_ID; PRINCIPAL_INDEX_VALUE;   TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_FREQUENCY\n");
+  fprintf(f, "     SEQ; GLM_VARIABLE_ID; PATTERN_ID; PRINCIPAL_INDEX_VALUE;   TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_FREQUENCY;              WEIGHT\n");
   for (size_t i = 0; i < n; i++) {
-    fprintf(f, "%08zu;%16ld;%11d;%22d;%12ld;%19.6f;%22.6f\n", i, r[i].glm_variable_id, r[i].pattern_id, r[i].principal_index_value, r[i].total_cnt, r[i].relative_frequency, r[i].theoretical_probability);
+    fprintf(f, "%08zu;%16ld;%11d;%22d;%12ld;%19.6f;%22.6f;%+20.15f\n",
+            i, r[i].glm_variable_id, r[i].pattern_id,
+            r[i].principal_index_value, r[i].total_cnt, r[i].relative_frequency,
+            r[i].theoretical_probability, r[i].weight);
   }
+}
+
+void
+rglmdf_weights_table_to_csv_file (rglmdf_general_data_t *gd,
+                                  FILE *f)
+{
+  printf("rglmdf_weights_table_to_csv_file ---- TO BE CODED ----\n");
 }
 
 int

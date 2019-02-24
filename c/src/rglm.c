@@ -82,6 +82,9 @@ static char *Q_arg = NULL;
 static int T_flag = false;
 static char *T_arg = NULL;
 
+static int W_flag = false;
+static char *W_arg = NULL;
+
 static mop_options_long_t olist[] = {
   {"help",              'h', MOP_NONE},
   {"verbose",           'v', MOP_NONE},
@@ -92,6 +95,7 @@ static mop_options_long_t olist[] = {
   {"extract-gp-table",  'P', MOP_REQUIRED},
   {"extract-gp-ptable", 'Q', MOP_REQUIRED},
   {"extract-gp-ttable", 'T', MOP_REQUIRED},
+  {"extract-weights",   'W', MOP_REQUIRED},
   {0, 0, 0}
 };
 
@@ -109,6 +113,7 @@ static const char *documentation =
   "  -P, --extract-gp-table  Dumps the solved and classified game position table in a CSV format, with original pattern indexes\n"
   "  -Q, --extract-gp-ptable Dumps the solved and classified game position table in a CSV format, with principal pattern indexes\n"
   "  -T, --extract-gp-ttable Dumps the solved and classified game position table transformed to glm_variable_id in a CSV format\n"
+  "  -W, --extract-weights   Dumps the weights, the optimized value assigned to the glm_variable_id keys in a CSV format\n"
   "\n"
   "Description:\n"
   "The Reversi Generalized Linear Model solver is the main entry to a set of utilities dedicated to process a set of solved and classified game position retrieved from a binary imput file.\n"
@@ -200,6 +205,10 @@ main (int argc,
     case 'T':
       T_flag = true;
       T_arg = options.optarg;
+      break;
+    case 'W':
+      W_flag = true;
+      W_arg = options.optarg;
       break;
     case ':':
       fprintf(stderr, "Option parsing failed: %s\n", options.errmsg);
@@ -470,7 +479,7 @@ main (int argc,
     /* w: weigths.*/
     w = chol_allocate_vector(enne);
     if (!w) abort();
-    for (size_t i = 0; i < enne; i++) w[i] = 0.0;
+    for (size_t i = 0; i < enne; i++) w[i] = data.pattern_freq_summary.records[i].weight;
 
     /* e: evaluation function for the game positions.*/
     e = chol_allocate_vector(emme);
@@ -639,6 +648,9 @@ main (int argc,
 
     }
 
+    /* Copies the optimized weighs into the general data structure. */
+    for (size_t i = 0; i < enne; i++) data.pattern_freq_summary.records[i].weight = w[i];
+
     chol_free_vector(p);
     chol_free_vector(aux_diag_big_b);
     chol_free_matrix(big_b);
@@ -656,6 +668,18 @@ main (int argc,
    * Weights computed.
    *
    */
+
+  /* If W flag is turned on, dumps the weights table to the output file. */
+  if (W_arg) {
+    ofp = fopen(W_arg, "w");
+    if (!ofp) {
+      fprintf(stderr, "Unable to open output file: %s\n", W_arg);
+      return EXIT_FAILURE;
+    }
+    rglmdf_pfs_table_to_csv_file(&data, ofp);
+    fclose(ofp);
+    if (verbose) fprintf(stdout, "Optimized Weights table dumped to CSV file: \"%s\".\n", W_arg);
+  }
 
   /* TO DO:
    *  - Add flag to print a specific record in the game position table.
