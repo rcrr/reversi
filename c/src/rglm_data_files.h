@@ -68,6 +68,10 @@
  *     Ref: `pattern_freq_summary.records`, array.<br>
  * <p>
  * --- Game Positions ---
+ *   - `1 byte` field, read/written as `uint8_t`, converted to `rglmdf_iarray_data_type_t` value.<br>
+ *     Meaning: type of data stored into iarray fields.<br>
+ *     Ref: `iarray_data_type`, scalar.<br>
+ *<br>
  *   - `8 bytes` field, read/written as `uint64_t`, converted to `size_t` value.<br>
  *     Meaning: count of records in the game position table.<br>
  *     Ref: `positions.ntuples`, scalar.<br>
@@ -129,6 +133,18 @@
 
 #include "board_pattern.h"
 
+//ABRACADABRA
+
+/**
+ * @enum rglmdf_iarray_data_type_t
+ * @brief Meaning of the data stored into the iarray field.
+ */
+typedef enum {
+  RGLMDF_IARRAY_IS_INDEX,              /**< Pattern configuration index value. */
+  RGLMDF_IARRAY_IS_PRINCIPAL_INDEX,    /**< Pattern configuration principal index value. */
+  RGLMDF_IARRAY_IS_GLM_VARIABLE_ID     /**< Generalized linear model variable id. */
+} rglmdf_iarray_data_type_t;
+
 /**
  * @brief Reversi GLM data file record definition for the position summary table.
  *
@@ -142,7 +158,7 @@
  * The two count could differ when records in table `regab_prng_gp` do not have a relative
  * one into table `regab_prng_gp_pattern_class` (it means that the game position is not classified).
  *
- * The record has a fized size and needs 24 bytes.
+ * The record has a fixed size and needs 24 bytes.
  */
 typedef struct rglmdf_position_summary_record_s {
   int32_t batch_id;                             /**< @brief Key field, maps the batch_id::regab_prng_gp field in the REGAB database. */
@@ -204,14 +220,17 @@ typedef struct rglmdf_pattern_freq_summary_table_s {
  *
  * @details Each record is identified by either the `row_n` counter or the `gp_id` field.
  *
- * The record has a fized size and needs 40 bytes.
+ * The record has a fixed size and needs 48 bytes.
  */
 typedef struct rglmdf_solved_and_classified_gp_record_s {
-  int64_t row_n;       /**< @brief Row number. */
-  int64_t gp_id;       /**< @brief Game Position Id, as defined by REGAB table regab_prng_gp. */
-  int64_t mover;       /**< @brief Game position board definition for mover. */
-  int64_t opponent;    /**< @brief Game position board definition for opponent. */
-  int8_t game_value;   /**< @brief Game value for the position. */
+  int64_t row_n;                  /**< @brief Row number. */
+  int64_t gp_id;                  /**< @brief Game Position Id, as defined by REGAB table regab_prng_gp. */
+  int64_t mover;                  /**< @brief Game position board definition for mover. */
+  int64_t opponent;               /**< @brief Game position board definition for opponent. */
+  int8_t game_value;              /**< @brief Game value for the position. */
+  float game_value_transformed;   /**< @brief Game value transformed as a float in the range (0..1). */
+  float evaluation_function;      /**< @brief Game value, in the (0..1) range, as computed by the evaluation function. */
+  float residual;                 /**< @brief Delta value between evaluation function and game value transformed. */
 } rglmdf_solved_and_classified_gp_record_t;
 
 /**
@@ -224,7 +243,8 @@ typedef struct rglmdf_solved_and_classified_gp_record_s {
  *          equal to `ntuples` multiplied by `n_index_values_per_record`.
  *          Pattern index values are ordered by `(pattern_id, instance_number)`.
  */
-typedef struct rglmdf_solved_and_classified_gp_table_s {
+typedef struct rglmdf_solved_and_classified_gp_table_s { //ABRACADABRA
+  rglmdf_iarray_data_type_t iarray_data_type;          /**< @brief Specifies what is the meaning of the data in the iarray fields. */
   size_t ntuples;                                      /**< @brief Number of records. */
   size_t n_index_values_per_record;                    /**< @brief Count of pattern index values fields. */
   rglmdf_solved_and_classified_gp_record_t *records;   /**< @brief Records of the table. */
@@ -635,13 +655,15 @@ rglmdf_pattern_freq_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
  * @invariant Parameter `gd` must be not `NULL`.
  * The invariant is guarded by an assertion.
  *
- * @param [in,out] gd      reference to the general data structure
- * @param [in]     ntuples the new capacity of the table
- * @return                 the number of allocated records
+ * @param [in,out] gd               reference to the general data structure
+ * @param [in]     ntuples          the new capacity of the table
+ * @param [in]     iarray_data_type type of data stored in iarray fields
+ * @return                          the number of allocated records
  */
 extern size_t
 rglmdf_set_positions_ntuples (rglmdf_general_data_t *gd,
-                              size_t ntuples);
+                              size_t ntuples,
+                              rglmdf_iarray_data_type_t iarray_data_type);
 
 /**
  * @brief Getter function for the `positions.ntuples` field.
@@ -787,19 +809,6 @@ rglmdf_pfs_table_to_csv_file (rglmdf_general_data_t *gd,
                               FILE *f);
 
 /**
- * @brief Outputs to `f` the optimized weights table in CSV format.
- *
- * @invariant Parameter `gd` must be not `NULL`.
- * The invariant is guarded by an assertion.
- *
- * @param [in] gd reference to the general data structure
- * @param [in] f  the output file handler
- */
-extern void
-rglmdf_weights_table_to_csv_file (rglmdf_general_data_t *gd,
-                                  FILE *f);
-
-/**
  * @brief Computes sha3 digest and write it to a new file.
  *
  * @details Opens the file named `file_name`, computes the SHA3-256 digest,
@@ -818,5 +827,27 @@ rglmdf_weights_table_to_csv_file (rglmdf_general_data_t *gd,
  */
 extern int
 rglmdf_generate_sha3_file_digest (char *file_name);
+
+/**
+ * @brief Saves the genaral data structure to a binary file..
+ *
+ * @details Opens the file named `filename`, and stores the data
+ *          contained by the `gd` general data structure in it.
+ *          When the file is closed the function computes the SHA3-256
+ *          hash and save it into a secon file named `filename`.SHA3-256.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `filename` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd       reference to the general data structure
+ * @param [in] filename name of the file being digested
+ * @return              `0` on succesful execution.
+ */
+extern int
+rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
+                                          char *filename);
 
 #endif /* RGLM_DATA_FILES_H */

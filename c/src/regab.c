@@ -1180,6 +1180,9 @@ do_action_extract_game_pos_cursor_fetch (int *result,
       return_table->records[i].mover = atol(PQgetvalue(res, i, 2));
       return_table->records[i].opponent = atol(PQgetvalue(res, i, 3));
       return_table->records[i].game_value = atoi(PQgetvalue(res, i, 4));
+      return_table->records[i].game_value_transformed = 0.0;
+      return_table->records[i].evaluation_function = 0.0;
+      return_table->records[i].residual = 0.0;
       for (size_t j = 0; j < ni; j++) {
         return_table->iarray[i * ni + j] = atol(PQgetvalue(res, i, 5 + j));
       }
@@ -2550,6 +2553,8 @@ main (int argc,
   /* - 07 - Creates the CURSOR variable, and writes the total amount of expected records. */
   do_action_extract_game_pos_prepare_cursor(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses,
                                             pattern_cnt, patterns, sql_cursor_name_gps_data, &gps_data_total_record_cnt);
+  u8 = RGLMDF_IARRAY_IS_INDEX; //ABRACADABRA
+  fwrite(&u8, sizeof(uint8_t), 1, ofp);
   u64 = gps_data_total_record_cnt;
   fwrite(&u64, sizeof(uint64_t), 1, ofp);
 

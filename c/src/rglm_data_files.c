@@ -57,7 +57,7 @@ rglmdf_verify_type_sizes (void)
 
   if (sizeof(rglmdf_position_summary_record_t) != 24) return false;
   if (sizeof(rglmdf_pattern_freq_summary_record_t) != 48) return false;
-  if (sizeof(rglmdf_solved_and_classified_gp_record_t) != 40) return false;
+  if (sizeof(rglmdf_solved_and_classified_gp_record_t) != 48) return false;
 
   if (sizeof(double) != 8) return false;
 
@@ -83,6 +83,7 @@ rglmdf_general_data_init (rglmdf_general_data_t *gd)
   gd->pattern_freq_summary.ntuples = 0;
   gd->pattern_freq_summary.records = NULL;
 
+  gd->positions.iarray_data_type = RGLMDF_IARRAY_IS_INDEX;
   gd->positions.ntuples = 0;
   gd->positions.n_index_values_per_record = 0;
   gd->positions.records = NULL;
@@ -458,7 +459,8 @@ rglmdf_pattern_freq_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
 
 size_t
 rglmdf_set_positions_ntuples (rglmdf_general_data_t *gd,
-                              size_t ntuples)
+                              size_t ntuples,
+                              rglmdf_iarray_data_type_t iarray_data_type)
 {
   assert(gd);
 
@@ -483,6 +485,7 @@ rglmdf_set_positions_ntuples (rglmdf_general_data_t *gd,
       gd->positions.records = arr;
       memset(gd->positions.records, 0, s);
 
+      gd->positions.iarray_data_type = iarray_data_type;
       gd->positions.ntuples = ntuples;
       gd->positions.n_index_values_per_record = n_index_values_per_record;
       return ntuples;
@@ -555,6 +558,7 @@ rglmdf_transform_piv_to_glm_variable_id (rglmdf_general_data_t *gd,
                                          bool first_step)
 {
   assert(gd);
+  assert(gd->positions.iarray_data_type == (first_step ? RGLMDF_IARRAY_IS_INDEX : RGLMDF_IARRAY_IS_PRINCIPAL_INDEX));
 
   uint32_t idx[RGLM_MAX_PATTERN_CNT * RGLM_MAX_PATTERN_INSTANCE_CNT];
 
@@ -592,6 +596,7 @@ rglmdf_transform_piv_to_glm_variable_id (rglmdf_general_data_t *gd,
       gd->positions.iarray[i * ni + j] = output;
     }
   }
+  gd->positions.iarray_data_type = first_step ? RGLMDF_IARRAY_IS_PRINCIPAL_INDEX : RGLMDF_IARRAY_IS_GLM_VARIABLE_ID;
 }
 
 void
@@ -600,13 +605,14 @@ rglmdf_gp_table_to_csv_file (rglmdf_general_data_t *gd,
 {
   assert(gd);
   const size_t ni = rglmdf_get_positions_n_index_values_per_record(gd);
-  fprintf(f, "I;ROW_N;GP_ID;MOVER;OPPONENT;GAME_VALUE");
-  for (size_t j = 0; j < ni; j++) fprintf(f, ";I_%03zu", j);
+  fprintf(f, "       I;    ROW_N;      GP_ID;                MOVER;             OPPONENT; GAME_VALUE; GAME_VALUE_TRANSFORMED; EVALUATION_FUNCTION;         RESIDUAL");
+  for (size_t j = 0; j < ni; j++) fprintf(f, ";   I_%03zu", j);
   fprintf(f, "\n");
   for (size_t i = 0; i < gd->positions.ntuples; i++) {
     rglmdf_solved_and_classified_gp_record_t *r = &gd->positions.records[i];
-    fprintf(f, "%8zu; %8zu; %10ld; %20ld; %20ld; %3d",
-            i, r->row_n, r->gp_id, r->mover, r->opponent, r->game_value);
+    fprintf(f, "%8zu; %8zu; %10ld; %20ld; %20ld; %10d; %22.12f; %19.12f; %+16.12f",
+            i, r->row_n, r->gp_id, r->mover, r->opponent, r->game_value,
+            r->game_value_transformed, r->evaluation_function, r->residual);
     for (size_t j = 0; j < ni; j++) {
       fprintf(f, ";%8u", gd->positions.iarray[i * ni + j]);
     }
@@ -641,13 +647,6 @@ rglmdf_pfs_table_to_csv_file (rglmdf_general_data_t *gd,
             r[i].principal_index_value, r[i].total_cnt, r[i].relative_frequency,
             r[i].theoretical_probability, r[i].weight);
   }
-}
-
-void
-rglmdf_weights_table_to_csv_file (rglmdf_general_data_t *gd,
-                                  FILE *f)
-{
-  printf("rglmdf_weights_table_to_csv_file ---- TO BE CODED ----\n");
 }
 
 int
@@ -696,4 +695,85 @@ rglmdf_generate_sha3_file_digest (char *file_name)
   fprintf(ofp, "%s  %s\n", msg_digest_to_s, file_name);
   fclose(ofp);
   return 0;
+}
+
+int
+rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
+                                          char *filename)
+{
+  uint8_t u8;
+  uint64_t u64;
+
+  time_t current_time = (time_t) -1;
+
+  FILE *ofp = fopen(filename, "w");
+  if (!ofp) {
+    fprintf(stderr, "Unable to open binary output file: %s\n", filename);
+    return EXIT_FAILURE;
+  }
+
+  /* Obtains current time as seconds elapsed since the Epoch. */
+  current_time = time(NULL);
+  assert(current_time != ((time_t) -1));
+
+  /* Writes current time to the binary file. */
+  u64 = current_time;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+
+  /* Writes count of batch ids, and the batch_ids array to the binary file. */
+  u64 = gd->batch_id_cnt;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  fwrite(gd->batch_ids, sizeof(uint64_t), gd->batch_id_cnt, ofp);
+
+  /* Writes empty count to the binary file. */
+  u8 = gd->empty_count;
+  fwrite(&u8, sizeof(uint8_t), 1, ofp);
+
+  /* Writes the count of position status, and the text buffer containing the terminated strings. */
+  u64 = gd->position_status_cnt;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  fwrite(gd->position_status_buffer, RGLM_POSITION_STATUS_BUF_SIZE, gd->position_status_cnt, ofp);
+
+  /* Writes the pattern count, and the array of pattern id to the binary file. */
+  u64 = gd->pattern_cnt;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  for (size_t i = 0; i < gd->pattern_cnt; i++) {
+    int16_t i16 = gd->patterns[i];
+    fwrite(&i16, sizeof(int16_t), 1, ofp);
+  }
+
+  /* Writes the statistics for game positions to the binary file ( position_summary table ). */
+  u64 = gd->position_summary.ntuples;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  fwrite(gd->position_summary.records, sizeof(rglmdf_position_summary_record_t), gd->position_summary.ntuples, ofp);
+
+  /* Writes the statistics for pattern indexes to the binary file ( pattern_freq_summary table ). */
+  u64 = gd->pattern_freq_summary.ntuples;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  fwrite(gd->pattern_freq_summary.records, sizeof(rglmdf_pattern_freq_summary_record_t), gd->pattern_freq_summary.ntuples, ofp);
+
+  /* Writes the classified and resolved game positions to the binary file. */
+  u8 = gd->positions.iarray_data_type;
+  fwrite(&u8, sizeof(uint8_t), 1, ofp);
+  u64 = gd->positions.ntuples;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  /* The file format prescribes to read/write this section in chunks, here we group everything into one single chunk. */
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  fwrite(gd->positions.records, sizeof(rglmdf_solved_and_classified_gp_record_t), gd->positions.ntuples, ofp);
+  fwrite(gd->positions.iarray, sizeof(uint32_t) * gd->positions.n_index_values_per_record, gd->positions.ntuples, ofp);
+  u64 = 0;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+
+  /* Closes the binary file. */
+  fclose(ofp);
+
+  /* Computes the SHA3 digest. */
+  int ret_code;
+  ret_code = rglmdf_generate_sha3_file_digest(filename);
+  if (ret_code != 0) {
+    fprintf(stderr, "Unable to compute and write SHA3-256 digest file.\n");
+    return EXIT_FAILURE;
+  }
+
+  return EXIT_SUCCESS;
 }

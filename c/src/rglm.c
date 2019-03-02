@@ -67,6 +67,9 @@ static int s_flag = false;
 static int i_flag = false;
 static char *i_arg = NULL;
 
+static int o_flag = false;
+static char *o_arg = NULL;
+
 static int A_flag = false;
 static char *A_arg = NULL;
 
@@ -85,17 +88,22 @@ static char *T_arg = NULL;
 static int W_flag = false;
 static char *W_arg = NULL;
 
+static int R_flag = false;
+static char *R_arg = NULL;
+
 static mop_options_long_t olist[] = {
   {"help",              'h', MOP_NONE},
   {"verbose",           'v', MOP_NONE},
   {"solve",             's', MOP_NONE},
   {"input-file",        'i', MOP_REQUIRED},
+  {"output-file",       'o', MOP_REQUIRED},
   {"extract-ps-table",  'A', MOP_REQUIRED},
   {"extract-pfs-table", 'B', MOP_REQUIRED},
   {"extract-gp-table",  'P', MOP_REQUIRED},
   {"extract-gp-ptable", 'Q', MOP_REQUIRED},
   {"extract-gp-ttable", 'T', MOP_REQUIRED},
   {"extract-weights",   'W', MOP_REQUIRED},
+  {"extract-residuals", 'R', MOP_REQUIRED},
   {0, 0, 0}
 };
 
@@ -108,12 +116,14 @@ static const char *documentation =
   "  -v, --verbose           Verbose output\n"
   "  -s, --solve             Solve the Generalized Linear Model\n"
   "  -i, --input-file        Input file name - Mandatory\n"
+  "  -o, --output-file       Output file names\n"
   "  -A, --extract-ps-table  Dumps the position summary table in a CSV format\n"
   "  -B, --extract-pfs-table Dumps the pattern frequency summary table in a CSV format\n"
   "  -P, --extract-gp-table  Dumps the solved and classified game position table in a CSV format, with original pattern indexes\n"
   "  -Q, --extract-gp-ptable Dumps the solved and classified game position table in a CSV format, with principal pattern indexes\n"
   "  -T, --extract-gp-ttable Dumps the solved and classified game position table transformed to glm_variable_id in a CSV format\n"
   "  -W, --extract-weights   Dumps the weights, the optimized value assigned to the glm_variable_id keys in a CSV format\n"
+  "  -R, --extract-residuals Dumps the residuals of the minimization moGLM model in a CSV format\n"
   "\n"
   "Description:\n"
   "The Reversi Generalized Linear Model solver is the main entry to a set of utilities dedicated to process a set of solved and classified game position retrieved from a binary imput file.\n"
@@ -158,6 +168,7 @@ main (int argc,
   rglmdf_solved_and_classified_gp_record_t *scgprp;
   uint32_t *iarrayp;
   uint64_t data_chunk_size;
+  int ret_code;
 
   rglmdf_general_data_t data;
   rglmdf_general_data_init(&data);
@@ -186,6 +197,10 @@ main (int argc,
       i_flag = true;
       i_arg = options.optarg;
       break;
+    case 'o':
+      o_flag = true;
+      o_arg = options.optarg;
+      break;
     case 'A':
       A_flag = true;
       A_arg = options.optarg;
@@ -209,6 +224,10 @@ main (int argc,
     case 'W':
       W_flag = true;
       W_arg = options.optarg;
+      break;
+    case 'R':
+      R_flag = true;
+      R_arg = options.optarg;
       break;
     case ':':
       fprintf(stderr, "Option parsing failed: %s\n", options.errmsg);
@@ -336,10 +355,13 @@ main (int argc,
   rglmdf_build_reverse_map(&data);
   if (verbose) fprintf(stdout, "Reverse map has been computed.\n");
 
+  /* Reads the iarrai data type. */
+  re = fread(&u8, sizeof(uint8_t), 1, ifp);
+  if (re != 1) print_error_and_stop(-130);
   /* Read the number of record for the solved and classified game position table. */
   re = fread(&u64, sizeof(uint64_t), 1, ifp);
-  if (re != 1) print_error_and_stop(-130);
-  v64 = rglmdf_set_positions_ntuples(&data, u64);
+  if (re != 1) print_error_and_stop(-132);
+  v64 = rglmdf_set_positions_ntuples(&data, u64, u8);
   if (v64 != u64) {
     fprintf(stderr, "Unable to allocate memory for the positions table.\n");
     return EXIT_FAILURE;
@@ -403,34 +425,47 @@ main (int argc,
 
   /* If P flag is turned on, dumps the game position table to the output file. */
   if (P_arg) {
-    ofp = fopen(P_arg, "w");
-    if (!ofp) {
-      fprintf(stderr, "Unable to open output file: %s\n", P_arg);
-      return EXIT_FAILURE;
+    if (data.positions.iarray_data_type == RGLMDF_IARRAY_IS_INDEX) {
+      ofp = fopen(P_arg, "w");
+      if (!ofp) {
+        fprintf(stderr, "Unable to open output file: %s\n", P_arg);
+        return EXIT_FAILURE;
+      }
+      rglmdf_gp_table_to_csv_file(&data, ofp);
+      fclose(ofp);
+      if (verbose) fprintf(stdout, "Game positions dumped to CSV file: \"%s\".\n", P_arg);
+    } else {
+      fprintf(stdout, "Game positions are classified with a format that doesn't allow to recall the pattern configuration index values.\n");
     }
-    rglmdf_gp_table_to_csv_file(&data, ofp);
-    fclose(ofp);
-    if (verbose) fprintf(stdout, "Game positions dumped to CSV file: \"%s\".\n", P_arg);
   }
 
   /* Transforms the pattern index values to the principal ones. */
-  rglmdf_transform_piv_to_glm_variable_id(&data, true);
+  if (data.positions.iarray_data_type == RGLMDF_IARRAY_IS_INDEX) {
+    rglmdf_transform_piv_to_glm_variable_id(&data, true);
+    if (verbose) fprintf(stdout, "Pattern index values have been translated to principal ones.\n");
+  }
 
   /* If Q flag is turned on, dumps the game position transformed table to the output file. */
   if (Q_arg) {
-    ofp = fopen(Q_arg, "w");
-    if (!ofp) {
-      fprintf(stderr, "Unable to open output file: %s\n", Q_arg);
-      return EXIT_FAILURE;
+    if (data.positions.iarray_data_type == RGLMDF_IARRAY_IS_PRINCIPAL_INDEX) {
+      ofp = fopen(Q_arg, "w");
+      if (!ofp) {
+        fprintf(stderr, "Unable to open output file: %s\n", Q_arg);
+        return EXIT_FAILURE;
+      }
+      rglmdf_gp_table_to_csv_file(&data, ofp);
+      fclose(ofp);
+      if (verbose) fprintf(stdout, "Game positions, with pattern indexes being remapped to principal values, dumped to CSV file: \"%s\".\n", Q_arg);
+    } else {
+      fprintf(stdout, "Game positions are classified with a format that doesn't allow (currently) to recall the principal pattern configuration index values.\n");
     }
-    rglmdf_gp_table_to_csv_file(&data, ofp);
-    fclose(ofp);
-    if (verbose) fprintf(stdout, "Game positions, with pattern indexes being remapped to principal values, dumped to CSV file: \"%s\".\n", Q_arg);
   }
 
   /* Transforms the pattern principal index values to the corresponding global GLM variable id, in the game position table. */
-  rglmdf_transform_piv_to_glm_variable_id(&data, false);
-  if (verbose) fprintf(stdout, "Pattern principal index values have been translated to global GLM variable id.\n");
+  if (data.positions.iarray_data_type == RGLMDF_IARRAY_IS_PRINCIPAL_INDEX) {
+    rglmdf_transform_piv_to_glm_variable_id(&data, false);
+    if (verbose) fprintf(stdout, "Pattern principal index values have been translated to global GLM variable id.\n");
+  }
 
   /* If T flag is turned on, dumps the game position transformed table to the output file. */
   if (T_arg) {
@@ -526,7 +561,7 @@ main (int argc,
     epsilon_on_gradient_modulus = 1.0e-9;
 
     /* max_newton_iter: max number of iterations allowed to the Newton algorithm. */
-    max_newton_iter = 10;
+    max_newton_iter = 3;
 
     if (verbose) {
       printf("Dumping factor for the diagonal of the Hessian matrix (Levemberg-Marquardt): lambda = %f\n", lambda);
@@ -651,6 +686,15 @@ main (int argc,
     /* Copies the optimized weighs into the general data structure. */
     for (size_t i = 0; i < enne; i++) data.pattern_freq_summary.records[i].weight = w[i];
 
+    /* Copies residual and game value into the general data structure. */
+    rglmut_evaluation_function_eval(&data, enne, w, emme, e);
+    for (size_t i = 0; i < emme; i++) {
+      const double gvt = rglmut_gv_scale(data.positions.records[i].game_value);
+      data.positions.records[i].game_value_transformed = gvt;
+      data.positions.records[i].evaluation_function = e[i];
+      data.positions.records[i].residual = e[i] - gvt;
+    }
+
     chol_free_vector(p);
     chol_free_vector(aux_diag_big_b);
     chol_free_matrix(big_b);
@@ -681,14 +725,34 @@ main (int argc,
     if (verbose) fprintf(stdout, "Optimized Weights table dumped to CSV file: \"%s\".\n", W_arg);
   }
 
+  /* If R flag is turned on, dumps the game position table to the output file. */
+  if (R_arg) {
+    ofp = fopen(R_arg, "w");
+    if (!ofp) {
+      fprintf(stderr, "Unable to open output file: %s\n", R_arg);
+      return EXIT_FAILURE;
+    }
+    rglmdf_gp_table_to_csv_file(&data, ofp);
+    fclose(ofp);
+    if (verbose) fprintf(stdout, "Game positions dumped to CSV file: \"%s\".\n", R_arg);
+  }
+
+  /* Writes the binary output file. */
+  if (o_arg) {
+    ret_code = rglmdf_write_general_data_to_binary_file (&data, o_arg);
+    if (ret_code == EXIT_SUCCESS) {
+      if (verbose) fprintf(stdout, "Binary output file written to %s, computed SHA3-256 digest, written to file %s.sha3-256.\n", o_arg, o_arg);
+    } else {
+      fprintf(stderr, "Unable to write correctly binary output file: %s\n", o_arg);
+      return ret_code;
+    }
+  }
+
   /* TO DO:
-   *  - Add flag to print a specific record in the game position table.
    *  - Optimize with AVX2 the Cholesky decomposition.
    *  - Add the parameter output to binary file.
-   *  - Add a further table output to CSV after the solution has been found.
    *  - Reorganize variable declarations.
    *  - Reorganize the verbose output.
-   *  - Add the residual output ... means to output all the game positions ....
    *  - Rename cholesky module to linear_algebra ....
    */
 
