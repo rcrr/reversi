@@ -126,7 +126,7 @@ rglmdf_get_file_creation_time (rglmdf_general_data_t *gd)
 
 void
 rglmdf_get_file_creation_time_as_string (rglmdf_general_data_t *gd,
-                                               char *buf)
+                                         char *buf)
 {
   assert(gd);
   assert(buf);
@@ -371,6 +371,12 @@ rglmdf_set_pattern_freq_summary_ntuples (rglmdf_general_data_t *gd,
     reverse_map_b_length += dim;
   }
   reverse_map_a_length++;
+
+  /*
+  printf("reverse_map_a_length=%zu\n", reverse_map_a_length);
+  printf("reverse_map_b_length=%zu\n", reverse_map_b_length);
+  reverse_map_a_lenght = BOARD_PATTERN_COUNT;
+  */
 
   /*
    * Allocates memory for the three vectors.
@@ -698,9 +704,71 @@ rglmdf_generate_sha3_file_digest (char *file_name)
 }
 
 int
+rglmdf_write_rglm_weights_to_binary_file (rglmdf_general_data_t *gd,
+                                          char *filename)
+{
+  assert(gd);
+  assert(filename);
+
+  uint64_t u64;
+  uint8_t u8;
+  int16_t i16;
+  double w;
+
+  time_t current_time = (time_t) -1;
+
+  FILE *ofp = fopen(filename, "w");
+  if (!ofp) {
+    fprintf(stderr, "Unable to open binary output file: %s\n", filename);
+    return EXIT_FAILURE;
+  }
+
+  /* Obtains current time as seconds elapsed since the Epoch. */
+  current_time = time(NULL);
+  assert(current_time != ((time_t) -1));
+
+  /* Writes current time to the binary file. */
+  u64 = current_time;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+
+  /* Writes empty count to the binary file. */
+  u8 = gd->empty_count;
+  fwrite(&u8, sizeof(uint8_t), 1, ofp);
+
+  /* Writes the pattern count, and the array of pattern id to the binary file. */
+  u64 = gd->pattern_cnt;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  for (size_t i = 0; i < gd->pattern_cnt; i++) {
+    i16 = gd->patterns[i];
+    fwrite(&i16, sizeof(int16_t), 1, ofp);
+  }
+
+  /* Writes the weights to the binary file. */
+  for (size_t i = 0; i < gd->pattern_cnt; i++) {
+    board_pattern_id_t pid = gd->patterns[i];
+    for (board_pattern_index_t j = 0; j < board_patterns[pid].n_configurations; j++) {
+      board_pattern_index_t principal;
+      board_pattern_compute_principal_indexes(&principal, &j, &board_patterns[pid], true);
+      uint32_t glm_variable_id = rglmdf_map_pid_and_piv_to_glm_vid(gd, pid, principal);
+      if (glm_variable_id == RGLM_INVALID_GLM_VARIABLE_ID)
+        w = 0.0;
+      else
+        w = gd->pattern_freq_summary.records[glm_variable_id].weight;
+      fwrite(&w, sizeof(double), 1, ofp);
+    }
+  }
+
+  return EXIT_SUCCESS;
+}
+
+
+int
 rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
                                           char *filename)
 {
+  assert(gd);
+  assert(filename);
+
   uint8_t u8;
   uint64_t u64;
 

@@ -482,7 +482,8 @@ BEGIN
   SELECT array_length(status_array_arg, 1) INTO status_cardinality;
   SELECT array_length(pattern_id_array_arg, 1) INTO pattern_id_cardinality;
 
-  IF (status_cardinality IS NOT NULL AND pattern_id_cardinality IS NOT NULL AND empty_count_arg >= 0 AND empty_count_arg <= 60) THEN
+  --IF (status_cardinality IS NOT NULL AND pattern_id_cardinality IS NOT NULL AND empty_count_arg >= 0 AND empty_count_arg <= 60) THEN
+  IF (status_cardinality IS NOT NULL AND empty_count_arg >= 0 AND empty_count_arg <= 60) THEN
 
     i_abs := 0;
     query_command := format('SELECT ROW_NUMBER () OVER (ORDER BY gp_id) - 1 AS row_n, ', cursor_arg);

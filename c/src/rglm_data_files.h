@@ -133,8 +133,6 @@
 
 #include "board_pattern.h"
 
-//ABRACADABRA
-
 /**
  * @enum rglmdf_iarray_data_type_t
  * @brief Meaning of the data stored into the iarray field.
@@ -142,7 +140,8 @@
 typedef enum {
   RGLMDF_IARRAY_IS_INDEX,              /**< Pattern configuration index value. */
   RGLMDF_IARRAY_IS_PRINCIPAL_INDEX,    /**< Pattern configuration principal index value. */
-  RGLMDF_IARRAY_IS_GLM_VARIABLE_ID     /**< Generalized linear model variable id. */
+  RGLMDF_IARRAY_IS_GLM_VARIABLE_ID,    /**< Generalized linear model variable id. */
+  RGLMDF_IARRAY_IS_MISSING             /**< There are no iarray fields in the record. */
 } rglmdf_iarray_data_type_t;
 
 /**
@@ -243,7 +242,7 @@ typedef struct rglmdf_solved_and_classified_gp_record_s {
  *          equal to `ntuples` multiplied by `n_index_values_per_record`.
  *          Pattern index values are ordered by `(pattern_id, instance_number)`.
  */
-typedef struct rglmdf_solved_and_classified_gp_table_s { //ABRACADABRA
+typedef struct rglmdf_solved_and_classified_gp_table_s {
   rglmdf_iarray_data_type_t iarray_data_type;          /**< @brief Specifies what is the meaning of the data in the iarray fields. */
   size_t ntuples;                                      /**< @brief Number of records. */
   size_t n_index_values_per_record;                    /**< @brief Count of pattern index values fields. */
@@ -829,7 +828,7 @@ extern int
 rglmdf_generate_sha3_file_digest (char *file_name);
 
 /**
- * @brief Saves the genaral data structure to a binary file..
+ * @brief Saves the genaral data structure to a binary file.
  *
  * @details Opens the file named `filename`, and stores the data
  *          contained by the `gd` general data structure in it.
@@ -848,6 +847,28 @@ rglmdf_generate_sha3_file_digest (char *file_name);
  */
 extern int
 rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
+                                          char *filename);
+
+/**
+ * @brief Dumps the RGLM weights to a binary file.
+ *
+ * @details Opens the file named `filename`, and stores the RGLM parameters in it.
+ *          All parameters belonging to to the list of patterns considered by the model
+ *          are saved. Parameters corresponding to missing pattern configurations are
+ *          valued as zero.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `filename` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd       reference to the general data structure
+ * @param [in] filename name of the file being digested
+ * @return              `0` on succesful execution.
+ */
+extern int
+rglmdf_write_rglm_weights_to_binary_file (rglmdf_general_data_t *gd,
                                           char *filename);
 
 #endif /* RGLM_DATA_FILES_H */

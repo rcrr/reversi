@@ -24,7 +24,7 @@
 
 # Add all the programs that has a main and that will be compiled and linked as a bin executable.
 MAINS = endgame_solver utest read_pve_dump intel_intrinsics_trial \
-        read_game_tree_log gpdb_verify regab rglm
+        read_game_tree_log gpdb_verify regab rglm rglm_fit_utility
 
 UTEST_PROGS = ut_utest ut_llist ut_memory_object_pool ut_main_option_parse ut_bit_works ut_sha3 ut_prng ut_file_utils ut_sort_utils ut_red_black_tree \
               ut_cholesky_decomposition ut_board ut_board_trans ut_board_pattern ut_game_position_db ut_game_tree_utils ut_game_position ut_endgame_solver ut_es_pv ut_cfg \
@@ -51,12 +51,13 @@ CC = gcc
 # add -pg for gprof execution.
 # add -DNDEBUG to disable assertions
 # add -fno-inline to prevent inlining
+# add -ftree-vectorize -ftree-vectorizer-verbose=2 to get from gcc the explanation for code vectorization
 ARCH_FLAGS = -mpopcnt -mavx2 -mabm
-CFLAGS = -std=c99 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -ffast-math
+CFLAGS = -std=c99 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -ffast-math -march=native
 LDFLAGS =
 CFLAGS_TEST = -std=c99 -pedantic-errors -Wall -g -O3 -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS)
 LDFLAGS_TEST =
-ASMFLAGS = -std=c99 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -masm=intel
+ASMFLAGS = -std=c99 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -masm=intel -march=native
 LIBS = -lm -L$(PG_LIB_DIR) $(PG_LIBS)
 TEST_LIBS =
 SRCDIR = src

@@ -144,6 +144,7 @@ chol_test0 (double *v,
   return sum;
 }
 
+
 double
 chol_test1 (double *v,
             double *u,

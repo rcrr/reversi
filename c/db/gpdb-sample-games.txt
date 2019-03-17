@@ -663,3 +663,20 @@ reni-rob-20150426;..wwwwww..bbbbwwwwwwwwww..bbwwww..bbwbwwwwbwwwww..bbw.ww....w.
 #                     |1       2       3       4       5       6       7       8       |
 #                     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
 black-wins-by-wipe-out;bbbbbbbbbbbbbbb.bbbbbbwbbbbbbbw.wwbbwbww.wwbb.....wwwww..wwww...;w;White is forced to move in F6, then black wins by wipe out;
+#
+#
+#
+#    a b c d e f g h
+# 1  . . @ @ . @ . .
+# 2  O O O @ O O . .
+# 3  O O . @ @ . . .
+# 4  O O O O O O O .
+# 5  O O O O O O @ .
+# 6  O O O O O . O .
+# 7  O O O @ @ O . O
+# 8  @ . . . @ O O .
+# Player to move: BLACK
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+sample-61906155;..bb.b..wwwbww..ww.bb...wwwwwww.wwwwwwb.wwwww.w.wwwbbw.wb...bww.;b;Black wins with a score of 62;

@@ -70,6 +70,9 @@ static char *i_arg = NULL;
 static int o_flag = false;
 static char *o_arg = NULL;
 
+static int b_flag = false;
+static char *b_arg = NULL;
+
 static int A_flag = false;
 static char *A_arg = NULL;
 
@@ -92,18 +95,19 @@ static int R_flag = false;
 static char *R_arg = NULL;
 
 static mop_options_long_t olist[] = {
-  {"help",              'h', MOP_NONE},
-  {"verbose",           'v', MOP_NONE},
-  {"solve",             's', MOP_NONE},
-  {"input-file",        'i', MOP_REQUIRED},
-  {"output-file",       'o', MOP_REQUIRED},
-  {"extract-ps-table",  'A', MOP_REQUIRED},
-  {"extract-pfs-table", 'B', MOP_REQUIRED},
-  {"extract-gp-table",  'P', MOP_REQUIRED},
-  {"extract-gp-ptable", 'Q', MOP_REQUIRED},
-  {"extract-gp-ttable", 'T', MOP_REQUIRED},
-  {"extract-weights",   'W', MOP_REQUIRED},
-  {"extract-residuals", 'R', MOP_REQUIRED},
+  {"help",                 'h', MOP_NONE},
+  {"verbose",              'v', MOP_NONE},
+  {"solve",                's', MOP_NONE},
+  {"input-file",           'i', MOP_REQUIRED},
+  {"output-file",          'o', MOP_REQUIRED},
+  {"rglm-par-output-file", 'b', MOP_REQUIRED},
+  {"extract-ps-table",     'A', MOP_REQUIRED},
+  {"extract-pfs-table",    'B', MOP_REQUIRED},
+  {"extract-gp-table",     'P', MOP_REQUIRED},
+  {"extract-gp-ptable",    'Q', MOP_REQUIRED},
+  {"extract-gp-ttable",    'T', MOP_REQUIRED},
+  {"extract-weights",      'W', MOP_REQUIRED},
+  {"extract-residuals",    'R', MOP_REQUIRED},
   {0, 0, 0}
 };
 
@@ -112,18 +116,19 @@ static const char *documentation =
   "rglm [OPTION...] - Reversi Generalized Linear Model solver\n"
   "\n"
   "Options:\n"
-  "  -h, --help              Show help options\n"
-  "  -v, --verbose           Verbose output\n"
-  "  -s, --solve             Solve the Generalized Linear Model\n"
-  "  -i, --input-file        Input file name - Mandatory\n"
-  "  -o, --output-file       Output file names\n"
-  "  -A, --extract-ps-table  Dumps the position summary table in a CSV format\n"
-  "  -B, --extract-pfs-table Dumps the pattern frequency summary table in a CSV format\n"
-  "  -P, --extract-gp-table  Dumps the solved and classified game position table in a CSV format, with original pattern indexes\n"
-  "  -Q, --extract-gp-ptable Dumps the solved and classified game position table in a CSV format, with principal pattern indexes\n"
-  "  -T, --extract-gp-ttable Dumps the solved and classified game position table transformed to glm_variable_id in a CSV format\n"
-  "  -W, --extract-weights   Dumps the weights, the optimized value assigned to the glm_variable_id keys in a CSV format\n"
-  "  -R, --extract-residuals Dumps the residuals of the minimization moGLM model in a CSV format\n"
+  "  -h, --help                 Show help options\n"
+  "  -v, --verbose              Verbose output\n"
+  "  -s, --solve                Solve the Generalized Linear Model\n"
+  "  -i, --input-file           Input file name - Mandatory\n"
+  "  -o, --output-file          Output file name\n"
+  "  -b, --rglm-par-output-file RGLM parameters values output file name\n"
+  "  -A, --extract-ps-table     Dumps the position summary table in a CSV format\n"
+  "  -B, --extract-pfs-table    Dumps the pattern frequency summary table in a CSV format\n"
+  "  -P, --extract-gp-table     Dumps the solved and classified game position table in a CSV format, with original pattern indexes\n"
+  "  -Q, --extract-gp-ptable    Dumps the solved and classified game position table in a CSV format, with principal pattern indexes\n"
+  "  -T, --extract-gp-ttable    Dumps the solved and classified game position table transformed to glm_variable_id in a CSV format\n"
+  "  -W, --extract-weights      Dumps the weights, the optimized value assigned to the glm_variable_id keys in a CSV format\n"
+  "  -R, --extract-residuals    Dumps the residuals of the minimization moGLM model in a CSV format\n"
   "\n"
   "Description:\n"
   "The Reversi Generalized Linear Model solver is the main entry to a set of utilities dedicated to process a set of solved and classified game position retrieved from a binary imput file.\n"
@@ -200,6 +205,10 @@ main (int argc,
     case 'o':
       o_flag = true;
       o_arg = options.optarg;
+      break;
+    case 'b':
+      b_flag = true;
+      b_arg = options.optarg;
       break;
     case 'A':
       A_flag = true;
@@ -561,7 +570,7 @@ main (int argc,
     epsilon_on_gradient_modulus = 1.0e-9;
 
     /* max_newton_iter: max number of iterations allowed to the Newton algorithm. */
-    max_newton_iter = 3;
+    max_newton_iter = 14;
 
     if (verbose) {
       printf("Dumping factor for the diagonal of the Hessian matrix (Levemberg-Marquardt): lambda = %f\n", lambda);
@@ -739,7 +748,7 @@ main (int argc,
 
   /* Writes the binary output file. */
   if (o_arg) {
-    ret_code = rglmdf_write_general_data_to_binary_file (&data, o_arg);
+    ret_code = rglmdf_write_general_data_to_binary_file(&data, o_arg);
     if (ret_code == EXIT_SUCCESS) {
       if (verbose) fprintf(stdout, "Binary output file written to %s, computed SHA3-256 digest, written to file %s.sha3-256.\n", o_arg, o_arg);
     } else {
@@ -748,12 +757,28 @@ main (int argc,
     }
   }
 
+  /* Writes the parameters (weights) binary file. */
+  if (b_arg) {
+    ret_code = rglmdf_write_rglm_weights_to_binary_file(&data, b_arg);
+    if (ret_code == EXIT_SUCCESS) {
+      if (verbose) fprintf(stdout, "RGLM parameters binary file written to %s\n", b_arg);
+    } else {
+      fprintf(stderr, "Unable to write correctly RGLM parameters binary file: %s\n", o_arg);
+      return ret_code;
+    }
+  }
+
   /* TO DO:
-   *  - Optimize with AVX2 the Cholesky decomposition.
-   *  - Add the parameter output to binary file.
+   *  - Add a flag that generates the binary parameter file
+   *
+   *  - Optimize the Cholesky decomposition with vectorization and OMP.
+   *
    *  - Reorganize variable declarations.
    *  - Reorganize the verbose output.
    *  - Rename cholesky module to linear_algebra ....
+   *
+   *  - Collect the code that generates the binary file in the regab program into functions defined by the rglm_data_files module.
+   *  - Insert the checksum data into the rglm files.
    */
 
   /* Frees resources. */

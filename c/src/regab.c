@@ -127,6 +127,7 @@ static const mop_options_long_t olist[] = {
   {"empty-count",       'y', MOP_REQUIRED},
   {"position-status",   'u', MOP_REQUIRED},
   {"pattern",           'p', MOP_REQUIRED},
+  {"game-positions",    'g', MOP_NONE},
   {"out-file",          'o', MOP_REQUIRED},
   {0, 0, 0}
 };
@@ -147,6 +148,7 @@ static const char *documentation =
   "  -y, --empty-count     Number of empty squares in the solved game position         - Mandatory when action is in [solve].\n"
   "  -u, --position-status One or more status flag for the selection of game positions - Mandatory when action is in [extract].\n"
   "  -p, --pattern         One or more patterns                                        - Mandatory when action is in [extract].\n"
+  "  -g, --game-positions  Extract just game positions                                 - Mutually exclusive with option -p when action is [extract].\n"
   "  -o, --out-file        The output file name                                        - Mandatory when action is in [extract].\n"
   "\n"
   "Description:\n"
@@ -155,7 +157,7 @@ static const char *documentation =
   "Author:\n"
   "  Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
   "\n"
-  "Copyright (c) 2017, 2018 Roberto Corradini. All rights reserved.\n"
+  "Copyright (c) 2017, 2018, 2019 Roberto Corradini. All rights reserved.\n"
   "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
   "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n"
   ;
@@ -199,6 +201,8 @@ static char *u_arg = NULL;
 
 static int p_flag = false;
 static char *p_arg = NULL;
+
+static int g_flag = false;
 
 static int o_flag = false;
 static char *o_arg = NULL;
@@ -1096,12 +1100,19 @@ do_action_extract_game_pos_prepare_cursor (int *result,
   }
 
   for (size_t i = 0; i < pattern_cnt; i++) {
-    cl += snprintf(cp, command_size - cl, "%d%s", patterns[i], (i < pattern_cnt - 1) ? ", " : "}', ");
+    cl += snprintf(cp, command_size - cl, "%d%s", patterns[i], (i < pattern_cnt - 1) ? ", " : "");
     cp = command + cl;
     if (cl >= command_size) {
       fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
       abort();
     }
+  }
+
+  cl += snprintf(cp, command_size - cl, "}', ");
+  cp = command + cl;
+  if (cl >= command_size) {
+    fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+    abort();
   }
 
   cl += snprintf(cp, command_size - cl, "'%s');", sql_cursor_name);
@@ -1689,6 +1700,9 @@ main (int argc,
       p_flag = true;
       p_arg = options.optarg;
       break;
+    case 'g':
+      g_flag = true;
+      break;
     case 'o':
       o_flag = true;
       o_arg = options.optarg;
@@ -1830,15 +1844,15 @@ main (int argc,
       fprintf(stderr, "Further characters after number in batch_id value: %s\n", endptr);
       return EXIT_FAILURE;
     }
-  }
-  sort_utils_insertionsort_asc_u64(batch_ids, batch_id_cnt);
-  uint64_t previous = batch_ids[0];
-  for (size_t i = 1; i < batch_id_cnt; i++) {
-    if (previous == batch_ids[i]) {
-      fprintf(stderr, "Duplicated values in batch_id option: %lu\n", previous);
-      return EXIT_FAILURE;
+    sort_utils_insertionsort_asc_u64(batch_ids, batch_id_cnt);
+    uint64_t previous = batch_ids[0];
+    for (size_t i = 1; i < batch_id_cnt; i++) {
+      if (previous == batch_ids[i]) {
+        fprintf(stderr, "Duplicated values in batch_id option: %lu\n", previous);
+        return EXIT_FAILURE;
+      }
+      previous = batch_ids[i];
     }
-    previous = batch_ids[i];
   }
   if (y_flag) {
     char *endptr;
@@ -1993,6 +2007,12 @@ main (int argc,
       }
     }
   }
+  if (g_flag) {
+    if (p_flag) {
+      fprintf(stderr, "Error flag -g and flag -p are mutually exclusive.\n");
+      return EXIT_FAILURE;
+    }
+  }
   if (o_flag) {
     if (fut_touch_file(o_arg)) {
       output_file_name = o_arg;
@@ -2069,8 +2089,8 @@ main (int argc,
       fprintf(stderr, "Option -u, --position-status, is mandatory when option -a, --action, has value \"extract\".\n");
       return EXIT_FAILURE;
     }
-    if (!p_flag) {
-      fprintf(stderr, "Option -p, --pattern, is mandatory when option -a, --action, has value \"extract\".\n");
+    if (!p_flag && !g_flag) {
+      fprintf(stderr, "One option among -p, --pattern, and -g, --game-positions, is mandatory when option -a, --action, has value \"extract\".\n");
       return EXIT_FAILURE;
     }
     if (!o_flag) {
@@ -2390,6 +2410,9 @@ main (int argc,
   /*
    * Extracts the selected, solved and classified positions from the regab database.
    *
+   * There are two options, the "full extract", and the "game positions extract", first option is
+   * designated by the p_flag boolean variable being true, the second one by the g_flag.
+   *
    * Steps:
    *  - 00 - Starts a DB transaction.
    *  - 01 - Checks that the imput data (batch_id, pattern) is consistent with the DB data.
@@ -2425,7 +2448,7 @@ main (int argc,
     abort();
   }
 
-  const size_t gps_data_chunk_size = 4096; // 4096 // 256
+  const size_t gps_data_chunk_size = 4096;
   const char *sql_cursor_name_gps_data = "sql_cursor_name_gps_data";
   size_t gps_data_total_record_cnt = 0;
   size_t gps_data_fetched_record_cnt = 0;
@@ -2474,11 +2497,13 @@ main (int argc,
   }
 
   /* - 01.b - Checks pattern argument data. */
-  do_action_extract_check_patterns(&result, con, verbose, patterns, pattern_cnt);
-  if (result != 0) {
-    res = PQexec(con, "ROLLBACK");
-    PQfinish(con);
-    return EXIT_FAILURE;
+  if (p_flag) {
+    do_action_extract_check_patterns(&result, con, verbose, patterns, pattern_cnt);
+    if (result != 0) {
+      res = PQexec(con, "ROLLBACK");
+      PQfinish(con);
+      return EXIT_FAILURE;
+    }
   }
 
   /* - 01.c - Logs selected statuses for the game positions. */
@@ -2518,42 +2543,46 @@ main (int argc,
   if (verbose) fprintf(stdout, "Header data written succesfully to binary output file \"%s\".\n", output_file_name);
 
   /* - 04 - Collects from the DB the game positions statistics and writes them to the binary file. */
-  do_action_extract_count_positions(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses, &position_summary);
-  u64 = position_summary.ntuples;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
-  fwrite(position_summary.records, sizeof(rglmdf_position_summary_record_t), position_summary.ntuples, ofp);
-  if (verbose) fprintf(stdout, "Position summary table written succesfully to binary output file \"%s\".\n", output_file_name);
-  free(position_summary.records);
+  if (p_flag) {
+    do_action_extract_count_positions(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses, &position_summary);
+    u64 = position_summary.ntuples;
+    fwrite(&u64, sizeof(uint64_t), 1, ofp);
+    fwrite(position_summary.records, sizeof(rglmdf_position_summary_record_t), position_summary.ntuples, ofp);
+    if (verbose) fprintf(stdout, "Position summary table written succesfully to binary output file \"%s\".\n", output_file_name);
+    free(position_summary.records);
+  }
 
   /* - 05 - Collects from the DB the pattern index statistics, assigns the global variable index value, writes them to the binary file ... */
-  do_action_extract_pattern_freqs_prepare_cursor(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses,
-                                                 pattern_cnt, patterns, sql_cursor_name_pattern_freqs_debug, sql_cursor_name_pattern_freqs,
-                                                 &pattern_freq_summary_total_record_cnt);
-  u64 = pattern_freq_summary_total_record_cnt;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  if (p_flag) {
+    do_action_extract_pattern_freqs_prepare_cursor(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses,
+                                                   pattern_cnt, patterns, sql_cursor_name_pattern_freqs_debug, sql_cursor_name_pattern_freqs,
+                                                   &pattern_freq_summary_total_record_cnt);
+    u64 = pattern_freq_summary_total_record_cnt;
+    fwrite(&u64, sizeof(uint64_t), 1, ofp);
 
-  for (;;) {
-    do_action_extract_pattern_freqs_cursor_fetch(&result, con, verbose, sql_cursor_name_pattern_freqs, pattern_freq_summary_chunk_size, &pattern_freq_summary);
-    pattern_freq_summary_fetched_record_cnt += pattern_freq_summary.ntuples;
-    if (pattern_freq_summary.ntuples == 0) {
-      if (pattern_freq_summary_fetched_record_cnt != pattern_freq_summary_total_record_cnt) {
-        res = PQexec(con, "ROLLBACK");
-        PQfinish(con);
-        fclose(ofp);
-        fprintf(stderr, "Records count mismatch, do_action_extract_pattern_freqs_cursor_fetch returned an unexpectd number of records.\n");
-        return EXIT_FAILURE;
+    for (;;) {
+      do_action_extract_pattern_freqs_cursor_fetch(&result, con, verbose, sql_cursor_name_pattern_freqs, pattern_freq_summary_chunk_size, &pattern_freq_summary);
+      pattern_freq_summary_fetched_record_cnt += pattern_freq_summary.ntuples;
+      if (pattern_freq_summary.ntuples == 0) {
+        if (pattern_freq_summary_fetched_record_cnt != pattern_freq_summary_total_record_cnt) {
+          res = PQexec(con, "ROLLBACK");
+          PQfinish(con);
+          fclose(ofp);
+          fprintf(stderr, "Records count mismatch, do_action_extract_pattern_freqs_cursor_fetch returned an unexpectd number of records.\n");
+          return EXIT_FAILURE;
+        }
+        break;
       }
-      break;
+      fwrite(pattern_freq_summary.records, sizeof(rglmdf_pattern_freq_summary_record_t), pattern_freq_summary.ntuples, ofp);
     }
-    fwrite(pattern_freq_summary.records, sizeof(rglmdf_pattern_freq_summary_record_t), pattern_freq_summary.ntuples, ofp);
+    free(pattern_freq_summary.records);
+    if (verbose) fprintf(stdout, "Pattern frequency summary table written succesfully to binary output file \"%s\".\n", output_file_name);
   }
-  free(pattern_freq_summary.records);
-  if (verbose) fprintf(stdout, "Pattern frequency summary table written succesfully to binary output file \"%s\".\n", output_file_name);
 
   /* - 07 - Creates the CURSOR variable, and writes the total amount of expected records. */
   do_action_extract_game_pos_prepare_cursor(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses,
                                             pattern_cnt, patterns, sql_cursor_name_gps_data, &gps_data_total_record_cnt);
-  u8 = RGLMDF_IARRAY_IS_INDEX; //ABRACADABRA
+  u8 = p_flag ? RGLMDF_IARRAY_IS_INDEX : RGLMDF_IARRAY_IS_MISSING;
   fwrite(&u8, sizeof(uint8_t), 1, ofp);
   u64 = gps_data_total_record_cnt;
   fwrite(&u64, sizeof(uint64_t), 1, ofp);
