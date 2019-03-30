@@ -395,10 +395,16 @@ typedef enum {
 
 #define BOARD_PATTERN_COUNT BOARD_PATTERN_INVALID
 #define BOARD_PATTERN_INDEX_TABLE_SIZE 6561 + 19683 + 59049 + 6561 + 6561 + 6561 + 81 + 243 + 729 + 2187 + 6561 + 59049 + 27
+#define BOARD_PATTERN_MAX_N_INSTANCES 8
 
 typedef uint16_t board_pattern_index_t;
 
 typedef struct board_pattern_s board_pattern_t;
+
+extern SquareSet
+board_pattern_mask (SquareSet s,
+                    board_pattern_index_t p,
+                    unsigned int instance);
 
 extern SquareSet
 board_pattern_pack_edge (SquareSet s);
@@ -492,6 +498,25 @@ board_pattern_unpack_diag3 (SquareSet s);
 extern bool
 board_pattern_get_id_by_name (board_pattern_id_t *idp,
                               char *name);
+
+typedef union board_pattern_rotated_u board_pattern_rotated_t;
+typedef struct board_pattern_named_rotated_s board_pattern_named_rotated_t;
+
+struct board_pattern_named_rotated_s {
+  board_t identity;
+  board_t rot_90a;
+  board_t rot_180;
+  board_t rot_90c;
+  board_t flip_ve;
+  board_t flip_dh;
+  board_t flip_ho;
+  board_t flip_da;
+};
+
+union board_pattern_rotated_u {
+  board_t board_array[8];
+  board_pattern_named_rotated_t named_boards;
+};
 
 struct board_pattern_s {
   board_pattern_id_t id;
@@ -778,5 +803,9 @@ board_pattern_packed_to_index (board_t *packed,
 extern void
 board_pattern_index_to_packed (board_t *packed,
                                board_pattern_index_t index);
+
+extern void
+board_pattern_compute_rotated (board_t *board,
+                               board_pattern_rotated_t *rotated);
 
 #endif

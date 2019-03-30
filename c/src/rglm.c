@@ -128,7 +128,7 @@ static const char *documentation =
   "  -Q, --extract-gp-ptable    Dumps the solved and classified game position table in a CSV format, with principal pattern indexes\n"
   "  -T, --extract-gp-ttable    Dumps the solved and classified game position table transformed to glm_variable_id in a CSV format\n"
   "  -W, --extract-weights      Dumps the weights, the optimized value assigned to the glm_variable_id keys in a CSV format\n"
-  "  -R, --extract-residuals    Dumps the residuals of the minimization moGLM model in a CSV format\n"
+  "  -R, --extract-residuals    Dumps the residuals of the minimization of the GLM model in a CSV format\n"
   "\n"
   "Description:\n"
   "The Reversi Generalized Linear Model solver is the main entry to a set of utilities dedicated to process a set of solved and classified game position retrieved from a binary imput file.\n"

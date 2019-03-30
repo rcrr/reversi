@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "board_trans.h"
 #include "board_pattern.h"
@@ -81,6 +82,16 @@ board_set_square_sets (board_t *b,
 /*
  * End of board_t implementation
  */
+
+SquareSet
+board_pattern_mask (SquareSet s,
+                    board_pattern_index_t p,
+                    unsigned int instance)
+{
+  assert(p < BOARD_PATTERN_INVALID);
+  assert (instance < 8);
+  return s & board_patterns[p].masks[instance];
+}
 
 SquareSet
 board_pattern_pack_edge (SquareSet s)
@@ -486,4 +497,49 @@ board_pattern_index_to_packed (board_t *packed,
 
   board_set_mover_square_set(packed, m);
   board_set_opponent_square_set(packed, o);
+}
+
+void
+board_pattern_compute_rotated (board_t *board,
+                               board_pattern_rotated_t *rotated)
+{
+  assert(board);
+  assert(rotated);
+
+  SquareSet *s;
+
+  const SquareSet m = board->square_sets[0];
+  const SquareSet o = board->square_sets[1];
+
+  s = rotated->named_boards.identity.square_sets;
+  s[0] = m;
+  s[1] = o;
+
+  s = rotated->named_boards.rot_90a.square_sets;
+  s[0] = board_trans_rotate_90a(m);
+  s[1] = board_trans_rotate_90a(o);
+
+  s = rotated->named_boards.rot_180.square_sets;
+  s[0] = board_trans_rotate_180(m);
+  s[1] = board_trans_rotate_180(o);
+
+  s = rotated->named_boards.rot_90c.square_sets;
+  s[0] = board_trans_rotate_90c(m);
+  s[1] = board_trans_rotate_90c(o);
+
+  s = rotated->named_boards.flip_ve.square_sets;
+  s[0] = board_trans_flip_vertical(m);
+  s[1] = board_trans_flip_vertical(o);
+
+  s = rotated->named_boards.flip_dh.square_sets;
+  s[0] = board_trans_flip_diag_h1a8(m);
+  s[1] = board_trans_flip_diag_h1a8(o);
+
+  s = rotated->named_boards.flip_ho.square_sets;
+  s[0] = board_trans_flip_horizontal(m);
+  s[1] = board_trans_flip_horizontal(o);
+
+  s = rotated->named_boards.flip_da.square_sets;
+  s[0] = board_trans_flip_diag_a1h8(m);
+  s[1] = board_trans_flip_diag_a1h8(o);
 }

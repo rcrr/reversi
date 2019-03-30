@@ -74,8 +74,8 @@ static char *p_arg = NULL;
 static int w_flag = false;
 static char *w_arg = NULL;
 
-static int g_flag = false;
-static char *g_arg = NULL;
+static int R_flag = false;
+static char *R_arg = NULL;
 
 static mop_options_long_t olist[] = {
   {"help",                'h', MOP_NONE},
@@ -83,6 +83,7 @@ static mop_options_long_t olist[] = {
   {"game-positions-file", 'p', MOP_REQUIRED},
   {"weights-file",        'w', MOP_REQUIRED},
   {"gaps-output-file",    'g', MOP_REQUIRED},
+  {"extract-residuals",    'R', MOP_REQUIRED},
   {0, 0, 0}
 };
 
@@ -95,7 +96,7 @@ static const char *documentation =
   "  -v, --verbose             Verbose output\n"
   "  -p, --game-positions-file Game positions input file name - Mandatory\n"
   "  -w, --weights-file        Pattern configurations weights input file name - Mandatory\n"
-  "  -g, --gaps-output-file    Dumps gaps values for each game position in a CSV format\n"
+  "  -R, --extract-residuals   Dumps the residuals of the game positions computed by the evaluation function in a CSV format\n"
   "\n"
   "Description:\n"
   "The Reversi Generalized Linear Model fit utility computes the gaps between the true value of game positions and the outcome of the evaluation function.\n"
@@ -117,6 +118,29 @@ print_error_and_stop (int ret_code,
   exit(ret_code);
 }
 
+static double
+evaluation_function (size_t pattern_cnt,
+                     board_pattern_id_t *board_pattern_ids,
+                     board_pattern_index_t *indexes,
+                     double **pattern_to_weight_index)
+{
+  double sum;
+  const board_pattern_t *bpp;
+  board_pattern_index_t index_value;
+
+  sum = 0.0;
+
+  for (size_t i = 0; i < pattern_cnt; i++) {
+    bpp = &board_patterns[board_pattern_ids[i]];
+    for (size_t k = 0; k < bpp->n_instances; k++) {
+      index_value = *indexes++;
+      sum += pattern_to_weight_index[board_pattern_ids[i]][index_value];
+    }
+  }
+
+  return rglmut_logistic_function(sum);
+}
+
 /**
  * @endcond
  */
@@ -130,7 +154,7 @@ int
 main (int argc,
       char *argv[])
 {
-  FILE *pfp, *wfp;
+  FILE *pfp, *wfp, *ofp;
 
   size_t n, s, re;
 
@@ -153,6 +177,7 @@ main (int argc,
   size_t game_position_cnt;
   board_pattern_id_t *board_pattern_ids;
   double *weights;
+  double *pattern_to_weight_index[BOARD_PATTERN_COUNT];
   size_t data_chunk_size;
   size_t n_record_read = 0;
   rglmdf_solved_and_classified_gp_record_t *game_positions;
@@ -162,6 +187,8 @@ main (int argc,
 
   int opt;
   int oindex = -1;
+
+  ofp = NULL;
 
   mop_init(&options, argc, argv);
   while ((opt = mop_parse_long(&options, olist, &oindex)) != -1) {
@@ -180,9 +207,9 @@ main (int argc,
       w_flag = true;
       w_arg = options.optarg;
       break;
-    case 'g':
-      g_flag = true;
-      g_arg = options.optarg;
+    case 'R':
+      R_flag = true;
+      R_arg = options.optarg;
       break;
     case ':':
       fprintf(stderr, "Option parsing failed: %s\n", options.errmsg);
@@ -196,7 +223,7 @@ main (int argc,
     }
   }
 
-  /* Outpust verbose comments. */
+  /* Outputs verbose comments. */
   if (v_flag) verbose = true;
 
   /* Prints documentation and returns, when help option is active. */
@@ -387,6 +414,11 @@ main (int argc,
     }
   }
 
+  /* Initializes the pattern_to_weight_index array. */
+  for (size_t i = 0; i < BOARD_PATTERN_COUNT; i++) {
+    pattern_to_weight_index[i] = NULL;
+  }
+
   /* Reads the weights. */
   n = 0;
   for (size_t i = 0; i < pattern_cnt; i++) {
@@ -398,6 +430,11 @@ main (int argc,
     return EXIT_FAILURE;
   }
   re = fread(weights, sizeof(double), n, wfp);
+  n = 0;
+  for (size_t i = 0; i < pattern_cnt; i++) {
+    pattern_to_weight_index[board_pattern_ids[i]] = weights + n;
+    n += board_patterns[board_pattern_ids[i]].n_configurations;
+  }
 
   fclose(wfp);
 
@@ -411,21 +448,79 @@ main (int argc,
     }
   }
 
-  board_t b;
-  GamePositionX gpx;
+  board_t b, tr;
+  board_pattern_rotated_t r;
+  GamePositionX gpx, gpx1;
+
+  /* If R flag is turned on, dumps the game position table to the output file. */
+  if (R_arg) {
+    ofp = fopen(R_arg, "w");
+    if (!ofp) {
+      fprintf(stderr, "Unable to open output file: %s\n", R_arg);
+      return EXIT_FAILURE;
+    }
+    fprintf(ofp, "       I;    ROW_N;      GP_ID;                MOVER;             OPPONENT; GAME_VALUE; GAME_VALUE_TRANSFORMED; EVALUATION_FUNCTION;         RESIDUAL\n");
+  }
 
   /**/
   for (size_t i = 0; i < game_position_cnt; i++) {
     gpsp = &game_positions[i];
     board_set_square_sets(&b, gpsp->mover, gpsp->opponent);
 
+    /*
     gpx.blacks = board_get_mover_square_set(&b);
     gpx.whites = board_get_opponent_square_set(&b);
     gpx.player = BLACK_PLAYER;
     game_position_x_print(buf, &gpx);
     printf("\ngp_id = %ld\n\n%s\n", gpsp->gp_id, buf);
+    */
 
-    break;
+    /* Computes rotated boards. */
+    board_pattern_compute_rotated(&b, &r);
+
+    /* Computes pattern indexes. */
+    //
+    const board_pattern_t *bpp;
+    board_pattern_index_t index_value;
+    board_pattern_index_t *indexp;
+    board_pattern_index_t indexes[BOARD_PATTERN_MAX_N_INSTANCES * BOARD_PATTERN_COUNT];
+    memset(indexes, 0, sizeof(board_pattern_index_t) * BOARD_PATTERN_MAX_N_INSTANCES * BOARD_PATTERN_COUNT);
+    gpx1.player = BLACK_PLAYER;
+    indexp = indexes;
+    for (size_t j = 0; j < pattern_cnt; j++) {
+      bpp = &board_patterns[board_pattern_ids[j]];
+      //printf("[%s] n_instances=%d\n", bpp->name, bpp->n_instances);
+      for (size_t k = 0; k < bpp->n_instances; k++) {
+        //printf("  instance=%zu\n", k);
+
+        /*
+        gpx1.blacks = r.board_array[k].square_sets[0];
+        gpx1.whites = r.board_array[k].square_sets[1];
+        game_position_x_print(buf, &gpx1);
+        printf("\ngp_id = %ld\n\n%s\n", gpsp->gp_id, buf);
+        */
+
+        tr.square_sets[0] = bpp->pattern_pack_f(r.board_array[k].square_sets[0]);
+        tr.square_sets[1] = bpp->pattern_pack_f(r.board_array[k].square_sets[1]);
+
+        index_value = board_pattern_packed_to_index(&tr, bpp->n_squares);
+        *indexp++ = index_value;
+      }
+    }
+    gpsp->game_value_transformed = rglmut_gv_scale(gpsp->game_value);
+    gpsp->evaluation_function = evaluation_function(pattern_cnt, board_pattern_ids, indexes, pattern_to_weight_index);
+    gpsp->residual = gpsp->evaluation_function - gpsp->game_value_transformed;
+    if (R_arg) {
+      fprintf(ofp, "%8zu; %8zu; %10ld; %20ld; %20ld; %10d; %22.12f; %19.12f; %+16.12f\n",
+              i, gpsp->row_n, gpsp->gp_id, gpsp->mover, gpsp->opponent, gpsp->game_value,
+              gpsp->game_value_transformed, gpsp->evaluation_function, gpsp->residual);
+    }
+  }
+
+  /* If R flag is turned on, closes the output file. */
+  if (R_arg) {
+    fclose(ofp);
+    if (verbose) fprintf(stdout, "Game positions dumped to CSV file: \"%s\".\n", R_arg);
   }
 
   /* Frees resources. */
