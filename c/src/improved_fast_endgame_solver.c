@@ -328,9 +328,6 @@ static uint64_t gp_hash_stack[128];
 /* The index of the last entry into gp_hash_stack. */
 static int gp_hash_stack_fill_point = 0;
 
-/* The sub_run_id used for logging. */
-static const int sub_run_id = 0;
-
 /*
  * Inside this fast endgame solver, the board is represented by
  * a 1D array of 91 uint8_ts board[0..90]:

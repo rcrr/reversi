@@ -1,7 +1,7 @@
 
   README-SQL
 
-  Copyright (c) 2015, 2018 Roberto Corradini. All rights reserved.
+  Copyright (c) 2015, 2018, 2019 Roberto Corradini. All rights reserved.
 
   This file is part of the reversi program
   http://github.com/rcrr/reversi
@@ -26,8 +26,8 @@ the REVERSI program.
 
 Software components being used are:
 
- - Ubuntu distribution 14.04 (x86_64)
- - PostgreSQL 9.3.9 on x86_64-unknown-linux-gnu, compiled by gcc (Ubuntu 4.8.4-2ubuntu1~14.04) 4.8.4, 64-bit
+ - Ubuntu distribution 18.04 (18.4.2 LTS) (bionic) (kernel 4.18) (x86_64)
+ - PostgreSQL 11.2 (Ubuntu 11.2-1.pgdg18.04+1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 7.3.0-27ubuntu1~18.04) 7.3.0, 64-bit
 
 A few useful commands:
 
@@ -65,8 +65,8 @@ When connected as postgres user (superuser):
  -- Drops user 'es'.
  postgres=# DROP ROLE es;
  
- -- Creates tablespace 'es' in directory '/data/postgres/9.3/es'. The directory must exists and created by user postgres.
- postgres=# CREATE TABLESPACE es LOCATION '/data/postgres/9.3/es';
+ -- Creates tablespace 'es' in directory '/data/postgres/11/es'. The directory must exists and created by user postgres.
+ postgres=# CREATE TABLESPACE es LOCATION '/data/postgres/11/es';
 
  -- Drops tablespace 'es'.
  postgres=# DROP TABLESPACE es;
@@ -93,8 +93,13 @@ We can connect to the new db by:
 
 In order to run the complete suite on db 'es' as user 'es':
  $ time psql -U es -d es -h localhost -c "\i reload_everything.sql"
- $ time psql -U es -d es -h localhost -c "\i regab_create_schema.sql"
-
+ $ time psql -U es -d es -h localhost -c "0100_up_regab_create_schema.sql"
+ $ time psql -U es -d es -h localhost -c "0101_up_migrations.sql"
+ $ time psql -U es -d es -h localhost -c "0102_up_gp_ext.sql"
+ $ time psql -U es -d es -h localhost -c "0103_up_patterns.sql"
+ $ time psql -U es -d es -h localhost -c "0104_up_pattern_functions.sql"
+ $ time psql -U es -d es -h localhost -c "0107_up_pattern_data.sql"
+ $ time psql -U es -d es -h localhost -c "0109_up_action_extract.sql"
 
  --
  -- Backup and restore procedure.

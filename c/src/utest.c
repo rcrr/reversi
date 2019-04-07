@@ -36,6 +36,7 @@
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
+#include <signal.h>
 #include <sys/wait.h>
 
 #include "unit_test.h"
@@ -61,19 +62,19 @@ prepare_args (char *prog_name);
 
 static ut_prog_arg_config_t arg_config;
 
-static const char const* program_name = "utest";
-static const char const* program_version = "1.0";
-static const char const* program_description = "Unit test runner";
-static const char const* program_long_description =
+static const char *program_name = "utest";
+static const char *program_version = "1.0";
+static const char *program_description = "Unit test runner";
+static const char *program_long_description =
   "  The utest executable is part of the Reversi program.\n"
   "  This program is designed to run a test suite.\n"
   "  Type utest -h to learn how to use it.\n"
   "  Visit the web site http://github.com/rcrr/reversi for more info, and to obtain the source code.";
-static const char const* program_author =
+static const char *program_author =
   "  Written by Roberto Corradini <rob_corradini@yahoo.it>";
-static const char const* program_copyright =
+static const char *program_copyright =
   "Copyright (c) 2015, 2017 Roberto Corradini. All rights reserved.";
-static const char const* program_license =
+static const char *program_license =
   "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
   "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n";
 

@@ -450,7 +450,7 @@ main (int argc,
 
   board_t b, tr;
   board_pattern_rotated_t r;
-  GamePositionX gpx, gpx1;
+  //GamePositionX gpx, gpx1;
 
   /* If R flag is turned on, dumps the game position table to the output file. */
   if (R_arg) {
@@ -485,7 +485,7 @@ main (int argc,
     board_pattern_index_t *indexp;
     board_pattern_index_t indexes[BOARD_PATTERN_MAX_N_INSTANCES * BOARD_PATTERN_COUNT];
     memset(indexes, 0, sizeof(board_pattern_index_t) * BOARD_PATTERN_MAX_N_INSTANCES * BOARD_PATTERN_COUNT);
-    gpx1.player = BLACK_PLAYER;
+    //gpx1.player = BLACK_PLAYER;
     indexp = indexes;
     for (size_t j = 0; j < pattern_cnt; j++) {
       bpp = &board_patterns[board_pattern_ids[j]];

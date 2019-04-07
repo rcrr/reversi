@@ -67,11 +67,6 @@ static const SquareSet column_h      = 0x8080808080808080;
 static const SquareSet diag_h1a8     = 0x0102040810204080;
 static const SquareSet diag_a1h8     = 0x8040201008040201;
 
-static const SquareSet square_a1     = 0x0000000000000001;
-static const SquareSet square_h1     = 0x0000000000000080;
-static const SquareSet square_a8     = 0x0100000000000000;
-static const SquareSet square_h8     = 0x8000000000000000;
-
 static const SquareSet squares_a1_h1 = 0x0000000000000081;
 static const SquareSet squares_a8_h8 = 0x8100000000000000;
 static const SquareSet squares_h1_h8 = 0x8000000000000080;

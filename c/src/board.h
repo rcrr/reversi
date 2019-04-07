@@ -312,7 +312,7 @@ extern int
 game_position_x_count_difference (const GamePositionX *const gpx);
 
 extern void
-game_position_x_to_string (const GamePositionX const *gpx,
+game_position_x_to_string (const GamePositionX *gpx,
                            char *out);
 
 extern int

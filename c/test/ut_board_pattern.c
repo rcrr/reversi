@@ -397,35 +397,16 @@ static const SquareSet bord_3        = 0x0000001818000000;
 static const SquareSet zebra_o       = 0x00000000000000aa;
 static const SquareSet zebra_e       = 0x0000000000000055;
 
-static const SquareSet nw_1x1        = 0x0000000000000001;
-static const SquareSet ne_1x1        = 0x0000000000000080;
-static const SquareSet se_1x1        = 0x8000000000000000;
-static const SquareSet sw_1x1        = 0x0100000000000000;
-
 static const SquareSet nw_2x2        = 0x0000000000000303;
-static const SquareSet ne_2x2        = 0x000000000000c0c0;
-static const SquareSet se_2x2        = 0xc0c0000000000000;
-static const SquareSet sw_2x2        = 0x0303000000000000;
 
 static const SquareSet nw_3x3        = 0x0000000000070707;
 static const SquareSet ne_3x3        = 0x0000000000e0e0e0;
 static const SquareSet se_3x3        = 0xe0e0e00000000000;
 static const SquareSet sw_3x3        = 0x0707070000000000;
 
-static const SquareSet nw_4x4        = 0x000000000f0f0f0f;
-static const SquareSet ne_4x4        = 0x00000000f0f0f0f0;
-static const SquareSet se_4x4        = 0xf0f0f0f000000000;
-static const SquareSet sw_4x4        = 0x0f0f0f0f00000000;
-
 static const SquareSet nw_5x5        = 0x0000001f1f1f1f1f;
-static const SquareSet ne_5x5        = 0x000000f8f8f8f8f8;
-static const SquareSet se_5x5        = 0xf8f8f8f8f8000000;
-static const SquareSet sw_5x5        = 0x1f1f1f1f1f000000;
 
 static const SquareSet nw_6x6        = 0x00003f3f3f3f3f3f;
-static const SquareSet ne_6x6        = 0x0000fcfcfcfcfcfc;
-static const SquareSet se_6x6        = 0xfcfcfcfcfcfc0000;
-static const SquareSet sw_6x6        = 0x3f3f3f3f3f3f0000;
 
 static const SquareSet nw_7x7        = 0x007f7f7f7f7f7f7f;
 static const SquareSet ne_7x7        = 0x00fefefefefefefe;
@@ -452,20 +433,10 @@ static const SquareSet ne_tri_5      = 0x00000080c0e0f0f8;
 static const SquareSet se_tri_5      = 0xf8f0e0c080000000;
 static const SquareSet sw_tri_5      = 0x1f0f070301000000;
 
-static const SquareSet nw_tri_6      = 0x00000103070f1f3f;
-static const SquareSet ne_tri_6      = 0x000080c0e0f0f8fc;
-static const SquareSet se_tri_6      = 0xfcf8f0e0c0800000;
-static const SquareSet sw_tri_6      = 0x3f1f0f0703010000;
-
-static const SquareSet nw_tri_7      = 0x000103070f1f3f7f;
 static const SquareSet ne_tri_7      = 0x0080c0e0f0f8fcfe;
-static const SquareSet se_tri_7      = 0xfefcf8f0e0c08000;
 static const SquareSet sw_tri_7      = 0x7f3f1f0f07030100;
 
-static const SquareSet nw_tri_8      = 0x0103070f1f3f7fff;
 static const SquareSet ne_tri_8      = 0x80c0e0f0f8fcfeff;
-static const SquareSet se_tri_8      = 0xfffefcf8f0e0c080;
-static const SquareSet sw_tri_8      = 0xff7f3f1f0f070301;
 
 static const SquareSet packed_03     = 0x0000000000000007;
 static const SquareSet packed_04     = 0x000000000000000f;

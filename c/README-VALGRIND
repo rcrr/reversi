@@ -2,6 +2,6 @@
 
 This is a very rough cut log of useful command for profiling and spotting issues:
 
-valgrind --tool=callgrind --dump-instr=yes --collect-jumps=yes build/test/bin/sort_utils_test --verbose -m=perf -p /sort_utils/sort_utils_heapsort_X_d_perf_test
+valgrind --tool=callgrind --dump-instr=yes --collect-jumps=yes build/test/bin/ut_sort_utils --verbose -m=perf -p /sort_utils/sort_utils_heapsort_X_d_perf_test
 
 valgrind --tool=callgrind --dump-instr=yes --collect-jumps=yes ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-15
