@@ -35,7 +35,7 @@ SET search_path TO reversi;
 BEGIN;
  
 INSERT INTO migrations (migration_id, ins_time, label, description)
-VALUES (0104, now(), 'pattern_functionss', 'adds square set flips and mirrors, as well as pack and unpack functions');
+VALUES (0104, now(), 'pattern_functions', 'adds square set flips and mirrors, as well as pack and unpack functions');
 
 --
 -- Identity transformation.
