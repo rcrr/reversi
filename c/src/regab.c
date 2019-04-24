@@ -1376,6 +1376,7 @@ do_action_extract_count_positions (int *result,
   PGresult *res = NULL;
   char command[command_size];
   size_t cl;
+  size_t records_nbytes;
   char *cp;
 
   if (!result) return;
@@ -1425,11 +1426,13 @@ do_action_extract_count_positions (int *result,
     *result = -1;
   } else {
     return_table->ntuples = PQntuples(res);
-    return_table->records = (rglmdf_position_summary_record_t *) malloc(sizeof(rglmdf_position_summary_record_t) * return_table->ntuples);
+    records_nbytes = sizeof(rglmdf_position_summary_record_t) * return_table->ntuples;
+    return_table->records = (rglmdf_position_summary_record_t *) malloc(records_nbytes);
     if (!return_table->records) {
       fprintf(stderr, "Unable to allocate memory for return_table->records array.\n");
       abort();
     }
+    memset(return_table->records, 0, records_nbytes);
     for (size_t i = 0; i < return_table->ntuples; i++) {
       rglmdf_position_summary_record_t *rec = &return_table->records[i];
       rec->batch_id = atoi(PQgetvalue(res, i, 0));
@@ -1655,6 +1658,8 @@ main (int argc,
 
   char *output_file_name = NULL;
 
+  size_t nbytes;
+
   mop_init(&options, argc, argv);
   while ((opt = mop_parse_long(&options, olist, &oindex)) != -1) {
     switch (opt) {
@@ -1823,11 +1828,13 @@ main (int argc,
       fprintf(stderr, "The value for batch_id option couldn't end with a comma.\n");
       return EXIT_FAILURE;
     }
-    batch_ids = (uint64_t *) malloc(sizeof(uint64_t) * batch_id_cnt);
+    nbytes = sizeof(uint64_t) * batch_id_cnt;
+    batch_ids = (uint64_t *) malloc(nbytes);
     if (!batch_ids) {
       fprintf(stderr, "Unable to allocate memory for batch_ids array.\n");
       return EXIT_FAILURE;
     }
+    memset(batch_ids, 0, nbytes);
     beginptr = b_arg;
     for (size_t i = 0; i < batch_id_cnt; i++) {
       errno = 0;    /* To distinguish success/failure after call */
@@ -1877,11 +1884,13 @@ main (int argc,
     }
   }
   if (u_flag) {
-    position_status_buffer = (char *) malloc(strlen(u_arg) + 1);
+    nbytes = strlen(u_arg) + 1;
+    position_status_buffer = (char *) malloc(nbytes);
     if (!position_status_buffer) {
       fprintf(stderr, "Unable to allocate memory for position_status_buffer array.\n");
       return EXIT_FAILURE;
     }
+    memset(position_status_buffer, 0, nbytes);
     int parse_mode = 1; // 0 means char, 1 means separator.
     char *beginptr = u_arg;
     char *c = position_status_buffer;
@@ -1908,11 +1917,13 @@ main (int argc,
       fprintf(stderr, "The value for position_status option couldn't end with a comma.\n");
       return EXIT_FAILURE;
     }
-    position_statuses = (char **) malloc(sizeof(char *) * position_status_cnt);
+    nbytes = sizeof(char *) * position_status_cnt;
+    position_statuses = (char **) malloc(nbytes);
     if (!position_statuses) {
       fprintf(stderr, "Unable to allocate memory for position_statuses array.\n");
       return EXIT_FAILURE;
     }
+    memset(position_statuses, 0, nbytes);
     c = position_status_buffer;
     parse_mode = 1;
     size_t j = 0;
@@ -1944,11 +1955,13 @@ main (int argc,
   }
   if (p_flag) {
     bool is_valid_pattern;
-    pattern_buffer = (char *) malloc(strlen(p_arg) + 1);
+    nbytes = strlen(p_arg) + 1;
+    pattern_buffer = (char *) malloc(nbytes);
     if (!pattern_buffer) {
       fprintf(stderr, "Unable to allocate memory for pattern_buffer array.\n");
       return EXIT_FAILURE;
     }
+    memset(pattern_buffer, 0, nbytes);
     int parse_mode = 1; // 0 means char, 1 means separator.
     char *beginptr = p_arg;
     char *c = pattern_buffer;
@@ -1975,11 +1988,13 @@ main (int argc,
       fprintf(stderr, "The value for pattern option couldn't end with a comma.\n");
       return EXIT_FAILURE;
     }
-    patterns = (board_pattern_id_t *) malloc(sizeof(board_pattern_id_t) * pattern_cnt);
+    nbytes = sizeof(board_pattern_id_t) * pattern_cnt;
+    patterns = (board_pattern_id_t *) malloc(nbytes);
     if (!patterns) {
       fprintf(stderr, "Unable to allocate memory for patterns array.\n");
       return EXIT_FAILURE;
     }
+    memset(patterns, 0, nbytes);
     c = pattern_buffer;
     parse_mode = 1;
     size_t j = 0;
@@ -2442,11 +2457,13 @@ main (int argc,
   size_t pattern_freq_summary_fetched_record_cnt = 0;
   rglmdf_pattern_freq_summary_table_t pattern_freq_summary;
   pattern_freq_summary.ntuples = 0;
-  pattern_freq_summary.records = (rglmdf_pattern_freq_summary_record_t *) malloc(sizeof(rglmdf_pattern_freq_summary_record_t) * pattern_freq_summary_chunk_size);
+  nbytes = sizeof(rglmdf_pattern_freq_summary_record_t) * pattern_freq_summary_chunk_size;
+  pattern_freq_summary.records = (rglmdf_pattern_freq_summary_record_t *) malloc(nbytes);
   if (!pattern_freq_summary.records) {
     fprintf(stderr, "Unable to allocate memory for pattern_freq_summary.records array.\n");
     abort();
   }
+  memset(pattern_freq_summary.records, 0, nbytes);
 
   const size_t gps_data_chunk_size = 4096;
   const char *sql_cursor_name_gps_data = "sql_cursor_name_gps_data";
@@ -2457,8 +2474,20 @@ main (int argc,
   gps_data.n_index_values_per_record = 0;
   for (size_t i = 0; i < pattern_cnt; i++)
     gps_data.n_index_values_per_record += board_patterns[patterns[i]].n_instances;
-  gps_data.records = (rglmdf_solved_and_classified_gp_record_t *) malloc(sizeof(rglmdf_solved_and_classified_gp_record_t) * gps_data_chunk_size);
-  gps_data.iarray = (uint32_t *) malloc(sizeof(uint32_t) * gps_data.n_index_values_per_record * gps_data_chunk_size);
+  nbytes = sizeof(rglmdf_solved_and_classified_gp_record_t) * gps_data_chunk_size;
+  gps_data.records = (rglmdf_solved_and_classified_gp_record_t *) malloc(nbytes);
+  if (!gps_data.records) {
+    fprintf(stderr, "Unable to allocate memory for gps_data.records array.\n");
+    abort();
+  }
+  memset(gps_data.records, 0, nbytes);
+  nbytes = sizeof(uint32_t) * gps_data.n_index_values_per_record * gps_data_chunk_size;
+  gps_data.iarray = (uint32_t *) malloc(nbytes);
+  if (!gps_data.iarray) {
+    fprintf(stderr, "Unable to allocate memory for gps_data.iarray array.\n");
+    abort();
+  }
+  memset(gps_data.iarray, 0, nbytes);
 
   time_t current_time = (time_t) -1;
   char* c_time_string = NULL;
