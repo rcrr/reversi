@@ -124,6 +124,8 @@ $ nohup time pg_dump -d backup_db_name -h localhost -p 5432 -U postgres -v -Fc -
  postgres=# CREATE DATABASE restore_db_name WITH OWNER restore_db_name ENCODING 'UTF8' TABLESPACE restore_db_name;
  postgres=# GRANT ALL PRIVILEGES ON DATABASE restore_db_name TO restore_db_name;
  --
+ -- Next time try to use the flag --jobs=number-of-job when restoring the DB ....
+ --
  $ pg_restore --no-acl --no-owner -v -d restore_db_name -p 5432 -h localhost -U restore_db_name out/201801031517-localhost-backup_db_name.dump
  --
  -- Note: to avoid errors on setting the COMMENT on EXTENSION plpgsql, hstore, and uuid-ossp, like the following:
