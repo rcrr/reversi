@@ -4,7 +4,7 @@
 #  This file is part of the reversi program
 #  http://github.com/rcrr/reversi
 #
-#  Copyright (c) 2013, 2014, 2016, 2017 Roberto Corradini. All rights reserved.
+#  Copyright (c) 2013, 2014, 2016, 2017, 2018, 2019 Roberto Corradini. All rights reserved.
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -24,7 +24,8 @@
 
 # Add all the programs that has a main and that will be compiled and linked as a bin executable.
 MAINS = endgame_solver utest read_pve_dump intel_intrinsics_trial \
-        read_game_tree_log gpdb_verify regab rglm rglm_fit_utility
+        read_game_tree_log gpdb_verify regab rglm rglm_fit_utility \
+        chol_perf_analysis
 
 UTEST_PROGS = ut_utest ut_llist ut_memory_object_pool ut_main_option_parse ut_bit_works ut_sha3 ut_prng ut_file_utils ut_sort_utils ut_red_black_tree \
               ut_cholesky_decomposition ut_board ut_board_trans ut_board_pattern ut_game_position_db ut_game_tree_utils ut_game_position ut_endgame_solver ut_es_pv ut_cfg \

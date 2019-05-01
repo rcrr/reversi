@@ -570,7 +570,7 @@ main (int argc,
     epsilon_on_gradient_modulus = 1.0e-9;
 
     /* max_newton_iter: max number of iterations allowed to the Newton algorithm. */
-    max_newton_iter = 14;
+    max_newton_iter = 1;
 
     if (verbose) {
       printf("Dumping factor for the diagonal of the Hessian matrix (Levemberg-Marquardt): lambda = %f\n", lambda);
@@ -647,6 +647,24 @@ main (int argc,
         printf("[%6lld.%9ld] ", (long long) timespec_get_sec(&time_diff), timespec_get_nsec(&time_diff));
         printf("\n");
       }
+
+      /* The saved matrix has also the computed solution. */
+#define CHO true
+
+#if CHO
+      printf("CHO - C pre-processor macro CHO is defined true: preparing the binary holding the matrix to submit to the cholesky factorization.\n");
+      char cho_matrix_file_name[512];
+      char cho_diagonal_file_name[512];
+      int cho_ret_code;
+      snprintf(cho_matrix_file_name, 512 - 1, "rglm_hessian_for_cholesky_factorization_%02zu.dat", iter);
+      snprintf(cho_diagonal_file_name, 512 - 1, "rglm_hessian_factorized_diag_%02zu.dat", iter);
+      chol_dump_matrix(big_b, enne, enne, cho_matrix_file_name, &cho_ret_code);
+      if (cho_ret_code != 0) abort();
+      printf("CHO - Hessian matrix dumped to binary file: \"%s\".\n", cho_matrix_file_name);
+      chol_dump_vector(aux_diag_big_b, enne, cho_diagonal_file_name, &cho_ret_code);
+      if (cho_ret_code != 0) abort();
+      printf("CHO - Hessian factorized diagonal dumped to binary file: \"%s\".\n", cho_diagonal_file_name);
+#endif /* CHO */
 
       /* Starts the stop-watch. */
       clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);

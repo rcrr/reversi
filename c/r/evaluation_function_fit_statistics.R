@@ -36,7 +36,7 @@
 # It gives the frequency distribution of the error collected by the evaluation function.
 #
 
-data_file <- '../out/ec20/2X5COR/eval_ec_20_bid_03_by_bid_03_p_2X5COR_s_CMS-CMR_01_weights.csv'
+data_file <- '../out/ec20/ALL/eval_ec_20_bid_03_by_bid_03_p_ALL_s_CMS-CMR_01_weights.csv'
 
 library(ggplot2)
 library(data.table)

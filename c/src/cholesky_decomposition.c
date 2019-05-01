@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <assert.h>
 
 #include "cholesky_decomposition.h"
 
@@ -204,4 +205,220 @@ chol_solv_naive (double **a,
     for (sum = x[i], k = i + 1; k < n; k++) sum -= a[k][i] * x[k];
     x[i] = sum / p[i];
   }
+}
+
+void
+chol_dump_matrix (double **a,
+                  size_t nr,
+                  size_t nc,
+                  char *file_name,
+                  int *ret_code)
+{
+  assert(a);
+  assert(*a);
+  assert(file_name);
+
+  FILE *f;
+  size_t n;
+
+  f = fopen(file_name, "w");
+  if (!f) {
+    if (ret_code) *ret_code = -1;
+    return;
+  }
+  n = fwrite(&nr, sizeof(size_t), 1, f);
+  if (n != 1) {
+    if (ret_code) *ret_code = -2;
+    fclose(f);
+    return;
+  }
+  n = fwrite(&nc, sizeof(size_t), 1, f);
+  if (n != 1) {
+    if (ret_code) *ret_code = -3;
+    fclose(f);
+    return;
+  }
+  n = fwrite(*a, sizeof(double), nr * nc, f);
+  if (n != nr * nc) {
+    if (ret_code) *ret_code = -4;
+    fclose(f);
+    return;
+  }
+  fclose(f);
+
+  if (ret_code) *ret_code = 0;
+}
+
+double **
+chol_retrieve_matrix (char *file_name,
+                      size_t *nr,
+                      size_t *nc,
+                      int *ret_code)
+{
+  assert(file_name);
+  assert(nr);
+  assert(nc);
+
+  FILE *f;
+  size_t lnr, lnc, n;
+  double **a;
+
+  f = fopen(file_name, "r");
+  if (!f) {
+    if (ret_code) *ret_code = -1;
+    return NULL;
+  }
+  n = fread(&lnr, sizeof(size_t), 1, f);
+  if (n != 1) {
+    if (ret_code) *ret_code = -2;
+    fclose(f);
+    return NULL;
+  }
+  n = fread(&lnc, sizeof(size_t), 1, f);
+  if (n != 1) {
+    if (ret_code) *ret_code = -3;
+    fclose(f);
+    return NULL;
+  }
+  a = chol_allocate_matrix(lnr, lnc);
+  if (!a) {
+    if (ret_code) *ret_code = -4;
+    fclose(f);
+    return NULL;
+  }
+  n = fread(*a, sizeof(double), lnr * lnc, f);
+  if (n != lnr * lnc) {
+    if (ret_code) *ret_code = -5;
+    fclose(f);
+    chol_free_matrix(a);
+    return NULL;
+  }
+  fclose(f);
+  if (ret_code) *ret_code = 0;
+  *nr = lnr;
+  *nc = lnc;
+  return a;
+}
+
+double **
+chol_clone_matrix (double **a,
+                   size_t nr,
+                   size_t nc,
+                   int *ret_code)
+{
+  assert(a);
+  assert(*a);
+
+  double **b;
+
+  b = chol_allocate_matrix(nr, nc);
+  if (!b) {
+    if (ret_code) *ret_code = -1;
+    return NULL;
+  }
+
+  for (size_t i = 0; i < nr; i++)
+    for (size_t j = 0; j < nc; j++)
+      b[i][j] = a[i][j];
+
+  if (ret_code) *ret_code = 0;
+  return b;
+}
+
+void
+chol_dump_vector (double *v,
+                  size_t n,
+                  char *file_name,
+                  int *ret_code)
+{
+  assert(v);
+  assert(file_name);
+
+  FILE *f;
+  size_t nw;
+
+  f = fopen(file_name, "w");
+  if (!f) {
+    if (ret_code) *ret_code = -1;
+    return;
+  }
+  nw = fwrite(&n, sizeof(size_t), 1, f);
+  if (nw != 1) {
+    if (ret_code) *ret_code = -2;
+    fclose(f);
+    return;
+  }
+  nw = fwrite(v, sizeof(double), n, f);
+  if (nw != n) {
+    if (ret_code) *ret_code = -3;
+    fclose(f);
+    return;
+  }
+  fclose(f);
+
+  if (ret_code) *ret_code = 0;
+}
+
+double *
+chol_retrieve_vector (char *file_name,
+                      size_t *n,
+                      int *ret_code)
+{
+  assert(file_name);
+  assert(n);
+
+  FILE *f;
+  size_t ln, nr;
+  double *v;
+
+  f = fopen(file_name, "r");
+  if (!f) {
+    if (ret_code) *ret_code = -1;
+    return NULL;
+  }
+  nr = fread(&ln, sizeof(size_t), 1, f);
+  if (nr != 1) {
+    if (ret_code) *ret_code = -2;
+    fclose(f);
+    return NULL;
+  }
+  v = chol_allocate_vector(ln);
+  if (!v) {
+    if (ret_code) *ret_code = -3;
+    fclose(f);
+    return NULL;
+  }
+  nr = fread(v, sizeof(double), ln, f);
+  if (nr != ln) {
+    if (ret_code) *ret_code = -4;
+    fclose(f);
+    chol_free_vector(v);
+    return NULL;
+  }
+  fclose(f);
+  if (ret_code) *ret_code = 0;
+  *n = ln;
+  return v;
+}
+
+double *
+chol_clone_vector (double *v,
+                   size_t n,
+                   int *ret_code)
+{
+  assert(v);
+
+  double *u;
+
+  u = chol_allocate_vector(n);
+  if (!u) {
+    if (ret_code) *ret_code = -1;
+    return NULL;
+  }
+
+  for (size_t i = 0; i < n; i++)
+      u[i] = v[i];
+
+  if (ret_code) *ret_code = 0;
+  return u;
 }

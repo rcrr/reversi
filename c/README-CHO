@@ -1,0 +1,190 @@
+
+# 2019-04-29 ... Cholesky ....
+
+#
+# Prepare four data file: CORNER = extra_long EDGE = long, DIAG8 = medium, DIAG6 = short.
+#
+./build/bin/regab -v --action extract --config-file cfg/regab.cfg --env test --batch-id 3 --position-status CMS,CMR --empty-count 20 --pattern DIAG6  --out-file tmp/diag6_00.dat
+./build/bin/regab -v --action extract --config-file cfg/regab.cfg --env test --batch-id 3 --position-status CMS,CMR --empty-count 20 --pattern DIAG8  --out-file tmp/diag8_00.dat
+./build/bin/regab -v --action extract --config-file cfg/regab.cfg --env test --batch-id 3 --position-status CMS,CMR --empty-count 20 --pattern EDGE   --out-file tmp/edge_00.dat
+./build/bin/regab -v --action extract --config-file cfg/regab.cfg --env test --batch-id 3 --position-status CMS,CMR --empty-count 20 --pattern CORNER --out-file tmp/corner_00.dat
+
+#
+# Run the solver ...
+#
+./build/bin/rglm -v -s -i tmp/diag6_00.dat  -o tmp/diag6_01.dat
+./build/bin/rglm -v -s -i tmp/diag8_00.dat  -o tmp/diag8_01.dat
+./build/bin/rglm -v -s -i tmp/edge_00.dat   -o tmp/edge_01.dat
+./build/bin/rglm -v -s -i tmp/corner_00.dat -o tmp/corner_01.dat
+
+#
+# Performances
+#
+
+ SIZE  | COUNT | T_TIME | CHOL_TIME
+_______|_______|________|______________
+
+DIAG6  |  378  |  1.703 |  0.  5139956
+DIAG8  | 1448  |  1.630 |  0.245016086
+EDGE   | 3002  |  4.501 |  2.778021340
+CORNER | 5156  | 16.028 | 14. 33369622
+
+
+---------------------------------------------------------------------
+#
+# DIAG6
+#
+
+$ time ./build/bin/rglm -v -s -i tmp/diag6_00.dat -o tmp/diag6_01.dat
+Input file started to be written on (UTC) Sun Apr 28 13:15:24 2019
+Selected batch_id values: 3
+Selected empty_count value: 20
+Selected position_statuses values: CMS, CMR
+Selected pattern values: DIAG6
+Position Summary Table: number of tuples = 2; game position count = 1999179
+Pattern Frequency Summary Table: number of tuples = 378
+  Pattern id:  8 [ DIAG6], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+Reverse map has been computed.
+All solved and classified game positions has been read succesfully.
+Pattern index values have been translated to principal ones.
+Pattern principal index values have been translated to global GLM variable id.
+Dumping factor for the diagonal of the Hessian matrix (Levemberg-Marquardt): lambda = 0.000100
+Max number of Newton algorithm iterations = 1
+Termination criteria:
+   Epsilon on delta effe         : 1.000000e-09
+   Epsilon on modulus of delta w : 1.000000e-09
+   Epsilon on modulus of gradient: 1.000000e-09
+Iteration[000]:
+   Gradient modulus =        8820.602241489212246961; abs min = [    0.133984374999999989,     333]; abs max = [ 2591.640624999982719601,     206]
+   Residual modulus =         286.280944256762381883; abs min = [    0.000000000000000000,      64]; abs max = [    0.489999999999999991,    2409]
+   Function, Gradient, Hessian, and Residual evaluation CPU time: [     0.115915008] 
+   Cholesky Factorization and CPU time:                           [     0.  5139956] 
+   Cholesky Solution CPU time:                                    [     0.   119108] 
+   Delta w modulus  =           2.770656773192810451; abs min = [    0.000126263716579676,      99]; abs max = [    0.335461928588172920,     208]
+   Effe             =       40978.389522271740133874
+   Delta Effe       =           0.000000000000000000
+Binary output file written to tmp/diag6_01.dat, computed SHA3-256 digest, written to file tmp/diag6_01.dat.sha3-256.
+
+real	0m1.703s
+user	0m1.464s
+sys	0m0.177s
+
+
+---------------------------------------------------------------------
+#
+# DIAG8
+#
+
+$ time ./build/bin/rglm -v -s -i tmp/diag8_00.dat -o tmp/diag8_01.dat
+Input file started to be written on (UTC) Sun Apr 28 13:16:34 2019
+Selected batch_id values: 3
+Selected empty_count value: 20
+Selected position_statuses values: CMS, CMR
+Selected pattern values: DIAG8
+Position Summary Table: number of tuples = 2; game position count = 1999179
+Pattern Frequency Summary Table: number of tuples = 1448
+  Pattern id: 10 [ DIAG8], total_cnt =  3998358, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+Reverse map has been computed.
+All solved and classified game positions has been read succesfully.
+Pattern index values have been translated to principal ones.
+Pattern principal index values have been translated to global GLM variable id.
+Dumping factor for the diagonal of the Hessian matrix (Levemberg-Marquardt): lambda = 0.000100
+Max number of Newton algorithm iterations = 1
+Termination criteria:
+   Epsilon on delta effe         : 1.000000e-09
+   Epsilon on modulus of delta w : 1.000000e-09
+   Epsilon on modulus of gradient: 1.000000e-09
+Iteration[000]:
+   Gradient modulus =        5664.503263972425884276; abs min = [    0.000000000000000000,    1174]; abs max = [ 1295.387734374990031938,     306]
+   Residual modulus =         286.280944256762381883; abs min = [    0.000000000000000000,      64]; abs max = [    0.489999999999999991,    2409]
+   Function, Gradient, Hessian, and Residual evaluation CPU time: [     0. 78165092] 
+   Cholesky Factorization and CPU time:                           [     0.245016086] 
+   Cholesky Solution CPU time:                                    [     0.  6007922] 
+   Delta w modulus  =          21.864248550237640245; abs min = [    0.000397341351466757,    1229]; abs max = [    1.863792786401259338,    1173]
+   Effe             =       40978.389522271740133874
+   Delta Effe       =           0.000000000000000000
+Binary output file written to tmp/diag8_01.dat, computed SHA3-256 digest, written to file tmp/diag8_01.dat.sha3-256.
+
+real	0m1.630s
+user	0m1.465s
+sys	0m0.164s
+
+
+---------------------------------------------------------------------
+#
+# EDGE
+#
+
+$ time ./build/bin/rglm -v -s -i tmp/edge_00.dat -o tmp/edge_01.dat
+Input file started to be written on (UTC) Sun Apr 28 13:17:31 2019
+Selected batch_id values: 3
+Selected empty_count value: 20
+Selected position_statuses values: CMS, CMR
+Selected pattern values: EDGE
+Position Summary Table: number of tuples = 2; game position count = 1999179
+Pattern Frequency Summary Table: number of tuples = 3002
+  Pattern id:  0 [  EDGE], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+Reverse map has been computed.
+All solved and classified game positions has been read succesfully.
+Pattern index values have been translated to principal ones.
+Pattern principal index values have been translated to global GLM variable id.
+Dumping factor for the diagonal of the Hessian matrix (Levemberg-Marquardt): lambda = 0.000100
+Max number of Newton algorithm iterations = 1
+Termination criteria:
+   Epsilon on delta effe         : 1.000000e-09
+   Epsilon on modulus of delta w : 1.000000e-09
+   Epsilon on modulus of gradient: 1.000000e-09
+Iteration[000]:
+   Gradient modulus =        8591.017769880443665897; abs min = [    0.000000000000000527,    1929]; abs max = [ 2906.534531250017153070,     649]
+   Residual modulus =         286.280944256762381883; abs min = [    0.000000000000000000,      64]; abs max = [    0.489999999999999991,    2409]
+   Function, Gradient, Hessian, and Residual evaluation CPU time: [     0.193092303] 
+   Cholesky Factorization and CPU time:                           [     2.778021340] 
+   Cholesky Solution CPU time:                                    [     0. 48229413] 
+   Delta w modulus  =          16.759383944028449775; abs min = [    0.000161950986020236,    1794]; abs max = [    0.848000521761315018,    1470]
+   Effe             =       40978.389522271740133874
+   Delta Effe       =           0.000000000000000000
+Binary output file written to tmp/edge_01.dat, computed SHA3-256 digest, written to file tmp/edge_01.dat.sha3-256.
+
+real	0m4.501s
+user	0m4.304s
+sys	0m0.197s
+
+
+---------------------------------------------------------------------
+#
+# CORNER
+#
+
+$ time ./build/bin/rglm -v -s -i tmp/corner_00.dat -o tmp/corner_01.dat
+Input file started to be written on (UTC) Sun Apr 28 13:31:00 2019
+Selected batch_id values: 3
+Selected empty_count value: 20
+Selected position_statuses values: CMS, CMR
+Selected pattern values: CORNER
+Position Summary Table: number of tuples = 2; game position count = 1999179
+Pattern Frequency Summary Table: number of tuples = 5156
+  Pattern id:  1 [CORNER], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+Reverse map has been computed.
+All solved and classified game positions has been read succesfully.
+Pattern index values have been translated to principal ones.
+Pattern principal index values have been translated to global GLM variable id.
+Dumping factor for the diagonal of the Hessian matrix (Levemberg-Marquardt): lambda = 0.000100
+Max number of Newton algorithm iterations = 1
+Termination criteria:
+   Epsilon on delta effe         : 1.000000e-09
+   Epsilon on modulus of delta w : 1.000000e-09
+   Epsilon on modulus of gradient: 1.000000e-09
+Iteration[000]:
+   Gradient modulus =        6105.320951450489701529; abs min = [    0.000000000000000000,     201]; abs max = [ 2092.016718749953270162,    5155]
+   Residual modulus =         286.280944256762381883; abs min = [    0.000000000000000000,      64]; abs max = [    0.489999999999999991,    2409]
+   Function, Gradient, Hessian, and Residual evaluation CPU time: [     0.297755593] 
+   Cholesky Factorization and CPU time:                           [    14. 33369622] 
+   Cholesky Solution CPU time:                                    [     0.178422932] 
+   Delta w modulus  =          27.846718167336504735; abs min = [    0.000126325012334146,    4014]; abs max = [    1.368700420429831199,    1784]
+   Effe             =       40978.389522271740133874
+   Delta Effe       =           0.000000000000000000
+Binary output file written to tmp/corner_01.dat, computed SHA3-256 digest, written to file tmp/corner_01.dat.sha3-256.
+
+real	0m16.028s
+user	0m15.751s
+sys	0m0.277s

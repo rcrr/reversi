@@ -175,4 +175,70 @@ chol_solv_naive (double **a,
                  double b[],
                  double x[]);
 
+/**
+ * @brief Dumps the `a` matrix into the `file_name` file.
+ *
+ * @details Opens a binary file using the name given by the `file_name` parameter.
+ *          The matrix `a`, composed by `double` elements, having `nr` rows, and `nc`
+ *          columns, is written into the binary file.
+ *          If `ret_code` is not `NULL`, the result of the operation is returned into the
+ *          value referenced by the argument.
+ *          `0` is returned on success, a negative value means failure.
+ *
+ * @param [in]  a          the matrix
+ * @param [in]  nr         number of rows
+ * @param [in]  nc         number of columns
+ * @param [in]  file_name  the file name
+ * @param [out] ret_code   return code
+ */
+extern void
+chol_dump_matrix (double **a,
+                  size_t nr,
+                  size_t nc,
+                  char *file_name,
+                  int *ret_code);
+
+/**
+ * @brief Reads a matrix from a binary file.
+ */
+extern double **
+chol_retrieve_matrix (char *file_name,
+                      size_t *nr,
+                      size_t *nc,
+                      int *ret_code);
+
+/**
+ * @brief Clones the matrix `a`.
+ */
+double **
+chol_clone_matrix (double **a,
+                   size_t nr,
+                   size_t nc,
+                   int *ret_code);
+
+/**
+ * @brief Dumps the vector `v` into the `file_name` file.
+ */
+extern void
+chol_dump_vector (double *v,
+                  size_t n,
+                  char *file_name,
+                  int *ret_code);
+
+/**
+ * @brief Reads a vector from a binary file.
+ */
+extern double *
+chol_retrieve_vector (char *file_name,
+                      size_t *n,
+                      int *ret_code);
+
+/**
+ * @brief Clones the vector `v`.
+ */
+extern double *
+chol_clone_vector (double *v,
+                   size_t n,
+                   int *ret_code);
+
 #endif /* CHOLESKY_DECOMPOSITION_H */

@@ -34,12 +34,25 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <errno.h>
 #include <string.h>
 
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#include "prng.h"
 #include "unit_test.h"
 #include "cholesky_decomposition.h"
 
+#define TEST_DIR_NAME_LEN 16
 
+static const char *base_dir_name = "/tmp";
+
+static char test_dir_name[TEST_DIR_NAME_LEN + 1];
+static char test_dir_full_path[TEST_DIR_NAME_LEN + 16];
+
+static prng_mt19937_t *prng;
 
 /*
  * Test structure.
@@ -51,11 +64,191 @@
  * Auxiliary functions.
  */
 
+static void
+aux_setup (void)
+{
+  int status;
+
+  const unsigned long int random_seed = prng_uint64_from_clock_random_seed();
+  prng =  prng_mt19937_new();
+  prng_mt19937_init_by_seed(prng, random_seed);
+
+  prng_mt19937_random_string_az(prng, test_dir_name, TEST_DIR_NAME_LEN);
+
+  strcpy(test_dir_full_path, base_dir_name);
+  strcat(test_dir_full_path, "/");
+  strcat(test_dir_full_path, test_dir_name);
+
+  status = mkdir(test_dir_full_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  if (status != 0) {
+    printf("Error creating the directory for testing. Directory name is: %s, %s.\n", test_dir_full_path, strerror(errno));
+    abort();
+  }
+}
+
+static void
+aux_teardown (void)
+{
+  int status;
+
+  status = rmdir(test_dir_full_path);
+  if (status != 0) {
+    printf("Error removing the directory used tor testing. Directory name is: %s, %s.\n", test_dir_full_path, strerror(errno));
+    abort();
+  }
+
+  prng_mt19937_free(prng);
+}
+
 
 
 /*
  * Test functions.
  */
+
+static void
+chol_clone_vector_t (ut_test_t *const t)
+{
+  static const size_t n = 10;
+  double *v, *r;
+  int ret_code;
+
+  v = chol_allocate_vector(n);
+
+  v[0] =  0.0;
+  v[1] =  1.0;
+  v[2] =  2.0;
+  v[3] =  3.0;
+  v[4] =  5.0;
+  v[5] =  7.0;
+  v[6] = 11.0;
+  v[7] = 13.0;
+  v[8] = 17.0;
+  v[9] = 19.0;
+
+  r = chol_clone_vector(v, n, &ret_code);
+  ut_assert(t, ret_code == 0);
+
+  for (size_t i = 0; i < n; i++)
+      ut_assert(t, v[i] == r[i]);
+
+  chol_free_vector(v);
+  chol_free_vector(r);
+}
+
+static void
+chol_clone_matrix_t (ut_test_t *const t)
+{
+  static const size_t nr = 3;
+  static const size_t nc = 2;
+  double **a, **b;
+  int ret_code;
+
+  a = chol_allocate_matrix(nr, nc);
+
+  a[0][0] =  0.0;
+  a[0][1] =  0.1;
+  a[1][0] =  1.0;
+  a[1][1] =  1.1;
+  a[2][0] =  2.0;
+  a[2][1] =  2.1;
+
+  b = chol_clone_matrix(a, nr, nc, &ret_code);
+  ut_assert(t, ret_code == 0);
+
+  for (size_t i = 0; i < nr; i++)
+    for (size_t j = 0; j < nc; j++)
+      ut_assert(t, a[i][j] == b[i][j]);
+
+  chol_free_matrix(a);
+  chol_free_matrix(b);
+}
+
+static void
+chol_dump_retrieve_vector_t (ut_test_t *const t)
+{
+  static const size_t n = 7;
+  size_t rn;
+  double *v, *r;
+  int ret_code;
+
+  char pathname[1024];
+
+  const char *file_name = "chol_dump_retrieve_vector_t.tmp";
+
+  strcpy(pathname, test_dir_full_path);
+  strcat(pathname, "/");
+  strcat(pathname, file_name);
+
+  v = chol_allocate_vector(n);
+
+  v[0] = 0.0;
+  v[1] = 1.0;
+  v[2] = 2.0;
+  v[3] = 3.0;
+  v[4] = 4.0;
+  v[5] = 5.0;
+  v[6] = 6.0;
+
+  chol_dump_vector(v, n, pathname, &ret_code);
+  ut_assert(t, ret_code == 0);
+
+  r = chol_retrieve_vector(pathname, &rn, &ret_code);
+  ut_assert(t, ret_code == 0);
+  ut_assert(t, rn == n);
+
+  for (size_t i = 0; i < n; i++)
+      ut_assert(t, v[i] == r[i]);
+
+  chol_free_vector(v);
+  chol_free_vector(r);
+
+  unlink(pathname);
+}
+
+static void
+chol_dump_retrieve_matrix_t (ut_test_t *const t)
+{
+  static const size_t nr = 2;
+  static const size_t nc = 3;
+  size_t rnr, rnc;
+  double **a, **r;
+  int ret_code;
+
+  char pathname[1024];
+
+  const char *file_name = "chol_dump_retrieve_matrix_t.tmp";
+
+  strcpy(pathname, test_dir_full_path);
+  strcat(pathname, "/");
+  strcat(pathname, file_name);
+
+  a = chol_allocate_matrix(nr, nc);
+
+  a[0][0] = 0.0;
+  a[0][1] = 0.1;
+  a[0][2] = 0.2;
+  a[1][0] = 1.0;
+  a[1][1] = 1.1;
+  a[1][2] = 1.2;
+
+  chol_dump_matrix(a, nr, nc, pathname, &ret_code);
+  ut_assert(t, ret_code == 0);
+
+  r = chol_retrieve_matrix(pathname, &rnr, &rnc, &ret_code);
+  ut_assert(t, ret_code == 0);
+  ut_assert(t, rnr == nr);
+  ut_assert(t, rnc == nc);
+
+  for (size_t i = 0; i < nr; i++)
+    for (size_t j = 0; j < nc; j++)
+      ut_assert(t, a[i][j] == r[i][j]);
+
+  chol_free_matrix(a);
+  chol_free_matrix(r);
+
+  unlink(pathname);
+}
 
 static void
 chol_fact_naive_i2_t (ut_test_t *const t)
@@ -290,13 +483,22 @@ main (int argc,
   ut_prog_arg_config_t config;
   ut_init(&config, &argc, &argv);
 
+  aux_setup();
+
   ut_suite_t *const s = ut_suite_new(&config, "cholesky_decomposition");
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_fact_naive_i2", chol_fact_naive_i2_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_fact_naive_3", chol_fact_naive_3_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_fact_naive_5", chol_fact_naive_5_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_dump_retrieve_vector", chol_dump_retrieve_vector_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_dump_retrieve_matrix", chol_dump_retrieve_matrix_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_clone_vector", chol_clone_vector_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_clone_matrix", chol_clone_matrix_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);
+
+  aux_teardown();
+
   return failure_count;
 }
