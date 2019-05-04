@@ -133,38 +133,6 @@ chol_free_matrix (double **m)
   }
 }
 
-double
-chol_test0 (double *v,
-           double *u,
-           size_t n)
-{
-  double sum;
-  sum = 0.0;
-  for (size_t i = 0; i < n; i++)
-    sum += v[i] * u[i];
-  return sum;
-}
-
-
-double
-chol_test1 (double *v,
-            double *u,
-            size_t n)
-{
-  size_t nn;
-  double sum;
-
-  nn = n / 16;
-  sum = 0.0;
-  for (size_t i = 0; i < nn; i++)
-    for (size_t j = 0; j < 8; j++)
-      sum += v[j] * u[j];
-
-  for (size_t i = nn * 16; i < n; i++)
-    sum += v[i] * u[i];
-  return sum;
-}
-
 void
 chol_fact_naive (double **a,
                  size_t n,
@@ -176,14 +144,10 @@ chol_fact_naive (double **a,
   for (i = 0; i < n; i++) {
     for (j = i; j < n; j++) {
       for (sum = a[i][j], k = i - 1; k >= 0; k--) sum -= a[i][k] * a[j][k];
-      if (i == j) {
-        if (0) printf("i=%02lld, j=%02lld, sum=%0+20.18f\n",i, j, sum);
-          p[i] = sqrt(sum);
-        }
+      if (i == j) p[i] = sqrt(sum);
       else a[j][i] = sum / p[i];
     }
   }
-  if (0) abort();
 }
 
 void

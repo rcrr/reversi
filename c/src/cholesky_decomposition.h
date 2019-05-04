@@ -63,16 +63,6 @@ extern void
 chol_zero_vector (double *v,
                   size_t n);
 
-extern double
-chol_test0 (double *v,
-            double *u,
-            size_t n);
-
-extern double
-chol_test1 (double *v,
-            double *u,
-            size_t n);
-
 /**
  * @brief Allocates a vector of doubles having length equal to`n`.
  *
