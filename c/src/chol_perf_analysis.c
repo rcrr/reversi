@@ -264,7 +264,8 @@ main (int argc, char *argv[])
   /* TRACKED ZONE - START */
 
   /* Factorizes the symmetrical essian matrix applying the Cholesky decomposition. */
-  chol_fact_naive(b, nr, aux_diag_b);
+  //chol_fact_naive(b, nr, aux_diag_b);
+  chol_fact_v1(b, nr, aux_diag_b);
 
   /* TRACKED ZONE - FINISH */
 

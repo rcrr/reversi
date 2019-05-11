@@ -1,4 +1,21 @@
 
+# 2019-05-05
+
+Keep this as a reference .... 
+
+rcrr@hypnotic:~/base/prj/reversi/c$ ./build/bin/chol_perf_analysis -v -f tmp/corner_rglm_hessian_for_cholesky_factorization_00.dat -d tmp/corner_rglm_hessian_factorized_diag_00.dat
+File "tmp/corner_rglm_hessian_for_cholesky_factorization_00.dat" has been retrieved succesfully.
+File "tmp/corner_rglm_hessian_factorized_diag_00.dat" has been retrieved succesfully.
+The rank of the matrix is: 5156
+The matrix has 0 entries valued zero on the diagonal.
+The matrix has 10870927 entries valued zero in the upper triangle escluding the diagonal.
+The cloned matrix has been prepared.
+   Cholesky Solution CPU time:                                    [    13.317287302] 
+The result of the cholesky decomposition has been checked succesfully.
+rcrr@hypnotic:~/base/prj/reversi/c$ 
+
+
+
 # 2019-04-29 ... Cholesky ....
 
 #

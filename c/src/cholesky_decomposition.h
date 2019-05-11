@@ -231,4 +231,34 @@ chol_clone_vector (double *v,
                    size_t n,
                    int *ret_code);
 
+extern double
+chol_dot_product_a (double *a,
+                    double *b,
+                    size_t n);
+
+extern double
+chol_dot_product_b (double *a,
+                    double *b,
+                    size_t n);
+
+extern double
+chol_dot_product_c (double *a,
+                    double *b,
+                    size_t n);
+
+extern double
+chol_dot_product_d (double *a,
+                    double *b,
+                    size_t n);
+
+extern void
+chol_fact_zero (double **a,
+                size_t n,
+                double p[]);
+
+extern void
+chol_fact_v1 (double **a,
+              size_t n,
+              double p[]);
+
 #endif /* CHOLESKY_DECOMPOSITION_H */

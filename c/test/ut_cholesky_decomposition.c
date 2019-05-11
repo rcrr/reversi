@@ -106,6 +106,43 @@ aux_teardown (void)
  * Test functions.
  */
 
+
+static void
+chol_dot_product_t (ut_test_t *const t)
+{
+  static const size_t n = 101;
+  double *a, *b, result_a, result_b, result_c, expected_plus, expected_minus;
+
+  a = chol_allocate_vector(n);
+  b = chol_allocate_vector(n);
+
+  for (size_t i = 0; i < n; i++) {
+    a[i] = (1. * i) * (1. / (n - 1));
+    b[n - i - 1] = (1. * i) * (1. / (n - 1));
+  }
+
+  expected_plus  = (1./6.) * (n - 1);
+  expected_minus = (1./6.) * (n - 2);
+
+  result_a = chol_dot_product_a(a, b, n);
+
+  result_b = chol_dot_product_b(a, b, n);
+
+  result_c = chol_dot_product_c(a, b, n);
+
+  ut_assert(t, result_a > expected_minus);
+  ut_assert(t, result_a < expected_plus);
+
+  ut_assert(t, result_b > expected_minus);
+  ut_assert(t, result_b < expected_plus);
+
+  ut_assert(t, result_c > expected_minus);
+  ut_assert(t, result_c < expected_plus);
+
+  chol_free_vector(a);
+  chol_free_vector(b);
+}
+
 static void
 chol_clone_vector_t (ut_test_t *const t)
 {
@@ -494,6 +531,7 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_dump_retrieve_matrix", chol_dump_retrieve_matrix_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_clone_vector", chol_clone_vector_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_clone_matrix", chol_clone_matrix_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_dot_product_t", chol_dot_product_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);
