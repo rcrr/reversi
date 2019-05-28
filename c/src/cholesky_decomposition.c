@@ -37,7 +37,9 @@
 #include <assert.h>
 
 #include <immintrin.h>
+//#include <omp.h>
 
+#include "isqrt.h"
 #include "cholesky_decomposition.h"
 
 /*
@@ -49,8 +51,6 @@
 #define CHOL_DOUBLE_SIZE 8
 
 #define CHOL_DOUBLE_ELEMENT_X_SLOT 4
-
-static uint64_t nflops = 0;
 
 double
 chol_vector_magnitude (double *v,
@@ -174,70 +174,72 @@ chol_free_matrix (double **m)
 }
 
 void
-chol_fact_zero (double **a,
-                size_t n,
-                double p[])
-{
-  long long int i, j, k;
-  double sum;
-
-  for (i = 0; i < n; i++) {
-    for (j = i; j < n; j++) {
-      for (sum = a[i][j], k = i - 1; k >= 0; k--) sum -= a[i][k] * a[j][k];
-      if (i == j) p[i] = sqrt(sum);
-      else a[j][i] = sum / p[i];
-    }
-  }
-}
-
-void
 chol_fact_naive (double **a,
                  size_t n,
                  double p[])
 {
-  long long int i, j, k;
+  size_t i, j, k;
   double sum;
 
   for (i = 0; i < n; i++) {
-    for (j = i; j < n; j++) {
-      for (sum = a[i][j], k = 0; k < i; k++) sum -= a[i][k] * a[j][k];
-      if (i == j) p[i] = sqrt(sum);
-      else a[j][i] = sum / p[i];
+    for (sum = a[i][i], k = 0; k < i; k++) {
+      sum -= a[i][k] * a[i][k];
+    }
+    p[i] = sqrt(sum);
+    for (j = i + 1; j < n; j++) {
+      sum = a[i][j] - chol_dot_product_avx(a[i], a[j], i);
+      a[j][i] = sum / p[i];
     }
   }
 }
 
 void
-chol_fact_v1 (double **a,
-              size_t n,
-              double p[])
+chol_fact_omp (double **a,
+               size_t n,
+               double p[])
 {
-  long long int i, j;
+  size_t i, j, k;
   double sum;
 
-  printf("nflops=%zu\n", nflops);
-
   for (i = 0; i < n; i++) {
-    for (j = i; j < n; j++) {
-
-      long long int k;
-      for (sum = a[i][j], k = 0; k < i; k++) {
-        nflops++;
-        sum -= a[i][k] * a[j][k];
-      }
-
-      // sum = a[i][j] - chol_dot_product_d(a[i], a[j], i);
-      if (i == j) p[i] = sqrt(sum);
-      else a[j][i] = sum / p[i];
+    for (sum = a[i][i], k = 0; k < i; k++) {
+      sum -= a[i][k] * a[i][k];
+    }
+    p[i] = sqrt(sum);
+#pragma omp parallel for default(none) private(j, sum) shared(a, p, n, i)
+    for (j = i + 1; j < n; j++) {
+      sum = a[i][j] - chol_dot_product_avx(a[i], a[j], i);
+      a[j][i] = sum / p[i];
     }
   }
-  printf("nflops=%zu\n", nflops);
+}
+
+void
+chol_fact_omp_tc (double **a,
+                  size_t n,
+                  double p[],
+                  size_t thread_count)
+{
+  size_t i, j, k;
+  double sum;
+
+  for (i = 0; i < n; i++) {
+    for (sum = a[i][i], k = 0; k < i; k++) {
+      sum -= a[i][k] * a[i][k];
+    }
+    p[i] = sqrt(sum);
+#pragma omp parallel for num_threads(thread_count) default(none) private(j, sum) shared(a, p, n, i)
+    for (j = i + 1; j < n; j++) {
+      sum = a[i][j] - chol_dot_product_avx(a[i], a[j], i);
+      a[j][i] = sum / p[i];
+    }
+  }
 }
 
 double
-chol_dot_product_a (double *a,
-                    double *b,
-                    size_t n)
+chol_dot_product (double *a,
+                  double *b,
+                  size_t n)
 {
   size_t i;
   double sum;
@@ -251,100 +253,16 @@ chol_dot_product_a (double *a,
 }
 
 double
-chol_dot_product_b (double *a,
-                    double *b,
-                    size_t n)
+chol_dot_product_avx (double *a,
+                      double *b,
+                      size_t n)
 {
-  size_t i, j, k;
-  double global_sum;
-  size_t n_slots, n_reminder;
-
-  double *aa, *bb;
-
-  aa = (double *) __builtin_assume_aligned (a, CHOL_DOUBLE_ALIGNMENT);
-  bb = (double *) __builtin_assume_aligned (b, CHOL_DOUBLE_ALIGNMENT);
-
-  double sum[] = { 0., 0., 0., 0. };
-
-  n_slots = n / CHOL_DOUBLE_ELEMENT_X_SLOT;
-  n_reminder = n % CHOL_DOUBLE_ELEMENT_X_SLOT;
-
-  for (j = 0; j < n_slots; j++) {
-    for (i = 0; i < CHOL_DOUBLE_ELEMENT_X_SLOT; i++) {
-      k = j * CHOL_DOUBLE_ELEMENT_X_SLOT + i;
-      sum[i] += aa[k] * bb[k];
-    }
-  }
-
-  global_sum = 0.;
-  for (i = 0; i < CHOL_DOUBLE_ELEMENT_X_SLOT; i++)
-    global_sum += sum[i];
-
-  for (i = 0; i < n_reminder; i++) {
-    k = n_slots * CHOL_DOUBLE_ELEMENT_X_SLOT + i;
-    global_sum += aa[k] * bb[k];
-  }
-
-  return global_sum;
-}
-
-static void
-multiply_and_add (const double *a,
-                  const double *b,
-                  const double *c,
-                  double *d)
-{
-  for (int i = 0; i < CHOL_DOUBLE_ELEMENT_X_SLOT; i++) {
-    d[i] = (a[i] * b[i]) + c[i];
-  }
-}
-
-double
-chol_dot_product_c (double *a,
-                    double *b,
-                    size_t n)
-{
-  size_t i;
-  size_t n_slots, n_reminder;
-
-  double sum[] = { 0., 0., 0., 0. };
-  double global_sum = 0.;
-
-  n_slots = n / CHOL_DOUBLE_ELEMENT_X_SLOT;
-  n_reminder = n % CHOL_DOUBLE_ELEMENT_X_SLOT;
-
-  for (i = 0; i < n_slots; i++) {
-    multiply_and_add(a, b, sum, sum);
-    a += CHOL_DOUBLE_ELEMENT_X_SLOT;
-    b += CHOL_DOUBLE_ELEMENT_X_SLOT;
-  }
-
-  for (i = 0; i < n_reminder; i++) {
-    global_sum += *a++ * *b++;
-  }
-
-  for (i = 0; i < CHOL_DOUBLE_ELEMENT_X_SLOT; i++)
-    global_sum += sum[i];
-
-  return global_sum;
-}
-
-double
-chol_dot_product_d (double *a,
-                    double *b,
-                    size_t n)
-{
-  size_t i, j, r, m;
-  double sum;
-
-  __m256d pa, pb, ps;
-
   /*
    * Load 256-bits (composed of 4 packed double-precision (64-bit) floating-point elements) from memory into dst. mem_addr does not need to be aligned on any particular boundary.
    * __m256d _mm256_loadu_pd (double const * mem_addr)
    *
    * Multiply packed double-precision (64-bit) floating-point elements in a and b, add the negated intermediate result to packed elements in c, and store the results in dst.
-   * __m256d _mm256_fnmadd_pd (__m256d a, __m256d b, __m256d c)
+   * __m256d _mm256_fmadd_pd (__m256d a, __m256d b, __m256d c)
    *
    * Return vector of type __m256d with all elements set to zero.
    * __m256d _mm256_setzero_pd (void)
@@ -355,27 +273,26 @@ chol_dot_product_d (double *a,
    * return ((double*)&s)[0] + ((double*)&s)[2];
    */
 
-  sum = 0.;
+  size_t i, r, m;
+  double sum;
+
+  __m256d pa, pb, ps;
+
   m = n / 4;
   r = n % 4;
 
   ps = _mm256_setzero_pd();
 
   for (i = 0; i < m; i++) {
-
-    nflops++;
-
     pa = _mm256_loadu_pd(a);
     pb = _mm256_loadu_pd(b);
-    ps = _mm256_fnmadd_pd(pa, pb, ps);
+    ps = _mm256_fmadd_pd(pa, pb, ps);
     a += 4;
     b += 4;
-
   }
 
-
   ps = _mm256_hadd_pd(ps, ps);
-  sum += ((double*)&ps)[0] + ((double*)&ps)[2];
+  sum = ((double*)&ps)[0] + ((double*)&ps)[2];
 
   for (i = 0; i < r; i++) {
     sum += *a++ * *b++;

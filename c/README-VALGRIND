@@ -5,3 +5,40 @@ This is a very rough cut log of useful command for profiling and spotting issues
 valgrind --tool=callgrind --dump-instr=yes --collect-jumps=yes build/test/bin/ut_sort_utils --verbose -m=perf -p /sort_utils/sort_utils_heapsort_X_d_perf_test
 
 valgrind --tool=callgrind --dump-instr=yes --collect-jumps=yes ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-15
+
+
+rcrr@hypnotic:~/base/prj/reversi/c$ valgrind --tool=cachegrind ./build/bin/chol_perf_analysis -v -f tmp/corner_rglm_hessian_for_cholesky_factorization_00.dat -d tmp/corner_rglm_hessian_factorized_diag_00.dat 
+==5177== Cachegrind, a cache and branch-prediction profiler
+==5177== Copyright (C) 2002-2017, and GNU GPL'd, by Nicholas Nethercote et al.
+==5177== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==5177== Command: ./build/bin/chol_perf_analysis -v -f tmp/corner_rglm_hessian_for_cholesky_factorization_00.dat -d tmp/corner_rglm_hessian_factorized_diag_00.dat
+==5177== 
+--5177-- warning: L3 cache found, using its data for the LL simulation.
+File "tmp/corner_rglm_hessian_for_cholesky_factorization_00.dat" has been retrieved succesfully.
+File "tmp/corner_rglm_hessian_factorized_diag_00.dat" has been retrieved succesfully.
+The rank of the matrix is: 5156
+The matrix has 0 entries valued zero on the diagonal.
+The matrix has 10870927 entries valued zero in the upper triangle escluding the diagonal.
+The cloned matrix has been prepared.
+   Cholesky Solution CPU  time:                                    [  1155.641223084] 
+   Cholesky Solution REAL time:                                    [  1155.671437563] 
+chol_perf_analysis: the algorithm gives a wrong value.
+  aux_diag_a[17] = 16.910379
+  aux_diag_b[17] = 16.910378
+  epsilon = 1.000000e-12==5177== 
+==5177== I   refs:      19,545,968,020
+==5177== I1  misses:             2,045
+==5177== LLi misses:             2,009
+==5177== I1  miss rate:           0.00%
+==5177== LLi miss rate:           0.00%
+==5177== 
+==5177== D   refs:      28,701,793,701  (28,679,770,473 rd   + 22,023,228 wr)
+==5177== D1  misses:     4,656,984,775  ( 4,651,571,858 rd   +  5,412,917 wr)
+==5177== LLd misses:     2,861,868,176  ( 2,856,482,040 rd   +  5,386,136 wr)
+==5177== D1  miss rate:           16.2% (          16.2%     +       24.6%  )
+==5177== LLd miss rate:           10.0% (          10.0%     +       24.5%  )
+==5177== 
+==5177== LL refs:        4,656,986,820  ( 4,651,573,903 rd   +  5,412,917 wr)
+==5177== LL misses:      2,861,870,185  ( 2,856,484,049 rd   +  5,386,136 wr)
+==5177== LL miss rate:             5.9% (           5.9%     +       24.5%  )
+rcrr@hypnotic:~/base/prj/reversi/c$ 

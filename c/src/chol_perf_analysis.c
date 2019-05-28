@@ -36,6 +36,8 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <assert.h>
+#include <limits.h>
+#include <errno.h>
 #include <math.h>
 
 #include "time_utils.h"
@@ -67,11 +69,15 @@ static char *f_arg = NULL;
 static int d_flag = false;
 static char *d_arg = NULL;
 
+static int t_flag = false;
+static char *t_arg = NULL;
+
 static mop_options_long_t olist[] = {
-  {"help",        'h', MOP_NONE},
-  {"verbose",     'v', MOP_NONE},
-  {"matrix-file", 'f', MOP_REQUIRED},
-  {"diag-file",   'd', MOP_REQUIRED},
+  {"help",         'h', MOP_NONE},
+  {"verbose",      'v', MOP_NONE},
+  {"matrix-file",  'f', MOP_REQUIRED},
+  {"diag-file",    'd', MOP_REQUIRED},
+  {"thread-count", 't', MOP_REQUIRED},
   {0, 0, 0}
 };
 
@@ -84,6 +90,7 @@ static const char *documentation =
   "  -v, --verbose        Verbose output\n"
   "  -f, --matrix-file    Input file name for the square matrix - Mandatory\n"
   "  -d, --diag-file      Input file name for the diagonal of the factorized matrix - Mandatory\n"
+  "  -t, --thread-count   Number of threads used by the cholesky factorization algorithm. Default is one.\n"
   "\n"
   "Description:\n"
   "Used to test new algorithms and improve performances of the Cholesky decomposition.\n"
@@ -113,6 +120,7 @@ main (int argc, char *argv[])
 
   /* Stopwatch variables. */
   timespec_t time_0, time_1, time_diff;
+  timespec_t rtime_0, rtime_1, rtime_diff;
 
   /* Cholesky variables. */
   size_t nr, nc, nv;
@@ -120,10 +128,14 @@ main (int argc, char *argv[])
   double *aux_diag_a, *aux_diag_b;
   int ret_code;
   size_t zero_count, zero_count_d;
-  double epsilon = 1.0e-12;
+  double delta_perc;
+  double epsilon = 1.0e-3;
 
   /* Verbose output. */
   bool verbose = false;
+
+  /* Number of threads used by the cholesky factorization algorithm. */
+  unsigned long int thread_count = 1;
 
   mop_init(&options, argc, argv);
   while ((opt = mop_parse_long(&options, olist, &oindex)) != -1) {
@@ -141,6 +153,10 @@ main (int argc, char *argv[])
     case 'd':
       d_flag = true;
       d_arg = options.optarg;
+      break;
+    case 't':
+      t_flag = true;
+      t_arg = options.optarg;
       break;
     case ':':
       fprintf(stderr, "Option parsing failed: %s\n", options.errmsg);
@@ -173,6 +189,26 @@ main (int argc, char *argv[])
   if (!d_arg) {
     fprintf(stderr, "Option -d, --diag-file is mandatory.\n");
     return EXIT_FAILURE;
+  }
+
+  if (t_flag) {
+    char *endptr;
+    errno = 0;    /* To distinguish success/failure after call */
+    thread_count = strtoull(t_arg, &endptr, 10);
+    /* Check for various possible errors */
+    if ((errno == ERANGE && (thread_count == LONG_MAX || thread_count == LONG_MIN))
+        || (errno != 0 && thread_count == 0)) {
+      perror("strtol");
+      return EXIT_FAILURE;
+    }
+    if (endptr == t_arg) {
+      fprintf(stderr, "No digits were found in thread_count value.\n");
+      return EXIT_FAILURE;
+    }
+    if (*endptr != '\0') {
+      fprintf(stderr, "Further characters after number in thread_count value: %s\n", endptr);
+      return EXIT_FAILURE;
+    }
   }
 
   /* Checks if the matrix input file exixts. */
@@ -259,51 +295,70 @@ main (int argc, char *argv[])
   }
 
   /* Starts the stop-watch. */
+  clock_gettime(CLOCK_REALTIME, &rtime_0);
+
+  /* Starts the stop-watch. */
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
 
   /* TRACKED ZONE - START */
 
   /* Factorizes the symmetrical essian matrix applying the Cholesky decomposition. */
-  //chol_fact_naive(b, nr, aux_diag_b);
-  chol_fact_v1(b, nr, aux_diag_b);
+  chol_fact_omp_tc(b, nr, aux_diag_b, thread_count);
 
   /* TRACKED ZONE - FINISH */
 
   /* Stops the stop-watch. */
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
 
-  /* Computes the time taken, and updates the test cpu_time. */
+  /* Starts the stop-watch. */
+  clock_gettime(CLOCK_REALTIME, &rtime_1);
+
+  /* Computes the time taken, and updates the process cpu time. */
   timespec_diff(&time_diff, &time_0, &time_1);
   if (verbose) {
-    printf("   Cholesky Solution CPU time:                                    ");
+    printf("   Cholesky Solution CPU  time:                                    ");
     printf("[%6lld.%9ld] ", (long long) timespec_get_sec(&time_diff), timespec_get_nsec(&time_diff));
+    printf("\n");
+  }
+
+  /* Computes the time taken, and updates real time. */
+  timespec_diff(&rtime_diff, &rtime_0, &rtime_1);
+  if (verbose) {
+    printf("   Cholesky Solution REAL time:                                    ");
+    printf("[%6lld.%9ld] ", (long long) timespec_get_sec(&rtime_diff), timespec_get_nsec(&rtime_diff));
     printf("\n");
   }
 
   /* Verifies that the soluton is correct. */
   for (size_t i = 0; i < nr; i++) {
-    if (fabs(aux_diag_a[i] -  aux_diag_b[i]) > epsilon) {
+    delta_perc = fabs((aux_diag_a[i] - aux_diag_b[i]) / aux_diag_a[i]);
+    if (delta_perc > epsilon) {
       fprintf(stderr,
               "chol_perf_analysis: the algorithm gives a wrong value.\n"
               "  aux_diag_a[%zu] = %f\n"
               "  aux_diag_b[%zu] = %f\n"
-              "  epsilon = %e"
-              , i, aux_diag_a[i], i, aux_diag_b[i], epsilon);
+              "  delta_perc = %e\n"
+              "  epsilon    = %e\n"
+              , i, aux_diag_a[i], i, aux_diag_b[i], delta_perc, epsilon);
       goto end_of_program;
     }
   }
   for (size_t i = 0; i < nr; i++) {
-    for (size_t j = 0; j < i; j++)
-      if (fabs(a[i][j] - b[i][j]) > epsilon) {
+    for (size_t j = 0; j < i; j++) {
+      delta_perc = fabs((a[i][j] - b[i][j]) / a[i][j]);
+      if (delta_perc > epsilon) {
         fprintf(stderr,
                 "chol_perf_analysis: the algorithm gives a wrong value.\n"
                 "  a[%zu][%zu] = %f\n"
                 "  b[%zu][%zu] = %f\n"
                 "  fabs(a[%zu][%zu] - b[%zu][%zu]) = %f\n"
-                "  epsilon = %e\n"
-                , i, j, a[i][j], i, j, b[i][j], i, j, i, j, fabs(a[i][j] - b[i][j]), epsilon);
+                "  delta_perc = %e\n"
+                "  epsilon    = %e\n"
+                , i, j, a[i][j], i, j, b[i][j], i, j, i, j, fabs(a[i][j] - b[i][j]), delta_perc, epsilon);
+        fflush(stderr);
         goto end_of_program;
       }
+    }
   }
   if (verbose) printf("The result of the cholesky decomposition has been checked succesfully.\n");
 

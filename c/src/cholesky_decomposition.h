@@ -141,6 +141,23 @@ chol_fact_naive (double **a,
                  double p[]);
 
 /**
+ * @brief Parallel version of cholesky factorization.
+ */
+extern void
+chol_fact_omp (double **a,
+               size_t n,
+               double p[]);
+
+/**
+ * @brief Parallel version of cholesky factorization, with a given thread count.
+ */
+extern void
+chol_fact_omp_tc (double **a,
+                  size_t n,
+                  double p[],
+                  size_t thread_count);
+
+/**
  * @brief Solves a set of linear equations.
  *
  * @details Solves the set of `n` linear equations `A x = b`, where `a` is a positive-definite symmetrix matrix.
@@ -231,34 +248,20 @@ chol_clone_vector (double *v,
                    size_t n,
                    int *ret_code);
 
+/**
+ * @brief Computes the dot product of vectors `a` and `b`.
+ */
 extern double
-chol_dot_product_a (double *a,
-                    double *b,
-                    size_t n);
+chol_dot_product (double *a,
+                  double *b,
+                  size_t n);
 
+/**
+ * @brief Computes the dot product of vectors `a` and `b`.
+ */
 extern double
-chol_dot_product_b (double *a,
-                    double *b,
-                    size_t n);
-
-extern double
-chol_dot_product_c (double *a,
-                    double *b,
-                    size_t n);
-
-extern double
-chol_dot_product_d (double *a,
-                    double *b,
-                    size_t n);
-
-extern void
-chol_fact_zero (double **a,
-                size_t n,
-                double p[]);
-
-extern void
-chol_fact_v1 (double **a,
-              size_t n,
-              double p[]);
+chol_dot_product_avx (double *a,
+                      double *b,
+                      size_t n);
 
 #endif /* CHOLESKY_DECOMPOSITION_H */

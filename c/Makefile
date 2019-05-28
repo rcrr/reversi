@@ -54,13 +54,13 @@ CC = gcc
 # add -DNDEBUG to disable assertions
 # add -fno-inline to prevent inlining
 # add -ftree-vectorize -ftree-vectorizer-verbose=2 to get from gcc the explanation for code vectorization
-ARCH_FLAGS = -mpopcnt -mavx2 -mabm
-CFLAGS = -std=c11 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -ffast-math -march=native
+ARCH_FLAGS = -mpopcnt -mavx2 -mabm -march=native
+CFLAGS = -std=c11 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -ffast-math -fopenmp
 LDFLAGS =
 CFLAGS_TEST = -std=c11 -pedantic-errors -Wall -g -O3 -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS)
 LDFLAGS_TEST =
-ASMFLAGS = -std=c11 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -masm=intel -march=native
-LIBS = -lm -L$(PG_LIB_DIR) $(PG_LIBS)
+ASMFLAGS = -std=c11 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -masm=intel -march=native -fopenmp
+LIBS = -lm -L$(PG_LIB_DIR) $(PG_LIBS) -lgomp
 TEST_LIBS =
 SRCDIR = src
 TESTDIR = test

@@ -111,7 +111,7 @@ static void
 chol_dot_product_t (ut_test_t *const t)
 {
   static const size_t n = 101;
-  double *a, *b, result_a, result_b, result_c, expected_plus, expected_minus;
+  double *a, *b, result, result_avx, expected_plus, expected_minus;
 
   a = chol_allocate_vector(n);
   b = chol_allocate_vector(n);
@@ -124,20 +124,15 @@ chol_dot_product_t (ut_test_t *const t)
   expected_plus  = (1./6.) * (n - 1);
   expected_minus = (1./6.) * (n - 2);
 
-  result_a = chol_dot_product_a(a, b, n);
+  result = chol_dot_product(a, b, n);
 
-  result_b = chol_dot_product_b(a, b, n);
+  result_avx = chol_dot_product_avx(a, b, n);
 
-  result_c = chol_dot_product_c(a, b, n);
+  ut_assert(t, result > expected_minus);
+  ut_assert(t, result < expected_plus);
 
-  ut_assert(t, result_a > expected_minus);
-  ut_assert(t, result_a < expected_plus);
-
-  ut_assert(t, result_b > expected_minus);
-  ut_assert(t, result_b < expected_plus);
-
-  ut_assert(t, result_c > expected_minus);
-  ut_assert(t, result_c < expected_plus);
+  ut_assert(t, result_avx > expected_minus);
+  ut_assert(t, result_avx < expected_plus);
 
   chol_free_vector(a);
   chol_free_vector(b);
