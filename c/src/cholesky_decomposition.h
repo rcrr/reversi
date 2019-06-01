@@ -252,16 +252,16 @@ chol_clone_vector (double *v,
  * @brief Computes the dot product of vectors `a` and `b`.
  */
 extern double
-chol_dot_product (double *a,
-                  double *b,
+chol_dot_product (const double *a,
+                  const double *b,
                   size_t n);
 
 /**
  * @brief Computes the dot product of vectors `a` and `b`.
  */
 extern double
-chol_dot_product_avx (double *a,
-                      double *b,
+chol_dot_product_avx (const double *a,
+                      const double *b,
                       size_t n);
 
 #endif /* CHOLESKY_DECOMPOSITION_H */

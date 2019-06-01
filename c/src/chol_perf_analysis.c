@@ -226,7 +226,7 @@ main (int argc, char *argv[])
   /* Retrieves the matrix from file. */
   a = chol_retrieve_matrix(f_arg, &nr, &nc, &ret_code);
   if (ret_code != 0) {
-    fprintf(stderr, "chol_perf_analysis: error in reading file \"%s\".\n", f_arg);
+    fprintf(stderr, "chol_perf_analysis: error in reading file \"%s\", return code = %d.\n", f_arg, ret_code);
     return EXIT_FAILURE;
   }
   if (verbose) printf("File \"%s\" has been retrieved succesfully.\n", f_arg);

@@ -1,6 +1,53 @@
 /**
  * @file
  *
+ * @todo The evaluation function: e = g(sum(w*h)) where:
+ *         - g is the logistic function
+ *         - sum is the dot product of the vectors w and h
+ *         - w is the wector of weights as computed by solving the GLM system
+ *         - h is the count [0,1,..n_instances] of the occurrences of the pattern configuratio in the game position
+ *       In this model the h_0 value ( termine noto ) is missing.
+ *       The distribution of game outcomes has a mean that is different from zero, usually negative when the
+ *       empty_count is even, and positive otherwise.
+ *       To better describe this characteristic of the data each position is given a patetrn configuration that is
+ *       always present once, the expected value of the parameter w_0 should then be equal to the mean of the distribution
+ *       of the outcomes.
+ *
+ * @todo Add to patterns the legal_move_count parameter.
+ *       There are a few options:
+ *         - add a single configuration having h equal to the empty_cont value
+ *         - consider each value of empty_count as a categorical feature
+ *         - how do we consider having to pass ? as a single case or we evaluate the adversary legal move count ?
+ *
+ * @todo Consider if is better to remove the end_game positions.
+ *       Are strong outliers.
+ *       The evaluation function could check if the game position is a leaf, if yes the value is the disc difference.
+ *       In this scenario having end_game position into the data set just pollutes it.
+ *
+ * @todo Classify the legal moves into types.
+ * @code
+ * .    a    b    c    d    e    f    g    h
+ *   =========================================
+ * 1 =  V .. C .. A .. B .. B .. A .. C .. V =
+ *   =========================================
+ * 2 =  C .. X .. F .. H .. H .. F .. X .. C =
+ *   =========================================
+ * 3 =  A .. F .. S .. E .. E .. S .. F .. A =
+ *   =========================================
+ * 4 =  B .. H .. E .. O .. O .. E .. H .. B =
+ *   =========================================
+ * 5 =  B .. H .. E .. O .. O .. E .. H .. B =
+ *   =========================================
+ * 6 =  A .. F .. S .. E .. E .. S .. F .. A =
+ *   =========================================
+ * 7 =  C .. X .. F .. H .. H .. F .. X .. C =
+ *   =========================================
+ * 8 =  V .. C .. A .. B .. B .. A .. C .. V =
+ *   =========================================
+ * @endcode
+ *
+ *
+ *
  * @brief REGAB: Reversi End Game Analytics Base.
  *
  * @details An utility that generates the data base of reversi game positions

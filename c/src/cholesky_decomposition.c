@@ -46,11 +46,11 @@
  * One double is eight bytes, AVX2 uses 256 bit ymm registers, that needs 32 byte alignemnt.
  * Sixty-four is in sight of AVX-512 ...
  */
-#define CHOL_DOUBLE_ALIGNMENT 32
+#define CHOL_DOUBLE_ALIGNMENT 8
 
 #define CHOL_DOUBLE_SIZE 8
 
-#define CHOL_DOUBLE_ELEMENT_X_SLOT 4
+#define CHOL_DOUBLE_ELEMENT_X_SLOT CHOL_DOUBLE_ALIGNMENT / CHOL_DOUBLE_SIZE
 
 double
 chol_vector_magnitude (double *v,
@@ -187,7 +187,7 @@ chol_fact_naive (double **a,
     }
     p[i] = sqrt(sum);
     for (j = i + 1; j < n; j++) {
-      sum = a[i][j] - chol_dot_product_avx(a[i], a[j], i);
+      sum = a[i][j] - chol_dot_product(a[i], a[j], i);
       a[j][i] = sum / p[i];
     }
   }
@@ -236,9 +236,43 @@ chol_fact_omp_tc (double **a,
   }
 }
 
+void
+chol_fact_omp_tc0 (double **a,
+                  size_t n,
+                  double p[],
+                  size_t thread_count)
+{
+  size_t i, j, k;
+  double s;
+
+  double *L = *a;
+
+  if (0) {
+      chol_fact_omp_tc0(a, n, p, thread_count);
+  } else {
+
+    for (j =0; j < n; j++) {
+      s = L[j * n + j];
+      for (k = 0; k < j; k++) {
+        s -= L[j * n + k] * L[j * n + k];
+      }
+      p[j] = sqrt(s);
+#pragma omp parallel for schedule(static, 8)
+      for (i = j + 1; i < n; i++) {
+        s = L[j * n + i];
+        for (k = 0; k < j; k++) {
+          s -= L[i * n + k] * L[j * n + k];
+        }
+        L[i * n + j] = s / p[j];
+      }
+    }
+
+  }
+}
+
 double
-chol_dot_product (double *a,
-                  double *b,
+chol_dot_product (const double * restrict a,
+                  const double * restrict b,
                   size_t n)
 {
   size_t i;
@@ -253,8 +287,8 @@ chol_dot_product (double *a,
 }
 
 double
-chol_dot_product_avx (double *a,
-                      double *b,
+chol_dot_product_avx (const double * restrict a,
+                      const double * restrict b,
                       size_t n)
 {
   /*
