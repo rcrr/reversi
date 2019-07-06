@@ -1,10 +1,12 @@
 /**
  * @file
  *
- * @brief Cholesky Decomposition module definitions.
- * @details This module defines ...
+ * @brief Linear Algebra module definitions.
  *
- * @par cholesky_decomposition.h
+ * @details This module defines functions that implements the Cholesky Decomposition,
+ *          LU Factorization, and several utilities.
+ *
+ * @par linear_algebra.h
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
@@ -31,8 +33,8 @@
  * </tt>
  */
 
-#ifndef CHOLESKY_DECOMPOSITION_H
-#define CHOLESKY_DECOMPOSITION_H
+#ifndef LINEAR_ALGEBRA_H
+#define LINEAR_ALGEBRA_H
 
 /**
  * @brief Computes the magnitude of the `v` vector.
@@ -302,4 +304,4 @@ lial_dot_product_avx (const double *a,
                       const double *b,
                       size_t n);
 
-#endif /* CHOLESKY_DECOMPOSITION_H */
+#endif /* LINEAR_ALGEBRA_H */

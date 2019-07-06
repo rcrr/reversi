@@ -45,7 +45,7 @@
 
 #include "prng.h"
 #include "unit_test.h"
-#include "cholesky_decomposition.h"
+#include "linear_algebra.h"
 
 /* ---
  * C interface for the LAPACK routine DPOTRS --

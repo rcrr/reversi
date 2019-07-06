@@ -2,6 +2,7 @@
  * @file
  *
  * @brief Cholesky performance analysis.
+ *
  * @details This executable reads a file that contains the Hessian matrix
  *          then factorize it.
  *
@@ -43,7 +44,7 @@
 #include "time_utils.h"
 #include "file_utils.h"
 #include "main_option_parse.h"
-#include "cholesky_decomposition.h"
+#include "linear_algebra.h"
 
 /**
  * @cond

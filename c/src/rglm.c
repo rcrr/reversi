@@ -42,7 +42,7 @@
 #include "board_pattern.h"
 #include "rglm_data_files.h"
 #include "rglm_utils.h"
-#include "cholesky_decomposition.h"
+#include "linear_algebra.h"
 
 
 

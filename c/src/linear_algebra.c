@@ -1,9 +1,9 @@
 /**
  * @file
  *
- * @brief Cholesky Decomposition module implementation.
+ * @brief Linear Algebra module implementation.
  *
- * @par cholesky_decomposition.c
+ * @par linear_algebra.c
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
@@ -43,7 +43,7 @@
 #include "file_utils.h"
 
 #include "isqrt.h"
-#include "cholesky_decomposition.h"
+#include "linear_algebra.h"
 
 /*
  * One double is eight bytes, AVX2 uses 256 bit ymm registers, that needs 32 byte alignemnt.
