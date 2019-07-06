@@ -1,10 +1,10 @@
 /**
  * @file
  *
- * @brief Cholesky Decomposition module unit test suite.
- * @details Collects tests and helper methods for the cholesky decomposition module.
+ * @brief Linear Algebra module unit test suite.
+ * @details Collects tests and helper methods for the linear algebra module.
  *
- * @par ut_cholesky_decomposition.c
+ * @par ut_linear_algebra.c
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
@@ -167,13 +167,13 @@ aux_create_sdf_matrix (uint64_t seed,
  */
 
 static void
-chol_dummy_t (ut_test_t *const t)
+lial_dummy_t (ut_test_t *const t)
 {
   ut_assert(t, true);
 }
 
 static void
-chol_lu_i2_t (ut_test_t *const t)
+lial_lu_i2_t (ut_test_t *const t)
 {
   static const size_t n = 2;
   double **a;
@@ -211,7 +211,7 @@ chol_lu_i2_t (ut_test_t *const t)
 }
 
 static void
-chol_lu_3_t (ut_test_t *const t)
+lial_lu_3_t (ut_test_t *const t)
 {
   static const size_t n = 3;
   double **a;
@@ -253,7 +253,7 @@ chol_lu_3_t (ut_test_t *const t)
 }
 
 static void
-chol_lapack_t (ut_test_t *const t)
+lial_chol_lapack_t (ut_test_t *const t)
 {
   uint64_t seed;
   int n;
@@ -314,7 +314,7 @@ chol_lapack_t (ut_test_t *const t)
 }
 
 static void
-chol_dot_product_t (ut_test_t *const t)
+lial_dot_product_t (ut_test_t *const t)
 {
   static const size_t n = 101;
   double *a, *b, result, result_avx, expected_plus, expected_minus;
@@ -345,7 +345,7 @@ chol_dot_product_t (ut_test_t *const t)
 }
 
 static void
-chol_clone_vector_t (ut_test_t *const t)
+lial_clone_vector_t (ut_test_t *const t)
 {
   static const size_t n = 10;
   double *v, *r;
@@ -375,7 +375,7 @@ chol_clone_vector_t (ut_test_t *const t)
 }
 
 static void
-chol_clone_matrix_t (ut_test_t *const t)
+lial_clone_matrix_t (ut_test_t *const t)
 {
   static const size_t nr = 3;
   static const size_t nc = 2;
@@ -403,7 +403,7 @@ chol_clone_matrix_t (ut_test_t *const t)
 }
 
 static void
-chol_dump_retrieve_vector_t (ut_test_t *const t)
+lial_dump_retrieve_vector_t (ut_test_t *const t)
 {
   static const size_t n = 7;
   size_t rn;
@@ -412,7 +412,7 @@ chol_dump_retrieve_vector_t (ut_test_t *const t)
 
   char pathname[1024];
 
-  const char *file_name = "chol_dump_retrieve_vector_t.tmp";
+  const char *file_name = "lial_dump_retrieve_vector_t.tmp";
 
   strcpy(pathname, test_dir_full_path);
   strcat(pathname, "/");
@@ -445,7 +445,7 @@ chol_dump_retrieve_vector_t (ut_test_t *const t)
 }
 
 static void
-chol_dump_retrieve_matrix_t (ut_test_t *const t)
+lial_dump_retrieve_matrix_t (ut_test_t *const t)
 {
   static const size_t nr = 2;
   static const size_t nc = 3;
@@ -455,7 +455,7 @@ chol_dump_retrieve_matrix_t (ut_test_t *const t)
 
   char pathname[1024];
 
-  const char *file_name = "chol_dump_retrieve_matrix_t.tmp";
+  const char *file_name = "lial_dump_retrieve_matrix_t.tmp";
 
   strcpy(pathname, test_dir_full_path);
   strcat(pathname, "/");
@@ -489,7 +489,7 @@ chol_dump_retrieve_matrix_t (ut_test_t *const t)
 }
 
 static void
-chol_fact_naive_i2_t (ut_test_t *const t)
+lial_chol_fact_naive_i2_t (ut_test_t *const t)
 {
   static const size_t n = 2;
   double **a;
@@ -517,7 +517,7 @@ chol_fact_naive_i2_t (ut_test_t *const t)
 }
 
 static void
-chol_fact_naive_3_t (ut_test_t *const t)
+lial_chol_fact_naive_3_t (ut_test_t *const t)
 {
   static const size_t n = 3;
   double **a;
@@ -558,7 +558,7 @@ chol_fact_naive_3_t (ut_test_t *const t)
 }
 
 static void
-chol_fact_naive_3_lapack_t (ut_test_t *const t)
+lial_chol_fact_naive_3_lapack_t (ut_test_t *const t)
 {
   int  n = 3;
   double **a;
@@ -599,7 +599,7 @@ chol_fact_naive_3_lapack_t (ut_test_t *const t)
 }
 
 static void
-chol_fact_naive_5_t (ut_test_t *const t)
+lial_chol_fact_naive_5_t (ut_test_t *const t)
 {
   static const size_t n = 5;
   double **a;
@@ -764,24 +764,24 @@ main (int argc,
 
   aux_setup();
 
-  ut_suite_t *const s = ut_suite_new(&config, "cholesky_decomposition");
+  ut_suite_t *const s = ut_suite_new(&config, "linear_algebra");
 
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_dummy", chol_dummy_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dummy", lial_dummy_t);
 
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_lu_i2", chol_lu_i2_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_lu_3", chol_lu_3_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_lu_i2", lial_lu_i2_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_lu_3", lial_lu_3_t);
 
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_fact_naive_i2", chol_fact_naive_i2_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_fact_naive_3", chol_fact_naive_3_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_fact_naive_3_lapack", chol_fact_naive_3_lapack_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_fact_naive_5", chol_fact_naive_5_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_dump_retrieve_vector", chol_dump_retrieve_vector_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_dump_retrieve_matrix", chol_dump_retrieve_matrix_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_clone_vector", chol_clone_vector_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_clone_matrix", chol_clone_matrix_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_dot_product_t", chol_dot_product_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_i2", lial_chol_fact_naive_i2_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_3", lial_chol_fact_naive_3_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_3_lapack", lial_chol_fact_naive_3_lapack_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_5", lial_chol_fact_naive_5_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dump_retrieve_vector", lial_dump_retrieve_vector_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dump_retrieve_matrix", lial_dump_retrieve_matrix_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_clone_vector", lial_clone_vector_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_clone_matrix", lial_clone_matrix_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dot_product_t", lial_dot_product_t);
 
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_lapack", chol_lapack_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_lapack", lial_chol_lapack_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);
