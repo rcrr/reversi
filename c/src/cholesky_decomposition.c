@@ -37,7 +37,10 @@
 #include <assert.h>
 
 #include <immintrin.h>
-//#include <omp.h>
+#include <omp.h>
+
+#include "time_utils.h"
+#include "file_utils.h"
 
 #include "isqrt.h"
 #include "cholesky_decomposition.h"
@@ -53,7 +56,7 @@
 #define CHOL_DOUBLE_ELEMENT_X_SLOT CHOL_DOUBLE_ALIGNMENT / CHOL_DOUBLE_SIZE
 
 double
-chol_vector_magnitude (double *v,
+lial_vector_magnitude (double *v,
                        size_t n,
                        double *abs_min,
                        size_t *abs_min_pos,
@@ -86,7 +89,7 @@ chol_vector_magnitude (double *v,
 }
 
 void
-chol_zero_vector (double *v,
+lial_zero_vector (double *v,
                   size_t n)
 {
   for (size_t k = 0; k < n; k++)
@@ -94,7 +97,7 @@ chol_zero_vector (double *v,
 }
 
 double *
-chol_allocate_vector (size_t n)
+lial_allocate_vector (size_t n)
 {
   double *v;
 
@@ -113,19 +116,19 @@ chol_allocate_vector (size_t n)
 }
 
 void
-chol_free_vector (double *v)
+lial_free_vector (double *v)
 {
   free(v);
 }
 
 double **
-chol_allocate_square_matrix (size_t n)
+lial_allocate_square_matrix (size_t n)
 {
-  return chol_allocate_matrix(n, n);
+  return lial_allocate_matrix(n, n);
 }
 
 double **
-chol_allocate_matrix (size_t nr,
+lial_allocate_matrix (size_t nr,
                       size_t nc)
 {
   size_t i, row_size, n_slots_per_row, n_double_per_row;
@@ -165,18 +168,28 @@ chol_allocate_matrix (size_t nr,
 }
 
 void
-chol_free_matrix (double **m)
+lial_free_matrix (double **m,
+                  size_t nr)
 {
+  double *p, *p0;
+
   if (m) {
-    free(m[0]);
+    if (nr > 0) {
+      p0 = m[0];
+      for (size_t i = 0; i < nr; i++) {
+        p = m[i];
+        if (p < p0) p0 = p;
+      }
+      free(p0);
+    }
     free(m);
   }
 }
 
 void
-chol_fact_naive (double **a,
-                 size_t n,
-                 double p[])
+lial_chol_fact_naive (double **a,
+                      size_t n,
+                      double p[])
 {
   size_t i, j, k;
   double sum;
@@ -187,16 +200,16 @@ chol_fact_naive (double **a,
     }
     p[i] = sqrt(sum);
     for (j = i + 1; j < n; j++) {
-      sum = a[i][j] - chol_dot_product(a[i], a[j], i);
+      sum = a[i][j] - lial_dot_product(a[i], a[j], i);
       a[j][i] = sum / p[i];
     }
   }
 }
 
 void
-chol_fact_omp (double **a,
-               size_t n,
-               double p[])
+lial_chol_fact_omp (double **a,
+                    size_t n,
+                    double p[])
 {
   size_t i, j, k;
   double sum;
@@ -208,70 +221,65 @@ chol_fact_omp (double **a,
     p[i] = sqrt(sum);
 #pragma omp parallel for default(none) private(j, sum) shared(a, p, n, i)
     for (j = i + 1; j < n; j++) {
-      sum = a[i][j] - chol_dot_product_avx(a[i], a[j], i);
+      sum = a[i][j] - lial_dot_product_avx(a[i], a[j], i);
       a[j][i] = sum / p[i];
     }
   }
 }
 
 void
-chol_fact_omp_tc (double **a,
-                  size_t n,
-                  double p[],
-                  size_t thread_count)
+lial_chol_fact_omp_tc (double **a,
+                       size_t n,
+                       double p[],
+                       size_t thread_count)
 {
   size_t i, j, k;
   double sum;
 
+  timespec_t time_0, time_1, time_diff;
+  FILE *fp;
+
+  fp = fopen("lial_chol_fact_omp_tc.log", "w");
+
   for (i = 0; i < n; i++) {
+
+    /* Starts the stop-watch. */
+    clock_gettime(CLOCK_REALTIME, &time_0);
+
     for (sum = a[i][i], k = 0; k < i; k++) {
       sum -= a[i][k] * a[i][k];
     }
     p[i] = sqrt(sum);
+
+    /* Stops the stop-watch. */
+    clock_gettime(CLOCK_REALTIME, &time_1);
+
+    /* Computes the time taken, and updates the process cpu time. */
+    timespec_diff(&time_diff, &time_0, &time_1);
+    fprintf(fp, "i = %6zu,   diag - [%6lld.%9ld]\n", i, (long long) timespec_get_sec(&time_diff), timespec_get_nsec(&time_diff));
+
+    /* Starts the stop-watch. */
+    clock_gettime(CLOCK_REALTIME, &time_0);
+
 #pragma omp parallel for num_threads(thread_count) default(none) private(j, sum) shared(a, p, n, i)
     for (j = i + 1; j < n; j++) {
-      sum = a[i][j] - chol_dot_product_avx(a[i], a[j], i);
+      sum = a[i][j] - lial_dot_product_avx(a[i], a[j], i);
       a[j][i] = sum / p[i];
     }
-  }
-}
 
-void
-chol_fact_omp_tc0 (double **a,
-                  size_t n,
-                  double p[],
-                  size_t thread_count)
-{
-  size_t i, j, k;
-  double s;
+    /* Stops the stop-watch. */
+    clock_gettime(CLOCK_REALTIME, &time_1);
 
-  double *L = *a;
-
-  if (0) {
-      chol_fact_omp_tc0(a, n, p, thread_count);
-  } else {
-
-    for (j =0; j < n; j++) {
-      s = L[j * n + j];
-      for (k = 0; k < j; k++) {
-        s -= L[j * n + k] * L[j * n + k];
-      }
-      p[j] = sqrt(s);
-#pragma omp parallel for schedule(static, 8)
-      for (i = j + 1; i < n; i++) {
-        s = L[j * n + i];
-        for (k = 0; k < j; k++) {
-          s -= L[i * n + k] * L[j * n + k];
-        }
-        L[i * n + j] = s / p[j];
-      }
-    }
+    /* Computes the time taken, and updates the process cpu time. */
+    timespec_diff(&time_diff, &time_0, &time_1);
+    fprintf(fp, "i = %6zu, column - [%6lld.%9ld]\n", i, (long long) timespec_get_sec(&time_diff), timespec_get_nsec(&time_diff));
 
   }
+  fclose(fp);
 }
 
 double
-chol_dot_product (const double * restrict a,
+lial_dot_product (const double * restrict a,
                   const double * restrict b,
                   size_t n)
 {
@@ -287,7 +295,7 @@ chol_dot_product (const double * restrict a,
 }
 
 double
-chol_dot_product_avx (const double * restrict a,
+lial_dot_product_avx (const double * restrict a,
                       const double * restrict b,
                       size_t n)
 {
@@ -336,11 +344,11 @@ chol_dot_product_avx (const double * restrict a,
 }
 
 void
-chol_solv_naive (double **a,
-                 size_t n,
-                 double p[],
-                 double b[],
-                 double x[])
+lial_chol_solv_naive (double **a,
+                      size_t n,
+                      double p[],
+                      double b[],
+                      double x[])
 {
   long long int i, k;
   double sum;
@@ -357,7 +365,7 @@ chol_solv_naive (double **a,
 }
 
 void
-chol_dump_matrix (double **a,
+lial_dump_matrix (double **a,
                   size_t nr,
                   size_t nc,
                   char *file_name,
@@ -401,7 +409,7 @@ chol_dump_matrix (double **a,
 }
 
 double **
-chol_retrieve_matrix (char *file_name,
+lial_retrieve_matrix (char *file_name,
                       size_t *nr,
                       size_t *nc,
                       int *ret_code)
@@ -431,7 +439,7 @@ chol_retrieve_matrix (char *file_name,
     fclose(f);
     return NULL;
   }
-  a = chol_allocate_matrix(lnr, lnc);
+  a = lial_allocate_matrix(lnr, lnc);
   if (!a) {
     if (ret_code) *ret_code = -4;
     fclose(f);
@@ -442,7 +450,7 @@ chol_retrieve_matrix (char *file_name,
     if (n != lnc) {
       if (ret_code) *ret_code = -5;
       fclose(f);
-      chol_free_matrix(a);
+      lial_free_matrix(a, lnr);
       return NULL;
     }
   }
@@ -454,7 +462,7 @@ chol_retrieve_matrix (char *file_name,
 }
 
 double **
-chol_clone_matrix (double **a,
+lial_clone_matrix (double **a,
                    size_t nr,
                    size_t nc,
                    int *ret_code)
@@ -464,7 +472,7 @@ chol_clone_matrix (double **a,
 
   double **b;
 
-  b = chol_allocate_matrix(nr, nc);
+  b = lial_allocate_matrix(nr, nc);
   if (!b) {
     if (ret_code) *ret_code = -1;
     return NULL;
@@ -479,7 +487,7 @@ chol_clone_matrix (double **a,
 }
 
 void
-chol_dump_vector (double *v,
+lial_dump_vector (double *v,
                   size_t n,
                   char *file_name,
                   int *ret_code)
@@ -513,7 +521,7 @@ chol_dump_vector (double *v,
 }
 
 double *
-chol_retrieve_vector (char *file_name,
+lial_retrieve_vector (char *file_name,
                       size_t *n,
                       int *ret_code)
 {
@@ -535,7 +543,7 @@ chol_retrieve_vector (char *file_name,
     fclose(f);
     return NULL;
   }
-  v = chol_allocate_vector(ln);
+  v = lial_allocate_vector(ln);
   if (!v) {
     if (ret_code) *ret_code = -3;
     fclose(f);
@@ -545,7 +553,7 @@ chol_retrieve_vector (char *file_name,
   if (nr != ln) {
     if (ret_code) *ret_code = -4;
     fclose(f);
-    chol_free_vector(v);
+    lial_free_vector(v);
     return NULL;
   }
   fclose(f);
@@ -555,7 +563,7 @@ chol_retrieve_vector (char *file_name,
 }
 
 double *
-chol_clone_vector (double *v,
+lial_clone_vector (double *v,
                    size_t n,
                    int *ret_code)
 {
@@ -563,7 +571,7 @@ chol_clone_vector (double *v,
 
   double *u;
 
-  u = chol_allocate_vector(n);
+  u = lial_allocate_vector(n);
   if (!u) {
     if (ret_code) *ret_code = -1;
     return NULL;
@@ -574,4 +582,119 @@ chol_clone_vector (double *v,
 
   if (ret_code) *ret_code = 0;
   return u;
+}
+
+int
+lial_lu_decom_naive (double **a,
+                     size_t n,
+                     size_t *indx,
+                     double *scale)
+{
+  int i, j, k, h;
+
+  double max, v;
+  int imax;
+  double *p;
+  size_t q;
+
+  /* Initialize the permutation vector. */
+  for (k = 0; k < n; k++) {
+    indx[k] = k;
+  }
+
+  /* Rescale the rows of the matrix. */
+  for (i = 0; i < n; i++) {
+    max = 0.0;
+    for (j = 0; j < n; j++) {
+      v = fabs(a[i][j]);
+      if (v > max) max = v;
+    }
+    if (max == 0.0) return 0;
+    scale[i] = max;
+    for (j = 0; j < n; j++) {
+      a[i][j] /= max;
+    }
+  }
+
+  for (k = 0; k < n; k++) {
+
+    /* Find the pivot element. */
+    max = 0.0;
+    imax = k;
+    for (i = k; i < n; i++) {
+      v = fabs(a[i][k]);
+      if (max < v) {
+        max = v;
+        imax = i;
+      }
+    }
+    if (max == 0.0) return 0;
+
+    /* Apply the row permutation. */
+    p = a[k];
+    a[k] = a[imax];
+    a[imax] = p;
+    q = indx[k];
+    indx[k] = indx[imax];
+    indx[imax] = q;
+
+    for (i = k; i < n; i++) {
+      for (h = 0; h < k; h++) {
+        a[i][k] = a[i][k] - (a[i][h] * a[h][k]);
+      }
+    }
+    for (j = k + 1; j < n; j++){
+      for (h = 0; h < k; h++) {
+        a[k][j] = a[k][j] - (a[k][h] * a[h][j]);
+      }
+      a[k][j] = a[k][j] / a[k][k];
+    }
+  }
+
+  return 1;
+}
+
+void
+lial_lu_bsubst_naive (double **a,
+                      size_t n,
+                      size_t *indx,
+                      double scale[],
+                      double b[])
+{
+  int i, j;
+  double sum, tmp;
+
+  /* Scale cector b */
+  for (i = 0; i < n; i++) {
+    b[i] /= scale[i];
+  }
+
+  /* Swap b */
+  for (i = 0; i < n; i++) {
+    j = indx[i];
+    if (i > j) {
+      tmp = b[i];
+      b[i] = b[j];
+      b[j] = tmp;
+    }
+  }
+
+  /* Perform the forward substitution using the LU matrix.
+   */
+  for (i = 0; i < n; i++) {
+    sum = b[i];
+    for (j = (i - 1); j >= 0 ; j--) {
+      sum -= a[i][j] * b[j];
+    }
+    b[i] = sum / a[i][i];
+  }
+
+  /* Perform the backward substitution using the LU matrix.
+   */
+  for (i = (n - 1); i >= 0; i--) {
+    for (j = (i + 1); j < n ; j++) {
+      b[i] -= a[i][j] * b[j];
+    }
+  }
+
 }

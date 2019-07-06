@@ -46,7 +46,7 @@
  * @return                  the modulus of the vector
  */
 double
-chol_vector_magnitude (double *v,
+lial_vector_magnitude (double *v,
                        size_t n,
                        double *abs_min,
                        size_t *abs_min_pos,
@@ -60,7 +60,7 @@ chol_vector_magnitude (double *v,
  * @param [in]      n number of elements
  */
 extern void
-chol_zero_vector (double *v,
+lial_zero_vector (double *v,
                   size_t n);
 
 /**
@@ -70,15 +70,15 @@ chol_zero_vector (double *v,
  * @return       a pointer to the first element of the vector
  */
 extern double *
-chol_allocate_vector (size_t n);
+lial_allocate_vector (size_t n);
 
 /**
- * @brief Frees a vector of doubles, being allocate by a call to #chol_allocate_vector.
+ * @brief Frees a vector of doubles, being allocate by a call to #lial_allocate_vector.
  *
  * @param [in, out] v the pointer to the first element of the vector
  */
 extern void
-chol_free_vector (double *v);
+lial_free_vector (double *v);
 
 /**
  * @brief Allocates an `nr` x `nc` matrix of doubles.
@@ -95,7 +95,7 @@ chol_free_vector (double *v);
  * @return        a pointer to the array of pointers to rows
  */
 extern double **
-chol_allocate_matrix (size_t nr,
+lial_allocate_matrix (size_t nr,
                       size_t nc);
 
 /**
@@ -112,15 +112,53 @@ chol_allocate_matrix (size_t nr,
  * @return       a pointer to the array of pointers to rows
  */
 extern double **
-chol_allocate_square_matrix (size_t n);
+lial_allocate_square_matrix (size_t n);
 
 /**
- * @brief Frees a matrix of doubles, being allocate by a call to #chol_allocate_matrix.
+ * @brief Frees a matrix of doubles, being allocate by a call to #lial_allocate_matrix.
  *
- * @param [in, out] m the pointer to the array of row pointers of the matrix
+ * @details The number of rows is required to be correct. The rows of the matrix could have been
+ *          swapped and it is not sure that `m[0]` holds the address of the matrix.
+ *          Swapping rows is permitted as long as the `m` pointers points to the set of all and only the
+ *          pointers to rows.
+ *
+ * @param [in, out] m  the pointer to the array of row pointers of the matrix
+ * @param [in]      nr number of rows
  */
 extern void
-chol_free_matrix (double **m);
+lial_free_matrix (double **m,
+                  size_t nr);
+
+/**
+ * @brief Factorizes a real matrix using the LU decomposition.
+ *
+ * @details Given a matrix `a[0..n-1][0..n-1]`, this function replaces it by the LU decomposition
+ *          of a rowwise permutation of itself computed applying the Crout algorithm.
+ *          Arguments `a` and `n` are input. `a` is also output, arranged having the diagonal elements of
+ *          matrix `U` assumed to be ones.
+ *          Argument `indx[0..n-1] is an output vector that records the row permutation effected by
+ *          the partial pivoting.
+ *          Argument `scale[0..n-1]` is an output vector that records the parameters used to scale the rows.
+ *          This routine is used in combination with lial_lu_bsubst_naive() to solve linear equations or invert a matrix.
+ *
+ * @param [in, out] a      the square matrix to be decomposed
+ * @param [in]      n      rank of the square matrix
+ * @param [out]     indx   row permutations
+ * @param [out]     scale  row parameters for scaling
+ * @return
+ */
+extern int
+lial_lu_decom_naive (double **a,
+                     size_t n,
+                     size_t *indx,
+                     double *scale);
+
+extern void
+lial_lu_bsubst_naive (double **a,
+                      size_t n,
+                      size_t *indx,
+                      double scale[],
+                      double b[]);
 
 /**
  * @brief Factorizes a real symmetric positive-definite matrix using the Cholesky decomposition.
@@ -131,37 +169,37 @@ chol_free_matrix (double **m);
  *          The Cholewsky factor `Lower` is returned in the lower triangle of `a`, except for its
  *          diagonal elements which are returned in `p[0..n-1]`.
  *
- * @param [in, out] a a pointer returned by calling #chol_allocate_matrix
+ * @param [in, out] a a pointer returned by calling #lial_allocate_matrix
  * @param [in]      n rank of the square matrix
  * @param [out]     p the diagonal of the factorized `Lower` matrix
  */
 extern void
-chol_fact_naive (double **a,
-                 size_t n,
-                 double p[]);
+lial_chol_fact_naive (double **a,
+                      size_t n,
+                      double p[]);
 
 /**
  * @brief Parallel version of cholesky factorization.
  */
 extern void
-chol_fact_omp (double **a,
-               size_t n,
-               double p[]);
+lial_chol_fact_omp (double **a,
+                    size_t n,
+                    double p[]);
 
 /**
  * @brief Parallel version of cholesky factorization, with a given thread count.
  */
 extern void
-chol_fact_omp_tc (double **a,
-                  size_t n,
-                  double p[],
-                  size_t thread_count);
+lial_chol_fact_omp_tc (double **a,
+                       size_t n,
+                       double p[],
+                       size_t thread_count);
 
 /**
  * @brief Solves a set of linear equations.
  *
  * @details Solves the set of `n` linear equations `A x = b`, where `a` is a positive-definite symmetrix matrix.
- *          `a[0..n-1][0..n-1]` and `p[0..n-1]` are input as the output of the function #chol_fact_naive.
+ *          `a[0..n-1][0..n-1]` and `p[0..n-1]` are input as the output of the function #lial_chol_fact_naive.
  *          Only the lower subdiagonal portion of `a` is accessed.
  *          `b[0..n-1]` is input as the right-hand side vector.
  *          The solution vector is returned in x[0..n-1].
@@ -169,18 +207,18 @@ chol_fact_omp_tc (double **a,
  *          with different right-hand sides `b`.
  *          `b` is not modified unless you identify `b` and `x` in the calling sequence, which is allowed.
  *
- * @param [in]  a the pointer to the matrix factorized by calling #chol_fact_naive
+ * @param [in]  a the pointer to the matrix factorized by calling #lial_chol_fact_naive
  * @param [in]  n rank of the square matrix
- * @param [in]  p as the output obtained by calling #chol_fact_naive
+ * @param [in]  p as the output obtained by calling #lial_chol_fact_naive
  * @param [in]  b the right-hand side vector
  * @param [out] x the solution vector
  */
 extern void
-chol_solv_naive (double **a,
-                 size_t n,
-                 double p[],
-                 double b[],
-                 double x[]);
+lial_chol_solv_naive (double **a,
+                      size_t n,
+                      double p[],
+                      double b[],
+                      double x[]);
 
 /**
  * @brief Dumps the `a` matrix into the `file_name` file.
@@ -199,7 +237,7 @@ chol_solv_naive (double **a,
  * @param [out] ret_code   return code
  */
 extern void
-chol_dump_matrix (double **a,
+lial_dump_matrix (double **a,
                   size_t nr,
                   size_t nc,
                   char *file_name,
@@ -209,7 +247,7 @@ chol_dump_matrix (double **a,
  * @brief Reads a matrix from a binary file.
  */
 extern double **
-chol_retrieve_matrix (char *file_name,
+lial_retrieve_matrix (char *file_name,
                       size_t *nr,
                       size_t *nc,
                       int *ret_code);
@@ -218,7 +256,7 @@ chol_retrieve_matrix (char *file_name,
  * @brief Clones the matrix `a`.
  */
 double **
-chol_clone_matrix (double **a,
+lial_clone_matrix (double **a,
                    size_t nr,
                    size_t nc,
                    int *ret_code);
@@ -227,7 +265,7 @@ chol_clone_matrix (double **a,
  * @brief Dumps the vector `v` into the `file_name` file.
  */
 extern void
-chol_dump_vector (double *v,
+lial_dump_vector (double *v,
                   size_t n,
                   char *file_name,
                   int *ret_code);
@@ -236,7 +274,7 @@ chol_dump_vector (double *v,
  * @brief Reads a vector from a binary file.
  */
 extern double *
-chol_retrieve_vector (char *file_name,
+lial_retrieve_vector (char *file_name,
                       size_t *n,
                       int *ret_code);
 
@@ -244,7 +282,7 @@ chol_retrieve_vector (char *file_name,
  * @brief Clones the vector `v`.
  */
 extern double *
-chol_clone_vector (double *v,
+lial_clone_vector (double *v,
                    size_t n,
                    int *ret_code);
 
@@ -252,7 +290,7 @@ chol_clone_vector (double *v,
  * @brief Computes the dot product of vectors `a` and `b`.
  */
 extern double
-chol_dot_product (const double *a,
+lial_dot_product (const double *a,
                   const double *b,
                   size_t n);
 
@@ -260,7 +298,7 @@ chol_dot_product (const double *a,
  * @brief Computes the dot product of vectors `a` and `b`.
  */
 extern double
-chol_dot_product_avx (const double *a,
+lial_dot_product_avx (const double *a,
                       const double *b,
                       size_t n);
 

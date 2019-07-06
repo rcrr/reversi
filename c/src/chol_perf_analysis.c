@@ -49,7 +49,29 @@
  * @cond
  */
 
+#define CHOL_USE_LAPACK
 
+/* Uncomment the next line to exclude the LAPACK DPOTRF solver. */
+//#undef CHOL_USE_LAPACK
+
+#ifdef CHOL_USE_LAPACK
+
+/* ---
+ * C interface for the LAPACK routine DPOTRS --
+ * Double precision POsitive definite TRiangular Solve
+ * Interface documentation at
+ *   http://www.netlib.org/lapack/dpotrs.f
+ *
+ * Requires the linker flag -llapck
+ */
+extern void
+dpotrf_ (char *uplo,
+         int *n,
+         double *a,
+         int *lda,
+         int *info);
+
+#endif /* CHOL_USE_LAPACK */
 
 /* Static constants. */
 
@@ -136,6 +158,19 @@ main (int argc, char *argv[])
 
   /* Number of threads used by the cholesky factorization algorithm. */
   unsigned long int thread_count = 1;
+
+#ifdef CHOL_USE_LAPACK
+
+  /* Being translated from FORTRAN, where matrices are stored by columns,
+   * the U value means lower .... and vice versa ....
+   */
+  char uplo = 'U';
+
+  int n;
+  int lda;
+  int info;
+
+#endif /* CHOL_USE_LAPACK */
 
   mop_init(&options, argc, argv);
   while ((opt = mop_parse_long(&options, olist, &oindex)) != -1) {
@@ -224,7 +259,7 @@ main (int argc, char *argv[])
   }
 
   /* Retrieves the matrix from file. */
-  a = chol_retrieve_matrix(f_arg, &nr, &nc, &ret_code);
+  a = lial_retrieve_matrix(f_arg, &nr, &nc, &ret_code);
   if (ret_code != 0) {
     fprintf(stderr, "chol_perf_analysis: error in reading file \"%s\", return code = %d.\n", f_arg, ret_code);
     return EXIT_FAILURE;
@@ -232,10 +267,10 @@ main (int argc, char *argv[])
   if (verbose) printf("File \"%s\" has been retrieved succesfully.\n", f_arg);
 
   /* Retrieves the diagonal of the factorized triangular matrix. */
-  aux_diag_a = chol_retrieve_vector(d_arg, &nv, &ret_code);
+  aux_diag_a = lial_retrieve_vector(d_arg, &nv, &ret_code);
   if (ret_code != 0) {
     fprintf(stderr, "chol_perf_analysis: error in reading file \"%s\".\n", d_arg);
-    chol_free_matrix(a);
+    lial_free_matrix(a, nr);
     return EXIT_FAILURE;
   }
   if (verbose) printf("File \"%s\" has been retrieved succesfully.\n", d_arg);
@@ -247,8 +282,8 @@ main (int argc, char *argv[])
             "  the number of rows    is: %zu\n"
             "  the number of columns is: %zu\n",
             f_arg, nr, nc);
-    chol_free_vector(aux_diag_a);
-    chol_free_matrix(a);
+    lial_free_vector(aux_diag_a);
+    lial_free_matrix(a, nr);
     return EXIT_FAILURE;
   }
   if (verbose) printf("The rank of the matrix is: %zu\n", nr);
@@ -256,8 +291,8 @@ main (int argc, char *argv[])
   /* Verifies that the matrix is square. */
   if (nv != nr) {
     fprintf(stderr, "chol_perf_analysis: the retrieved diagonal from file \"%s\" has size %zu, that differs from the size of the matrix.\n", d_arg, nv);
-    chol_free_vector(aux_diag_a);
-    chol_free_matrix(a);
+    lial_free_vector(aux_diag_a);
+    lial_free_matrix(a, nr);
     return EXIT_FAILURE;
   }
 
@@ -275,24 +310,48 @@ main (int argc, char *argv[])
   }
 
   /* Clones matrix a into b. */
-  b = chol_clone_matrix(a ,nr, nr, &ret_code);
+  b = lial_clone_matrix(a ,nr, nr, &ret_code);
   if (ret_code != 0) {
     fprintf(stderr, "chol_perf_analysis: error in cloning the matrix.\n");
-    chol_free_vector(aux_diag_a);
-    chol_free_matrix(a);
+    lial_free_vector(aux_diag_a);
+    lial_free_matrix(a, nr);
     return EXIT_FAILURE;
   }
   if (verbose) printf("The cloned matrix has been prepared.\n");
 
   /* aux_diag: aux vector for factorizing the matrix a. */
-  aux_diag_b = chol_allocate_vector(nr);
+  aux_diag_b = lial_allocate_vector(nr);
   if (!aux_diag_b) {
     fprintf(stderr, "chol_perf_analysis: error in allocating the auxiliary vector.\n");
-    chol_free_matrix(b);
-    chol_free_vector(aux_diag_a);
-    chol_free_matrix(a);
+    lial_free_matrix(b, nr);
+    lial_free_vector(aux_diag_a);
+    lial_free_matrix(a, nr);
     return EXIT_FAILURE;
   }
+
+#ifdef CHOL_USE_LAPACK
+  n = nr;
+  lda = nr;
+  info = 0;
+  for (size_t i = 0; i < nr; i++)
+    aux_diag_b[i] = a[i][i];
+
+  FILE *f;
+  f = fopen("r/matrix_b.csv", "w");
+  for (size_t j = 0; j < n; j++) {
+    fprintf(f, "c%017zu", j);
+    if (j != n - 1) fprintf(f, ";");
+  }
+  fprintf(f, "\n");
+  for (size_t i = 0; i < n; i++) {
+    for (size_t j = 0; j < n; j++) {
+      fprintf(f, "%+18.12f", b[i][j]);
+      if (j != n - 1) fprintf(f, ";");
+    }
+    fprintf(f, "\n");
+  }
+  fclose(f);
+#endif /* CHOL_USE_LAPACK */
 
   /* Starts the stop-watch. */
   clock_gettime(CLOCK_REALTIME, &rtime_0);
@@ -302,8 +361,13 @@ main (int argc, char *argv[])
 
   /* TRACKED ZONE - START */
 
-  /* Factorizes the symmetrical essian matrix applying the Cholesky decomposition. */
-  chol_fact_omp_tc(b, nr, aux_diag_b, thread_count);
+  /* Factorizes the symmetrical Hessian matrix applying the Cholesky decomposition. */
+#ifdef CHOL_USE_LAPACK
+  dpotrf_(&uplo, &n, *b, &lda, &info);
+#else
+  lial_chol_fact_omp_tc(b, nr, aux_diag_b, thread_count);
+#endif /* CHOL_USE_LAPACK */
+
 
   /* TRACKED ZONE - FINISH */
 
@@ -329,6 +393,33 @@ main (int argc, char *argv[])
     printf("\n");
   }
 
+#ifdef CHOL_USE_LAPACK
+
+  printf("dpotrf, info: %d\n", info);
+
+  f = fopen("r/matrix_b_chol.csv", "w");
+  for (size_t j = 0; j < n; j++) {
+    fprintf(f, "c%017zu", j);
+    if (j != n - 1) fprintf(f, ";");
+  }
+  fprintf(f, "\n");
+  for (size_t i = 0; i < n; i++) {
+    for (size_t j = 0; j < n; j++) {
+      fprintf(f, "%+18.12f", b[i][j]);
+      if (j != n - 1) fprintf(f, ";");
+    }
+    fprintf(f, "\n");
+  }
+  fclose(f);
+  f = NULL;
+
+  for (size_t i = 0; i < nr; i++) {
+    double tmp = aux_diag_b[i];
+    aux_diag_b[i] = b[i][i];
+    a[i][i] = tmp;
+  }
+#endif /* CHOL_USE_LAPACK */
+
   /* Verifies that the soluton is correct. */
   for (size_t i = 0; i < nr; i++) {
     delta_perc = fabs((aux_diag_a[i] - aux_diag_b[i]) / aux_diag_a[i]);
@@ -340,9 +431,10 @@ main (int argc, char *argv[])
               "  delta_perc = %e\n"
               "  epsilon    = %e\n"
               , i, aux_diag_a[i], i, aux_diag_b[i], delta_perc, epsilon);
-      goto end_of_program;
+      if (false) goto end_of_program;
     }
   }
+  if (true) goto end_of_program;
   for (size_t i = 0; i < nr; i++) {
     for (size_t j = 0; j < i; j++) {
       delta_perc = fabs((a[i][j] - b[i][j]) / a[i][j]);
@@ -366,10 +458,10 @@ main (int argc, char *argv[])
   ;
 
   /* Frees memory allocated for the matrix. */
-  chol_free_vector(aux_diag_b);
-  chol_free_vector(aux_diag_a);
-  chol_free_matrix(b);
-  chol_free_matrix(a);
+  lial_free_vector(aux_diag_b);
+  lial_free_vector(aux_diag_a);
+  lial_free_matrix(b, nr);
+  lial_free_matrix(a, nr);
 
   return 0;
 }

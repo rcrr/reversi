@@ -41,9 +41,26 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <FLAME.h>
+
 #include "prng.h"
 #include "unit_test.h"
 #include "cholesky_decomposition.h"
+
+/* ---
+ * C interface for the LAPACK routine DPOTRS --
+ * Double precision POsitive definite TRiangular Solve
+ * Interface documentation at
+ *   http://www.netlib.org/lapack/dpotrs.f
+ *
+ * Requires the linker flag -llapck
+extern void
+dpotrf_ (char *uplo,
+         int *n,
+         double *a,
+         int *lda,
+         int *info);
+ */
 
 #define TEST_DIR_NAME_LEN 16
 
@@ -100,12 +117,201 @@ aux_teardown (void)
   prng_mt19937_free(prng);
 }
 
+static void
+aux_create_sdf_matrix (uint64_t seed,
+                       double lo,
+                       double up,
+                       size_t n,
+                       double **factorized,
+                       double **sdf)
+{
+  assert(lo <= up);
+
+  prng_mt19937_t *r;
+  double v, d;
+
+  d = up - lo;
+
+  r = prng_mt19937_new();
+  prng_mt19937_init_by_seed(r, seed);
+
+  for (size_t i = 0; i < n; i++) {
+    for (size_t j = 0; j < n; j++) {
+      factorized[i][j] = 0.;
+      sdf[i][j] = 0.;
+    }
+  }
+
+  for (size_t i = 0; i < n; i++) {
+    for (size_t j = 0; j < i + 1; j++) {
+      v = prng_mt19937_get_double_in_o0_o1(r);
+      v = v * d + lo;
+      factorized[i][j] = v;
+    }
+  }
+
+  for (size_t i = 0; i < n; i++) {
+    for (size_t j = 0; j < n; j++) {
+      for (size_t k = 0; k < n; k++) {
+        sdf[i][j] += factorized[i][k] * factorized[j][k];
+      }
+    }
+  }
+
+  prng_mt19937_free(r);
+}
 
 
 /*
  * Test functions.
  */
 
+static void
+chol_dummy_t (ut_test_t *const t)
+{
+  ut_assert(t, true);
+}
+
+static void
+chol_lu_i2_t (ut_test_t *const t)
+{
+  static const size_t n = 2;
+  double **a;
+  double scale[n];
+  double b[n];
+  int ret;
+  size_t indx[n];
+
+  memset(b, 0, sizeof(b));
+
+  a = lial_allocate_matrix(n, n);
+
+  a[0][0] = 1.0;
+  a[0][1] = 0.0;
+  a[1][0] = 0.0;
+  a[1][1] = 1.0;
+
+  b[0] = 5.0;
+  b[1] = 7.0;
+
+  ret = lial_lu_decom_naive(a, n, indx, scale);
+  ut_assert(t, ret == 1);
+
+  lial_lu_bsubst_naive(a, n, indx, scale, b);
+
+  ut_assert(t, a[0][0] == 1.0);
+  ut_assert(t, a[0][1] == 0.0);
+  ut_assert(t, a[1][0] == 0.0);
+  ut_assert(t, a[1][1] == 1.0);
+
+  ut_assert(t, b[0] == 5.0);
+  ut_assert(t, b[1] == 7.0);
+
+  lial_free_matrix(a, n);
+}
+
+static void
+chol_lu_3_t (ut_test_t *const t)
+{
+  static const size_t n = 3;
+  double **a;
+  double scale[n];
+  double b[n];
+  int ret;
+  size_t indx[n];
+
+  const double epsilon = 1.E-15;
+
+  memset(b, 0, sizeof(b));
+
+  a = lial_allocate_matrix(n, n);
+
+  a[0][0] =  3.0;
+  a[0][1] =  4.0;
+  a[0][2] =  2.0;
+  a[1][0] =  4.0;
+  a[1][1] =  8.0;
+  a[1][2] =  7.0;
+  a[2][0] =  3.0;
+  a[2][1] =  1.0;
+  a[2][2] = -1.0;
+
+  b[0] = 23.0;
+  b[1] = 22.0;
+  b[2] = 29.0;
+
+  ret = lial_lu_decom_naive(a, n, indx, scale);
+  ut_assert(t, ret == 1);
+
+  lial_lu_bsubst_naive(a, n, indx, scale, b);
+
+  ut_assert(t, fabs(b[0] - (+9.0)) <  epsilon);
+  ut_assert(t, fabs(b[1] - (+0.0)) <  epsilon);
+  ut_assert(t, fabs(b[2] - (-2.0)) <  epsilon);
+
+  lial_free_matrix(a, n);
+}
+
+static void
+chol_lapack_t (ut_test_t *const t)
+{
+  uint64_t seed;
+  int n;
+  double **e, **a;
+  double lo, up;
+  int lda;
+  int info;
+
+  char uplo = 'U';
+
+  bool debug = false;
+
+  seed = 1753;
+  lo =   1.0;
+  up =  10.0;
+  n = 50;
+
+  lda = n;
+  info = 0;
+
+  e = lial_allocate_square_matrix(n); // expected
+  a = lial_allocate_square_matrix(n); // semi definite positive
+
+  aux_create_sdf_matrix(seed, lo, up, n, e, a);
+
+  if (debug) {
+    printf("\n");
+    for (size_t j = 0; j < n; j++) {
+      printf("c%017zu;", j);
+    }
+    printf("\n");
+    for (size_t i = 0; i < n; i++) {
+      for (size_t j = 0; j < n; j++) {
+        printf("%+18.12f;", a[i][j]);
+      }
+      printf("\n");
+    }
+    printf("\n");
+  }
+
+  dpotrf_(&uplo, &n, *a, &lda, &info);
+
+  ut_assert(t, info == 0);
+
+  if (debug) {
+    printf("\n");
+    for (size_t i = 0; i < n; i++) {
+      for (size_t j = 0; j < i + 1; j++) {
+        printf("[%04zu][%04zu]: a = %+18.14f; e = %+18.14f; delta = %+18.14f\n", i, j, a[i][j], e[i][j], a[i][j] - e[i][j]);
+      }
+    }
+  }
+
+  ut_assert(t, 1 == 1);
+
+  lial_free_matrix(a, n);
+  lial_free_matrix(e, n);
+}
 
 static void
 chol_dot_product_t (ut_test_t *const t)
@@ -113,8 +319,8 @@ chol_dot_product_t (ut_test_t *const t)
   static const size_t n = 101;
   double *a, *b, result, result_avx, expected_plus, expected_minus;
 
-  a = chol_allocate_vector(n);
-  b = chol_allocate_vector(n);
+  a = lial_allocate_vector(n);
+  b = lial_allocate_vector(n);
 
   for (size_t i = 0; i < n; i++) {
     a[i] = (1. * i) * (1. / (n - 1));
@@ -124,9 +330,9 @@ chol_dot_product_t (ut_test_t *const t)
   expected_plus  = (1./6.) * (n - 1);
   expected_minus = (1./6.) * (n - 2);
 
-  result = chol_dot_product(a, b, n);
+  result = lial_dot_product(a, b, n);
 
-  result_avx = chol_dot_product_avx(a, b, n);
+  result_avx = lial_dot_product_avx(a, b, n);
 
   ut_assert(t, result > expected_minus);
   ut_assert(t, result < expected_plus);
@@ -134,8 +340,8 @@ chol_dot_product_t (ut_test_t *const t)
   ut_assert(t, result_avx > expected_minus);
   ut_assert(t, result_avx < expected_plus);
 
-  chol_free_vector(a);
-  chol_free_vector(b);
+  lial_free_vector(a);
+  lial_free_vector(b);
 }
 
 static void
@@ -145,7 +351,7 @@ chol_clone_vector_t (ut_test_t *const t)
   double *v, *r;
   int ret_code;
 
-  v = chol_allocate_vector(n);
+  v = lial_allocate_vector(n);
 
   v[0] =  0.0;
   v[1] =  1.0;
@@ -158,14 +364,14 @@ chol_clone_vector_t (ut_test_t *const t)
   v[8] = 17.0;
   v[9] = 19.0;
 
-  r = chol_clone_vector(v, n, &ret_code);
+  r = lial_clone_vector(v, n, &ret_code);
   ut_assert(t, ret_code == 0);
 
   for (size_t i = 0; i < n; i++)
       ut_assert(t, v[i] == r[i]);
 
-  chol_free_vector(v);
-  chol_free_vector(r);
+  lial_free_vector(v);
+  lial_free_vector(r);
 }
 
 static void
@@ -176,7 +382,7 @@ chol_clone_matrix_t (ut_test_t *const t)
   double **a, **b;
   int ret_code;
 
-  a = chol_allocate_matrix(nr, nc);
+  a = lial_allocate_matrix(nr, nc);
 
   a[0][0] =  0.0;
   a[0][1] =  0.1;
@@ -185,15 +391,15 @@ chol_clone_matrix_t (ut_test_t *const t)
   a[2][0] =  2.0;
   a[2][1] =  2.1;
 
-  b = chol_clone_matrix(a, nr, nc, &ret_code);
+  b = lial_clone_matrix(a, nr, nc, &ret_code);
   ut_assert(t, ret_code == 0);
 
   for (size_t i = 0; i < nr; i++)
     for (size_t j = 0; j < nc; j++)
       ut_assert(t, a[i][j] == b[i][j]);
 
-  chol_free_matrix(a);
-  chol_free_matrix(b);
+  lial_free_matrix(a, nr);
+  lial_free_matrix(b, nr);
 }
 
 static void
@@ -212,7 +418,7 @@ chol_dump_retrieve_vector_t (ut_test_t *const t)
   strcat(pathname, "/");
   strcat(pathname, file_name);
 
-  v = chol_allocate_vector(n);
+  v = lial_allocate_vector(n);
 
   v[0] = 0.0;
   v[1] = 1.0;
@@ -222,18 +428,18 @@ chol_dump_retrieve_vector_t (ut_test_t *const t)
   v[5] = 5.0;
   v[6] = 6.0;
 
-  chol_dump_vector(v, n, pathname, &ret_code);
+  lial_dump_vector(v, n, pathname, &ret_code);
   ut_assert(t, ret_code == 0);
 
-  r = chol_retrieve_vector(pathname, &rn, &ret_code);
+  r = lial_retrieve_vector(pathname, &rn, &ret_code);
   ut_assert(t, ret_code == 0);
   ut_assert(t, rn == n);
 
   for (size_t i = 0; i < n; i++)
       ut_assert(t, v[i] == r[i]);
 
-  chol_free_vector(v);
-  chol_free_vector(r);
+  lial_free_vector(v);
+  lial_free_vector(r);
 
   unlink(pathname);
 }
@@ -255,7 +461,7 @@ chol_dump_retrieve_matrix_t (ut_test_t *const t)
   strcat(pathname, "/");
   strcat(pathname, file_name);
 
-  a = chol_allocate_matrix(nr, nc);
+  a = lial_allocate_matrix(nr, nc);
 
   a[0][0] = 0.0;
   a[0][1] = 0.1;
@@ -264,10 +470,10 @@ chol_dump_retrieve_matrix_t (ut_test_t *const t)
   a[1][1] = 1.1;
   a[1][2] = 1.2;
 
-  chol_dump_matrix(a, nr, nc, pathname, &ret_code);
+  lial_dump_matrix(a, nr, nc, pathname, &ret_code);
   ut_assert(t, ret_code == 0);
 
-  r = chol_retrieve_matrix(pathname, &rnr, &rnc, &ret_code);
+  r = lial_retrieve_matrix(pathname, &rnr, &rnc, &ret_code);
   ut_assert(t, ret_code == 0);
   ut_assert(t, rnr == nr);
   ut_assert(t, rnc == nc);
@@ -276,8 +482,8 @@ chol_dump_retrieve_matrix_t (ut_test_t *const t)
     for (size_t j = 0; j < nc; j++)
       ut_assert(t, a[i][j] == r[i][j]);
 
-  chol_free_matrix(a);
-  chol_free_matrix(r);
+  lial_free_matrix(a, nr);
+  lial_free_matrix(r, nr);
 
   unlink(pathname);
 }
@@ -291,14 +497,14 @@ chol_fact_naive_i2_t (ut_test_t *const t)
 
   memset(p, 0, sizeof(p));
 
-  a = chol_allocate_matrix(n, n);
+  a = lial_allocate_matrix(n, n);
 
   a[0][0] = 1.0;
   a[0][1] = 0.0;
   a[1][0] = 0.0;
   a[1][1] = 1.0;
 
-  chol_fact_naive(a, n, p);
+  lial_chol_fact_naive(a, n, p);
 
   ut_assert(t, a[0][0] == 1.0);
   ut_assert(t, a[0][1] == 0.0);
@@ -307,7 +513,7 @@ chol_fact_naive_i2_t (ut_test_t *const t)
   ut_assert(t, p[0]    == 1.0);
   ut_assert(t, p[1]    == 1.0);
 
-  chol_free_matrix(a);
+  lial_free_matrix(a, n);
 }
 
 static void
@@ -319,7 +525,7 @@ chol_fact_naive_3_t (ut_test_t *const t)
 
   memset(p, 0, sizeof(p));
 
-  a = chol_allocate_matrix(n, n);
+  a = lial_allocate_matrix(n, n);
 
   a[0][0] =   4.0;
   a[0][1] =  12.0;
@@ -333,7 +539,7 @@ chol_fact_naive_3_t (ut_test_t *const t)
   a[2][1] = -43.0;
   a[2][2] =  98.0;
 
-  chol_fact_naive(a, n, p);
+  lial_chol_fact_naive(a, n, p);
 
   ut_assert(t, a[0][0] ==   4.0);
   ut_assert(t, a[0][1] ==  12.0);
@@ -348,7 +554,48 @@ chol_fact_naive_3_t (ut_test_t *const t)
   ut_assert(t, p[1]    ==   1.0);
   ut_assert(t, p[2]    ==   3.0);
 
-  chol_free_matrix(a);
+  lial_free_matrix(a, n);
+}
+
+static void
+chol_fact_naive_3_lapack_t (ut_test_t *const t)
+{
+  int  n = 3;
+  double **a;
+
+  char uplo = 'U';
+  int lda = n;
+  int info = 0;
+
+  a = lial_allocate_matrix(n, n);
+
+  a[0][0] =   4.0;
+  a[0][1] =  12.0;
+  a[0][2] = -16.0;
+
+  a[1][0] =  12.0;
+  a[1][1] =  37.0;
+  a[1][2] = -43.0;
+
+  a[2][0] = -16.0;
+  a[2][1] = -43.0;
+  a[2][2] =  98.0;
+
+  dpotrf_(&uplo, &n, *a, &lda, &info);
+
+  ut_assert(t, info == 0);
+
+  ut_assert(t, a[0][0] ==   2.0);
+  ut_assert(t, a[0][1] ==  12.0);
+  ut_assert(t, a[0][2] == -16.0);
+  ut_assert(t, a[1][0] ==   6.0);
+  ut_assert(t, a[1][1] ==   1.0);
+  ut_assert(t, a[1][2] == -43.0);
+  ut_assert(t, a[2][0] ==  -8.0);
+  ut_assert(t, a[2][1] ==   5.0);
+  ut_assert(t, a[2][2] ==   3.0);
+
+  lial_free_matrix(a, n);
 }
 
 static void
@@ -364,7 +611,7 @@ chol_fact_naive_5_t (ut_test_t *const t)
   memset(b, 0, sizeof(p));
   memset(x, 0, sizeof(p));
 
-  a = chol_allocate_matrix(n, n);
+  a = lial_allocate_matrix(n, n);
 
   a[0][0] =   1.0;
   a[0][1] =   2.0;
@@ -386,7 +633,7 @@ chol_fact_naive_5_t (ut_test_t *const t)
 
   a[4][4] = 575.0;
 
-  chol_fact_naive(a, n, p);
+  lial_chol_fact_naive(a, n, p);
 
   ut_assert(t, a[0][0] ==   1.0);
   ut_assert(t, a[0][1] ==   2.0);
@@ -434,7 +681,7 @@ chol_fact_naive_5_t (ut_test_t *const t)
   b[3] =  -486;
   b[4] = -2857;
 
-  chol_solv_naive(a, n, p, b, x);
+  lial_chol_solv_naive(a, n, p, b, x);
 
   ut_assert(t, p[0]    ==   1.0);
   ut_assert(t, p[1]    ==   3.0);
@@ -460,7 +707,7 @@ chol_fact_naive_5_t (ut_test_t *const t)
   b[3] =  5202;
   b[4] =  6667;
 
-  chol_solv_naive(a, n, p, b, x);
+  lial_chol_solv_naive(a, n, p, b, x);
 
   ut_assert(t, x[0]    ==   5.0);
   ut_assert(t, x[1]    ==   1.0);
@@ -502,7 +749,7 @@ chol_fact_naive_5_t (ut_test_t *const t)
   ut_assert(t, a[4][2] ==  13.0);
   ut_assert(t, a[4][3] ==   2.0);
 
-  chol_free_matrix(a);
+  lial_free_matrix(a, n);
 }
 
 /**
@@ -519,14 +766,22 @@ main (int argc,
 
   ut_suite_t *const s = ut_suite_new(&config, "cholesky_decomposition");
 
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_dummy", chol_dummy_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_lu_i2", chol_lu_i2_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_lu_3", chol_lu_3_t);
+
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_fact_naive_i2", chol_fact_naive_i2_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_fact_naive_3", chol_fact_naive_3_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_fact_naive_3_lapack", chol_fact_naive_3_lapack_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_fact_naive_5", chol_fact_naive_5_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_dump_retrieve_vector", chol_dump_retrieve_vector_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_dump_retrieve_matrix", chol_dump_retrieve_matrix_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_clone_vector", chol_clone_vector_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_clone_matrix", chol_clone_matrix_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_dot_product_t", chol_dot_product_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "chol_lapack", chol_lapack_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);
