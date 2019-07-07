@@ -253,6 +253,72 @@ lial_lu_3_t (ut_test_t *const t)
 }
 
 static void
+lial_lu_5_t (ut_test_t *const t)
+{
+  static const size_t n = 5;
+  double **a;
+  double scale[n];
+  double b[n];
+  int ret;
+  size_t indx[n];
+
+  const double epsilon = 1.E-14;
+
+  memset(b, 0, sizeof(b));
+
+  a = lial_allocate_matrix(n, n);
+
+  a[0][0] =   3.0;
+  a[0][1] =   4.0;
+  a[0][2] =   2.0;
+  a[0][3] =   4.0;
+  a[0][4] =   9.0;
+
+  a[1][0] =   4.0;
+  a[1][1] =   8.0;
+  a[1][2] =   7.0;
+  a[1][3] =   1.0;
+  a[1][4] =   9.0;
+
+  a[2][0] =   3.0;
+  a[2][1] =   1.0;
+  a[2][2] =  -1.0;
+  a[2][3] =  -3.0;
+  a[2][4] =   1.0;
+
+  a[3][0] =   3.0;
+  a[3][1] = -11.0;
+  a[3][2] =  -2.0;
+  a[3][3] =   6.0;
+  a[3][4] =   0.0;
+
+  a[4][0] =  -1.0;
+  a[4][1] =   2.0;
+  a[4][2] =  -3.0;
+  a[4][3] =   1.0;
+  a[4][4] =   7.0;
+
+  b[0] = -38.0;
+  b[1] = -65.0;
+  b[2] =  10.0;
+  b[3] =   7.0;
+  b[4] = -12.0;
+
+  ret = lial_lu_decom_naive(a, n, indx, scale);
+  ut_assert(t, ret == 1);
+
+  lial_lu_bsubst_naive(a, n, indx, scale, b);
+
+  ut_assert(t, fabs(b[0] - (+3.0)) <  epsilon);
+  ut_assert(t, fabs(b[1] - (+2.0)) <  epsilon);
+  ut_assert(t, fabs(b[2] - (-7.0)) <  epsilon);
+  ut_assert(t, fabs(b[3] - ( 1.0)) <  epsilon);
+  ut_assert(t, fabs(b[4] - (-5.0)) <  epsilon);
+
+  lial_free_matrix(a, n);
+}
+
+static void
 lial_chol_lapack_t (ut_test_t *const t)
 {
   uint64_t seed;
@@ -770,6 +836,7 @@ main (int argc,
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_lu_i2", lial_lu_i2_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_lu_3", lial_lu_3_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_lu_5", lial_lu_5_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_i2", lial_chol_fact_naive_i2_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_3", lial_chol_fact_naive_3_t);

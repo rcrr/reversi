@@ -637,7 +637,9 @@ lial_lu_decom_naive (double **a,
     q = indx[k];
     indx[k] = indx[imax];
     indx[imax] = q;
+  }
 
+  for (k = 0; k < n; k++) {
     for (i = k; i < n; i++) {
       for (h = 0; h < k; h++) {
         a[i][k] = a[i][k] - (a[i][h] * a[h][k]);
@@ -655,6 +657,23 @@ lial_lu_decom_naive (double **a,
 }
 
 void
+lial_permute_vector_double (double *v,
+                            size_t *indx,
+                            size_t n)
+{
+  size_t i, ix;
+  double tmp;
+
+  for (i = 0; i < n - 1; i++) {
+    ix = indx[i];
+    while (ix < i) ix = indx[ix];
+    tmp = v[i];
+    v[i] = v[ix];
+    v[ix] = tmp;
+  }
+}
+
+void
 lial_lu_bsubst_naive (double **a,
                       size_t n,
                       size_t *indx,
@@ -662,22 +681,14 @@ lial_lu_bsubst_naive (double **a,
                       double b[])
 {
   int i, j;
-  double sum, tmp;
+  double sum;
 
   /* Scale cector b */
   for (i = 0; i < n; i++) {
     b[i] /= scale[i];
   }
 
-  /* Swap b */
-  for (i = 0; i < n; i++) {
-    j = indx[i];
-    if (i > j) {
-      tmp = b[i];
-      b[i] = b[j];
-      b[j] = tmp;
-    }
-  }
+  lial_permute_vector_double(b, indx, n);
 
   /* Perform the forward substitution using the LU matrix.
    */
