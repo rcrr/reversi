@@ -39,11 +39,18 @@
 /**
  * @brief Computes the magnitude of the `v` vector.
  *
+ * @details Computes 2-norm of the `v` vector.
+ *          If arguments `abs_min`, `abs_min_pos`, `abs_max`, and `abs_max_pos`
+ *          are not `NULL` are populated with the smallest and largest modulus of
+ *          the components of the vector, and by theyr respective positions.
+ *
+ * @invariant Pointer `v` cannot be `NULL`.
+ *
  * @param [in]  v           pointer to vector
  * @param [in]  n           number of elements
- * @param [out] abs_min     minimum value
+ * @param [out] abs_min     absolute minimum value
  * @param [out] abs_min_pos position of the min
- * @param [out] abs_max     maximum value
+ * @param [out] abs_max     absolute maximum value
  * @param [out] abs_max_pos position of the max
  * @return                  the modulus of the vector
  */
@@ -57,6 +64,8 @@ lial_vector_magnitude (double *v,
 
 /**
  * @brief Sets to zero all elements of the vector.
+ *
+ * @invariant Pointer `v` cannot be `NULL`.
  *
  * @param [in, out] v pointer to vector
  * @param [in]      n number of elements

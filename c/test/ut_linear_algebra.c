@@ -173,6 +173,113 @@ lial_dummy_t (ut_test_t *const t)
 }
 
 static void
+lial_zero_vector_t (ut_test_t *const t)
+{
+  size_t n;
+  double v[] = { 1., 2., 3. };
+
+  n = 3;
+  lial_zero_vector(v, n);
+
+  for (size_t i = 0; i < n; i++) {
+    ut_assert(t, v[i] == 0.);
+  }
+}
+
+static void
+lial_vector_magnitude_t (ut_test_t *const t)
+{
+
+  size_t n, abs_min_pos, abs_max_pos;
+  double abs_min, abs_max;
+  double norm2;
+  double *v;
+
+  double v0[] = {0., 0., 1.};
+  n = 3;
+  v = v0;
+  norm2 = lial_vector_magnitude(v, n, &abs_min, &abs_min_pos, &abs_max, &abs_max_pos);
+  ut_assert(t, norm2 == 1.0);
+  ut_assert(t, abs_min == 0.0);
+  ut_assert(t, abs_min_pos == 0);
+  ut_assert(t, abs_max == 1.0);
+  ut_assert(t, abs_max_pos == 2);
+
+  double v1[] = {1., -1., 1., -1., -1.};
+  n = 5;
+  v = v1;
+  norm2 = lial_vector_magnitude(v, n, &abs_min, &abs_min_pos, &abs_max, &abs_max_pos);
+  ut_assert(t, norm2 == sqrt(5.0));
+  ut_assert(t, abs_min == 1.0);
+  ut_assert(t, abs_min_pos == 0);
+  ut_assert(t, abs_max == 1.0);
+  ut_assert(t, abs_max_pos == 0);
+
+  double v2[] = {1., 0.1, 2.};
+  n = 3;
+  v = v2;
+  norm2 = lial_vector_magnitude(v, n, NULL, NULL, &abs_max, &abs_max_pos);
+  ut_assert(t, norm2 == sqrt(5.01));
+  ut_assert(t, abs_max == 2.0);
+  ut_assert(t, abs_max_pos == 2);
+
+  double v3[] = {1., 0.1, 2.};
+  n = 3;
+  v = v3;
+  norm2 = lial_vector_magnitude(v, n, &abs_min, &abs_min_pos, NULL, NULL);
+  ut_assert(t, norm2 == sqrt(5.01));
+  ut_assert(t, abs_min == 0.1);
+  ut_assert(t, abs_min_pos == 1);
+
+  double v4[] = { 1. };
+  n = 1;
+  v = v4;
+  norm2 = lial_vector_magnitude(v, n, NULL, NULL, NULL, NULL);
+  ut_assert(t, norm2 == 1.);
+
+}
+
+static void
+lial_lu_singular_t (ut_test_t *const t)
+{
+  static const size_t n = 2;
+  double **a;
+  double scale[n];
+  double b[n];
+  int ret;
+  size_t indx[n];
+
+  a = lial_allocate_matrix(n, n);
+
+  a[0][0] = 1.0;
+  a[0][1] = 0.0;
+  a[1][0] = 0.0;
+  a[1][1] = 0.0;
+
+  ret = lial_lu_decom_naive(a, n, indx, scale);
+  ut_assert(t, ret == 0);
+
+  a[0][0] = 1.0;
+  a[0][1] = 1.0;
+  a[1][0] = 1.0;
+  a[1][1] = 1.0;
+
+  b[0] = 2.0;
+  b[1] = 3.0;
+
+  ret = lial_lu_decom_naive(a, n, indx, scale);
+
+  ut_assert(t, ret == 1);
+
+  lial_lu_bsubst_naive(a, n, indx, scale, b);
+
+  ut_assert(t, isinf(b[0]));
+  ut_assert(t, isinf(b[1]));
+
+  lial_free_matrix(a, n);
+}
+
+static void
 lial_lu_i2_t (ut_test_t *const t)
 {
   static const size_t n = 2;
@@ -877,20 +984,26 @@ main (int argc,
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dummy", lial_dummy_t);
 
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_lu_i2", lial_lu_i2_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_lu_3", lial_lu_3_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_lu_5", lial_lu_5_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_lu_7", lial_lu_7_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_vector_magnitude", lial_vector_magnitude_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_zero_vector", lial_zero_vector_t);
 
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_i2", lial_chol_fact_naive_i2_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_3", lial_chol_fact_naive_3_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_3_lapack", lial_chol_fact_naive_3_lapack_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_5", lial_chol_fact_naive_5_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dump_retrieve_vector", lial_dump_retrieve_vector_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dump_retrieve_matrix", lial_dump_retrieve_matrix_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_clone_vector", lial_clone_vector_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_clone_matrix", lial_clone_matrix_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dot_product_t", lial_dot_product_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_lu_i2", lial_lu_i2_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_lu_3", lial_lu_3_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_lu_5", lial_lu_5_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_lu_7", lial_lu_7_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_lu_singular", lial_lu_singular_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_i2", lial_chol_fact_naive_i2_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_3", lial_chol_fact_naive_3_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_5", lial_chol_fact_naive_5_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_3_lapack", lial_chol_fact_naive_3_lapack_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_lapack", lial_chol_lapack_t);
 

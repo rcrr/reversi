@@ -49,11 +49,11 @@
  * One double is eight bytes, AVX2 uses 256 bit ymm registers, that needs 32 byte alignemnt.
  * Sixty-four is in sight of AVX-512 ...
  */
-#define CHOL_DOUBLE_ALIGNMENT 8
+#define LIAL_DOUBLE_ALIGNMENT 8
 
-#define CHOL_DOUBLE_SIZE 8
+#define LIAL_DOUBLE_SIZE 8
 
-#define CHOL_DOUBLE_ELEMENT_X_SLOT CHOL_DOUBLE_ALIGNMENT / CHOL_DOUBLE_SIZE
+#define LIAL_DOUBLE_ELEMENT_X_SLOT LIAL_DOUBLE_ALIGNMENT / LIAL_DOUBLE_SIZE
 
 double
 lial_vector_magnitude (double *v,
@@ -63,6 +63,8 @@ lial_vector_magnitude (double *v,
                        double *abs_max,
                        size_t *abs_max_pos)
 {
+  assert(v);
+
   double sum, abs;
 
   if (n > 0) {
@@ -92,6 +94,7 @@ void
 lial_zero_vector (double *v,
                   size_t n)
 {
+  assert(v);
   for (size_t k = 0; k < n; k++)
     v[k] = 0.0;
 }
@@ -106,11 +109,11 @@ lial_allocate_vector (size_t n)
 
   size_t size;
 
-  size = required_size / CHOL_DOUBLE_ALIGNMENT;
-  if (required_size % CHOL_DOUBLE_ALIGNMENT > 0) size += 1;
-  size *= CHOL_DOUBLE_ALIGNMENT;
+  size = required_size / LIAL_DOUBLE_ALIGNMENT;
+  if (required_size % LIAL_DOUBLE_ALIGNMENT > 0) size += 1;
+  size *= LIAL_DOUBLE_ALIGNMENT;
 
-  v = (double *) aligned_alloc(CHOL_DOUBLE_ALIGNMENT, size);
+  v = (double *) aligned_alloc(LIAL_DOUBLE_ALIGNMENT, size);
 
   return v;
 }
@@ -151,14 +154,14 @@ lial_allocate_matrix (size_t nr,
   */
 
 
-  const size_t row_required_size = nc * CHOL_DOUBLE_SIZE;
+  const size_t row_required_size = nc * LIAL_DOUBLE_SIZE;
 
-  n_slots_per_row = row_required_size / CHOL_DOUBLE_ALIGNMENT;
-  if (row_required_size % CHOL_DOUBLE_ALIGNMENT > 0) n_slots_per_row += 1;
-  n_double_per_row = n_slots_per_row * CHOL_DOUBLE_ELEMENT_X_SLOT;
-  row_size = n_double_per_row * CHOL_DOUBLE_SIZE;
+  n_slots_per_row = row_required_size / LIAL_DOUBLE_ALIGNMENT;
+  if (row_required_size % LIAL_DOUBLE_ALIGNMENT > 0) n_slots_per_row += 1;
+  n_double_per_row = n_slots_per_row * LIAL_DOUBLE_ELEMENT_X_SLOT;
+  row_size = n_double_per_row * LIAL_DOUBLE_SIZE;
 
-  m[0] = (double *) aligned_alloc(CHOL_DOUBLE_ALIGNMENT, nr * row_size);
+  m[0] = (double *) aligned_alloc(LIAL_DOUBLE_ALIGNMENT, nr * row_size);
 
   for (i = 1; i < nr; i++) m[i] = m[i - 1] + n_double_per_row;
 
@@ -657,9 +660,9 @@ lial_lu_decom_naive (double **a,
 }
 
 void
-lial_permute_vector_double (double *v,
-                            size_t *indx,
-                            size_t n)
+lial_permute_vector (double *v,
+                     size_t *indx,
+                     size_t n)
 {
   size_t i, ix;
   double tmp;
@@ -688,7 +691,7 @@ lial_lu_bsubst_naive (double **a,
     b[i] /= scale[i];
   }
 
-  lial_permute_vector_double(b, indx, n);
+  lial_permute_vector(b, indx, n);
 
   /* Perform the forward substitution using the LU matrix.
    */
