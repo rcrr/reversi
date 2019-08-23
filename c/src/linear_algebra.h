@@ -232,6 +232,22 @@ lial_chol_solv_naive (double **a,
                       double x[]);
 
 /**
+ * @brief Inverts the `a` matrix.
+ *
+ * @details To be completed.
+ *
+ * @param [in, out] a the pointer to the symmetrix matrix
+ * @param [in]      n rank of the square matrix
+ * @param [out]     p the diagonal of the factorized `Lower` matrix
+ * @param [out]     z the inverse of `a`
+ */
+extern void
+lial_chol_inv_naive (double **a,
+                     size_t n,
+                     double p[],
+                     double **z);
+
+/**
  * @brief Dumps the `a` matrix into the `file_name` file.
  *
  * @details Opens a binary file using the name given by the `file_name` parameter.

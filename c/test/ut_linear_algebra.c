@@ -161,6 +161,40 @@ aux_create_sdf_matrix (uint64_t seed,
   prng_mt19937_free(r);
 }
 
+typedef __float128 quad_float_t;
+
+static void
+aux_assert_identity (ut_test_t *const t,
+                     double **a,
+                     double **z,
+                     size_t n,
+                     double epsilon,
+                     bool verbose)
+{
+  quad_float_t sum;
+  size_t i, j, k;
+  double expected, delta;
+
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+      sum = 0.0;
+      for (k = 0; k < n; k++) {
+        sum += (quad_float_t) a[i][k] * (quad_float_t) z[k][j];
+      }
+      if (verbose)
+        printf("%6zu, %6zu: %21.15f\n", i, j, (double) sum);
+      expected = (i == j) ? 1.0 : 0.0;
+      delta = fabs((double) sum - expected);
+      if (delta > epsilon) {
+        printf("\n");
+        printf("aux_assert_identity failed: row n. = %zu, column n. %zu, expected = %24.18f, "
+               "value = %24.18f, delta = %24.18f, max_dev = %24.18f\n",
+               i, j, expected, (double) sum, delta, epsilon);
+        ut_assert(t, false);
+      }
+    }
+  }
+}
 
 /*
  * Test functions.
@@ -968,6 +1002,100 @@ lial_chol_fact_naive_5_t (ut_test_t *const t)
   lial_free_matrix(a, n);
 }
 
+static void
+lial_chol_inv_naive_i2_t (ut_test_t *const t)
+{
+  static const size_t n = 2;
+  double **a;
+  double **z;
+  double p[n];
+
+  const double epsilon = 1.E-15;
+
+  lial_zero_vector(p, n);
+
+  a = lial_allocate_square_matrix(n);
+
+  a[0][0] = 1.0;
+  a[0][1] = 0.0;
+  a[1][0] = 0.0;
+  a[1][1] = 1.0;
+
+  z = lial_allocate_square_matrix(n);
+
+  z[0][0] = 0.0;
+  z[0][1] = 0.0;
+  z[1][0] = 0.0;
+  z[1][1] = 0.0;
+
+  lial_chol_inv_naive(a, n, p, z);
+
+  ut_assert(t, fabs(z[0][0] - 1.0) < epsilon);
+  ut_assert(t, fabs(z[0][1] - 0.0) < epsilon);
+  ut_assert(t, fabs(z[1][0] - 0.0) < epsilon);
+  ut_assert(t, fabs(z[1][1] - 1.0) < epsilon);
+
+  lial_free_matrix(z, n);
+  lial_free_matrix(a, n);
+}
+
+static void
+lial_chol_inv_naive_m2_t (ut_test_t *const t)
+{
+  static const size_t n = 2;
+  double **a; // the matrix to be inverted
+  double **z; // the matrix inverse
+  double **c; // a copy of the a matrix
+  double p[n];
+  int ret_code;
+
+  const double epsilon = 1.E-15;
+  const bool debug = false;
+
+  lial_zero_vector(p, n);
+
+  a = lial_allocate_square_matrix(n);
+
+  a[0][0] = 1.2;
+  a[0][1] = 0.3;
+  a[1][0] = 0.3;
+  a[1][1] = 1.8;
+
+  z = lial_allocate_square_matrix(n);
+
+  z[0][0] = 0.0;
+  z[0][1] = 0.0;
+  z[1][0] = 0.0;
+  z[1][1] = 0.0;
+
+  c = lial_clone_matrix(a, n, n, &ret_code);
+  if (ret_code != 0) {
+    lial_free_matrix(z, n);
+    lial_free_matrix(a, n);
+    ut_assert(t, false);
+  }
+
+  lial_chol_inv_naive(a, n, p, z);
+
+  if (debug) {
+    printf("\n");
+    for (size_t i = 0; i < n; i++)
+      for (size_t j = 0; j < n; j++)
+        printf("[%zu][%zu] = %21.15f\n", i, j, z[i][j]);
+  }
+
+  ut_assert(t, fabs(z[0][0] - (+0.869565217391304)) < epsilon);
+  ut_assert(t, fabs(z[0][1] - (-0.144927536231884)) < epsilon);
+  ut_assert(t, fabs(z[1][0] - (-0.144927536231884)) < epsilon);
+  ut_assert(t, fabs(z[1][1] - (+0.579710144927536)) < epsilon);
+
+  aux_assert_identity(t, c, z, n, epsilon, debug);
+
+  lial_free_matrix(c, n);
+  lial_free_matrix(z, n);
+  lial_free_matrix(a, n);
+}
+
 /**
  * @brief Runs the test suite.
  */
@@ -1002,6 +1130,9 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_i2", lial_chol_fact_naive_i2_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_3", lial_chol_fact_naive_3_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_5", lial_chol_fact_naive_5_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_inv_naive_i2", lial_chol_inv_naive_i2_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_inv_naive_m2", lial_chol_inv_naive_m2_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_3_lapack", lial_chol_fact_naive_3_lapack_t);
 

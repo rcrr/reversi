@@ -55,6 +55,27 @@
 
 #define LIAL_DOUBLE_ELEMENT_X_SLOT LIAL_DOUBLE_ALIGNMENT / LIAL_DOUBLE_SIZE
 
+static void
+lial_chol_solv_naive_ident (double **a,
+                            size_t n,
+                            double p[],
+                            size_t ind,
+                            double x[])
+{
+  long long int i, k;
+  double sum;
+
+  for (i = 0; i < n; i++) {
+    for (sum = (i == ind) ? 1.0 : 0.0, k = i - 1; k >= 0; k--) sum -= a[i][k] * x[k];
+    x[i] = sum / p[i];
+  }
+
+  for (i = n - 1; i >= 0; i--) {
+    for (sum = x[i], k = i + 1; k < n; k++) sum -= a[k][i] * x[k];
+    x[i] = sum / p[i];
+  }
+}
+
 double
 lial_vector_magnitude (double *v,
                        size_t n,
@@ -206,6 +227,18 @@ lial_chol_fact_naive (double **a,
       sum = a[i][j] - lial_dot_product(a[i], a[j], i);
       a[j][i] = sum / p[i];
     }
+  }
+}
+
+void
+lial_chol_inv_naive (double **a,
+                     size_t n,
+                     double p[],
+                     double **z)
+{
+  lial_chol_fact_naive(a, n, p);
+  for (size_t i = 0; i < n; i++) {
+    lial_chol_solv_naive_ident (a, n, p, i, z[i]);
   }
 }
 
