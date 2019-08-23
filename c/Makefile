@@ -51,7 +51,7 @@ BLIS_INC    = $(BLIS_PREFIX)/include/blis
 BLIS_LIB    = $(BLIS_PREFIX)/lib/libblis.a
 FLAME_LIB  := /usr/local/lib/libflame.a
 
-CC = gcc 
+CC = gcc-7
 #CFLAGS = -std=c99 -pedantic -Wall -g -O3 -D_POSIX_SOURCE -ffast-math
 #LDFLAGS =
 # add  -fopt-info-vec-all for very verbose log on code vectorization. Compile with: "make 2> make.log"
@@ -59,12 +59,13 @@ CC = gcc
 # add -DNDEBUG to disable assertions
 # add -fno-inline to prevent inlining
 # add -ftree-vectorize -ftree-vectorizer-verbose=2 to get from gcc the explanation for code vectorization
-ARCH_FLAGS = -mpopcnt -mavx2 -mabm -march=native
-CFLAGS = -std=c11 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(BLIS_INC) -I$(PG_INCLUDE_DIR) -fopenmp
+#ARCH_FLAGS = -mpopcnt -mavx2 -mabm -march=native
+ARCH_FLAGS = -march=native
+CFLAGS = -std=c11 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(BLIS_INC) -I$(PG_INCLUDE_DIR) -fopenmp -DNDEBUG
 LDFLAGS = 
 CFLAGS_TEST = -std=c11 -pedantic-errors -Wall -g -O3 -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS)
 LDFLAGS_TEST =
-ASMFLAGS = -std=c11 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -masm=intel -march=native -fopenmp
+ASMFLAGS = -std=c11 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -masm=intel -fopenmp -DNDEBUG
 LIBS = -lm -L$(PG_LIB_DIR) $(PG_LIBS)  $(FLAME_LIB) $(BLIS_LIB) -lgomp -lpthread
 #LIBS = -lm -L$(PG_LIB_DIR) $(PG_LIBS) -lgomp -llapack
 TEST_LIBS =
