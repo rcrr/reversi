@@ -570,7 +570,7 @@ gpdb_dictionary_load (gpdb_dictionary_t *const db,
   char entry_id[MAX_LINE_LENGTH] = "";
   char entry_description[MAX_LINE_LENGTH] = "";
   GamePositionX gpx;
-  char error_message[1024];
+  char error_message[MAX_LINE_LENGTH * 2];
 
 
   while (fgets(line, sizeof(line), fp)) {
