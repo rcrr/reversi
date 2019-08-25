@@ -117,6 +117,7 @@ aux_teardown (void)
   prng_mt19937_free(prng);
 }
 
+/* to be deleted */
 static void
 aux_create_sdf_matrix (uint64_t seed,
                        double lo,
@@ -162,6 +163,62 @@ aux_create_sdf_matrix (uint64_t seed,
 }
 
 typedef __float128 quad_float_t;
+
+static void
+aux_create_random_sdf_matrix_2 (prng_mt19937_t *r,
+                                double lo,
+                                double up,
+                                size_t n,
+                                double **rand,
+                                double **sdf)
+{
+  assert(lo <= up);
+
+  quad_float_t sum;
+  double v, d;
+
+  d = up - lo;
+
+  for (size_t i = 0; i < n; i++) {
+    for (size_t j = 0; j < n; j++) {
+      v = prng_mt19937_get_double_in_o0_o1(r);
+      v = v * d + lo;
+      rand[i][j] = v;
+    }
+  }
+
+  for (size_t i = 0; i < n; i++) {
+    for (size_t j = 0; j < n; j++) {
+      sum = 0.0;
+      for (size_t k = 0; k < n; k++) {
+        sum += rand[i][k] * rand[j][k];
+      }
+      sdf[i][j] = (double) sum;
+    }
+  }
+}
+
+static void
+aux_create_random_matrix (prng_mt19937_t *r,
+                          double lo,
+                          double up,
+                          size_t n,
+                          double **rand)
+{
+  assert(lo <= up);
+
+  double v, d;
+
+  d = up - lo;
+
+  for (size_t i = 0; i < n; i++) {
+    for (size_t j = 0; j < n; j++) {
+      v = prng_mt19937_get_double_in_o0_o1(r);
+      v = v * d + lo;
+      rand[i][j] = v;
+    }
+  }
+}
 
 static void
 aux_assert_identity (ut_test_t *const t,
@@ -503,6 +560,128 @@ lial_lu_7_t (ut_test_t *const t)
 }
 
 static void
+lial_lu_inv_3_t (ut_test_t *const t)
+{
+  static const size_t n = 3;
+  double **a;
+  double **z;
+  double **c;
+  double scale[n];
+  double b[n];
+  int ret;
+  size_t indx[n];
+
+  const double epsilon = 1.E-15;
+  const bool debug = false;
+
+  a = lial_allocate_square_matrix(n);
+  if (!a) {
+    printf("\nUnable to allocate memory for matrix a\n");
+    ut_assert(t, false);
+  }
+
+  a[0][0] =  1.0;
+  a[0][1] =  0.0;
+  a[0][2] =  1.0;
+  a[1][0] =  2.0;
+  a[1][1] = -1.0;
+  a[1][2] =  3.0;
+  a[2][0] =  1.0;
+  a[2][1] =  4.0;
+  a[2][2] =  2.0;
+
+  ret = lial_lu_decom_naive(a, n, indx, scale);
+  ut_assert(t, ret == 1);
+
+  if (debug) {
+    printf("\n");
+    for (size_t i = 0; i < n; i++)
+      for (size_t j = 0; j < n; j++)
+        printf("a[%zu][%zu] = %21.15f\n", i, j, a[i][j]);
+  }
+
+  b[0] = 1.0;
+  b[1] = 0.0;
+  b[2] = 0.0;
+
+  lial_lu_bsubst_naive(a, n, indx, scale, b);
+
+  ut_assert(t, fabs(b[0] - (+14.0 / 5.0)) <  epsilon);
+  ut_assert(t, fabs(b[1] - (+ 1.0 / 5.0)) <  epsilon);
+  ut_assert(t, fabs(b[2] - (- 9.0 / 5.0)) <  epsilon);
+
+  b[0] = 0.0;
+  b[1] = 1.0;
+  b[2] = 0.0;
+
+  lial_lu_bsubst_naive(a, n, indx, scale, b);
+
+  ut_assert(t, fabs(b[0] - (- 4.0 / 5.0)) <  epsilon);
+  ut_assert(t, fabs(b[1] - (- 1.0 / 5.0)) <  epsilon);
+  ut_assert(t, fabs(b[2] - (+ 4.0 / 5.0)) <  epsilon);
+
+  b[0] = 0.0;
+  b[1] = 0.0;
+  b[2] = 1.0;
+
+  lial_lu_bsubst_naive(a, n, indx, scale, b);
+
+  ut_assert(t, fabs(b[0] - (- 1.0 / 5.0)) <  epsilon);
+  ut_assert(t, fabs(b[1] - (+ 1.0 / 5.0)) <  epsilon);
+  ut_assert(t, fabs(b[2] - (+ 1.0 / 5.0)) <  epsilon);
+
+  /* Now restart using the call to lial_lu_inv_naive */
+
+  a[0][0] =  1.0;
+  a[0][1] =  0.0;
+  a[0][2] =  1.0;
+  a[1][0] =  2.0;
+  a[1][1] = -1.0;
+  a[1][2] =  3.0;
+  a[2][0] =  1.0;
+  a[2][1] =  4.0;
+  a[2][2] =  2.0;
+
+  z = lial_allocate_square_matrix(n);
+  if (!z) {
+    printf("\nUnable to allocate memory for matrix z\n");
+    lial_free_matrix(a, n);
+    ut_assert(t, false);
+  }
+
+  for (size_t i = 0; i < n; i++)
+    for (size_t j = 0; j < n; j++)
+      z[i][j] = (i == j) ? 1.0 : 0.0;
+
+  c = lial_clone_matrix(a, n, n);
+  if (!c) {
+    printf("\nUnable to allocate memory for matrix c\n");
+    lial_free_matrix(z, n);
+    lial_free_matrix(a, n);
+    ut_assert(t, false);
+  }
+
+  ret = lial_lu_inv_naive(a, n, indx, scale, z);
+  ut_assert(t, ret == 1);
+
+  if (debug) {
+    printf("\n");
+    for (size_t i = 0; i < n; i++)
+      for (size_t j = 0; j < n; j++)
+        printf("a[%zu][%zu] = %21.15f\n", i, j, a[i][j]);
+    for (size_t i = 0; i < n; i++)
+      for (size_t j = 0; j < n; j++)
+        printf("z[%zu][%zu] = %21.15f\n", i, j, z[i][j]);
+  }
+
+  aux_assert_identity(t, c, z, n, epsilon, debug);
+
+  lial_free_matrix(c, n);
+  lial_free_matrix(z, n);
+  lial_free_matrix(a, n);
+}
+
+static void
 lial_chol_lapack_t (ut_test_t *const t)
 {
   uint64_t seed;
@@ -630,7 +809,6 @@ lial_clone_matrix_t (ut_test_t *const t)
   static const size_t nr = 3;
   static const size_t nc = 2;
   double **a, **b;
-  int ret_code;
 
   a = lial_allocate_matrix(nr, nc);
 
@@ -641,8 +819,8 @@ lial_clone_matrix_t (ut_test_t *const t)
   a[2][0] =  2.0;
   a[2][1] =  2.1;
 
-  b = lial_clone_matrix(a, nr, nc, &ret_code);
-  ut_assert(t, ret_code == 0);
+  b = lial_clone_matrix(a, nr, nc);
+  ut_assert(t, b != NULL);
 
   for (size_t i = 0; i < nr; i++)
     for (size_t j = 0; j < nc; j++)
@@ -1047,7 +1225,6 @@ lial_chol_inv_naive_m2_t (ut_test_t *const t)
   double **z; // the matrix inverse
   double **c; // a copy of the a matrix
   double p[n];
-  int ret_code;
 
   const double epsilon = 1.E-15;
   const bool debug = false;
@@ -1068,8 +1245,8 @@ lial_chol_inv_naive_m2_t (ut_test_t *const t)
   z[1][0] = 0.0;
   z[1][1] = 0.0;
 
-  c = lial_clone_matrix(a, n, n, &ret_code);
-  if (ret_code != 0) {
+  c = lial_clone_matrix(a, n, n);
+  if (!c) {
     lial_free_matrix(z, n);
     lial_free_matrix(a, n);
     ut_assert(t, false);
@@ -1094,6 +1271,412 @@ lial_chol_inv_naive_m2_t (ut_test_t *const t)
   lial_free_matrix(c, n);
   lial_free_matrix(z, n);
   lial_free_matrix(a, n);
+}
+
+static void
+lial_lu_inv_m_0_40_t (ut_test_t *const t)
+{
+  size_t start, end, i, n;
+
+  double **a; // the matrix to be inverted, generated with random values.
+  double **z; // the matrix inverse
+  double **c; // a copy of the a matrix
+  size_t *indx;
+  double *scale;
+  int ret;
+
+  double lo, up;
+
+  prng_mt19937_t *r;
+  uint64_t seed;
+
+  const double epsilon = 1.E-06;
+  const bool debug = false;
+
+  start = 1;
+  end = 40;
+  lo = -1.;
+  up = +1.;
+  seed = 4532;
+
+  r = prng_mt19937_new();
+  prng_mt19937_init_by_seed(r, seed);
+
+  if (debug) printf("\n");
+  for (i = start; i <= end; i++) {
+    if (debug) printf("lial_lu_inv_m_0_40_t: iteration n. %zu\n", i);
+
+    n = i;
+
+    a = lial_allocate_square_matrix(n);
+    if (!a) {
+      printf("\nUnable to allocate memory for matrix a\n");
+      ut_assert(t, false);
+    }
+
+    aux_create_random_matrix(r, lo, up, n, a);
+
+    if (debug) {
+      for (size_t i = 0; i < n; i++)
+        for (size_t j = 0; j < n; j++)
+          printf("a[%zu][%zu] = %21.15f\n", i, j, a[i][j]);
+    }
+
+    z = lial_allocate_square_matrix(n);
+    if (!z) {
+      printf("\nUnable to allocate memory for matrix z\n");
+      lial_free_matrix(a, n);
+      ut_assert(t, false);
+    }
+
+    for (size_t i = 0; i < n; i++)
+      for (size_t j = 0; j < n; j++)
+        z[i][j] = (i == j) ? 1.0 : 0.0;
+
+    c = lial_clone_matrix(a, n, n);
+    if (!c) {
+      printf("\nUnable to allocate memory for matrix c\n");
+      lial_free_matrix(z, n);
+      lial_free_matrix(a, n);
+      ut_assert(t, false);
+    }
+
+    scale = lial_allocate_vector(n);
+    if (!scale) {
+      printf("\nUnable to allocate memory for vector scale\n");
+      lial_free_matrix(c, n);
+      lial_free_matrix(z, n);
+      lial_free_matrix(a, n);
+      ut_assert(t, false);
+    }
+
+    indx = (size_t *) malloc(sizeof(size_t) * n);
+    if (!indx) {
+      printf("\nUnable to allocate memory for vector scale\n");
+      lial_free_vector(scale);
+      lial_free_matrix(c, n);
+      lial_free_matrix(z, n);
+      lial_free_matrix(a, n);
+      ut_assert(t, false);
+    }
+
+    ret = lial_lu_inv_naive(a, n, indx, scale, z);
+    ut_assert(t, ret == 1);
+
+    if (debug) {
+      for (size_t i = 0; i < n; i++)
+        for (size_t j = 0; j < n; j++)
+          printf("z[%zu][%zu] = %21.15f\n", i, j, z[i][j]);
+    }
+
+    aux_assert_identity(t, c, z, n, epsilon, debug);
+
+    free(indx);
+    lial_free_vector(scale);
+    lial_free_matrix(c, n);
+    lial_free_matrix(z, n);
+    lial_free_matrix(a, n);
+  }
+
+  ut_assert(t, true);
+
+  prng_mt19937_free(r);
+}
+
+static void
+lial_chol_inv_naive_m_0_40_t (ut_test_t *const t)
+{
+  size_t start, end, i, n;
+
+  double **g; // a matrix generated with random values. a = r * r transposed
+  double **a; // the matrix to be inverted
+  double **z; // the matrix inverse
+  double **c; // a copy of the a matrix
+  double *p;
+
+  double lo, up;
+
+  prng_mt19937_t *r;
+  uint64_t seed;
+
+  const double epsilon = 1.E-09;
+  const bool debug = false;
+
+  start = 1;
+  end = 40;
+  lo = -1.;
+  up = +1.;
+  seed = 8670;
+
+  r = prng_mt19937_new();
+  prng_mt19937_init_by_seed(r, seed);
+
+  if (debug) printf("\n");
+  for (i = start; i <= end; i++) {
+    if (debug) printf("lial_chol_inv_naive_m_0_40_t: iteration n. %zu\n", i);
+
+    n = i;
+
+    g = lial_allocate_square_matrix(n);
+    if (!g) {
+      printf("\nUnable to allocate memory for matrix g\n");
+      ut_assert(t, false);
+    }
+
+    a = lial_allocate_square_matrix(n);
+    if (!a) {
+      printf("\nUnable to allocate memory for matrix a\n");
+      lial_free_matrix(g, n);
+      ut_assert(t, false);
+    }
+
+    z = lial_allocate_square_matrix(n);
+    if (!z) {
+      printf("\nUnable to allocate memory for matrix z\n");
+      lial_free_matrix(a, n);
+      lial_free_matrix(g, n);
+      ut_assert(t, false);
+    }
+
+    aux_create_random_sdf_matrix_2(r, lo, up, n, g, a);
+
+    if (debug) {
+      for (size_t i = 0; i < n; i++)
+        for (size_t j = 0; j < n; j++)
+          printf("g[%zu][%zu] = %21.15f\n", i, j, g[i][j]);
+      for (size_t i = 0; i < n; i++)
+        for (size_t j = 0; j < n; j++)
+          printf("a[%zu][%zu] = %21.15f\n", i, j, a[i][j]);
+    }
+
+    c = lial_clone_matrix(a, n, n);
+    if (!c) {
+      printf("\nUnable to allocate memory for matrix c\n");
+      lial_free_matrix(z, n);
+      lial_free_matrix(a, n);
+      lial_free_matrix(g, n);
+      ut_assert(t, false);
+    }
+
+    p = lial_allocate_vector(n);
+    if (!p) {
+      printf("\nUnable to allocate memory for vector p\n");
+      lial_free_matrix(c, n);
+      lial_free_matrix(z, n);
+      lial_free_matrix(a, n);
+      lial_free_matrix(g, n);
+      ut_assert(t, false);
+    }
+
+    lial_chol_inv_naive(a, n, p, z);
+
+    if (debug) {
+      for (size_t i = 0; i < n; i++)
+        for (size_t j = 0; j < n; j++)
+          printf("z[%zu][%zu] = %21.15f\n", i, j, z[i][j]);
+    }
+
+    aux_assert_identity(t, c, z, n, epsilon, debug);
+
+    lial_free_vector(p);
+    lial_free_matrix(c, n);
+    lial_free_matrix(z, n);
+    lial_free_matrix(a, n);
+    lial_free_matrix(g, n);
+  }
+
+  prng_mt19937_free(r);
+}
+
+static void
+lial_chol_fact_and_solve_lapack_i2_t (ut_test_t *const t)
+{
+  static const size_t n = 2;
+  double **a;
+  int ret;
+  double b[n];
+
+  static const bool debug = false;
+
+  a = lial_allocate_square_matrix(n);
+  if (!a) {
+    printf("\nUnable to allocate memory for matrix a\n");
+    ut_assert(t, false);
+  }
+
+  a[0][0] = 1.0;
+  a[0][1] = 0.0;
+  a[1][0] = 0.0;
+  a[1][1] = 1.0;
+
+  lial_chol_fact_lapack(a, n, &ret);
+  ut_assert(t, ret == 0);
+  if (debug) {
+    printf("\n");
+    for (size_t i = 0; i < n; i++)
+      for (size_t j = 0; j < n; j++)
+        printf("a[%zu][%zu] = %21.15f\n", i, j, a[i][j]);
+  }
+
+  b[0] = 5.0;
+  b[1] = 7.0;
+
+  lial_chol_solv_lapack(a, n, b, &ret);
+  ut_assert(t, ret == 0);
+
+  ut_assert(t, b[0] == 5.0);
+  ut_assert(t, b[1] == 7.0);
+
+  lial_free_matrix(a, n);
+}
+
+static void
+lial_chol_fact_and_solve_lapack_m2_t (ut_test_t *const t)
+{
+  static const size_t n = 2;
+  double **a;
+  int ret;
+  double b[n];
+
+  const double epsilon = 1.E-15;
+  static const bool debug = false;
+
+  a = lial_allocate_square_matrix(n);
+  if (!a) {
+    printf("\nUnable to allocate memory for matrix a\n");
+    ut_assert(t, false);
+  }
+
+  a[0][0] = 1.2;
+  a[0][1] = 0.3;
+  a[1][0] = 0.3;
+  a[1][1] = 1.8;
+
+  lial_chol_fact_lapack(a, n, &ret);
+  ut_assert(t, ret == 0);
+  if (debug) {
+    printf("\n");
+    for (size_t i = 0; i < n; i++)
+      for (size_t j = 0; j < n; j++)
+        printf("a[%zu][%zu] = %21.15f\n", i, j, a[i][j]);
+  }
+
+  b[0] = 1.0;
+  b[1] = 0.0;
+
+  lial_chol_solv_lapack(a, n, b, &ret);
+  ut_assert(t, ret == 0);
+  if (debug) {
+    printf("\n");
+    for (size_t i = 0; i < n; i++)
+      printf("b[%zu] = %24.18f\n", i, b[i]);
+  }
+
+  ut_assert(t, fabs(b[0] - (+0.869565217391304)) < epsilon);
+  ut_assert(t, fabs(b[1] - (-0.144927536231884)) < epsilon);
+
+  b[0] = 0.0;
+  b[1] = 1.0;
+
+  lial_chol_solv_lapack(a, n, b, &ret);
+  ut_assert(t, ret == 0);
+
+  ut_assert(t, fabs(b[0] - (-0.144927536231884)) < epsilon);
+  ut_assert(t, fabs(b[1] - (+0.579710144927536)) < epsilon);
+
+  lial_free_matrix(a, n);
+}
+
+static void
+lial_chol_fact_and_solve_lapack_m3_t (ut_test_t *const t)
+{
+  static const size_t n = 3;
+  double **a;
+  int ret;
+  double b[n];
+
+  const double epsilon = 1.E-15;
+  static const bool debug = false;
+
+  double a11, a12, a13, a21, a22, a23, a31, a32, a33, det;
+  double z11, z12, z13, z21, z22, z23, z31, z32, z33;
+
+  a11 =  3.1;
+  a12 =  1.7;
+  a13 = -0.7;
+  a21 =  a12;
+  a22 =  5.7;
+  a23 =  0.1;
+  a31 =  a13;
+  a32 =  a23;
+  a33 =  7.3;
+
+  det =
+    a11 * (a33 * a22 - a32 * a23) -
+    a21 * (a33 * a12 - a32 * a13) +
+    a31 * (a23 * a12 - a22 * a13);
+
+  z11 =   (a33 * a22 - a32 * a23) / det;
+  z12 = - (a33 * a12 - a32 * a13) / det;
+  z13 =   (a23 * a12 - a22 * a13) / det;
+  z21 = - (a33 * a21 - a31 * a23) / det;
+  z22 =   (a33 * a11 - a31 * a13) / det;
+  z23 = - (a23 * a11 - a21 * a13) / det;
+  z31 =   (a32 * a21 - a31 * a22) / det;
+  z32 = - (a32 * a11 - a31 * a12) / det;
+  z33 =   (a22 * a11 - a21 * a12) / det;
+
+  a = lial_allocate_square_matrix(n);
+  if (!a) {
+    printf("\nUnable to allocate memory for matrix a\n");
+    ut_assert(t, false);
+  }
+
+  a[0][0] = a11;
+  a[0][1] = a12;
+  a[0][2] = a13;
+  a[1][0] = a21;
+  a[1][1] = a22;
+  a[1][2] = a23;
+  a[2][0] = a31;
+  a[2][1] = a32;
+  a[2][2] = a33;
+
+  lial_chol_fact_lapack(a, n, &ret);
+  ut_assert(t, ret == 0);
+  if (debug) {
+    printf("\n");
+    for (size_t i = 0; i < n; i++)
+      for (size_t j = 0; j < n; j++)
+        printf("a[%zu][%zu] = %21.15f\n", i, j, a[i][j]);
+  }
+
+  b[0] = 1.0;
+  b[1] = 0.0;
+  b[2] = 0.0;
+  lial_chol_solv_lapack(a, n, b, &ret);
+  ut_assert(t, ret == 0);
+  ut_assert(t, fabs(b[0] - z11) < epsilon);
+  ut_assert(t, fabs(b[1] - z21) < epsilon);
+  ut_assert(t, fabs(b[2] - z31) < epsilon);
+
+  b[0] = 0.0;
+  b[1] = 1.0;
+  b[2] = 0.0;
+  lial_chol_solv_lapack(a, n, b, &ret);
+  ut_assert(t, ret == 0);
+  ut_assert(t, fabs(b[0] - z12) < epsilon);
+  ut_assert(t, fabs(b[1] - z22) < epsilon);
+  ut_assert(t, fabs(b[2] - z32) < epsilon);
+
+  b[0] = 0.0;
+  b[1] = 0.0;
+  b[2] = 1.0;
+  lial_chol_solv_lapack(a, n, b, &ret);
+  ut_assert(t, ret == 0);
+  ut_assert(t, fabs(b[0] - z13) < epsilon);
+  ut_assert(t, fabs(b[1] - z23) < epsilon);
+  ut_assert(t, fabs(b[2] - z33) < epsilon);
 }
 
 /**
@@ -1126,6 +1709,8 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_lu_5", lial_lu_5_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_lu_7", lial_lu_7_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_lu_singular", lial_lu_singular_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_lu_inv_3", lial_lu_inv_3_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_01,   "lial_lu_inv_m_0_40_t", lial_lu_inv_m_0_40_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_i2", lial_chol_fact_naive_i2_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_3", lial_chol_fact_naive_3_t);
@@ -1133,7 +1718,11 @@ main (int argc,
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_inv_naive_i2", lial_chol_inv_naive_i2_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_inv_naive_m2", lial_chol_inv_naive_m2_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_01,   "lial_chol_inv_naive_m_0_40_t", lial_chol_inv_naive_m_0_40_t);
 
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_and_solve_lapack_i2", lial_chol_fact_and_solve_lapack_i2_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_and_solve_lapack_m2", lial_chol_fact_and_solve_lapack_m2_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_and_solve_lapack_m3", lial_chol_fact_and_solve_lapack_m3_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_3_lapack", lial_chol_fact_naive_3_lapack_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_lapack", lial_chol_lapack_t);

@@ -570,7 +570,7 @@ main (int argc,
     epsilon_on_gradient_modulus = 1.0e-9;
 
     /* max_newton_iter: max number of iterations allowed to the Newton algorithm. */
-    max_newton_iter = 1;
+    max_newton_iter = 10;
 
     if (verbose) {
       printf("Dumping factor for the diagonal of the Hessian matrix (Levemberg-Marquardt): lambda = %f\n", lambda);

@@ -45,15 +45,129 @@
 #include "isqrt.h"
 #include "linear_algebra.h"
 
-/*
- * One double is eight bytes, AVX2 uses 256 bit ymm registers, that needs 32 byte alignemnt.
- * Sixty-four is in sight of AVX-512 ...
+
+
+/* --- C interface for the LAPACK routine DPOTRF ---
+ * Double precision POsitive definite TRiangular Factorize
+ * Interface documentation:
+ *   www.netlib.org lapack dpotrf.f
+ *
+ * Requires the linker flag -llapck
+ *
+ * DPOTRF computes the Cholesky factorization of a real symmetric
+ * positive definite matrix A.
+ *
+ * The factorization has the form
+ *    A = U**T * U,  if UPLO = 'U', or
+ *    A = L  * L**T,  if UPLO = 'L',
+ * where U is an upper triangular matrix and L is lower triangular.
+ *
+ * This is the block version of the algorithm, calling Level 3 BLAS.
+ *
+ * Parameters
+ *    [in]	UPLO
+ *              UPLO is CHARACTER*1
+ *              = 'U':  Upper triangle of A is stored;
+ *              = 'L':  Lower triangle of A is stored.
+ *
+ *    [in]	N
+ *              N is INTEGER
+ *              The order of the matrix A.  N >= 0.
+ *
+ *    [in,out]	A
+ *              A is DOUBLE PRECISION array, dimension (LDA,N)
+ *              On entry, the symmetric matrix A.  If UPLO = 'U', the leading
+ *              N-by-N upper triangular part of A contains the upper
+ *              triangular part of the matrix A, and the strictly lower
+ *              triangular part of A is not referenced.  If UPLO = 'L', the
+ *              leading N-by-N lower triangular part of A contains the lower
+ *              triangular part of the matrix A, and the strictly upper
+ *              triangular part of A is not referenced.
+ *
+ *              On exit, if INFO = 0, the factor U or L from the Cholesky
+ *              factorization A = U**T*U or A = L*L**T.
+ *
+ *    [in]	LDA
+ *              LDA is INTEGER
+ *              The leading dimension of the array A.  LDA >= max(1,N).
+ *
+ *    [out]	INFO
+ *              INFO is INTEGER
+ *              = 0:  successful exit
+ *              < 0:  if INFO = -i, the i-th argument had an illegal value
+ *              > 0:  if INFO = i, the leading minor of order i is not
+ *                    positive definite, and the factorization could not be
+ *                    completed.
+ *
  */
-#define LIAL_DOUBLE_ALIGNMENT 8
+extern void
+dpotrf_ (const char *uplo,
+         const int *n,
+         double *a,
+         const int *lda,
+         int *info);
 
-#define LIAL_DOUBLE_SIZE 8
+/* --- C interface for the LAPACK routine DPOTRS ---
+ * Double precision POsitive definite TRiangular Solve
+ * Interface documentation:
+ *   www.netlib.org lapack dpotrs.f
+ *
+ * Requires the linker flag -llapck
+ *
+ * DPOTRS solves a system of linear equations A*X = B with a symmetric
+ * positive definite matrix A using the Cholesky factorization
+ * A = U**T*U or A = L*L**T computed by DPOTRF.
+ *
+ * Parameters:
+ *    [in]	UPLO
+ *              UPLO is CHARACTER*1
+ *              = 'U':  Upper triangle of A is stored;
+ *              = 'L':  Lower triangle of A is stored.
+ *
+ *    [in]	N
+ *              N is INTEGER
+ *              The order of the matrix A.  N >= 0.
+ *
+ *    [in]	NRHS
+ *              NRHS is INTEGER
+ *              The number of right hand sides, i.e., the number of columns
+ *              of the matrix B.  NRHS >= 0.
+ *
+ *    [in]	A
+ *              A is DOUBLE PRECISION array, dimension (LDA,N)
+ *              The triangular factor U or L from the Cholesky factorization
+ *              A = U**T*U or A = L*L**T, as computed by DPOTRF.
+ *
+ *    [in]	LDA
+ *              LDA is INTEGER
+ *              The leading dimension of the array A.  LDA >= max(1,N).
+ *
+ *    [in,out]	B
+ *              B is DOUBLE PRECISION array, dimension (LDB,NRHS)
+ *              On entry, the right hand side matrix B.
+ *              On exit, the solution matrix X.
+ *
+ *    [in]	LDB
+ *              LDB is INTEGER
+ *              The leading dimension of the array B.  LDB >= max(1,N).
+ *
+ *    [out]	INFO
+ *              INFO is INTEGER
+ *              = 0:  successful exit
+ *              < 0:  if INFO = -i, the i-th argument had an illegal value
+ *
+ */
+extern void
+dpotrs_ (const char* uplo,
+         const int* n,
+         const int* nrhs,
+         const double* a,
+         const int* lda,
+         double* b,
+         const int* ldb,
+         int* info);
 
-#define LIAL_DOUBLE_ELEMENT_X_SLOT LIAL_DOUBLE_ALIGNMENT / LIAL_DOUBLE_SIZE
+
 
 static void
 lial_chol_solv_naive_ident (double **a,
@@ -126,15 +240,9 @@ lial_allocate_vector (size_t n)
   double *v;
 
   const size_t element_size = sizeof(double);
-  const size_t required_size = n * element_size;
+  const size_t size = n * element_size;
 
-  size_t size;
-
-  size = required_size / LIAL_DOUBLE_ALIGNMENT;
-  if (required_size % LIAL_DOUBLE_ALIGNMENT > 0) size += 1;
-  size *= LIAL_DOUBLE_ALIGNMENT;
-
-  v = (double *) aligned_alloc(LIAL_DOUBLE_ALIGNMENT, size);
+  v = (double *) malloc(size);
 
   return v;
 }
@@ -155,7 +263,7 @@ double **
 lial_allocate_matrix (size_t nr,
                       size_t nc)
 {
-  size_t i, row_size, n_slots_per_row, n_double_per_row;
+  size_t i;
   double **m;
 
   if (nr == 0 || nc == 0 ) return NULL;
@@ -165,27 +273,12 @@ lial_allocate_matrix (size_t nr,
   if (!m) return NULL;
 
   /* Allocates the matrix. */
-  /*
   m[0] = (double *) malloc ( nr * nc * sizeof(double));
   if (!m[0]) {
     free(m);
     return NULL;
   }
   for (i = 1; i < nr; i++) m[i] = m[i - 1] + nc;
-  */
-
-
-  const size_t row_required_size = nc * LIAL_DOUBLE_SIZE;
-
-  n_slots_per_row = row_required_size / LIAL_DOUBLE_ALIGNMENT;
-  if (row_required_size % LIAL_DOUBLE_ALIGNMENT > 0) n_slots_per_row += 1;
-  n_double_per_row = n_slots_per_row * LIAL_DOUBLE_ELEMENT_X_SLOT;
-  row_size = n_double_per_row * LIAL_DOUBLE_SIZE;
-
-  m[0] = (double *) aligned_alloc(LIAL_DOUBLE_ALIGNMENT, nr * row_size);
-
-  for (i = 1; i < nr; i++) m[i] = m[i - 1] + n_double_per_row;
-
 
   /* Return pointer to array of pointers to rows. */
   return m;
@@ -238,7 +331,7 @@ lial_chol_inv_naive (double **a,
 {
   lial_chol_fact_naive(a, n, p);
   for (size_t i = 0; i < n; i++) {
-    lial_chol_solv_naive_ident (a, n, p, i, z[i]);
+    lial_chol_solv_naive_ident(a, n, p, i, z[i]);
   }
 }
 
@@ -500,8 +593,7 @@ lial_retrieve_matrix (char *file_name,
 double **
 lial_clone_matrix (double **a,
                    size_t nr,
-                   size_t nc,
-                   int *ret_code)
+                   size_t nc)
 {
   assert(a);
   assert(*a);
@@ -509,16 +601,12 @@ lial_clone_matrix (double **a,
   double **b;
 
   b = lial_allocate_matrix(nr, nc);
-  if (!b) {
-    if (ret_code) *ret_code = -1;
-    return NULL;
-  }
+  if (!b) return NULL;
 
   for (size_t i = 0; i < nr; i++)
     for (size_t j = 0; j < nc; j++)
       b[i][j] = a[i][j];
 
-  if (ret_code) *ret_code = 0;
   return b;
 }
 
@@ -744,4 +832,80 @@ lial_lu_bsubst_naive (double **a,
     }
   }
 
+}
+
+int
+lial_lu_inv_naive (double **a,
+                   size_t n,
+                   size_t indx[],
+                   double scale[],
+                   double **z)
+{
+  int ret;
+
+  ret = lial_lu_decom_naive(a, n, indx, scale);
+  if (ret == 0) return ret;
+  for (size_t i = 0; i < n; i++) {
+    lial_lu_bsubst_naive(a, n, indx, scale, z[i]);
+  }
+  lial_transpose_square_matrix(z, n);
+  return ret;
+}
+
+void
+lial_transpose_square_matrix (double **a,
+                              size_t n)
+{
+  double tmp;
+
+  for (size_t i = 0; i < n; i++)
+    for (size_t j = i + 1; j < n; j++) {
+      tmp = a[i][j];
+      a[i][j] = a[j][i];
+      a[j][i] = tmp;
+    }
+}
+
+void
+lial_chol_fact_lapack (double **a,
+                       size_t nr,
+                       int *ret)
+{
+  /* Being translated from FORTRAN, where matrices are stored by columns,
+   * the U value means lower .... and vice versa ....
+   */
+  const char uplo = 'U';
+
+  int info, n, lda;
+
+  info = 0;
+  if (nr > 0) {
+    n = nr;
+    lda = n;
+    dpotrf_(&uplo, &n, *a, &lda, &info);
+  }
+
+  if (ret) *ret = info;
+}
+
+void
+lial_chol_solv_lapack (double **a,
+                       size_t nr,
+                       double *b,
+                       int *ret)
+{
+  const char uplo = 'U';
+
+  int info, n, nrhs, lda, ldb;
+
+  info = 0;
+  if (nr > 0) {
+    n = nr;
+    nrhs = 1;
+    lda = n;
+    ldb = n;
+    dpotrs_(&uplo, &n, &nrhs, *a, &lda, b, &ldb, &info);
+  }
+
+  if (ret) *ret = info;
 }

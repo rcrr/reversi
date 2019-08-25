@@ -285,8 +285,7 @@ lial_retrieve_matrix (char *file_name,
 double **
 lial_clone_matrix (double **a,
                    size_t nr,
-                   size_t nc,
-                   int *ret_code);
+                   size_t nc);
 
 /**
  * @brief Dumps the vector `v` into the `file_name` file.
@@ -328,5 +327,27 @@ extern double
 lial_dot_product_avx (const double *a,
                       const double *b,
                       size_t n);
+
+extern int
+lial_lu_inv_naive (double **a,
+                   size_t n,
+                   size_t indx[],
+                   double scale[],
+                   double **z);
+
+extern void
+lial_transpose_square_matrix (double **a,
+                              size_t n);
+
+extern void
+lial_chol_fact_lapack (double **a,
+                       size_t nr,
+                       int *ret);
+
+extern void
+lial_chol_solv_lapack (double **a,
+                       size_t nr,
+                       double *b,
+                       int *ret);
 
 #endif /* LINEAR_ALGEBRA_H */

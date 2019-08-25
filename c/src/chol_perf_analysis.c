@@ -311,8 +311,8 @@ main (int argc, char *argv[])
   }
 
   /* Clones matrix a into b. */
-  b = lial_clone_matrix(a ,nr, nr, &ret_code);
-  if (ret_code != 0) {
+  b = lial_clone_matrix(a ,nr, nr);
+  if (!b) {
     fprintf(stderr, "chol_perf_analysis: error in cloning the matrix.\n");
     lial_free_vector(aux_diag_a);
     lial_free_matrix(a, nr);
