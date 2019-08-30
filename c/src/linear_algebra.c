@@ -909,3 +909,17 @@ lial_chol_solv_lapack (double **a,
 
   if (ret) *ret = info;
 }
+
+void
+lial_chol_inv_lapack (double **a,
+                      size_t n,
+                      double **z,
+                      int *ret)
+{
+  lial_chol_fact_lapack(a, n, ret);
+  if (ret != NULL && *ret != 0) return;
+  for (size_t i = 0; i < n; i++) {
+    lial_chol_solv_lapack(a, n, z[i], ret);
+    if (ret != NULL && *ret != 0) return;
+  }
+}

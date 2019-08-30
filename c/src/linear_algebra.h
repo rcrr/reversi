@@ -350,4 +350,10 @@ lial_chol_solv_lapack (double **a,
                        double *b,
                        int *ret);
 
+extern void
+lial_chol_inv_lapack (double **a,
+                      size_t n,
+                      double **z,
+                      int *ret);
+
 #endif /* LINEAR_ALGEBRA_H */

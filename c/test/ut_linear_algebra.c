@@ -47,22 +47,9 @@
 #include "unit_test.h"
 #include "linear_algebra.h"
 
-/* ---
- * C interface for the LAPACK routine DPOTRS --
- * Double precision POsitive definite TRiangular Solve
- * Interface documentation at
- *   http://www.netlib.org/lapack/dpotrs.f
- *
- * Requires the linker flag -llapck
-extern void
-dpotrf_ (char *uplo,
-         int *n,
-         double *a,
-         int *lda,
-         int *info);
- */
-
 #define TEST_DIR_NAME_LEN 16
+
+typedef __float128 quad_float_t;
 
 static const char *base_dir_name = "/tmp";
 
@@ -70,10 +57,6 @@ static char test_dir_name[TEST_DIR_NAME_LEN + 1];
 static char test_dir_full_path[TEST_DIR_NAME_LEN + 16];
 
 static prng_mt19937_t *prng;
-
-/*
- * Test structure.
- */
 
 
 
@@ -117,60 +100,13 @@ aux_teardown (void)
   prng_mt19937_free(prng);
 }
 
-/* to be deleted */
 static void
-aux_create_sdf_matrix (uint64_t seed,
-                       double lo,
-                       double up,
-                       size_t n,
-                       double **factorized,
-                       double **sdf)
-{
-  assert(lo <= up);
-
-  prng_mt19937_t *r;
-  double v, d;
-
-  d = up - lo;
-
-  r = prng_mt19937_new();
-  prng_mt19937_init_by_seed(r, seed);
-
-  for (size_t i = 0; i < n; i++) {
-    for (size_t j = 0; j < n; j++) {
-      factorized[i][j] = 0.;
-      sdf[i][j] = 0.;
-    }
-  }
-
-  for (size_t i = 0; i < n; i++) {
-    for (size_t j = 0; j < i + 1; j++) {
-      v = prng_mt19937_get_double_in_o0_o1(r);
-      v = v * d + lo;
-      factorized[i][j] = v;
-    }
-  }
-
-  for (size_t i = 0; i < n; i++) {
-    for (size_t j = 0; j < n; j++) {
-      for (size_t k = 0; k < n; k++) {
-        sdf[i][j] += factorized[i][k] * factorized[j][k];
-      }
-    }
-  }
-
-  prng_mt19937_free(r);
-}
-
-typedef __float128 quad_float_t;
-
-static void
-aux_create_random_sdf_matrix_2 (prng_mt19937_t *r,
-                                double lo,
-                                double up,
-                                size_t n,
-                                double **rand,
-                                double **sdf)
+aux_create_random_sdf_matrix (prng_mt19937_t *r,
+                              double lo,
+                              double up,
+                              size_t n,
+                              double **rand,
+                              double **sdf)
 {
   assert(lo <= up);
 
@@ -682,67 +618,6 @@ lial_lu_inv_3_t (ut_test_t *const t)
 }
 
 static void
-lial_chol_lapack_t (ut_test_t *const t)
-{
-  uint64_t seed;
-  int n;
-  double **e, **a;
-  double lo, up;
-  int lda;
-  int info;
-
-  char uplo = 'U';
-
-  bool debug = false;
-
-  seed = 1753;
-  lo =   1.0;
-  up =  10.0;
-  n = 50;
-
-  lda = n;
-  info = 0;
-
-  e = lial_allocate_square_matrix(n); // expected
-  a = lial_allocate_square_matrix(n); // semi definite positive
-
-  aux_create_sdf_matrix(seed, lo, up, n, e, a);
-
-  if (debug) {
-    printf("\n");
-    for (size_t j = 0; j < n; j++) {
-      printf("c%017zu;", j);
-    }
-    printf("\n");
-    for (size_t i = 0; i < n; i++) {
-      for (size_t j = 0; j < n; j++) {
-        printf("%+18.12f;", a[i][j]);
-      }
-      printf("\n");
-    }
-    printf("\n");
-  }
-
-  dpotrf_(&uplo, &n, *a, &lda, &info);
-
-  ut_assert(t, info == 0);
-
-  if (debug) {
-    printf("\n");
-    for (size_t i = 0; i < n; i++) {
-      for (size_t j = 0; j < i + 1; j++) {
-        printf("[%04zu][%04zu]: a = %+18.14f; e = %+18.14f; delta = %+18.14f\n", i, j, a[i][j], e[i][j], a[i][j] - e[i][j]);
-      }
-    }
-  }
-
-  ut_assert(t, 1 == 1);
-
-  lial_free_matrix(a, n);
-  lial_free_matrix(e, n);
-}
-
-static void
 lial_dot_product_t (ut_test_t *const t)
 {
   static const size_t n = 101;
@@ -981,47 +856,6 @@ lial_chol_fact_naive_3_t (ut_test_t *const t)
   ut_assert(t, p[0]    ==   2.0);
   ut_assert(t, p[1]    ==   1.0);
   ut_assert(t, p[2]    ==   3.0);
-
-  lial_free_matrix(a, n);
-}
-
-static void
-lial_chol_fact_naive_3_lapack_t (ut_test_t *const t)
-{
-  int  n = 3;
-  double **a;
-
-  char uplo = 'U';
-  int lda = n;
-  int info = 0;
-
-  a = lial_allocate_matrix(n, n);
-
-  a[0][0] =   4.0;
-  a[0][1] =  12.0;
-  a[0][2] = -16.0;
-
-  a[1][0] =  12.0;
-  a[1][1] =  37.0;
-  a[1][2] = -43.0;
-
-  a[2][0] = -16.0;
-  a[2][1] = -43.0;
-  a[2][2] =  98.0;
-
-  dpotrf_(&uplo, &n, *a, &lda, &info);
-
-  ut_assert(t, info == 0);
-
-  ut_assert(t, a[0][0] ==   2.0);
-  ut_assert(t, a[0][1] ==  12.0);
-  ut_assert(t, a[0][2] == -16.0);
-  ut_assert(t, a[1][0] ==   6.0);
-  ut_assert(t, a[1][1] ==   1.0);
-  ut_assert(t, a[1][2] == -43.0);
-  ut_assert(t, a[2][0] ==  -8.0);
-  ut_assert(t, a[2][1] ==   5.0);
-  ut_assert(t, a[2][2] ==   3.0);
 
   lial_free_matrix(a, n);
 }
@@ -1438,7 +1272,7 @@ lial_chol_inv_naive_m_0_40_t (ut_test_t *const t)
       ut_assert(t, false);
     }
 
-    aux_create_random_sdf_matrix_2(r, lo, up, n, g, a);
+    aux_create_random_sdf_matrix(r, lo, up, n, g, a);
 
     if (debug) {
       for (size_t i = 0; i < n; i++)
@@ -1466,6 +1300,12 @@ lial_chol_inv_naive_m_0_40_t (ut_test_t *const t)
       lial_free_matrix(a, n);
       lial_free_matrix(g, n);
       ut_assert(t, false);
+    }
+
+    if (debug) {
+      for (size_t i = 0; i < n; i++)
+        for (size_t j = 0; j < n; j++)
+          printf("z[%zu][%zu] = %21.15f\n", i, j, z[i][j]);
     }
 
     lial_chol_inv_naive(a, n, p, z);
@@ -1679,6 +1519,110 @@ lial_chol_fact_and_solve_lapack_m3_t (ut_test_t *const t)
   ut_assert(t, fabs(b[2] - z33) < epsilon);
 }
 
+static void
+lial_chol_fact_and_solve_lapack_m_0_40_t (ut_test_t *const t)
+{
+  size_t start, end, i, n;
+  int ret;
+
+  double **g; // a matrix generated with random values. a = r * r transposed
+  double **a; // the matrix to be inverted
+  double **z; // the matrix inverse
+  double **c; // a copy of the a matrix
+
+  double lo, up;
+
+  prng_mt19937_t *r;
+  uint64_t seed;
+
+  const double epsilon = 1.E-09;
+  const bool debug = false;
+
+  start = 1;
+  end = 40;
+  lo = -1.;
+  up = +1.;
+  seed = 8670;
+
+  r = prng_mt19937_new();
+  prng_mt19937_init_by_seed(r, seed);
+
+  if (debug) printf("\n");
+  for (i = start; i <= end; i++) {
+    if (debug) printf("lial_chol_fact_and_solve_lapack_m_0_40_t: iteration n. %zu\n", i);
+
+    n = i;
+    ret = 0;
+
+    g = lial_allocate_square_matrix(n);
+    if (!g) {
+      printf("\nUnable to allocate memory for matrix g\n");
+      ut_assert(t, false);
+    }
+
+    a = lial_allocate_square_matrix(n);
+    if (!a) {
+      printf("\nUnable to allocate memory for matrix a\n");
+      lial_free_matrix(g, n);
+      ut_assert(t, false);
+    }
+
+    z = lial_allocate_square_matrix(n);
+    if (!z) {
+      printf("\nUnable to allocate memory for matrix z\n");
+      lial_free_matrix(a, n);
+      lial_free_matrix(g, n);
+      ut_assert(t, false);
+    }
+    for (size_t i = 0; i < n; i++)
+      for (size_t j = 0; j < n; j++)
+        z[i][j] = (i == j) ? 1.0 : 0.0;
+
+    aux_create_random_sdf_matrix(r, lo, up, n, g, a);
+
+    if (debug) {
+      for (size_t i = 0; i < n; i++)
+        for (size_t j = 0; j < n; j++)
+          printf("g[%zu][%zu] = %21.15f\n", i, j, g[i][j]);
+      for (size_t i = 0; i < n; i++)
+        for (size_t j = 0; j < n; j++)
+          printf("a[%zu][%zu] = %21.15f\n", i, j, a[i][j]);
+    }
+
+    c = lial_clone_matrix(a, n, n);
+    if (!c) {
+      printf("\nUnable to allocate memory for matrix c\n");
+      lial_free_matrix(z, n);
+      lial_free_matrix(a, n);
+      lial_free_matrix(g, n);
+      ut_assert(t, false);
+    }
+
+    if (debug) {
+      for (size_t i = 0; i < n; i++)
+        for (size_t j = 0; j < n; j++)
+          printf("z[%zu][%zu] = %21.15f\n", i, j, z[i][j]);
+    }
+
+    lial_chol_inv_lapack(a, n, z, &ret);
+
+    if (debug) {
+      for (size_t i = 0; i < n; i++)
+        for (size_t j = 0; j < n; j++)
+          printf("z[%zu][%zu] = %21.15f\n", i, j, z[i][j]);
+    }
+
+    aux_assert_identity(t, c, z, n, epsilon, debug);
+
+    lial_free_matrix(c, n);
+    lial_free_matrix(z, n);
+    lial_free_matrix(a, n);
+    lial_free_matrix(g, n);
+  }
+
+  prng_mt19937_free(r);
+}
+
 /**
  * @brief Runs the test suite.
  */
@@ -1723,9 +1667,7 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_and_solve_lapack_i2", lial_chol_fact_and_solve_lapack_i2_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_and_solve_lapack_m2", lial_chol_fact_and_solve_lapack_m2_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_and_solve_lapack_m3", lial_chol_fact_and_solve_lapack_m3_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_fact_naive_3_lapack", lial_chol_fact_naive_3_lapack_t);
-
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_chol_lapack", lial_chol_lapack_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_01,   "lial_chol_fact_and_solve_lapack_m_0_40", lial_chol_fact_and_solve_lapack_m_0_40_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);
