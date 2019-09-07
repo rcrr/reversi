@@ -267,14 +267,14 @@ extern void
 lial_dump_matrix (double **a,
                   size_t nr,
                   size_t nc,
-                  char *file_name,
+                  const char *file_name,
                   int *ret_code);
 
 /**
  * @brief Reads a matrix from a binary file.
  */
 extern double **
-lial_retrieve_matrix (char *file_name,
+lial_retrieve_matrix (const char *file_name,
                       size_t *nr,
                       size_t *nc,
                       int *ret_code);

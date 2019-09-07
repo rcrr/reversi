@@ -497,7 +497,7 @@ void
 lial_dump_matrix (double **a,
                   size_t nr,
                   size_t nc,
-                  char *file_name,
+                  const char *file_name,
                   int *ret_code)
 {
   assert(a);
@@ -538,7 +538,7 @@ lial_dump_matrix (double **a,
 }
 
 double **
-lial_retrieve_matrix (char *file_name,
+lial_retrieve_matrix (const char *file_name,
                       size_t *nr,
                       size_t *nc,
                       int *ret_code)

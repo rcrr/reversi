@@ -94,6 +94,9 @@ static char *W_arg = NULL;
 static int R_flag = false;
 static char *R_arg = NULL;
 
+static int H_flag = false;
+static char *H_arg = NULL;
+
 static mop_options_long_t olist[] = {
   {"help",                 'h', MOP_NONE},
   {"verbose",              'v', MOP_NONE},
@@ -108,6 +111,7 @@ static mop_options_long_t olist[] = {
   {"extract-gp-ttable",    'T', MOP_REQUIRED},
   {"extract-weights",      'W', MOP_REQUIRED},
   {"extract-residuals",    'R', MOP_REQUIRED},
+  {"dump-hessian-matrix",  'H', MOP_REQUIRED},
   {0, 0, 0}
 };
 
@@ -129,6 +133,7 @@ static const char *documentation =
   "  -T, --extract-gp-ttable    Dumps the solved and classified game position table transformed to glm_variable_id in a CSV format\n"
   "  -W, --extract-weights      Dumps the weights, the optimized value assigned to the glm_variable_id keys in a CSV format\n"
   "  -R, --extract-residuals    Dumps the residuals of the minimization of the GLM model in a CSV format\n"
+  "  -H, --dump-hessian-matrix  Dumps the unresolved Hessian matrix to a binary file and exits\n"
   "\n"
   "Description:\n"
   "The Reversi Generalized Linear Model solver is the main entry to a set of utilities dedicated to process a set of solved and classified game position retrieved from a binary imput file.\n"
@@ -238,6 +243,10 @@ main (int argc,
       R_flag = true;
       R_arg = options.optarg;
       break;
+    case 'H':
+      H_flag = true;
+      H_arg = options.optarg;
+      break;
     case ':':
       fprintf(stderr, "Option parsing failed: %s\n", options.errmsg);
       return -1;
@@ -263,6 +272,14 @@ main (int argc,
   if (!i_arg) {
     fprintf(stderr, "Option -i, --input-file is mandatory.\n");
     return -3;
+  }
+
+  /* Checks command line options for consistency: H flag is exclusive. */
+  if (H_arg) {
+    if (o_flag || b_flag || A_flag || B_flag || P_flag || Q_flag || T_flag || W_flag || R_flag || s_flag ) {
+      fprintf(stderr, "Option -H, --dump-hessian-matrix is not compatible with other selected flags.\n");
+      return -4;
+    }
   }
 
   /* Checks size of types. */
@@ -494,7 +511,7 @@ main (int argc,
    *
    */
 
-  if (s_flag) {
+  if (s_flag || H_flag) {
 
     /* Max number of iterations allowed to the Newton algorithm. */
     size_t max_newton_iter;
@@ -562,7 +579,8 @@ main (int argc,
     effe_last *= 0.5;
 
     /* lambda: scalar parameter used by the Levemberg-Marquardt algorith. */
-    lambda = 0.0001;
+    //lambda = 0.0001;
+    lambda   = 0.001;
 
     /* Termination criteria. */
     epsilon_on_delta_effe       = 1.0e-9;
@@ -631,6 +649,21 @@ main (int argc,
         printf("\n");
       }
 
+      /* Dumps the modified Hessian matrix and terminates if flag H is on. */
+      if (H_arg) {
+        /* Copies the upper triangle into the lower one. */
+        for (size_t i = 1; i < enne; i++) {
+          for (size_t j = 0; j < i; j++) {
+            big_b[i][j] = big_b[j][i];
+          }
+        }
+        int h_ret_code;
+        lial_dump_matrix(big_b, enne, enne, H_arg, &h_ret_code);
+        if (h_ret_code != 0) abort();
+        if (verbose) fprintf(stdout, "Hessian matrix dumped to binary file: \"%s\".\n", H_arg);
+        goto end_of_optimization_loop;
+      }
+
       /* Starts the stop-watch. */
       clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
 
@@ -649,7 +682,7 @@ main (int argc,
       }
 
       /* The saved matrix has also the computed solution. */
-#define CHO true
+#define CHO false
 
 #if CHO
       printf("CHO - C pre-processor macro CHO is defined true: preparing the binary holding the matrix to submit to the cholesky factorization.\n");
@@ -709,6 +742,9 @@ main (int argc,
            ) break;
 
     }
+
+  end_of_optimization_loop:
+    ;
 
     /* Copies the optimized weighs into the general data structure. */
     for (size_t i = 0; i < enne; i++) data.pattern_freq_summary.records[i].weight = w[i];

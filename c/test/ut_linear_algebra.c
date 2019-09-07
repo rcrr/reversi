@@ -226,6 +226,190 @@ aux_create_random_sdf_matrix_b (ut_test_t *const t,
   prng_mt19937_free(r);
 }
 
+static void
+aux_perf_sdf_lapack_t (ut_test_t *const t,
+                       const char test_data_file_name[])
+{
+  bool const debug = false;
+
+  size_t n, nr, nc;
+
+  timespec_t start_time, end_time, cpu_time, time_0, time_1;
+  int ret;
+
+  double **a;
+  double **z;
+  double **c;
+
+  double max_delta, normalized_max_row_delta_modulus, mean, standard_deviation;
+
+  double d2, cdm;
+  size_t max_delta_i, max_delta_j, normalized_max_row_delta_modulus_i;
+
+  a = lial_retrieve_matrix (test_data_file_name, &nr, &nc, &ret);
+  if (ret != 0 || !a || (nr != nc)) {
+    printf("\nUnable to read properly matrix a from file: %s\n", test_data_file_name);
+    ut_assert(t, false);
+  } else {
+    n = nr;
+  }
+  if (debug) {
+    for (size_t i = 0; i < n; i++)
+      for (size_t j = 0; j < n; j++)
+        printf("a[%zu][%zu] = %21.15f\n", i, j, a[i][j]);
+  }
+  if (false) { // da eliminare ....
+    for (size_t i = 0; i < n; i++)
+      for (size_t j = 0; j < n; j++)
+        a[i][j] = (i == j) ? 1.0 : 0.0;
+  }
+
+  z = lial_allocate_square_matrix(n);
+  if (!z) {
+    printf("\nUnable to allocate memory for matrix z\n");
+    lial_free_matrix(a, n);
+    ut_assert(t, false);
+  }
+  for (size_t i = 0; i < n; i++)
+    for (size_t j = 0; j < n; j++)
+      z[i][j] = (i == j) ? 1.0 : 0.0;
+
+  c = lial_clone_matrix(a, n, n);
+  if (!c) {
+    printf("\nUnable to allocate memory for matrix c\n");
+    lial_free_matrix(z, n);
+    lial_free_matrix(a, n);
+    ut_assert(t, false);
+  }
+
+  /* Sets the test start time. */
+  clock_gettime(CLOCK_REALTIME, &start_time);
+  (void) start_time;
+
+  /* Starts the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+  lial_chol_fact_lapack(a, n, &ret);
+  ut_assert(t, ret == 0);
+
+  /* Stops the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+  /* Sets the test end time. */
+  clock_gettime(CLOCK_REALTIME, &end_time);
+  (void) end_time;
+
+  /* Computes the time taken, and updates the test cpu_time. */
+  ret = timespec_diff(&cpu_time, &time_0, &time_1);
+  (void) ret; assert(ret == 0);
+
+  if (ut_run_time_is_verbose(t)) {
+    fprintf(stdout, "  Factorizing SDF matrix of size %8zu:                    [%6lld.%9ld]\n", n, (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+  }
+
+  /* Sets the test start time. */
+  clock_gettime(CLOCK_REALTIME, &start_time);
+  (void) start_time;
+
+  /* Starts the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+  /* Computes inverse matrix z. */
+  for (size_t i = 0; i < n; i++) {
+    lial_chol_solv_lapack(a, n, z[i], &ret);
+    ut_assert(t, ret == 0);
+  }
+
+  /* Stops the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+  /* Sets the test end time. */
+  clock_gettime(CLOCK_REALTIME, &end_time);
+  (void) end_time;
+
+  /* Computes the time taken, and updates the test cpu_time. */
+  ret = timespec_diff(&cpu_time, &time_0, &time_1);
+  (void) ret; assert(ret == 0);
+
+  if (ut_run_time_is_verbose(t)) {
+    fprintf(stdout, "  Computing the inverse matrix:                               [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+  }
+
+  /* Sets the test start time. */
+  clock_gettime(CLOCK_REALTIME, &start_time);
+  (void) start_time;
+
+  /* Starts the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+  /* Multiplies the original random SDF matrix and its inverse. */
+  for (size_t i = 0; i < n; i++) {
+    for (size_t j = 0; j < n; j++) {
+      a[i][j] = 0.0;
+      for (size_t k = 0; k < n; k++) {
+        //a[i][j] += c[i][k] * z[k][j];
+        a[i][j] += z[i][k] * c[j][k];
+      }
+    }
+  }
+
+  /* Stops the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+  /* Sets the test end time. */
+  clock_gettime(CLOCK_REALTIME, &end_time);
+  (void) end_time;
+
+  /* Computes the time taken, and updates the test cpu_time. */
+  ret = timespec_diff(&cpu_time, &time_0, &time_1);
+  (void) ret; assert(ret == 0);
+
+  if (ut_run_time_is_verbose(t)) {
+    fprintf(stdout, "  Multiplying the original random SDF matrix and its inverse: [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+  }
+
+  /*
+   * The standard deviation of the population of elements of the matrix ((A * inv(A)) - I) is computed assuming that the mean is zero.
+   *
+   */
+  max_delta = 0.0;
+  max_delta_i = 0;
+  max_delta_j = 0;
+  normalized_max_row_delta_modulus = 0.0;
+  normalized_max_row_delta_modulus_i = 0;
+  mean = 0.0;
+  standard_deviation = 0.0;
+  for (size_t i = 0; i < n; i++) {
+    cdm = 0.0;
+    a[i][i] -= 1.0;
+    for (size_t j = 0; j < n; j++) {
+      mean += a[i][j];
+      d2 = a[i][j] * a[i][j];
+      if (d2 > max_delta) { max_delta = d2; max_delta_i = i; max_delta_j = j; }
+      cdm += d2;
+    }
+    standard_deviation += cdm;
+    if (cdm > normalized_max_row_delta_modulus) { normalized_max_row_delta_modulus = cdm; normalized_max_row_delta_modulus_i = i; }
+  }
+  mean = mean / ((double) n * (double) n);
+  standard_deviation = sqrt(standard_deviation / ((double) n * (double) n));
+  normalized_max_row_delta_modulus = sqrt(normalized_max_row_delta_modulus / (double) n) ;
+  max_delta = sqrt(max_delta);
+
+  if (ut_run_time_is_verbose(t)) {
+    fprintf(stdout, "  Error matrix (deviations from the identity matrix) KPI:\n");
+    fprintf(stdout, "    mean                             = %28.18f\n", mean);
+    fprintf(stdout, "    standard_deviation               = %28.18f\n", standard_deviation);
+    fprintf(stdout, "    normalized_max_row_delta_modulus = %28.18f, row #%6zu\n", normalized_max_row_delta_modulus, normalized_max_row_delta_modulus_i);
+    fprintf(stdout, "    max_delta                        = %28.18f, i #%6zu, j #%6zu\n", max_delta, max_delta_i, max_delta_j);
+  }
+
+  lial_free_matrix(c, n);
+  lial_free_matrix(z, n);
+  lial_free_matrix(a, n);
+}
+
+
 /*
  * Test functions.
  */
@@ -2031,7 +2215,7 @@ lial_perf_sdf_lu_naive_1000_t (ut_test_t *const t)
 }
 
 static void
-lial_perf_sdf_lapack_naive_1000_t (ut_test_t *const t)
+lial_perf_sdf_lapack_1000_t (ut_test_t *const t)
 {
   size_t const n = 1000;
   bool const debug = false;
@@ -2200,6 +2384,413 @@ lial_perf_sdf_lapack_naive_1000_t (ut_test_t *const t)
   lial_free_matrix(a, n);
 }
 
+static void
+lial_perf_sdf_chol_naive_edge_000_t (ut_test_t *const t)
+{
+  bool const debug = false;
+  const char test_data_file_name[] = "./test/data/ut_linear_algebra/large_binary.sdf_edge_000.dat";
+
+  size_t n, nr, nc;
+
+  timespec_t start_time, end_time, cpu_time, time_0, time_1;
+  int ret;
+
+  double **a;
+  double **z;
+  double **c;
+  double *p;
+
+  double max_delta, normalized_max_row_delta_modulus, mean, standard_deviation;
+
+  double d2, cdm;
+  size_t max_delta_i, max_delta_j, normalized_max_row_delta_modulus_i;
+
+  a = lial_retrieve_matrix (test_data_file_name, &nr, &nc, &ret);
+  if (ret != 0 || !a || (nr != nc)) {
+    printf("\nUnable to read properly matrix a from file: %s\n", test_data_file_name);
+    ut_assert(t, false);
+  } else {
+    n = nr;
+  }
+  if (debug) {
+    for (size_t i = 0; i < n; i++)
+      for (size_t j = 0; j < n; j++)
+        printf("a[%zu][%zu] = %21.15f\n", i, j, a[i][j]);
+  }
+
+  p = lial_allocate_vector(n);
+  if (!p) {
+    printf("\nUnable to allocate memory for vector p\n");
+    lial_free_matrix(a, n);
+    ut_assert(t, false);
+  }
+
+  z = lial_allocate_square_matrix(n);
+  if (!z) {
+    printf("\nUnable to allocate memory for matrix z\n");
+    lial_free_vector(p);
+    lial_free_matrix(a, n);
+    ut_assert(t, false);
+  }
+  for (size_t i = 0; i < n; i++)
+    for (size_t j = 0; j < n; j++)
+      z[i][j] = (i == j) ? 1.0 : 0.0;
+
+  c = lial_clone_matrix(a, n, n);
+  if (!c) {
+    printf("\nUnable to allocate memory for matrix c\n");
+    lial_free_matrix(z, n);
+    lial_free_vector(p);
+    lial_free_matrix(a, n);
+    ut_assert(t, false);
+  }
+
+  /* Sets the test start time. */
+  clock_gettime(CLOCK_REALTIME, &start_time);
+  (void) start_time;
+
+  /* Starts the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+  lial_chol_fact_naive(a, n, p);
+
+  /* Stops the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+  /* Sets the test end time. */
+  clock_gettime(CLOCK_REALTIME, &end_time);
+  (void) end_time;
+
+  /* Computes the time taken, and updates the test cpu_time. */
+  ret = timespec_diff(&cpu_time, &time_0, &time_1);
+  (void) ret; assert(ret == 0);
+
+  if (ut_run_time_is_verbose(t)) {
+    fprintf(stdout, "  Factorizing SDF matrix of size %8zu:                    [%6lld.%9ld]\n", n, (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+  }
+
+  /* Sets the test start time. */
+  clock_gettime(CLOCK_REALTIME, &start_time);
+  (void) start_time;
+
+  /* Starts the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+  /* Computes inverse matrix z. */
+  for (size_t i = 0; i < n; i++) {
+    lial_chol_solv_naive(a, n, p, z[i], z[i]);
+  }
+
+  /* Stops the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+  /* Sets the test end time. */
+  clock_gettime(CLOCK_REALTIME, &end_time);
+  (void) end_time;
+
+  /* Computes the time taken, and updates the test cpu_time. */
+  ret = timespec_diff(&cpu_time, &time_0, &time_1);
+  (void) ret; assert(ret == 0);
+
+  if (ut_run_time_is_verbose(t)) {
+    fprintf(stdout, "  Computing the inverse matrix:                               [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+  }
+
+  /* Sets the test start time. */
+  clock_gettime(CLOCK_REALTIME, &start_time);
+  (void) start_time;
+
+  /* Starts the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+  /* Multiplies the original random SDF matrix and its inverse. */
+  for (size_t i = 0; i < n; i++) {
+    for (size_t j = 0; j < n; j++) {
+      a[i][j] = 0.0;
+      for (size_t k = 0; k < n; k++) {
+        //a[i][j] += c[i][k] * z[k][j];
+        a[i][j] += z[i][k] * c[j][k];
+      }
+    }
+  }
+
+  /* Stops the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+  /* Sets the test end time. */
+  clock_gettime(CLOCK_REALTIME, &end_time);
+  (void) end_time;
+
+  /* Computes the time taken, and updates the test cpu_time. */
+  ret = timespec_diff(&cpu_time, &time_0, &time_1);
+  (void) ret; assert(ret == 0);
+
+  if (ut_run_time_is_verbose(t)) {
+    fprintf(stdout, "  Multiplying the original random SDF matrix and its inverse: [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+  }
+
+  /*
+   * The standard deviation of the population of elements of the matrix ((A * inv(A)) - I) is computed assuming that the mean is zero.
+   *
+   */
+  max_delta = 0.0;
+  max_delta_i = 0;
+  max_delta_j = 0;
+  normalized_max_row_delta_modulus = 0.0;
+  normalized_max_row_delta_modulus_i = 0;
+  mean = 0.0;
+  standard_deviation = 0.0;
+  for (size_t i = 0; i < n; i++) {
+    cdm = 0.0;
+    a[i][i] -= 1.0;
+    for (size_t j = 0; j < n; j++) {
+      mean += a[i][j];
+      d2 = a[i][j] * a[i][j];
+      if (d2 > max_delta) { max_delta = d2; max_delta_i = i; max_delta_j = j; }
+      cdm += d2;
+    }
+    standard_deviation += cdm;
+    if (cdm > normalized_max_row_delta_modulus) { normalized_max_row_delta_modulus = cdm; normalized_max_row_delta_modulus_i = i; }
+  }
+  mean = mean / ((double) n * (double) n);
+  standard_deviation = sqrt(standard_deviation / ((double) n * (double) n));
+  normalized_max_row_delta_modulus = sqrt(normalized_max_row_delta_modulus / (double) n) ;
+  max_delta = sqrt(max_delta);
+
+  if (ut_run_time_is_verbose(t)) {
+    fprintf(stdout, "  Error matrix (deviations from the identity matrix) KPI:\n");
+    fprintf(stdout, "    mean                             = %28.18f\n", mean);
+    fprintf(stdout, "    standard_deviation               = %28.18f\n", standard_deviation);
+    fprintf(stdout, "    normalized_max_row_delta_modulus = %28.18f, row #%6zu\n", normalized_max_row_delta_modulus, normalized_max_row_delta_modulus_i);
+    fprintf(stdout, "    max_delta                        = %28.18f, i #%6zu, j #%6zu\n", max_delta, max_delta_i, max_delta_j);
+  }
+
+  lial_free_matrix(c, n);
+  lial_free_matrix(z, n);
+  lial_free_vector(p);
+  lial_free_matrix(a, n);
+}
+
+static void
+lial_perf_sdf_lu_naive_edge_000_t (ut_test_t *const t)
+{
+  bool const debug = false;
+  const char test_data_file_name[] = "./test/data/ut_linear_algebra/large_binary.sdf_edge_000.dat";
+
+  size_t n, nr, nc;
+
+  timespec_t start_time, end_time, cpu_time, time_0, time_1;
+  int ret;
+
+  double **a;
+  double **z;
+  double **c;
+  double *scale;
+  size_t *indx;
+
+  double max_delta, normalized_max_row_delta_modulus, mean, standard_deviation;
+
+  double d2, cdm;
+  size_t max_delta_i, max_delta_j, normalized_max_row_delta_modulus_i;
+
+  a = lial_retrieve_matrix (test_data_file_name, &nr, &nc, &ret);
+  if (ret != 0 || !a || (nr != nc)) {
+    printf("\nUnable to read properly matrix a from file: %s\n", test_data_file_name);
+    ut_assert(t, false);
+  } else {
+    n = nr;
+  }
+  if (debug) {
+    for (size_t i = 0; i < n; i++)
+      for (size_t j = 0; j < n; j++)
+        printf("a[%zu][%zu] = %21.15f\n", i, j, a[i][j]);
+  }
+
+  scale = lial_allocate_vector(n);
+  if (!scale) {
+    printf("\nUnable to allocate memory for vector scale\n");
+    lial_free_matrix(a, n);
+    ut_assert(t, false);
+  }
+
+  indx = (size_t *) malloc(sizeof(size_t) * n);
+  if (!indx) {
+    printf("\nUnable to allocate memory for vector scale\n");
+    lial_free_vector(scale);
+    lial_free_matrix(a, n);
+    ut_assert(t, false);
+  }
+
+  z = lial_allocate_square_matrix(n);
+  if (!z) {
+    printf("\nUnable to allocate memory for matrix z\n");
+    lial_free_vector(scale);
+    free(indx);
+    lial_free_matrix(a, n);
+    ut_assert(t, false);
+  }
+  for (size_t i = 0; i < n; i++)
+    for (size_t j = 0; j < n; j++)
+      z[i][j] = (i == j) ? 1.0 : 0.0;
+
+  c = lial_clone_matrix(a, n, n);
+  if (!c) {
+    printf("\nUnable to allocate memory for matrix c\n");
+    lial_free_matrix(z, n);
+    lial_free_vector(scale);
+    free(indx);
+    lial_free_matrix(a, n);
+    ut_assert(t, false);
+  }
+
+  /* Sets the test start time. */
+  clock_gettime(CLOCK_REALTIME, &start_time);
+  (void) start_time;
+
+  /* Starts the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+  ret = lial_lu_decom_naive(a, n, indx, scale);
+  ut_assert(t, ret == 1);
+
+  /* Stops the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+  /* Sets the test end time. */
+  clock_gettime(CLOCK_REALTIME, &end_time);
+  (void) end_time;
+
+  /* Computes the time taken, and updates the test cpu_time. */
+  ret = timespec_diff(&cpu_time, &time_0, &time_1);
+  (void) ret; assert(ret == 0);
+
+  if (ut_run_time_is_verbose(t)) {
+    fprintf(stdout, "  Factorizing SDF matrix of size %8zu:                    [%6lld.%9ld]\n", n, (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+  }
+
+  /* Sets the test start time. */
+  clock_gettime(CLOCK_REALTIME, &start_time);
+  (void) start_time;
+
+  /* Starts the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+  /* Computes inverse matrix z. */
+  for (size_t i = 0; i < n; i++) {
+    lial_lu_bsubst_naive(a, n, indx, scale, z[i]);
+  }
+
+  /* Stops the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+  /* Sets the test end time. */
+  clock_gettime(CLOCK_REALTIME, &end_time);
+  (void) end_time;
+
+  /* Computes the time taken, and updates the test cpu_time. */
+  ret = timespec_diff(&cpu_time, &time_0, &time_1);
+  (void) ret; assert(ret == 0);
+
+  if (ut_run_time_is_verbose(t)) {
+    fprintf(stdout, "  Computing the inverse matrix:                               [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+  }
+
+  /* Sets the test start time. */
+  clock_gettime(CLOCK_REALTIME, &start_time);
+  (void) start_time;
+
+  /* Starts the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+  /* Multiplies the original random SDF matrix and its inverse. */
+  for (size_t i = 0; i < n; i++) {
+    for (size_t j = 0; j < n; j++) {
+      a[i][j] = 0.0;
+      for (size_t k = 0; k < n; k++) {
+        //a[i][j] += c[i][k] * z[k][j];
+        a[i][j] += z[i][k] * c[j][k];
+      }
+    }
+  }
+
+  /* Stops the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+  /* Sets the test end time. */
+  clock_gettime(CLOCK_REALTIME, &end_time);
+  (void) end_time;
+
+  /* Computes the time taken, and updates the test cpu_time. */
+  ret = timespec_diff(&cpu_time, &time_0, &time_1);
+  (void) ret; assert(ret == 0);
+
+  if (ut_run_time_is_verbose(t)) {
+    fprintf(stdout, "  Multiplying the original random SDF matrix and its inverse: [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+  }
+
+  /*
+   * The standard deviation of the population of elements of the matrix ((A * inv(A)) - I) is computed assuming that the mean is zero.
+   *
+   */
+  max_delta = 0.0;
+  max_delta_i = 0;
+  max_delta_j = 0;
+  normalized_max_row_delta_modulus = 0.0;
+  normalized_max_row_delta_modulus_i = 0;
+  mean = 0.0;
+  standard_deviation = 0.0;
+  for (size_t i = 0; i < n; i++) {
+    cdm = 0.0;
+    a[i][i] -= 1.0;
+    for (size_t j = 0; j < n; j++) {
+      mean += a[i][j];
+      d2 = a[i][j] * a[i][j];
+      if (d2 > max_delta) { max_delta = d2; max_delta_i = i; max_delta_j = j; }
+      cdm += d2;
+    }
+    standard_deviation += cdm;
+    if (cdm > normalized_max_row_delta_modulus) { normalized_max_row_delta_modulus = cdm; normalized_max_row_delta_modulus_i = i; }
+  }
+  mean = mean / ((double) n * (double) n);
+  standard_deviation = sqrt(standard_deviation / ((double) n * (double) n));
+  normalized_max_row_delta_modulus = sqrt(normalized_max_row_delta_modulus / (double) n) ;
+  max_delta = sqrt(max_delta);
+
+  if (ut_run_time_is_verbose(t)) {
+    fprintf(stdout, "  Error matrix (deviations from the identity matrix) KPI:\n");
+    fprintf(stdout, "    mean                             = %28.18f\n", mean);
+    fprintf(stdout, "    standard_deviation               = %28.18f\n", standard_deviation);
+    fprintf(stdout, "    normalized_max_row_delta_modulus = %28.18f, row #%6zu\n", normalized_max_row_delta_modulus, normalized_max_row_delta_modulus_i);
+    fprintf(stdout, "    max_delta                        = %28.18f, i #%6zu, j #%6zu\n", max_delta, max_delta_i, max_delta_j);
+  }
+
+  lial_free_matrix(c, n);
+  lial_free_matrix(z, n);
+  lial_free_vector(scale);
+  free(indx);
+  lial_free_matrix(a, n);
+}
+
+static void
+lial_perf_sdf_lapack_edge_000_t (ut_test_t *const t)
+{
+  aux_perf_sdf_lapack_t(t, "./test/data/ut_linear_algebra/large_binary.sdf_edge_000.dat");
+}
+
+static void
+lial_perf_sdf_lapack_corner_000_t (ut_test_t *const t)
+{
+  aux_perf_sdf_lapack_t(t, "./test/data/ut_linear_algebra/large_binary.sdf_corner_000.dat");
+}
+
+static void
+lial_perf_sdf_lapack_xedge_000_t (ut_test_t *const t)
+{
+  aux_perf_sdf_lapack_t(t, "./test/data/ut_linear_algebra/large_binary.sdf_xedge_000.dat");
+}
+
+
+
 /**
  * @brief Runs the test suite.
  */
@@ -2248,7 +2839,13 @@ main (int argc,
 
   ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_10,   "lial_perf_sdf_chol_naive_1000", lial_perf_sdf_chol_naive_1000_t);
   ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_10,   "lial_perf_sdf_lu_naive_1000", lial_perf_sdf_lu_naive_1000_t);
-  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_10,   "lial_perf_sdf_lapack_naive_1000", lial_perf_sdf_lapack_naive_1000_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_10,   "lial_perf_sdf_lapack_1000", lial_perf_sdf_lapack_1000_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_1000, "lial_perf_sdf_chol_naive_edge_000", lial_perf_sdf_chol_naive_edge_000_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_100,  "lial_perf_sdf_lu_naive_edge_000", lial_perf_sdf_lu_naive_edge_000_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_100,  "lial_perf_sdf_lapack_edge_000", lial_perf_sdf_lapack_edge_000_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_1000, "lial_perf_sdf_lapack_corner_000", lial_perf_sdf_lapack_corner_000_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_1000, "lial_perf_sdf_lapack_xedge_000", lial_perf_sdf_lapack_xedge_000_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);

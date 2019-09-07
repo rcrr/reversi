@@ -48,3 +48,4 @@ out_*
 regab_*.csv
 regab_*.ods
 tmp.sh
+large_binary.*

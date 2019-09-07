@@ -1,0 +1,299 @@
+
+  sdf_README
+
+  Copyright (c) 2019 Roberto Corradini. All rights reserved.
+
+  This file is part of the reversi program
+  http://github.com/rcrr/reversi
+
+  This program is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by the
+  Free Software Foundation; either version 3, or (at your option) any
+  later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+  or visit the site <http://www.gnu.org/licenses/>.
+
+This file describes the procedure to generate the test data contained into the sdf_... files.
+
+--- INDEX ---
+FILE #0 - Matrix size  3002 - large_binary.sdf_edge_000.dat   - file size:   72096048
+FILE #1 - Matrix size  5156 - large_binary.sdf_corner_000.dat - file size:  212674704
+FILE #1 - Matrix size 24046 - large_binary.sdf_xedge_000.dat  - file size: 4625680944
+
+
+
+--- DETAILS ---
+
+FILE #0 - Matrix size 3002
+large_binary.sdf_edge_000.dat
+
+$ ./build/bin/regab -v --action extract --config-file cfg/regab.cfg --env test --batch-id 3 --position-status CMS,CMR --empty-count 20 --pattern EDGE --out-file tmp/regab_extract_bid_03_ec_20_p_EDGE.dat
+Output file "tmp/regab_extract_bid_03_ec_20_p_EDGE.dat" has been overwritten.
+
+-----------------------------------------------------------
+--- Last entries from the regab database connection log ---
+-----------------------------------------------------------
+seq                           con_time                      
+1627                          2019-08-23 13:59:13.300473    
+1628                          2019-09-01 10:26:03.530477    
+1629                          2019-09-01 10:47:54.834436    
+-----------------------------------------------------------
+
+Current time is Sun Sep  1 10:47:54 2019
+_____________________________________
+
+Searched batch_ids: 3
+Batch ids found matching the query
+_____________________________________
+      |          |        |          
+ ---- | batch_id | status |   ngames 
+______|__________|________|__________
+ 0000 |        3 |   CMP  |  1000000
+
+____________________________________________________
+
+Searched patterns: 0
+Patterns found matching the query
+____________________________________________________
+      |            |        |            |          
+ ---- | pattern_id |  name  | ninstances | nsquares 
+______|____________|________|____________|__________
+ 0000 |          0 | EDGE   |          4 |        8
+
+Searched position statuses: CMR, CMS
+
+Binary output file "tmp/regab_extract_bid_03_ec_20_p_EDGE.dat" opened succesfully.
+Header data written succesfully to binary output file "tmp/regab_extract_bid_03_ec_20_p_EDGE.dat".
+Procedure regab_action_extract_count_positions() executed succesfully.
+
+   ----------------------------
+      Position Summary Table   
+   ----------------------------
+________________________________________________________
+      |          |        |            |                
+ ---- | batch_id | status |   gp_cnt   | classified_cnt 
+______|__________|________|____________|________________
+ 0000 |        3 |   CMR  |     999590 |         999590
+ 0001 |        3 |   CMS  |     999589 |         999589
+
+Position summary table written succesfully to binary output file "tmp/regab_extract_bid_03_ec_20_p_EDGE.dat".
+Pattern Frequency Summary Table has 3002 records (it is also the number of the variables of the GLM).
+Procedure regab_action_extract_count_pattern_freqs() executed succesfully.
+Pattern frequency summary table written succesfully to binary output file "tmp/regab_extract_bid_03_ec_20_p_EDGE.dat".
+Procedure do_action_extract_game_pos_prepare_cursor() executed succesfully.
+Game Position Records written succesfully. Total record count is 1999179.
+Database transaction and output file "tmp/regab_extract_bid_03_ec_20_p_EDGE.dat" have been closed.
+Computed SHA3-256 digest, written to file.
+
+$ ./build/bin/rglm -v -i tmp/regab_extract_bid_03_ec_20_p_EDGE.dat -H tmp/regab_extract_rglm_hessian__bid_03_ec_20_p_EDGE.dat
+Input file started to be written on (UTC) Sun Sep  1 08:47:54 2019
+Selected batch_id values: 3
+Selected empty_count value: 20
+Selected position_statuses values: CMS, CMR
+Selected pattern values: EDGE
+Position Summary Table: number of tuples = 2; game position count = 1999179
+Pattern Frequency Summary Table: number of tuples = 3002
+  Pattern id:  0 [  EDGE], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+Reverse map has been computed.
+All solved and classified game positions has been read succesfully.
+Pattern index values have been translated to principal ones.
+Pattern principal index values have been translated to global GLM variable id.
+Dumping factor for the diagonal of the Hessian matrix (Levemberg-Marquardt): lambda = 0.000100
+Max number of Newton algorithm iterations = 10
+Termination criteria:
+   Epsilon on delta effe         : 1.000000e-09
+   Epsilon on modulus of delta w : 1.000000e-09
+   Epsilon on modulus of gradient: 1.000000e-09
+Iteration[000]:
+   Gradient modulus =        8591.017769880443665897; abs min = [    0.000000000000000402,    1929]; abs max = [ 2906.534531250017153070,     649]
+   Residual modulus =         286.280944256762381883; abs min = [    0.000000000000000000,      64]; abs max = [    0.489999999999999991,    2409]
+   Function, Gradient, Hessian, and Residual evaluation CPU time: [     0.160462497] 
+Hessian matrix dumped to binary file: "tmp/regab_extract_rglm_hessian__bid_03_ec_20_p_EDGE.dat".
+
+$ cp tmp/regab_extract_rglm_hessian__bid_03_ec_20_p_EDGE.dat test/data/ut_linear_algebra/large_binary.sdf_edge_000.dat
+
+
+FILE #1 - Matrix size 5156
+large_binary.sdf_corner_000.dat
+
+$ ./build/bin/regab -v --action extract --config-file cfg/regab.cfg --env test --batch-id 3 --position-status CMS,CMR --empty-count 20 --pattern CORNER --out-file tmp/regab_extract_bid_03_ec_20_p_CORNER.dat
+Output file "tmp/regab_extract_bid_03_ec_20_p_CORNER.dat" has been overwritten.
+
+-----------------------------------------------------------
+--- Last entries from the regab database connection log ---
+-----------------------------------------------------------
+seq                           con_time                      
+1628                          2019-09-01 10:26:03.530477    
+1629                          2019-09-01 10:47:54.834436    
+1630                          2019-09-01 15:08:05.440124    
+-----------------------------------------------------------
+
+Current time is Sun Sep  1 15:08:05 2019
+_____________________________________
+
+Searched batch_ids: 3
+Batch ids found matching the query
+_____________________________________
+      |          |        |          
+ ---- | batch_id | status |   ngames 
+______|__________|________|__________
+ 0000 |        3 |   CMP  |  1000000
+
+____________________________________________________
+
+Searched patterns: 1
+Patterns found matching the query
+____________________________________________________
+      |            |        |            |          
+ ---- | pattern_id |  name  | ninstances | nsquares 
+______|____________|________|____________|__________
+ 0000 |          1 | CORNER |          4 |        9
+
+Searched position statuses: CMR, CMS
+
+Binary output file "tmp/regab_extract_bid_03_ec_20_p_CORNER.dat" opened succesfully.
+Header data written succesfully to binary output file "tmp/regab_extract_bid_03_ec_20_p_CORNER.dat".
+Procedure regab_action_extract_count_positions() executed succesfully.
+
+   ----------------------------
+      Position Summary Table   
+   ----------------------------
+________________________________________________________
+      |          |        |            |                
+ ---- | batch_id | status |   gp_cnt   | classified_cnt 
+______|__________|________|____________|________________
+ 0000 |        3 |   CMR  |     999590 |         999590
+ 0001 |        3 |   CMS  |     999589 |         999589
+
+Position summary table written succesfully to binary output file "tmp/regab_extract_bid_03_ec_20_p_CORNER.dat".
+Pattern Frequency Summary Table has 5156 records (it is also the number of the variables of the GLM).
+Procedure regab_action_extract_count_pattern_freqs() executed succesfully.
+Pattern frequency summary table written succesfully to binary output file "tmp/regab_extract_bid_03_ec_20_p_CORNER.dat".
+Procedure do_action_extract_game_pos_prepare_cursor() executed succesfully.
+Game Position Records written succesfully. Total record count is 1999179.
+Database transaction and output file "tmp/regab_extract_bid_03_ec_20_p_CORNER.dat" have been closed.
+Computed SHA3-256 digest, written to file.
+
+$ ./build/bin/rglm -v -i tmp/regab_extract_bid_03_ec_20_p_CORNER.dat -H tmp/regab_extract_rglm_hessian__bid_03_ec_20_p_CORNER.dat
+Input file started to be written on (UTC) Sun Sep  1 13:08:05 2019
+Selected batch_id values: 3
+Selected empty_count value: 20
+Selected position_statuses values: CMS, CMR
+Selected pattern values: CORNER
+Position Summary Table: number of tuples = 2; game position count = 1999179
+Pattern Frequency Summary Table: number of tuples = 5156
+  Pattern id:  1 [CORNER], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+Reverse map has been computed.
+All solved and classified game positions has been read succesfully.
+Pattern index values have been translated to principal ones.
+Pattern principal index values have been translated to global GLM variable id.
+Dumping factor for the diagonal of the Hessian matrix (Levemberg-Marquardt): lambda = 0.000100
+Max number of Newton algorithm iterations = 10
+Termination criteria:
+   Epsilon on delta effe         : 1.000000e-09
+   Epsilon on modulus of delta w : 1.000000e-09
+   Epsilon on modulus of gradient: 1.000000e-09
+Iteration[000]:
+   Gradient modulus =        6105.320951450489701529; abs min = [    0.000000000000000000,     201]; abs max = [ 2092.016718749953270162,    5155]
+   Residual modulus =         286.280944256762381883; abs min = [    0.000000000000000000,      64]; abs max = [    0.489999999999999991,    2409]
+   Function, Gradient, Hessian, and Residual evaluation CPU time: [     0.242611447] 
+Hessian matrix dumped to binary file: "tmp/regab_extract_rglm_hessian__bid_03_ec_20_p_CORNER.dat".
+
+$ cp tmp/regab_extract_rglm_hessian__bid_03_ec_20_p_CORNER.dat test/data/ut_linear_algebra/large_binary.sdf_corner_000.dat
+
+
+FILE #2 - Matrix size 24046
+large_binary.sdf_xedge_000.dat
+
+$ ./build/bin/regab -v --action extract --config-file cfg/regab.cfg --env test --batch-id 3 --position-status CMS,CMR --empty-count 20 --pattern XEDGE --out-file tmp/regab_extract_bid_03_ec_20_p_XEDGE.dat
+Output file "tmp/regab_extract_bid_03_ec_20_p_XEDGE.dat" has been overwritten.
+
+-----------------------------------------------------------
+--- Last entries from the regab database connection log ---
+-----------------------------------------------------------
+seq                           con_time                      
+1629                          2019-09-01 10:47:54.834436    
+1630                          2019-09-01 15:08:05.440124    
+1631                          2019-09-01 15:38:03.283234    
+-----------------------------------------------------------
+
+Current time is Sun Sep  1 15:38:03 2019
+_____________________________________
+
+Searched batch_ids: 3
+Batch ids found matching the query
+_____________________________________
+      |          |        |          
+ ---- | batch_id | status |   ngames 
+______|__________|________|__________
+ 0000 |        3 |   CMP  |  1000000
+
+____________________________________________________
+
+Searched patterns: 2
+Patterns found matching the query
+____________________________________________________
+      |            |        |            |          
+ ---- | pattern_id |  name  | ninstances | nsquares 
+______|____________|________|____________|__________
+ 0000 |          2 | XEDGE  |          4 |       10
+
+Searched position statuses: CMR, CMS
+
+Binary output file "tmp/regab_extract_bid_03_ec_20_p_XEDGE.dat" opened succesfully.
+Header data written succesfully to binary output file "tmp/regab_extract_bid_03_ec_20_p_XEDGE.dat".
+Procedure regab_action_extract_count_positions() executed succesfully.
+
+   ----------------------------
+      Position Summary Table   
+   ----------------------------
+________________________________________________________
+      |          |        |            |                
+ ---- | batch_id | status |   gp_cnt   | classified_cnt 
+______|__________|________|____________|________________
+ 0000 |        3 |   CMR  |     999590 |         999590
+ 0001 |        3 |   CMS  |     999589 |         999589
+
+Position summary table written succesfully to binary output file "tmp/regab_extract_bid_03_ec_20_p_XEDGE.dat".
+Pattern Frequency Summary Table has 24046 records (it is also the number of the variables of the GLM).
+Procedure regab_action_extract_count_pattern_freqs() executed succesfully.
+Pattern frequency summary table written succesfully to binary output file "tmp/regab_extract_bid_03_ec_20_p_XEDGE.dat".
+Procedure do_action_extract_game_pos_prepare_cursor() executed succesfully.
+Game Position Records written succesfully. Total record count is 1999179.
+Database transaction and output file "tmp/regab_extract_bid_03_ec_20_p_XEDGE.dat" have been closed.
+Computed SHA3-256 digest, written to file.
+
+$ ./build/bin/rglm -v -i tmp/regab_extract_bid_03_ec_20_p_XEDGE.dat -H tmp/regab_extract_rglm_hessian__bid_03_ec_20_p_XEDGE.dat
+Input file started to be written on (UTC) Sun Sep  1 13:38:03 2019
+Selected batch_id values: 3
+Selected empty_count value: 20
+Selected position_statuses values: CMS, CMR
+Selected pattern values: XEDGE
+Position Summary Table: number of tuples = 2; game position count = 1999179
+Pattern Frequency Summary Table: number of tuples = 24046
+  Pattern id:  2 [ XEDGE], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.9994
+Reverse map has been computed.
+All solved and classified game positions has been read succesfully.
+Pattern index values have been translated to principal ones.
+Pattern principal index values have been translated to global GLM variable id.
+Dumping factor for the diagonal of the Hessian matrix (Levemberg-Marquardt): lambda = 0.000100
+Max number of Newton algorithm iterations = 10
+Termination criteria:
+   Epsilon on delta effe         : 1.000000e-09
+   Epsilon on modulus of delta w : 1.000000e-09
+   Epsilon on modulus of gradient: 1.000000e-09
+Iteration[000]:
+   Gradient modulus =        5128.363275844923919067; abs min = [    0.000000000000000000,     673]; abs max = [ 1176.868984374990532160,    7353]
+   Residual modulus =         286.280944256762381883; abs min = [    0.000000000000000000,      64]; abs max = [    0.489999999999999991,    2409]
+   Function, Gradient, Hessian, and Residual evaluation CPU time: [     1. 93610982] 
+Hessian matrix dumped to binary file: "tmp/regab_extract_rglm_hessian__bid_03_ec_20_p_XEDGE.dat".
+
+$ cp tmp/regab_extract_rglm_hessian__bid_03_ec_20_p_XEDGE.dat test/data/ut_linear_algebra/large_binary.sdf_xedge_000.dat
