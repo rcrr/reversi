@@ -46,10 +46,13 @@ PG_INCLUDE_DIR = `pg_config --includedir`
 PG_LIB_DIR = `pg_config --pkglibdir`
 PG_LIBS = -lpq
 
-BLIS_PREFIX = /usr/local
-BLIS_INC    = $(BLIS_PREFIX)/include/blis
-BLIS_LIB    = $(BLIS_PREFIX)/lib/libblis.a
-FLAME_LIB  := /usr/local/lib/libflame.a
+#BLIS_PREFIX = /usr/local
+BLIS_PREFIX = ../../blis/lib/haswell
+#BLIS_INC    = $(BLIS_PREFIX)/include/blis
+#BLIS_LIB    = $(BLIS_PREFIX)/lib/libblis.a
+BLIS_LIB    = $(BLIS_PREFIX)/libblis.a
+#FLAME_LIB  := /usr/local/lib/libflame.a
+FLAME_LIB  := ../../libflame/lib/x86_64-unknown-linux-gnu/libflame.a
 
 CC = gcc-7
 #CFLAGS = -std=c99 -pedantic -Wall -g -O3 -D_POSIX_SOURCE -ffast-math
@@ -61,7 +64,8 @@ CC = gcc-7
 # add -ftree-vectorize -ftree-vectorizer-verbose=2 to get from gcc the explanation for code vectorization
 #ARCH_FLAGS = -mpopcnt -mavx2 -mabm -march=native
 ARCH_FLAGS = -march=native
-CFLAGS = -std=c11 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(BLIS_INC) -I$(PG_INCLUDE_DIR) -fopenmp -DNDEBUG
+#CFLAGS = -std=c11 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(BLIS_INC) -I$(PG_INCLUDE_DIR) -fopenmp -DNDEBUG
+CFLAGS = -std=c11 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -fopenmp -DNDEBUG
 LDFLAGS = 
 CFLAGS_TEST = -std=c11 -pedantic-errors -Wall -g -O3 -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS)
 LDFLAGS_TEST =

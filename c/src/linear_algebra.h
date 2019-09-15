@@ -36,6 +36,53 @@
 #ifndef LINEAR_ALGEBRA_H
 #define LINEAR_ALGEBRA_H
 
+extern void
+lial_dpotrf (const char *uplo,
+             const int *n,
+             double *a,
+             const int *lda,
+             int *info);
+
+extern void
+lial_dpotrs (const char *uplo,
+             const int *n,
+             const int *nrhs,
+             double *a,
+             const int *lda,
+             double *b,
+             const int *ldb,
+             int *info);
+
+extern void
+lial_dgemm (char *transa,
+            char *transb,
+            int *m,
+            int *n,
+            int *k,
+            double *alpha,
+            double *a,
+            int *lda,
+            double *b,
+            int *ldb,
+            double *beta,
+            double *c,
+            int *ldc);
+
+extern void
+lial_dgemm_rowmajor (double *a,
+                     double *b,
+                     double *c,
+                     int *m,
+                     int *n,
+                     int *k,
+                     double *alpha,
+                     double *beta,
+                     char *transa,
+                     char *transb,
+                     int *lda,
+                     int *ldb,
+                     int *ldc);
+
 /**
  * @brief Computes the magnitude of the `v` vector.
  *
@@ -54,7 +101,7 @@
  * @param [out] abs_max_pos position of the max
  * @return                  the modulus of the vector
  */
-double
+extern double
 lial_vector_magnitude (double *v,
                        size_t n,
                        double *abs_min,
