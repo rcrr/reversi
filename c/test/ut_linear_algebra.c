@@ -36,12 +36,11 @@
 #include <assert.h>
 #include <errno.h>
 #include <string.h>
+#include <math.h>
 
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-
-#include <FLAME.h>
 
 #include "prng.h"
 #include "unit_test.h"
