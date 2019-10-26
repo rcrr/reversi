@@ -316,6 +316,274 @@ dgemm_ (char *transa,
         double *c,
         int *ldc);
 
+/*
+ * Purpose:
+ *
+ *     DSYRK performs one of the symmetric rank k operations
+ *
+ *        C := alpha*A*A**T + beta*C,
+ *
+ *     or
+ *
+ *        C := alpha*A**T*A + beta*C,
+ *
+ *     where alpha and beta are scalars, C is an n by n symmetric matrix
+ *     and A is an n by k matrix in the first case and a k by n matrix
+ *     in the second case.
+ *
+ * Arguments:
+ *
+ *    [in] UPLO
+ *
+ *              UPLO is CHARACTER*1
+ *               On  entry,   UPLO  specifies  whether  the  upper  or  lower
+ *               triangular  part  of the  array  C  is to be  referenced  as
+ *               follows:
+ *
+ *                  UPLO = 'U' or 'u'   Only the  upper triangular part of  C
+ *                                      is to be referenced.
+ *
+ *                  UPLO = 'L' or 'l'   Only the  lower triangular part of  C
+ *                                      is to be referenced.
+ *
+ *
+ *    [in] TRANS
+ *
+ *              TRANS is CHARACTER*1
+ *               On entry,  TRANS  specifies the operation to be performed as
+ *               follows:
+ *
+ *                  TRANS = 'N' or 'n'   C := alpha*A*A**T + beta*C.
+ *
+ *                  TRANS = 'T' or 't'   C := alpha*A**T*A + beta*C.
+ *
+ *                  TRANS = 'C' or 'c'   C := alpha*A**T*A + beta*C.
+ *
+ *
+ *    [in] N
+ *
+ *              N is INTEGER
+ *               On entry,  N specifies the order of the matrix C.  N must be
+ *               at least zero.
+ *
+ *
+ *    [in] K
+ *
+ *              K is INTEGER
+ *               On entry with  TRANS = 'N' or 'n',  K  specifies  the number
+ *               of  columns   of  the   matrix   A,   and  on   entry   with
+ *               TRANS = 'T' or 't' or 'C' or 'c',  K  specifies  the  number
+ *               of rows of the matrix  A.  K must be at least zero.
+ *
+ *
+ *    [in] ALPHA
+ *
+ *              ALPHA is DOUBLE PRECISION.
+ *               On entry, ALPHA specifies the scalar alpha.
+ *
+ *
+ *    [in] A
+ *
+ *              A is DOUBLE PRECISION array, dimension ( LDA, ka ), where ka is
+ *               k  when  TRANS = 'N' or 'n',  and is  n  otherwise.
+ *               Before entry with  TRANS = 'N' or 'n',  the  leading  n by k
+ *               part of the array  A  must contain the matrix  A,  otherwise
+ *               the leading  k by n  part of the array  A  must contain  the
+ *               matrix A.
+ *
+ *
+ *    [in] LDA
+ *
+ *              LDA is INTEGER
+ *               On entry, LDA specifies the first dimension of A as declared
+ *               in  the  calling  (sub)  program.   When  TRANS = 'N' or 'n'
+ *               then  LDA must be at least  max( 1, n ), otherwise  LDA must
+ *               be at least  max( 1, k ).
+ *
+ *
+ *    [in] BETA
+ *
+ *              BETA is DOUBLE PRECISION.
+ *               On entry, BETA specifies the scalar beta.
+ *
+ *
+ *    [in,out] C
+ *
+ *              C is DOUBLE PRECISION array, dimension ( LDC, N )
+ *               Before entry  with  UPLO = 'U' or 'u',  the leading  n by n
+ *               upper triangular part of the array C must contain the upper
+ *               triangular part  of the  symmetric matrix  and the strictly
+ *               lower triangular part of C is not referenced.  On exit, the
+ *               upper triangular part of the array  C is overwritten by the
+ *               upper triangular part of the updated matrix.
+ *               Before entry  with  UPLO = 'L' or 'l',  the leading  n by n
+ *               lower triangular part of the array C must contain the lower
+ *               triangular part  of the  symmetric matrix  and the strictly
+ *               upper triangular part of C is not referenced.  On exit, the
+ *               lower triangular part of the array  C is overwritten by the
+ *               lower triangular part of the updated matrix.
+ *
+ *
+ *    [in] LDC
+ *
+ *              LDC is INTEGER
+ *               On entry, LDC specifies the first dimension of C as declared
+ *               in  the  calling  (sub)  program.   LDC  must  be  at  least
+ *               max( 1, n ).
+ *
+ *
+ */
+extern void
+dsyrk_ (char *uplo,
+        char *trans,
+        int *n,
+        int *k,
+        double *alpha,
+        double *a,
+        int *lda,
+        double *beta,
+        double *c,
+        int *ldc);
+
+/*
+ * Purpose:
+ *
+ *     DTRSM  solves one of the matrix equations
+ *
+ *        op( A )*X = alpha*B,   or   X*op( A ) = alpha*B,
+ *
+ *     where alpha is a scalar, X and B are m by n matrices, A is a unit, or
+ *     non-unit,  upper or lower triangular matrix  and  op( A )  is one  of
+ *
+ *        op( A ) = A   or   op( A ) = A**T.
+ *
+ *     The matrix X is overwritten on B.
+ *
+ * Arguments:
+ *
+ *    [in] SIDE
+ *
+ *              SIDE is CHARACTER*1
+ *               On entry, SIDE specifies whether op( A ) appears on the left
+ *               or right of X as follows:
+ *
+ *                  SIDE = 'L' or 'l'   op( A )*X = alpha*B.
+ *
+ *                  SIDE = 'R' or 'r'   X*op( A ) = alpha*B.
+ *
+ *
+ *    [in] UPLO
+ *
+ *              UPLO is CHARACTER*1
+ *               On entry, UPLO specifies whether the matrix A is an upper or
+ *               lower triangular matrix as follows:
+ *
+ *                  UPLO = 'U' or 'u'   A is an upper triangular matrix.
+ *
+ *                  UPLO = 'L' or 'l'   A is a lower triangular matrix.
+ *
+ *
+ *    [in] TRANSA
+ *
+ *              TRANSA is CHARACTER*1
+ *               On entry, TRANSA specifies the form of op( A ) to be used in
+ *               the matrix multiplication as follows:
+ *
+ *                  TRANSA = 'N' or 'n'   op( A ) = A.
+ *
+ *                  TRANSA = 'T' or 't'   op( A ) = A**T.
+ *
+ *                  TRANSA = 'C' or 'c'   op( A ) = A**T.
+ *
+ *
+ *    [in] DIAG
+ *
+ *              DIAG is CHARACTER*1
+ *               On entry, DIAG specifies whether or not A is unit triangular
+ *               as follows:
+ *
+ *                  DIAG = 'U' or 'u'   A is assumed to be unit triangular.
+ *
+ *                  DIAG = 'N' or 'n'   A is not assumed to be unit
+ *                                      triangular.
+ *
+ *
+ *    [in] M
+ *
+ *              M is INTEGER
+ *               On entry, M specifies the number of rows of B. M must be at
+ *               least zero.
+ *
+ *
+ *    [in] N
+ *
+ *              N is INTEGER
+ *               On entry, N specifies the number of columns of B.  N must be
+ *               at least zero.
+ *
+ *
+ *    [in] ALPHA
+ *
+ *              ALPHA is DOUBLE PRECISION.
+ *               On entry,  ALPHA specifies the scalar  alpha. When  alpha is
+ *               zero then  A is not referenced and  B need not be set before
+ *               entry.
+ *
+ *
+ *    [in] A
+ *
+ *              A is DOUBLE PRECISION array, dimension ( LDA, k ),
+ *               where k is m when SIDE = 'L' or 'l'
+ *               and k is n when SIDE = 'R' or 'r'.
+ *               Before entry  with  UPLO = 'U' or 'u',  the  leading  k by k
+ *               upper triangular part of the array  A must contain the upper
+ *               triangular matrix  and the strictly lower triangular part of
+ *               A is not referenced.
+ *               Before entry  with  UPLO = 'L' or 'l',  the  leading  k by k
+ *               lower triangular part of the array  A must contain the lower
+ *               triangular matrix  and the strictly upper triangular part of
+ *               A is not referenced.
+ *               Note that when  DIAG = 'U' or 'u',  the diagonal elements of
+ *               A  are not referenced either,  but are assumed to be  unity.
+ *
+ *
+ *    [in] LDA
+ *
+ *              LDA is INTEGER
+ *               On entry, LDA specifies the first dimension of A as declared
+ *               in the calling (sub) program.  When  SIDE = 'L' or 'l'  then
+ *               LDA  must be at least  max( 1, m ),  when  SIDE = 'R' or 'r'
+ *               then LDA must be at least max( 1, n ).
+ *
+ *
+ *    [in,out] B
+ *
+ *              B is DOUBLE PRECISION array, dimension ( LDB, N )
+ *               Before entry,  the leading  m by n part of the array  B must
+ *               contain  the  right-hand  side  matrix  B,  and  on exit  is
+ *               overwritten by the solution matrix  X.
+ *
+ *
+ *    [in] LDB
+ *
+ *              LDB is INTEGER
+ *               On entry, LDB specifies the first dimension of B as declared
+ *               in  the  calling  (sub)  program.   LDB  must  be  at  least
+ *               max( 1, m ).
+ */
+extern void
+dtrsm_ (char *side,
+        char *uplo,
+        char *transa,
+        char *diag,
+        int *m,
+        int *n,
+        double *alpha,
+        double *a,
+        int *lda,
+        double *b,
+        int *ldb);
+
 static void
 lial_chol_solv_naive_ident (double **a,
                             size_t n,
@@ -1050,6 +1318,37 @@ lial_dgemm_rowmajor (double *a,
 }
 
 void
+lial_dsyrk (char *uplo,
+            char *trans,
+            int *n,
+            int *k,
+            double *alpha,
+            double *a,
+            int *lda,
+            double *beta,
+            double *c,
+            int *ldc)
+{
+  dsyrk_(uplo, trans, n, k, alpha, a, lda, beta, c, ldc);
+}
+
+void
+lial_dtrsm (char *side,
+            char *uplo,
+            char *transa,
+            char *diag,
+            int *m,
+            int *n,
+            double *alpha,
+            double *a,
+            int *lda,
+            double *b,
+            int *ldb)
+{
+  dtrsm_(side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb);
+}
+
+void
 lial_dpotrf (const char *uplo,
              const int *n,
              double *a,
@@ -1070,6 +1369,123 @@ lial_dpotrs (const char *uplo,
              int *info)
 {
   dpotrs_(uplo, n, nrhs, a, lda, b, ldb, info);
+}
+
+static void
+aux_print_matrix (char *name,
+                  double *a,
+                  int n,
+                  int lda)
+{
+  printf("\n");
+  printf("\n");
+  printf("Matrix %s:\n", name);
+  printf("________________________________________________________________________________________________________\n");
+  printf("\n");
+  for (int i = 0; i < n; i++) {
+    printf(" .%2d. | ", i);
+    for (int j = 0; j < n; j++) {
+      int k = i * lda + j;
+      printf("%6.3f, ", a[k]);
+    }
+    printf("\n");
+  }
+  printf("________________________________________________________________________________________________________\n");
+}
+
+void
+lial_dpotrf_bp (const char *uplo,
+                const int *n,
+                double *a,
+                const int *lda,
+                int *info,
+                const unsigned int block_size,
+                const unsigned int thread_count)
+{
+  /*
+   * BE ADVISED , THERE ARE LIMITATIONS.
+   *
+   * WARNING !!! If n is not a divisible by block_size without a reminder,
+   *             the function does not work.
+   *
+   *             If uplo is not 'L' the function does not work.
+   *
+   *             If lda is different from n , the function does not work.
+   */
+
+  int nx, bsx, nb, nr, ldax;
+
+  int i, j, k, h;
+  double *tile_d, *tile_j, *tile_k, *tile_h;
+
+  char sym_L = 'L';
+  char sym_N = 'N';
+  char sym_R = 'R';
+  char sym_T = 'T';
+
+  double pone = +1.0;
+  double mone = -1.0;
+
+  nx = *n;
+  ldax = *lda;
+  bsx = (block_size > 0) ? block_size : *n;
+
+  nb = nx / bsx;
+  nr = nx % bsx;
+
+  const bool verbose = false;
+  if (verbose) aux_print_matrix("A", a, *n, *lda);
+
+  for (i = 0; i < nb; i++) {
+    tile_d = a + i * bsx * (ldax + 1);
+    lial_dpotrf(&sym_L, &bsx, tile_d, &ldax, info);
+    if (verbose) aux_print_matrix("POTRF", a, *n, *lda);
+
+    for (j = i + 1; j < nb; j++) {
+      tile_j = tile_d + bsx * (j - i);
+      lial_dtrsm(&sym_R, &sym_L, &sym_T, &sym_N, &bsx, &bsx, &pone, tile_d, &ldax, tile_j, &ldax);
+      if (verbose) aux_print_matrix("TRSM", a, *n, *lda);
+    }
+    if (nr) {
+      tile_j = tile_d + bsx * (nb - i);
+      lial_dtrsm(&sym_R, &sym_L, &sym_T, &sym_N, &nr, &bsx, &pone, tile_d, &ldax, tile_j, &ldax);
+      if (verbose) aux_print_matrix("TRSM-R", a, *n, *lda);
+    }
+
+    for (k = i + 1; k < nb; k++) {
+      tile_j = tile_d + bsx * (k - i);
+      tile_k = tile_j + bsx * ldax * (k - i);
+      lial_dsyrk(&sym_L, &sym_N, &bsx, &bsx, &mone, tile_j, &ldax, &pone, tile_k, &ldax);
+      if (verbose) aux_print_matrix("SYRK", a, *n, *lda);
+
+      for (h = k + 1; h < nb; h++) {
+        tile_j = tile_j;
+        tile_k = tile_j + bsx * (h - k);
+        tile_h = tile_k + bsx * ldax * (k - i);
+        lial_dgemm(&sym_N, &sym_T, &bsx, &bsx, &bsx, &mone, tile_k, &ldax, tile_j, &ldax, &pone, tile_h, &ldax);
+        if (verbose) aux_print_matrix("GEMM", a, *n, *lda);
+      }
+      if (nr) {
+        tile_j = tile_j;
+        tile_k = tile_j + bsx * (nb - k);
+        tile_h = tile_k + bsx * ldax * (k - i);
+        lial_dgemm(&sym_N, &sym_T, &nr, &bsx, &bsx, &mone, tile_k, &ldax, tile_j, &ldax, &pone, tile_h, &ldax);
+        if (verbose) aux_print_matrix("GEMM-R", a, *n, *lda);
+      }
+    }
+    if (nr) {
+      tile_j = tile_d + bsx * (nb - i);
+      tile_k = tile_j + bsx * ldax * (nb - i);
+      lial_dsyrk(&sym_L, &sym_N, &nr, &bsx, &mone, tile_j, &ldax, &pone, tile_k, &ldax);
+      if (verbose) aux_print_matrix("SYRK-R", a, *n, *lda);
+    }
+  }
+  if (nr) {
+    tile_d = a + nb * bsx * (ldax + 1);
+    lial_dpotrf(&sym_L, &nr, tile_d, &ldax, info);
+    if (verbose) aux_print_matrix("POTRF-R", a, *n, *lda);
+  }
+
 }
 
 void

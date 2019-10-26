@@ -54,6 +54,15 @@ lial_dpotrs (const char *uplo,
              int *info);
 
 extern void
+lial_dpotrf_bp (const char *uplo,
+                const int *n,
+                double *a,
+                const int *lda,
+                int *info,
+                const unsigned int block_size,
+                const unsigned int thread_count);
+
+extern void
 lial_dgemm (char *transa,
             char *transb,
             int *m,
@@ -82,6 +91,31 @@ lial_dgemm_rowmajor (double *a,
                      int *lda,
                      int *ldb,
                      int *ldc);
+
+extern void
+lial_dsyrk (char *uplo,
+            char *trans,
+            int *n,
+            int *k,
+            double *alpha,
+            double *a,
+            int *lda,
+            double *beta,
+            double *c,
+            int *ldc);
+
+extern void
+lial_dtrsm (char *side,
+            char *uplo,
+            char *transa,
+            char *diag,
+            int *m,
+            int *n,
+            double *alpha,
+            double *a,
+            int *lda,
+            double *b,
+            int *ldb);
 
 /**
  * @brief Computes the magnitude of the `v` vector.
