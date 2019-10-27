@@ -1300,24 +1300,6 @@ lial_dgemm (char *transa,
 }
 
 void
-lial_dgemm_rowmajor (double *a,
-                     double *b,
-                     double *c,
-                     int *m,
-                     int *n,
-                     int *k,
-                     double *alpha,
-                     double *beta,
-                     char *transa,
-                     char *transb,
-                     int *lda,
-                     int *ldb,
-                     int *ldc)
-{
-  dgemm_(transb, transa, n, m, k, alpha, b, ldb, a, lda, beta, c, ldc);
-}
-
-void
 lial_dsyrk (char *uplo,
             char *trans,
             int *n,
@@ -1401,6 +1383,161 @@ lial_dpotrf_bp (const char *uplo,
                 int *info,
                 const unsigned int block_size,
                 const unsigned int thread_count)
+{
+  /*
+   * BE ADVISED , THERE ARE LIMITATIONS.
+   *
+   * WARNING !!! If n is not a divisible by block_size without a reminder,
+   *             the function does not work.
+   *
+   *             If uplo is not 'L' the function does not work.
+   *
+   *             If lda is different from n , the function does not work.
+   */
+
+  int nx, bsx, nb, nr, ldax;
+
+  int i, j, k, h;
+  double *tile_d, *tile_j, *tile_k, *tile_h;
+
+  char sym_L = 'L';
+  char sym_N = 'N';
+  char sym_R = 'R';
+  char sym_T = 'T';
+  char sym_U = 'U';
+
+  double pone = +1.0;
+  double mone = -1.0;
+
+  nx = *n;
+  ldax = *lda;
+  bsx = (block_size > 0) ? block_size : *n;
+
+  nb = nx / bsx;
+  nr = nx % bsx;
+
+  const bool verbose = false;
+  if (verbose) aux_print_matrix("A", a, *n, *lda);
+
+  if (*uplo == 'L') {
+
+    for (i = 0; i < nb; i++) {
+      tile_d = a + i * bsx * (ldax + 1);
+      lial_dpotrf(&sym_L, &bsx, tile_d, &ldax, info);
+      if (verbose) aux_print_matrix("POTRF", a, *n, *lda);
+
+      for (j = i + 1; j < nb; j++) {
+        tile_j = tile_d + bsx * (j - i);
+        lial_dtrsm(&sym_R, &sym_L, &sym_T, &sym_N, &bsx, &bsx, &pone, tile_d, &ldax, tile_j, &ldax);
+        if (verbose) aux_print_matrix("TRSM", a, *n, *lda);
+      }
+      if (nr) {
+        tile_j = tile_d + bsx * (nb - i);
+        lial_dtrsm(&sym_R, &sym_L, &sym_T, &sym_N, &nr, &bsx, &pone, tile_d, &ldax, tile_j, &ldax);
+        if (verbose) aux_print_matrix("TRSM-R", a, *n, *lda);
+      }
+
+      for (k = i + 1; k < nb; k++) {
+        tile_j = tile_d + bsx * (k - i);
+        tile_k = tile_j + bsx * ldax * (k - i);
+        lial_dsyrk(&sym_L, &sym_N, &bsx, &bsx, &mone, tile_j, &ldax, &pone, tile_k, &ldax);
+        if (verbose) aux_print_matrix("SYRK", a, *n, *lda);
+
+        for (h = k + 1; h < nb; h++) {
+          tile_j = tile_j;
+          tile_k = tile_j + bsx * (h - k);
+          tile_h = tile_k + bsx * ldax * (k - i);
+          lial_dgemm(&sym_N, &sym_T, &bsx, &bsx, &bsx, &mone, tile_k, &ldax, tile_j, &ldax, &pone, tile_h, &ldax);
+          if (verbose) aux_print_matrix("GEMM", a, *n, *lda);
+        }
+        if (nr) {
+          tile_j = tile_j;
+          tile_k = tile_j + bsx * (nb - k);
+          tile_h = tile_k + bsx * ldax * (k - i);
+          lial_dgemm(&sym_N, &sym_T, &nr, &bsx, &bsx, &mone, tile_k, &ldax, tile_j, &ldax, &pone, tile_h, &ldax);
+          if (verbose) aux_print_matrix("GEMM-R", a, *n, *lda);
+        }
+      }
+      if (nr) {
+        tile_j = tile_d + bsx * (nb - i);
+        tile_k = tile_j + bsx * ldax * (nb - i);
+        lial_dsyrk(&sym_L, &sym_N, &nr, &bsx, &mone, tile_j, &ldax, &pone, tile_k, &ldax);
+        if (verbose) aux_print_matrix("SYRK-R", a, *n, *lda);
+      }
+    }
+    if (nr) {
+      tile_d = a + nb * bsx * (ldax + 1);
+      lial_dpotrf(&sym_L, &nr, tile_d, &ldax, info);
+      if (verbose) aux_print_matrix("POTRF-R", a, *n, *lda);
+    }
+
+  } else if (*uplo == 'U') {
+
+    for (i = 0; i < nb; i++) {
+      tile_d = a + i * bsx * (ldax + 1);
+      lial_dpotrf(&sym_U, &bsx, tile_d, &ldax, info);
+      if (verbose) aux_print_matrix("POTRF", a, *n, *lda);
+
+      for (j = i + 1; j < nb; j++) {
+        tile_j = tile_d + bsx * ldax * (j - i);
+        lial_dtrsm(&sym_L, &sym_U, &sym_T, &sym_N, &bsx, &bsx, &pone, tile_d, &ldax, tile_j, &ldax);
+        if (verbose) aux_print_matrix("TRSM", a, *n, *lda);
+      }
+      if (nr) {
+        tile_j = tile_d + bsx * ldax * (nb - i);
+        lial_dtrsm(&sym_L, &sym_U, &sym_T, &sym_N, &bsx, &nr, &pone, tile_d, &ldax, tile_j, &ldax);
+        if (verbose) aux_print_matrix("TRSM-R", a, *n, *lda);
+      }
+
+      for (k = i + 1; k < nb; k++) {
+        tile_j = tile_d + bsx * ldax * (k - i);
+        tile_k = tile_j + bsx * (k - i);
+        lial_dsyrk(&sym_U, &sym_T, &bsx, &bsx, &mone, tile_j, &ldax, &pone, tile_k, &ldax);
+        if (verbose) aux_print_matrix("SYRK", a, *n, *lda);
+
+        for (h = k + 1; h < nb; h++) {
+          tile_j = tile_j;
+          tile_k = tile_j + bsx * ldax * (h - k);
+          tile_h = tile_k + bsx * (k - i);
+          lial_dgemm(&sym_T, &sym_N, &bsx, &bsx, &bsx, &mone, tile_j, &ldax, tile_k, &ldax, &pone, tile_h, &ldax);
+          if (verbose) aux_print_matrix("GEMM", a, *n, *lda);
+        }
+        if (nr) {
+          tile_j = tile_j;
+          tile_k = tile_j + bsx * ldax * (nb - k);
+          tile_h = tile_k + bsx * (k - i);
+          lial_dgemm(&sym_T, &sym_N, &bsx, &nr, &bsx, &mone, tile_j, &ldax, tile_k, &ldax, &pone, tile_h, &ldax);
+          if (verbose) aux_print_matrix("GEMM-R", a, *n, *lda);
+        }
+      }
+      if (nr) {
+        tile_j = tile_d + bsx * ldax * (nb - i);
+        tile_k = tile_j + bsx * (nb - i);
+        lial_dsyrk(&sym_U, &sym_T, &nr, &bsx, &mone, tile_j, &ldax, &pone, tile_k, &ldax);
+        if (verbose) aux_print_matrix("SYRK-R", a, *n, *lda);
+      }
+    }
+    if (nr) {
+      tile_d = a + nb * bsx * (ldax + 1);
+      lial_dpotrf(&sym_U, &nr, tile_d, &ldax, info);
+      if (verbose) aux_print_matrix("POTRF-R", a, *n, *lda);
+    }
+
+  } else {
+    // case not valid
+    ;
+  }
+
+}
+
+void
+lial_dpotrf_bp_backup (const char *uplo,
+                       const int *n,
+                       double *a,
+                       const int *lda,
+                       int *info,
+                       const unsigned int block_size,
+                       const unsigned int thread_count)
 {
   /*
    * BE ADVISED , THERE ARE LIMITATIONS.

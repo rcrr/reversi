@@ -342,7 +342,7 @@ aux_perf_sdf_lapack_t (ut_test_t *const t,
   double alpha = 1.0;
   double beta = 0.0;
   char trans = 'N';
-  lial_dgemm_rowmajor(*z, *c, *a, &n0, &n0, &n0, &alpha, &beta, &trans, &trans, &n0, &n0, &n0);
+  lial_dgemm(&trans, &trans, &n0, &n0, &n0, &alpha, *c, &n0, *z, &n0, &beta, *a, &n0);
 
   /* Stops the stop-watch. */
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
@@ -542,7 +542,8 @@ aux_perf_sdf_lapack_blocked_parallel_t (ut_test_t *const t,
   double alpha = 1.0;
   double beta = 0.0;
   char trans = 'N';
-  lial_dgemm_rowmajor(*z, *c, *a, &n0, &n0, &n0, &alpha, &beta, &trans, &trans, &n0, &n0, &n0);
+  lial_dgemm(&trans, &trans, &n0, &n0, &n0, &alpha, *c, &n0, *z, &n0, &beta, *a, &n0);
+
 
   /* Stops the stop-watch. */
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
@@ -3398,7 +3399,7 @@ lial_dgem_3_t (ut_test_t *const t)
   c[2][1] =  0.1;
   c[2][2] =  4.0;
 
-  z[0][0] =  10.6;
+  z[0][0] =  10.60;
   z[0][1] =   0.62;
   z[0][2] =   8.68;
   z[1][0] = -27.56;
@@ -3408,10 +3409,7 @@ lial_dgem_3_t (ut_test_t *const t)
   z[2][1] =   0.12;
   z[2][2] =  -5.92;
 
-  if (false)
-    lial_dgemm(&transb, &transa, &n, &m, &k, &alpha, *b, &ldb, *a, &lda, &beta, *c, &ldc);
-  else
-    lial_dgemm_rowmajor(*a, *b, *c, &m, &n, &k, &alpha, &beta, &transa, &transb, &lda, &ldb, &ldc);
+  lial_dgemm(&transb, &transa, &n, &m, &k, &alpha, *b, &ldb, *a, &lda, &beta, *c, &ldc);
 
   if (debug) {
     printf("\n");
@@ -3680,7 +3678,7 @@ lial_dtrsm_1_t (ut_test_t *const t)
   double pone = +1.0;
   double mone = -1.0;
 
-  const bool verbose = true;
+  const bool verbose = false;
   double epsilon;
 
   int nb;
@@ -3807,7 +3805,6 @@ lial_dtrsm_3_t (ut_test_t *const t)
 {
   static const int n = 16;
   static const int n0 = 14;
-  //static const int bs = 5;
   static const int tc = 1;
   double a[] =
     {
@@ -3868,6 +3865,91 @@ lial_dtrsm_3_t (ut_test_t *const t)
         ut_assert(t, false);
       }
     }
+  }
+}
+
+static void
+lial_dtrsm_4_t (ut_test_t *const t)
+{
+  static const int n = 16;
+  static const int n0 = 14;
+  static const int tc = 1;
+  double a[] =
+    {
+     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+     1.0, 8.0, 0.2, 0.1, 0.0, 0.4, 0.2, 0.1, 0.7, 0.3, 0.5, 0.1, 0.2, 0.1, 0.9, 1.0,
+     1.0, 0.0, 3.0, 0.0, 0.4, 0.3, 0.6, 0.1, 0.9, 0.2, 0.1, 0.5, 0.3, 0.7, 0.0, 1.0,
+     1.0, 0.0, 0.0, 7.0, 0.6, 0.2, 0.5, 0.6, 0.6, 0.3, 0.1, 0.8, 0.0, 0.6, 0.0, 1.0,
+     1.0, 0.0, 0.0, 0.0, 8.0, 0.1, 0.3, 0.7, 0.9, 0.0, 0.0, 0.2, 0.2, 0.1, 0.5, 1.0,
+     1.0, 0.0, 0.0, 0.0, 0.0, 9.0, 0.4, 0.1, 0.1, 0.1, 0.5, 0.7, 0.0, 0.0, 0.1, 1.0,
+     1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.1, 0.9, 0.8, 0.3, 0.2, 0.5, 0.7, 0.2, 1.0,
+     1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.3, 0.0, 0.1, 0.4, 0.0, 1.0,
+     1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.4, 0.7, 0.6, 0.5, 0.6, 0.0, 1.0,
+     1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.9, 0.5, 0.1, 0.6, 0.0, 1.0,
+     1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 9.0, 0.3, 0.0, 0.1, 0.7, 1.0,
+     1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.8, 0.8, 0.1, 1.0,
+     1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 0.2, 0.6, 1.0,
+     1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.6, 1.0,
+     1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0, 1.0,
+     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    };
+
+  ut_assert(t, sizeof(a) / sizeof(double) == n * n);
+  double u[n * n];
+  double b[n * n];
+
+  double epsilon;
+  double tmp, *ij, *ji;
+
+  int bs;
+
+  int ret;
+  //char sym_L = 'L';
+  char sym_U = 'U';
+
+  bool verbose = false;
+
+  epsilon = 1.0E-15;
+  ret = 0;
+
+  // transpose matrix a:
+  for (int i = 0; i < n; i++)
+    for (int j = i + 1; j < n; j++) {
+      ij = a + i * n + j;
+      ji = a + j * n + i;
+      tmp = *ij;
+      *ij = *ji;
+      *ji = tmp;
+    }
+
+  for (bs = 0; bs <= n + 1; bs++) {
+
+    for (int i = 0; i < n * n; i++)
+      u[i] = a[i];
+
+    for (int i = 0; i < n * n; i++)
+      b[i] = a[i];
+
+    if (verbose) aux_print_matrix("A", a, n);
+
+    lial_dpotrf(&sym_U, &n0, &u[n+1], &n, &ret);
+    ut_assert(t, ret == 0);
+
+    if (verbose) aux_print_matrix("U", u, n);
+
+    lial_dpotrf_bp(&sym_U, &n0, &b[n+1], &n, &ret, bs, tc);
+    ut_assert(t, ret == 0);
+
+    if (verbose) aux_print_matrix("B", b, n);
+
+    for (int i = 0; i < n * n; i++) {
+      double delta = fabs(b[i] - u[i]);
+      if (delta > epsilon) {
+        printf("\n ERROR: i=%d, delta=%f, epsilon=%f, b=%f, u=%f\n", i, delta, epsilon, b[i], u[i]);
+        ut_assert(t, false);
+      }
+    }
+
   }
 }
 
@@ -3940,7 +4022,8 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dtrsm_0", lial_dtrsm_0_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dtrsm_1", lial_dtrsm_1_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dtrsm_2", lial_dtrsm_2_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dtrsm_3", lial_dtrsm_3_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_001,  "lial_dtrsm_3", lial_dtrsm_3_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_001,  "lial_dtrsm_4", lial_dtrsm_4_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);

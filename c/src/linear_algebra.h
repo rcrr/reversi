@@ -78,21 +78,6 @@ lial_dgemm (char *transa,
             int *ldc);
 
 extern void
-lial_dgemm_rowmajor (double *a,
-                     double *b,
-                     double *c,
-                     int *m,
-                     int *n,
-                     int *k,
-                     double *alpha,
-                     double *beta,
-                     char *transa,
-                     char *transb,
-                     int *lda,
-                     int *ldb,
-                     int *ldc);
-
-extern void
 lial_dsyrk (char *uplo,
             char *trans,
             int *n,
