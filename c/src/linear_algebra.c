@@ -1353,28 +1353,6 @@ lial_dpotrs (const char *uplo,
   dpotrs_(uplo, n, nrhs, a, lda, b, ldb, info);
 }
 
-static void
-aux_print_matrix (char *name,
-                  double *a,
-                  int n,
-                  int lda)
-{
-  printf("\n");
-  printf("\n");
-  printf("Matrix %s:\n", name);
-  printf("________________________________________________________________________________________________________\n");
-  printf("\n");
-  for (int i = 0; i < n; i++) {
-    printf(" .%2d. | ", i);
-    for (int j = 0; j < n; j++) {
-      int k = i * lda + j;
-      printf("%6.3f, ", a[k]);
-    }
-    printf("\n");
-  }
-  printf("________________________________________________________________________________________________________\n");
-}
-
 void
 lial_dpotrf_bp (const char *uplo,
                 const int *n,
@@ -1384,150 +1362,71 @@ lial_dpotrf_bp (const char *uplo,
                 const unsigned int block_size,
                 const unsigned int thread_count)
 {
-  /*
-   * BE ADVISED , THERE ARE LIMITATIONS.
-   *
-   * WARNING !!! If n is not a divisible by block_size without a reminder,
-   *             the function does not work.
-   *
-   *             If uplo is not 'L' the function does not work.
-   *
-   *             If lda is different from n , the function does not work.
-   */
-
-  int nx, bsx, nb, nr, ldax;
-
+  int nx, bsx, nb, nr, nb1, ldax, tsax, tsbx;
+  int tile_x_incr, tile_y_incr;
+  char uplox, sidex, transx, transax, transbx;
   int i, j, k, h;
-  double *tile_d, *tile_j, *tile_k, *tile_h;
+  double *tile_d, *tile_j, *tile_k, *tile_h, *tile_a, * tile_b;
+  bool is_uplo_l;
 
-  char sym_L = 'L';
   char sym_N = 'N';
-  char sym_R = 'R';
   char sym_T = 'T';
-  char sym_U = 'U';
-
   double pone = +1.0;
   double mone = -1.0;
+
+  uplox = *uplo;
+  is_uplo_l = uplox == 'L';
+  sidex = (is_uplo_l) ? 'R' : 'L';
+  transx = (is_uplo_l) ? 'N' : 'T';
+  transax = (is_uplo_l) ? 'N' : 'T';
+  transbx = (is_uplo_l) ? 'T' : 'N';
 
   nx = *n;
   ldax = *lda;
   bsx = (block_size > 0) ? block_size : *n;
 
+  tile_x_incr = (is_uplo_l) ? bsx : bsx * ldax;
+  tile_y_incr = (is_uplo_l) ? bsx * ldax : bsx;
+
   nb = nx / bsx;
   nr = nx % bsx;
+  nb1 = nb + ((nr) ? 1 : 0);
 
-  const bool verbose = false;
-  if (verbose) aux_print_matrix("A", a, *n, *lda);
+#pragma omp parallel
+  {
+#pragma omp single
+    {
+      for (i = 0; i < nb1; i++) {
+        tile_d = a + i * bsx * (ldax + 1);
+        tsax = (i == nb) ? nr : bsx;
+        lial_dpotrf(&uplox, &tsax, tile_d, &ldax, info);
 
-  if (*uplo == 'L') {
-
-    for (i = 0; i < nb; i++) {
-      tile_d = a + i * bsx * (ldax + 1);
-      lial_dpotrf(&sym_L, &bsx, tile_d, &ldax, info);
-      if (verbose) aux_print_matrix("POTRF", a, *n, *lda);
-
-      for (j = i + 1; j < nb; j++) {
-        tile_j = tile_d + bsx * (j - i);
-        lial_dtrsm(&sym_R, &sym_L, &sym_T, &sym_N, &bsx, &bsx, &pone, tile_d, &ldax, tile_j, &ldax);
-        if (verbose) aux_print_matrix("TRSM", a, *n, *lda);
-      }
-      if (nr) {
-        tile_j = tile_d + bsx * (nb - i);
-        lial_dtrsm(&sym_R, &sym_L, &sym_T, &sym_N, &nr, &bsx, &pone, tile_d, &ldax, tile_j, &ldax);
-        if (verbose) aux_print_matrix("TRSM-R", a, *n, *lda);
-      }
-
-      for (k = i + 1; k < nb; k++) {
-        tile_j = tile_d + bsx * (k - i);
-        tile_k = tile_j + bsx * ldax * (k - i);
-        lial_dsyrk(&sym_L, &sym_N, &bsx, &bsx, &mone, tile_j, &ldax, &pone, tile_k, &ldax);
-        if (verbose) aux_print_matrix("SYRK", a, *n, *lda);
-
-        for (h = k + 1; h < nb; h++) {
-          tile_j = tile_j;
-          tile_k = tile_j + bsx * (h - k);
-          tile_h = tile_k + bsx * ldax * (k - i);
-          lial_dgemm(&sym_N, &sym_T, &bsx, &bsx, &bsx, &mone, tile_k, &ldax, tile_j, &ldax, &pone, tile_h, &ldax);
-          if (verbose) aux_print_matrix("GEMM", a, *n, *lda);
+        for (j = i + 1; j < nb1; j++) {
+          tile_j = tile_d + tile_x_incr * (j - i);
+          tsax = tsbx = bsx;
+          if (j == nb) { if (is_uplo_l) tsax = nr; else tsbx = nr; }
+          lial_dtrsm(&sidex, &uplox, &sym_T, &sym_N, &tsax, &tsbx, &pone, tile_d, &ldax, tile_j, &ldax);
         }
-        if (nr) {
-          tile_j = tile_j;
-          tile_k = tile_j + bsx * (nb - k);
-          tile_h = tile_k + bsx * ldax * (k - i);
-          lial_dgemm(&sym_N, &sym_T, &nr, &bsx, &bsx, &mone, tile_k, &ldax, tile_j, &ldax, &pone, tile_h, &ldax);
-          if (verbose) aux_print_matrix("GEMM-R", a, *n, *lda);
+
+        for (k = i + 1; k < nb1; k++) {
+          tile_j = tile_d + tile_x_incr * (k - i);
+          tile_k = tile_j + tile_y_incr * (k - i);
+          tsax = (k == nb) ? nr : bsx;
+          lial_dsyrk(&uplox, &transx, &tsax, &bsx, &mone, tile_j, &ldax, &pone, tile_k, &ldax);
+
+          for (h = k + 1; h < nb1; h++) {
+            tile_k = tile_j + tile_x_incr * (h - k);
+            tile_h = tile_k + tile_y_incr * (k - i);
+            tile_a = (is_uplo_l) ? tile_k : tile_j;
+            tile_b = (is_uplo_l) ? tile_j : tile_k;
+            tsax = tsbx = bsx;
+            if (h == nb) { if (is_uplo_l) tsax = nr; else tsbx = nr; }
+            lial_dgemm(&transax, &transbx, &tsax, &tsbx, &bsx, &mone, tile_a, &ldax, tile_b, &ldax, &pone, tile_h, &ldax);
+          }
         }
       }
-      if (nr) {
-        tile_j = tile_d + bsx * (nb - i);
-        tile_k = tile_j + bsx * ldax * (nb - i);
-        lial_dsyrk(&sym_L, &sym_N, &nr, &bsx, &mone, tile_j, &ldax, &pone, tile_k, &ldax);
-        if (verbose) aux_print_matrix("SYRK-R", a, *n, *lda);
-      }
-    }
-    if (nr) {
-      tile_d = a + nb * bsx * (ldax + 1);
-      lial_dpotrf(&sym_L, &nr, tile_d, &ldax, info);
-      if (verbose) aux_print_matrix("POTRF-R", a, *n, *lda);
-    }
-
-  } else if (*uplo == 'U') {
-
-    for (i = 0; i < nb; i++) {
-      tile_d = a + i * bsx * (ldax + 1);
-      lial_dpotrf(&sym_U, &bsx, tile_d, &ldax, info);
-      if (verbose) aux_print_matrix("POTRF", a, *n, *lda);
-
-      for (j = i + 1; j < nb; j++) {
-        tile_j = tile_d + bsx * ldax * (j - i);
-        lial_dtrsm(&sym_L, &sym_U, &sym_T, &sym_N, &bsx, &bsx, &pone, tile_d, &ldax, tile_j, &ldax);
-        if (verbose) aux_print_matrix("TRSM", a, *n, *lda);
-      }
-      if (nr) {
-        tile_j = tile_d + bsx * ldax * (nb - i);
-        lial_dtrsm(&sym_L, &sym_U, &sym_T, &sym_N, &bsx, &nr, &pone, tile_d, &ldax, tile_j, &ldax);
-        if (verbose) aux_print_matrix("TRSM-R", a, *n, *lda);
-      }
-
-      for (k = i + 1; k < nb; k++) {
-        tile_j = tile_d + bsx * ldax * (k - i);
-        tile_k = tile_j + bsx * (k - i);
-        lial_dsyrk(&sym_U, &sym_T, &bsx, &bsx, &mone, tile_j, &ldax, &pone, tile_k, &ldax);
-        if (verbose) aux_print_matrix("SYRK", a, *n, *lda);
-
-        for (h = k + 1; h < nb; h++) {
-          tile_j = tile_j;
-          tile_k = tile_j + bsx * ldax * (h - k);
-          tile_h = tile_k + bsx * (k - i);
-          lial_dgemm(&sym_T, &sym_N, &bsx, &bsx, &bsx, &mone, tile_j, &ldax, tile_k, &ldax, &pone, tile_h, &ldax);
-          if (verbose) aux_print_matrix("GEMM", a, *n, *lda);
-        }
-        if (nr) {
-          tile_j = tile_j;
-          tile_k = tile_j + bsx * ldax * (nb - k);
-          tile_h = tile_k + bsx * (k - i);
-          lial_dgemm(&sym_T, &sym_N, &bsx, &nr, &bsx, &mone, tile_j, &ldax, tile_k, &ldax, &pone, tile_h, &ldax);
-          if (verbose) aux_print_matrix("GEMM-R", a, *n, *lda);
-        }
-      }
-      if (nr) {
-        tile_j = tile_d + bsx * ldax * (nb - i);
-        tile_k = tile_j + bsx * (nb - i);
-        lial_dsyrk(&sym_U, &sym_T, &nr, &bsx, &mone, tile_j, &ldax, &pone, tile_k, &ldax);
-        if (verbose) aux_print_matrix("SYRK-R", a, *n, *lda);
-      }
-    }
-    if (nr) {
-      tile_d = a + nb * bsx * (ldax + 1);
-      lial_dpotrf(&sym_U, &nr, tile_d, &ldax, info);
-      if (verbose) aux_print_matrix("POTRF-R", a, *n, *lda);
-    }
-
-  } else {
-    // case not valid
-    ;
-  }
-
+    } // End of single region
+  } // End of parallel region
 }
 
 void
@@ -1539,90 +1438,65 @@ lial_dpotrf_bp_backup (const char *uplo,
                        const unsigned int block_size,
                        const unsigned int thread_count)
 {
-  /*
-   * BE ADVISED , THERE ARE LIMITATIONS.
-   *
-   * WARNING !!! If n is not a divisible by block_size without a reminder,
-   *             the function does not work.
-   *
-   *             If uplo is not 'L' the function does not work.
-   *
-   *             If lda is different from n , the function does not work.
-   */
-
-  int nx, bsx, nb, nr, ldax;
-
+  int nx, bsx, nb, nr, nb1, ldax, tsax, tsbx;
+  int tile_x_incr, tile_y_incr;
+  char uplox, sidex, transx, transax, transbx;
   int i, j, k, h;
-  double *tile_d, *tile_j, *tile_k, *tile_h;
+  double *tile_d, *tile_j, *tile_k, *tile_h, *tile_a, * tile_b;
+  bool is_uplo_l;
 
-  char sym_L = 'L';
   char sym_N = 'N';
-  char sym_R = 'R';
   char sym_T = 'T';
-
   double pone = +1.0;
   double mone = -1.0;
+
+  uplox = *uplo;
+  is_uplo_l = uplox == 'L';
+  sidex = (is_uplo_l) ? 'R' : 'L';
+  transx = (is_uplo_l) ? 'N' : 'T';
+  transax = (is_uplo_l) ? 'N' : 'T';
+  transbx = (is_uplo_l) ? 'T' : 'N';
 
   nx = *n;
   ldax = *lda;
   bsx = (block_size > 0) ? block_size : *n;
 
+  tile_x_incr = (is_uplo_l) ? bsx : bsx * ldax;
+  tile_y_incr = (is_uplo_l) ? bsx * ldax : bsx;
+
   nb = nx / bsx;
   nr = nx % bsx;
+  nb1 = nb + ((nr) ? 1 : 0);
 
-  const bool verbose = false;
-  if (verbose) aux_print_matrix("A", a, *n, *lda);
-
-  for (i = 0; i < nb; i++) {
+  for (i = 0; i < nb1; i++) {
     tile_d = a + i * bsx * (ldax + 1);
-    lial_dpotrf(&sym_L, &bsx, tile_d, &ldax, info);
-    if (verbose) aux_print_matrix("POTRF", a, *n, *lda);
+    tsax = (i == nb) ? nr : bsx;
+    lial_dpotrf(&uplox, &tsax, tile_d, &ldax, info);
 
-    for (j = i + 1; j < nb; j++) {
-      tile_j = tile_d + bsx * (j - i);
-      lial_dtrsm(&sym_R, &sym_L, &sym_T, &sym_N, &bsx, &bsx, &pone, tile_d, &ldax, tile_j, &ldax);
-      if (verbose) aux_print_matrix("TRSM", a, *n, *lda);
-    }
-    if (nr) {
-      tile_j = tile_d + bsx * (nb - i);
-      lial_dtrsm(&sym_R, &sym_L, &sym_T, &sym_N, &nr, &bsx, &pone, tile_d, &ldax, tile_j, &ldax);
-      if (verbose) aux_print_matrix("TRSM-R", a, *n, *lda);
+    for (j = i + 1; j < nb1; j++) {
+      tile_j = tile_d + tile_x_incr * (j - i);
+      tsax = tsbx = bsx;
+      if (j == nb) { if (is_uplo_l) tsax = nr; else tsbx = nr; }
+      lial_dtrsm(&sidex, &uplox, &sym_T, &sym_N, &tsax, &tsbx, &pone, tile_d, &ldax, tile_j, &ldax);
     }
 
-    for (k = i + 1; k < nb; k++) {
-      tile_j = tile_d + bsx * (k - i);
-      tile_k = tile_j + bsx * ldax * (k - i);
-      lial_dsyrk(&sym_L, &sym_N, &bsx, &bsx, &mone, tile_j, &ldax, &pone, tile_k, &ldax);
-      if (verbose) aux_print_matrix("SYRK", a, *n, *lda);
+    for (k = i + 1; k < nb1; k++) {
+      tile_j = tile_d + tile_x_incr * (k - i);
+      tile_k = tile_j + tile_y_incr * (k - i);
+      tsax = (k == nb) ? nr : bsx;
+      lial_dsyrk(&uplox, &transx, &tsax, &bsx, &mone, tile_j, &ldax, &pone, tile_k, &ldax);
 
-      for (h = k + 1; h < nb; h++) {
-        tile_j = tile_j;
-        tile_k = tile_j + bsx * (h - k);
-        tile_h = tile_k + bsx * ldax * (k - i);
-        lial_dgemm(&sym_N, &sym_T, &bsx, &bsx, &bsx, &mone, tile_k, &ldax, tile_j, &ldax, &pone, tile_h, &ldax);
-        if (verbose) aux_print_matrix("GEMM", a, *n, *lda);
-      }
-      if (nr) {
-        tile_j = tile_j;
-        tile_k = tile_j + bsx * (nb - k);
-        tile_h = tile_k + bsx * ldax * (k - i);
-        lial_dgemm(&sym_N, &sym_T, &nr, &bsx, &bsx, &mone, tile_k, &ldax, tile_j, &ldax, &pone, tile_h, &ldax);
-        if (verbose) aux_print_matrix("GEMM-R", a, *n, *lda);
+      for (h = k + 1; h < nb1; h++) {
+        tile_k = tile_j + tile_x_incr * (h - k);
+        tile_h = tile_k + tile_y_incr * (k - i);
+        tile_a = (is_uplo_l) ? tile_k : tile_j;
+        tile_b = (is_uplo_l) ? tile_j : tile_k;
+        tsax = tsbx = bsx;
+        if (h == nb) { if (is_uplo_l) tsax = nr; else tsbx = nr; }
+        lial_dgemm(&transax, &transbx, &tsax, &tsbx, &bsx, &mone, tile_a, &ldax, tile_b, &ldax, &pone, tile_h, &ldax);
       }
     }
-    if (nr) {
-      tile_j = tile_d + bsx * (nb - i);
-      tile_k = tile_j + bsx * ldax * (nb - i);
-      lial_dsyrk(&sym_L, &sym_N, &nr, &bsx, &mone, tile_j, &ldax, &pone, tile_k, &ldax);
-      if (verbose) aux_print_matrix("SYRK-R", a, *n, *lda);
-    }
   }
-  if (nr) {
-    tile_d = a + nb * bsx * (ldax + 1);
-    lial_dpotrf(&sym_L, &nr, tile_d, &ldax, info);
-    if (verbose) aux_print_matrix("POTRF-R", a, *n, *lda);
-  }
-
 }
 
 void

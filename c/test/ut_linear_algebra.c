@@ -248,6 +248,13 @@ aux_perf_sdf_lapack_t (ut_test_t *const t,
   double d2, cdm;
   size_t max_delta_i, max_delta_j, normalized_max_row_delta_modulus_i;
 
+  /* Sets the test start time. */
+  clock_gettime(CLOCK_REALTIME, &start_time);
+  (void) start_time;
+
+  /* Starts the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
   a = lial_retrieve_matrix(test_data_file_name, &nr, &nc, &ret);
   if (ret != 0 || !a || (nr != nc)) {
     printf("\nUnable to read properly matrix a from file: %s\n", test_data_file_name);
@@ -257,6 +264,22 @@ aux_perf_sdf_lapack_t (ut_test_t *const t,
     n0 = nr;
     nrhs = nr;
   }
+
+  /* Stops the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+  /* Sets the test end time. */
+  clock_gettime(CLOCK_REALTIME, &end_time);
+  (void) end_time;
+
+  /* Computes the time taken, and updates the test cpu_time. */
+  ret = timespec_diff(&cpu_time, &time_0, &time_1);
+  (void) ret; assert(ret == 0);
+
+  if (ut_run_time_is_verbose(t)) {
+    fprintf(stdout, "  Reading from storage SDF matrix:                            [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+  }
+
   if (debug) {
     for (size_t i = 0; i < n; i++)
       for (size_t j = 0; j < n; j++)
@@ -404,9 +427,12 @@ static void
 aux_perf_sdf_lapack_blocked_parallel_t (ut_test_t *const t,
                                         const char test_data_file_name[],
                                         const unsigned int block_size,
-                                        const unsigned int thread_count)
+                                        const unsigned int thread_count,
+                                        const char uplo,
+                                        const bool transpose)
 {
   static const char ut_lial_upper = 'L';
+  static const char ut_lial_lower = 'U';
 
   bool const debug = false;
 
@@ -424,6 +450,8 @@ aux_perf_sdf_lapack_blocked_parallel_t (ut_test_t *const t,
 
   double d2, cdm;
   size_t max_delta_i, max_delta_j, normalized_max_row_delta_modulus_i;
+
+  char uplox;
 
   /* Sets the test start time. */
   clock_gettime(CLOCK_REALTIME, &start_time);
@@ -463,6 +491,14 @@ aux_perf_sdf_lapack_blocked_parallel_t (ut_test_t *const t,
         printf("a[%zu][%zu] = %21.15f\n", i, j, a[i][j]);
   }
 
+  if (transpose) {
+    lial_transpose_square_matrix (a, n);
+    uplox = (uplo == ut_lial_lower) ? ut_lial_upper : ut_lial_lower;
+    fprintf(stdout, "  Transposing SDF matrix.\n");
+  } else {
+    uplox = uplo;
+  }
+
   z = lial_allocate_square_matrix(n);
   if (!z) {
     printf("\nUnable to allocate memory for matrix z\n");
@@ -488,7 +524,7 @@ aux_perf_sdf_lapack_blocked_parallel_t (ut_test_t *const t,
   /* Starts the stop-watch. */
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
 
-  lial_dpotrf_bp(&ut_lial_upper, &n0, *a, &n0, &ret, block_size, thread_count);
+  lial_dpotrf_bp(&uplox, &n0, *a, &n0, &ret, block_size, thread_count);
   ut_assert(t, ret == 0);
 
   /* Stops the stop-watch. */
@@ -514,7 +550,7 @@ aux_perf_sdf_lapack_blocked_parallel_t (ut_test_t *const t,
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
 
   /* Computes inverse matrix z. */
-  lial_dpotrs(&ut_lial_upper, &n0, &nrhs, *a, &n0, *z, &n0, &ret);
+  lial_dpotrs(&uplox, &n0, &nrhs, *a, &n0, *z, &n0, &ret);
 
   /* Stops the stop-watch. */
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
@@ -3202,19 +3238,19 @@ lial_perf_sdf_lu_naive_edge_000_t (ut_test_t *const t)
 }
 
 static void
-lial_perf_sdf_lapack_edge_000_t (ut_test_t *const t)
+lial_perf_sdf_lapack_edge_000_plain_t (ut_test_t *const t)
 {
   aux_perf_sdf_lapack_t(t, "./test/data/ut_linear_algebra/large_binary.sdf_edge_000.dat");
 }
 
 static void
-lial_perf_sdf_lapack_corner_000_t (ut_test_t *const t)
+lial_perf_sdf_lapack_corner_000_plain_t (ut_test_t *const t)
 {
   aux_perf_sdf_lapack_t(t, "./test/data/ut_linear_algebra/large_binary.sdf_corner_000.dat");
 }
 
 static void
-lial_perf_sdf_lapack_xedge_000_t (ut_test_t *const t)
+lial_perf_sdf_lapack_xedge_000_plain_t (ut_test_t *const t)
 {
   aux_perf_sdf_lapack_t(t, "./test/data/ut_linear_algebra/large_binary.sdf_xedge_000.dat");
 }
@@ -3224,7 +3260,59 @@ lial_perf_sdf_lapack_edge_000_bp_t (ut_test_t *const t)
 {
   const unsigned int bs = 512;
   const unsigned int tc = 1;
-  aux_perf_sdf_lapack_blocked_parallel_t(t, "./test/data/ut_linear_algebra/large_binary.sdf_edge_000.dat", bs, tc);
+  const char uplo = 'L';
+  const bool transpose = false;
+  aux_perf_sdf_lapack_blocked_parallel_t(t, "./test/data/ut_linear_algebra/large_binary.sdf_edge_000.dat", bs, tc, uplo, transpose);
+}
+
+static void
+lial_perf_sdf_lapack_corner_000_bp_t (ut_test_t *const t)
+{
+  const unsigned int bs = 512;
+  const unsigned int tc = 1;
+  const char uplo = 'L';
+  const bool transpose = false;
+  aux_perf_sdf_lapack_blocked_parallel_t(t, "./test/data/ut_linear_algebra/large_binary.sdf_corner_000.dat", bs, tc, uplo, transpose);
+}
+
+static void
+lial_perf_sdf_lapack_xedge_000_bp_t (ut_test_t *const t)
+{
+  const unsigned int bs = 512;
+  const unsigned int tc = 1;
+  const char uplo = 'L';
+  const bool transpose = false;
+  aux_perf_sdf_lapack_blocked_parallel_t(t, "./test/data/ut_linear_algebra/large_binary.sdf_xedge_000.dat", bs, tc, uplo, transpose);
+}
+
+static void
+lial_perf_sdf_lapack_edge_000_t_bp_t (ut_test_t *const t)
+{
+  const unsigned int bs = 512;
+  const unsigned int tc = 1;
+  const char uplo = 'L';
+  const bool transpose = true;
+  aux_perf_sdf_lapack_blocked_parallel_t(t, "./test/data/ut_linear_algebra/large_binary.sdf_edge_000.dat", bs, tc, uplo, transpose);
+}
+
+static void
+lial_perf_sdf_lapack_corner_000_t_bp_t (ut_test_t *const t)
+{
+  const unsigned int bs = 512;
+  const unsigned int tc = 1;
+  const char uplo = 'L';
+  const bool transpose = true;
+  aux_perf_sdf_lapack_blocked_parallel_t(t, "./test/data/ut_linear_algebra/large_binary.sdf_corner_000.dat", bs, tc, uplo, transpose);
+}
+
+static void
+lial_perf_sdf_lapack_xedge_000_t_bp_t (ut_test_t *const t)
+{
+  const unsigned int bs = 512;
+  const unsigned int tc = 1;
+  const char uplo = 'L';
+  const bool transpose = true;
+  aux_perf_sdf_lapack_blocked_parallel_t(t, "./test/data/ut_linear_algebra/large_binary.sdf_xedge_000.dat", bs, tc, uplo, transpose);
 }
 
 static void
@@ -4013,11 +4101,17 @@ main (int argc,
 
   ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_1000, "lial_perf_sdf_chol_naive_edge_000", lial_perf_sdf_chol_naive_edge_000_t);
   ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_100,  "lial_perf_sdf_lu_naive_edge_000", lial_perf_sdf_lu_naive_edge_000_t);
-  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_100,  "lial_perf_sdf_lapack_edge_000", lial_perf_sdf_lapack_edge_000_t);
-  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_1000, "lial_perf_sdf_lapack_corner_000", lial_perf_sdf_lapack_corner_000_t);
-  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_1000, "lial_perf_sdf_lapack_xedge_000", lial_perf_sdf_lapack_xedge_000_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_10,   "lial_perf_sdf_lapack_edge_000_plain", lial_perf_sdf_lapack_edge_000_plain_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_100,  "lial_perf_sdf_lapack_corner_000_plain", lial_perf_sdf_lapack_corner_000_plain_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_1000, "lial_perf_sdf_lapack_xedge_000_plain", lial_perf_sdf_lapack_xedge_000_plain_t);
 
-  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_100,  "lial_perf_sdf_lapack_edge_000_bp", lial_perf_sdf_lapack_edge_000_bp_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_10,   "lial_perf_sdf_lapack_edge_000_bp", lial_perf_sdf_lapack_edge_000_bp_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_100,  "lial_perf_sdf_lapack_corner_000_bp", lial_perf_sdf_lapack_corner_000_bp_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_1000,   "lial_perf_sdf_lapack_xedge_000_bp", lial_perf_sdf_lapack_xedge_000_bp_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_10,   "lial_perf_sdf_lapack_edge_000_t_bp", lial_perf_sdf_lapack_edge_000_t_bp_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_100,  "lial_perf_sdf_lapack_corner_000_t_bp", lial_perf_sdf_lapack_corner_000_t_bp_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_1000,   "lial_perf_sdf_lapack_xedge_000_t_bp", lial_perf_sdf_lapack_xedge_000_t_bp_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dtrsm_0", lial_dtrsm_0_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dtrsm_1", lial_dtrsm_1_t);
