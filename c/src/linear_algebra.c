@@ -1392,19 +1392,24 @@ lial_dpotrf_bp (const char *uplo,
   nr = nx % bsx;
   nb1 = nb + ((nr) ? 1 : 0);
 
-#pragma omp parallel
+#pragma omp parallel num_threads(thread_count) default(none)                        \
+  shared(sym_N, sym_T, pone, mone, uplox, is_uplo_l, sidex, transx, transax, transbx, ldax, bsx, tile_x_incr, tile_y_incr, nb, nr, nb1) \
+  shared(a, info, i, j, k, h, tsax, tsbx, tile_d, tile_j, tile_k, tile_h, tile_a, tile_b)
   {
 #pragma omp single
     {
+
       for (i = 0; i < nb1; i++) {
         tile_d = a + i * bsx * (ldax + 1);
         tsax = (i == nb) ? nr : bsx;
+#pragma omp task default(none) shared(uplox, ldax, info) firstprivate(tsax, tile_d) depend(in:tile_d[:1]) depend(out:tile_d[:1])
         lial_dpotrf(&uplox, &tsax, tile_d, &ldax, info);
 
         for (j = i + 1; j < nb1; j++) {
           tile_j = tile_d + tile_x_incr * (j - i);
           tsax = tsbx = bsx;
           if (j == nb) { if (is_uplo_l) tsax = nr; else tsbx = nr; }
+#pragma omp task default(none) shared(sym_T, sym_N, pone, uplox, sidex, ldax, tile_d) firstprivate(tsax ,tsbx, tile_j) depend(in:tile_d[:1], tile_j[:1]) depend(out:tile_j[:1])
           lial_dtrsm(&sidex, &uplox, &sym_T, &sym_N, &tsax, &tsbx, &pone, tile_d, &ldax, tile_j, &ldax);
         }
 
@@ -1412,6 +1417,7 @@ lial_dpotrf_bp (const char *uplo,
           tile_j = tile_d + tile_x_incr * (k - i);
           tile_k = tile_j + tile_y_incr * (k - i);
           tsax = (k == nb) ? nr : bsx;
+#pragma omp task default(none) shared(pone, mone, ldax, bsx, transx, uplox) firstprivate(tile_j, tile_k, tsax) depend(in:tile_j[:1], tile_k[:1]) depend(out:tile_k[:1])
           lial_dsyrk(&uplox, &transx, &tsax, &bsx, &mone, tile_j, &ldax, &pone, tile_k, &ldax);
 
           for (h = k + 1; h < nb1; h++) {
@@ -1421,82 +1427,13 @@ lial_dpotrf_bp (const char *uplo,
             tile_b = (is_uplo_l) ? tile_j : tile_k;
             tsax = tsbx = bsx;
             if (h == nb) { if (is_uplo_l) tsax = nr; else tsbx = nr; }
+#pragma omp task default(none) firstprivate(tile_h, tile_a, tile_b, tsax, tsbx) shared(pone, mone, ldax, bsx, transax, transbx) depend(in:tile_a[:1], tile_b[:1], tile_h[:1]) depend(out:tile_h[:1])
             lial_dgemm(&transax, &transbx, &tsax, &tsbx, &bsx, &mone, tile_a, &ldax, tile_b, &ldax, &pone, tile_h, &ldax);
           }
-        }
-      }
+        } // End of k-for-loop --- syrk+gemm
+      } // End of i-for-loop --- potrf
     } // End of single region
   } // End of parallel region
-}
-
-void
-lial_dpotrf_bp_backup (const char *uplo,
-                       const int *n,
-                       double *a,
-                       const int *lda,
-                       int *info,
-                       const unsigned int block_size,
-                       const unsigned int thread_count)
-{
-  int nx, bsx, nb, nr, nb1, ldax, tsax, tsbx;
-  int tile_x_incr, tile_y_incr;
-  char uplox, sidex, transx, transax, transbx;
-  int i, j, k, h;
-  double *tile_d, *tile_j, *tile_k, *tile_h, *tile_a, * tile_b;
-  bool is_uplo_l;
-
-  char sym_N = 'N';
-  char sym_T = 'T';
-  double pone = +1.0;
-  double mone = -1.0;
-
-  uplox = *uplo;
-  is_uplo_l = uplox == 'L';
-  sidex = (is_uplo_l) ? 'R' : 'L';
-  transx = (is_uplo_l) ? 'N' : 'T';
-  transax = (is_uplo_l) ? 'N' : 'T';
-  transbx = (is_uplo_l) ? 'T' : 'N';
-
-  nx = *n;
-  ldax = *lda;
-  bsx = (block_size > 0) ? block_size : *n;
-
-  tile_x_incr = (is_uplo_l) ? bsx : bsx * ldax;
-  tile_y_incr = (is_uplo_l) ? bsx * ldax : bsx;
-
-  nb = nx / bsx;
-  nr = nx % bsx;
-  nb1 = nb + ((nr) ? 1 : 0);
-
-  for (i = 0; i < nb1; i++) {
-    tile_d = a + i * bsx * (ldax + 1);
-    tsax = (i == nb) ? nr : bsx;
-    lial_dpotrf(&uplox, &tsax, tile_d, &ldax, info);
-
-    for (j = i + 1; j < nb1; j++) {
-      tile_j = tile_d + tile_x_incr * (j - i);
-      tsax = tsbx = bsx;
-      if (j == nb) { if (is_uplo_l) tsax = nr; else tsbx = nr; }
-      lial_dtrsm(&sidex, &uplox, &sym_T, &sym_N, &tsax, &tsbx, &pone, tile_d, &ldax, tile_j, &ldax);
-    }
-
-    for (k = i + 1; k < nb1; k++) {
-      tile_j = tile_d + tile_x_incr * (k - i);
-      tile_k = tile_j + tile_y_incr * (k - i);
-      tsax = (k == nb) ? nr : bsx;
-      lial_dsyrk(&uplox, &transx, &tsax, &bsx, &mone, tile_j, &ldax, &pone, tile_k, &ldax);
-
-      for (h = k + 1; h < nb1; h++) {
-        tile_k = tile_j + tile_x_incr * (h - k);
-        tile_h = tile_k + tile_y_incr * (k - i);
-        tile_a = (is_uplo_l) ? tile_k : tile_j;
-        tile_b = (is_uplo_l) ? tile_j : tile_k;
-        tsax = tsbx = bsx;
-        if (h == nb) { if (is_uplo_l) tsax = nr; else tsbx = nr; }
-        lial_dgemm(&transax, &transbx, &tsax, &tsbx, &bsx, &mone, tile_a, &ldax, tile_b, &ldax, &pone, tile_h, &ldax);
-      }
-    }
-  }
 }
 
 void

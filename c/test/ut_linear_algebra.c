@@ -236,7 +236,7 @@ aux_perf_sdf_lapack_t (ut_test_t *const t,
   size_t n, nr, nc;
   int nrhs, n0;
 
-  timespec_t start_time, end_time, cpu_time, time_0, time_1;
+  timespec_t delta_time, start_time, end_time, cpu_time, time_0, time_1;
   int ret;
 
   double **a;
@@ -272,12 +272,18 @@ aux_perf_sdf_lapack_t (ut_test_t *const t,
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Reading from storage SDF matrix:                            [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Reading from storage SDF matrix:                            [%6lld.%9ld][%6lld.%9ld]\n",
+            (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   if (debug) {
@@ -321,12 +327,18 @@ aux_perf_sdf_lapack_t (ut_test_t *const t,
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Factorizing SDF matrix of size %8zu:                    [%6lld.%9ld]\n", n, (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Factorizing SDF matrix of size %8zu:                    [%6lld.%9ld][%6lld.%9ld]\n",
+            n, (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   /* Sets the test start time. */
@@ -346,12 +358,18 @@ aux_perf_sdf_lapack_t (ut_test_t *const t,
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Computing the inverse matrix:                               [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Computing the inverse matrix:                               [%6lld.%9ld][%6lld.%9ld]\n",
+            (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   /* Sets the test start time. */
@@ -374,12 +392,18 @@ aux_perf_sdf_lapack_t (ut_test_t *const t,
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Multiplying the original random SDF matrix and its inverse: [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Multiplying the original random SDF matrix and its inverse: [%6lld.%9ld][%6lld.%9ld]\n",
+            (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   /*
@@ -439,7 +463,7 @@ aux_perf_sdf_lapack_blocked_parallel_t (ut_test_t *const t,
   size_t n, nr, nc;
   int nrhs, n0;
 
-  timespec_t start_time, end_time, cpu_time, time_0, time_1;
+  timespec_t delta_time, start_time, end_time, cpu_time, time_0, time_1;
   int ret;
 
   double **a;
@@ -477,12 +501,18 @@ aux_perf_sdf_lapack_blocked_parallel_t (ut_test_t *const t,
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Reading from storage SDF matrix:                            [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Reading from storage SDF matrix:                            [%6lld.%9ld][%6lld.%9ld]\n",
+            (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   if (debug) {
@@ -534,12 +564,18 @@ aux_perf_sdf_lapack_blocked_parallel_t (ut_test_t *const t,
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Factorizing SDF matrix of size %8zu:                    [%6lld.%9ld]\n", n, (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Factorizing SDF matrix of size %8zu:                    [%6lld.%9ld][%6lld.%9ld]\n",
+            n, (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   /* Sets the test start time. */
@@ -559,12 +595,18 @@ aux_perf_sdf_lapack_blocked_parallel_t (ut_test_t *const t,
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Computing the inverse matrix:                               [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Computing the inverse matrix:                               [%6lld.%9ld][%6lld.%9ld]\n",
+            (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   /* Sets the test start time. */
@@ -588,12 +630,18 @@ aux_perf_sdf_lapack_blocked_parallel_t (ut_test_t *const t,
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Multiplying the original random SDF matrix and its inverse: [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Multiplying the original random SDF matrix and its inverse: [%6lld.%9ld][%6lld.%9ld]\n",
+            (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   /*
@@ -2315,7 +2363,7 @@ lial_perf_sdf_chol_naive_1000_t (ut_test_t *const t)
   size_t const n = 1000;
   bool const debug = false;
 
-  timespec_t start_time, end_time, cpu_time, time_0, time_1;
+  timespec_t delta_time, start_time, end_time, cpu_time, time_0, time_1;
   int ret;
 
   double **a;
@@ -2378,12 +2426,18 @@ lial_perf_sdf_chol_naive_1000_t (ut_test_t *const t)
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Factorizing SDF matrix of size %8zu:                    [%6lld.%9ld]\n", n, (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Factorizing SDF matrix of size %8zu:                    [%6lld.%9ld][%6lld.%9ld]\n",
+            n, (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   /* Sets the test start time. */
@@ -2405,12 +2459,18 @@ lial_perf_sdf_chol_naive_1000_t (ut_test_t *const t)
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Computing the inverse matrix:                               [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Computing the inverse matrix:                               [%6lld.%9ld][%6lld.%9ld]\n",
+            (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   /* Sets the test start time. */
@@ -2438,12 +2498,18 @@ lial_perf_sdf_chol_naive_1000_t (ut_test_t *const t)
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Multiplying the original random SDF matrix and its inverse: [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Multiplying the original random SDF matrix and its inverse: [%6lld.%9ld][%6lld.%9ld]\n",
+            (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   /*
@@ -2494,7 +2560,7 @@ lial_perf_sdf_lu_naive_1000_t (ut_test_t *const t)
   size_t const n = 1000;
   bool const debug = false;
 
-  timespec_t start_time, end_time, cpu_time, time_0, time_1;
+  timespec_t delta_time, start_time, end_time, cpu_time, time_0, time_1;
   int ret;
 
   double **a;
@@ -2569,12 +2635,18 @@ lial_perf_sdf_lu_naive_1000_t (ut_test_t *const t)
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Factorizing SDF matrix of size %8zu:                    [%6lld.%9ld]\n", n, (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Factorizing SDF matrix of size %8zu:                    [%6lld.%9ld][%6lld.%9ld]\n",
+            n, (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   /* Sets the test start time. */
@@ -2596,12 +2668,18 @@ lial_perf_sdf_lu_naive_1000_t (ut_test_t *const t)
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Computing the inverse matrix:                               [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Computing the inverse matrix:                               [%6lld.%9ld][%6lld.%9ld]\n",
+            (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   /* Sets the test start time. */
@@ -2629,12 +2707,18 @@ lial_perf_sdf_lu_naive_1000_t (ut_test_t *const t)
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Multiplying the original random SDF matrix and its inverse: [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Multiplying the original random SDF matrix and its inverse: [%6lld.%9ld][%6lld.%9ld]\n",
+            (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   /*
@@ -2686,7 +2770,7 @@ lial_perf_sdf_lapack_1000_t (ut_test_t *const t)
   size_t const n = 1000;
   bool const debug = false;
 
-  timespec_t start_time, end_time, cpu_time, time_0, time_1;
+  timespec_t delta_time, start_time, end_time, cpu_time, time_0, time_1;
   int ret;
 
   double **a;
@@ -2740,12 +2824,18 @@ lial_perf_sdf_lapack_1000_t (ut_test_t *const t)
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Factorizing SDF matrix of size %8zu:                    [%6lld.%9ld]\n", n, (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Factorizing SDF matrix of size %8zu:                    [%6lld.%9ld][%6lld.%9ld]\n",
+            n, (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   /* Sets the test start time. */
@@ -2768,12 +2858,18 @@ lial_perf_sdf_lapack_1000_t (ut_test_t *const t)
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Computing the inverse matrix:                               [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Computing the inverse matrix:                               [%6lld.%9ld][%6lld.%9ld]\n",
+            (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   /* Sets the test start time. */
@@ -2801,12 +2897,18 @@ lial_perf_sdf_lapack_1000_t (ut_test_t *const t)
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Multiplying the original random SDF matrix and its inverse: [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Multiplying the original random SDF matrix and its inverse: [%6lld.%9ld][%6lld.%9ld]\n",
+            (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   /*
@@ -2858,7 +2960,7 @@ lial_perf_sdf_chol_naive_edge_000_t (ut_test_t *const t)
 
   size_t n, nr, nc;
 
-  timespec_t start_time, end_time, cpu_time, time_0, time_1;
+  timespec_t delta_time, start_time, end_time, cpu_time, time_0, time_1;
   int ret;
 
   double **a;
@@ -2927,12 +3029,18 @@ lial_perf_sdf_chol_naive_edge_000_t (ut_test_t *const t)
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Factorizing SDF matrix of size %8zu:                    [%6lld.%9ld]\n", n, (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Factorizing SDF matrix of size %8zu:                    [%6lld.%9ld][%6lld.%9ld]\n",
+            n, (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   /* Sets the test start time. */
@@ -2954,12 +3062,18 @@ lial_perf_sdf_chol_naive_edge_000_t (ut_test_t *const t)
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Computing the inverse matrix:                               [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Computing the inverse matrix:                               [%6lld.%9ld][%6lld.%9ld]\n",
+            (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   /* Sets the test start time. */
@@ -2987,12 +3101,18 @@ lial_perf_sdf_chol_naive_edge_000_t (ut_test_t *const t)
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Multiplying the original random SDF matrix and its inverse: [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Multiplying the original random SDF matrix and its inverse: [%6lld.%9ld][%6lld.%9ld]\n",
+            (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   /*
@@ -3045,7 +3165,7 @@ lial_perf_sdf_lu_naive_edge_000_t (ut_test_t *const t)
 
   size_t n, nr, nc;
 
-  timespec_t start_time, end_time, cpu_time, time_0, time_1;
+  timespec_t delta_time, start_time, end_time, cpu_time, time_0, time_1;
   int ret;
 
   double **a;
@@ -3126,12 +3246,18 @@ lial_perf_sdf_lu_naive_edge_000_t (ut_test_t *const t)
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Factorizing SDF matrix of size %8zu:                    [%6lld.%9ld]\n", n, (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Factorizing SDF matrix of size %8zu:                    [%6lld.%9ld][%6lld.%9ld]\n",
+            n, (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   /* Sets the test start time. */
@@ -3153,12 +3279,18 @@ lial_perf_sdf_lu_naive_edge_000_t (ut_test_t *const t)
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Computing the inverse matrix:                               [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Computing the inverse matrix:                               [%6lld.%9ld][%6lld.%9ld]\n",
+            (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   /* Sets the test start time. */
@@ -3186,12 +3318,18 @@ lial_perf_sdf_lu_naive_edge_000_t (ut_test_t *const t)
   clock_gettime(CLOCK_REALTIME, &end_time);
   (void) end_time;
 
+  /* Computes the time taken, and updates the test delta_time. */
+  ret = timespec_diff(&delta_time, &start_time, &end_time);
+  (void) ret; assert(ret == 0);
+
   /* Computes the time taken, and updates the test cpu_time. */
   ret = timespec_diff(&cpu_time, &time_0, &time_1);
   (void) ret; assert(ret == 0);
 
   if (ut_run_time_is_verbose(t)) {
-    fprintf(stdout, "  Multiplying the original random SDF matrix and its inverse: [%6lld.%9ld]\n", (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    fprintf(stdout, "  Multiplying the original random SDF matrix and its inverse: [%6lld.%9ld][%6lld.%9ld]\n",
+            (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time),
+            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
   }
 
   /*
@@ -3258,8 +3396,8 @@ lial_perf_sdf_lapack_xedge_000_plain_t (ut_test_t *const t)
 static void
 lial_perf_sdf_lapack_edge_000_bp_t (ut_test_t *const t)
 {
-  const unsigned int bs = 512;
-  const unsigned int tc = 1;
+  const unsigned int bs = 128;
+  const unsigned int tc = 8;
   const char uplo = 'L';
   const bool transpose = false;
   aux_perf_sdf_lapack_blocked_parallel_t(t, "./test/data/ut_linear_algebra/large_binary.sdf_edge_000.dat", bs, tc, uplo, transpose);
@@ -3268,8 +3406,8 @@ lial_perf_sdf_lapack_edge_000_bp_t (ut_test_t *const t)
 static void
 lial_perf_sdf_lapack_corner_000_bp_t (ut_test_t *const t)
 {
-  const unsigned int bs = 512;
-  const unsigned int tc = 1;
+  const unsigned int bs = 256;
+  const unsigned int tc = 8;
   const char uplo = 'L';
   const bool transpose = false;
   aux_perf_sdf_lapack_blocked_parallel_t(t, "./test/data/ut_linear_algebra/large_binary.sdf_corner_000.dat", bs, tc, uplo, transpose);
@@ -3278,8 +3416,8 @@ lial_perf_sdf_lapack_corner_000_bp_t (ut_test_t *const t)
 static void
 lial_perf_sdf_lapack_xedge_000_bp_t (ut_test_t *const t)
 {
-  const unsigned int bs = 512;
-  const unsigned int tc = 1;
+  const unsigned int bs = 768;
+  const unsigned int tc = 8;
   const char uplo = 'L';
   const bool transpose = false;
   aux_perf_sdf_lapack_blocked_parallel_t(t, "./test/data/ut_linear_algebra/large_binary.sdf_xedge_000.dat", bs, tc, uplo, transpose);
@@ -3298,8 +3436,8 @@ lial_perf_sdf_lapack_edge_000_t_bp_t (ut_test_t *const t)
 static void
 lial_perf_sdf_lapack_corner_000_t_bp_t (ut_test_t *const t)
 {
-  const unsigned int bs = 512;
-  const unsigned int tc = 1;
+  const unsigned int bs = 128;
+  const unsigned int tc = 0;
   const char uplo = 'L';
   const bool transpose = true;
   aux_perf_sdf_lapack_blocked_parallel_t(t, "./test/data/ut_linear_algebra/large_binary.sdf_corner_000.dat", bs, tc, uplo, transpose);
@@ -3308,8 +3446,8 @@ lial_perf_sdf_lapack_corner_000_t_bp_t (ut_test_t *const t)
 static void
 lial_perf_sdf_lapack_xedge_000_t_bp_t (ut_test_t *const t)
 {
-  const unsigned int bs = 512;
-  const unsigned int tc = 1;
+  const unsigned int bs = 1024;
+  const unsigned int tc = 0;
   const char uplo = 'L';
   const bool transpose = true;
   aux_perf_sdf_lapack_blocked_parallel_t(t, "./test/data/ut_linear_algebra/large_binary.sdf_xedge_000.dat", bs, tc, uplo, transpose);
@@ -4107,11 +4245,11 @@ main (int argc,
 
   ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_10,   "lial_perf_sdf_lapack_edge_000_bp", lial_perf_sdf_lapack_edge_000_bp_t);
   ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_100,  "lial_perf_sdf_lapack_corner_000_bp", lial_perf_sdf_lapack_corner_000_bp_t);
-  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_1000,   "lial_perf_sdf_lapack_xedge_000_bp", lial_perf_sdf_lapack_xedge_000_bp_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_1000, "lial_perf_sdf_lapack_xedge_000_bp", lial_perf_sdf_lapack_xedge_000_bp_t);
 
   ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_10,   "lial_perf_sdf_lapack_edge_000_t_bp", lial_perf_sdf_lapack_edge_000_t_bp_t);
   ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_100,  "lial_perf_sdf_lapack_corner_000_t_bp", lial_perf_sdf_lapack_corner_000_t_bp_t);
-  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_1000,   "lial_perf_sdf_lapack_xedge_000_t_bp", lial_perf_sdf_lapack_xedge_000_t_bp_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_1000, "lial_perf_sdf_lapack_xedge_000_t_bp", lial_perf_sdf_lapack_xedge_000_t_bp_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dtrsm_0", lial_dtrsm_0_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dtrsm_1", lial_dtrsm_1_t);
