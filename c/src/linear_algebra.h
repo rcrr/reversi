@@ -63,6 +63,18 @@ lial_dpotrf_bp (const char *uplo,
                 const unsigned int thread_count);
 
 extern void
+lial_dpotrs_bp (const char *uplo,
+                const int *n,
+                const int *nrhs,
+                double *a,
+                const int *lda,
+                double *b,
+                const int *ldb,
+                int *info,
+                const unsigned int block_size,
+                const unsigned int thread_count);
+
+extern void
 lial_dgemm (char *transa,
             char *transb,
             int *m,
