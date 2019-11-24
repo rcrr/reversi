@@ -1448,7 +1448,47 @@ lial_dpotrs_bp (const char *uplo,
                 const unsigned int block_size,
                 const unsigned int thread_count)
 {
-  dpotrs_(uplo, n, nrhs, a, lda, b, ldb, info);
+  const bool experimental = true;
+
+  char diag_trsm;
+  char side_trsm_0, uplo_trsm_0, transa_trsm_0;
+  char side_trsm_1, uplo_trsm_1, transa_trsm_1;
+  int m_trsm, n_trsm, lda_trsm, ldb_trsm;
+  double alpha;
+
+  /*
+   * Must be tested with UPLO == L and UPLO == U , and with lda , and ldb , different from n and nrhs.
+   * Must then be tested with B different fom I.
+   *
+   * Then must be "tiled" using TRSM and GEMM.
+   *
+   * Finally must be parallelized using OpenMP tasks.
+   */
+
+  if (experimental) {
+    printf("\nlial_dpotrs_bp - experimental\n");
+    alpha = 1.0;
+    diag_trsm = 'N';
+    m_trsm = *n;
+    n_trsm = *nrhs;
+    lda_trsm = *lda;
+    ldb_trsm = *ldb;
+    side_trsm_0 = 'L';
+    uplo_trsm_0 = 'L';
+    transa_trsm_0 = 'N';
+    side_trsm_1 = 'L';
+    uplo_trsm_1 = 'L';
+    transa_trsm_1 = 'T';
+
+    lial_dtrsm(&side_trsm_0, &uplo_trsm_0, &transa_trsm_0, &diag_trsm,
+               &m_trsm, &n_trsm, &alpha, a, &lda_trsm, b, &ldb_trsm);
+
+    lial_dtrsm(&side_trsm_1, &uplo_trsm_1, &transa_trsm_1, &diag_trsm,
+               &m_trsm, &n_trsm, &alpha, a, &lda_trsm, b, &ldb_trsm);
+
+    *info = 0;
+  } else
+    dpotrs_(uplo, n, nrhs, a, lda, b, ldb, info);
 }
 
 void
