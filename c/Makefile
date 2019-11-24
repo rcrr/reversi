@@ -63,6 +63,7 @@ CC = gcc-7
 # add -fno-inline to prevent inlining
 # add -ftree-vectorize -ftree-vectorizer-verbose=2 to get from gcc the explanation for code vectorization
 #ARCH_FLAGS = -mpopcnt -mavx2 -mabm -march=native
+# add -flto to the CFLAGS list to improve execution speed ( it takes much more to link executables )
 ARCH_FLAGS = -march=native
 #CFLAGS = -std=c11 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(BLIS_INC) -I$(PG_INCLUDE_DIR) -fopenmp -DNDEBUG
 CFLAGS = -std=c11 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -fopenmp -DNDEBUG

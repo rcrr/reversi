@@ -689,6 +689,7 @@ static void
 aux_print_matrix (char *name,
                   double *a,
                   int n,
+                  int m,
                   int lda)
 {
   printf("\n");
@@ -698,7 +699,7 @@ aux_print_matrix (char *name,
   printf("\n");
   for (int i = 0; i < n; i++) {
     printf(" .%2d. | ", i);
-    for (int j = 0; j < n; j++) {
+    for (int j = 0; j < m; j++) {
       int k = i * lda + j;
       printf("%6.3f, ", a[k]);
     }
@@ -3719,7 +3720,7 @@ lial_dpotrf_bp_t (ut_test_t *const t)
 
   ret = 0;
 
-  if (verbose) aux_print_matrix("A", a, n, n);
+  if (verbose) aux_print_matrix("A", a, n, n, n);
 
   for (int ib = 0; ib < 2; ib++) {
 
@@ -3747,7 +3748,7 @@ lial_dpotrf_bp_t (ut_test_t *const t)
     lial_dpotrf(&uplo, &n0, &u[n+1], &n, &ret);
     ut_assert(t, ret == 0);
 
-    if (verbose) aux_print_matrix("U", u, n, n);
+    if (verbose) aux_print_matrix("U", u, n, n, n);
 
     for (tc = tc_min; tc <= tc_max; tc++) {
 
@@ -3759,7 +3760,7 @@ lial_dpotrf_bp_t (ut_test_t *const t)
         lial_dpotrf_bp(&uplo, &n0, &b[n+1], &n, &ret, bs, tc);
         ut_assert(t, ret == 0);
 
-        if (verbose) aux_print_matrix("B", b, n, n);
+        if (verbose) aux_print_matrix("B", b, n, n, n);
 
         for (int i = 0; i < n * n; i++) {
           double delta = fabs(b[i] - u[i]);
@@ -3772,6 +3773,862 @@ lial_dpotrf_bp_t (ut_test_t *const t)
       }
     }
   }
+}
+
+static void
+lial_dpotrs_bp_2x2_t (ut_test_t *const t)
+{
+  const bool verbose = false;
+
+  static const int n = 2;
+
+  double a[] =
+    {
+     1.0,  -1.0,
+     0.0,  10.0,
+    };
+  ut_assert(t, sizeof(a) / sizeof(double) == n * n);
+
+  double expected_l[] =
+    {
+     1.0,  -1.0,
+     0.0,   3.0,
+    };
+  ut_assert(t, sizeof(a) / sizeof(double) == n * n);
+
+  double expected_y[] =
+    {
+     1.0,    0.0,
+     1.0/3., 1.0/3.,
+    };
+  ut_assert(t, sizeof(a) / sizeof(double) == n * n);
+
+  double expected_x[] =
+    {
+     +10.0/9.,  +1.0/9.,
+     + 1.0/9.,  +1.0/9.,
+    };
+  ut_assert(t, sizeof(a) / sizeof(double) == n * n);
+
+  double a0[n * n];
+  double y[n * n];
+  double x[n * n];
+  double x0[n * n];
+
+  int ret, i, j, k, h, n0;
+  char uplo;
+  const double epsilon = 1.0E-18;
+  double alpha;
+  double delta, sum, expected;
+  char diag;
+  char side_trsm_0, uplo_trsm_0, transa_trsm_0;
+  char side_trsm_1, uplo_trsm_1, transa_trsm_1;
+
+  ret = 0;
+  uplo = 'L';
+  diag = 'N';
+  n0 = n;
+  alpha = 1.0;
+
+  /* Copies matrix A to matrix A0. */
+  for (i = 0; i < n * n; i++)
+    a0[i] = a[i];
+
+  /* Prepares matrix Y equal to Identity. */
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      y[k] = (i == j) ? 1.0 : 0.0;
+    }
+  }
+
+  /* Prepares matrix X0 equal to Identity. */
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      x0[k] = (i == j) ? 1.0 : 0.0;
+    }
+  }
+
+  /* Factorizes matrix A. */
+  lial_dpotrf(&uplo, &n, &a[0], &n, &ret);
+  ut_assert(t, ret == 0);
+
+  /* Verifies that matrix A is factorized correctly. */
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      delta = fabs(a[k] - expected_l[k]);
+      if (delta > epsilon) {
+        printf("\n");
+        printf("Cholesky factorization failed: row n. = %d, column n. %d, expected = %24.18f, "
+               "value = %24.18f, delta = %24.18f, max_dev = %24.18f\n",
+               i, j, expected_l[k], a[k], delta, epsilon);
+        ut_assert(t, false);
+      }
+    }
+  }
+
+  /* Solves the n linear systems A * X0 = I , the result overwrites X0. */
+  lial_dpotrs(&uplo, &n, &n, a, &n, x0, &n, &ret);
+  ut_assert(t, ret == 0);
+
+  /* Verifies that the standard Cholesky lapack solution works properly. */
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      delta = fabs(x0[k] - expected_x[k]);
+      if (delta > epsilon) {
+        printf("\n");
+        printf("Cholesky solution failed: row n. = %d, column n. %d, expected = %24.18f, "
+               "value = %24.18f, delta = %24.18f, max_dev = %24.18f\n",
+               i, j, expected_x[k], x0[k], delta, epsilon);
+        ut_assert(t, false);
+      }
+    }
+  }
+
+  /* From now on, after preparation, there is the real test. */
+
+  side_trsm_0 = 'R';
+  uplo_trsm_0 = 'L';
+  transa_trsm_0 = 'T';
+
+  /* Solves the n linear systems L * Y = I. */
+  lial_dtrsm(&side_trsm_0, &uplo_trsm_0, &transa_trsm_0, &diag, &n0, &n0, &alpha, a, &n0, y, &n0);
+
+  if (verbose) aux_print_matrix("Y", y, n, n, n);
+
+  /* Verifies that the matrix Y is computed as expected. */
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      delta = fabs(y[k] - expected_y[k]);
+      if (delta > epsilon) {
+        printf("\n");
+        printf("TRSM BLAS-3 operation n. 0 failed: row n. = %d, column n. %d, expected = %24.18f, "
+               "value = %24.18f, delta = %24.18f, max_dev = %24.18f\n",
+               i, j, expected_y[k], y[k], delta, epsilon);
+        ut_assert(t, false);
+      }
+    }
+  }
+
+  /* Prepares matrix X equal to Y. Would it be possible to reuse Y but for maximum clarity we keep Y unchanged. */
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      x[k] = y[k];
+    }
+  }
+
+  side_trsm_1 = 'R';
+  uplo_trsm_1 = 'L';
+  transa_trsm_1 = 'N';
+
+  /* Solves the n linear systems L**T * X = Y. */
+  lial_dtrsm(&side_trsm_1, &uplo_trsm_1, &transa_trsm_1, &diag, &n0, &n0, &alpha, a, &n0, x, &n0);
+
+  if (verbose) aux_print_matrix("X", x, n, n, n);
+
+  /* Verifies that the matrix X is computed as expected. */
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      delta = fabs(x[k] - expected_x[k]);
+      if (delta > epsilon) {
+        printf("\n");
+        printf("TRSM BLAS-3 operation n. 1 failed: row n. = %d, column n. %d, expected = %24.18f, "
+               "value = %24.18f, delta = %24.18f, max_dev = %24.18f\n",
+               i, j, expected_x[k], x[k], delta, epsilon);
+        ut_assert(t, false);
+      }
+    }
+  }
+
+  /* Verifies that the product A * X is equal to I. */
+  for (i = 0; i < n; i++) {
+    for (j = i; j < n; j++) {
+      sum = 0.0;
+      expected = (i == j) ? 1.0 : 0.0;
+      for (h = 0; h < n; h++) {
+        k = (h < i) ? h * n + i : i * n + h;
+        sum += a0[k] * x[h * n + j];
+      }
+      delta = fabs(sum - expected);
+      if (delta > epsilon) {
+        printf("\n");
+        printf("Inversion operation failed: row n. = %d, column n. %d, expected = %24.18f, "
+               "value = %24.18f, delta = %24.18f, max_dev = %24.18f\n",
+               i, j, expected, sum, delta, epsilon);
+        ut_assert(t, false);
+      }
+    }
+  }
+
+}
+
+static void
+lial_dpotrs_bp_3x3_t (ut_test_t *const t)
+{
+  const bool verbose = false;
+
+  static const int n = 3;
+
+  double a[] =
+    {
+     1.0,   1.0,  -1.0,
+     0.0,  10.0,   2.0,
+     0.0,   0.0,  27.0,
+    };
+  ut_assert(t, sizeof(a) / sizeof(double) == n * n);
+
+  double expected_l[] =
+    {
+     1.0,  1.0,  -1.0,
+     0.0,  3.0,   1.0,
+     0.0,  0.0,   5.0,
+    };
+  ut_assert(t, sizeof(expected_l) / sizeof(double) == n * n);
+
+  double expected_y[] =
+    {
+     +1.0, -1.0/3.,  4.0/15.,
+     +0.0,  1.0/3., -1.0/15.,
+      0.0,  0.0,     1.0/5.,
+    };
+  ut_assert(t, sizeof(expected_y) / sizeof(double) == n * n);
+
+  double expected_x[] =
+    {
+     266./225., -29./225., 12./225.,
+     -29./225.,  26./225., -3./225.,
+      12./225.,  -3./225.,  9./225.,
+    };
+  ut_assert(t, sizeof(expected_x) / sizeof(double) == n * n);
+
+  double a0[n * n];
+  double y[n * n];
+  double x[n * n];
+  double x0[n * n];
+
+  int ret, i, j, k, h, n0;
+  char uplo;
+  const double epsilon = 1.0E-15;
+  double alpha;
+  double delta, sum, expected;
+  char diag;
+  char side_trsm_0, uplo_trsm_0, transa_trsm_0;
+  char side_trsm_1, uplo_trsm_1, transa_trsm_1;
+
+  ret = 0;
+  uplo = 'L';
+  diag = 'N';
+  n0 = n;
+  alpha = 1.0;
+
+  /* Copies matrix A to matrix A0. */
+  for (i = 0; i < n * n; i++)
+    a0[i] = a[i];
+
+  /* Prepares matrix Y equal to Identity. */
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      y[k] = (i == j) ? 1.0 : 0.0;
+    }
+  }
+
+  /* Prepares matrix X0 equal to Identity. */
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      x0[k] = (i == j) ? 1.0 : 0.0;
+    }
+  }
+
+  /* Factorizes matrix A. */
+  lial_dpotrf(&uplo, &n, &a[0], &n, &ret);
+  ut_assert(t, ret == 0);
+
+  /* Verifies that matrix A is factorized correctly. */
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      delta = fabs(a[k] - expected_l[k]);
+      if (delta > epsilon) {
+        printf("\n");
+        printf("Cholesky factorization failed: row n. = %d, column n. %d, expected = %24.18f, "
+               "value = %24.18f, delta = %24.18f, max_dev = %24.18f\n",
+               i, j, expected_l[k], a[k], delta, epsilon);
+        ut_assert(t, false);
+      }
+    }
+  }
+
+  /* Solves the n linear systems A * X0 = I , the result overwrites X0. */
+  lial_dpotrs(&uplo, &n, &n, a, &n, x0, &n, &ret);
+  ut_assert(t, ret == 0);
+
+  /* Verifies that the standard Cholesky lapack solution works properly. */
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      delta = fabs(x0[k] - expected_x[k]);
+      if (delta > epsilon) {
+        printf("\n");
+        printf("Cholesky solution failed: row n. = %d, column n. %d, expected = %24.18f, "
+               "value = %24.18f, delta = %24.18f, max_dev = %24.18f\n",
+               i, j, expected_x[k], x0[k], delta, epsilon);
+        ut_assert(t, false);
+      }
+    }
+  }
+
+  /* From now on, after preparation, there is the real test. */
+
+  side_trsm_0 = 'L';
+  uplo_trsm_0 = 'L';
+  transa_trsm_0 = 'N';
+
+  /* Solves the n linear systems L * Y = I. */
+  lial_dtrsm(&side_trsm_0, &uplo_trsm_0, &transa_trsm_0, &diag, &n0, &n0, &alpha, a, &n0, y, &n0);
+
+  if (verbose) aux_print_matrix("Y", y, n, n, n);
+
+  /* Verifies that the matrix Y is computed as expected. */
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      delta = fabs(y[k] - expected_y[k]);
+      if (delta > epsilon) {
+        printf("\n");
+        printf("TRSM BLAS-3 operation n. 0 failed: row n. = %d, column n. %d, expected = %24.18f, "
+               "value = %24.18f, delta = %24.18f, max_dev = %24.18f\n",
+               i, j, expected_y[k], y[k], delta, epsilon);
+        ut_assert(t, false);
+      }
+    }
+  }
+
+  /* Prepares matrix X equal to Y. Would it be possible to reuse Y but for maximum clarity we keep Y unchanged. */
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      x[k] = y[k];
+    }
+  }
+
+  side_trsm_1 = 'L';
+  uplo_trsm_1 = 'L';
+  transa_trsm_1 = 'T';
+
+  /* Solves the n linear systems L**T * X = Y. */
+  lial_dtrsm(&side_trsm_1, &uplo_trsm_1, &transa_trsm_1, &diag, &n0, &n0, &alpha, a, &n0, x, &n0);
+
+  if (verbose) aux_print_matrix("X", x, n, n, n);
+
+  /* Verifies that the matrix X is computed as expected. */
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      delta = fabs(x[k] - expected_x[k]);
+      if (delta > epsilon) {
+        printf("\n");
+        printf("TRSM BLAS-3 operation n. 1 failed: row n. = %d, column n. %d, expected = %24.18f, "
+               "value = %24.18f, delta = %24.18f, max_dev = %24.18f\n",
+               i, j, expected_x[k], x[k], delta, epsilon);
+        ut_assert(t, false);
+      }
+    }
+  }
+
+  /* Verifies that the product A * X is equal to I. */
+  for (i = 0; i < n; i++) {
+    for (j = i; j < n; j++) {
+      sum = 0.0;
+      expected = (i == j) ? 1.0 : 0.0;
+      for (h = 0; h < n; h++) {
+        k = (h < i) ? h * n + i : i * n + h;
+        sum += a0[k] * x[h * n + j];
+      }
+      delta = fabs(sum - expected);
+      if (delta > epsilon) {
+        printf("\n");
+        printf("Inversion operation failed: row n. = %d, column n. %d, expected = %24.18f, "
+               "value = %24.18f, delta = %24.18f, max_dev = %24.18f\n",
+               i, j, expected, sum, delta, epsilon);
+        ut_assert(t, false);
+      }
+    }
+  }
+
+}
+
+static void
+lial_dpotrs_bp_3x3_1rhs_t (ut_test_t *const t)
+{
+  const bool verbose = false;
+
+  static const int n = 3;
+  static const int nb = 1;
+
+  double a[] =
+    {
+     1.0,   1.0,  -1.0,
+     0.0,  10.0,   2.0,
+     0.0,   0.0,  27.0,
+    };
+  ut_assert(t, sizeof(a) / sizeof(double) == n * n);
+
+  double b[] = { 3.0, 2.0, 7.0 };
+  ut_assert(t, sizeof(b) / sizeof(double) == n * nb);
+
+  double expected_l[] =
+    {
+     1.0,  1.0,  -1.0,
+     0.0,  3.0,   1.0,
+     0.0,  0.0,   5.0,
+    };
+  ut_assert(t, sizeof(expected_l) / sizeof(double) == n * n);
+
+  double expected_y[] = { +3.0, -1.0/3., +31.0/15. };
+  ut_assert(t, sizeof(expected_y) / sizeof(double) == n * nb);
+
+  double expected_x[] = { 824./225., -56./225., 93./225. };
+  ut_assert(t, sizeof(expected_x) / sizeof(double) == n * nb);
+
+  double y[n * nb];
+  double x[n * nb];
+  double x0[n * nb];
+
+  int ret, i, j, k, n0, nb0;
+  char uplo;
+  const double epsilon = 1.0E-15;
+  double alpha;
+  double delta;
+  char diag;
+  char side_trsm_0, uplo_trsm_0, transa_trsm_0;
+  char side_trsm_1, uplo_trsm_1, transa_trsm_1;
+
+  ret = 0;
+  uplo = 'L';
+  diag = 'N';
+  n0 = n;
+  nb0 = nb;
+  alpha = 1.0;
+
+  /* Prepares matrix Y equal to B. */
+  for (i = 0; i < nb; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      y[k] = b[k];
+    }
+  }
+
+  /* Prepares matrix X0 equal to B. */
+  for (i = 0; i < nb; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      x0[k] = b[k];
+    }
+  }
+
+  /* Factorizes matrix A. */
+  lial_dpotrf(&uplo, &n, &a[0], &n, &ret);
+  ut_assert(t, ret == 0);
+
+  /* Verifies that matrix A is factorized correctly. */
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      delta = fabs(a[k] - expected_l[k]);
+      if (delta > epsilon) {
+        printf("\n");
+        printf("Cholesky factorization failed: row n. = %d, column n. %d, expected = %24.18f, "
+               "value = %24.18f, delta = %24.18f, max_dev = %24.18f\n",
+               i, j, expected_l[k], a[k], delta, epsilon);
+        ut_assert(t, false);
+      }
+    }
+  }
+
+  /* Solves the n linear systems A * X0 = B , the result overwrites X0. */
+  lial_dpotrs(&uplo, &n, &nb, a, &n, x0, &n, &ret);
+  ut_assert(t, ret == 0);
+
+  /* Verifies that the standard Cholesky lapack solution works properly. */
+  for (i = 0; i < nb; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      delta = fabs(x0[k] - expected_x[k]);
+      if (delta > epsilon) {
+        printf("\n");
+        printf("Cholesky solution failed: row n. = %d, column n. %d, expected = %24.18f, "
+               "value = %24.18f, delta = %24.18f, max_dev = %24.18f\n",
+               i, j, expected_x[k], x0[k], delta, epsilon);
+        ut_assert(t, false);
+      }
+    }
+  }
+
+  /* From now on, after preparation, there is the real test. */
+
+  side_trsm_0 = 'L';
+  uplo_trsm_0 = 'L';
+  transa_trsm_0 = 'N';
+
+  if (verbose) aux_print_matrix("Y_before", y, nb, n, n);
+
+  if (verbose) aux_print_matrix("A_before", a, n, n, n);
+
+  /* Solves the n linear systems L * Y = B. */
+  lial_dtrsm(&side_trsm_0, &uplo_trsm_0, &transa_trsm_0, &diag, &n0, &nb0, &alpha, a, &n0, y, &n0);
+
+  if (verbose) aux_print_matrix("Y", y, nb, n, n);
+
+  /* Verifies that the matrix Y is computed as expected. */
+  for (i = 0; i < nb; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      delta = fabs(y[k] - expected_y[k]);
+      if (delta > epsilon) {
+        printf("\n");
+        printf("TRSM BLAS-3 operation n. 0 failed: row n. = %d, column n. %d, expected = %24.18f, "
+               "value = %24.18f, delta = %24.18f, max_dev = %24.18f\n",
+               i, j, expected_y[k], y[k], delta, epsilon);
+        ut_assert(t, false);
+      }
+    }
+  }
+
+  /* Prepares matrix X equal to Y. Would it be possible to reuse Y but for maximum clarity we keep Y unchanged. */
+  for (i = 0; i < nb; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      x[k] = y[k];
+    }
+  }
+
+  if (verbose) aux_print_matrix("X_before", x, nb, n, n);
+
+  side_trsm_1 = 'L';
+  uplo_trsm_1 = 'L';
+  transa_trsm_1 = 'T';
+
+  /* Solves the n linear systems L**T * X = Y. */
+  lial_dtrsm(&side_trsm_1, &uplo_trsm_1, &transa_trsm_1, &diag, &n0, &nb0, &alpha, a, &n0, x, &n0);
+
+  if (verbose) aux_print_matrix("X", x, nb, n, n);
+
+  /* Verifies that the matrix X is computed as expected. */
+  for (i = 0; i < nb; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      delta = fabs(x[k] - expected_x[k]);
+      if (delta > epsilon) {
+        printf("\n");
+        printf("TRSM BLAS-3 operation n. 1 failed: row n. = %d, column n. %d, expected = %24.18f, "
+               "value = %24.18f, delta = %24.18f, max_dev = %24.18f\n",
+               i, j, expected_x[k], x[k], delta, epsilon);
+        ut_assert(t, false);
+      }
+    }
+  }
+
+}
+
+static void
+lial_dpotrs_bp_3x3_2rhs_t (ut_test_t *const t)
+{
+  const bool verbose = false;
+
+  static const int n = 3;
+  static const int nb = 2;
+
+  double a[] =
+    {
+     1.0,   1.0,  -1.0,
+     0.0,  10.0,   2.0,
+     0.0,   0.0,  27.0,
+    };
+  ut_assert(t, sizeof(a) / sizeof(double) == n * n);
+
+  double b[] =
+    {
+     3.0,  2.0, 7.0,
+     1.0, -1.0, 2.0,
+    };
+  ut_assert(t, sizeof(b) / sizeof(double) == n * nb);
+
+  double expected_l[] =
+    {
+     1.0,  1.0,  -1.0,
+     0.0,  3.0,   1.0,
+     0.0,  0.0,   5.0,
+    };
+  ut_assert(t, sizeof(expected_l) / sizeof(double) == n * n);
+
+  double expected_y[] =
+    {
+     3.0, -1.0/3., 31.0/15.,
+     1.0, -2.0/3., 11.0/15.,
+    };
+  ut_assert(t, sizeof(expected_y) / sizeof(double) == n * nb);
+
+  double expected_x[] =
+    {
+     824./225.,  -56./225.,  93./225.,
+     319./225.,  -61./225.,  33./225.,
+    };
+  ut_assert(t, sizeof(expected_x) / sizeof(double) == n * nb);
+
+  double y[n * nb];
+  double x[n * nb];
+  double x0[n * nb];
+
+  int ret, i, j, k, n0, nb0;
+  char uplo;
+  const double epsilon = 1.0E-15;
+  double alpha;
+  double delta;
+  char diag;
+  char side_trsm_0, uplo_trsm_0, transa_trsm_0;
+  char side_trsm_1, uplo_trsm_1, transa_trsm_1;
+
+  ret = 0;
+  uplo = 'L';
+  diag = 'N';
+  n0 = n;
+  nb0 = nb;
+  alpha = 1.0;
+
+  /* Prepares matrix Y equal to B. */
+  for (i = 0; i < nb; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      y[k] = b[k];
+    }
+  }
+
+  /* Prepares matrix X0 equal to B. */
+  for (i = 0; i < nb; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      x0[k] = b[k];
+    }
+  }
+
+  /* Factorizes matrix A. */
+  lial_dpotrf(&uplo, &n, &a[0], &n, &ret);
+  ut_assert(t, ret == 0);
+
+  /* Verifies that matrix A is factorized correctly. */
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      delta = fabs(a[k] - expected_l[k]);
+      if (delta > epsilon) {
+        printf("\n");
+        printf("Cholesky factorization failed: row n. = %d, column n. %d, expected = %24.18f, "
+               "value = %24.18f, delta = %24.18f, max_dev = %24.18f\n",
+               i, j, expected_l[k], a[k], delta, epsilon);
+        ut_assert(t, false);
+      }
+    }
+  }
+
+  if (verbose) aux_print_matrix("X0_before", x0, nb, n, n);
+
+  /* Solves the n linear systems A * X0 = B , the result overwrites X0. */
+  lial_dpotrs(&uplo, &n, &nb, a, &n, x0, &n, &ret);
+  ut_assert(t, ret == 0);
+
+  if (verbose) aux_print_matrix("X0_after", x0, nb, n, n);
+
+  /* Verifies that the standard Cholesky lapack solution works properly. */
+  for (i = 0; i < nb; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      delta = fabs(x0[k] - expected_x[k]);
+      if (delta > epsilon) {
+        printf("\n");
+        printf("Cholesky solution failed: row n. = %d, column n. %d, expected = %24.18f, "
+               "value = %24.18f, delta = %24.18f, max_dev = %24.18f\n",
+               i, j, expected_x[k], x0[k], delta, epsilon);
+        ut_assert(t, false);
+      }
+    }
+  }
+
+  /* From now on, after preparation, there is the real test. */
+
+  side_trsm_0 = 'L';
+  uplo_trsm_0 = 'L';
+  transa_trsm_0 = 'N';
+
+  if (verbose) aux_print_matrix("Y_before", y, nb, n, n);
+
+  if (verbose) aux_print_matrix("A_before", a, n, n, n);
+
+  /* Solves the n linear systems L * Y = B. */
+  lial_dtrsm(&side_trsm_0, &uplo_trsm_0, &transa_trsm_0, &diag, &n0, &nb0, &alpha, a, &n0, y, &n0);
+
+  if (verbose) aux_print_matrix("Y", y, nb, n, n);
+
+  /* Verifies that the matrix Y is computed as expected. */
+  for (i = 0; i < nb; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      delta = fabs(y[k] - expected_y[k]);
+      if (delta > epsilon) {
+        printf("\n");
+        printf("TRSM BLAS-3 operation n. 0 failed: row n. = %d, column n. %d, expected = %24.18f, "
+               "value = %24.18f, delta = %24.18f, max_dev = %24.18f\n",
+               i, j, expected_y[k], y[k], delta, epsilon);
+        ut_assert(t, false);
+      }
+    }
+  }
+
+  /* Prepares matrix X equal to Y. Would it be possible to reuse Y but for maximum clarity we keep Y unchanged. */
+  for (i = 0; i < nb; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      x[k] = y[k];
+    }
+  }
+
+  if (verbose) aux_print_matrix("X_before", x, nb, n, n);
+
+  side_trsm_1 = 'L';
+  uplo_trsm_1 = 'L';
+  transa_trsm_1 = 'T';
+
+  /* Solves the n linear systems L**T * X = Y. */
+  lial_dtrsm(&side_trsm_1, &uplo_trsm_1, &transa_trsm_1, &diag, &n0, &nb0, &alpha, a, &n0, x, &n0);
+
+  if (verbose) aux_print_matrix("X", x, nb, n, n);
+
+  /* Verifies that the matrix X is computed as expected. */
+  for (i = 0; i < nb; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      delta = fabs(x[k] - expected_x[k]);
+      if (delta > epsilon) {
+        printf("\n");
+        printf("TRSM BLAS-3 operation n. 1 failed: row n. = %d, column n. %d, expected = %24.18f, "
+               "value = %24.18f, delta = %24.18f, max_dev = %24.18f\n",
+               i, j, expected_x[k], x[k], delta, epsilon);
+        ut_assert(t, false);
+      }
+    }
+  }
+
+}
+
+static void
+lial_dpotrs_bp_t (ut_test_t *const t)
+{
+  static const int n = 16;
+  static const int n0 = 14;
+
+  double a[] =
+    {
+     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+     1.0, 8.0, 0.2, 0.1, 0.0, 0.4, 0.2, 0.1, 0.7, 0.3, 0.5, 0.1, 0.2, 0.1, 0.9, 1.0,
+     1.0, 0.0, 3.0, 0.0, 0.4, 0.3, 0.6, 0.1, 0.9, 0.2, 0.1, 0.5, 0.3, 0.7, 0.0, 1.0,
+     1.0, 0.0, 0.0, 7.0, 0.6, 0.2, 0.5, 0.6, 0.6, 0.3, 0.1, 0.8, 0.0, 0.6, 0.0, 1.0,
+     1.0, 0.0, 0.0, 0.0, 8.0, 0.1, 0.3, 0.7, 0.9, 0.0, 0.0, 0.2, 0.2, 0.1, 0.5, 1.0,
+     1.0, 0.0, 0.0, 0.0, 0.0, 9.0, 0.4, 0.1, 0.1, 0.1, 0.5, 0.7, 0.0, 0.0, 0.1, 1.0,
+     1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.1, 0.9, 0.8, 0.3, 0.2, 0.5, 0.7, 0.2, 1.0,
+     1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.3, 0.0, 0.1, 0.4, 0.0, 1.0,
+     1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.4, 0.7, 0.6, 0.5, 0.6, 0.0, 1.0,
+     1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.9, 0.5, 0.1, 0.6, 0.0, 1.0,
+     1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 9.0, 0.3, 0.0, 0.1, 0.7, 1.0,
+     1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.8, 0.8, 0.1, 1.0,
+     1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 0.2, 0.6, 1.0,
+     1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.6, 1.0,
+     1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0, 1.0,
+     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    };
+  ut_assert(t, sizeof(a) / sizeof(double) == n * n);
+
+  double b[] =
+    {
+     7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0,
+     7.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0,
+     7.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0,
+     7.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0,
+     7.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0,
+     7.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0,
+     7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0,
+     7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0,
+     7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0,
+     7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0,
+     7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 7.0,
+     7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 7.0,
+     7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 7.0,
+     7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 7.0,
+     7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 7.0,
+     7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0,
+    };
+
+  ut_assert(t, sizeof(a) / sizeof(double) == n * n);
+
+  double c[n * n];
+
+  int _n , _n0;
+  _n = n;
+  _n0 = n0;
+
+  double alpha;
+
+  const bool verbose = false;
+
+  int ret;
+
+  char uplo;
+  char diag;
+  char side_trsm_0, uplo_trsm_0, transa_trsm_0;
+
+  alpha = 1.0;
+
+  ret = 0;
+
+  if (verbose) aux_print_matrix("A", a, n, n, n);
+  if (verbose) aux_print_matrix("B", b, n, n, n);
+
+  uplo = 'L';
+  diag = 'N';
+
+  side_trsm_0 = 'R';
+  uplo_trsm_0 = 'L';
+  transa_trsm_0 = 'T';
+
+  /* Copies matrix B to matrix C. */
+  for (int i = 0; i < n * n; i++)
+    c[i] = b[i];
+
+  if (verbose) aux_print_matrix("C", c, n, n, n);
+
+  /* Factorizes matrix A. */
+  lial_dpotrf(&uplo, &n0, &a[n+1], &n, &ret);
+  ut_assert(t, ret == 0);
+
+  if (verbose) aux_print_matrix("A", a, n, n, n);
+
+  /* Solves the n linear systems A * X = B , the result overwrites B. */
+  lial_dpotrs(&uplo, &n0, &n0, &a[n+1], &n, &b[n+1], &n, &ret);
+  ut_assert(t, ret == 0);
+
+  if (verbose) aux_print_matrix("B", b, n, n, n);
+
+  /* Solves the n linear systems A * X = C. */
+  lial_dtrsm(&side_trsm_0, &uplo_trsm_0, &transa_trsm_0, &diag, &_n0, &_n0, &alpha, &a[n+1], &_n, &c[n+1], &_n);
+
+  if (verbose) aux_print_matrix("C", c, n, n, n);
+
 }
 
 
@@ -3847,6 +4704,12 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_1000, "lial_perf_sdf_lapack_xedge_000_t_bp", lial_perf_sdf_lapack_xedge_000_t_bp_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_01,   "lial_dpotrf_bp", lial_dpotrf_bp_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dpotrs_bp_2x2", lial_dpotrs_bp_2x2_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dpotrs_bp_3x3", lial_dpotrs_bp_3x3_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dpotrs_bp_3x3_1rhs", lial_dpotrs_bp_3x3_1rhs_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dpotrs_bp_3x3_2rhs", lial_dpotrs_bp_3x3_2rhs_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dpotrs_bp", lial_dpotrs_bp_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);
