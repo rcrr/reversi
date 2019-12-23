@@ -522,7 +522,7 @@ aux_perf_sdf_lapack_blocked_parallel_t (ut_test_t *const t,
   }
 
   if (transpose) {
-    lial_transpose_square_matrix (a, n);
+    lial_transpose_square_matrix(a, n);
     uplox = (uplo == ut_lial_lower) ? ut_lial_upper : ut_lial_lower;
     fprintf(stdout, "  Transposing SDF matrix.\n");
   } else {
@@ -4533,7 +4533,7 @@ lial_dpotrs_bp_t (ut_test_t *const t)
   static const int n = 16;
   static const int n0 = 14;
 
-  double a[] =
+  double a0[] =
     {
      1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
      1.0, 8.0, 0.2, 0.1, 0.0, 0.4, 0.2, 0.1, 0.7, 0.3, 0.5, 0.1, 0.2, 0.1, 0.9, 1.0,
@@ -4552,82 +4552,148 @@ lial_dpotrs_bp_t (ut_test_t *const t)
      1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0, 1.0,
      1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
     };
-  ut_assert(t, sizeof(a) / sizeof(double) == n * n);
+  ut_assert(t, sizeof(a0) / sizeof(double) == n * n);
 
-  double b[] =
+  double b0[] =
     {
-     7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0,
-     7.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0,
-     7.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0,
-     7.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0,
-     7.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0,
-     7.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0,
-     7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0,
-     7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0,
-     7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0,
-     7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0,
-     7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 7.0,
-     7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 7.0,
-     7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 7.0,
-     7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 7.0,
-     7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 7.0,
-     7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0,
+     7.0,  7.0,  7.0,  7.0,  7.0,  7.0,  7.0,  7.0,  7.0,  7.0,  7.0,  7.0,  7.0,  7.0,  7.0, 7.0,
+     7.0, +0.5, -0.2, -0.1, +0.8, +0.1, -0.5, +0.8, -0.1, +0.0, +0.2, +0.1, +0.1, -0.2, +0.3, 7.0,
+     7.0, +0.1, +0.6, -0.1, -0.8, +0.7, -0.0, +0.9, -0.1, +0.1, +0.6, -0.2, -0.3, -0.1, +0.4, 7.0,
+     7.0, -0.3, +0.5, -0.4, +0.0, +0.7, -0.6, +0.3, +0.1, +0.7, +0.3, +0.1, +0.8, -0.3, +0.3, 7.0,
+     7.0, +0.8, -0.3, -0.3, +0.2, +0.7, -0.4, +0.8, +0.3, +0.5, -0.2, -0.9, +0.7, -0.0, +0.4, 7.0,
+     7.0, +0.6, +0.0, -0.8, +0.4, +0.6, -0.5, +0.6, +0.9, +0.4, -0.1, +0.7, -0.7, -0.9, +0.8, 7.0,
+     7.0, +0.9, +0.8, +0.1, -0.6, +0.3, +0.1, +0.6, +0.0, +0.4, +0.4, -0.6, +0.7, -0.6, +0.5, 7.0,
+     7.0, -0.0, +0.2, -0.4, +0.7, +0.3, +0.9, -0.2, +0.4, +0.3, +0.8, -0.4, +0.9, -0.6, +0.1, 7.0,
+     7.0, +0.7, -0.1, -0.6, +0.5, +0.9, -0.3, +0.2, +0.3, +0.7, +0.9, -0.3, +0.7, -0.5, +0.1, 7.0,
+     7.0, +0.6, +0.8, +0.5, +0.6, +0.4, +0.8, +0.3, -0.6, -0.2, -0.5, +0.6, +0.4, -0.7, +0.5, 7.0,
+     7.0, -0.6, +0.8, -0.2, +0.9, +0.8, -0.5, +0.1, +0.7, -0.3, +0.4, +0.9, -0.1, -0.6, +0.0, 7.0,
+     7.0, -0.4, +0.9, -0.9, -0.2, +0.3, +0.7, +0.9, +0.9, -0.4, +0.5, +0.7, +0.3, -0.3, +0.6, 7.0,
+     7.0, +0.2, -0.8, +0.3, +0.6, +0.7, -0.7, +0.7, +0.1, -0.5, +0.0, +0.7, +0.2, -0.4, +0.6, 7.0,
+     7.0, +0.1, -0.5, +0.2, -0.8, +0.1, +0.8, +0.4, -0.1, -0.8, +0.6, +0.5, +0.0, -0.7, +0.8, 7.0,
+     7.0, -0.3, +0.4, -0.1, +0.3, +0.3, -0.1, -0.4, +0.1, -0.4, +0.6, -0.5, +0.0, -0.1, +0.9, 7.0,
+     7.0,  7.0,  7.0,  7.0,  7.0,  7.0,  7.0,  7.0,  7.0,  7.0,  7.0,  7.0,  7.0,  7.0,  7.0, 7.0,
     };
+  ut_assert(t, sizeof(b0) / sizeof(double) == n * n);
 
-  ut_assert(t, sizeof(a) / sizeof(double) == n * n);
-
+  double a1[n * n];
+  double b1[n * n];
   double c[n * n];
 
-  int _n , _n0;
-  _n = n;
-  _n0 = n0;
-
-  double alpha;
-
-  const bool verbose = false;
-
-  int ret;
-
+  bool verbose, is_computed, transpose;
+  int i, j, k, h, ret;
+  unsigned int bs, tc;
+  double tmp, delta, epsilon, expected;
   char uplo;
-  char diag;
-  char side_trsm_0, uplo_trsm_0, transa_trsm_0;
+  int nrhs, row;
 
-  alpha = 1.0;
-
+  verbose = ut_run_time_is_verbose(t);
+  transpose = false;
+  epsilon = 1.0E-15;
   ret = 0;
 
-  if (verbose) aux_print_matrix("A", a, n, n, n);
-  if (verbose) aux_print_matrix("B", b, n, n, n);
+  if (verbose) aux_print_matrix("A0", a0, n, n, n);
+  if (verbose) aux_print_matrix("B0", b0, n, n, n);
 
-  uplo = 'L';
-  diag = 'N';
+ test_again_transposed:
+  uplo = (transpose) ? 'U' : 'L';
 
-  side_trsm_0 = 'R';
-  uplo_trsm_0 = 'L';
-  transa_trsm_0 = 'T';
-
-  /* Copies matrix B to matrix C. */
+  /* Copies matrix A0 to matrix A1. */
   for (int i = 0; i < n * n; i++)
-    c[i] = b[i];
+    a1[i] = a0[i];
 
-  if (verbose) aux_print_matrix("C", c, n, n, n);
+  /* Copies matrix B0 to matrix B1. */
+  for (int i = 0; i < n * n; i++)
+    b1[i] = b0[i];
 
-  /* Factorizes matrix A. */
-  lial_dpotrf(&uplo, &n0, &a[n+1], &n, &ret);
+  if (verbose) aux_print_matrix("A1", a1, n, n, n);
+  if (verbose) aux_print_matrix("B1", b1, n, n, n);
+
+  /* Factorizes matrix A1. */
+  lial_dpotrf(&uplo, &n0, &a1[n+1], &n, &ret);
   ut_assert(t, ret == 0);
 
-  if (verbose) aux_print_matrix("A", a, n, n, n);
+  if (verbose) aux_print_matrix("A1, after factorization", a1, n, n, n);
 
-  /* Solves the n linear systems A * X = B , the result overwrites B. */
-  lial_dpotrs(&uplo, &n0, &n0, &a[n+1], &n, &b[n+1], &n, &ret);
+  /* Solves the n linear systems A1 * X = B1 , the result overwrites B1. */
+  lial_dpotrs(&uplo, &n0, &n0, &a1[n+1], &n, &b1[n+1], &n, &ret);
   ut_assert(t, ret == 0);
 
-  if (verbose) aux_print_matrix("B", b, n, n, n);
+  if (verbose) aux_print_matrix("B1, certified solution", b1, n, n, n);
 
-  /* Solves the n linear systems A * X = C. */
-  lial_dtrsm(&side_trsm_0, &uplo_trsm_0, &transa_trsm_0, &diag, &_n0, &_n0, &alpha, &a[n+1], &_n, &c[n+1], &_n);
+  /* Copies matrix B0 to matrix C. */
+  for (int i = 0; i < n * n; i++)
+    c[i] = b0[i];
 
-  if (verbose) aux_print_matrix("C", c, n, n, n);
+  if (verbose) aux_print_matrix("C, before the solution , copied from B0", c, n, n, n);
+
+  bs = 3;
+  tc = 1;
+  lial_dpotrs_bp(&uplo, &n0, &n0, &a1[n+1], &n, &c[n+1], &n, &ret, bs, tc);
+  ut_assert(t, ret == 0);
+
+  if (verbose) aux_print_matrix("C, after the call to lial_dpotrs_bp", c, n, n, n);
+
+  /* Verifies that the matrix C is computed as expected. */
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+      k = i * n + j;
+      delta = fabs(c[k] - b1[k]);
+      if (delta > epsilon) {
+        printf("\n");
+        printf("lial_dpotrs_dp failed at: row n. = %d, column n. %d, expected = %24.18f, "
+               "value = %24.18f, delta = %24.18f, max_dev = %24.18f\n",
+               i, j, b1[k], c[k], delta, epsilon);
+        ut_assert(t, false);
+      }
+    }
+  }
+
+  if (true) return;
+
+  /* --- Tests One Right Hand Side Column, all of them, then two, then three, ... . --- */
+
+  for (nrhs = 1; nrhs <= n0; nrhs++) {
+    for (row = 1; row < n - nrhs; row++) {
+
+      /* Copies matrix B0 to matrix C. */
+      for (int i = 0; i < n * n; i++)
+        c[i] = b0[i];
+
+      lial_dpotrs_bp(&uplo, &n0, &nrhs, &a1[n+1], &n, &c[row*n+1], &n, &ret, bs, tc);
+      ut_assert(t, ret == 0);
+
+      /* Verifies that the matrix C is computed as expected. */
+      for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+          k = i * n + j;
+          is_computed = (i >= row && i < row + nrhs && j > 0 && j < n - 1) ? true : false ;
+          expected = (is_computed) ? b1[k] : b0[k];
+          delta = fabs(c[k] - expected);
+          if (delta > epsilon) {
+            printf("\n");
+            printf("lial_dpotrs_dp failed at: row n. = %d, column n. %d, expected = %24.18f, "
+                   "value = %24.18f, delta = %24.18f, max_dev = %24.18f\n",
+                   i, j, expected, c[k], delta, epsilon);
+            ut_assert(t, false);
+          }
+        }
+      }
+    }
+  }
+
+  if (!transpose) {
+    for (i = 0; i < n; i++) {
+      for (j = i + 1; j < n; j++) {
+        k = i * n + j;
+        h = j * n + i;
+        tmp = a0[k];
+        a0[k] = a0[h];
+        a0[h] = tmp;
+      }
+    }
+    transpose = true;
+    goto test_again_transposed;
+  }
 
 }
 

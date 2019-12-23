@@ -114,6 +114,21 @@ lial_dtrsm (char *side,
             double *b,
             int *ldb);
 
+extern void
+lial_dtrsm_bt (char *side,
+               char *uplo,
+               char *transa,
+               char *diag,
+               int *m,
+               int *n,
+               double *alpha,
+               double *a,
+               int *lda,
+               double *b,
+               int *ldb,
+               const unsigned int block_size,
+               const unsigned int thread_count);
+
 /**
  * @brief Computes the magnitude of the `v` vector.
  *

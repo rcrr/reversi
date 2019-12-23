@@ -1330,6 +1330,129 @@ lial_dtrsm (char *side,
   dtrsm_(side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb);
 }
 
+static void
+aux_print_matrix (char *name,
+                  double *a,
+                  int n,
+                  int m,
+                  int lda)
+{
+  printf("\n");
+  printf("\n");
+  printf("Matrix %s:\n", name);
+  printf("________________________________________________________________________________________________________\n");
+  printf("\n");
+  for (int i = 0; i < n; i++) {
+    printf(" .%2d. | ", i);
+    for (int j = 0; j < m; j++) {
+      int k = i * lda + j;
+      printf("%6.3f, ", a[k]);
+    }
+    printf("\n");
+  }
+  printf("________________________________________________________________________________________________________\n");
+}
+
+void
+lial_dtrsm_bt (char *side,
+               char *uplo,
+               char *transa,
+               char *diag,
+               int *m,
+               int *n,
+               double *alpha,
+               double *a,
+               int *lda,
+               double *b,
+               int *ldb,
+               const unsigned int block_size,
+               const unsigned int thread_count)
+{
+  /*
+   * It must be "tiled" first using TRSM itself and GEMM.
+   *
+   * Then it must be parallelized using OpenMP tasks.
+   */
+  int bsa, nba, nra, nb1a;
+  int bsb, nbb, nrb, nb1b;
+  int aibsa, ajbsa, akbsa, akjbsa;
+  int i, j, k;
+  double *ap, *bp, *b1p;
+  char transa_gemm, transb_gemm;
+  double alpha_gemm, beta_gemm;
+
+  printf("\n");
+  printf("lial_dtrsm_bt: block_size = %u, thread_count = %u\n", block_size, thread_count);
+
+  if (true) aux_print_matrix("A before", a, *n, *n, *lda);
+  if (true) aux_print_matrix("B before", b, *n, *m, *ldb);
+
+  bsa = (block_size > 0) ? block_size : *n;
+  nba = *n / bsa;
+  nra = *n % bsa;
+  nb1a = nba + ((nra) ? 1 : 0);
+  bsb = (block_size > 0) ? block_size : *m;
+  nbb = *m / bsb;
+  nrb = *m % bsb;
+  nb1b = nbb + ((nrb) ? 1 : 0);
+
+  printf("bsa = %d, nba = %d, nra = %d, nb1a = %d\n", bsa, nba, nra, nb1a);
+  printf("bsb = %d, nbb = %d, nrb = %d, nb1b = %d\n", bsb, nbb, nrb, nb1b);
+
+  for (i = 0; i < nb1a; i++) {
+    aibsa = (i != nba) ? bsa : nra;
+    ap = a + ((bsa * i) * (*lda + 1));
+    printf("Lane #%d, aibsa=%d\n", i, aibsa);
+
+    for (k = 0; k < nb1b; k++) {
+      akbsa = (k != nbb) ? bsb : nrb;
+      bp = b + ((*ldb * k * bsb) + (bsa * i));
+      printf("  Column #%d, akbsa=%d\n", k, akbsa);
+      printf("  TRSM: A(%d,%d), ap = %p, *ap = %5.3f --- B(%d,%d), bp = %p, *bp = %5.3f\n", i, i, (void*) ap, *ap, i, k, (void*) bp, *bp);
+      ;//TRSM
+      dtrsm_(side, uplo, transa, diag, &aibsa, &akbsa, alpha, ap, lda, bp, ldb);
+      if (true) aux_print_matrix("B ...", b, *n, *m, *ldb);
+    }
+
+    if (true) aux_print_matrix("B after TRSM", b, *n, *m, *ldb);
+
+    transa_gemm = 'N';
+    transb_gemm = 'N';
+    alpha_gemm = -1.0 * (*alpha);
+    beta_gemm = 1.0 * (*alpha);
+
+    for (j = i + 1; j < nb1a; j++) {
+      ajbsa = (j != nba) ? bsa : nra;
+      ap += bsa;
+      if (j == nb1a - 1) printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+      for (k = 0; k < nb1b; k++) {
+        akbsa = (k != nbb) ? bsb : nrb;
+        akjbsa = (k != nbb) ? akbsa : ajbsa;
+        bp = b + ((*ldb * k * bsb) + (bsa * i));
+        b1p = bp + (j - i) * bsb;
+        printf("  Tail #(%d,%d) ajbsa=%d, akbsa=%d, akjbsa=%d\n", j, k, ajbsa, akbsa, akjbsa);
+        printf("  GEMM: B1 -= A*B --- A(%d,%d), ap = %p, *ap = %5.3f --- B(%d,%d), bp = %p, *bp = %5.3f --- B1(%d,%d), b1p = %p, *b1p = %5.3f\n",
+               j, i, (void*) ap, *ap, i, k, (void*) bp, *bp, j, k, (void*) b1p, *b1p);
+        ; //GEMM
+        // c'e' un bug nell'ultimo quadratino in basso a destra ....
+        // secondo me e' gem che sbaglia sui valori di m,n,k , i parametri 2, 3, e 4 ...
+        dgemm_(&transa_gemm, &transb_gemm, &ajbsa, &akbsa, &akjbsa, &alpha_gemm, ap, lda, bp, ldb, &beta_gemm, b1p, ldb);
+
+        if (true) aux_print_matrix("B after GEMM", b, *n, *m, *ldb);
+      }
+      if (j == nb1a - 1) printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+    }
+
+  }
+  if (true) abort();
+
+  dtrsm_(side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb);
+
+  //if (true) aux_print_matrix("A after", a, *n, *n, *lda);
+  if (true) aux_print_matrix("B after", b, *n, *m, *ldb);
+  if (true) abort();
+}
+
 void
 lial_dpotrf (const char *uplo,
              const int *n,
@@ -1392,7 +1515,7 @@ lial_dpotrf_bp (const char *uplo,
   nr = nx % bsx;
   nb1 = nb + ((nr) ? 1 : 0);
 
-#pragma omp parallel num_threads(thread_count) default(none)                        \
+#pragma omp parallel num_threads(thread_count) default(none)            \
   shared(sym_N, sym_T, pone, mone, uplox, is_uplo_l, sidex, transx, transax, transbx, ldax, bsx, tile_x_incr, tile_y_incr, nb, nr, nb1) \
   shared(a, info, i, j, k, h, tsax, tsbx, tile_d, tile_j, tile_k, tile_h, tile_a, tile_b)
   {
@@ -1448,47 +1571,34 @@ lial_dpotrs_bp (const char *uplo,
                 const unsigned int block_size,
                 const unsigned int thread_count)
 {
-  const bool experimental = true;
-
-  char diag_trsm;
-  char side_trsm_0, uplo_trsm_0, transa_trsm_0;
-  char side_trsm_1, uplo_trsm_1, transa_trsm_1;
+  char diag_trsm, side_trsm, uplo_trsm;
+  char transa_trsm_0, transa_trsm_1;
   int m_trsm, n_trsm, lda_trsm, ldb_trsm;
   double alpha;
 
-  /*
-   * Must be tested with UPLO == L and UPLO == U , and with lda , and ldb , different from n and nrhs.
-   * Must then be tested with B different fom I.
-   *
-   * Then must be "tiled" using TRSM and GEMM.
-   *
-   * Finally must be parallelized using OpenMP tasks.
-   */
-
-  if (experimental) {
-    printf("\nlial_dpotrs_bp - experimental\n");
-    alpha = 1.0;
-    diag_trsm = 'N';
-    m_trsm = *n;
-    n_trsm = *nrhs;
-    lda_trsm = *lda;
-    ldb_trsm = *ldb;
-    side_trsm_0 = 'L';
-    uplo_trsm_0 = 'L';
+  if (*uplo == 'U') {
+    transa_trsm_0 = 'T';
+    transa_trsm_1 = 'N';
+  } else if (*uplo == 'L') {
     transa_trsm_0 = 'N';
-    side_trsm_1 = 'L';
-    uplo_trsm_1 = 'L';
     transa_trsm_1 = 'T';
+  } else {
+    *info = -1;
+    return;
+  }
+  alpha = 1.0;
+  diag_trsm = 'N';
+  m_trsm = *n;
+  n_trsm = *nrhs;
+  lda_trsm = *lda;
+  ldb_trsm = *ldb;
+  side_trsm = 'L';
+  uplo_trsm = *uplo;
 
-    lial_dtrsm(&side_trsm_0, &uplo_trsm_0, &transa_trsm_0, &diag_trsm,
-               &m_trsm, &n_trsm, &alpha, a, &lda_trsm, b, &ldb_trsm);
+  lial_dtrsm_bt(&side_trsm, &uplo_trsm, &transa_trsm_0, &diag_trsm, &m_trsm, &n_trsm, &alpha, a, &lda_trsm, b, &ldb_trsm, block_size, thread_count);
+  lial_dtrsm_bt(&side_trsm, &uplo_trsm, &transa_trsm_1, &diag_trsm, &m_trsm, &n_trsm, &alpha, a, &lda_trsm, b, &ldb_trsm, block_size, thread_count);
 
-    lial_dtrsm(&side_trsm_1, &uplo_trsm_1, &transa_trsm_1, &diag_trsm,
-               &m_trsm, &n_trsm, &alpha, a, &lda_trsm, b, &ldb_trsm);
-
-    *info = 0;
-  } else
-    dpotrs_(uplo, n, nrhs, a, lda, b, ldb, info);
+  *info = 0;
 }
 
 void
