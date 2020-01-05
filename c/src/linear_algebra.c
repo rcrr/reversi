@@ -1381,6 +1381,12 @@ lial_dtrsm_bt (char *side,
   char transa_gemm, transb_gemm;
   double alpha_gemm, beta_gemm;
 
+  /* It has to be removed. It gives the expected result , but without tiling. */
+  if (false) {
+    dtrsm_(side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb);
+    return;
+  }
+
   printf("\n");
   printf("lial_dtrsm_bt: block_size = %u, thread_count = %u\n", block_size, thread_count);
 
@@ -1407,7 +1413,7 @@ lial_dtrsm_bt (char *side,
     for (k = 0; k < nb1b; k++) {
       akbsa = (k != nbb) ? bsb : nrb;
       bp = b + ((*ldb * k * bsb) + (bsa * i));
-      printf("  Column #%d, akbsa=%d\n", k, akbsa);
+      printf("  Column #%d, aibsa=m=%d, akbsa=n=%d\n", k, aibsa, akbsa);
       printf("  TRSM: A(%d,%d), ap = %p, *ap = %5.3f --- B(%d,%d), bp = %p, *bp = %5.3f\n", i, i, (void*) ap, *ap, i, k, (void*) bp, *bp);
       ;//TRSM
       dtrsm_(side, uplo, transa, diag, &aibsa, &akbsa, alpha, ap, lda, bp, ldb);
@@ -1424,13 +1430,13 @@ lial_dtrsm_bt (char *side,
     for (j = i + 1; j < nb1a; j++) {
       ajbsa = (j != nba) ? bsa : nra;
       ap += bsa;
-      if (j == nb1a - 1) printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
       for (k = 0; k < nb1b; k++) {
         akbsa = (k != nbb) ? bsb : nrb;
-        akjbsa = (k != nbb) ? akbsa : ajbsa;
+        //akjbsa = (k != nbb) ? akbsa : ajbsa;
+        akjbsa = bsa;
         bp = b + ((*ldb * k * bsb) + (bsa * i));
         b1p = bp + (j - i) * bsb;
-        printf("  Tail #(%d,%d) ajbsa=%d, akbsa=%d, akjbsa=%d\n", j, k, ajbsa, akbsa, akjbsa);
+        printf("  Tail #(%d,%d) ajbsa=m=%d, akbsa=n=%d, akjbsa=k=%d\n", j, k, ajbsa, akbsa, akjbsa);
         printf("  GEMM: B1 -= A*B --- A(%d,%d), ap = %p, *ap = %5.3f --- B(%d,%d), bp = %p, *bp = %5.3f --- B1(%d,%d), b1p = %p, *b1p = %5.3f\n",
                j, i, (void*) ap, *ap, i, k, (void*) bp, *bp, j, k, (void*) b1p, *b1p);
         ; //GEMM
@@ -1440,17 +1446,12 @@ lial_dtrsm_bt (char *side,
 
         if (true) aux_print_matrix("B after GEMM", b, *n, *m, *ldb);
       }
-      if (j == nb1a - 1) printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
     }
 
   }
-  if (true) abort();
-
-  dtrsm_(side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb);
-
   //if (true) aux_print_matrix("A after", a, *n, *n, *lda);
   if (true) aux_print_matrix("B after", b, *n, *m, *ldb);
-  if (true) abort();
+  if (false) abort();
 }
 
 void
@@ -1595,8 +1596,11 @@ lial_dpotrs_bp (const char *uplo,
   side_trsm = 'L';
   uplo_trsm = *uplo;
 
+  if (true) aux_print_matrix("B in lial_dpotrs_bp 0", b, *n, *n, *lda);
   lial_dtrsm_bt(&side_trsm, &uplo_trsm, &transa_trsm_0, &diag_trsm, &m_trsm, &n_trsm, &alpha, a, &lda_trsm, b, &ldb_trsm, block_size, thread_count);
+  if (true) aux_print_matrix("B in lial_dpotrs_bp 1", b, *n, *n, *lda);
   lial_dtrsm_bt(&side_trsm, &uplo_trsm, &transa_trsm_1, &diag_trsm, &m_trsm, &n_trsm, &alpha, a, &lda_trsm, b, &ldb_trsm, block_size, thread_count);
+  if (true) aux_print_matrix("B in lial_dpotrs_bp 2", b, *n, *n, *lda);
 
   *info = 0;
 }

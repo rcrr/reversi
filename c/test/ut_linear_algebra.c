@@ -4577,6 +4577,7 @@ lial_dpotrs_bp_t (ut_test_t *const t)
 
   double a1[n * n];
   double b1[n * n];
+  double b2[n * n]; // Used to test the first pass of TRSM.
   double c[n * n];
 
   bool verbose, is_computed, transpose;
@@ -4585,6 +4586,10 @@ lial_dpotrs_bp_t (ut_test_t *const t)
   double tmp, delta, epsilon, expected;
   char uplo;
   int nrhs, row;
+
+  char dtrsm_side, dtrsm_transa, dtrsm_diag;
+  double dtrsm_alpha;
+  int dtrsm_m, dtrsm_n, dtrsm_lda, dtrsm_ldb;
 
   verbose = ut_run_time_is_verbose(t);
   transpose = false;
@@ -4605,6 +4610,10 @@ lial_dpotrs_bp_t (ut_test_t *const t)
   for (int i = 0; i < n * n; i++)
     b1[i] = b0[i];
 
+  /* Copies matrix B0 to matrix B2. */
+  for (int i = 0; i < n * n; i++)
+    b2[i] = b0[i];
+
   if (verbose) aux_print_matrix("A1", a1, n, n, n);
   if (verbose) aux_print_matrix("B1", b1, n, n, n);
 
@@ -4619,6 +4628,19 @@ lial_dpotrs_bp_t (ut_test_t *const t)
   ut_assert(t, ret == 0);
 
   if (verbose) aux_print_matrix("B1, certified solution", b1, n, n, n);
+
+  /* Executes TRSM on A1 and B2, it is not needed for testing dpotrs, but it is a debugging output. */
+  dtrsm_side = 'L';
+  dtrsm_transa = 'N';
+  dtrsm_diag = 'N';
+  dtrsm_alpha = 1.0;
+  dtrsm_m = n0;
+  dtrsm_n = n0;
+  dtrsm_lda = n;
+  dtrsm_ldb = n;
+  lial_dtrsm(&dtrsm_side, &uplo, &dtrsm_transa, &dtrsm_diag, &dtrsm_m, &dtrsm_n, &dtrsm_alpha, &a1[n+1], &dtrsm_lda, &b2[n+1], &dtrsm_ldb);
+
+  if (verbose) aux_print_matrix("B2, after one TRSM pass", b2, n, n, n);
 
   /* Copies matrix B0 to matrix C. */
   for (int i = 0; i < n * n; i++)
