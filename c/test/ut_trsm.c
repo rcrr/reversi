@@ -34,9 +34,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-#include <errno.h>
 #include <string.h>
-#include <math.h>
 
 #include "unit_test.h"
 #include "linear_algebra.h"
@@ -135,13 +133,7 @@ aux_check_array_equivalence (ut_test_t *const t,
  */
 
 static void
-lial_dummy_t (ut_test_t *const t)
-{
-  ut_assert(t, true);
-}
-
-static void
-lial_trsm_bp_0_t (ut_test_t *const t)
+lial_trsm_bp_t (ut_test_t *const t)
 {
   static const int extra_right_columns_of_a = 1;
   static const int extra_left_columns_of_a = 1;
@@ -149,18 +141,18 @@ lial_trsm_bp_0_t (ut_test_t *const t)
   static const int extra_top_rows_of_a = 1;
   static const int extra_bottom_rows_of_a = 1;
   static const int extra_rows_of_a = extra_top_rows_of_a + extra_bottom_rows_of_a;
-  static const int n = 7;
-  static const int lda = n + extra_columns_of_a;
+  static const int n_0 = 7;
+  static const int lda_0 = n_0 + extra_columns_of_a;
   static const int extra_right_columns_of_b = 1;
   static const int extra_left_columns_of_b = 1;
   static const int extra_columns_of_b = extra_right_columns_of_b + extra_left_columns_of_b;
   static const int extra_top_rows_of_b = 1;
   static const int extra_bottom_rows_of_b = 1;
   static const int extra_rows_of_b = extra_top_rows_of_b + extra_bottom_rows_of_b;
-  static const int m = 5;
-  static const int ldb = m + extra_columns_of_b;
-  static const int size_of_a = lda * (n + extra_rows_of_a);
-  static const int size_of_b = ldb * (n + extra_rows_of_b);
+  static const int m_0 = 5;
+  static const int ldb_0 = m_0 + extra_columns_of_b;
+  static const int size_of_a = lda_0 * (n_0 + extra_rows_of_a);
+  static const int size_of_b = ldb_0 * (n_0 + extra_rows_of_b);
 
   static const double mka = 3.0; // Marker for the A matrix.
   static const double mkb = 7.0; // Marker for the B matrix.
@@ -257,44 +249,86 @@ lial_trsm_bp_0_t (ut_test_t *const t)
     };
   ut_assert(t, sizeof(b_0) / sizeof(double) == size_of_b);
 
-  static const double lial_trsm_alpha_values[] = { 1.0, 2.0, 3.141592 };
+  static const double lial_trsm_alpha_values[] = { 1.0, -2.0, 3.141592, 0.0 };
   static const int lial_trsm_alpha_size = sizeof(lial_trsm_alpha_values) / sizeof(double);
 
   static const int lial_trsm_option_combinations = lial_trsm_side_size * lial_trsm_uplo_size * lial_trsm_transa_size * lial_trsm_diag_size * lial_trsm_alpha_size;
 
-  double *p, *al0, *au0, *alu0, *auu0, *b0, *bexp, *brec;
-  bool verbose;
-  int b_offset;
-
+  /*
+   * Memory allocation for the matrices computed at each iteration of the testing loop.
+   *
+   * - b_expected : is the expected result of the TRSM call, computed by a call to the function lial_dtrsm
+   * - b_recomputed_as_ax : is obtained by multipying matrices A and the B_EXPECTED, it must be equal to B
+   * - b_solved : is the result to a call to lial_dtrsm_bp , them verified by comparing it to B_EXPECTED
+   */
   double b_expected[size_of_b];
   double b_recomputed_as_ax[size_of_b];
+  double b_solved[size_of_b];
 
-  char side, uplo, transa, diag, gtransa, gtransb;
-  double alpha, galpha, gbeta;
-  int mx, nx, ldax, ldbx, gm, gn, gk;
-  int *mp, *np, *ldap, *ldbp;
-  double *ap, *bp, *ga, *gb, *gc, *ap1;
+  /*
+   * b_offset and a_offset are the distance in terms of elements between the first element
+   * of the A and B matrices used in the computations and the respective storage allocation.
+   *
+   * al0 is the pointer to the first real element of the matrix A_L_0
+   * au0 refers to A_U_0
+   * ...
+   */
+  int b_offset, a_offset;
+  double *al0, *au0, *alu0, *auu0, *b0, *bexp, *brec, *bsol;
+
+  /*
+   * Main variables.
+   */
+  char side, uplo, transa, diag;
+  int m, n, lda, ldb;
+  double alpha;
+  double *ap, *bp, *ap1;
+
+  /*
+   * The set of the "g" variables are used as argument to call the lial_dgemm function,
+   * that is used to verify that the expected B matrix ( X ) , multipied by the A matrix
+   * gives back the original B matrix ( A * X = B ).
+   */
+  char gtransa, gtransb;
+  int gm, gn, gk, glda, gldb, gldc;
+  double galpha, gbeta;
+  double *gap, *gbp, *gcp;
+
+  /* Loop variables used to enumerate the arguments of the test set. */
   int iside, iuplo, itransa, idiag, ialpha, icount;
-  int glda, gldb, gldc;
 
-  mx = m;
-  nx = n;
-  ldax = lda;
-  ldbx = ldb;
-  mp = &mx;
-  np = &nx;
-  ldap = &ldax;
-  ldbp = &ldbx;
+  /* Variables used to call the function lial_dtrsm_bp. */
+  int block_size_m, block_size_n, thread_count;
 
-  verbose = ut_run_time_is_verbose(t);
+  /* Turns on/off (true/false) the output of the log. It is quite verbose. */
+  bool verbose;
+
+  /*
+   * Assigns the "variable" values of m, n, lda, ldb.
+   * Variables m, n, lda, and ldb never change, but the BLAS API requires pointers to variables.
+   */
+  m = m_0;
+  n = n_0;
+  lda = lda_0;
+  ldb = ldb_0;
+
+  /*
+   * The following variables are all constant.
+   * All the following pointers are used to pass the address of the first element
+   * of the relative matrices to the BLAS functions.
+   */
+  a_offset = lda * extra_top_rows_of_a + extra_left_columns_of_a;
   b_offset = ldb * extra_top_rows_of_b + extra_left_columns_of_b;
-  al0 = &a_l_0[lda * extra_top_rows_of_a + extra_left_columns_of_a];
-  au0 = &a_u_0[lda * extra_top_rows_of_a + extra_left_columns_of_a];
-  alu0 = &a_l_unit_0[lda * extra_top_rows_of_a + extra_left_columns_of_a];
-  auu0 = &a_u_unit_0[lda * extra_top_rows_of_a + extra_left_columns_of_a];
+  al0 = &a_l_0[a_offset];
+  au0 = &a_u_0[a_offset];
+  alu0 = &a_l_unit_0[a_offset];
+  auu0 = &a_u_unit_0[a_offset];
   b0 = &b_0[b_offset];
   bexp = &b_expected[b_offset];
   brec = &b_recomputed_as_ax[b_offset];
+  bsol = &b_solved[b_offset];
+
+  verbose = ut_run_time_is_verbose(t);
 
   if (verbose) printf("\n#### Section I : Test data ####\n\n");
 
@@ -384,21 +418,20 @@ lial_trsm_bp_0_t (ut_test_t *const t)
               printf("  UPLO   : %c\n", uplo);
               printf("  TRANSA : %c\n", transa);
               printf("  DIAG   : %c\n", diag);
-              printf("  M      : %d\n", *mp);
-              printf("  N      : %d\n", *np);
+              printf("  M      : %d\n", m);
+              printf("  N      : %d\n", n);
               printf("  ALPHA  : %f\n", alpha);
               printf("  A      : %p, A(0,0) = %f\n", (void*) ap, *ap);
-              printf("  LDA    : %d\n", *ldap);
+              printf("  LDA    : %d\n", lda);
               printf("  B      : %p, B(0,0) = %f\n", (void*) bp, *bp);
-              printf("  LDB    : %d\n", *ldbp);
+              printf("  LDB    : %d\n", ldb);
             }
-            lial_dtrsm(&side, &uplo, &transa, &diag, mp, np, &alpha, ap, ldap, bp, ldbp);
+            lial_dtrsm(&side, &uplo, &transa, &diag, &m, &n, &alpha, ap, &lda, bp, &ldb);
             if (verbose) aux_print_matrix("B_EXPECTED after solution computed by lial_dtrsm (it is the expected result)", bexp, n, m, ldb);
 
             /* Initializes the matrix B_RECOMPUTED_AS_AX with the value mkb as conventional marker. */
-            p = b_recomputed_as_ax;
-            for (int i = 0; i < size_of_b; i++)
-              *p++ = mkb;
+            for (double *p = b_recomputed_as_ax; p - b_recomputed_as_ax < size_of_b; p++)
+              *p = mkb;
             //if (verbose) aux_print_matrix("B_RECOMPUTED_AS_AX before the matrix multiply operation", brec, n, m, ldb);
             //if (verbose) aux_print_matrix("B_RECOMPUTED_AS_AX FULL before the matrix multiply operation", b_recomputed_as_ax, n + extra_rows_of_b, m + extra_columns_of_b, ldb);
 
@@ -408,31 +441,50 @@ lial_trsm_bp_0_t (ut_test_t *const t)
             if (side == 'R' || side == 'r') {
               gtransa = 'N';
               gtransb = transa;
-              gk = *np;
-              ga = bp;
-              glda = *ldbp;
-              gb = ap1;
-              gldb = *ldap;
+              gk = n;
+              gap = bp;
+              glda = ldb;
+              gbp = ap1;
+              gldb = lda;
             } else {
               gtransa = transa;
               gtransb = 'N';
-              gk = *mp;
-              ga = ap1;
-              glda = *ldap;
-              gb = bp;
-              gldb = *ldbp;
+              gk = m;
+              gap = ap1;
+              glda = lda;
+              gbp = bp;
+              gldb = ldb;
             }
-            gm = *mp;
-            gn = *np;
+            gm = m;
+            gn = n;
             galpha = 1.0 / alpha;
             gbeta = 0.0;
-            gc = brec;
-            gldc = *ldbp;
-            lial_dgemm(&gtransa, &gtransb, &gm, &gn, &gk, &galpha, ga, &glda, gb, &gldb, &gbeta, gc, &gldc);
+            gcp = brec;
+            gldc = ldb;
+            lial_dgemm(&gtransa, &gtransb, &gm, &gn, &gk, &galpha, gap, &glda, gbp, &gldb, &gbeta, gcp, &gldc);
             if (verbose) aux_print_matrix("B_RECOMPUTED_AS_AX after the matrix multiply operation", brec, n, m, ldb);
             //if (verbose) aux_print_matrix("B_RECOMPUTED_AS_AX FULL after the matrix multiply operation", b_recomputed_as_ax, n + extra_rows_of_b, m + extra_columns_of_b, ldb);
             aux_check_array_equivalence(t, b_recomputed_as_ax, b_0, size_of_b, epsilon);
-            if (verbose) printf("\nCHECK OK: the expected result has been verified. ready to start testing the OpenMP implementation based on tiles on this argument set ...\n\n");
+            if (verbose) printf("\nCHECK OK: the expected result has been verified. Ready to start testing the OpenMP implementation based on tiles on this argument set ...\n\n");
+
+            // --- BEGIN lial_dtrsm_bp TESTING
+            if (verbose) printf("lial_dtrsm_bp testing begin ...\n");
+
+            memcpy(b_solved, b_0, size_of_b * sizeof(double));
+            //if (verbose) aux_print_matrix("B_SOLVED before solution (it must be equal to B_0)", bsol, n, m, ldb);
+
+            block_size_m = 0;
+            block_size_n = 0;
+            thread_count = 1;
+
+            lial_dtrsm_bp(&side, &uplo, &transa, &diag, &m, &n, &alpha, ap, &lda, bsol, &ldb, block_size_m, block_size_n, thread_count);
+            if (verbose) aux_print_matrix("B_SOLVED after solution computed by lial_dtrsm_bp (it is the computed result)", bsol, n, m, ldb);
+
+            aux_check_array_equivalence(t, b_solved, b_expected, size_of_b, epsilon);
+            if (verbose) printf("\nCHECK OK: the matrices computed by lial_dtrsm and lial_dtrsm_bp function are equal.\n\n");
+
+            if (verbose) printf("lial_dtrsm_bp testing ... end\n");
+            // --- END lial_dtrsm_bp TESTING
 
             icount++;
           }
@@ -456,9 +508,7 @@ main (int argc,
 
   ut_suite_t *const s = ut_suite_new(&config, "trsm");
 
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dummy", lial_dummy_t);
-
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_trsm_bp_0", lial_trsm_bp_0_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_01, "lial_trsm_bp", lial_trsm_bp_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);

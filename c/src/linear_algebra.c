@@ -1354,7 +1354,7 @@ aux_print_matrix (char *name,
 }
 
 void
-lial_dtrsm_bt (char *side,
+lial_dtrsm_bp (char *side,
                char *uplo,
                char *transa,
                char *diag,
@@ -1365,8 +1365,33 @@ lial_dtrsm_bt (char *side,
                int *lda,
                double *b,
                int *ldb,
-               const unsigned int block_size,
-               const unsigned int thread_count)
+               int block_size_m,
+               int block_size_n,
+               int thread_count)
+{
+
+  /* It has to be removed. It gives the expected result , but without tiling. */
+  if (true) {
+    dtrsm_(side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb);
+    return;
+  }
+  return;
+}
+
+void
+lial_dtrsm_bp_old (char *side,
+                   char *uplo,
+                   char *transa,
+                   char *diag,
+                   int *m,
+                   int *n,
+                   double *alpha,
+                   double *a,
+                   int *lda,
+                   double *b,
+                   int *ldb,
+                   const unsigned int block_size,
+                   const unsigned int thread_count)
 {
   /*
    * It must be "tiled" first using TRSM itself and GEMM.
@@ -1388,7 +1413,7 @@ lial_dtrsm_bt (char *side,
   }
 
   printf("\n");
-  printf("lial_dtrsm_bt: block_size = %u, thread_count = %u\n", block_size, thread_count);
+  printf("lial_dtrsm_bp_old: block_size = %u, thread_count = %u\n", block_size, thread_count);
 
   if (true) aux_print_matrix("A before", a, *n, *n, *lda);
   if (true) aux_print_matrix("B before", b, *n, *m, *ldb);
@@ -1597,9 +1622,9 @@ lial_dpotrs_bp (const char *uplo,
   uplo_trsm = *uplo;
 
   if (true) aux_print_matrix("B in lial_dpotrs_bp 0", b, *n, *n, *lda);
-  lial_dtrsm_bt(&side_trsm, &uplo_trsm, &transa_trsm_0, &diag_trsm, &m_trsm, &n_trsm, &alpha, a, &lda_trsm, b, &ldb_trsm, block_size, thread_count);
+  lial_dtrsm_bp_old(&side_trsm, &uplo_trsm, &transa_trsm_0, &diag_trsm, &m_trsm, &n_trsm, &alpha, a, &lda_trsm, b, &ldb_trsm, block_size, thread_count);
   if (true) aux_print_matrix("B in lial_dpotrs_bp 1", b, *n, *n, *lda);
-  lial_dtrsm_bt(&side_trsm, &uplo_trsm, &transa_trsm_1, &diag_trsm, &m_trsm, &n_trsm, &alpha, a, &lda_trsm, b, &ldb_trsm, block_size, thread_count);
+  lial_dtrsm_bp_old(&side_trsm, &uplo_trsm, &transa_trsm_1, &diag_trsm, &m_trsm, &n_trsm, &alpha, a, &lda_trsm, b, &ldb_trsm, block_size, thread_count);
   if (true) aux_print_matrix("B in lial_dpotrs_bp 2", b, *n, *n, *lda);
 
   *info = 0;
