@@ -1369,34 +1369,13 @@ lial_dtrsm_bp (char *side,
                int block_size_n,
                int thread_count)
 {
-
-  /* It has to be removed. It gives the expected result , but without tiling. */
-  if (true) {
-    dtrsm_(side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb);
-    return;
-  }
-  return;
-}
-
-void
-lial_dtrsm_bp_old (char *side,
-                   char *uplo,
-                   char *transa,
-                   char *diag,
-                   int *m,
-                   int *n,
-                   double *alpha,
-                   double *a,
-                   int *lda,
-                   double *b,
-                   int *ldb,
-                   const unsigned int block_size,
-                   const unsigned int thread_count)
-{
   /*
    * It must be "tiled" first using TRSM itself and GEMM.
    *
    * Then it must be parallelized using OpenMP tasks.
+   *
+   * For now it works only on test # [ COUNT = 000200, SIDE = L, UPLO = L, TRANSA = N, DIAG = N, ALPHA = +1.0000 ]
+   * .... it has to be semplified and reworked ... it is not clear ...
    */
   int bsa, nba, nra, nb1a;
   int bsb, nbb, nrb, nb1b;
@@ -1406,17 +1385,25 @@ lial_dtrsm_bp_old (char *side,
   char transa_gemm, transb_gemm;
   double alpha_gemm, beta_gemm;
 
-  /* It has to be removed. It gives the expected result , but without tiling. */
+  int block_size;
+  bool verbose;
+
+  /* It has to be removed. It gives the expected result, but without tiling. */
   if (false) {
     dtrsm_(side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb);
     return;
   }
 
-  printf("\n");
-  printf("lial_dtrsm_bp_old: block_size = %u, thread_count = %u\n", block_size, thread_count);
+  verbose = false;
+  block_size = block_size_m;
 
-  if (true) aux_print_matrix("A before", a, *n, *n, *lda);
-  if (true) aux_print_matrix("B before", b, *n, *m, *ldb);
+  /* True implementation. */
+
+  if (verbose) printf("\n");
+  if (verbose) printf("lial_dtrsm_bp: block_size = %u, thread_count = %u\n", block_size, thread_count);
+
+  if (verbose) aux_print_matrix("A before", a, *n, *n, *lda);
+  if (verbose) aux_print_matrix("B before", b, *n, *m, *ldb);
 
   bsa = (block_size > 0) ? block_size : *n;
   nba = *n / bsa;
@@ -1427,56 +1414,57 @@ lial_dtrsm_bp_old (char *side,
   nrb = *m % bsb;
   nb1b = nbb + ((nrb) ? 1 : 0);
 
-  printf("bsa = %d, nba = %d, nra = %d, nb1a = %d\n", bsa, nba, nra, nb1a);
-  printf("bsb = %d, nbb = %d, nrb = %d, nb1b = %d\n", bsb, nbb, nrb, nb1b);
+  if (verbose) printf("n = %d, m = %d\n", *n, *m);
+  if (verbose) printf("bsa = %d, nba = %d, nra = %d, nb1a = %d\n", bsa, nba, nra, nb1a);
+  if (verbose) printf("bsb = %d, nbb = %d, nrb = %d, nb1b = %d\n", bsb, nbb, nrb, nb1b);
 
-  for (i = 0; i < nb1a; i++) {
-    aibsa = (i != nba) ? bsa : nra;
+  for (i = 0; i < nb1b; i++) {
+    aibsa = (i != nbb) ? bsb : nrb;
     ap = a + ((bsa * i) * (*lda + 1));
-    printf("Lane #%d, aibsa=%d\n", i, aibsa);
+    if (verbose) printf("Lane #%d, aibsa=%d\n", i, aibsa);
 
-    for (k = 0; k < nb1b; k++) {
-      akbsa = (k != nbb) ? bsb : nrb;
-      bp = b + ((*ldb * k * bsb) + (bsa * i));
-      printf("  Column #%d, aibsa=m=%d, akbsa=n=%d\n", k, aibsa, akbsa);
-      printf("  TRSM: A(%d,%d), ap = %p, *ap = %5.3f --- B(%d,%d), bp = %p, *bp = %5.3f\n", i, i, (void*) ap, *ap, i, k, (void*) bp, *bp);
+    for (k = 0; k < nb1a; k++) {
+      akbsa = (k != nba) ? bsa : nra;
+      bp = b + ((*ldb * k * bsa) + (bsb * i));
+      if (verbose) printf("  Column #%d, aibsa=m=%d, akbsa=n=%d\n", k, aibsa, akbsa);
+      if (verbose) printf("  TRSM: A(%d,%d), ap = %p, *ap = %5.3f --- B(%d,%d), bp = %p, *bp = %5.3f\n", i, i, (void*) ap, *ap, i, k, (void*) bp, *bp);
       ;//TRSM
       dtrsm_(side, uplo, transa, diag, &aibsa, &akbsa, alpha, ap, lda, bp, ldb);
-      if (true) aux_print_matrix("B ...", b, *n, *m, *ldb);
+      if (verbose) aux_print_matrix("B after TRSM", b, *n, *m, *ldb);
     }
 
-    if (true) aux_print_matrix("B after TRSM", b, *n, *m, *ldb);
+    //if (verbose) aux_print_matrix("B after TRSM", b, *n, *m, *ldb);
+    if (verbose) aux_print_matrix("B FULL after TRSM", b - 8, *n + 2, *ldb, *ldb);
 
     transa_gemm = 'N';
     transb_gemm = 'N';
     alpha_gemm = -1.0 * (*alpha);
     beta_gemm = 1.0 * (*alpha);
 
-    for (j = i + 1; j < nb1a; j++) {
-      ajbsa = (j != nba) ? bsa : nra;
+    for (j = i + 1; j < nb1b; j++) {
+      ajbsa = (j != nbb) ? bsb : nrb;
       ap += bsa;
-      for (k = 0; k < nb1b; k++) {
-        akbsa = (k != nbb) ? bsb : nrb;
+      for (k = 0; k < nb1a; k++) {
+        akbsa = (k != nba) ? bsa : nra;
         //akjbsa = (k != nbb) ? akbsa : ajbsa;
         akjbsa = bsa;
         bp = b + ((*ldb * k * bsb) + (bsa * i));
         b1p = bp + (j - i) * bsb;
-        printf("  Tail #(%d,%d) ajbsa=m=%d, akbsa=n=%d, akjbsa=k=%d\n", j, k, ajbsa, akbsa, akjbsa);
-        printf("  GEMM: B1 -= A*B --- A(%d,%d), ap = %p, *ap = %5.3f --- B(%d,%d), bp = %p, *bp = %5.3f --- B1(%d,%d), b1p = %p, *b1p = %5.3f\n",
-               j, i, (void*) ap, *ap, i, k, (void*) bp, *bp, j, k, (void*) b1p, *b1p);
+        if (verbose) printf("  Tail #(%d,%d) ajbsa=m=%d, akbsa=n=%d, akjbsa=k=%d\n", j, k, ajbsa, akbsa, akjbsa);
+        if (verbose) printf("  GEMM: B1 -= A*B --- A(%d,%d), ap = %p, *ap = %5.3f --- B(%d,%d), bp = %p, *bp = %5.3f --- B1(%d,%d), b1p = %p, *b1p = %5.3f\n",
+                            j, i, (void*) ap, *ap, i, k, (void*) bp, *bp, j, k, (void*) b1p, *b1p);
         ; //GEMM
-        // c'e' un bug nell'ultimo quadratino in basso a destra ....
-        // secondo me e' gem che sbaglia sui valori di m,n,k , i parametri 2, 3, e 4 ...
         dgemm_(&transa_gemm, &transb_gemm, &ajbsa, &akbsa, &akjbsa, &alpha_gemm, ap, lda, bp, ldb, &beta_gemm, b1p, ldb);
 
-        if (true) aux_print_matrix("B after GEMM", b, *n, *m, *ldb);
+        //if (verbose) aux_print_matrix("B after GEMM", b, *n, *m, *ldb);
+        if (verbose) aux_print_matrix("B FULL after GEMM", b - 8, *n + 2, *ldb, *ldb);
       }
     }
 
   }
-  //if (true) aux_print_matrix("A after", a, *n, *n, *lda);
-  if (true) aux_print_matrix("B after", b, *n, *m, *ldb);
-  if (false) abort();
+  //if (verbose) aux_print_matrix("B after", b, *n, *m, *ldb);
+  if (verbose) aux_print_matrix("B FULL after", b - 8, *n + 2, *ldb, *ldb);
+
 }
 
 void
@@ -1597,6 +1585,10 @@ lial_dpotrs_bp (const char *uplo,
                 const unsigned int block_size,
                 const unsigned int thread_count)
 {
+  /*
+   * IT MUST USE lial_dtrsm_bp replacing lial_dtrsm ....
+   * block_size has to be split into two values, one for N and one for NRHS ...
+   */
   char diag_trsm, side_trsm, uplo_trsm;
   char transa_trsm_0, transa_trsm_1;
   int m_trsm, n_trsm, lda_trsm, ldb_trsm;
@@ -1621,11 +1613,11 @@ lial_dpotrs_bp (const char *uplo,
   side_trsm = 'L';
   uplo_trsm = *uplo;
 
-  if (true) aux_print_matrix("B in lial_dpotrs_bp 0", b, *n, *n, *lda);
-  lial_dtrsm_bp_old(&side_trsm, &uplo_trsm, &transa_trsm_0, &diag_trsm, &m_trsm, &n_trsm, &alpha, a, &lda_trsm, b, &ldb_trsm, block_size, thread_count);
-  if (true) aux_print_matrix("B in lial_dpotrs_bp 1", b, *n, *n, *lda);
-  lial_dtrsm_bp_old(&side_trsm, &uplo_trsm, &transa_trsm_1, &diag_trsm, &m_trsm, &n_trsm, &alpha, a, &lda_trsm, b, &ldb_trsm, block_size, thread_count);
-  if (true) aux_print_matrix("B in lial_dpotrs_bp 2", b, *n, *n, *lda);
+  if (false) aux_print_matrix("B in lial_dpotrs_bp 0", b, *n, *n, *lda);
+  lial_dtrsm(&side_trsm, &uplo_trsm, &transa_trsm_0, &diag_trsm, &m_trsm, &n_trsm, &alpha, a, &lda_trsm, b, &ldb_trsm);
+  if (false) aux_print_matrix("B in lial_dpotrs_bp 1", b, *n, *n, *lda);
+  lial_dtrsm(&side_trsm, &uplo_trsm, &transa_trsm_1, &diag_trsm, &m_trsm, &n_trsm, &alpha, a, &lda_trsm, b, &ldb_trsm);
+  if (false) aux_print_matrix("B in lial_dpotrs_bp 2", b, *n, *n, *lda);
 
   *info = 0;
 }

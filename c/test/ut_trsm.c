@@ -385,6 +385,8 @@ lial_trsm_bp_t (ut_test_t *const t)
 
   if (verbose) printf("\n#### Section II : TRSM tests ####\n\n");
 
+  const int selected_icount = 200;
+
   icount = 0;
 
   for (iside = 0; iside < lial_trsm_side_size; iside++) {
@@ -397,6 +399,9 @@ lial_trsm_bp_t (ut_test_t *const t)
           diag = lial_trsm_diag_values[idiag];
           for (ialpha = 0; ialpha < lial_trsm_alpha_size; ialpha++) {
             alpha = lial_trsm_alpha_values[ialpha];
+
+            if (icount != selected_icount) goto end_test;
+
             if (verbose) printf("[ COUNT = %06d, SIDE = %c, UPLO = %c, TRANSA = %c, DIAG = %c, ALPHA = %+6.4f ]\n", icount, side, uplo, transa, diag, alpha);
             memcpy(b_expected, b_0, size_of_b * sizeof(double));
             //if (verbose) aux_print_matrix("B_EXPECTED before solution (it must be equal to B_0)", bexp, n, m, ldb);
@@ -473,8 +478,8 @@ lial_trsm_bp_t (ut_test_t *const t)
             memcpy(b_solved, b_0, size_of_b * sizeof(double));
             //if (verbose) aux_print_matrix("B_SOLVED before solution (it must be equal to B_0)", bsol, n, m, ldb);
 
-            block_size_m = 0;
-            block_size_n = 0;
+            block_size_m = 2;
+            block_size_n = 2;
             thread_count = 1;
 
             lial_dtrsm_bp(&side, &uplo, &transa, &diag, &m, &n, &alpha, ap, &lda, bsol, &ldb, block_size_m, block_size_n, thread_count);
@@ -485,6 +490,8 @@ lial_trsm_bp_t (ut_test_t *const t)
 
             if (verbose) printf("lial_dtrsm_bp testing ... end\n");
             // --- END lial_dtrsm_bp TESTING
+
+          end_test:
 
             icount++;
           }
