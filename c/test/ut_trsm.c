@@ -40,17 +40,155 @@
 #include "linear_algebra.h"
 
 /*
- * TRSM  solves one of the matrix equations
+ * TRSM : TRiangular Solve Matrix
  *
- *    op( A )*X = alpha*B,   or   X*op( A ) = alpha*B,
+ * Purpose:
  *
- * where alpha is a scalar, X and B are m by n matrices, A is a unit, or
- * non-unit, upper or lower triangular matrix and op( A ) is one of
+ *     DTRSM  solves one of the matrix equations
  *
- *    op( A ) = A   or   op( A ) = A**T.
+ *        op( A )*X = alpha*B,   or   X*op( A ) = alpha*B,
  *
- * The matrix X is overwritten on B.
+ *     where alpha is a scalar, X and B are m by n matrices, A is a unit, or
+ *     non-unit,  upper or lower triangular matrix  and  op( A )  is one  of
+ *
+ *        op( A ) = A   or   op( A ) = A**T.
+ *
+ *     The matrix X is overwritten on B.
+ *
+ * Arguments:
+ *
+ *    [in] SIDE
+ *
+ *              SIDE is CHARACTER*1
+ *               On entry, SIDE specifies whether op( A ) appears on the left
+ *               or right of X as follows:
+ *
+ *                  SIDE = 'L' or 'l'   op( A )*X = alpha*B.
+ *
+ *                  SIDE = 'R' or 'r'   X*op( A ) = alpha*B.
+ *
+ *
+ *    [in] UPLO
+ *
+ *              UPLO is CHARACTER*1
+ *               On entry, UPLO specifies whether the matrix A is an upper or
+ *               lower triangular matrix as follows:
+ *
+ *                  UPLO = 'U' or 'u'   A is an upper triangular matrix.
+ *
+ *                  UPLO = 'L' or 'l'   A is a lower triangular matrix.
+ *
+ *
+ *    [in] TRANSA
+ *
+ *              TRANSA is CHARACTER*1
+ *               On entry, TRANSA specifies the form of op( A ) to be used in
+ *               the matrix multiplication as follows:
+ *
+ *                  TRANSA = 'N' or 'n'   op( A ) = A.
+ *
+ *                  TRANSA = 'T' or 't'   op( A ) = A**T.
+ *
+ *                  TRANSA = 'C' or 'c'   op( A ) = A**T.
+ *
+ *
+ *    [in] DIAG
+ *
+ *              DIAG is CHARACTER*1
+ *               On entry, DIAG specifies whether or not A is unit triangular
+ *               as follows:
+ *
+ *                  DIAG = 'U' or 'u'   A is assumed to be unit triangular.
+ *
+ *                  DIAG = 'N' or 'n'   A is not assumed to be unit
+ *                                      triangular.
+ *
+ *
+ *    [in] M
+ *
+ *              M is INTEGER
+ *               On entry, M specifies the number of rows of B. M must be at
+ *               least zero.
+ *
+ *
+ *    [in] N
+ *
+ *              N is INTEGER
+ *               On entry, N specifies the number of columns of B.  N must be
+ *               at least zero.
+ *
+ *
+ *    [in] ALPHA
+ *
+ *              ALPHA is DOUBLE PRECISION.
+ *               On entry,  ALPHA specifies the scalar  alpha. When  alpha is
+ *               zero then  A is not referenced and  B need not be set before
+ *               entry.
+ *
+ *
+ *    [in] A
+ *
+ *              A is DOUBLE PRECISION array, dimension ( LDA, k ),
+ *               where k is m when SIDE = 'L' or 'l'
+ *               and k is n when SIDE = 'R' or 'r'.
+ *               Before entry  with  UPLO = 'U' or 'u',  the  leading  k by k
+ *               upper triangular part of the array  A must contain the upper
+ *               triangular matrix  and the strictly lower triangular part of
+ *               A is not referenced.
+ *               Before entry  with  UPLO = 'L' or 'l',  the  leading  k by k
+ *               lower triangular part of the array  A must contain the lower
+ *               triangular matrix  and the strictly upper triangular part of
+ *               A is not referenced.
+ *               Note that when  DIAG = 'U' or 'u',  the diagonal elements of
+ *               A  are not referenced either,  but are assumed to be  unity.
+ *
+ *
+ *    [in] LDA
+ *
+ *              LDA is INTEGER
+ *               On entry, LDA specifies the first dimension of A as declared
+ *               in the calling (sub) program.  When  SIDE = 'L' or 'l'  then
+ *               LDA  must be at least  max( 1, m ),  when  SIDE = 'R' or 'r'
+ *               then LDA must be at least max( 1, n ).
+ *
+ *
+ *    [in,out] B
+ *
+ *              B is DOUBLE PRECISION array, dimension ( LDB, N )
+ *               Before entry,  the leading  m by n part of the array  B must
+ *               contain  the  right-hand  side  matrix  B,  and  on exit  is
+ *               overwritten by the solution matrix  X.
+ *
+ *
+ *    [in] LDB
+ *
+ *              LDB is INTEGER
+ *               On entry, LDB specifies the first dimension of B as declared
+ *               in  the  calling  (sub)  program.   LDB  must  be  at  least
+ *               max( 1, m ).
  */
+
+/*
+ * DTRSM data stracture.
+ * Storage for the A and B matrices has to be allocated elsewhere.
+ */
+typedef struct aux_dtrsm_s {
+  char side;
+  char uplo;
+  char transa;
+  char diag;
+  int m;
+  int n;
+  double alpha;
+  double *a;
+  double *b;
+  double *x;
+  double mkv;
+  double epsilon;
+  bool verbose;
+  bool debug;
+} aux_dtrsm_t;
+
 
 
 /*
@@ -75,6 +213,9 @@ const int lial_trsm_diag_size = sizeof(lial_trsm_diag_values) / sizeof(char);
  * Auxiliary functions.
  */
 
+/*
+ * Prints the matrix to standard output.
+ */
 static void
 aux_print_matrix (char *name,
                   double *a,
@@ -91,13 +232,17 @@ aux_print_matrix (char *name,
     printf(" .%2d. | ", i);
     for (int j = 0; j < m; j++) {
       int k = i * lda + j;
-      printf("%6.3f, ", a[k]);
+      printf("%8.3f, ", a[k]);
     }
     printf("\n");
   }
   printf("________________________________________________________________________________________________________\n");
 }
 
+/*
+ * Verifies that the expression: 'abs(exp[i] - val[i]) < epsilon' is TRUE for every i in [0..n).
+ * The function aborts if the test fails.
+ */
 static void
 aux_check_array_equivalence (ut_test_t *const t,
                              double *val,
@@ -127,10 +272,753 @@ aux_check_array_equivalence (ut_test_t *const t,
   }
 }
 
+static void
+aux_test_dtrsm (ut_test_t *const t,
+                aux_dtrsm_t *args)
+{
+  ut_assert(t, args);
+  ut_assert(t, args->side == 'L' || args->side == 'l' || args->side == 'R' || args->side == 'r');
+  ut_assert(t, args->uplo == 'U' || args->uplo == 'u' || args->uplo == 'L' || args->uplo == 'l');
+  ut_assert(t, args->transa == 'N' || args->transa == 'n' || args->transa == 'T' ||
+            args->transa == 't' || args->transa == 'C' || args->transa == 'c');
+  ut_assert(t, args->diag == 'U' || args->diag == 'u' || args->diag == 'N' || args->diag == 'n');
+  ut_assert(t, args->m >= 0);
+  ut_assert(t, args->n >= 0);
+  ut_assert(t, args->a);
+  ut_assert(t, args->b);
+
+  if ( args->n == 0 || args->m == 0) return;
+
+  const bool debug = args->debug;
+  const bool verbose = args->verbose;
+  const double epsilon = args->epsilon;
+
+  const bool is_side_l = (args->side == 'L' || args->side == 'l') ? true : false;
+  const int k = (is_side_l) ? args->m : args->n;
+  int lda = k + 2;
+  int ldb = args->m + 2;
+  const size_t size_of_a = lda * (k + 2);
+  const size_t size_of_b = ldb * (args->n + 2);
+
+  /*
+   * Pointers are organized in pairs: 'af' and 'ap' are one pair, and so on.
+   * _f is the pointer to the allocated array that hosts the 'framed' matrix.
+   * The frame has a width of one value on all four sides. The assigned frame value is
+   * set to args->mkv.
+   * Applaying this design LDA is always 'K + 2' , and LDB is 'M + 2'.
+   * _p is the pointer to the first element of the matrix, and is then passed to the
+   * call to DTRSM.
+   * 'af' is the framed A matrix (triangular matrix).
+   * 'bf' is the framed B matrix (right side matrix before the DTRSM call, result matrix after the call).
+   * 'xf' is the framed X matrix (expected result matrix).
+   */
+  double *af, *ap, *bf, *bp, *xf, *xp;
+
+  af = (double *) malloc(sizeof(double) * size_of_a);
+  ut_assert(t, af);
+  for (size_t i = 0; i < size_of_a; i++) af[i] = args->mkv;
+  if (debug) aux_print_matrix("AF", af, lda, lda, lda);
+  ap = af + lda + 1;
+  for (size_t i = 0; i < k; i++)
+    for (size_t j = 0; j < k; j++)
+      af[(i+1)*lda+j+1] = args->a[i*k+j];
+  if (debug) aux_print_matrix("AF", af, lda, lda, lda);
+
+  bf = (double *) malloc(sizeof(double) * size_of_b);
+  ut_assert(t, bf);
+  for (size_t i = 0; i < size_of_b; i++) bf[i] = args->mkv;
+  if (debug) aux_print_matrix("BF",bf, args->n + 2, ldb, ldb);
+  bp = bf + ldb + 1;
+  for (size_t i = 0; i < args->n; i++)
+    for (size_t j = 0; j < args->m; j++)
+      bf[(i+1)*ldb+j+1] = args->b[i*args->m+j];
+  if (debug) aux_print_matrix("BF", bf, args->n + 2, ldb, ldb);
+
+  xf = (double *) malloc(sizeof(double) * size_of_b);
+  ut_assert(t, xf);
+  for (size_t i = 0; i < size_of_b; i++) xf[i] = args->mkv;
+  if (debug) aux_print_matrix("XF",xf, args->n + 2, ldb, ldb);
+  xp = xf + ldb + 1;
+  for (size_t i = 0; i < args->n; i++)
+    for (size_t j = 0; j < args->m; j++)
+      xf[(i+1)*ldb+j+1] = args->x[i*args->m+j];
+  if (debug) aux_print_matrix("XF",xf, args->n + 2, ldb, ldb);
+
+  if (verbose) {
+    printf("\n");
+    printf("Parameters:\n");
+    printf("  SIDE      = '%c'\n", args->side);
+    printf("  UPLO      = '%c'\n", args->uplo);
+    printf("  TRANSA    = '%c'\n", args->transa);
+    printf("  DIAG      = '%c'\n", args->diag);
+    printf("  M         = %d\n", args->m);
+    printf("  N         = %d\n", args->n);
+    printf("  ALPHA     = %f\n", args->alpha);
+    printf("  A         = %p\n", (void*) ap);
+    printf("  LDA       = %d\n", lda);
+    printf("  B         = %p\n", (void*) bp);
+    printf("  LDB       = %d\n", ldb);
+    printf("  MKV       = %f\n", args->mkv);
+    printf("  K         = %d\n", k);
+    printf("  SIZE_OF_A = %zu\n", size_of_a);
+    printf("  SIZE_OF_B = %zu\n", size_of_b);
+    printf("  EPSILON   = %e\n", args->epsilon);
+    printf("\n");
+    aux_print_matrix("A", ap, k, k, lda);
+    aux_print_matrix("B", bp, args->n, args->m, ldb);
+    aux_print_matrix("X_EXPECTED", xp, args->n, args->m, ldb);
+    fflush(stdout);
+  }
+  lial_dtrsm(&args->side, &args->uplo, &args->transa, &args->diag,
+             &args->m, &args->n, &args->alpha,
+             ap, &lda, bp, &ldb);
+  if (verbose) aux_print_matrix("X", bp, args->n, args->m, ldb);
+  aux_check_array_equivalence(t, bf, xf, size_of_b, epsilon);
+
+  free(xf);
+  free(bf);
+  free(af);
+}
+
 
 /*
  * Test functions.
  */
+static void
+lial_trsm_3x3_3x5_lunn_0_t (ut_test_t *const t)
+{
+  /*
+   * Base configuration:
+   *
+   * SIDE      = 'L'
+   * UPLO      = 'U'
+   * TRANSA    = 'N'
+   * DIAG      = 'N'
+   * M         = 3
+   * N         = 5
+   * ALPHA     = 1.000000
+   *
+   * R script:
+   *
+   * library(MASS)
+   *
+   * A <- matrix(c(4, 1, 8,
+   *               0, 7, 5,
+   *               0, 0, 3),
+   *             nrow = 3, ncol = 3, byrow = TRUE)
+   *
+   * B <- matrix(c(1, 3, 9, 2, 3,
+   *               5, 2, 8, 5, 1,
+   *               8, 1, 7, 6, 4),
+   *             nrow = 3, ncol = 5, byrow = TRUE)
+   *
+   * X <- solve(A, B)
+   *
+   * Xf <- fractions(X)
+   *
+   * > A
+   *      [,1] [,2] [,3]
+   * [1,]    4    1    8
+   * [2,]    0    7    5
+   * [3,]    0    0    3
+   *
+   * > B
+   *      [,1] [,2] [,3] [,4] [,5]
+   * [1,]    1    3    9    2    3
+   * [2,]    5    2    8    5    1
+   * [3,]    8    1    7    6    4
+   *
+   * > X
+   *           [,1]       [,2]       [,3]       [,4]       [,5]
+   * [1,] -4.785714 0.07142857 -2.2857143 -3.3214286 -1.7142857
+   * [2,] -1.190476 0.04761905 -0.5238095 -0.7142857 -0.8095238
+   * [3,]  2.666667 0.33333333  2.3333333  2.0000000  1.3333333
+   *
+   * > Xf
+   *        [,1]   [,2]   [,3]   [,4]   [,5]
+   * [1,] -67/14   1/14  -16/7 -93/28  -12/7
+   * [2,] -25/21   1/21 -11/21   -5/7 -17/21
+   * [3,]    8/3    1/3    7/3      2    4/3
+   *
+   */
+
+  double a[] =
+    {
+     4.0, 0.0, 0.0,
+     1.0, 7.0, 0.0,
+     8.0, 5.0, 3.0,
+    };
+
+  double b[] =
+    {
+     1.0, 5.0, 8.0,
+     3.0, 2.0, 1.0,
+     9.0, 8.0, 7.0,
+     2.0, 5.0, 6.0,
+     3.0, 1.0, 4.0,
+    };
+
+  double x[] =
+    {
+     -67.0 / 14.0 ,  -25.0 / 21.0 ,  + 8.0 /  3.0 ,
+     + 1.0 / 14.0 ,  + 1.0 / 21.0 ,  + 1.0 /  3.0 ,
+     -16.0 /  7.0 ,  -11.0 / 21.0 ,  + 7.0 /  3.0 ,
+     -93.0 / 28.0 ,  - 5.0 /  7.0 ,  + 2.0        ,
+     -12.0 /  7.0 ,  -17.0 / 21.0 ,  + 4.0 /  3.0 ,
+    };
+
+  aux_dtrsm_t args =
+    {
+     .side = 'L',
+     .uplo = 'U',
+     .transa = 'N',
+     .diag = 'N',
+     .m = 3,
+     .n = 5,
+     .alpha = 1.0,
+     .a = a,
+     .b = b,
+     .x = x,
+     .mkv = 2.0,
+     .epsilon = 1.0E-15,
+     .verbose = ut_run_time_is_verbose(t),
+     .debug = false,
+    };
+
+  aux_test_dtrsm(t, &args);
+}
+
+static void
+lial_trsm_3x3_3x5_lunn_1_t (ut_test_t *const t)
+{
+  /*
+   * ALPHA = 2.0
+   *
+   * The net result of having ALPHA different from the unit ( 1.0 ) is to
+   * multiply the computed result X by the value of ALPHA.
+   *
+   * > A
+   *      [,1] [,2] [,3]
+   * [1,]    4    1    8
+   * [2,]    0    7    5
+   * [3,]    0    0    3
+   *
+   * > B
+   *      [,1] [,2] [,3] [,4] [,5]
+   * [1,]    1    3    9    2    3
+   * [2,]    5    2    8    5    1
+   * [3,]    8    1    7    6    4
+   *
+   * > X
+   *           [,1]      [,2]      [,3]      [,4]      [,5]
+   * [1,] -9.571429 0.1428571 -4.571429 -6.642857 -3.428571
+   * [2,] -2.380952 0.0952381 -1.047619 -1.428571 -1.619048
+   * [3,]  5.333333 0.6666667  4.666667  4.000000  2.666667
+   *
+   * > Xf
+   *        [,1]   [,2]   [,3]   [,4]   [,5]
+   * [1,]  -67/7    1/7  -32/7 -93/14  -24/7
+   * [2,] -50/21   2/21 -22/21  -10/7 -34/21
+   * [3,]   16/3    2/3   14/3      4    8/3
+   *
+   */
+
+  double a[] =
+    {
+     4.0, 0.0, 0.0,
+     1.0, 7.0, 0.0,
+     8.0, 5.0, 3.0,
+    };
+
+  double b[] =
+    {
+     1.0, 5.0, 8.0,
+     3.0, 2.0, 1.0,
+     9.0, 8.0, 7.0,
+     2.0, 5.0, 6.0,
+     3.0, 1.0, 4.0,
+    };
+
+  double x[] =
+    {
+     -67.0 /  7.0 ,  -50.0 / 21.0 ,  +16.0 /  3.0 ,
+     + 1.0 /  7.0 ,  + 2.0 / 21.0 ,  + 2.0 /  3.0 ,
+     -32.0 /  7.0 ,  -22.0 / 21.0 ,  +14.0 /  3.0 ,
+     -93.0 / 14.0 ,  -10.0 /  7.0 ,  + 4.0        ,
+     -24.0 /  7.0 ,  -34.0 / 21.0 ,  + 8.0 /  3.0 ,
+    };
+
+  aux_dtrsm_t args =
+    {
+     .side = 'L',
+     .uplo = 'U',
+     .transa = 'N',
+     .diag = 'N',
+     .m = 3,
+     .n = 5,
+     .alpha = 2.0,
+     .a = a,
+     .b = b,
+     .x = x,
+     .mkv = 2.0,
+     .epsilon = 1.0E-15,
+     .verbose = ut_run_time_is_verbose(t),
+     .debug = false,
+    };
+
+  aux_test_dtrsm(t, &args);
+}
+
+static void
+lial_trsm_3x3_3x5_lunu_t (ut_test_t *const t)
+{
+  /*
+   * Configuration:
+   *
+   * SIDE      = 'L'
+   * UPLO      = 'U'
+   * TRANSA    = 'N'
+   * DIAG      = 'U'
+   * M         = 3
+   * N         = 5
+   * ALPHA     = 1.000000
+   *
+   * Instead of solving the linear system 'A * X = B' , we are solving the
+   * equation 'A1 * X = B' , where the A1 matrix is derived from A by substituting
+   * all the elements on the diagonal with unit values ( 1.0 ).
+   *
+   * > A
+   *      [,1] [,2] [,3]
+   * [1,]    4    1    8
+   * [2,]    0    7    5
+   * [3,]    0    0    3
+   *
+   * > A1
+   *      [,1] [,2] [,3]
+   * [1,]    1    1    8
+   * [2,]    0    1    5
+   * [3,]    0    0    1
+   *
+   * > B
+   *      [,1] [,2] [,3] [,4] [,5]
+   * [1,]    1    3    9    2    3
+   * [2,]    5    2    8    5    1
+   * [3,]    8    1    7    6    4
+   *
+   * > X
+   *      [,1] [,2] [,3] [,4] [,5]
+   * [1,]  -28   -2  -20  -21  -10
+   * [2,]  -35   -3  -27  -25  -19
+   * [3,]    8    1    7    6    4
+   *
+   * > Xf
+   *      [,1] [,2] [,3] [,4] [,5]
+   * [1,]  -28   -2  -20  -21  -10
+   * [2,]  -35   -3  -27  -25  -19
+   * [3,]    8    1    7    6    4
+   *
+   */
+
+  double a[] =
+    {
+     4.0, 0.0, 0.0,
+     1.0, 7.0, 0.0,
+     8.0, 5.0, 3.0,
+    };
+
+  double b[] =
+    {
+     1.0, 5.0, 8.0,
+     3.0, 2.0, 1.0,
+     9.0, 8.0, 7.0,
+     2.0, 5.0, 6.0,
+     3.0, 1.0, 4.0,
+    };
+
+  double x[] =
+    {
+     -28.0,  -35.0,  + 8.0,
+     - 2.0,  - 3.0,  + 1.0,
+     -20.0,  -27.0,  + 7.0,
+     -21.0,  -25.0,  + 6.0,
+     -10.0,  -19.0,  + 4.0,
+    };
+
+  aux_dtrsm_t args =
+    {
+     .side = 'L',
+     .uplo = 'U',
+     .transa = 'N',
+     .diag = 'U',
+     .m = 3,
+     .n = 5,
+     .alpha = 1.0,
+     .a = a,
+     .b = b,
+     .x = x,
+     .mkv = 2.0,
+     .epsilon = 1.0E-15,
+     .verbose = ut_run_time_is_verbose(t),
+     .debug = false,
+    };
+
+  aux_test_dtrsm(t, &args);
+}
+
+static void
+lial_trsm_3x3_3x5_lltn_t (ut_test_t *const t)
+{
+  /*
+   * Configuration:
+   *
+   * SIDE      = 'L'
+   * UPLO      = 'L'
+   * TRANSA    = 'T'
+   * DIAG      = 'N'
+   * M         = 3
+   * N         = 5
+   * ALPHA     = 1.000000
+   *
+   * This configuration obtains the same result of the Base Case by executing two
+   * permutations: transposing A and flipping UPLO.
+   * LOWER TRANSPOSED is equivalent to UPPER.
+   *
+   * > A
+   *      [,1] [,2] [,3]
+   * [1,]    4    0    0
+   * [2,]    1    7    0
+   * [3,]    8    5    3
+   *
+   * > AT
+   *      [,1] [,2] [,3]
+   * [1,]    4    1    8
+   * [2,]    0    7    5
+   * [3,]    0    0    3
+   *
+   * > B
+   *      [,1] [,2] [,3] [,4] [,5]
+   * [1,]    1    3    9    2    3
+   * [2,]    5    2    8    5    1
+   * [3,]    8    1    7    6    4
+   *
+   * > X
+   *           [,1]       [,2]       [,3]       [,4]       [,5]
+   * [1,] -4.785714 0.07142857 -2.2857143 -3.3214286 -1.7142857
+   * [2,] -1.190476 0.04761905 -0.5238095 -0.7142857 -0.8095238
+   * [3,]  2.666667 0.33333333  2.3333333  2.0000000  1.3333333
+   *
+   * > Xf
+   *        [,1]   [,2]   [,3]   [,4]   [,5]
+   * [1,] -67/14   1/14  -16/7 -93/28  -12/7
+   * [2,] -25/21   1/21 -11/21   -5/7 -17/21
+   * [3,]    8/3    1/3    7/3      2    4/3
+   *
+   */
+
+  double a[] =
+    {
+     4.0, 1.0, 8.0,
+     0.0, 7.0, 5.0,
+     0.0, 0.0, 3.0,
+    };
+
+  double b[] =
+    {
+     1.0, 5.0, 8.0,
+     3.0, 2.0, 1.0,
+     9.0, 8.0, 7.0,
+     2.0, 5.0, 6.0,
+     3.0, 1.0, 4.0,
+    };
+
+  double x[] =
+    {
+     -67.0 / 14.0 ,  -25.0 / 21.0 ,  + 8.0 /  3.0 ,
+     + 1.0 / 14.0 ,  + 1.0 / 21.0 ,  + 1.0 /  3.0 ,
+     -16.0 /  7.0 ,  -11.0 / 21.0 ,  + 7.0 /  3.0 ,
+     -93.0 / 28.0 ,  - 5.0 /  7.0 ,  + 2.0        ,
+     -12.0 /  7.0 ,  -17.0 / 21.0 ,  + 4.0 /  3.0 ,
+    };
+
+  aux_dtrsm_t args =
+    {
+     .side = 'L',
+     .uplo = 'L',
+     .transa = 'T',
+     .diag = 'N',
+     .m = 3,
+     .n = 5,
+     .alpha = 1.0,
+     .a = a,
+     .b = b,
+     .x = x,
+     .mkv = 2.0,
+     .epsilon = 1.0E-15,
+     .verbose = ut_run_time_is_verbose(t),
+     .debug = false,
+    };
+
+  aux_test_dtrsm(t, &args);
+}
+
+static void
+lial_trsm_3x3_3x5_llnn_t (ut_test_t *const t)
+{
+  /*
+   * Configuration:
+   *
+   * SIDE      = 'L'
+   * UPLO      = 'L'
+   * TRANSA    = 'N'
+   * DIAG      = 'N'
+   * M         = 3
+   * N         = 5
+   * ALPHA     = 1.000000
+   *
+   * A matrix is LOWER. The result is different from the base case, obviously.
+   *
+   * > A
+   *      [,1] [,2] [,3]
+   * [1,]    4    0    0
+   * [2,]    1    7    0
+   * [3,]    8    5    3
+   *
+   * > B
+   *      [,1] [,2] [,3] [,4] [,5]
+   * [1,]    1    3    9    2    3
+   * [2,]    5    2    8    5    1
+   * [3,]    8    1    7    6    4
+   *
+   * > X
+   *           [,1]       [,2]       [,3]       [,4]        [,5]
+   * [1,] 0.2500000  0.7500000  2.2500000  0.5000000  0.75000000
+   * [2,] 0.6785714  0.1785714  0.8214286  0.6428571  0.03571429
+   * [3,] 0.8690476 -1.9642857 -5.0357143 -0.4047619 -0.72619048
+   *
+   * > Xf
+   *         [,1]    [,2]    [,3]    [,4]    [,5]
+   * [1,]     1/4     3/4     9/4     1/2     3/4
+   * [2,]   19/28    5/28   23/28    9/14    1/28
+   * [3,]   73/84  -55/28 -141/28  -17/42  -61/84
+   *
+   */
+
+  double a[] =
+    {
+     4.0, 1.0, 8.0,
+     0.0, 7.0, 5.0,
+     0.0, 0.0, 3.0,
+    };
+
+  double b[] =
+    {
+     1.0, 5.0, 8.0,
+     3.0, 2.0, 1.0,
+     9.0, 8.0, 7.0,
+     2.0, 5.0, 6.0,
+     3.0, 1.0, 4.0,
+    };
+
+  double x[] =
+    {
+     + 1.0 /  4.0 , + 19.0 / 28.0 , + 73.0 / 84.0 ,
+     + 3.0 /  4.0 , +  5.0 / 28.0 , - 55.0 / 28.0 ,
+     + 9.0 /  4.0 , + 23.0 / 28.0 , -141.0 / 28.0 ,
+     + 1.0 /  2.0 , +  9.0 / 14.0 , - 17.0 / 42.0 ,
+     + 3.0 /  4.0 , +  1.0 / 28.0 , - 61.0 / 84.0 ,
+    };
+
+  aux_dtrsm_t args =
+    {
+     .side = 'L',
+     .uplo = 'L',
+     .transa = 'N',
+     .diag = 'N',
+     .m = 3,
+     .n = 5,
+     .alpha = 1.0,
+     .a = a,
+     .b = b,
+     .x = x,
+     .mkv = 2.0,
+     .epsilon = 1.0E-15,
+     .verbose = ut_run_time_is_verbose(t),
+     .debug = false,
+    };
+
+  aux_test_dtrsm(t, &args);
+}
+
+static void
+lial_trsm_5x5_3x5_runn_t (ut_test_t *const t)
+{
+  /*
+   * 'SIDE = R' changes the dimensions of the matrix A into A(N,N).
+   *
+   * 'X * A = B' implies that '(X * A)**T = B**T' and also 'A**T * X**T = B**T'
+   * This last equivalence is computed in the R shell, note that the t() function
+   * performs transposition.
+   * We do also the transposed computation as a further second test.
+   *
+   * Configuration:
+   *
+   * SIDE      = 'R'
+   * UPLO      = 'U'
+   * TRANSA    = 'N'
+   * DIAG      = 'N'
+   * M         = 3
+   * N         = 5
+   * ALPHA     = 1.000000
+   *
+   * R script:
+   *
+   * library(MASS)
+   *
+   *
+   * A <- matrix(c(4, 1, 8, 1, 7,
+   *               0, 7, 5, 9, 2,
+   *               0, 0, 3, 4, 6,
+   *               0, 0, 0, 1, 2,
+   *               0, 0, 0, 0, 5),
+   *             nrow = 5, ncol = 5, byrow = TRUE)
+   *
+   * B <- matrix(c(1, 3, 9, 2, 3,
+   *               5, 2, 8, 5, 1,
+   *               8, 1, 7, 6, 4),
+   *             nrow = 3, ncol = 5, byrow = TRUE)
+   *
+   * X <- t(solve(t(A), t(B)))
+   *
+   * Xf <- fractions(X)
+   *
+   * > A
+   *      [,1] [,2] [,3] [,4] [,5]
+   * [1,]    4    1    8    1    7
+   * [2,]    0    7    5    9    2
+   * [3,]    0    0    3    4    6
+   * [4,]    0    0    0    1    2
+   * [5,]    0    0    0    0    5
+   *
+   * > B
+   *      [,1] [,2] [,3] [,4] [,5]
+   * [1,]    1    3    9    2    3
+   * [2,]    5    2    8    5    1
+   * [3,]    8    1    7    6    4
+   *
+   * > X
+   *      [,1]       [,2]       [,3]      [,4]      [,5]
+   * [1,] 0.25  0.3928571  1.6785714 -8.500000  1.478571
+   * [2,] 1.25  0.1071429 -0.8452381  6.166667 -3.045238
+   * [3,] 2.00 -0.1428571 -2.7619048 16.333333 -5.161905
+   *
+   * > Xf
+   *           [,1]      [,2]      [,3]      [,4]      [,5]
+   * [1,]       1/4     11/28     47/28     -17/2   207/140
+   * [2,]       5/4      3/28    -71/84      37/6 -1279/420
+   * [3,]         2      -1/7    -58/21      49/3  -542/105
+   *
+   */
+
+  double a[] =
+    {
+     4.0, 0.0, 0.0, 0.0, 0.0,
+     1.0, 7.0, 0.0, 0.0, 0.0,
+     8.0, 5.0, 3.0, 0.0, 0.0,
+     1.0, 9.0, 4.0, 1.0, 0.0,
+     7.0, 2.0, 6.0, 2.0, 5.0,
+    };
+
+  double b[] =
+    {
+     1.0, 5.0, 8.0,
+     3.0, 2.0, 1.0,
+     9.0, 8.0, 7.0,
+     2.0, 5.0, 6.0,
+     3.0, 1.0, 4.0,
+    };
+
+  double x[] =
+    {
+     +  1.0 /   4.0 ,  +   5.0 /   4.0 , +  2.0 /   1.0 ,
+     + 11.0 /  28.0 ,  +   3.0 /  28.0 , -  1.0 /   7.0 ,
+     + 47.0 /  28.0 ,  -  71.0 /  84.0 , - 58.0 /  21.0 ,
+     - 17.0 /   2.0 ,  +  37.0 /   6.0 , + 49.0 /   3.0 ,
+     +207.0 / 140.0 ,  -1279.0 / 420.0 , -542.0 / 105.0 ,
+    };
+
+  aux_dtrsm_t args =
+    {
+     .side = 'R',
+     .uplo = 'U',
+     .transa = 'N',
+     .diag = 'N',
+     .m = 3,
+     .n = 5,
+     .alpha = 1.0,
+     .a = a,
+     .b = b,
+     .x = x,
+     .mkv = 2.0,
+     .epsilon = 1.0E-15,
+     .verbose = ut_run_time_is_verbose(t),
+     .debug = false,
+    };
+
+  aux_test_dtrsm(t, &args);
+
+  /*
+   * We do obtain the same result by computing the L-SIDE TRSM computation
+   * on the transposed B matrix (offcourse we do obtain the transposed result too).
+   * Observe that we need to set TRANSA = T and to swap the values
+   * assigned to M and N arguments.
+   *
+   *
+   * Configuration:
+   *
+   * SIDE      = 'L'
+   * UPLO      = 'U'
+   * TRANSA    = 'T'
+   * DIAG      = 'N'
+   * M         = 5
+   * N         = 3
+   * ALPHA     = 1.000000
+   *
+   */
+
+  double bt[] =
+    {
+     1.0, 3.0, 9.0, 2.0, 3.0,
+     5.0, 2.0, 8.0, 5.0, 1.0,
+     8.0, 1.0, 7.0, 6.0, 4.0,
+    };
+
+  double xt[] =
+    {
+     +1.0 / 4.0 , +11.0 / 28.0 , +47.0 / 28.0 , -17.0 / 2.0 , + 207.0 / 140.0 ,
+     +5.0 / 4.0 , + 3.0 / 28.0 , -71.0 / 84.0 , +37.0 / 6.0 , -1279.0 / 420.0 ,
+     +2.0 / 1.0 , - 1.0 /  7.0 , -58.0 / 21.0 , +49.0 / 3.0 , - 542.0 / 105.0 ,
+    };
+
+  aux_dtrsm_t argst =
+    {
+     .side = 'L',
+     .uplo = 'U',
+     .transa = 'T',
+     .diag = 'N',
+     .m = 5,
+     .n = 3,
+     .alpha = 1.0,
+     .a = a,
+     .b = bt,
+     .x = xt,
+     .mkv = 2.0,
+     .epsilon = 1.0E-15,
+     .verbose = ut_run_time_is_verbose(t),
+     .debug = false,
+    };
+
+  aux_test_dtrsm(t, &argst);
+}
 
 static void
 lial_trsm_bp_t (ut_test_t *const t)
@@ -514,6 +1402,14 @@ main (int argc,
   ut_init(&config, &argc, &argv);
 
   ut_suite_t *const s = ut_suite_new(&config, "trsm");
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_trsm_3x3_3x5_lunn_0", lial_trsm_3x3_3x5_lunn_0_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_trsm_3x3_3x5_lunn_1", lial_trsm_3x3_3x5_lunn_1_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_trsm_3x3_3x5_lunu", lial_trsm_3x3_3x5_lunu_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_trsm_3x3_3x5_lltn", lial_trsm_3x3_3x5_lltn_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_trsm_3x3_3x5_llnn", lial_trsm_3x3_3x5_llnn_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_trsm_5x5_3x5_runn", lial_trsm_5x5_3x5_runn_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_01, "lial_trsm_bp", lial_trsm_bp_t);
 
