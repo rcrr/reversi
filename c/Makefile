@@ -4,7 +4,7 @@
 #  This file is part of the reversi program
 #  http://github.com/rcrr/reversi
 #
-#  Copyright (c) 2013, 2014, 2016, 2017, 2018, 2019 Roberto Corradini. All rights reserved.
+#  Copyright (c) 2013, 2014, 2016, 2017, 2018, 2019, 2020 Roberto Corradini. All rights reserved.
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -29,7 +29,7 @@ MAINS = endgame_solver utest read_pve_dump intel_intrinsics_trial \
 
 UTEST_PROGS = ut_utest ut_llist ut_memory_object_pool ut_main_option_parse ut_bit_works ut_isqrt ut_sha3 ut_prng ut_file_utils ut_sort_utils ut_red_black_tree \
               ut_linear_algebra ut_board ut_board_trans ut_board_pattern ut_game_position_db ut_game_tree_utils ut_game_position ut_endgame_solver ut_es_pv ut_cfg \
-              ut_rglm_utils ut_trsm
+              ut_rglm_utils ut_trsm ut_flame
 
 #
 # No changes from here to the end, unless a structurar change of the build process happens.
@@ -46,13 +46,34 @@ PG_INCLUDE_DIR = `pg_config --includedir`
 PG_LIB_DIR = `pg_config --pkglibdir`
 PG_LIBS = -lpq
 
-#BLIS_PREFIX = /usr/local
-BLIS_PREFIX = ../../blis/lib/haswell
-#BLIS_INC    = $(BLIS_PREFIX)/include/blis
-#BLIS_LIB    = $(BLIS_PREFIX)/lib/libblis.a
-BLIS_LIB    = $(BLIS_PREFIX)/libblis.a
-#FLAME_LIB  := /usr/local/lib/libflame.a
-FLAME_LIB  := ../../libflame/lib/x86_64-unknown-linux-gnu/libflame.a
+#
+# BLIS and FLAME libraries.
+#
+# Read the file ./ext/README-BLIS-FLAME for info on how to build them.
+#
+BLIS_LIB  := ./ext/lib/libblis.a
+FLAME_LIB := ./ext/lib/libflame.a
+
+FLAME_LDFLAGS := -L/usr/lib/gcc/x86_64-linux-gnu/8
+FLAME_LDFLAGS += -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu
+FLAME_LDFLAGS += -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib
+FLAME_LDFLAGS += -L/lib/x86_64-linux-gnu
+FLAME_LDFLAGS += -L/lib/../lib
+FLAME_LDFLAGS += -L/usr/lib/x86_64-linux-gnu
+FLAME_LDFLAGS += -L/usr/lib/../lib
+FLAME_LDFLAGS += -L/usr/lib/gcc/x86_64-linux-gnu/8/../../..
+FLAME_LDFLAGS += -lgfortran
+FLAME_LDFLAGS += -lm
+FLAME_LDFLAGS += -lquadmath
+
+#
+# Add all the external header file in the ext/include directory.
+# Currently they are:
+#
+# - blis.h
+# - FLAME.h
+#
+EXT_INC := ./ext/include
 
 CC = gcc-7
 #CFLAGS = -std=c99 -pedantic -Wall -g -O3 -D_POSIX_SOURCE -ffast-math
@@ -66,11 +87,11 @@ CC = gcc-7
 # add -flto to the CFLAGS list to improve execution speed ( it takes much more to link executables )
 ARCH_FLAGS = -march=native
 #CFLAGS = -std=c11 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(BLIS_INC) -I$(PG_INCLUDE_DIR) -fopenmp -DNDEBUG
-CFLAGS = -std=c11 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -fopenmp -DNDEBUG
-LDFLAGS = 
-CFLAGS_TEST = -std=c11 -pedantic-errors -Wall -g -O3 -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS)
+CFLAGS = -std=c11 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O0 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fopenmp -DNDEBUG
+LDFLAGS := $(FLAME_LDFLAGS)
+CFLAGS_TEST = -std=c11 -pedantic-errors -Wall -g -O0 -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS) -I$(EXT_INC)
 LDFLAGS_TEST =
-ASMFLAGS = -std=c11 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -masm=intel -fopenmp -DNDEBUG
+ASMFLAGS = -std=c11 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -masm=intel -fopenmp -DNDEBUG
 LIBS = -lm -L$(PG_LIB_DIR) $(PG_LIBS)  $(FLAME_LIB) $(BLIS_LIB) -lgomp -lpthread
 #LIBS = -lm -L$(PG_LIB_DIR) $(PG_LIBS) -lgomp -llapack
 TEST_LIBS =

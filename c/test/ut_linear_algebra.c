@@ -484,6 +484,9 @@ aux_perf_sdf_lapack_blocked_parallel_t (ut_test_t *const t,
   /* Starts the stop-watch. */
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
 
+  /*
+   * STEP (0) - Retrieve from storage the A matrix
+   */
   a = lial_retrieve_matrix(test_data_file_name, &nr, &nc, &ret);
   if (ret != 0 || !a || (nr != nc)) {
     printf("\nUnable to read properly matrix a from file: %s\n", test_data_file_name);
@@ -554,6 +557,9 @@ aux_perf_sdf_lapack_blocked_parallel_t (ut_test_t *const t,
   /* Starts the stop-watch. */
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
 
+  /*
+   * STEP (1) - Factorize applying the Cholesky algorithm the A matrix
+   */
   lial_dpotrf_bp(&uplox, &n0, *a, &n0, &ret, block_size, thread_count);
   ut_assert(t, ret == 0);
 
@@ -585,7 +591,9 @@ aux_perf_sdf_lapack_blocked_parallel_t (ut_test_t *const t,
   /* Starts the stop-watch. */
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
 
-  /* Computes inverse matrix z. */
+  /*
+   * STEP (2) - Computes the inverse matrix Z.
+   */
   lial_dpotrs_bp(&uplox, &n0, &nrhs, *a, &n0, *z, &n0, &ret, block_size, thread_count);
 
   /* Stops the stop-watch. */
@@ -3477,7 +3485,7 @@ lial_perf_sdf_lapack_xedge_000_t_bp_t (ut_test_t *const t)
 }
 
 static void
-lial_dgem_1_t (ut_test_t *const t)
+lial_dgemm_1_t (ut_test_t *const t)
 {
   static const size_t n0 = 1;
 
@@ -3553,7 +3561,7 @@ lial_dgem_1_t (ut_test_t *const t)
 }
 
 static void
-lial_dgem_3_t (ut_test_t *const t)
+lial_dgemm_3_t (ut_test_t *const t)
 {
   static const size_t n0 = 3;
 
@@ -4746,8 +4754,8 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_clone_matrix", lial_clone_matrix_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dot_product_t", lial_dot_product_t);
 
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dgem_1_t", lial_dgem_1_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dgem_3_t", lial_dgem_3_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dgemm_1_t", lial_dgemm_1_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dgemm_3_t", lial_dgemm_3_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_lu_i2", lial_lu_i2_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_lu_3", lial_lu_3_t);

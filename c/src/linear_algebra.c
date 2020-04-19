@@ -45,6 +45,14 @@
 #include "isqrt.h"
 #include "linear_algebra.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+#define BLIS_DISABLE_BLAS_DEFS
+#include "blis.h"
+#pragma GCC diagnostic pop
+
+#include "FLAME.h"
+
 
 
 /* --- C interface for the LAPACK routine DPOTRF ---
@@ -100,12 +108,14 @@
  *                    completed.
  *
  */
+/*
 extern void
 dpotrf_ (const char *uplo,
          const int *n,
          double *a,
          const int *lda,
          int *info);
+*/
 
 /* --- C interface for the LAPACK routine DPOTRS ---
  * Double precision POsitive definite TRiangular Solve
@@ -157,6 +167,7 @@ dpotrf_ (const char *uplo,
  *              < 0:  if INFO = -i, the i-th argument had an illegal value
  *
  */
+/*
 extern void
 dpotrs_ (const char* uplo,
          const int* n,
@@ -166,6 +177,9 @@ dpotrs_ (const char* uplo,
          double* b,
          const int* ldb,
          int* info);
+*/
+#define F77_dpotrs F77_FUNC( dpotrs , DPOTRS )
+int F77_dpotrs(char* uplo, int* n, int* nrhs, double* a, int* lda, double* b, int* ldb, int* info);
 
 /*
  * Purpose:
@@ -301,6 +315,7 @@ dpotrs_ (const char* uplo,
  *           max( 1, m ).
  *
  */
+/*
 extern void
 dgemm_ (char *transa,
         char *transb,
@@ -315,6 +330,7 @@ dgemm_ (char *transa,
         double *beta,
         double *c,
         int *ldc);
+*/
 
 /*
  * Purpose:
@@ -433,6 +449,7 @@ dgemm_ (char *transa,
  *
  *
  */
+/*
 extern void
 dsyrk_ (char *uplo,
         char *trans,
@@ -444,6 +461,7 @@ dsyrk_ (char *uplo,
         double *beta,
         double *c,
         int *ldc);
+*/
 
 /*
  * Purpose:
@@ -571,6 +589,7 @@ dsyrk_ (char *uplo,
  *               in  the  calling  (sub)  program.   LDB  must  be  at  least
  *               max( 1, m ).
  */
+/*
 extern void
 dtrsm_ (char *side,
         char *uplo,
@@ -583,6 +602,7 @@ dtrsm_ (char *side,
         int *lda,
         double *b,
         int *ldb);
+*/
 
 static void
 lial_chol_solv_naive_ident (double **a,
@@ -1353,8 +1373,86 @@ aux_print_matrix (char *name,
   printf("________________________________________________________________________________________________________\n");
 }
 
+/*
+ * Everything to do here ... !!! TODO : EVERYTHING !!!
+ */
 void
 lial_dtrsm_bp (char *side,
+               char *uplo,
+               char *transa,
+               char *diag,
+               int *m,
+               int *n,
+               double *alpha,
+               double *a,
+               int *lda,
+               double *b,
+               int *ldb,
+               int block_size_m,
+               int block_size_n,
+               int thread_count)
+{
+  bool debug = true;
+  int bsm, bsn; // Block size on M and N dimensions.
+  int nfbm;     // Number of full blocks on M dimension.
+  int rm;       // Remainder on the M dimension.
+  int nbm;      // Number of blocks on the M dimension;
+  int nfbn;     // Number of full blocks on N dimension.
+  int rn;       // Remainder on the N dimension.
+  int nbn;      // Number of blocks on the N dimension.
+
+  int i, j, k; // Index variables used by the tiled algorithm.
+
+
+  if (*side == 'L' && *uplo == 'U' && *transa == 'N' && *diag == 'N') {
+    if (debug) printf("\n\nIN lial_dtrsm_bp case LUNN\n\n");
+
+    /* If block_size_m is less than 1 or it is greater than M, bsm is set to be M ( no tiling ). */
+    bsm = (block_size_m > 0) ? block_size_m : *m;
+    bsm = (bsm <= *m) ? bsm : *m;
+    nfbm = *m / bsm;
+    rm = *m % bsm;
+    nbm = nfbm + ((rm) ? 1 : 0);
+    /* Same for bsn. */
+    bsn = (block_size_n > 0) ? block_size_n : *n;
+    bsn = (bsn <= *n) ? bsn : *n;
+    nfbn = *n / bsn;
+    rn = *n % bsn;
+    nbn = nfbn + ((rn) ? 1 : 0);
+    if (debug) printf("*m=%d, block_size_m=%d, bsm=%d, nfbm=%d, rm=%d, nbm=%d\n", *m, block_size_m, bsm, nfbm, rm, nbm);
+    if (debug) printf("*n=%d, block_size_n=%d, bsn=%d, nfbn=%d, rn=%d, nbn=%d\n", *n, block_size_n, bsn, nfbn, rn, nbn);
+
+    /* Main loop: iteration happens on the rows of blocks of the system AX=B. */
+    for (i = 0; i < nbm; i++) {
+      if (debug) printf("MAIN LOOP i in [0..%d]: iterion # %d\n", nbm - 1, i);
+
+      /* TRSM loop: iteration happens on the columns of blocks of the B matrix. */
+      for (k = 0; k < nbn; k++) {
+        if (debug) printf(".. TRSM LOOP k in [0..%d]: iterion # %d\n", nbn - 1, k);
+
+      }
+
+      /* GEMM outer loop: iteration happens on the rows of blocks of the system AX=B.
+       *                  From the block just after the i-th one up to the end. */
+      for (j = i + 1; j < nbm; j++) {
+        if (debug) printf(".. GEMM OUTER LOOP j in [%d..%d]: iterion # %d\n", i + 1, nbm - 1, j);
+
+        /* GEMM inner loop: iteration happens on the columns of block of the B matrix. */
+        for (k = 0; k < nbn; k++) {
+          if (debug) printf(".. .. GEMM INNER LOOP k in [0..%d]: iterion # %d\n", nbn - 1, k);
+
+        } // k loop
+      } // j loop
+    } // i lopp
+
+    lial_dtrsm(side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb);
+  } else {
+    lial_dtrsm(side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb);
+  }
+}
+
+void
+lial_dtrsm_bp_ (char *side,
                char *uplo,
                char *transa,
                char *diag,
@@ -1474,7 +1572,7 @@ lial_dpotrf (const char *uplo,
              const int *lda,
              int *info)
 {
-  dpotrf_(uplo, n, a, lda, info);
+  dpotrf_((char *) uplo, (int *) n, a, (int *) lda, info);
 }
 
 void
@@ -1487,7 +1585,7 @@ lial_dpotrs (const char *uplo,
              const int *ldb,
              int *info)
 {
-  dpotrs_(uplo, n, nrhs, a, lda, b, ldb, info);
+  dpotrs_((char *) uplo, (int *) n, (int *) nrhs, a, (int *) lda, b, (int *) ldb, info);
 }
 
 void

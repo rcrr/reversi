@@ -245,10 +245,10 @@ aux_print_matrix (char *name,
  */
 static void
 aux_check_array_equivalence (ut_test_t *const t,
-                             double *val,
-                             double *exp,
-                             int n,
-                             double epsilon)
+                             double *val,          // value
+                             double *exp,          // expected value
+                             int n,                // size of val and exp arrays
+                             double epsilon)       // upper limit , not included, of the accepted deviation
 {
   int i;
   double v, e, delta;
@@ -272,6 +272,12 @@ aux_check_array_equivalence (ut_test_t *const t,
   }
 }
 
+/*
+ * It is a basic testing utility , run by most tests after having prepared the test data.
+ *
+ * A matrix is given by the args->a pointer
+ *
+ */
 static void
 aux_test_dtrsm (ut_test_t *const t,
                 aux_dtrsm_t *args)
@@ -287,6 +293,9 @@ aux_test_dtrsm (ut_test_t *const t,
   ut_assert(t, args->a);
   ut_assert(t, args->b);
 
+  /* The matrix frame has width equal to one on all four edges. */
+  static const int aux_matrix_two_side_frame_width = 2;
+
   if ( args->n == 0 || args->m == 0) return;
 
   const bool debug = args->debug;
@@ -295,10 +304,10 @@ aux_test_dtrsm (ut_test_t *const t,
 
   const bool is_side_l = (args->side == 'L' || args->side == 'l') ? true : false;
   const int k = (is_side_l) ? args->m : args->n;
-  int lda = k + 2;
-  int ldb = args->m + 2;
-  const size_t size_of_a = lda * (k + 2);
-  const size_t size_of_b = ldb * (args->n + 2);
+  int lda = k + aux_matrix_two_side_frame_width;
+  int ldb = args->m + aux_matrix_two_side_frame_width;
+  const size_t size_of_a = lda * (k + aux_matrix_two_side_frame_width);
+  const size_t size_of_b = ldb * (args->n + aux_matrix_two_side_frame_width);
 
   /*
    * Pointers are organized in pairs: 'af' and 'ap' are one pair, and so on.
@@ -379,6 +388,125 @@ aux_test_dtrsm (ut_test_t *const t,
   free(bf);
   free(af);
 }
+
+static void
+aux_test_dtrsm_bp (ut_test_t *const t,
+                   aux_dtrsm_t *args,
+                   int block_size_m,
+                   int block_size_n,
+                   int thread_count)
+{
+  ut_assert(t, args);
+  ut_assert(t, args->side == 'L' || args->side == 'l' || args->side == 'R' || args->side == 'r');
+  ut_assert(t, args->uplo == 'U' || args->uplo == 'u' || args->uplo == 'L' || args->uplo == 'l');
+  ut_assert(t, args->transa == 'N' || args->transa == 'n' || args->transa == 'T' ||
+            args->transa == 't' || args->transa == 'C' || args->transa == 'c');
+  ut_assert(t, args->diag == 'U' || args->diag == 'u' || args->diag == 'N' || args->diag == 'n');
+  ut_assert(t, args->m >= 0);
+  ut_assert(t, args->n >= 0);
+  ut_assert(t, args->a);
+  ut_assert(t, args->b);
+
+  /* The matrix frame has width equal to one on all four edges. */
+  static const int aux_matrix_two_side_frame_width = 2;
+
+  if ( args->n == 0 || args->m == 0) return;
+
+  const bool debug = args->debug;
+  const bool verbose = args->verbose;
+  const double epsilon = args->epsilon;
+
+  const bool is_side_l = (args->side == 'L' || args->side == 'l') ? true : false;
+  const int k = (is_side_l) ? args->m : args->n;
+  int lda = k + aux_matrix_two_side_frame_width;
+  int ldb = args->m + aux_matrix_two_side_frame_width;
+  const size_t size_of_a = lda * (k + aux_matrix_two_side_frame_width);
+  const size_t size_of_b = ldb * (args->n + aux_matrix_two_side_frame_width);
+
+  /*
+   * Pointers are organized in pairs: 'af' and 'ap' are one pair, and so on.
+   * _f is the pointer to the allocated array that hosts the 'framed' matrix.
+   * The frame has a width of one value on all four sides. The assigned frame value is
+   * set to args->mkv.
+   * Applaying this design LDA is always 'K + 2' , and LDB is 'M + 2'.
+   * _p is the pointer to the first element of the matrix, and is then passed to the
+   * call to DTRSM.
+   * 'af' is the framed A matrix (triangular matrix).
+   * 'bf' is the framed B matrix (right side matrix before the DTRSM call, result matrix after the call).
+   * 'xf' is the framed X matrix (expected result matrix).
+   */
+  double *af, *ap, *bf, *bp, *xf, *xp;
+
+  af = (double *) malloc(sizeof(double) * size_of_a);
+  ut_assert(t, af);
+  for (size_t i = 0; i < size_of_a; i++) af[i] = args->mkv;
+  if (debug) aux_print_matrix("AF", af, lda, lda, lda);
+  ap = af + lda + 1;
+  for (size_t i = 0; i < k; i++)
+    for (size_t j = 0; j < k; j++)
+      af[(i+1)*lda+j+1] = args->a[i*k+j];
+  if (debug) aux_print_matrix("AF", af, lda, lda, lda);
+
+  bf = (double *) malloc(sizeof(double) * size_of_b);
+  ut_assert(t, bf);
+  for (size_t i = 0; i < size_of_b; i++) bf[i] = args->mkv;
+  if (debug) aux_print_matrix("BF",bf, args->n + 2, ldb, ldb);
+  bp = bf + ldb + 1;
+  for (size_t i = 0; i < args->n; i++)
+    for (size_t j = 0; j < args->m; j++)
+      bf[(i+1)*ldb+j+1] = args->b[i*args->m+j];
+  if (debug) aux_print_matrix("BF", bf, args->n + 2, ldb, ldb);
+
+  xf = (double *) malloc(sizeof(double) * size_of_b);
+  ut_assert(t, xf);
+  for (size_t i = 0; i < size_of_b; i++) xf[i] = args->mkv;
+  if (debug) aux_print_matrix("XF",xf, args->n + 2, ldb, ldb);
+  xp = xf + ldb + 1;
+  for (size_t i = 0; i < args->n; i++)
+    for (size_t j = 0; j < args->m; j++)
+      xf[(i+1)*ldb+j+1] = args->x[i*args->m+j];
+  if (debug) aux_print_matrix("XF",xf, args->n + 2, ldb, ldb);
+
+  if (verbose) {
+    printf("\n");
+    printf("Parameters:\n");
+    printf("  SIDE     ..  = '%c'\n", args->side);
+    printf("  UPLO     ..  = '%c'\n", args->uplo);
+    printf("  TRANSA   ..  = '%c'\n", args->transa);
+    printf("  DIAG     ..  = '%c'\n", args->diag);
+    printf("  M   ..   ..  = %d\n", args->m);
+    printf("  N   ..   ..  = %d\n", args->n);
+    printf("  ALPHA    ..  = %f\n", args->alpha);
+    printf("  A   ..   ..  = %p\n", (void*) ap);
+    printf("  LDA      ..  = %d\n", lda);
+    printf("  B   ..   ..  = %p\n", (void*) bp);
+    printf("  LDB      ..  = %d\n", ldb);
+    printf("  MKV      ..  = %f\n", args->mkv);
+    printf("  K   ..   ..  = %d\n", k);
+    printf("  SIZE_OF_A    = %zu\n", size_of_a);
+    printf("  SIZE_OF_B    = %zu\n", size_of_b);
+    printf("  EPSILON      = %e\n", args->epsilon);
+    printf("  BLOCK_SIZE_M = %d\n", block_size_m);
+    printf("  BLOCK_SIZE_N = %d\n", block_size_n);
+    printf("  THREAD_COUNT = %d\n", thread_count);
+    printf("\n");
+    aux_print_matrix("A", ap, k, k, lda);
+    aux_print_matrix("B", bp, args->n, args->m, ldb);
+    aux_print_matrix("X_EXPECTED", xp, args->n, args->m, ldb);
+    fflush(stdout);
+  }
+  lial_dtrsm_bp(&args->side, &args->uplo, &args->transa, &args->diag,
+                &args->m, &args->n, &args->alpha,
+                ap, &lda, bp, &ldb,
+                block_size_m, block_size_n, thread_count);
+  if (verbose) aux_print_matrix("X", bp, args->n, args->m, ldb);
+  aux_check_array_equivalence(t, bf, xf, size_of_b, epsilon);
+
+  free(xf);
+  free(bf);
+  free(af);
+}
+
 
 
 /*
@@ -1021,6 +1149,123 @@ lial_trsm_5x5_3x5_runn_t (ut_test_t *const t)
 }
 
 static void
+lial_trsm_5x5_5x3_lunn_0_t (ut_test_t *const t)
+{
+  /*
+   * Base configuration:
+   *
+   * SIDE      = 'L'
+   * UPLO      = 'U'
+   * TRANSA    = 'N'
+   * DIAG      = 'N'
+   * M         = 5
+   * N         = 3
+   * ALPHA     = 1.000000
+   *
+   * R script:
+   *
+   * library(MASS)
+   *
+   * A <- matrix(c(2, 1, 8, 1, 7,
+   *               0, 3, 5, 2, 3,
+   *               0, 0, 9, 8, 4,
+   *               0, 0, 0, 1, 3,
+   *               0, 0, 0, 0, 5),
+   *             nrow = 5, ncol = 5, byrow = TRUE)
+   *
+   * B <- matrix(c(3, 3, 9,
+   *               1, 2, 7,
+   *               8, 6, 7,
+   *               4, 2, 4,
+   *               6, 3, 1),
+   *             nrow = 5, ncol = 3, byrow = TRUE)
+   *
+   * X_AB <- solve(A, B)
+   *
+   * X_ABf <- fractions(X_AB)
+   *
+   * > A
+   *      [,1] [,2] [,3] [,4] [,5]
+   * [1,]    2    1    8    1    7
+   * [2,]    0    3    5    2    3
+   * [3,]    0    0    9    8    4
+   * [4,]    0    0    0    1    3
+   * [5,]    0    0    0    0    5
+   *
+   * > B
+   *      [,1] [,2] [,3]
+   * [1,]    3    3    9
+   * [2,]    1    2    7
+   * [3,]    8    6    7
+   * [4,]    4    2    4
+   * [5,]    6    3    1
+   *
+   * > X_AB
+   *               [,1]       [,2]      [,3]
+   * [1,] -2.333333e+00 -1.3703704  9.555556
+   * [2,] -1.133333e+00 -0.4370370  3.755556
+   * [3,] -2.960595e-16  0.2222222 -2.333333
+   * [4,]  4.000000e-01  0.2000000  3.400000
+   * [5,]  1.200000e+00  0.6000000  0.200000
+   *
+   * > X_ABf
+   *         [,1]    [,2]    [,3]
+   * [1,]    -7/3  -37/27    86/9
+   * [2,]  -17/15 -59/135  169/45
+   * [3,]       0     2/9    -7/3
+   * [4,]     2/5     1/5    17/5
+   * [5,]     6/5     3/5     1/5
+   *
+   *
+   */
+
+
+  double a[] =
+    {
+     2.0, 0.0, 0.0, 0.0, 0.0,
+     1.0, 3.0, 0.0, 0.0, 0.0,
+     8.0, 5.0, 9.0, 0.0, 0.0,
+     1.0, 2.0, 8.0, 1.0, 0.0,
+     7.0, 3.0, 4.0, 3.0, 5.0,
+    };
+
+  double b[] =
+    {
+     3.0, 1.0, 8.0, 4.0, 6.0,
+     3.0, 2.0, 6.0, 2.0, 3.0,
+     9.0, 7.0, 7.0, 4.0, 1.0,
+    };
+
+  double x[] =
+    {
+     - 7.0 /  3.0 ,  - 17.0 /  15.0 ,  + 0.0        , +  2.0 / 5.0 , + 6.0 / 5.0 ,
+     -37.0 / 27.0 ,  - 59.0 / 135.0 ,  + 2.0 /  9.0 , +  1.0 / 5.0 , + 3.0 / 5.0 ,
+     +86.0 /  9.0 ,  +169.0 /  45.0 ,  - 7.0 /  3.0 , + 17.0 / 5.0 , + 1.0 / 5.0 ,
+    };
+
+  aux_dtrsm_t args =
+    {
+     .side = 'L',
+     .uplo = 'U',
+     .transa = 'N',
+     .diag = 'N',
+     .m = 5,
+     .n = 3,
+     .alpha = 1.0,
+     .a = a,
+     .b = b,
+     .x = x,
+     .mkv = 2.0,
+     .epsilon = 1.0E-14,
+     .verbose = ut_run_time_is_verbose(t),
+     .debug = false,
+    };
+
+  aux_test_dtrsm(t, &args);
+
+}
+
+static void
 lial_trsm_bp_t (ut_test_t *const t)
 {
   static const int extra_right_columns_of_a = 1;
@@ -1390,6 +1635,127 @@ lial_trsm_bp_t (ut_test_t *const t)
 
 }
 
+/*
+ *
+ */
+static void
+lial_dtrsm_bp_8x8_8x5_lunn_0_t (ut_test_t *const t)
+{
+  /*
+   * Base configuration:
+   *
+   * SIDE      = 'L'
+   * UPLO      = 'U'
+   * TRANSA    = 'N'
+   * DIAG      = 'N'
+   * M         = 8
+   * N         = 5
+   * ALPHA     = 1.000000
+   *
+   * > A
+   *      [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8]
+   * [1,]    4    1    8    3    2    6    2    4
+   * [2,]    0    7    5    1    9    2    2    3
+   * [3,]    0    0    3    3    1    8    5    9
+   * [4,]    0    0    0    2    4    3    4    7
+   * [5,]    0    0    0    0    5    9    8    5
+   * [6,]    0    0    0    0    0    1    2    1
+   * [7,]    0    0    0    0    0    0    6    6
+   * [8,]    0    0    0    0    0    0    0    3
+   *
+   * > B
+   *      [,1] [,2] [,3] [,4] [,5]
+   * [1,]    1    3    9    2    3
+   * [2,]    5    2    8    5    1
+   * [3,]    8    1    7    6    4
+   * [4,]    2    4    5    1    1
+   * [5,]    6    1    2    4    3
+   * [6,]    5    5    4    5    6
+   * [7,]    1    4    9    4    8
+   * [8,]    3    7    5    1    2
+   *
+   * > X_AB
+   *             [,1]       [,2]        [,3]        [,4]        [,5]
+   * [1,]  22.1845238  32.196429  16.6488095  17.6428571  21.5178571
+   * [2,]  22.5952381  27.980952  15.2047619  18.3619048  20.4285714
+   * [3,] -19.1666667 -25.166667 -12.1666667 -15.0000000 -17.1666667
+   * [4,]   8.0000000   8.700000   4.6000000   7.2000000   7.5000000
+   * [5,]  -8.6666667 -10.266667  -5.8000000  -7.2666667  -8.3333333
+   * [6,]   5.6666667   6.000000   2.6666667   4.0000000   4.0000000
+   * [7,]  -0.8333333  -1.666667  -0.1666667   0.3333333   0.6666667
+   * [8,]   1.0000000   2.333333   1.6666667   0.3333333   0.6666667
+   *
+   * > X_ABf
+   *          [,1]     [,2]     [,3]     [,4]     [,5]
+   * [1,] 3727/168  1803/56 2797/168   247/14  1205/56
+   * [2,]   949/42 2938/105 3193/210 1928/105    143/7
+   * [3,]   -115/6   -151/6    -73/6      -15   -103/6
+   * [4,]        8    87/10     23/5     36/5     15/2
+   * [5,]    -26/3  -154/15    -29/5  -109/15    -25/3
+   * [6,]     17/3        6      8/3        4        4
+   * [7,]     -5/6     -5/3     -1/6      1/3      2/3
+   * [8,]        1      7/3      5/3      1/3      2/3
+   *
+   */
+
+  double a[] =
+    {
+     4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+     1.0, 7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+     8.0, 5.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+     3.0, 1.0, 3.0, 2.0, 0.0, 0.0, 0.0, 0.0,
+     2.0, 9.0, 1.0, 4.0, 5.0, 0.0, 0.0, 0.0,
+     6.0, 2.0, 8.0, 3.0, 9.0, 1.0, 0.0, 0.0,
+     2.0, 2.0, 5.0, 4.0, 8.0, 2.0, 6.0, 0.0,
+     4.0, 3.0, 9.0, 7.0, 5.0, 1.0, 6.0, 3.0,
+    };
+
+  double b[] =
+    {
+     1.0, 5.0, 8.0, 2.0, 6.0, 5.0, 1.0, 3.0,
+     3.0, 2.0, 1.0, 4.0, 1.0, 5.0, 4.0, 7.0,
+     9.0, 8.0, 7.0, 5.0, 2.0, 4.0, 9.0, 5.0,
+     2.0, 5.0, 6.0, 1.0, 4.0, 5.0, 4.0, 1.0,
+     3.0, 1.0, 4.0, 1.0, 3.0, 6.0, 8.0, 2.0,
+    };
+
+  double x[] =
+    {
+     +3727.0 / 168.0 , + 949.0 /  42.0 , -115.0 / 6.0 , + 8.0 /  1.0 , - 26.0 /  3.0 , +17.0 / 3.0 , -5.0 / 6.0 , +1.0 / 1.0 ,
+     +1803.0 /  56.0 , +2938.0 / 105.0 , -151.0 / 6.0 , +87.0 / 10.0 , -154.0 / 15.0 , + 6.0 / 1.0 , -5.0 / 3.0 , +7.0 / 3.0 ,
+     +2797.0 / 168.0 , +3193.0 / 210.0 , - 73.0 / 6.0 , +23.0 /  5.0 , - 29.0 /  5.0 , + 8.0 / 3.0 , -1.0 / 6.0 , +5.0 / 3.0 ,
+     + 247.0 /  14.0 , +1928.0 / 105.0 , - 15.0 / 1.0 , +36.0 /  5.0 , -109.0 / 15.0 , + 4.0 / 1.0 , +1.0 / 3.0 , +1.0 / 3.0 ,
+     +1205.0 /  56.0 , + 143.0 /   7.0 , -103.0 / 6.0 , +15.0 /  2.0 , - 25.0 /  3.0 , + 4.0 / 1.0 , +2.0 / 3.0 , +2.0 / 3.0 ,
+    };
+
+  aux_dtrsm_t args =
+    {
+     .side = 'L',
+     .uplo = 'U',
+     .transa = 'N',
+     .diag = 'N',
+     .m = 8,
+     .n = 5,
+     .alpha = 1.0,
+     .a = a,
+     .b = b,
+     .x = x,
+     .mkv = 2.0,
+     .epsilon = 1.0E-14,
+     .verbose = ut_run_time_is_verbose(t),
+     .debug = false,
+    };
+
+  aux_test_dtrsm(t, &args);
+
+  int block_size_m, block_size_n, thread_count;
+
+  block_size_m = 3;
+  block_size_n = 2;
+  thread_count = 1;
+
+  aux_test_dtrsm_bp(t, &args, block_size_m, block_size_n, thread_count);
+}
 
 /**
  * @brief Runs the test suite.
@@ -1408,8 +1774,11 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_trsm_3x3_3x5_lunu", lial_trsm_3x3_3x5_lunu_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_trsm_3x3_3x5_lltn", lial_trsm_3x3_3x5_lltn_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_trsm_3x3_3x5_llnn", lial_trsm_3x3_3x5_llnn_t);
-
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_trsm_5x5_3x5_runn", lial_trsm_5x5_3x5_runn_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_trsm_5x5_5x3_lunn_0", lial_trsm_5x5_5x3_lunn_0_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lial_dtrsm_bp_8x8_8x5_lunn_0", lial_dtrsm_bp_8x8_8x5_lunn_0_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_01, "lial_trsm_bp", lial_trsm_bp_t);
 
