@@ -242,9 +242,12 @@ $ cd libflame
 
 $ ./configure --help
 
-$ ./configure --enable-max-arg-list-hack --enable-lapack2flame --enable-debug --enable-multithreading=openmp
+$ ./configure --enable-max-arg-list-hack --enable-lapack2flame --enable-debug --enable-multithreading=openmp --enable-supermatrix
 
 $ make
+
+# Or in parallel ...
+$ make -j4
 
 #
 # ... ... ... at the end of the make process we have the libflame library object
@@ -276,8 +279,10 @@ lib/x86_64-unknown-linux-gnu/libflame.a:FLA_potrf.o:0000000000000140 T dpotrf_
 #
 
 #
-# In case we would like to install it and make it available "system wide" we have to:
-# use the flag for the configure step :
+# In case we would like to install it and make it available "system wide" we have to run
+# the make install target.
+# The standard default location is /usr/local , in order to change it add the choosen location
+# to the configure step. Use the prefix flag :
 #
 #   --prefix=/usr/local
 #
@@ -302,6 +307,11 @@ $ make cleanh
 $ make clean
 $ make distclean
 
+#
+# Or to make it in one command:
+#
+
+$ make cleanmk cleanleaves cleanlib cleanh clean distclean 
 
 
 #
@@ -346,6 +356,8 @@ $ cp include/x86_64-unknown-linux-gnu/FLAME.h $REVERSI_HOME/c/ext/include/.
 #
 # (1) The ftnlen typedef is conflicting among the two files.
 #     Solution: Open FLAME.h and search-replace ftnlen with ftnlen_flame
+#               One option is to run a sed replace command ...
+#               $ sed -i 's/ftnlen/ftnlen_flame/g' FLAME.h
 #
 # (2) Both files are defining the BLAS API.
 #     Solution: before the line:

@@ -54,17 +54,18 @@ PG_LIBS = -lpq
 BLIS_LIB  := ./ext/lib/libblis.a
 FLAME_LIB := ./ext/lib/libflame.a
 
-FLAME_LDFLAGS := -L/usr/lib/gcc/x86_64-linux-gnu/8
-FLAME_LDFLAGS += -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu
-FLAME_LDFLAGS += -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib
-FLAME_LDFLAGS += -L/lib/x86_64-linux-gnu
-FLAME_LDFLAGS += -L/lib/../lib
-FLAME_LDFLAGS += -L/usr/lib/x86_64-linux-gnu
-FLAME_LDFLAGS += -L/usr/lib/../lib
-FLAME_LDFLAGS += -L/usr/lib/gcc/x86_64-linux-gnu/8/../../..
-FLAME_LDFLAGS += -lgfortran
-FLAME_LDFLAGS += -lm
-FLAME_LDFLAGS += -lquadmath
+FLAME_LDFLAGS := 
+#FLAME_LDFLAGS += -L/usr/lib/gcc/x86_64-linux-gnu/8
+#FLAME_LDFLAGS += -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu
+#FLAME_LDFLAGS += -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib
+#FLAME_LDFLAGS += -L/lib/x86_64-linux-gnu
+#FLAME_LDFLAGS += -L/lib/../lib
+#FLAME_LDFLAGS += -L/usr/lib/x86_64-linux-gnu
+#FLAME_LDFLAGS += -L/usr/lib/../lib
+#FLAME_LDFLAGS += -L/usr/lib/gcc/x86_64-linux-gnu/8/../../..
+#FLAME_LDFLAGS += -lgfortran
+#FLAME_LDFLAGS += -lm
+#FLAME_LDFLAGS += -lquadmath
 
 #
 # Add all the external header file in the ext/include directory.
@@ -75,25 +76,20 @@ FLAME_LDFLAGS += -lquadmath
 #
 EXT_INC := ./ext/include
 
-CC = gcc-7
-#CFLAGS = -std=c99 -pedantic -Wall -g -O3 -D_POSIX_SOURCE -ffast-math
-#LDFLAGS =
+CC = gcc
 # add  -fopt-info-vec-all for very verbose log on code vectorization. Compile with: "make 2> make.log"
 # add -pg for gprof execution.
 # add -DNDEBUG to disable assertions
 # add -fno-inline to prevent inlining
 # add -ftree-vectorize -ftree-vectorizer-verbose=2 to get from gcc the explanation for code vectorization
-#ARCH_FLAGS = -mpopcnt -mavx2 -mabm -march=native
 # add -flto to the CFLAGS list to improve execution speed ( it takes much more to link executables )
-ARCH_FLAGS = -march=native
-#CFLAGS = -std=c11 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(BLIS_INC) -I$(PG_INCLUDE_DIR) -fopenmp -DNDEBUG
-CFLAGS = -std=c11 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O0 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fopenmp -DNDEBUG
+ARCH_FLAGS = -mpopcnt -mavx2 -mfma -flto
+CFLAGS = -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fopenmp -DNDEBUG
 LDFLAGS := $(FLAME_LDFLAGS)
-CFLAGS_TEST = -std=c11 -pedantic-errors -Wall -g -O0 -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS) -I$(EXT_INC)
+CFLAGS_TEST = -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(EXT_INC)
 LDFLAGS_TEST =
-ASMFLAGS = -std=c11 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -masm=intel -fopenmp -DNDEBUG
+ASMFLAGS = -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -masm=intel -fopenmp -DNDEBUG
 LIBS = -lm -L$(PG_LIB_DIR) $(PG_LIBS)  $(FLAME_LIB) $(BLIS_LIB) -lgomp -lpthread
-#LIBS = -lm -L$(PG_LIB_DIR) $(PG_LIBS) -lgomp -llapack
 TEST_LIBS =
 SRCDIR = src
 TESTDIR = test

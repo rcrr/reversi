@@ -1268,24 +1268,24 @@ lial_trsm_5x5_5x3_lunn_0_t (ut_test_t *const t)
 static void
 lial_trsm_bp_t (ut_test_t *const t)
 {
-  static const int extra_right_columns_of_a = 1;
-  static const int extra_left_columns_of_a = 1;
-  static const int extra_columns_of_a = extra_right_columns_of_a + extra_left_columns_of_a;
-  static const int extra_top_rows_of_a = 1;
-  static const int extra_bottom_rows_of_a = 1;
-  static const int extra_rows_of_a = extra_top_rows_of_a + extra_bottom_rows_of_a;
-  static const int n_0 = 7;
-  static const int lda_0 = n_0 + extra_columns_of_a;
-  static const int extra_right_columns_of_b = 1;
-  static const int extra_left_columns_of_b = 1;
-  static const int extra_columns_of_b = extra_right_columns_of_b + extra_left_columns_of_b;
-  static const int extra_top_rows_of_b = 1;
-  static const int extra_bottom_rows_of_b = 1;
-  static const int extra_rows_of_b = extra_top_rows_of_b + extra_bottom_rows_of_b;
-  static const int m_0 = 5;
-  static const int ldb_0 = m_0 + extra_columns_of_b;
-  static const int size_of_a = lda_0 * (n_0 + extra_rows_of_a);
-  static const int size_of_b = ldb_0 * (n_0 + extra_rows_of_b);
+  int extra_right_columns_of_a = 1;
+  int extra_left_columns_of_a = 1;
+  int extra_columns_of_a = extra_right_columns_of_a + extra_left_columns_of_a;
+  int extra_top_rows_of_a = 1;
+  int extra_bottom_rows_of_a = 1;
+  int extra_rows_of_a = extra_top_rows_of_a + extra_bottom_rows_of_a;
+  int n_0 = 7;
+  int lda_0 = n_0 + extra_columns_of_a;
+  int extra_right_columns_of_b = 1;
+  int extra_left_columns_of_b = 1;
+  int extra_columns_of_b = extra_right_columns_of_b + extra_left_columns_of_b;
+  int extra_top_rows_of_b = 1;
+  int extra_bottom_rows_of_b = 1;
+  int extra_rows_of_b = extra_top_rows_of_b + extra_bottom_rows_of_b;
+  int m_0 = 5;
+  int ldb_0 = m_0 + extra_columns_of_b;
+  int size_of_a = lda_0 * (n_0 + extra_rows_of_a);
+  int size_of_b = ldb_0 * (n_0 + extra_rows_of_b);
 
   static const double mka = 3.0; // Marker for the A matrix.
   static const double mkb = 7.0; // Marker for the B matrix.
@@ -1385,7 +1385,7 @@ lial_trsm_bp_t (ut_test_t *const t)
   static const double lial_trsm_alpha_values[] = { 1.0, -2.0, 3.141592, 0.0 };
   static const int lial_trsm_alpha_size = sizeof(lial_trsm_alpha_values) / sizeof(double);
 
-  static const int lial_trsm_option_combinations = lial_trsm_side_size * lial_trsm_uplo_size * lial_trsm_transa_size * lial_trsm_diag_size * lial_trsm_alpha_size;
+  int lial_trsm_option_combinations = lial_trsm_side_size * lial_trsm_uplo_size * lial_trsm_transa_size * lial_trsm_diag_size * lial_trsm_alpha_size;
 
   /*
    * Memory allocation for the matrices computed at each iteration of the testing loop.
