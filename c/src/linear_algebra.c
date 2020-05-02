@@ -9,7 +9,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2019 Roberto Corradini. All rights reserved.
+ * @copyright 2019, 2020 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -1671,6 +1671,7 @@ lial_dpotrf_bp (const char *uplo,
   } // End of parallel region
 }
 
+/* It is not multi-threaded yet! Be careful. */
 void
 lial_dpotrs_bp (const char *uplo,
                 const int *n,

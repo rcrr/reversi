@@ -4,7 +4,34 @@
  * @brief Linear Algebra module definitions.
  *
  * @details This module defines functions that implements the Cholesky Decomposition,
- *          LU Factorization, and several utilities.
+ *          LU Factorization, and several other utilities for linear algebra operations.
+ *
+ *          The module is the result of an iterative self studying and progressive learning process.
+ *          As so it is not complete, nor well documented, and neither consistent. But there is a
+ *          lot of knowledge in it.
+ *
+ *          With the current hardware architectures it is not possible to achieve good performances
+ *          without the blocking ( or tiling ) technique. Blocked algorithms enable cache-friendly
+ *          amortized load-store operations, that are the bottleneck for this kind of algorithms on the current systems.
+ *
+ *          The module has a set of "naive" algorithms that are 25 times slower than state of the art
+ *          tiled variants. This naive set of functions do not have dependencies. Tiled algorithms depend
+ *          on BLAS level 3 functions that are then required. The module is built on top of
+ *          the libflame and BLIS libraries, that on the side of their own API provide also a BLAS and LAPACK
+ *          compatibility layer.
+ *
+ *          BLIS provides BLAS, and BLAS like, functions being single threaded, or fine grained multi-threaded.
+ *          libflame provides LAPACK, and LAPACK like, functions either single threaded, or coarse grained multi-threaded.
+ *          libflame provides also an high-level framework to develop linear algebra algorithms.
+ *
+ *          The Cholesky decomposition has been implemented in many different ways. With a naive approach, with a blocked
+ *          implementation, and with an OpenMP, task based, version of the blocked design.
+ *          The blocked version has performances in line with the libflame FLA_Chol implementation, whether the task based
+ *          is equivalent to the multi-threaded FLASH_Chol design.
+ *          A scalar and blocked variants have been realized using the libflame framework.
+ *
+ *          Many components and tools are missing, but with the decision of encapsulating the FLAME framework in the code
+ *          of reversi function, I do not see a compelling reason to spend further relevant time on this endeavor.
  *
  * @par linear_algebra.h
  * <tt>
@@ -70,6 +97,7 @@ lial_dpotrf_bp (const char *uplo,
                 const unsigned int block_size,
                 const unsigned int thread_count);
 
+/* It is not multi-threaded yet! Be careful. */
 extern void
 lial_dpotrs_bp (const char *uplo,
                 const int *n,
@@ -272,6 +300,7 @@ lial_dtrsm (char *side,
             int *lda,
             double *b,
             int *ldb);
+
 /**
  * @brief Do not use it, it is not completed, it doesn't work.
  */
