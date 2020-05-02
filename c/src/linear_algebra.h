@@ -109,6 +109,157 @@ lial_dsyrk (char *uplo,
             double *c,
             int *ldc);
 
+/**
+ * @brief <B>D</B>ouble <B>TR</B>iangular <B>S</B>olve <B>M</B>atrix
+ *
+ * @details
+ *
+ *  Details
+ * ---------
+ *
+ * DTRSM is part of the BLAS Level 3 API, it solves a triangular matrix equation when
+ * arguments are defined as double precision.
+ * The proposed implementation links directly to the underlining BLAS library.
+ *
+ *
+ *  Purpose
+ * ---------
+ *
+ * Solves one of the matrix equations:
+ * @code
+ * .
+ * .    op( A )*X = alpha*B,   or   X*op( A ) = alpha*B
+ * .
+ * @endcode
+ * where alpha is a scalar, X and B are m by n matrices, A is a unit, or
+ * non-unit,  upper or lower triangular matrix  and  op( A )  is one  of:
+ * @code
+ * .
+ * .    op( A ) = A   or   op( A ) = A**T
+ * .
+ * @endcode
+ * The matrix X is overwritten on B.
+ *
+ *
+ *  Arguments
+ * -----------
+ *
+ * - _[in]_ ***side*** : `char *`
+ * <br>
+ * On entry, `side` specifies whether `op( A )` appears on the left
+ * or right of `X` as follows:
+ * @code
+ * .
+ * .    *side = 'L' or 'l'   op( A )*X = alpha*B.
+ * .
+ * .    *side = 'R' or 'r'   X*op( A ) = alpha*B.
+ * .
+ * @endcode
+ * <p>
+ * - _[in]_ ***uplo*** : `char *`
+ * <br>
+ * On entry, `uplo` specifies whether the matrix `A` is an upper or
+ * lower triangular matrix as follows:
+ * @code
+ * .
+ * .    *uplo = 'U' or 'u'   A is an upper triangular matrix.
+ * .
+ * .    *uplo = 'L' or 'l'   A is a lower triangular matrix.
+ * .
+ * @endcode
+ * <p>
+ * - _[in]_ ***transa*** : `char *`
+ * <br>
+ * On entry, `transa` specifies the form of `op( A )` to be used in
+ * the matrix multiplication as follows:
+ * @code
+ * .
+ * .    *transa = 'N' or 'n'   op( A ) = A.
+ * .
+ * .    *transa = 'T' or 't'   op( A ) = A**T.
+ * .
+ * .    *transa = 'C' or 'c'   op( A ) = A**T.
+ * .
+ * @endcode
+ * <p>
+ * - _[in]_ ***diag*** : `char *`
+ * <br>
+ * On entry, `diag` specifies whether or not `A` is unit triangular
+ * as follows:
+ * @code
+ * .
+ * .    *diag = 'U' or 'u'   A is assumed to be unit triangular.
+ * .
+ * .    *diag = 'N' or 'n'   A is not assumed to be unit triangular.
+ * .
+ * @endcode
+ * <p>
+ * - _[in]_ ***m*** : `int *`
+ * <br>
+ * On entry, `m` specifies the number of rows of `B`. `m` must be at
+ * least zero.
+ * <p>
+ * - _[in]_ ***n*** : `int *`
+ * <br>
+ * On entry, `n` specifies the number of columns of `B`. `n` must be at
+ * least zero.
+ * <p>
+ * - _[in]_ ***alpha*** : `double *`
+ * <br>
+ * On entry, `alpha` specifies the scalar `alpha`. When `alpha` is
+ * zero then `A` is not referenced and `B` need not be set before entry.
+ * <p>
+ * - _[in]_ ***a*** : `double *` : `array` , `dimension ( *lda, k )`
+ * where `k` is `*m` when ```*side = 'L' or 'l'```, and `k` is `*n` when ```*side = 'R' or 'r'```.
+ * <br>
+ * Before entry with ```*uplo = 'U' or 'u'```, the leading `k` by `k`
+ * upper triangular part of the array `A` must contain the upper
+ * triangular matrix  and the strictly lower triangular part of
+ * `A` is not referenced.<br>
+ * Before entry with ```*uplo = 'L' or 'l'```,  the  leading  `k` by `k`
+ * lower triangular part of the array `A` must contain the lower
+ * triangular matrix  and the strictly upper triangular part of
+ * `A` is not referenced.<br>
+ * Note that when ```*diag = 'U' or 'u'```,  the diagonal elements of
+ * `A` are not referenced either, but are assumed to be unity.
+ * <p>
+ * - _[in]_ ***lda*** : `int *`
+ * <br>
+ * On entry, `lda` specifies the first dimension of `A` as declared in the
+ * calling calling fanction.<br>
+ * When ```*side = 'L' or 'l'``` then `*lda` must be
+ * at least ```max( 1, *m )```, when ```*side = 'R' or 'r'``` then `*lda` must be
+ * at least ```max( 1, *n )```.
+ * <p>
+ * - _[in]_ ***b*** : `double *` : `array` , `dimension ( *ldb, *n )`
+ * <br>
+ * Before entry, the leading `m` by `n` part of the array `B` must
+ * contain the right-hand side matrix `B`, and on exit is
+ * overwritten by the solution matrix `X`.
+ * <p>
+ * - _[in]_ ***ldb*** : `int *`
+ * <br>
+ * On entry, `ldb` specifies the first dimension of `B` as declared in the
+ * calling calling fanction.<br>
+ * `*ldb` must be at least ```max( 1, *m )```.
+ * <p>
+ *
+ *
+ *____________________________________________________________________
+ *
+ * @param [in]     side   relative position of A with respect to X
+ * @param [in]     uplo   whether A is upper or lower triangular
+ * @param [in]     transa whether A is transposed or not
+ * @param [in]     diag   whether A is unit triangular or not
+ * @param [in]     m      number of rows of B
+ * @param [in]     n      number of columns of B
+ * @param [in]     alpha  scalar parameter that scales B
+ * @param [in]     a      A matrix
+ * @param [in]     lda    leading dimension of A
+ * @param [in,out] b      B on entry and X on exit matrix
+ * @param [in]     ldb    leading dimension of B
+ *
+ */
 extern void
 lial_dtrsm (char *side,
             char *uplo,
@@ -121,7 +272,9 @@ lial_dtrsm (char *side,
             int *lda,
             double *b,
             int *ldb);
-
+/**
+ * @brief Do not use it, it is not completed, it doesn't work.
+ */
 extern void
 lial_dtrsm_bp (char *side,
                char *uplo,

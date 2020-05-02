@@ -1366,7 +1366,14 @@ aux_print_matrix (char *name,
 }
 
 /*
- * Everything to do here ... !!! TODO : EVERYTHING !!!
+ * DO NOT USE !!!
+ *
+ * BLOCKED CONCURRENT ( OpenMP ) DTRSM implementation.
+ *
+ * The code is not complete. Loops are empty.
+ * The parallel implementation has not been even designed.
+ *
+ * Everything to do here ... !!!
  */
 void
 lial_dtrsm_bp (char *side,
@@ -1384,7 +1391,8 @@ lial_dtrsm_bp (char *side,
                int block_size_n,
                int thread_count)
 {
-  bool debug = true;
+  bool debug = false;
+
   int bsm, bsn; // Block size on M and N dimensions.
   int nfbm;     // Number of full blocks on M dimension.
   int rm;       // Remainder on the M dimension.
