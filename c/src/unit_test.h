@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2015, 2017 Roberto Corradini. All rights reserved.
+ * @copyright 2015, 2017, 2020 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -147,6 +147,7 @@ typedef struct ut_test_t_ {
   ut_quickness_t quickness_class;        /**< @brief The quickness class of the test. */
   timespec_t start_time;                 /**< @brief Test start time duration. */
   timespec_t end_time;                   /**< @brief Test end time duration. */
+  timespec_t delta_time;                 /**< @brief Test elapsed duration (end_time - start_time). */
   timespec_t cpu_time;                   /**< @brief Test cpu process consumption. */
 } ut_test_t;
 

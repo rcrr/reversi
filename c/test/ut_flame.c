@@ -1002,7 +1002,7 @@ main (int argc,
 
   ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_10,   "lial_perf_sdf_edge_000_flash", lial_perf_sdf_edge_000_flash_t);
   ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_10,   "lial_perf_sdf_corner_000_flash", lial_perf_sdf_corner_000_flash_t);
-  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_10,   "lial_perf_sdf_xedge_000_flash", lial_perf_sdf_xedge_000_flash_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_1000, "lial_perf_sdf_xedge_000_flash", lial_perf_sdf_xedge_000_flash_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);

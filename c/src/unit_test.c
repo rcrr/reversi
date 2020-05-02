@@ -32,7 +32,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2015, 2017 Roberto Corradini. All rights reserved.
+ * @copyright 2015, 2017, 2020 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -399,8 +399,12 @@ ut_suite_run (ut_suite_t *s)
 
         if (t->teardown) t->teardown(t);
 
-        /* Computes the time taken, and updates the test cpu_time. */
+        /* Computes the CPU time consumed, and updates the test cpu_time. */
         ret = timespec_diff(&t->cpu_time, &time_0, &time_1);
+        (void) ret; assert(ret == 0);
+
+        /* Computes the elapsed time taken, and updates the test delta_time. */
+        ret = timespec_diff(&t->delta_time, &t->start_time, &t->end_time);
         (void) ret; assert(ret == 0);
 
         if (!ut_run_time_is_quiet(t)) {
@@ -409,8 +413,9 @@ ut_suite_run (ut_suite_t *s)
             fprintf(stdout, "%s: ", full_path);
           }
           fprintf(stdout, "%*c", (int)(res_msg_print_column - strlen(full_path)), ' ');
-          fprintf(stdout, "[%6lld.%9ld] ", (long long) timespec_get_sec(&t->cpu_time), timespec_get_nsec(&t->cpu_time));
-          const ut_quickness_t actual_qck_class = ut_quickness_range(&t->cpu_time);
+          fprintf(stdout, "[CPU:%6lld.%9ld] ", (long long) timespec_get_sec(&t->cpu_time), timespec_get_nsec(&t->cpu_time));
+          fprintf(stdout, "[ELAPSED:%6lld.%9ld] ", (long long) timespec_get_sec(&t->delta_time), timespec_get_nsec(&t->delta_time));
+          const ut_quickness_t actual_qck_class = ut_quickness_range(&t->delta_time);
           const int time_perf = (actual_qck_class > t->quickness_class) - (actual_qck_class < t->quickness_class);
           char time_perf_c = ' ';
           if (time_perf > 0) time_perf_c = '+';
