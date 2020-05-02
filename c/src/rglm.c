@@ -97,23 +97,24 @@ static char *R_arg = NULL;
 static int H_flag = false;
 static char *H_arg = NULL;
 
-static mop_options_long_t olist[] = {
-  {"help",                 'h', MOP_NONE},
-  {"verbose",              'v', MOP_NONE},
-  {"solve",                's', MOP_NONE},
-  {"input-file",           'i', MOP_REQUIRED},
-  {"output-file",          'o', MOP_REQUIRED},
-  {"rglm-par-output-file", 'b', MOP_REQUIRED},
-  {"extract-ps-table",     'A', MOP_REQUIRED},
-  {"extract-pfs-table",    'B', MOP_REQUIRED},
-  {"extract-gp-table",     'P', MOP_REQUIRED},
-  {"extract-gp-ptable",    'Q', MOP_REQUIRED},
-  {"extract-gp-ttable",    'T', MOP_REQUIRED},
-  {"extract-weights",      'W', MOP_REQUIRED},
-  {"extract-residuals",    'R', MOP_REQUIRED},
-  {"dump-hessian-matrix",  'H', MOP_REQUIRED},
-  {0, 0, 0}
-};
+static mop_options_long_t opt_list[] =
+  {
+   {"help",                 'h', MOP_NONE},
+   {"verbose",              'v', MOP_NONE},
+   {"solve",                's', MOP_NONE},
+   {"input-file",           'i', MOP_REQUIRED},
+   {"output-file",          'o', MOP_REQUIRED},
+   {"rglm-par-output-file", 'b', MOP_REQUIRED},
+   {"extract-ps-table",     'A', MOP_REQUIRED},
+   {"extract-pfs-table",    'B', MOP_REQUIRED},
+   {"extract-gp-table",     'P', MOP_REQUIRED},
+   {"extract-gp-ptable",    'Q', MOP_REQUIRED},
+   {"extract-gp-ttable",    'T', MOP_REQUIRED},
+   {"extract-weights",      'W', MOP_REQUIRED},
+   {"extract-residuals",    'R', MOP_REQUIRED},
+   {"dump-hessian-matrix",  'H', MOP_REQUIRED},
+   {0, 0, 0}
+  };
 
 static const char *documentation =
   "Usage:\n"
@@ -192,7 +193,7 @@ main (int argc,
   int oindex = -1;
 
   mop_init(&options, argc, argv);
-  while ((opt = mop_parse_long(&options, olist, &oindex)) != -1) {
+  while ((opt = mop_parse_long(&options, opt_list, &oindex)) != -1) {
     switch (opt) {
     case 'h':
       h_flag = true;

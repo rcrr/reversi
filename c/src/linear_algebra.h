@@ -12,7 +12,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2019 Roberto Corradini. All rights reserved.
+ * @copyright 2019, 2020 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -35,6 +35,14 @@
 
 #ifndef LINEAR_ALGEBRA_H
 #define LINEAR_ALGEBRA_H
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+#define BLIS_DISABLE_BLAS_DEFS
+#include "blis.h"
+#pragma GCC diagnostic pop
+
+#include "FLAME.h"
 
 extern void
 lial_dpotrf (const char *uplo,
@@ -449,5 +457,12 @@ lial_chol_inv_lapack (double **a,
                       size_t n,
                       double **z,
                       int *ret);
+
+extern FLA_Error
+lial_FLA_Chol_l_blk_var2 (FLA_Obj A,
+                          int nb_alg);
+
+extern FLA_Error
+lial_FLA_Chol_u_unb_var3 (FLA_Obj A);
 
 #endif /* LINEAR_ALGEBRA_H */

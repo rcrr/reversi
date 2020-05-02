@@ -527,7 +527,7 @@ aux_perf_sdf_lapack_blocked_parallel_t (ut_test_t *const t,
   if (transpose) {
     lial_transpose_square_matrix(a, n);
     uplox = (uplo == ut_lial_lower) ? ut_lial_upper : ut_lial_lower;
-    fprintf(stdout, "  Transposing SDF matrix.\n");
+    if (ut_run_time_is_verbose(t)) fprintf(stdout, "  Transposing SDF matrix.\n");
   } else {
     uplox = uplo;
   }

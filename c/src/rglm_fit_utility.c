@@ -15,7 +15,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2019 Roberto Corradini. All rights reserved.
+ * @copyright 2019, 2020 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -77,15 +77,16 @@ static char *w_arg = NULL;
 static int R_flag = false;
 static char *R_arg = NULL;
 
-static mop_options_long_t olist[] = {
-  {"help",                'h', MOP_NONE},
-  {"verbose",             'v', MOP_NONE},
-  {"game-positions-file", 'p', MOP_REQUIRED},
-  {"weights-file",        'w', MOP_REQUIRED},
-  {"gaps-output-file",    'g', MOP_REQUIRED},
-  {"extract-residuals",    'R', MOP_REQUIRED},
-  {0, 0, 0}
-};
+static mop_options_long_t opt_list[] =
+  {
+   {"help",                'h', MOP_NONE},
+   {"verbose",             'v', MOP_NONE},
+   {"game-positions-file", 'p', MOP_REQUIRED},
+   {"weights-file",        'w', MOP_REQUIRED},
+   {"gaps-output-file",    'g', MOP_REQUIRED},
+   {"extract-residuals",   'R', MOP_REQUIRED},
+   {0, 0, 0}
+  };
 
 static const char *documentation =
   "Usage:\n"
@@ -191,7 +192,7 @@ main (int argc,
   ofp = NULL;
 
   mop_init(&options, argc, argv);
-  while ((opt = mop_parse_long(&options, olist, &oindex)) != -1) {
+  while ((opt = mop_parse_long(&options, opt_list, &oindex)) != -1) {
     switch (opt) {
     case 'h':
       h_flag = true;

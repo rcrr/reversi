@@ -242,7 +242,7 @@ $ cd libflame
 
 $ ./configure --help
 
-$ ./configure --enable-max-arg-list-hack --enable-lapack2flame --enable-debug --enable-multithreading=openmp --enable-supermatrix
+$ ./configure --enable-max-arg-list-hack --enable-lapack2flame --enable-debug --enable-multithreading=openmp --enable-supermatrix --enable-memory-alignment=64 --enable-ldim-alignment
 
 $ make
 
@@ -311,7 +311,7 @@ $ make distclean
 # Or to make it in one command:
 #
 
-$ make cleanmk cleanleaves cleanlib cleanh clean distclean 
+$ make cleanmk cleanleaves cleanlib cleanh clean distclean
 
 
 #
@@ -322,8 +322,21 @@ $ make cleanmk cleanleaves cleanlib cleanh clean distclean
 # is the home directory of the Reversi installation.
 #
 
-$ cp lib/x86_64-unknown-linux-gnu/libflame.a $REVERSI_HOME/c/ext/lib/.
-$ cp include/x86_64-unknown-linux-gnu/FLAME.h $REVERSI_HOME/c/ext/include/.
+$ rhash --sha3-256 lib/x86_64-unknown-linux-gnu/libflame.a
+7f5cce500594ed4bf4aebace78e5c3c1fb984acb3ddb8252f21bb7ce4ad9fbc8  lib/x86_64-unknown-linux-gnu/libflame.a
+$ cp lib/x86_64-unknown-linux-gnu/libflame.a $REVERSI_HOME/c/ext/lib/libflame.a.7f5cce500594ed4bf4aebace78e5c3c1fb984acb3ddb8252f21bb7ce4ad9fbc8
+
+# change directory into $REVERSI_HOME/c/ext/lib
+$ ln -sf libflame.a.7f5cce500594ed4bf4aebace78e5c3c1fb984acb3ddb8252f21bb7ce4ad9fbc8 libflame.a
+
+$ cp include/x86_64-unknown-linux-gnu/FLAME.h .
+$ sed -i 's/ftnlen/ftnlen_flame/g' FLAME.h
+$ rhash --sha3-256 FLAME.h 
+9c5bfcacc0d3ad20bc0bf6538e2e4da89240824cc022c7ef61f6eeeedbde0331  FLAME.h
+$ mv FLAME.h $REVERSI_HOME/c/ext/include/FLAME.h.9c5bfcacc0d3ad20bc0bf6538e2e4da89240824cc022c7ef61f6eeeedbde0331
+
+# change directory into $REVERSI_HOME/c/ext/include
+$ ln -sf FLAME.h.9c5bfcacc0d3ad20bc0bf6538e2e4da89240824cc022c7ef61f6eeeedbde0331 FLAME.h
 
 
 
