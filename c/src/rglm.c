@@ -1,6 +1,96 @@
 /**
  * @file
  *
+ * @todo Notice: RGLM and REGAB to-do list has to go somehow together.
+ *
+ * @todo Move the options of the main program from static declarations
+ *       to the main function. The reason is to avoid potential collisions,
+ *       and as a general rule it is a way to increase encapsulation.
+ *
+ * @todo Write a function in rglm_data_files that read ( also write ? ) the rglm
+ *       binary data file.
+ *
+ * @todo The optimization loop, that implements the Newton-Raphson algorithm
+ *       doesn't have the proper order of printf statements.
+ *       Measured quantities are computed and printed in the wrong place or order.
+ *
+ * @todo Reorganize verbose output and variable declarations.
+ *
+ * @todo There is an error in the math formula used in function #rglmut_big_b_eval
+ *       the diag value is not correct.
+ *
+ * @todo The algorithm used to compute the weights is Minimum Mean Square Error (MMSE),
+ *       move to Maximum Likelihood Estimation (MLE), or offer the selection among the two.
+ *
+ * @todo Add the intercept parameter w0.
+ *       The model has a major flow in not adjusting properly the fitted shape to the data mean.
+ *       The evaluation function: e = g(sum(w*h)) where:
+ *         - g is the logistic function
+ *         - sum is the dot product of the vectors w and h
+ *         - w is the wector of weights as computed by solving the GLM system
+ *         - h is the count [0,1,..n_instances] of the occurrences of the pattern configuratio in the game position
+ *       In this model the h_0 value ( termine noto ) is missing.
+ *       The distribution of game outcomes has a mean that is different from zero, usually negative when the
+ *       empty_count is even, and positive otherwise.
+ *       To better describe this characteristic of the data each position is given a patetrn configuration that is
+ *       always present once, the expected value of the parameter w_0 should then be equal to the mean of the distribution
+ *       of the outcomes.
+ *
+ * @todo Evaluate if it would be better to insert the checksum data into the rglm files.
+ *
+ * @todo More comments are needed in order to better explain the algorithm.
+ *
+ * @todo Functions are not commented in file rglm_utils.h
+ *
+ * @todo There is an error in the definition of one vector of size emme instead of enne.
+ *       Review it deeply.
+ *
+ * @todo The vector p is not needed, most likely.
+ *       Review it deeply.
+ *
+ * @todo A new flag has to be introduced that assign the TV value for the regresion.
+ *
+ * @todo The evaluation function in the current implementation computes the expected outcome.
+ *       This is improper at best, incorrect most likely.
+ *       The logistic regression applied by the algorithm should model the probability
+ *       of a dichotomous outcome.
+ *       Here we have two options:
+ *         - transform the implementation to a proper dichotomous logit model
+ *         - develop the model as an ordinal logit regression
+ *       We are going to focus on the first one first.
+ *       The idea is to identify a Target game Value (TV) and classify the Position Data-set
+ *       using the recorded Game True Value (GTV): Pr(GTV > TV) = Pr(y = 1) = e(w) , where
+ *       e(w) is the value of the evaluation function given the vector of weights w.
+ *       Solve then the GLM problem for TV in the range [-64..+62] (when TV is 64, all positions
+ *       are classified as y=0, fail, loss, defeat, ...). there are 64 regressions to carry out in
+ *       order to fully profile the model.
+ *       This approach, being formally sound, brings in many challenges and changes.
+ *
+ *       The first comment regards a formal issue that is going to emerge.
+ *       There will be values of TV, most likely at the extreme of the range, that shall
+ *       incur into the "Complete Separation" issue. What does it mean ?
+ *       There will be feature configurations occurring only on positions classified either
+ *       as win or loss. The model doesn't have a solution then, the corresponding parameters
+ *       will go to plus or minus infinite. The interpretation is that the feature configuration
+ *       classifies the outcome without any possible error as a win or a loss, of course given
+ *       the data-set.
+ *       The proposed solution is to filter these configurations from the regression.
+ *       When found during the application of the model to new positions the evaluation
+ *       functions has to pre-check the configurations and return immediately a value of
+ *       1 or 0 accordingly.
+ *       It means that these configuration has to be detected upfront, and stored in the
+ *       binary file. There is a change to be applied in the REGAB program as well as in the
+ *       binary file format and in the RGLM utility that read the file.
+ *       The pattern_freq_summary table has to be extended with the frequencies of positions
+ *       by outcome value, it is an array of 65 integers for each glm variable.
+ *
+ *       A more automated procedure is then needed to orchestrate all the regressions, storing the
+ *       results ( I mean the weights ) by TV, and also the regression KPI for future understanding.
+ *
+ * @todo A regression convergence createria has to studied. The goodness of fit statistics, either
+ *       residuals, deviance, or chi-square, or something else.
+ *
+ *
  * @brief RGLM, Revrsi Generalized Linear Model.
  * @details Solves the problem stated in the input file ...
  *
@@ -831,19 +921,6 @@ main (int argc,
       return ret_code;
     }
   }
-
-  /* TO DO:
-   *  - Add a flag that generates the binary parameter file
-   *
-   *  - Optimize the Cholesky decomposition with vectorization and OMP.
-   *
-   *  - Reorganize variable declarations.
-   *  - Reorganize the verbose output.
-   *  - Rename cholesky module to linear_algebra ....
-   *
-   *  - Collect the code that generates the binary file in the regab program into functions defined by the rglm_data_files module.
-   *  - Insert the checksum data into the rglm files.
-   */
 
   /* Frees resources. */
   rglmdf_general_data_release(&data);
