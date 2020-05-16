@@ -9,7 +9,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2019 Roberto Corradini. All rights reserved.
+ * @copyright 2019, 2020 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -87,11 +87,9 @@ rglmut_evaluation_function_eval (rglmdf_general_data_t *data,
     glm_variable_id = &data->positions.iarray[i * nq];
     sum = 0.0;
     for (size_t j = 0; j < nq; j++) {
-      //printf("j, glm_variable_id[j], w[glm_variable_id[j]: %zu, %d, %f\n", j, glm_variable_id[j], w[glm_variable_id[j]]);
       sum += w[glm_variable_id[j]];
     }
     e[i] = rglmut_logistic_function(sum);
-    //if (1) abort();
   }
 }
 
@@ -103,7 +101,8 @@ rglmut_evaluation_function_derivative_eval (size_t emme,
   assert(e);
   assert(de);
 
-  for (size_t i = 0; i < emme; i++) de[i] = e[i] * (1 - e[i]);
+  for (size_t i = 0; i < emme; i++)
+    de[i] = e[i] * (1 - e[i]);
 }
 
 void
@@ -116,7 +115,8 @@ rglmut_residual_value_eval (size_t emme,
   assert(v);
   assert(r);
 
-  for (size_t i = 0; i < emme; i++) r[i] = e[i] - v[i];
+  for (size_t i = 0; i < emme; i++)
+    r[i] = v[i] - e[i];
 }
 
 void
@@ -147,7 +147,7 @@ rglmut_minus_grad_f_eval (rglmdf_general_data_t *data,
     glm_variable_id = &data->positions.iarray[i * nq];
     z = r[i] * de[i];
     for (size_t j = 0; j < nq; j++)
-      minus_grad_f[glm_variable_id[j]] -= z;
+      minus_grad_f[glm_variable_id[j]] += z;
   }
 }
 
@@ -158,7 +158,7 @@ rgmlut_big_b_eval (rglmdf_general_data_t *data,
                    size_t emme,
                    double *e,
                    double *de,
-                   double *r)
+                   double *v)
 {
   assert(data);
   assert(big_b);
@@ -183,12 +183,13 @@ rgmlut_big_b_eval (rglmdf_general_data_t *data,
   /* Computes the upper triangle of the B matrix. */
   for (size_t k = 0; k < emme; k++) {
     glm_variable_id = &data->positions.iarray[k * nq];
-    z = de[k] * (de[k] + r[k] * (1 - 2 * e[k]));
+    //z = de[k] * (de[k] + r[k] * (1 - 2 * e[k]));
+    z = de[k] * (v[k] - 2*(1 + v[k])*e[k] + 3*e[k]*e[k]);
     for (size_t i = 0; i < nq; i++)
       for (size_t j = 0; j < nq; j++) {
         idi = glm_variable_id[i];
         idj = glm_variable_id[j];
-        if (idj >= idi) big_b[idi][idj] += z;
+        if (idj >= idi) big_b[idi][idj] -= z;
       }
   }
 }

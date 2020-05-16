@@ -16,9 +16,6 @@
  *
  * @todo Reorganize verbose output and variable declarations.
  *
- * @todo There is an error in the math formula used in function #rglmut_big_b_eval
- *       the diag value is not correct.
- *
  * @todo The algorithm used to compute the weights is Minimum Mean Square Error (MMSE),
  *       move to Maximum Likelihood Estimation (MLE), or offer the selection among the two.
  *
@@ -90,6 +87,11 @@
  *                           Change done.
  *
  * @todo [2020-05-15 - done] The vector p is not needed, most likely. Removed.
+ *
+ * @todo [2020-05-16 - done] There is an error in the math formula used in function #rglmut_big_b_eval
+ *                           The formula was correct , but written in an alternative way.
+ *                           The formula has been written as in the documentation.
+ *                           The definition of residual is changed from r = e - v to r = v - e.
  *
  *
  *
@@ -715,7 +717,7 @@ main (int argc,
       rglmut_minus_grad_f_eval(&data, minus_grad_f, enne, emme, r, de);
       if (0) for (size_t i = 0; i < enne; i++) printf("minus_grad_f[%3zu]=%f\n", i, minus_grad_f[i]);
 
-      rgmlut_big_b_eval(&data, big_b, enne, emme, e, de, r);
+      rgmlut_big_b_eval(&data, big_b, enne, emme, e, de, v);
       if (0) for (size_t i = 0; i < enne; i++) printf("big_b[%3zu][%3zu]=%f\n", i, i, big_b[i][i]);
       if (0) {
         for (size_t i = 0; i < enne; i++) {
