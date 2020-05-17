@@ -82,11 +82,4 @@ rgmlut_big_b_eval (rglmdf_general_data_t *data,
                    double *de,
                    double *r);
 
-extern void
-rglmut_dedwk_equation (int *result,
-                       rglmdf_general_data_t *data,
-                       double *f,
-                       double *w,
-                       double **jacobian);
-
 #endif /* RGLM_UTILS_H */
