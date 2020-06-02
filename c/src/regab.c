@@ -1290,6 +1290,8 @@ do_action_extract_pattern_freqs_prepare_cursor (int *result,
   }
   *result = 0;
 
+  int glm_variable_id_offset = 0;
+
   const char *c0 = "SELECT * FROM regab_action_extract_count_pattern_freqs(";
 
   cl = snprintf(command, command_size, "%s", c0);
@@ -1299,7 +1301,7 @@ do_action_extract_pattern_freqs_prepare_cursor (int *result,
     abort();
   }
 
-  cl += snprintf(cp, command_size - cl, "%d, '{", empty_count);
+  cl += snprintf(cp, command_size - cl, "%d, %d, '{", glm_variable_id_offset, empty_count);
   cp = command + cl;
   if (cl >= command_size) {
     fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");

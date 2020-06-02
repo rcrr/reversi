@@ -205,7 +205,7 @@ $$ LANGUAGE plpgsql VOLATILE;
 --
 -- Usage example:
 -- tst_regab=> BEGIN;
--- tst_regab=> SELECT * FROM regab_action_extract_count_pattern_freqs(20, '{8}', '{"CMR", "CMS"}', '{6, 12}', 'ca', 'cb');
+-- tst_regab=> SELECT * FROM regab_action_extract_count_pattern_freqs(0, 20, '{8}', '{"CMR", "CMS"}', '{6, 12}', 'ca', 'cb');
 -- tst_regab=> FETCH ALL FROM ca;
 -- tst_regab=> FETCH ALL FROM cb;
 -- tst_regab=> END;
@@ -215,7 +215,12 @@ $$ LANGUAGE plpgsql VOLATILE;
 -- tst_regab=> SELECT * FROM regab_action_extract_count_pattern_freqs_tmp_table_a;
 -- tst_regab=> SELECT * FROM regab_action_extract_count_pattern_freqs_tmp_table_b;
 --
-CREATE FUNCTION regab_action_extract_count_pattern_freqs (empty_count_arg          INTEGER,
+--
+-- 2020-06-02 Adding the glm_variable_id_offset input argument.
+--            glm_variable_id numbering start from glm_variable_id_offset instead of 0.
+--
+CREATE FUNCTION regab_action_extract_count_pattern_freqs (glm_variable_id_offset   INTEGER,
+                                                          empty_count_arg          INTEGER,
                                                           batch_id_array_arg       INTEGER[],
                                                           status_array_arg         CHARACTER(3)[],
                                                           pattern_id_array_arg     INTEGER[],
@@ -369,7 +374,7 @@ BEGIN
   INSERT INTO regab_action_extract_count_pattern_freqs_tmp_table_b
     (glm_variable_id, pattern_id, principal_index_value, total_cnt, relative_frequency, theoretical_probability)
   SELECT
-    ROW_NUMBER () OVER (ORDER BY pattern_id, principal_index_value) - 1 AS glm_variable_id,
+    ROW_NUMBER () OVER (ORDER BY pattern_id, principal_index_value) - 1 + glm_variable_id_offset AS glm_variable_id,
     pattern_id,
     principal_index_value,
     total_cnt,
