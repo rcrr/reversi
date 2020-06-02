@@ -21,8 +21,16 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
   or visit the site <http://www.gnu.org/licenses/>.
 
-This file describes the procedure to compose and solve the GLM (Generalized Linear Model) problem.
 
+This file describes the procedure to compose and solve the GLM (Generalized Linear Model) problem
+in section one, and how to add new Patterns ( or GLM covariates ) to the program in section two.
+
+
+###
+### Section --1--
+###
+### This file describes the procedure to compose and solve the GLM (Generalized Linear Model) problem.
+###
 
 First step is to extract the data from the REGAB database. Data is structured as a set of solved positions.
 Extraction happens by selecting:
@@ -112,3 +120,132 @@ tst_regab=> SELECT * FROM regab_prng_gp_h ORDER BY seq;
 ./build/bin/regab -v --action extract --game-positions --config-file cfg/regab.cfg --env test --batch-id 6 --position-status CMS,CMR --empty-count 20 --out-file tmp/bid_06_game_positions.dat
 ./build/bin/rglm_fit_utility -v -p tmp/bid_06_game_positions.dat -w tmp/bid_03_p_CORNER_01_weights.dat -R tmp/eval_bid_06_by_bid_03_p_CORNER_01_weights.csv
 
+###
+### Section --2--
+###
+### How to create a new Pattern or a new GLM covariate
+###
+
+# 2020-06-02 how to create a new PATTERN ? For instance the MEAN pattern ?
+
+# First: let's see where an existing pattern is declared. The DIAG3 and diag3 strings come out from the source and sql files in:
+
+./src/board_pattern.h
+./src/board_pattern.c
+./src/endgame_solver.c
+
+./sql/0103_up_patterns.sql
+./sql/0104_up_pattern_functions.sql
+./sql/0107_down_pattern_data.sql
+./sql/0107_up_pattern_data.sql
+./sql/0109_up_action_extract.sql
+
+
+rcrr@acheron:~/base/prj/reversi/c$ find ./src | grep "\.[ch]$" | sort | xargs grep "DIAG3"
+./src/board_pattern.h: *               - DIAG3
+./src/board_pattern.h: * The `DIAG3` pattern has four instances ranging from `[0..3]`:
+./src/board_pattern.h:  BOARD_PATTERN_DIAG3,               /**< A3 B2 C1 */
+./src/board_pattern.h:    { BOARD_PATTERN_DIAG3,
+./src/board_pattern.h:      "DIAG3",
+./src/endgame_solver.c:  "  -P, --pattern          Pattern                  - Used with the rand solver - Must be in [EDGE|CORNER|XEDGE|R2|R3|R4|DIAG4|DIAG5|DIAG6|DIAG7|DIAG8|2X5COR|DIAG3].\n"
+
+rcrr@acheron:~/base/prj/reversi/c$ find ./src | grep "\.[ch]$" | sort | xargs grep "diag3"
+./src/board_pattern.c:board_pattern_pack_diag3 (SquareSet s)
+./src/board_pattern.c:  const SquareSet diag3 = 0x0000000000010204;
+./src/board_pattern.c:  s &= diag3;
+./src/board_pattern.c:board_pattern_unpack_diag3 (SquareSet s)
+./src/board_pattern.c:  const SquareSet diag3 = 0x0000000000010204;
+./src/board_pattern.c:  return s & diag3;
+./src/board_pattern.h:board_pattern_pack_diag3 (SquareSet s);
+./src/board_pattern.h:board_pattern_unpack_diag3 (SquareSet s);
+./src/board_pattern.h:      board_pattern_pack_diag3,
+./src/board_pattern.h:      board_pattern_unpack_diag3,
+
+rcrr@acheron:~/base/prj/reversi/c$ find ./sql | grep "\.sql$" | sort | xargs grep "DIAG3"
+./sql/0104_up_pattern_functions.sql:-- Packs DIAG3 pattern.
+./sql/0104_up_pattern_functions.sql:-- Un-packs DIAG3 pattern.
+./sql/0104_up_pattern_functions.sql:-- Computes the mirror value for the given index, for the DIAG3 pattern.
+./sql/0104_up_pattern_functions.sql:    --- DIAG3
+./sql/0107_down_pattern_data.sql:DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = 'DIAG3');
+./sql/0107_down_pattern_data.sql:DELETE FROM regab_prng_patterns WHERE pattern_name = 'DIAG3';
+./sql/0107_up_pattern_data.sql:--- Populates the patter table with EDGE, CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR, and DIAG3 patterns.
+./sql/0107_up_pattern_data.sql:    (now(), 12, 'DIAG3',   4,  3, 'Three square diagonal, C1-B2-A3')
+./sql/0107_up_pattern_data.sql:  pn := 'DIAG3';
+./sql/0107_up_pattern_data.sql:-- DIAG3
+./sql/0107_up_pattern_data.sql:SELECT 'Loading frequencies for the DIAG3 pattern ...' AS message;
+./sql/0107_up_pattern_data.sql:\COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_DIAG3_628_1000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
+./sql/0107_up_pattern_data.sql:SELECT regab_update_prob_into_pattern_probs_from_staging('DIAG3');
+./sql/0109_up_action_extract.sql:--- Populates the patter table with EDGE, CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR, and DIAG3 patterns.
+
+rcrr@acheron:~/base/prj/reversi/c$ find ./sql | grep "\.sql$" | sort | xargs grep "diag3"
+./sql/0103_up_patterns.sql:                                          i_diag3_0  INTEGER,
+./sql/0103_up_patterns.sql:                                          i_diag3_1  INTEGER,
+./sql/0103_up_patterns.sql:                                          i_diag3_2  INTEGER,
+./sql/0103_up_patterns.sql:                                          i_diag3_3  INTEGER,
+./sql/0104_down_pattern_functions.sql:DROP FUNCTION regab_mirror_value_diag3_pattern;
+./sql/0104_down_pattern_functions.sql:DROP FUNCTION square_set_pattern_unpack_diag3;
+./sql/0104_down_pattern_functions.sql:DROP FUNCTION square_set_pattern_pack_diag3;
+./sql/0104_up_pattern_functions.sql:CREATE FUNCTION square_set_pattern_pack_diag3 (s square_set)
+./sql/0104_up_pattern_functions.sql:  packed_diag3_mask square_set := (x'0000000000000007')::BIGINT;
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_pack_diag3(empty_) = empty_, 'Expected result is empty_.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_pack_diag3(full_) = packed_diag3_mask, 'Expected result is packed_diag4_mask.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_pack_diag3((x'0000000000000004')::square_set) = (x'0000000000000004')::square_set, 'Expected result is 0000000000000004.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_pack_diag3((x'0000000000000200')::square_set) = (x'0000000000000002')::square_set, 'Expected result is 0000000000000002.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_pack_diag3((x'0000000000010000')::square_set) = (x'0000000000000001')::square_set, 'Expected result is 0000000000000001.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_pack_diag3((x'fffffffffffefdfb')::square_set) = (x'0000000000000000')::square_set, 'Expected result is 0000000000000000.');
+./sql/0104_up_pattern_functions.sql:CREATE FUNCTION square_set_pattern_unpack_diag3 (s square_set)
+./sql/0104_up_pattern_functions.sql:  packed_diag3_mask square_set := (x'0000000000000007')::BIGINT;
+./sql/0104_up_pattern_functions.sql:  diag3             square_set := (x'0000000000010204')::BIGINT;
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_unpack_diag3(empty_) = empty_, 'Expected result is empty_.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_unpack_diag3(packed_diag3_mask) = diag3, 'Expected result is diag3.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_unpack_diag3((x'0000000000000004')::square_set) = (x'0000000000000004')::square_set, 'Expected result is 0000000000000004.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_unpack_diag3((x'0000000000000002')::square_set) = (x'0000000000000200')::square_set, 'Expected result is 0000000000000200.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_unpack_diag3((x'0000000000000001')::square_set) = (x'0000000000010000')::square_set, 'Expected result is 0000000000010000.');
+./sql/0104_up_pattern_functions.sql:CREATE FUNCTION regab_mirror_value_diag3_pattern (index_value INTEGER)
+./sql/0104_up_pattern_functions.sql:  mo := square_set_pattern_unpack_diag3(mo);
+./sql/0104_up_pattern_functions.sql:  op := square_set_pattern_unpack_diag3(op);
+./sql/0104_up_pattern_functions.sql:  mo := square_set_pattern_pack_diag3(mo);
+./sql/0104_up_pattern_functions.sql:  op := square_set_pattern_pack_diag3(op);
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(regab_mirror_value_diag3_pattern( 0) =  0, 'Expected value is  0.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(regab_mirror_value_diag3_pattern(13) = 13, 'Expected value is 13.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(regab_mirror_value_diag3_pattern(26) = 26, 'Expected value is 26.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(regab_mirror_value_diag3_pattern(19) = 11, 'Expected value is 11.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(regab_mirror_value_diag3_pattern(15) =  7, 'Expected value is  7.');
+./sql/0104_up_pattern_functions.sql:    PERFORM p_assert(regab_mirror_value_diag3_pattern(regab_mirror_value_diag3_pattern(i)) = i, 'Comuputing mirror of mirror of an diag3 pattern index should return itself');
+./sql/0104_up_pattern_functions.sql:                                                  OUT i_diag3_0  INTEGER,
+./sql/0104_up_pattern_functions.sql:                                                  OUT i_diag3_1  INTEGER,
+./sql/0104_up_pattern_functions.sql:                                                  OUT i_diag3_2  INTEGER,
+./sql/0104_up_pattern_functions.sql:                                                  OUT i_diag3_3  INTEGER)
+./sql/0104_up_pattern_functions.sql:  i_diag3_0  := regab_transformed_pattern_to_index(square_set_pattern_pack_diag3(mo_identity),
+./sql/0104_up_pattern_functions.sql:                                                   square_set_pattern_pack_diag3(op_identity));
+./sql/0104_up_pattern_functions.sql:  i_diag3_1  := regab_transformed_pattern_to_index(square_set_pattern_pack_diag3(mo_rot_90a),
+./sql/0104_up_pattern_functions.sql:                                                   square_set_pattern_pack_diag3(op_rot_90a));
+./sql/0104_up_pattern_functions.sql:  i_diag3_2  := regab_transformed_pattern_to_index(square_set_pattern_pack_diag3(mo_rot_180),
+./sql/0104_up_pattern_functions.sql:                                                   square_set_pattern_pack_diag3(op_rot_180));
+./sql/0104_up_pattern_functions.sql:  i_diag3_3  := regab_transformed_pattern_to_index(square_set_pattern_pack_diag3(mo_rot_90c),
+./sql/0104_up_pattern_functions.sql:                                                   square_set_pattern_pack_diag3(op_rot_90c));
+./sql/0104_up_pattern_functions.sql:    SELECT principal_index_value INTO STRICT i_diag3_0  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag3_0;
+./sql/0104_up_pattern_functions.sql:    SELECT principal_index_value INTO STRICT i_diag3_1  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag3_1;
+./sql/0104_up_pattern_functions.sql:    SELECT principal_index_value INTO STRICT i_diag3_2  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag3_2;
+./sql/0104_up_pattern_functions.sql:    SELECT principal_index_value INTO STRICT i_diag3_3  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag3_3;
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(pattern_index_values.i_diag3_0 = 13, 'Expected value for i_diag3_0 is 13.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(pattern_index_values.i_diag3_1 =  6, 'Expected value for i_diag3_1 is  6.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(pattern_index_values.i_diag3_2 = 14, 'Expected value for i_diag3_2 is 14.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(pattern_index_values.i_diag3_3 = 17, 'Expected value for i_diag3_3 is 17.');
+./sql/0104_up_pattern_functions.sql:        OR gp_pattern_class_o_rec.i_diag3_0  <> gp_pattern_class_n_rec.i_diag3_0
+./sql/0104_up_pattern_functions.sql:        OR gp_pattern_class_o_rec.i_diag3_1  <> gp_pattern_class_n_rec.i_diag3_1
+./sql/0104_up_pattern_functions.sql:        OR gp_pattern_class_o_rec.i_diag3_2  <> gp_pattern_class_n_rec.i_diag3_2
+./sql/0104_up_pattern_functions.sql:        OR gp_pattern_class_o_rec.i_diag3_3  <> gp_pattern_class_n_rec.i_diag3_3
+./sql/0104_up_pattern_functions.sql:                                               i_diag3_0  = gp_pattern_class_n_rec.i_diag3_0,
+./sql/0104_up_pattern_functions.sql:                                               i_diag3_1  = gp_pattern_class_n_rec.i_diag3_1,
+./sql/0104_up_pattern_functions.sql:                                               i_diag3_2  = gp_pattern_class_n_rec.i_diag3_2,
+./sql/0104_up_pattern_functions.sql:                                               i_diag3_3  = gp_pattern_class_n_rec.i_diag3_3
+./sql/0107_up_pattern_data.sql:  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_diag3_pattern(index_value) WHERE pattern_id = pid;
+./sql/0107_up_pattern_data.sql:  PERFORM p_assert(pattern_index_values.i_diag3_0 = 13, 'Expected value for i_diag3_0 is 13.');
+./sql/0107_up_pattern_data.sql:  PERFORM p_assert(pattern_index_values.i_diag3_1 =  6, 'Expected value for i_diag3_1 is  6.');
+./sql/0107_up_pattern_data.sql:  PERFORM p_assert(pattern_index_values.i_diag3_2 = 14, 'Expected value for i_diag3_2 is 14.');
+./sql/0107_up_pattern_data.sql:  PERFORM p_assert(pattern_index_values.i_diag3_3 = 17, 'Expected value for i_diag3_3 is 17.');
+./sql/0109_up_action_extract.sql:    (now(), 12, 0, 'i_diag3_0'),
+./sql/0109_up_action_extract.sql:    (now(), 12, 1, 'i_diag3_1'),
+./sql/0109_up_action_extract.sql:    (now(), 12, 2, 'i_diag3_2'),
+./sql/0109_up_action_extract.sql:    (now(), 12, 3, 'i_diag3_3')

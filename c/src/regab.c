@@ -1,49 +1,6 @@
 /**
  * @file
  *
- * @todo Add to patterns the legal_move_count parameter LMOCNT.
- *       There are a few options:
- *         - add a single configuration having h equal to the legal_move_count value
- *         - consider each value of legal_move_count as a categorical feature
- *         - how do we consider having to pass ? as a single case or we evaluate the adversary legal move count ?
- *
- * @todo Consider if is better to remove the end_game positions.
- *       Are strong outliers.
- *       The evaluation function could check if the game position is a leaf, if yes the value is the disc difference.
- *       In this scenario having end_game position into the data set just pollutes it.
- *
- *       An option could be:
- *       end_game           :: special case in ef(w) , it return the true value ( as it must be ! )
- *                             removed from the regressed data-set
- *       pass               :: LMOCNT = 1
- *                             keept in the data set
- *       legal_move_cnt > 0 :: standard case , LMOCNT := legal_move_cnt
- *                             keept in the data set
- *
- * @todo Classify the legal moves into types.
- * @code
- * .    a    b    c    d    e    f    g    h
- *   =========================================
- * 1 =  V .. C .. A .. B .. B .. A .. C .. V =
- *   =========================================
- * 2 =  C .. X .. F .. H .. H .. F .. X .. C =
- *   =========================================
- * 3 =  A .. F .. S .. E .. E .. S .. F .. A =
- *   =========================================
- * 4 =  B .. H .. E .. O .. O .. E .. H .. B =
- *   =========================================
- * 5 =  B .. H .. E .. O .. O .. E .. H .. B =
- *   =========================================
- * 6 =  A .. F .. S .. E .. E .. S .. F .. A =
- *   =========================================
- * 7 =  C .. X .. F .. H .. H .. F .. X .. C =
- *   =========================================
- * 8 =  V .. C .. A .. B .. B .. A .. C .. V =
- *   =========================================
- * @endcode
- *
- *
- *
  * @brief REGAB: Reversi End Game Analytics Base.
  *
  * @details An utility that generates the data base of reversi game positions
@@ -2242,7 +2199,7 @@ main (int argc,
 
   size_t n_gp_inserted = 0;
 
-  do_insert_regab_prng_gp_h (&result, &batch_id, con, "INS", prng_seed, n_games);
+  do_insert_regab_prng_gp_h(&result, &batch_id, con, "INS", prng_seed, n_games);
   if (result == -1) {
     fprintf(stderr, "Error while inserting regab_prng_gp_h record.\n");
     PQfinish(con);
@@ -2288,7 +2245,7 @@ main (int argc,
     }
 
     /* If the program reaches this point the stack has overflown. */
-    fprintf(stderr, "Game stack has oferflown.\n");
+    fprintf(stderr, "Game stack has overflown.\n");
     abort();
 
   game_completed:
