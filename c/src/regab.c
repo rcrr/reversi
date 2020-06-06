@@ -126,6 +126,7 @@ static const mop_options_long_t olist[] = {
   {"batch-id",          'b', MOP_REQUIRED},
   {"empty-count",       'y', MOP_REQUIRED},
   {"position-status",   'u', MOP_REQUIRED},
+  {"feature",           'f', MOP_REQUIRED},
   {"pattern",           'p', MOP_REQUIRED},
   {"game-positions",    'g', MOP_NONE},
   {"out-file",          'o', MOP_REQUIRED},
@@ -147,6 +148,7 @@ static const char *documentation =
   "  -b, --batch-id        Batch id                                                    - Mandatory when action is in [solve].\n"
   "  -y, --empty-count     Number of empty squares in the solved game position         - Mandatory when action is in [solve].\n"
   "  -u, --position-status One or more status flag for the selection of game positions - Mandatory when action is in [extract].\n"
+  "  -f, --feature         One or more features                                        - Optional when action is in [extract].\n"
   "  -p, --pattern         One or more patterns                                        - Mandatory when action is in [extract].\n"
   "  -g, --game-positions  Extract just game positions                                 - Mutually exclusive with option -p when action is [extract].\n"
   "  -o, --out-file        The output file name                                        - Mandatory when action is in [extract].\n"
@@ -157,7 +159,7 @@ static const char *documentation =
   "Author:\n"
   "  Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
   "\n"
-  "Copyright (c) 2017, 2018, 2019 Roberto Corradini. All rights reserved.\n"
+  "Copyright (c) 2017, 2018, 2019, 2020 Roberto Corradini. All rights reserved.\n"
   "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
   "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n"
   ;
@@ -198,6 +200,9 @@ static char *y_arg = NULL;
 
 static int u_flag = false;
 static char *u_arg = NULL;
+
+static int f_flag = false;
+static char *f_arg = NULL;
 
 static int p_flag = false;
 static char *p_arg = NULL;
@@ -1272,6 +1277,7 @@ do_action_extract_pattern_freqs_prepare_cursor (int *result,
                                                 char **position_statuses,
                                                 size_t pattern_cnt,
                                                 board_pattern_id_t *patterns,
+                                                int glm_variable_id_offset,
                                                 const char *sql_cursor_name_a,
                                                 const char *sql_cursor_name_b,
                                                 size_t *record_cnt_b)
@@ -1289,8 +1295,6 @@ do_action_extract_pattern_freqs_prepare_cursor (int *result,
     return;
   }
   *result = 0;
-
-  int glm_variable_id_offset = 0;
 
   const char *c0 = "SELECT * FROM regab_action_extract_count_pattern_freqs(";
 
@@ -1462,6 +1466,22 @@ do_action_extract_count_positions (int *result,
     *result = 0;
   }
   PQclear(res);
+}
+
+static void
+do_action_extract_check_features (int *result,
+                                  PGconn *con,
+                                  bool verbose,
+                                  board_feature_id_t *features,
+                                  size_t feature_cnt)
+{
+  /*
+   * Currently there is no feature that requires to record its value for the position set in the database.
+   * So we do not have a dedicated extension in the SQL DB for the features. Values are computed on the fly
+   * during the extraction.
+   */
+  if (verbose) printf("Procedure do_action_extract_check_features(): nothing to underline.\n");
+  *result = 0;
 }
 
 static void
@@ -1654,6 +1674,10 @@ main (int argc,
   char *position_status_buffer = NULL;
   char **position_statuses = NULL;
 
+  size_t feature_cnt = 0;
+  char *feature_buffer = NULL;
+  board_feature_id_t *features = NULL;
+
   size_t pattern_cnt = 0;
   char *pattern_buffer = NULL;
   board_pattern_id_t *patterns = NULL;
@@ -1702,6 +1726,10 @@ main (int argc,
     case 'u':
       u_flag = true;
       u_arg = options.optarg;
+      break;
+    case 'f':
+      f_flag = true;
+      f_arg = options.optarg;
       break;
     case 'p':
       p_flag = true;
@@ -1955,6 +1983,75 @@ main (int argc,
       }
     }
   }
+  if (f_flag) {
+    bool is_valid_feature;
+    nbytes = strlen(f_arg) + 1;
+    feature_buffer = (char *) malloc(nbytes);
+    if (!feature_buffer) {
+      fprintf(stderr, "Unable to allocate memory for feature_buffer array.\n");
+      return EXIT_FAILURE;
+    }
+    memset(feature_buffer, 0, nbytes);
+    int parse_mode = 1; // 0 means char, 1 means separator.
+    char *beginptr = f_arg;
+    char *c = feature_buffer;
+    feature_cnt = 1;
+    while (*beginptr) {
+      *c = *beginptr;
+      if (',' == *beginptr) {
+        *c = '\0';
+        if (parse_mode != 0) {
+          fprintf(stderr, "Wrong format in feature value.\n");
+          return EXIT_FAILURE;
+        }
+        feature_cnt++;
+        parse_mode = 1;
+      } else if (isalnum(*beginptr)) parse_mode = 0;
+      else {
+        fprintf(stderr, "Wrong character in feature value.\n");
+        return EXIT_FAILURE;
+      }
+      c++;
+      beginptr++;
+    }
+    if (parse_mode != 0) {
+      fprintf(stderr, "The value for feature option couldn't end with a comma.\n");
+      return EXIT_FAILURE;
+    }
+    nbytes = sizeof(board_feature_id_t) * feature_cnt;
+    features = (board_feature_id_t *) malloc(nbytes);
+    if (!features) {
+      fprintf(stderr, "Unable to allocate memory for features array.\n");
+      return EXIT_FAILURE;
+    }
+    memset(features, 0, nbytes);
+    c = feature_buffer;
+    parse_mode = 1;
+    size_t j = 0;
+    for (size_t i = 0; i < strlen(f_arg) + 1; i++, c++) {
+      if (parse_mode == 1) {
+        is_valid_feature = board_feature_get_id_by_name(&features[j], c);
+        if (!is_valid_feature) {
+          fprintf(stderr, "Feature %s does not exists.\n", c);
+          return EXIT_FAILURE;
+        }
+        j++;
+        parse_mode = 0;
+      }
+      if (*c == '\0') parse_mode = 1;
+    }
+    if (feature_cnt != j) {
+      fprintf(stderr, "Error when generation tokens from feature_buffer.\n");
+      return EXIT_FAILURE;
+    }
+    sort_utils_insertionsort(features, feature_cnt, sizeof(board_feature_id_t), sort_utils_int_cmp);
+    for (size_t i = 1; i < feature_cnt; i++) {
+      if (features[i] == features[i -1]) {
+        fprintf(stderr, "Duplicate entry in feature list: %s\n", board_features[features[i]].name);
+        return EXIT_FAILURE;
+      }
+    }
+  }
   if (p_flag) {
     bool is_valid_pattern;
     nbytes = strlen(p_arg) + 1;
@@ -1980,7 +2077,7 @@ main (int argc,
         parse_mode = 1;
       } else if (isalnum(*beginptr)) parse_mode = 0;
       else {
-        fprintf(stderr, "Wrong character in position_status value.\n");
+        fprintf(stderr, "Wrong character in pattern value.\n");
         return EXIT_FAILURE;
       }
       c++;
@@ -2025,8 +2122,8 @@ main (int argc,
     }
   }
   if (g_flag) {
-    if (p_flag) {
-      fprintf(stderr, "Error flag -g and flag -p are mutually exclusive.\n");
+    if (p_flag || f_flag) {
+      fprintf(stderr, "Error flag -g and flags -p or -f are mutually exclusive.\n");
       return EXIT_FAILURE;
     }
   }
@@ -2433,7 +2530,8 @@ main (int argc,
    * Steps:
    *  - 00 - Starts a DB transaction.
    *  - 01 - Checks that the imput data (batch_id, pattern) is consistent with the DB data.
-   *  - 02 - Opens the output binary file, and writes the header.
+   *  - 02 - Opens the output binary file.
+   *  - 03 - Writes the header.
    *  - 04 - Collects from the DB the game positions statistics and writes them to the binary file.
    *  - 05 - Collects from the DB the pattern index statistics, writes them to the binary file,
    *         and accumulates the data into the DB temp table.
@@ -2527,7 +2625,17 @@ main (int argc,
     return EXIT_FAILURE;
   }
 
-  /* - 01.b - Checks pattern argument data. */
+  /* - 01.b - Checks feature argument data. */
+  if (f_flag) {
+    do_action_extract_check_features(&result, con, verbose, features, feature_cnt);
+    if (result != 0) {
+      res = PQexec(con, "ROLLBACK");
+      PQfinish(con);
+      return EXIT_FAILURE;
+    }
+  }
+
+  /* - 01.c - Checks pattern argument data. */
   if (p_flag) {
     do_action_extract_check_patterns(&result, con, verbose, patterns, pattern_cnt);
     if (result != 0) {
@@ -2537,7 +2645,7 @@ main (int argc,
     }
   }
 
-  /* - 01.c - Logs selected statuses for the game positions. */
+  /* - 01.d - Logs selected statuses for the game positions. */
   if (verbose) {
     fprintf(stdout, "Searched position statuses: ");
     for (size_t i = 0; i < position_status_cnt; i++) {
@@ -2554,6 +2662,8 @@ main (int argc,
     return EXIT_FAILURE;
   }
   if (verbose) fprintf(stdout, "Binary output file \"%s\" opened succesfully.\n", output_file_name);
+
+  /* - 03 - Writes the header of the file. */
   u64 = current_time;
   fwrite(&u64, sizeof(uint64_t), 1, ofp);
   u64 = batch_id_cnt;
@@ -2564,6 +2674,12 @@ main (int argc,
   u64 = position_status_cnt;
   fwrite(&u64, sizeof(uint64_t), 1, ofp);
   fwrite(position_status_buffer, RGLM_POSITION_STATUS_BUF_SIZE, position_status_cnt, ofp);
+  u64 = feature_cnt;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  for (size_t i = 0; i < feature_cnt; i++) {
+    int16_t i16 = features[i];
+    fwrite(&i16, sizeof(int16_t), 1, ofp);
+  }
   u64 = pattern_cnt;
   fwrite(&u64, sizeof(uint64_t), 1, ofp);
   for (size_t i = 0; i < pattern_cnt; i++) {
@@ -2585,8 +2701,10 @@ main (int argc,
 
   /* - 05 - Collects from the DB the pattern index statistics, assigns the global variable index value, writes them to the binary file ... */
   if (p_flag) {
+    int glm_variable_id_offset = 0;
     do_action_extract_pattern_freqs_prepare_cursor(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses,
-                                                   pattern_cnt, patterns, sql_cursor_name_pattern_freqs_debug, sql_cursor_name_pattern_freqs,
+                                                   pattern_cnt, patterns, glm_variable_id_offset,
+                                                   sql_cursor_name_pattern_freqs_debug, sql_cursor_name_pattern_freqs,
                                                    &pattern_freq_summary_total_record_cnt);
     u64 = pattern_freq_summary_total_record_cnt;
     fwrite(&u64, sizeof(uint64_t), 1, ofp);
@@ -2688,6 +2806,7 @@ main (int argc,
   free(batch_ids);
   free(position_status_buffer);
   free(position_statuses);
+  free(feature_buffer);
   free(pattern_buffer);
   free(patterns);
 

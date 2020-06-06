@@ -105,7 +105,7 @@ static const char *documentation =
   "Author:\n"
   "Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
   "\n"
-  "Copyright (c) 2019 Roberto Corradini. All rights reserved.\n"
+  "Copyright (c) 2019, 2020 Roberto Corradini. All rights reserved.\n"
   "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
   "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n"
   ;
@@ -173,9 +173,11 @@ main (int argc,
   size_t position_status_cnt;
   char *position_statuses_buf;
   char **position_statuses;
+  size_t feature_cnt;
   size_t pattern_cnt;
   rglmdf_iarray_data_type_t iarray_type;
   size_t game_position_cnt;
+  board_feature_id_t *board_feature_ids;
   board_pattern_id_t *board_pattern_ids;
   double *weights;
   double *pattern_to_weight_index[BOARD_PATTERN_COUNT];
@@ -239,7 +241,7 @@ main (int argc,
     return -1;
   }
   if (!w_arg) {
-    fprintf(stderr, "Option -w, --gaps-output-file is mandatory.\n");
+    fprintf(stderr, "Option -w, --weights-file is mandatory.\n");
     return -2;
   }
 
@@ -312,9 +314,19 @@ main (int argc,
     }
   }
 
-  /* Reads the count of patterns. */
+  /* Reads the count of features. */
   re = fread(&u64, sizeof(uint64_t), 1, pfp);
   if (re != 1) print_error_and_stop(-160, p_arg);
+  feature_cnt = u64;
+  if (feature_cnt != 0) {
+    fprintf(stderr, "feature_cnt = %zu\n", feature_cnt);
+    fprintf(stderr, "Error: feature_cnt has to be zero, this file is not compatible with the option --game-positions.\n");
+    return EXIT_FAILURE;
+  }
+
+  /* Reads the count of patterns. */
+  re = fread(&u64, sizeof(uint64_t), 1, pfp);
+  if (re != 1) print_error_and_stop(-164, p_arg);
   pattern_cnt = u64;
   if (pattern_cnt != 0) {
     fprintf(stderr, "pattern_cnt = %zu\n", pattern_cnt);
@@ -392,6 +404,28 @@ main (int argc,
   if (re != 1) print_error_and_stop(-20, w_arg);
   empty_count = u8;
   if (verbose) fprintf(stdout, "Selected empty_count value: %u\n", empty_count);
+
+  /* Reads the feature_cnt, features input fields.*/
+  re = fread(&u64, sizeof(uint64_t), 1, wfp);
+  if (re != 1) print_error_and_stop(-24, w_arg);
+  feature_cnt = u64;
+  board_feature_ids = (board_feature_id_t *) malloc(sizeof(board_feature_id_t) * feature_cnt);
+  if (!board_feature_ids) {
+    fprintf(stderr, "Error: unable to allocate memory for the board_feature_ids array.\n");
+    return EXIT_FAILURE;
+  }
+  for (size_t i = 0; i < feature_cnt; i++) {
+    re = fread(&i16, sizeof(int16_t), 1, wfp);
+    if (re != 1) print_error_and_stop(-26, w_arg);
+    board_feature_ids[i] = i16;
+  }
+  if (verbose) {
+    fprintf(stdout, "Selected feature values: ");
+    for (size_t i = 0; i < feature_cnt; i++) {
+      fprintf(stdout, "%s", board_features[board_feature_ids[i]].name);
+      fprintf(stdout, "%s", (i < feature_cnt - 1) ? ", ": "\n");
+    }
+  }
 
   /* Reads the pattern_cnt, patterns input fields.*/
   re = fread(&u64, sizeof(uint64_t), 1, wfp);

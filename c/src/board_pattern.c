@@ -9,7 +9,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2018, 2019 Roberto Corradini. All rights reserved.
+ * @copyright 2018, 2019, 2020 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -82,6 +82,19 @@ board_set_square_sets (board_t *b,
 /*
  * End of board_t implementation
  */
+
+bool
+board_feature_get_id_by_name (board_feature_id_t *idp,
+                              char *name)
+{
+  for (int i = 0; i < BOARD_FEATURE_INVALID; i++) {
+    if (strcmp(name, board_features[i].name) == 0) {
+      if (idp) *idp = i;
+      return true;
+    }
+  }
+  return false;
+}
 
 SquareSet
 board_pattern_mask (SquareSet s,

@@ -9,7 +9,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2018, 2019 Roberto Corradini. All rights reserved.
+ * @copyright 2018, 2019, 2020 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -75,6 +75,8 @@ rglmdf_general_data_init (rglmdf_general_data_t *gd)
   gd->position_status_cnt = 0;
   gd->position_status_buffer = NULL;
   gd->position_statuses = NULL;
+  gd->feature_cnt = 0;
+  gd->features = NULL;
   gd->pattern_cnt = 0;
   gd->patterns = NULL;
 
@@ -104,6 +106,7 @@ rglmdf_general_data_release (rglmdf_general_data_t *gd)
   free(gd->pattern_freq_summary.records);
   free(gd->position_summary.records);
   free(gd->patterns);
+  free(gd->features);
   free(gd->position_statuses);
   free(gd->position_status_buffer);
   free(gd->batch_ids);
@@ -246,6 +249,51 @@ rglmdf_position_statuses_to_text_stream (rglmdf_general_data_t *gd,
   for (size_t i = 0; i < gd->position_status_cnt; i++ ) {
     fprintf(stream, "%s", gd->position_statuses[i]);
     fprintf(stream, "%s", (i < gd->position_status_cnt - 1) ? ", ": "\n");
+  }
+}
+
+size_t
+rglmdf_set_feature_cnt (rglmdf_general_data_t *gd,
+                        size_t cnt)
+{
+  assert(gd);
+
+  const size_t s = sizeof(board_feature_id_t) * cnt;
+  board_feature_id_t *buf;
+  buf = (board_feature_id_t *) malloc(s);
+  if (buf) {
+    free(gd->features);
+    gd->features = buf;
+    gd->feature_cnt = cnt;
+    memset(gd->features, 0, s);
+    return cnt;
+  } else {
+    return 0;
+  }
+}
+
+size_t
+rglmdf_get_feature_cnt (rglmdf_general_data_t *gd)
+{
+  assert(gd);
+  return gd->feature_cnt;
+}
+
+board_feature_id_t *
+rglmdf_get_features (rglmdf_general_data_t *gd)
+{
+  assert(gd);
+  return gd->features;
+}
+
+void
+rglmdf_features_to_text_stream (rglmdf_general_data_t *gd,
+                                FILE *stream)
+{
+  fprintf(stream, "Selected feature values: ");
+  for (size_t i = 0; i < gd->feature_cnt; i++ ) {
+    fprintf(stream, "%s", board_features[gd->features[i]].name);
+    fprintf(stream, "%s", (i < gd->feature_cnt - 1) ? ", ": "\n");
   }
 }
 
@@ -729,11 +777,20 @@ rglmdf_write_rglm_weights_to_binary_file (rglmdf_general_data_t *gd,
 
   /* Writes current time to the binary file. */
   u64 = current_time;
+  printf("u64=%lud\n", u64);
   fwrite(&u64, sizeof(uint64_t), 1, ofp);
 
   /* Writes empty count to the binary file. */
   u8 = gd->empty_count;
   fwrite(&u8, sizeof(uint8_t), 1, ofp);
+
+  /* Writes the feature count, and the array of feature id to the binary file. */
+  u64 = gd->feature_cnt;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  for (size_t i = 0; i < gd->feature_cnt; i++) {
+    i16 = gd->features[i];
+    fwrite(&i16, sizeof(int16_t), 1, ofp);
+  }
 
   /* Writes the pattern count, and the array of pattern id to the binary file. */
   u64 = gd->pattern_cnt;
@@ -771,6 +828,7 @@ rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
 
   uint8_t u8;
   uint64_t u64;
+  int16_t i16;
 
   time_t current_time = (time_t) -1;
 
@@ -802,11 +860,19 @@ rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
   fwrite(&u64, sizeof(uint64_t), 1, ofp);
   fwrite(gd->position_status_buffer, RGLM_POSITION_STATUS_BUF_SIZE, gd->position_status_cnt, ofp);
 
+  /* Writes the feature count, and the array of feature id to the binary file. */
+  u64 = gd->feature_cnt;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  for (size_t i = 0; i < gd->feature_cnt; i++) {
+    i16 = gd->features[i];
+    fwrite(&i16, sizeof(int16_t), 1, ofp);
+  }
+
   /* Writes the pattern count, and the array of pattern id to the binary file. */
   u64 = gd->pattern_cnt;
   fwrite(&u64, sizeof(uint64_t), 1, ofp);
   for (size_t i = 0; i < gd->pattern_cnt; i++) {
-    int16_t i16 = gd->patterns[i];
+    i16 = gd->patterns[i];
     fwrite(&i16, sizeof(int16_t), 1, ofp);
   }
 

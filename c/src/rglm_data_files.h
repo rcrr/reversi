@@ -4,8 +4,8 @@
  * @brief Reversi Generalized Linear Model data files.
  * @details This module defines data files, tables, and records being read and written to/from binary files.
  *
- * The `regab` program may extract data from the REGAB database and generate an appropriate binary file.
- * This file may be read using the `rglm` program.
+ * The `regab` program can extract data from the REGAB database and generate an appropriate binary file.
+ * This file can be read using the `rglm` program.
  * Please consult the documentation of the two programs for further details on their usage.
  *
  * Structures used to write and read binary files relay on "fixed" size fields, this is to make the code
@@ -13,7 +13,7 @@
  * hardware and software platforms.
  * The function #rglmdf_verify_type_sizes checks that the data types have the expected storage definition.
  *
- * The ` Solved and Patern Classified Set of Game Positions` is stored in a binary file using
+ * The `Solved and Pattern Classified Set of Game Positions` is stored in a binary file using
  * the format here described.
  * <p>
  * --- Header ---
@@ -43,10 +43,18 @@
  *     Macro `RGLM_POSITION_STATUS_BUF_SIZE` is defined being equal to `4`<br>
  *<br>
  *   - `8 bytes` field, read/written as `uint64_t`, converted to a `size_t` value.<br>
+ *     Meaning: count of features.<br>
+ *     Ref: `feature_cnt`, scalar.<br>
+ *<br>
+ *   - `2 bytes` field x `feature_cnt` times, read/written as multiple times `int16_t`, converted to `enum`.<br>
+ *     Meaning: array of feature entries.<br>
+ *     Ref: `features`, array.<br>
+ *<br>
+ *   - `8 bytes` field, read/written as `uint64_t`, converted to a `size_t` value.<br>
  *     Meaning: count of patterns.<br>
  *     Ref: `pattern_cnt`, scalar.<br>
  *<br>
- *   - `2 bytes` field x `pattern_cnt` times, read/written as multiple times `int16_t`, converted to `enum`.<br>
+ *   - `2 bytes` field x `pattern_cnt` times, read/written as multiple times `int16_t`, converted to `enum` #board_pattern_id_t.<br>
  *     Meaning: array of pattern entries.<br>
  *     Ref: `patterns`, array.<br>
  * <p>
@@ -98,7 +106,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2018, 2019 Roberto Corradini. All rights reserved.
+ * @copyright 2018, 2019, 2020 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -253,7 +261,7 @@ typedef struct rglmdf_solved_and_classified_gp_table_s {
 /**
  * @brief Reversi GLM data file general data structure.
  *
- * @details The type contains all the info saved/retrieved from a GLM Data File.
+ * @details The type contains all the info saved/retrieved from a RGLM Data File.
  */
 typedef struct rglmdf_general_data_s {
   time_t file_creation_time;                                  /**< @brief Creation time of the data file. */
@@ -263,6 +271,8 @@ typedef struct rglmdf_general_data_s {
   size_t position_status_cnt;                                 /**< @brief Count of statuses of game positions. */
   char *position_status_buffer;                               /**< @brief Text buffer for status labels. */
   char **position_statuses;                                   /**< @brief Array of terminated strings representing status labels. */
+  size_t feature_cnt;                                         /**< @brief Count of features. */
+  board_feature_id_t *features;                               /**< @brief Array of features. */
   size_t pattern_cnt;                                         /**< @brief Count of patterns. */
   board_pattern_id_t *patterns;                               /**< @brief Array of patterns. */
   rglmdf_position_summary_table_t position_summary;           /**< @brief Aggregated data for positions. */
@@ -477,6 +487,56 @@ rglmdf_get_position_statuses (rglmdf_general_data_t *gd);
 extern void
 rglmdf_position_statuses_to_text_stream (rglmdf_general_data_t *gd,
                                          FILE *stream);
+
+/**
+ * @brief Setter function for the `feature_cnt` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd  reference to the general data structure
+ * @param [in] cnt new value for the `feature_cnt` field
+ */
+extern size_t
+rglmdf_set_feature_cnt (rglmdf_general_data_t *gd,
+                        size_t cnt);
+
+/**
+ * @brief Getter function for the `feature_cnt` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `feature_cnt` field
+ */
+extern size_t
+rglmdf_get_feature_cnt (rglmdf_general_data_t *gd);
+
+/**
+ * @brief Getter function for the `features` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `features` field
+ */
+extern board_feature_id_t *
+rglmdf_get_features (rglmdf_general_data_t *gd);
+
+/**
+ * @brief Outputs to `stream` a text message with the list of features.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd     reference to the general data structure
+ * @param [in] stream the output file handler
+ */
+extern void
+rglmdf_features_to_text_stream (rglmdf_general_data_t *gd,
+                                FILE *stream);
 
 /**
  * @brief Setter function for the `pattern_cnt` field.

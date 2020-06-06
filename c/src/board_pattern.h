@@ -366,6 +366,16 @@ board_set_square_sets (board_t *b,
  * End of board_t definitions
  */
 
+/**
+ * @enum board_feature_id_t
+ * @brief Features are a defined property of the board convertible to a real number.
+ */
+typedef enum {
+  BOARD_FEATURE_INTERCEPT,           /**< Intercept */
+  BOARD_FEATURE_MOBILITY,            /**< Mobility */
+  BOARD_FEATURE_INVALID              /**< Not a valid feature. */
+} board_feature_id_t;
+
 /*
  * The entry order in the board_pattern_id_t enum MUST match the
  * pattern_id given in the regab database.
@@ -397,6 +407,8 @@ typedef enum {
 #define BOARD_PATTERN_MAX_N_INSTANCES 8
 
 typedef uint16_t board_pattern_index_t;
+
+typedef struct board_feature_s board_feature_t;
 
 typedef struct board_pattern_s board_pattern_t;
 
@@ -498,6 +510,21 @@ extern bool
 board_pattern_get_id_by_name (board_pattern_id_t *idp,
                               char *name);
 
+/**
+ * @brief Returns `true` when `name` matches with valid feature, otherwise `false`.
+ *
+ * @details When `true` is returned the value referenced by `idp` is updated
+ *          with the proper feature id, otherwise nothing happens.
+ *          If `idp` is `NULL` no udate occurs.
+ *
+ * @param [out] idp  feature id
+ * @param [in]  name feature name
+ * @return           true if name matches with one registered feature
+ */
+extern bool
+board_feature_get_id_by_name (board_feature_id_t *idp,
+                              char *name);
+
 typedef union board_pattern_rotated_u board_pattern_rotated_t;
 typedef struct board_pattern_named_rotated_s board_pattern_named_rotated_t;
 
@@ -516,6 +543,25 @@ union board_pattern_rotated_u {
   board_t board_array[8];
   board_pattern_named_rotated_t named_boards;
 };
+
+struct board_feature_s {
+  board_feature_id_t id;
+  char name[11];
+  unsigned int field_cnt;
+};
+
+static const board_feature_t board_features[] =
+  {
+    { BOARD_FEATURE_INTERCEPT,
+      "INTERCEPT",
+      1 },
+
+    { BOARD_FEATURE_MOBILITY,
+      "MOBILITY",
+      1 },
+
+    { BOARD_FEATURE_INVALID, "NULL", 0 }
+  };
 
 struct board_pattern_s {
   board_pattern_id_t id;
