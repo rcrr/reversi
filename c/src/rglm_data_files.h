@@ -67,6 +67,14 @@
  *     Meaning: the set of records in the table.<br>
  *     Ref: `position_summary.records`, array.<br>
  *<br>
+ *   - `8 bytes` field, read/written as `uint64_t`, converted to a `size_t` value.<br>
+ *     Meaning: count of GLM independent variables belonging to features.<br>
+ *     Ref: `pattern_freq_summary.glm_f_variable_cnt`, scalar.<br>
+ *<br>
+ *   - `8 bytes` field, read/written as `uint64_t`, converted to a `size_t` value.<br>
+ *     Meaning: count of GLM independent variables belonging to patterns.<br>
+ *     Ref: `pattern_freq_summary.glm_p_variable_cnt`, scalar.<br>
+ *<br>
  *   - `8 bytes` field, read/written as `uint64_t`, converted to `size_t` value.<br>
  *     Meaning: count of records in the pattern frequency summary table.<br>
  *     Ref: `pattern_freq_summary.ntuples`, scalar.<br>
@@ -94,10 +102,15 @@
  *        Meaning: the set of records in the data chunk.<br>
  *        Ref: `positions.records`, array ( each data chunk is collected in the array following the previos one ).<br>
  *<br>
+ *      - `double` field x `n_fvalues_per_record` x `data_chunk_size` times.<br>
+ *        Meaning: the array of feature values in the data chunk.<br>
+ *        Ref: `positions.farray`, array ( each data chunk is collected in the array following the previos one ).<br>
+ *        Notice: the value `n_fvalues_per_record` is computed summing up the field count for each feature being selected.
+ *<br>
  *      - `uint32_t` field x `n_index_values_per_record` x `data_chunk_size` times.<br>
  *        Meaning: the array of pattern index values in the data chunk.<br>
  *        Ref: `positions.iarray`, array ( each data chunk is collected in the array following the previos one ).<br>
- *        Notice: the value `n_index_values_per_record` is computed summin up the field count for each pattern being selected.
+ *        Notice: the value `n_index_values_per_record` is computed summing up the field count for each pattern being selected.
  *<br>
  *
  * @par rglm_data_files.h
@@ -204,9 +217,10 @@ typedef struct rglmdf_position_summary_table_s {
  */
 typedef struct rglmdf_pattern_freq_summary_record_s {
   int64_t glm_variable_id;         /**< @brief It is the unique variable index for the GLM (Generalized Linear Model). */
-  int32_t pattern_id;              /**< @brief Board Pattern Id, as defined by REGAB table regab_prng_patterns. */
+  int16_t variable_class;          /**< @brief It is 0 when feature and 1 when pattern. */
+  int16_t pattern_id;              /**< @brief Board Pattern Id, as defined by REGAB table regab_prng_patterns. */
   int32_t principal_index_value;   /**< @brief Principal Index Value for Pattern as defined by REGAB table regab_prng_pattern_ranges. */
-  int64_t total_cnt;               /**< @brief Number of times that the pattern, or its mirror, is found  in the game position selection. */
+  int64_t total_cnt;               /**< @brief Number of times that the pattern, or its mirror, is found in the game position selection. */
   double relative_frequency;       /**< @brief Relative frequency of the pattern configuration in the data. */
   double theoretical_probability;  /**< @brief Expected probability of the pattern configuration. */
   double weight;                   /**< @brief Weight of the pattern configuration in the evaluation function. */
@@ -216,8 +230,11 @@ typedef struct rglmdf_pattern_freq_summary_record_s {
  * @brief Reversi GLM data file table holding the summary of pattern frequencies.
  *
  * @details The table contains the count of pattern occurrencies grouped by (pattern_id, principal_index_value).
+ *          The value of 'ntuples' must be equal to the sum of 'glm_f_variable_cnt' and 'glm_p_variable_cnt'.
  */
 typedef struct rglmdf_pattern_freq_summary_table_s {
+  size_t glm_f_variable_cnt;                       /**< @brief Count of GLM independent variables belonging to features.*/
+  size_t glm_p_variable_cnt;                       /**< @brief Count of GLM independent variables belonging to patterns. */
   size_t ntuples;                                  /**< @brief Number of records. */
   rglmdf_pattern_freq_summary_record_t *records;   /**< @brief Records of the table. */
 } rglmdf_pattern_freq_summary_table_t;
@@ -244,8 +261,17 @@ typedef struct rglmdf_solved_and_classified_gp_record_s {
  * @brief Reversi GLM data file table holding the game positons being solved and classified.
  *
  * @details The table is build with a record having a fixed set of fields organized into the
- *          the type #rglmdf_solved_and_classified_gp_record_t, and a variable set of pattern index values
- *          that depends on the pattern set.
+ *          the type #rglmdf_solved_and_classified_gp_record_t, and two variable set of values:
+ *
+ *            - Feature values
+ *            - Pattern index values
+ *
+ *          that depends on the feature and pattern sets.
+ *          <br>
+ *          The feature values are collected into the `farray` field that is dynamically allocated with a size
+ *          equal to `ntuples` multiplied by `n_fvalues_per_record`.
+ *          Feature values are ordered by `(feature_id, instance_number)`.
+ *          <br>
  *          The pattern index values are collected into the `iarray` field that is dynamically allocated with a size
  *          equal to `ntuples` multiplied by `n_index_values_per_record`.
  *          Pattern index values are ordered by `(pattern_id, instance_number)`.
@@ -253,8 +279,10 @@ typedef struct rglmdf_solved_and_classified_gp_record_s {
 typedef struct rglmdf_solved_and_classified_gp_table_s {
   rglmdf_iarray_data_type_t iarray_data_type;          /**< @brief Specifies what is the meaning of the data in the iarray fields. */
   size_t ntuples;                                      /**< @brief Number of records. */
+  size_t n_fvalues_per_record;                         /**< @brief Count of feature values fields. */
   size_t n_index_values_per_record;                    /**< @brief Count of pattern index values fields. */
   rglmdf_solved_and_classified_gp_record_t *records;   /**< @brief Records of the table. */
+  double *farray;                                      /**< @brief Feature values records. */
   uint32_t *iarray;                                    /**< @brief Pattern index values records. */
 } rglmdf_solved_and_classified_gp_table_t;
 
@@ -278,8 +306,9 @@ typedef struct rglmdf_general_data_s {
   rglmdf_position_summary_table_t position_summary;           /**< @brief Aggregated data for positions. */
   rglmdf_pattern_freq_summary_table_t pattern_freq_summary;   /**< @brief Aggregated data for pattern frequencies. */
   rglmdf_solved_and_classified_gp_table_t positions;          /**< @brief Table of game positions. */
-  uint32_t **reverse_map_a;                                   /**< @brief Maps pattern_id to the first entry belonging to the pattern in reverse_map_b. */
-  uint32_t *reverse_map_b;                                    /**< @brief Maps pattern_id and principal index value to the glm variable id. */
+  uint64_t **reverse_map_a_f;                                 /**< @brief Maps feature_id to the first entry belonging to the feature in reverse_map_b. */
+  uint64_t **reverse_map_a_p;                                 /**< @brief Maps pattern_id to the first entry belonging to the pattern in reverse_map_b. */
+  uint64_t *reverse_map_b;                                    /**< @brief Maps pattern_id and principal index value to the glm variable id. */
 } rglmdf_general_data_t;
 
 /**
@@ -539,6 +568,18 @@ rglmdf_features_to_text_stream (rglmdf_general_data_t *gd,
                                 FILE *stream);
 
 /**
+ * @brief Getter function for the `glm_f_variable_cnt` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `glm_f_variable_cnt` field
+ */
+extern size_t
+rglmdf_get_glm_f_variable_cnt (rglmdf_general_data_t *gd);
+
+/**
  * @brief Setter function for the `pattern_cnt` field.
  *
  * @invariant Parameter `gd` must be not `NULL`.
@@ -587,6 +628,18 @@ rglmdf_get_patterns (rglmdf_general_data_t *gd);
 extern void
 rglmdf_patterns_to_text_stream (rglmdf_general_data_t *gd,
                                 FILE *stream);
+
+/**
+ * @brief Getter function for the `glm_p_variable_cnt` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `glm_p_variable_cnt` field
+ */
+extern size_t
+rglmdf_get_glm_p_variable_cnt (rglmdf_general_data_t *gd);
 
 /**
  * @brief Initializes the `position_summary` field.
@@ -656,12 +709,16 @@ rglmdf_position_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
  * @invariant Parameter `gd` must be not `NULL`.
  * The invariant is guarded by an assertion.
  *
- * @param [in,out] gd      reference to the general data structure
- * @param [in]     ntuples the new capacity of the table
- * @return                 the number of allocated records
+ * @param [in,out] gd              reference to the general data structure
+ * @param [in]     feature_ntuples the new capacity due to features
+ * @param [in]     pattern_ntuples the new capacity due to patterns
+ * @param [in]     ntuples         the new capacity of the table
+ * @return                         the number of allocated records
  */
 extern size_t
 rglmdf_set_pattern_freq_summary_ntuples (rglmdf_general_data_t *gd,
+                                         size_t feature_ntuples,
+                                         size_t pattern_ntuples,
                                          size_t ntuples);
 
 /**
@@ -749,6 +806,18 @@ extern rglmdf_solved_and_classified_gp_record_t *
 rglmdf_get_positions_records (rglmdf_general_data_t *gd);
 
 /**
+ * @brief Getter function for the `positions.n_fvalues_per_record` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `patterns` field
+ */
+extern size_t
+rglmdf_get_positions_n_fvalues_per_record (rglmdf_general_data_t *gd);
+
+/**
  * @brief Getter function for the `positions.n_index_values_per_record` field.
  *
  * @invariant Parameter `gd` must be not `NULL`.
@@ -773,12 +842,24 @@ extern uint32_t *
 rglmdf_get_positions_iarray (rglmdf_general_data_t *gd);
 
 /**
+ * @brief Getter function for the `positions.farray` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `patterns` field
+ */
+extern double *
+rglmdf_get_positions_farray (rglmdf_general_data_t *gd);
+
+/**
  * @brief Computes and populates the reverse map structures.
  *
  * @details This function has to be called once just after having populated
  *          the Pattern Frequency Summary Table.
  *          The pocedure populates the data in the array `reverse_map_b`.
- *          The data in `reverse_map_a`, as well as the memory allocation are
+ *          The data in `reverse_map_a_f`, as well as the memory allocation are
  *          prepared before by the call to #rglmdf_set_pattern_freq_summary_ntuples.
  *
  * @invariant Parameter `gd` must be not `NULL`.
@@ -799,13 +880,15 @@ rglmdf_build_reverse_map (rglmdf_general_data_t *gd);
  * The invariant is guarded by an assertion.
  *
  * @param [in] gd                    reference to the general data structure
+ * @param [in] variable_class        class of the variable
  * @param [in] pattern_id            pattern id key
  * @param [in] principal_index_value principal index value key
  * @return                           the corresponding value for the `glm_variable_id`
  */
 extern uint32_t
 rglmdf_map_pid_and_piv_to_glm_vid (rglmdf_general_data_t *gd,
-                                   uint32_t pattern_id,
+                                   uint16_t variable_class,
+                                   uint16_t pattern_id,
                                    uint32_t principal_index_value);
 
 /**
@@ -814,7 +897,7 @@ rglmdf_map_pid_and_piv_to_glm_vid (rglmdf_general_data_t *gd,
  * @details This function has to be called two times, once with thw parameter `first_step`
  *          set to `true`, and a second time with the parameter set to `false`.
  *          The first call transforms the pattern index values to the principal values.
- *          The second call traansforms the pattern principal index values to the `glm_variable_id`
+ *          The second call transforms the pattern principal index values to the `glm_variable_id`
  *          value.
  *          The function can be called after the `positions` table has been fully populated.
  *
@@ -855,7 +938,7 @@ rglmdf_ps_table_to_csv_file (rglmdf_general_data_t *gd,
                              FILE *f);
 
 /**
- * @brief Outputs to `f` the pattern frequency summary table in CSV format.
+ * @brief Outputs to `f` the feature and pattern frequency summary table in CSV format.
  *
  * @invariant Parameter `gd` must be not `NULL`.
  * The invariant is guarded by an assertion.
@@ -864,8 +947,8 @@ rglmdf_ps_table_to_csv_file (rglmdf_general_data_t *gd,
  * @param [in] f  the output file handler
  */
 extern void
-rglmdf_pfs_table_to_csv_file (rglmdf_general_data_t *gd,
-                              FILE *f);
+rglmdf_fpfs_table_to_csv_file (rglmdf_general_data_t *gd,
+                               FILE *f);
 
 /**
  * @brief Computes sha3 digest and write it to a new file.

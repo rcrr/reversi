@@ -82,16 +82,21 @@ rglmdf_general_data_init (rglmdf_general_data_t *gd)
 
   gd->position_summary.ntuples = 0;
   gd->position_summary.records = NULL;
+  gd->pattern_freq_summary.glm_f_variable_cnt = 0;
+  gd->pattern_freq_summary.glm_p_variable_cnt = 0;
   gd->pattern_freq_summary.ntuples = 0;
   gd->pattern_freq_summary.records = NULL;
 
   gd->positions.iarray_data_type = RGLMDF_IARRAY_IS_INDEX;
   gd->positions.ntuples = 0;
+  gd->positions.n_fvalues_per_record = 0;
   gd->positions.n_index_values_per_record = 0;
   gd->positions.records = NULL;
+  gd->positions.farray = NULL;
   gd->positions.iarray = NULL;
 
-  gd->reverse_map_a = NULL;
+  gd->reverse_map_a_f = NULL;
+  gd->reverse_map_a_p = NULL;
   gd->reverse_map_b = NULL;
 }
 
@@ -100,7 +105,8 @@ rglmdf_general_data_release (rglmdf_general_data_t *gd)
 {
   assert(gd);
   free(gd->reverse_map_b);
-  free(gd->reverse_map_a);
+  free(gd->reverse_map_a_f);
+  free(gd->positions.farray);
   free(gd->positions.iarray);
   free(gd->positions.records);
   free(gd->pattern_freq_summary.records);
@@ -298,6 +304,13 @@ rglmdf_features_to_text_stream (rglmdf_general_data_t *gd,
 }
 
 size_t
+rglmdf_get_glm_f_variable_cnt (rglmdf_general_data_t *gd)
+{
+  assert(gd);
+  return gd->pattern_freq_summary.glm_f_variable_cnt;
+}
+
+size_t
 rglmdf_set_pattern_cnt (rglmdf_general_data_t *gd,
                         size_t cnt)
 {
@@ -340,6 +353,13 @@ rglmdf_patterns_to_text_stream (rglmdf_general_data_t *gd,
     fprintf(stream, "%s", board_patterns[gd->patterns[i]].name);
     fprintf(stream, "%s", (i < gd->pattern_cnt - 1) ? ", ": "\n");
   }
+}
+
+size_t
+rglmdf_get_glm_p_variable_cnt (rglmdf_general_data_t *gd)
+{
+  assert(gd);
+  return gd->pattern_freq_summary.glm_p_variable_cnt;
 }
 
 size_t
@@ -390,68 +410,72 @@ rglmdf_position_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
 
 size_t
 rglmdf_set_pattern_freq_summary_ntuples (rglmdf_general_data_t *gd,
+                                         size_t feature_ntuples,
+                                         size_t pattern_ntuples,
                                          size_t ntuples)
 {
   assert(gd);
+  assert(feature_ntuples + pattern_ntuples == ntuples);
+  assert(ntuples > RGLM_INVALID_GLM_VARIABLE_ID - 1);
+  if (gd->feature_cnt + gd->pattern_cnt > RGLM_MAX_PATTERN_CNT) {
+    fprintf(stderr, "Error: gd->feature_cnt + gd->pattern_cnt > RGLM_MAX_PATTERN_CNT\n");
+    fprintf(stderr, "       gd->feature_cnt = %zu\n", gd->feature_cnt);
+    fprintf(stderr, "       gd->pattern_cnt = %zu\n", gd->pattern_cnt);
+    fprintf(stderr, "Aborting ... \n");
+    assert(false);
+  }
 
   uint32_t idx[RGLM_MAX_PATTERN_CNT];
 
-  if (ntuples > RGLM_INVALID_GLM_VARIABLE_ID - 1) return 0;
+  size_t k;
 
-  if (gd->pattern_cnt > RGLM_MAX_PATTERN_CNT) {
-    fprintf(stderr, "gd->pattern_cnt > RGLM_MAX_PATTERN_CNT. gd->pattern_cnt = %zu\n", gd->pattern_cnt);
-    abort();
-  }
-
-  /*
-   * Computes the maximum value of pattern_id in the list of patterns.
-   * The size of the reverse_map_a array is this value plus one.
-   */
-  size_t reverse_map_a_length = 0;
+  size_t reverse_map_a_length = BOARD_FEATURE_INVALID + BOARD_PATTERN_INVALID;
   size_t reverse_map_b_length = 0;
+
+  k = 0;
+  for (size_t i = 0; i < gd->feature_cnt; i++) {
+    const board_feature_id_t fid = gd->features[i];
+    idx[k++] = reverse_map_b_length;
+    reverse_map_b_length += board_features[fid].field_cnt;
+  }
   for (size_t i = 0; i < gd->pattern_cnt; i++) {
     const board_pattern_id_t pid = gd->patterns[i];
-    if (pid > reverse_map_a_length) reverse_map_a_length = pid;
     unsigned int n = board_patterns[pid].n_squares;
-    uint32_t dim = 1;
-    for (size_t j = 0; j < n; j++) dim *= 3;
-    idx[i] = reverse_map_b_length;
+    uint32_t dim = 1; for (size_t j = 0; j < n; j++) dim *= 3;
+    idx[k++] = reverse_map_b_length;
     reverse_map_b_length += dim;
   }
-  reverse_map_a_length++;
-
-  /*
-  printf("reverse_map_a_length=%zu\n", reverse_map_a_length);
-  printf("reverse_map_b_length=%zu\n", reverse_map_b_length);
-  reverse_map_a_lenght = BOARD_PATTERN_COUNT;
-  */
 
   /*
    * Allocates memory for the three vectors.
    */
-  const size_t s_a =  sizeof(uint32_t *) * reverse_map_a_length;
-  const size_t s_b =  sizeof(uint32_t) * reverse_map_b_length;
+  const size_t s_a =  sizeof(uint64_t *) * reverse_map_a_length;
+  const size_t s_b =  sizeof(uint64_t) * reverse_map_b_length;
   const size_t s_c = sizeof(rglmdf_pattern_freq_summary_record_t) * ntuples;
-  uint32_t **arr_a = (uint32_t **) malloc(s_a);
-  if (!arr_a) return 0;
-  uint32_t *arr_b = (uint32_t *) malloc(s_b);
+  uint64_t **arr_a_f = (uint64_t **) malloc(s_a);
+  if (!arr_a_f) return 0;
+  uint64_t *arr_b = (uint64_t *) malloc(s_b);
   if (!arr_b) {
-    free(arr_a);
+    free(arr_a_f);
     return 0;
   }
+  uint64_t **arr_a_p = arr_a_f + + BOARD_FEATURE_INVALID;
   rglmdf_pattern_freq_summary_record_t *arr_c = (rglmdf_pattern_freq_summary_record_t *) malloc(s_c);
   if (!arr_c) {
-    free(arr_a);
+    free(arr_a_f);
     free(arr_b);
     return 0;
   }
 
-  memset(arr_a, 0, s_a);
-  free(gd->reverse_map_a);
-  for (size_t i = 0; i < gd->pattern_cnt; i++) {
-    arr_a[gd->patterns[i]] = arr_b + idx[i];
-  }
-  gd->reverse_map_a = arr_a;
+  k = 0;
+  memset(arr_a_f, 0, s_a);
+  free(gd->reverse_map_a_f);
+  for (size_t i = 0; i < gd->feature_cnt; i++)
+    arr_a_f[gd->features[i]] = arr_b + idx[k++];
+  for (size_t i = 0; i < gd->pattern_cnt; i++)
+    arr_a_p[gd->patterns[i]] = arr_b + idx[k++];
+  gd->reverse_map_a_f = arr_a_f;
+  gd->reverse_map_a_p = arr_a_p;
 
   for (size_t i = 0; i < reverse_map_b_length; i++)
     arr_b[i] = RGLM_INVALID_GLM_VARIABLE_ID;
@@ -460,6 +484,8 @@ rglmdf_set_pattern_freq_summary_ntuples (rglmdf_general_data_t *gd,
   memset(arr_c, 0, s_c);
   free(gd->pattern_freq_summary.records);
   gd->pattern_freq_summary.records = arr_c;
+  gd->pattern_freq_summary.glm_f_variable_cnt = feature_ntuples;
+  gd->pattern_freq_summary.glm_p_variable_cnt = pattern_ntuples;
   gd->pattern_freq_summary.ntuples = ntuples;
 
   return ntuples;
@@ -484,29 +510,57 @@ rglmdf_pattern_freq_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
                                                 FILE *stream)
 {
   assert(gd);
-  fprintf(stream, "Pattern Frequency Summary Table: number of tuples = %zu\n",
+  if (!stream) return;
+  fprintf(stream, "Feature and Pattern Frequency Summary Table: number of tuples = %zu\n",
           gd->pattern_freq_summary.ntuples);
 
-  int pattern_id = -1;
-  int64_t total_cnt = -1;
-  double relative_frequency = -1.;
-  double theoretical_probability = -1.;
+  int16_t variable_class;
+  int16_t pattern_id;
+  int64_t total_cnt;
+  double relative_frequency;
+  double theoretical_probability;
+  int v_cnt, f_index_cnt, p_index_cnt;
+
+  total_cnt = -1;
+  relative_frequency = -1.;
+  theoretical_probability = -1.;
+  v_cnt = -1;
+
+  f_index_cnt = p_index_cnt = 0;
+  variable_class = -1;
+  pattern_id = -1;
   for (size_t i = 0; i < gd->pattern_freq_summary.ntuples; i++) {
     rglmdf_pattern_freq_summary_record_t *rec = &gd->pattern_freq_summary.records[i];
-    if (rec->pattern_id != pattern_id) {
+    if (rec->variable_class != variable_class || rec->pattern_id != pattern_id) {
+      v_cnt = 0;
       total_cnt = 0;
       relative_frequency = 0.;
       theoretical_probability = 0.;
+      variable_class = rec->variable_class;
       pattern_id = rec->pattern_id;
     }
+    v_cnt++;
     total_cnt += rec->total_cnt;
     relative_frequency += rec->relative_frequency;
     theoretical_probability += rec->theoretical_probability;
-    if (i + 1 == gd->pattern_freq_summary.ntuples || (rec + 1)->pattern_id != pattern_id) {
-      const char *pattern_name = board_patterns[pattern_id].name;
-      const int64_t gp_cnt = total_cnt / board_patterns[pattern_id].n_instances;
-      fprintf(stream, "  Pattern id: %2d [%6s], total_cnt = %8ld, gp_cnt = %8ld, cumulated relative frequency = %1.4f, cumulated theoretical probability = %1.4f\n",
-              pattern_id, pattern_name, total_cnt, gp_cnt, relative_frequency, theoretical_probability);
+    if (i + 1 == gd->pattern_freq_summary.ntuples || (rec + 1)->variable_class != variable_class || (rec + 1)->pattern_id != pattern_id) {
+      if (variable_class == 0) {
+        const char *feature_name = board_features[pattern_id].name;
+        const int first_index = f_index_cnt;
+        f_index_cnt += board_features[pattern_id].field_cnt;
+        fprintf(stream, "  Feature id: %2d [%10s][%6d][F_%03d:F_%03d], total_cnt = %8ld\n",
+                pattern_id, feature_name, v_cnt, first_index, f_index_cnt - 1, total_cnt);
+      } else if (variable_class == 1) {
+        const char *pattern_name = board_patterns[pattern_id].name;
+        const int64_t gp_cnt = total_cnt / board_patterns[pattern_id].n_instances;
+        const int first_index = p_index_cnt;
+        p_index_cnt += board_patterns[pattern_id].n_instances;
+        fprintf(stream, "  Pattern id: %2d     [%6s][%6d][I_%03d:I_%03d], total_cnt = %8ld, gp_cnt = %8ld, cumulated relative frequency = %1.4f, cumulated theoretical probability = %1.4f\n",
+                pattern_id, pattern_name, v_cnt, first_index, p_index_cnt - 1, total_cnt, gp_cnt, relative_frequency, theoretical_probability);
+      } else {
+        fprintf(stream, "Invalid variable_class value %d, it must be in the range [0..1]. Aborting ...\n", variable_class);
+        abort();
+      }
     }
   }
 }
@@ -518,6 +572,17 @@ rglmdf_set_positions_ntuples (rglmdf_general_data_t *gd,
 {
   assert(gd);
 
+  size_t n_fvalues_per_record = 0;
+  for (size_t i = 0; i < gd->feature_cnt; i++) {
+    board_feature_id_t fid = gd->features[i];
+    n_fvalues_per_record += board_features[fid].field_cnt;
+  }
+  const size_t fi = sizeof(double) * n_fvalues_per_record * ntuples;
+  double *farr;
+  farr = (double *) malloc(fi);
+  if (!farr)
+    return 0;
+
   size_t n_index_values_per_record = 0;
   for (size_t i = 0; i < gd->pattern_cnt; i++) {
     board_pattern_id_t pid = gd->patterns[i];
@@ -526,30 +591,38 @@ rglmdf_set_positions_ntuples (rglmdf_general_data_t *gd,
   const size_t si = sizeof(uint32_t) * n_index_values_per_record * ntuples;
   uint32_t *iarr;
   iarr = (uint32_t *) malloc(si);
-  if (iarr) {
-    const size_t s = sizeof(rglmdf_solved_and_classified_gp_record_t) * ntuples;
-    rglmdf_solved_and_classified_gp_record_t *arr;
-    arr = (rglmdf_solved_and_classified_gp_record_t *) malloc(s);
-    if (arr) {
-      free(gd->positions.iarray);
-      gd->positions.iarray = iarr;
-      memset(gd->positions.iarray, 0, si);
-
-      free(gd->positions.records);
-      gd->positions.records = arr;
-      memset(gd->positions.records, 0, s);
-
-      gd->positions.iarray_data_type = iarray_data_type;
-      gd->positions.ntuples = ntuples;
-      gd->positions.n_index_values_per_record = n_index_values_per_record;
-      return ntuples;
-    } else {
-      free(iarr);
-      return 0;
-    }
-  } else {
+  if (!iarr) {
+    free(farr);
     return 0;
   }
+
+  const size_t s = sizeof(rglmdf_solved_and_classified_gp_record_t) * ntuples;
+  rglmdf_solved_and_classified_gp_record_t *arr;
+  arr = (rglmdf_solved_and_classified_gp_record_t *) malloc(s);
+  if (!arr) {
+    free(iarr);
+    free(farr);
+    return 0;
+  }
+
+  free(gd->positions.farray);
+  gd->positions.farray = farr;
+  memset(gd->positions.farray, 0, fi);
+
+  free(gd->positions.iarray);
+  gd->positions.iarray = iarr;
+  memset(gd->positions.iarray, 0, si);
+
+  free(gd->positions.records);
+  gd->positions.records = arr;
+  memset(gd->positions.records, 0, s);
+
+  gd->positions.iarray_data_type = iarray_data_type;
+  gd->positions.ntuples = ntuples;
+  gd->positions.n_index_values_per_record = n_index_values_per_record;
+  gd->positions.n_fvalues_per_record = n_fvalues_per_record;
+
+  return ntuples;
 }
 
 size_t
@@ -567,6 +640,13 @@ rglmdf_get_positions_records (rglmdf_general_data_t *gd)
 }
 
 size_t
+rglmdf_get_positions_n_fvalues_per_record (rglmdf_general_data_t *gd)
+{
+  assert(gd);
+  return gd->positions.n_fvalues_per_record;
+}
+
+size_t
 rglmdf_get_positions_n_index_values_per_record (rglmdf_general_data_t *gd)
 {
   assert(gd);
@@ -578,6 +658,13 @@ rglmdf_get_positions_iarray (rglmdf_general_data_t *gd)
 {
   assert(gd);
   return gd->positions.iarray;
+}
+
+double *
+rglmdf_get_positions_farray (rglmdf_general_data_t *gd)
+{
+  assert(gd);
+  return gd->positions.farray;
 }
 
 void
@@ -592,19 +679,32 @@ rglmdf_build_reverse_map (rglmdf_general_data_t *gd)
       fprintf(stderr, "Error, inconsistent record order in table Pattern Frequency Summary. Aborting ...\n");
       abort();
     }
-    const int32_t pid = t->records[i].pattern_id;
+    const int16_t vc  = t->records[i].variable_class;
+    const int16_t pid = t->records[i].pattern_id;
     const int32_t piv = t->records[i].principal_index_value;
-    gd->reverse_map_a[pid][piv] = i;
+    if (vc == 0) {
+      gd->reverse_map_a_f[pid][piv] = i;
+    } else if (vc == 1) {
+      gd->reverse_map_a_p[pid][piv] = i;
+    } else {
+      fprintf(stderr, "Error, inconsistent value of variable_class. Aborting ...\n");
+      abort();
+    }
   }
 }
 
 uint32_t
 rglmdf_map_pid_and_piv_to_glm_vid (rglmdf_general_data_t *gd,
-                                   uint32_t pattern_id,
+                                   uint16_t variable_class,
+                                   uint16_t pattern_id,
                                    uint32_t principal_index_value)
 {
   assert(gd);
-  return gd->reverse_map_a[pattern_id][principal_index_value];
+  assert(variable_class == 0 || variable_class == 1);
+  if (variable_class == 0)
+    return gd->reverse_map_a_f[pattern_id][principal_index_value];
+  else
+    return gd->reverse_map_a_p[pattern_id][principal_index_value];
 }
 
 void
@@ -620,6 +720,8 @@ rglmdf_transform_piv_to_glm_variable_id (rglmdf_general_data_t *gd,
     fprintf(stderr, "gd->pattern_cnt > RGLM_MAX_PATTERN_CNT. gd->pattern_cnt = %zu. Aborting ...\n", gd->pattern_cnt);
     abort();
   }
+
+  const uint16_t pattern_class_type = 1;
 
   size_t k = 0;
   for (size_t i = 0; i < gd->pattern_cnt; i++) {
@@ -645,7 +747,7 @@ rglmdf_transform_piv_to_glm_variable_id (rglmdf_general_data_t *gd,
         output = principal_index_value;
       } else {
         principal_index_value = gd->positions.iarray[i * ni + j];
-        output = rglmdf_map_pid_and_piv_to_glm_vid(gd, pattern_id, principal_index_value);
+        output = rglmdf_map_pid_and_piv_to_glm_vid(gd, pattern_class_type, pattern_id, principal_index_value);
       }
       gd->positions.iarray[i * ni + j] = output;
     }
@@ -658,8 +760,11 @@ rglmdf_gp_table_to_csv_file (rglmdf_general_data_t *gd,
                              FILE *f)
 {
   assert(gd);
+  assert(f);
+  const size_t nf = rglmdf_get_positions_n_fvalues_per_record(gd);
   const size_t ni = rglmdf_get_positions_n_index_values_per_record(gd);
   fprintf(f, "       I;    ROW_N;      GP_ID;                MOVER;             OPPONENT; GAME_VALUE; GAME_VALUE_TRANSFORMED; EVALUATION_FUNCTION;         RESIDUAL");
+  for (size_t j = 0; j < nf; j++) fprintf(f, ";           F_%03zu", j);
   for (size_t j = 0; j < ni; j++) fprintf(f, ";   I_%03zu", j);
   fprintf(f, "\n");
   for (size_t i = 0; i < gd->positions.ntuples; i++) {
@@ -667,9 +772,10 @@ rglmdf_gp_table_to_csv_file (rglmdf_general_data_t *gd,
     fprintf(f, "%8zu; %8zu; %10ld; %20ld; %20ld; %10d; %22.12f; %19.12f; %+16.12f",
             i, r->row_n, r->gp_id, r->mover, r->opponent, r->game_value,
             r->game_value_transformed, r->evaluation_function, r->residual);
-    for (size_t j = 0; j < ni; j++) {
+    for (size_t j = 0; j < nf; j++)
+      fprintf(f, ";%+16.6f", gd->positions.farray[i * nf + j]);
+    for (size_t j = 0; j < ni; j++)
       fprintf(f, ";%8u", gd->positions.iarray[i * ni + j]);
-    }
     fprintf(f, "\n");
   }
 }
@@ -688,16 +794,16 @@ rglmdf_ps_table_to_csv_file (rglmdf_general_data_t *gd,
 }
 
 void
-rglmdf_pfs_table_to_csv_file (rglmdf_general_data_t *gd,
-                              FILE *f)
+rglmdf_fpfs_table_to_csv_file (rglmdf_general_data_t *gd,
+                               FILE *f)
 {
   assert(gd);
   rglmdf_pattern_freq_summary_record_t *r = rglmdf_get_pattern_freq_summary_records(gd);
   size_t n = rglmdf_get_pattern_freq_summary_ntuples(gd);
-  fprintf(f, "     SEQ; GLM_VARIABLE_ID; PATTERN_ID; PRINCIPAL_INDEX_VALUE;   TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_FREQUENCY;              WEIGHT\n");
+  fprintf(f, "     SEQ; GLM_VARIABLE_ID; VARIABLE_CLASS; PATTERN_ID; PRINCIPAL_INDEX_VALUE;   TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_FREQUENCY;              WEIGHT\n");
   for (size_t i = 0; i < n; i++) {
-    fprintf(f, "%08zu;%16ld;%11d;%22d;%12ld;%19.6f;%22.6f;%+20.15f\n",
-            i, r[i].glm_variable_id, r[i].pattern_id,
+    fprintf(f, "%08zu;%16ld;%15d;%11d;%22d;%12ld;%19.6f;%22.6f;%+20.15f\n",
+            i, r[i].glm_variable_id, r[i].variable_class, r[i].pattern_id,
             r[i].principal_index_value, r[i].total_cnt, r[i].relative_frequency,
             r[i].theoretical_probability, r[i].weight);
   }
@@ -777,7 +883,6 @@ rglmdf_write_rglm_weights_to_binary_file (rglmdf_general_data_t *gd,
 
   /* Writes current time to the binary file. */
   u64 = current_time;
-  printf("u64=%lud\n", u64);
   fwrite(&u64, sizeof(uint64_t), 1, ofp);
 
   /* Writes empty count to the binary file. */
@@ -801,12 +906,13 @@ rglmdf_write_rglm_weights_to_binary_file (rglmdf_general_data_t *gd,
   }
 
   /* Writes the weights to the binary file. */
+  const uint16_t pattern_class_type = 1;
   for (size_t i = 0; i < gd->pattern_cnt; i++) {
     board_pattern_id_t pid = gd->patterns[i];
     for (board_pattern_index_t j = 0; j < board_patterns[pid].n_configurations; j++) {
       board_pattern_index_t principal;
       board_pattern_compute_principal_indexes(&principal, &j, &board_patterns[pid], true);
-      uint32_t glm_variable_id = rglmdf_map_pid_and_piv_to_glm_vid(gd, pid, principal);
+      uint32_t glm_variable_id = rglmdf_map_pid_and_piv_to_glm_vid(gd, pattern_class_type, pid, principal);
       if (glm_variable_id == RGLM_INVALID_GLM_VARIABLE_ID)
         w = 0.0;
       else
@@ -817,7 +923,6 @@ rglmdf_write_rglm_weights_to_binary_file (rglmdf_general_data_t *gd,
 
   return EXIT_SUCCESS;
 }
-
 
 int
 rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
@@ -882,6 +987,10 @@ rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
   fwrite(gd->position_summary.records, sizeof(rglmdf_position_summary_record_t), gd->position_summary.ntuples, ofp);
 
   /* Writes the statistics for pattern indexes to the binary file ( pattern_freq_summary table ). */
+  u64 = gd->pattern_freq_summary.glm_f_variable_cnt;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  u64 = gd->pattern_freq_summary.glm_p_variable_cnt;
+  fwrite(&u64, sizeof(uint64_t), 1, ofp);
   u64 = gd->pattern_freq_summary.ntuples;
   fwrite(&u64, sizeof(uint64_t), 1, ofp);
   fwrite(gd->pattern_freq_summary.records, sizeof(rglmdf_pattern_freq_summary_record_t), gd->pattern_freq_summary.ntuples, ofp);
@@ -894,6 +1003,7 @@ rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
   /* The file format prescribes to read/write this section in chunks, here we group everything into one single chunk. */
   fwrite(&u64, sizeof(uint64_t), 1, ofp);
   fwrite(gd->positions.records, sizeof(rglmdf_solved_and_classified_gp_record_t), gd->positions.ntuples, ofp);
+  fwrite(gd->positions.farray, sizeof(double) * gd->positions.n_fvalues_per_record, gd->positions.ntuples, ofp);
   fwrite(gd->positions.iarray, sizeof(uint32_t) * gd->positions.n_index_values_per_record, gd->positions.ntuples, ofp);
   u64 = 0;
   fwrite(&u64, sizeof(uint64_t), 1, ofp);

@@ -83,6 +83,72 @@ board_set_square_sets (board_t *b,
  * End of board_t implementation
  */
 
+void
+board_feature_values_intercept (board_t *board,
+                                double *values)
+{
+  values[0] = 1.0;
+}
+
+static double
+board_feature_values_mobility0 (board_t *board)
+{
+  GamePositionX gpx;
+  SquareSet legal_moves, empties;
+  unsigned int legal_move_count, empty_count, imobility;
+  double mobility;
+
+  gpx.blacks = board_get_mover_square_set(board);
+  gpx.whites = board_get_opponent_square_set(board);
+  gpx.player = BLACK_PLAYER;
+
+  legal_moves = game_position_x_legal_moves(&gpx);
+  legal_move_count = bitw_bit_count_64(legal_moves);
+
+  if (legal_move_count > 0) {
+    imobility = legal_move_count;
+  } else {
+    gpx.blacks = board_get_opponent_square_set(board);
+    gpx.whites = board_get_mover_square_set(board);
+    legal_moves = game_position_x_legal_moves(&gpx);
+    legal_move_count = bitw_bit_count_64(legal_moves);
+    imobility = legal_move_count ? 1 : 0;
+  }
+
+  empties = game_position_x_empties(&gpx);
+  empty_count = bitw_bit_count_64(empties);
+
+  mobility = imobility / (double) empty_count;
+
+  return mobility;
+}
+
+void
+board_feature_values_mobility (board_t *board,
+                               double *values)
+{
+  values[0] = board_feature_values_mobility0(board);
+}
+
+void
+board_feature_values_mobility2 (board_t *board,
+                                double *values)
+{
+  double mobility = board_feature_values_mobility0(board);
+  values[0] = mobility;
+  values[1] = mobility * mobility;
+}
+
+void
+board_feature_values_mobility3 (board_t *board,
+                                double *values)
+{
+  double mobility = board_feature_values_mobility0(board);
+  values[0] = mobility;
+  values[1] = mobility * mobility;
+  values[2] = mobility * mobility * mobility;
+}
+
 bool
 board_feature_get_id_by_name (board_feature_id_t *idp,
                               char *name)

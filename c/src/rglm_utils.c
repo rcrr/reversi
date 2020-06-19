@@ -78,16 +78,26 @@ rglmut_evaluation_function_eval (rglmdf_general_data_t *data,
   double sum;
 
   /* Vector of glm variables id belonging to a solved and classified game position. */
-  uint32_t *glm_variable_id;
+  uint32_t *glm_variable_ids;
 
-  /* nq: number of pattern instances considered by the model. */
-  const size_t nq = data->positions.n_index_values_per_record;
+  /* Vector of feature values belonging to a solved and classified game position. */
+  double *feature_values;
+
+  /* ni: number of pattern instances considered by the model. */
+  const size_t ni = data->positions.n_index_values_per_record;
+
+  /* nf: number of feature values considered by the model. */
+  const size_t nf = data->positions.n_fvalues_per_record;
 
   for (size_t i = 0; i < emme; i++) {
-    glm_variable_id = &data->positions.iarray[i * nq];
     sum = 0.0;
-    for (size_t j = 0; j < nq; j++) {
-      sum += w[glm_variable_id[j]];
+    feature_values = &data->positions.farray[i * nf];
+    for (size_t j = 0; j < nf; j++) {
+      sum += w[j] * feature_values[j];
+    }
+    glm_variable_ids = &data->positions.iarray[i * ni];
+    for (size_t j = 0; j < ni; j++) {
+      sum += w[glm_variable_ids[j]];
     }
     e[i] = rglmut_logistic_function(sum);
   }
@@ -136,18 +146,28 @@ rglmut_minus_grad_f_eval (rglmdf_general_data_t *data,
   double z;
 
   /* Vector of glm variables id belonging to a solved and classified game position. */
-  uint32_t *glm_variable_id;
+  uint32_t *glm_variable_ids;
 
-  /* nq: number of pattern instances considered by the model. */
-  const size_t nq = data->positions.n_index_values_per_record;
+  /* Vector of feature values belonging to a solved and classified game position. */
+  double *feature_values;
 
+  /* ni: number of pattern instances considered by the model. */
+  const size_t ni = data->positions.n_index_values_per_record;
+
+  /* nf: number of feature values considered by the model. */
+  const size_t nf = data->positions.n_fvalues_per_record;
+
+  /* Initializes the vector. */
   for (size_t k = 0; k < enne; k++) minus_grad_f[k] = 0.0;
 
   for (size_t i = 0; i < emme; i++) {
-    glm_variable_id = &data->positions.iarray[i * nq];
+    feature_values = &data->positions.farray[i * nf];
+    glm_variable_ids = &data->positions.iarray[i * ni];
     z = r[i] * de[i];
-    for (size_t j = 0; j < nq; j++)
-      minus_grad_f[glm_variable_id[j]] += z;
+    for (size_t j = 0; j < nf; j++)
+      minus_grad_f[j] += z * feature_values[j];
+    for (size_t j = 0; j < ni; j++)
+      minus_grad_f[glm_variable_ids[j]] += z;
   }
 }
 
@@ -170,10 +190,16 @@ rgmlut_big_b_eval (rglmdf_general_data_t *data,
   double z;
 
   /* Vector of glm variables id belonging to a solved and classified game position. */
-  uint32_t *glm_variable_id;
+  uint32_t *glm_variable_ids;
 
-  /* nq: number of pattern instances considered by the model. */
-  const size_t nq = data->positions.n_index_values_per_record;
+  /* Vector of feature values belonging to a solved and classified game position. */
+  double *feature_values;
+
+  /* ni: number of pattern instances considered by the model. */
+  const size_t ni = data->positions.n_index_values_per_record;
+
+  /* nf: number of feature values considered by the model. */
+  const size_t nf = data->positions.n_fvalues_per_record;
 
   /* Initializes the upper triangle of the B matrix. */
   for (size_t i = 0; i < enne; i++)
@@ -182,14 +208,25 @@ rgmlut_big_b_eval (rglmdf_general_data_t *data,
 
   /* Computes the upper triangle of the B matrix. */
   for (size_t k = 0; k < emme; k++) {
-    glm_variable_id = &data->positions.iarray[k * nq];
-    //z = de[k] * (de[k] + r[k] * (1 - 2 * e[k]));
+    feature_values = &data->positions.farray[k * nf];
+    glm_variable_ids = &data->positions.iarray[k * ni];
     z = de[k] * (v[k] - 2*(1 + v[k])*e[k] + 3*e[k]*e[k]);
-    for (size_t i = 0; i < nq; i++)
-      for (size_t j = 0; j < nq; j++) {
-        idi = glm_variable_id[i];
-        idj = glm_variable_id[j];
+
+    for (size_t i = 0; i < nf; i++) {
+      for (size_t j = i; j < nf; j++) {
+        big_b[i][j] -= z * feature_values[i] * feature_values[j];
+      }
+      for (size_t j = 0; j < ni; j++) {
+        idj = glm_variable_ids[j];
+        big_b[i][idj] -= z * feature_values[i];
+      }
+    }
+    for (size_t i = 0; i < ni; i++) {
+      for (size_t j = 0; j < ni; j++) {
+        idi = glm_variable_ids[i];
+        idj = glm_variable_ids[j];
         if (idj >= idi) big_b[idi][idj] -= z;
       }
+    }
   }
 }

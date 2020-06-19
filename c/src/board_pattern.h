@@ -373,6 +373,8 @@ board_set_square_sets (board_t *b,
 typedef enum {
   BOARD_FEATURE_INTERCEPT,           /**< Intercept */
   BOARD_FEATURE_MOBILITY,            /**< Mobility */
+  BOARD_FEATURE_MOBILITY2,           /**< Mobility - Mobility^2 */
+  BOARD_FEATURE_MOBILITY3,           /**< Mobility - Mobility^2 - Mobility^3 */
   BOARD_FEATURE_INVALID              /**< Not a valid feature. */
 } board_feature_id_t;
 
@@ -544,23 +546,52 @@ union board_pattern_rotated_u {
   board_pattern_named_rotated_t named_boards;
 };
 
+extern void
+board_feature_values_intercept (board_t *board,
+                                double *values);
+
+extern void
+board_feature_values_mobility (board_t *board,
+                               double *values);
+
+extern void
+board_feature_values_mobility2 (board_t *board,
+                                double *values);
+
+extern void
+board_feature_values_mobility3 (board_t *board,
+                                double *values);
+
 struct board_feature_s {
   board_feature_id_t id;
   char name[11];
   unsigned int field_cnt;
+  void (*feature_values_f) (board_t *, double *);
 };
 
 static const board_feature_t board_features[] =
   {
     { BOARD_FEATURE_INTERCEPT,
       "INTERCEPT",
-      1 },
+      1,
+      board_feature_values_intercept },
 
     { BOARD_FEATURE_MOBILITY,
       "MOBILITY",
-      1 },
+      1,
+      board_feature_values_mobility },
 
-    { BOARD_FEATURE_INVALID, "NULL", 0 }
+    { BOARD_FEATURE_MOBILITY2,
+      "MOBILITY2",
+      2,
+      board_feature_values_mobility2 },
+
+    { BOARD_FEATURE_MOBILITY3,
+      "MOBILITY3",
+      3,
+      board_feature_values_mobility3 },
+
+    { BOARD_FEATURE_INVALID, "NULL", 0, NULL }
   };
 
 struct board_pattern_s {
