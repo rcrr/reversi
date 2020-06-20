@@ -1589,6 +1589,21 @@ lial_dpotrs (const char *uplo,
 }
 
 void
+lial_dpotrf_blis (const char *uplo,
+                  const int *n,
+                  double *a,
+                  const int *lda,
+                  int *info,
+                  const unsigned int thread_count)
+{
+  dim_t tc;
+  tc = bli_thread_get_num_threads();
+  bli_thread_set_num_threads(thread_count);
+  lial_dpotrf(uplo, n, a, lda, info);
+  bli_thread_set_num_threads(tc);
+}
+
+void
 lial_dpotrf_bp (const char *uplo,
                 const int *n,
                 double *a,

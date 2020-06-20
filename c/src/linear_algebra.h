@@ -97,6 +97,14 @@ lial_dpotrf_bp (const char *uplo,
                 const unsigned int block_size,
                 const unsigned int thread_count);
 
+extern void
+lial_dpotrf_blis (const char *uplo,
+                  const int *n,
+                  double *a,
+                  const int *lda,
+                  int *info,
+                  const unsigned int thread_count);
+
 /* It is not multi-threaded yet! Be careful. */
 extern void
 lial_dpotrs_bp (const char *uplo,
