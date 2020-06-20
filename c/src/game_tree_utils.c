@@ -17,7 +17,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2014, 2015, 2016, 2017 Roberto Corradini. All rights reserved.
+ * @copyright 2014, 2015, 2016, 2017, 2020 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -1889,9 +1889,9 @@ game_tree_stack_init (const GamePositionX *const root,
   game_position_x_copy(root, &ground_node_info->gpx);
   ground_node_info->gpx.player = player_opponent(ground_node_info->gpx.player);
   ground_node_info->hash = game_position_x_hash(&ground_node_info->gpx);
-  ground_node_info->move_set = 0ULL;
+  ground_node_info->move_set = 0x0000008181000000;
   ground_node_info->best_move = invalid_move;
-  ground_node_info->move_count = 1;
+  ground_node_info->move_count = 4;
   ground_node_info->pv_first_line_created = false;
   ground_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
   ground_node_info->move_cursor = ground_node_info->head_of_legal_move_list;

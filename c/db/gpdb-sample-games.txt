@@ -680,3 +680,19 @@ black-wins-by-wipe-out;bbbbbbbbbbbbbbb.bbbbbbwbbbbbbbw.wwbbwbww.wwbb.....wwwww..
 #              |1       2       3       4       5       6       7       8       |
 #              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
 sample-61906155;..bb.b..wwwbww..ww.bb...wwwwwww.wwwwwwb.wwwww.w.wwwbbw.wb...bww.;b;Black wins with a score of 62;
+#
+#
+#    a b c d e f g h
+# 1  . . . @ . @ @ .
+# 2  O @ . @ @ @ @ .
+# 3  . @ @ @ . @ @ O
+# 4  . @ @ @ @ @ O O
+# 5  . @ @ @ @ O @ O
+# 6  . . @ O @ @ @ .
+# 7  . . @ @ @ @ @ .
+# 8  . @ . @ @ @ @ .
+# Player to move: BLACK
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+sample-46038578;...b.bb.wb.bbbb..bbb.bbw.bbbbbww.bbbbwbw..bwbbb...bbbbb..b.bbbb.;b;Black wins with a score of 50, outlier position in batch_id 3;

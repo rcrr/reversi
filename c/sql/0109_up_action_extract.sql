@@ -183,6 +183,7 @@ BEGIN
   ON
     gp.seq = pc.gp_id
   WHERE
+    gp.legal_move_count_adjusted > 0 AND
     gp.empty_count = empty_count_arg AND
     gp.status = ANY (status_array_arg) AND
     gp.batch_id = ANY (batch_id_array_arg)
@@ -337,6 +338,7 @@ BEGIN
           ON
             gp.seq = pc.gp_id
           WHERE
+            gp.legal_move_count_adjusted > 0 AND
             gp.empty_count = $1 AND
             gp.status = ANY ($2) AND
             gp.batch_id = ANY ($3)
@@ -503,11 +505,11 @@ BEGIN
         i_abs := i_abs + 1;
       END LOOP;
     END LOOP;
-    query_command := format('%s FROM regab_prng_gp AS gp RIGHT JOIN regab_prng_gp_pattern_class AS pc ON gp.seq = pc.gp_id WHERE gp.empty_count = %s', query_command, empty_count_arg);
+    query_command := format('%s FROM regab_prng_gp AS gp RIGHT JOIN regab_prng_gp_pattern_class AS pc ON gp.seq = pc.gp_id WHERE gp.legal_move_count_adjusted > 0 AND gp.empty_count = %s', query_command, empty_count_arg);
     query_command := format('%s AND gp.status = ANY (%L) AND gp.batch_id = ANY (%L) ORDER BY gp_id;', query_command, status_array_arg, batch_id_array_arg);
 
     SELECT count(1) INTO row_cnt FROM regab_prng_gp AS gp RIGHT JOIN regab_prng_gp_pattern_class AS pc ON gp.seq = pc.gp_id
-      WHERE gp.empty_count = empty_count_arg AND gp.status = ANY (status_array_arg) AND gp.batch_id = ANY (batch_id_array_arg);
+      WHERE gp.legal_move_count_adjusted > 0 AND gp.empty_count = empty_count_arg AND gp.status = ANY (status_array_arg) AND gp.batch_id = ANY (batch_id_array_arg);
     OPEN cursor_arg FOR EXECUTE query_command;
     RETURN row_cnt;
   
