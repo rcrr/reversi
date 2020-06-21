@@ -20,18 +20,27 @@
  * @todo The algorithm used to compute the weights is Minimum Mean Square Error (MMSE),
  *       move to Maximum Likelihood Estimation (MLE), or offer the selection among the two.
  *
- * @todo Consider if is better to remove the end_game positions.
- *       Are strong outliers.
- *       The evaluation function could check if the game position is a leaf, if yes the value is the disc difference.
- *       In this scenario having end_game position into the data set just pollutes it.
+ * @todo The INTERCEPT is 'hyper-static', and do not take the value corresponding to the average game value.
  *
- *       An option could be:
- *       end_game           :: special case in ef(w) , it return the true value ( as it must be ! )
- *                             removed from the regressed data-set
- *       pass               :: LMOCNT = 1
- *                             keept in the data set
- *       legal_move_cnt > 0 :: standard case , LMOCNT := legal_move_cnt
- *                             keept in the data set
+ * @todo A much more powerful mobility measure could in principle better asses positions like 35900656.
+ *       This position has a value of +64, but the best evaluator with ALL the patterns give an evaluation of
+ *       a DRAW.
+ *       Look at the position for details ....
+ *
+ *       tst_regab=> SELECT game_position_pp_mop(mover, opponent, player) FROM regab_prng_gp WHERE seq = 35900656;
+ *       game_position_pp_mop
+ *       -----------------------
+ *           a b c d e f g h   +
+ *        1  . O @ @ @ @ @ @   +
+ *        2  @ @ @ @ @ @ @ .   +
+ *        3  @ @ @ @ @ @ @ @   +
+ *        4  @ @ @ @ @ . @ .   +
+ *        5  . . @ @ @ O O O   +
+ *        6  . . @ . O . @ .   +
+ *        7  . . . O @ @ @ O   +
+ *        8  . . O . @ . . .   +
+ *        Player to move: BLACK
+ *       (1 row)
  *
  * @todo Classify the legal moves into types.
  * @code
@@ -128,6 +137,26 @@
  *                           Add the new concept of feature.
  *                           Add to features the legal_move_count as MOBILITY, MOBILITY2, MOBILITY3 and INTERCEPT as the w_0 intercept parameter.
  *                           These three changes has been joined together.
+ *
+ * @todo [2020-06-21 - done] Consider if is better to remove the end_game positions.
+ *                           Are strong outliers.
+ *                           Were not that many! And the change reveled to be not so relevant. But doing it I have found a terrible bug in the
+ *                           game_value generation, when the first move in the game position is a pass, the stack was not initialized properly
+ *                           and the game espansion was truncated after the first pass move.
+ *                           Also this proved not to be a game changer ... around one hundred among two millions game position were affected.
+ *
+ *                           The evaluation function could check if the game position is a leaf, if yes the value is the disc difference.
+ *                           In this scenario having end_game position into the data set just pollutes it.
+ *
+ *                           An option could be:
+ *                           end_game           :: special case in ef(w) , it return the true value ( as it must be ! )
+ *                                                 removed from the regressed data-set
+ *                           pass               :: LMOCNT = 1
+ *                                                 keept in the data set
+ *                           legal_move_cnt > 0 :: standard case , LMOCNT := legal_move_cnt
+ *                                                 keept in the data set
+ *
+ *
  *
  *
  *
