@@ -242,7 +242,7 @@ $ cd libflame
 
 $ ./configure --help
 
-$ ./configure --enable-max-arg-list-hack --enable-lapack2flame --enable-debug --enable-multithreading=openmp --enable-supermatrix --enable-memory-alignment=64 --enable-ldim-alignment
+$ ./configure --enable-max-arg-list-hack --enable-lapack2flame --enable-debug --enable-multithreading=openmp --enable-supermatrix
 
 $ make
 
