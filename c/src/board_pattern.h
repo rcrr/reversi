@@ -331,7 +331,6 @@
 #ifndef BOARD_PATTERN_H
 #define BOARD_PATTERN_H
 
-#include "board.h"
 #include "board_trans.h"
 
 

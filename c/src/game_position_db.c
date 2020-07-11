@@ -678,7 +678,6 @@ gpdb_dictionary_print (const gpdb_dictionary_t *const db,
  * @param [in] db     pointer to the db
  * @param [in] elog   pointer to the error log
  * @param [in] stream the target of the output
- * @return        a short message describing the db structure
  */
 void
 gpdb_dictionary_print_summary (const gpdb_dictionary_t *const db,

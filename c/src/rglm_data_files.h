@@ -261,7 +261,7 @@ typedef struct rglmdf_solved_and_classified_gp_record_s {
  * @brief Reversi GLM data file table holding the game positons being solved and classified.
  *
  * @details The table is build with a record having a fixed set of fields organized into the
- *          the type #rglmdf_solved_and_classified_gp_record_t, and two variable set of values:
+ *          the type `rglmdf_solved_and_classified_gp_record_t`, and two variable set of values:
  *
  *            - Feature values
  *            - Pattern index values

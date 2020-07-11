@@ -19,7 +19,7 @@
  * @brief Unit test module implementation.
  *
  * @details This module defines a suite entity and a test entity, respectively
- *          #ut_suite_t, and #ut_test_t.
+ *          ut_suite_t, and ut_test_t.
  *          A suite is a collection of tests, it is created by calling #ut_suite_new.
  *          Test are added to the suite by calling
  *          the function #ut_suite_add_simple_test, that allocates the memory for

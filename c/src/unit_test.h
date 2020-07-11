@@ -2,7 +2,7 @@
  * @file
  *
  * @brief Unit test module definitions.
- * @details This module defines the #ut_test_t entity.
+ * @details This module defines the `ut_test_t` entity.
  *
  * @par unit_test.h
  * <tt>

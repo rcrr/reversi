@@ -2826,7 +2826,7 @@ main (int argc,
       fprintf(stderr, "       Aborting ...\n");
       abort();
     }
-    size_t selected_gp_record_cnt;
+    size_t selected_gp_record_cnt = 0;
     do_action_extract_game_pos_cnt(&result, con, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses, &selected_gp_record_cnt);
     size_t k = 0;
     for (size_t i = 0; i < feature_cnt; i++) {

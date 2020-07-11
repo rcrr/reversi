@@ -3,7 +3,7 @@
  *
  * @brief Principal variation module definitions.
  *
- * @details This module defines the #pve_t entity.
+ * @details This module defines the pve_t entity.
  *
  * @par principal_variation.h
  * <tt>
