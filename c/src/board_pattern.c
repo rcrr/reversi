@@ -35,7 +35,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "board_trans.h"
 #include "board_pattern.h"
 
 

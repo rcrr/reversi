@@ -49,11 +49,7 @@
 #include "file_utils.h"
 #include "cfg.h"
 #include "prng.h"
-#include "board.h"
-#include "board_pattern.h"
-#include "endgame_solver.h"
 #include "exact_solver.h"
-#include "game_tree_utils.h"
 #include "sort_utils.h"
 #include "rglm_data_files.h"
 

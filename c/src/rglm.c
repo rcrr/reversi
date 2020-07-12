@@ -198,8 +198,6 @@
 
 #include "time_utils.h"
 #include "main_option_parse.h"
-#include "board_pattern.h"
-#include "rglm_data_files.h"
 #include "rglm_utils.h"
 #include "linear_algebra.h"
 
