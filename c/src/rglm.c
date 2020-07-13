@@ -3,10 +3,6 @@
  *
  * @todo Notice: RGLM and REGAB to-do list has to go somehow together.
  *
- * @todo Move the options of the main program from static declarations
- *       to the main function. The reason is to avoid potential collisions,
- *       and as a general rule it is a way to increase encapsulation.
- *
  * @todo Both REGAB and RGLM main functions have to be reduced to a call to two respective new functions.
  *       These new functions are going to enable an API for the two programs that is then usable by
  *       test modules.
@@ -156,6 +152,9 @@
  *                           legal_move_cnt > 0 :: standard case , LMOCNT := legal_move_cnt
  *                                                 keept in the data set
  *
+ * @todo [2020-07-13 - done] Move the options of the main program from static declarations
+ *                           to the main function. The reason is to avoid potential collisions,
+ *                           and as a general rule it is a way to increase encapsulation.
  *
  *
  *
@@ -210,105 +209,15 @@
 /* Static constants. */
 
 
-
 /* Static variables. */
 
-static mop_options_t options;
-
-static int h_flag = false;
-
-static int v_flag = false;
-
-static int s_flag = false;
-
-static int i_flag = false;
-static char *i_arg = NULL;
-
-static int o_flag = false;
-static char *o_arg = NULL;
-
-static int b_flag = false;
-static char *b_arg = NULL;
-
-static int A_flag = false;
-static char *A_arg = NULL;
-
-static int B_flag = false;
-static char *B_arg = NULL;
-
-static int P_flag = false;
-static char *P_arg = NULL;
-
-static int Q_flag = false;
-static char *Q_arg = NULL;
-
-static int T_flag = false;
-static char *T_arg = NULL;
-
-static int W_flag = false;
-static char *W_arg = NULL;
-
-static int R_flag = false;
-static char *R_arg = NULL;
-
-static int H_flag = false;
-static char *H_arg = NULL;
-
-static mop_options_long_t opt_list[] =
-  {
-   {"help",                 'h', MOP_NONE},
-   {"verbose",              'v', MOP_NONE},
-   {"solve",                's', MOP_NONE},
-   {"input-file",           'i', MOP_REQUIRED},
-   {"output-file",          'o', MOP_REQUIRED},
-   {"rglm-par-output-file", 'b', MOP_REQUIRED},
-   {"extract-ps-table",     'A', MOP_REQUIRED},
-   {"extract-pfs-table",    'B', MOP_REQUIRED},
-   {"extract-gp-table",     'P', MOP_REQUIRED},
-   {"extract-gp-ptable",    'Q', MOP_REQUIRED},
-   {"extract-gp-ttable",    'T', MOP_REQUIRED},
-   {"extract-weights",      'W', MOP_REQUIRED},
-   {"extract-residuals",    'R', MOP_REQUIRED},
-   {"dump-hessian-matrix",  'H', MOP_REQUIRED},
-   {0, 0, 0}
-  };
-
-static const char *documentation =
-  "Usage:\n"
-  "rglm [OPTION...] - Reversi Generalized Linear Model solver\n"
-  "\n"
-  "Options:\n"
-  "  -h, --help                 Show help options\n"
-  "  -v, --verbose              Verbose output\n"
-  "  -s, --solve                Solve the Generalized Linear Model\n"
-  "  -i, --input-file           Input file name - Mandatory\n"
-  "  -o, --output-file          Output file name\n"
-  "  -b, --rglm-par-output-file RGLM parameters values output file name\n"
-  "  -A, --extract-ps-table     Dumps the position summary table in a CSV format\n"
-  "  -B, --extract-pfs-table    Dumps the feature and pattern frequency summary table in a CSV format\n"
-  "  -P, --extract-gp-table     Dumps the solved and classified game position table in a CSV format, with original pattern indexes\n"
-  "  -Q, --extract-gp-ptable    Dumps the solved and classified game position table in a CSV format, with principal pattern indexes\n"
-  "  -T, --extract-gp-ttable    Dumps the solved and classified game position table transformed to glm_variable_id in a CSV format\n"
-  "  -W, --extract-weights      Dumps the weights, the optimized value assigned to the glm_variable_id keys in a CSV format\n"
-  "  -R, --extract-residuals    Dumps the residuals of the minimization of the GLM model in a CSV format\n"
-  "  -H, --dump-hessian-matrix  Dumps the unresolved Hessian matrix to a binary file and exits\n"
-  "\n"
-  "Description:\n"
-  "The Reversi Generalized Linear Model solver is the main entry to a set of utilities dedicated to process a set of solved and classified game position retrieved from a binary imput file.\n"
-  "\n"
-  "Author:\n"
-  "Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
-  "\n"
-  "Copyright (c) 2018, 2019, 2020 Roberto Corradini. All rights reserved.\n"
-  "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
-  "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n"
-  ;
 
 /* Static functions. */
 static void
-print_error_and_stop (int ret_code)
+print_error_and_stop (char *input_file_name,
+                      int ret_code)
 {
-  fprintf(stderr, "rglm: format error reading file \"%s\", ret_code = %d\n", i_arg, ret_code);
+  fprintf(stderr, "rglm: format error reading file \"%s\", ret_code = %d\n", input_file_name, ret_code);
   exit(ret_code);
 }
 
@@ -350,6 +259,83 @@ main (int argc,
   size_t re;
   int opt;
   int oindex = -1;
+
+  mop_options_t options;
+  int h_flag = false;
+  int v_flag = false;
+  int s_flag = false;
+  int i_flag = false;
+  char *i_arg = NULL;
+  int o_flag = false;
+  char *o_arg = NULL;
+  int b_flag = false;
+  char *b_arg = NULL;
+  int A_flag = false;
+  char *A_arg = NULL;
+  int B_flag = false;
+  char *B_arg = NULL;
+  int P_flag = false;
+  char *P_arg = NULL;
+  int Q_flag = false;
+  char *Q_arg = NULL;
+  int T_flag = false;
+  char *T_arg = NULL;
+  int W_flag = false;
+  char *W_arg = NULL;
+  int R_flag = false;
+  char *R_arg = NULL;
+  int H_flag = false;
+  char *H_arg = NULL;
+
+  mop_options_long_t opt_list[] =
+    {
+     {"help",                 'h', MOP_NONE},
+     {"verbose",              'v', MOP_NONE},
+     {"solve",                's', MOP_NONE},
+     {"input-file",           'i', MOP_REQUIRED},
+     {"output-file",          'o', MOP_REQUIRED},
+     {"rglm-par-output-file", 'b', MOP_REQUIRED},
+     {"extract-ps-table",     'A', MOP_REQUIRED},
+     {"extract-pfs-table",    'B', MOP_REQUIRED},
+     {"extract-gp-table",     'P', MOP_REQUIRED},
+     {"extract-gp-ptable",    'Q', MOP_REQUIRED},
+     {"extract-gp-ttable",    'T', MOP_REQUIRED},
+     {"extract-weights",      'W', MOP_REQUIRED},
+     {"extract-residuals",    'R', MOP_REQUIRED},
+     {"dump-hessian-matrix",  'H', MOP_REQUIRED},
+     {0, 0, 0}
+    };
+
+  const char *documentation =
+    "Usage:\n"
+    "rglm [OPTION...] - Reversi Generalized Linear Model solver\n"
+    "\n"
+    "Options:\n"
+    "  -h, --help                 Show help options\n"
+    "  -v, --verbose              Verbose output\n"
+    "  -s, --solve                Solve the Generalized Linear Model\n"
+    "  -i, --input-file           Input file name - Mandatory\n"
+    "  -o, --output-file          Output file name\n"
+    "  -b, --rglm-par-output-file RGLM parameters values output file name\n"
+    "  -A, --extract-ps-table     Dumps the position summary table in a CSV format\n"
+    "  -B, --extract-pfs-table    Dumps the feature and pattern frequency summary table in a CSV format\n"
+    "  -P, --extract-gp-table     Dumps the solved and classified game position table in a CSV format, with original pattern indexes\n"
+    "  -Q, --extract-gp-ptable    Dumps the solved and classified game position table in a CSV format, with principal pattern indexes\n"
+    "  -T, --extract-gp-ttable    Dumps the solved and classified game position table transformed to glm_variable_id in a CSV format\n"
+    "  -W, --extract-weights      Dumps the weights, the optimized value assigned to the glm_variable_id keys in a CSV format\n"
+    "  -R, --extract-residuals    Dumps the residuals of the minimization of the GLM model in a CSV format\n"
+    "  -H, --dump-hessian-matrix  Dumps the unresolved Hessian matrix to a binary file and exits\n"
+    "\n"
+    "Description:\n"
+    "The Reversi Generalized Linear Model solver is the main entry to a group of utilities dedicated to process a set of solved and classified game position retrieved from a binary imput file.\n"
+    "\n"
+    "Author:\n"
+    "Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
+    "\n"
+    "Copyright (c) 2018, 2019, 2020 Roberto Corradini. All rights reserved.\n"
+    "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
+    "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n"
+    ;
 
   mop_init(&options, argc, argv);
   while ((opt = mop_parse_long(&options, opt_list, &oindex)) != -1) {
@@ -429,7 +415,7 @@ main (int argc,
   }
 
   /* Checks command line options for consistency. */
-  if (!i_arg) {
+  if (!i_flag) {
     fprintf(stderr, "Option -i, --input-file is mandatory.\n");
     return -3;
   }
@@ -454,7 +440,7 @@ main (int argc,
 
   /* Reads the File Creation time field. */
   re = fread(&u64, sizeof(uint64_t), 1, ifp);
-  if (re != 1) print_error_and_stop(-10);
+  if (re != 1) print_error_and_stop(i_arg, -10);
   rglmdf_set_file_creation_time(&data, u64);
   if (verbose) {
     rglmdf_get_file_creation_time_as_string(&data, buf);
@@ -463,7 +449,7 @@ main (int argc,
 
   /* Reads the batch_id_cnt, batch_ids input fields.*/
   re = fread(&u64, sizeof(uint64_t), 1, ifp);
-  if (re != 1) print_error_and_stop(-20);
+  if (re != 1) print_error_and_stop(i_arg, -20);
   v64 = rglmdf_set_batch_id_cnt(&data, u64);
   if (v64 != u64) {
     fprintf(stderr, "Unable to allocate memory for batch_ids array.\n");
@@ -471,20 +457,20 @@ main (int argc,
   }
   u64p = rglmdf_get_batch_ids(&data);
   re = fread(u64p, sizeof(uint64_t), u64, ifp);
-  if (re != u64) print_error_and_stop(-30);
+  if (re != u64) print_error_and_stop(i_arg, -30);
   if (verbose) {
     rglmdf_batch_ids_to_text_stream(&data, stdout);
   }
 
   /* Reads the empty_count input field.*/
   re = fread(&u8, sizeof(uint8_t), 1, ifp);
-  if (re != 1) print_error_and_stop(-40);
+  if (re != 1) print_error_and_stop(i_arg, -40);
   rglmdf_set_empty_count(&data, u8);
   if (verbose) fprintf(stdout, "Selected empty_count value: %u\n", u8);
 
   /* Reads the position_status_cnt, position_statuses, position_status_buffer input fields.*/
   re = fread(&u64, sizeof(uint64_t), 1, ifp);
-  if (re != 1) print_error_and_stop(-50);
+  if (re != 1) print_error_and_stop(i_arg, -50);
   v64 = rglmdf_set_position_status_cnt(&data, u64);
   if (v64 != u64) {
     fprintf(stderr, "Unable to allocate memory for position_statuses array.\n");
@@ -492,12 +478,12 @@ main (int argc,
   }
   cpp = rglmdf_get_position_statuses(&data);
   re = fread(*cpp, RGLM_POSITION_STATUS_BUF_SIZE, u64, ifp);
-  if (re != u64) print_error_and_stop(-60);
+  if (re != u64) print_error_and_stop(i_arg, -60);
   if (verbose) rglmdf_position_statuses_to_text_stream(&data, stdout);
 
   /* Reads the feature_cnt, features input fields.*/
   re = fread(&u64, sizeof(uint64_t), 1, ifp);
-  if (re != 1) print_error_and_stop(-70);
+  if (re != 1) print_error_and_stop(i_arg, -70);
   v64 = rglmdf_set_feature_cnt(&data, u64);
   if (v64 != u64) {
     fprintf(stderr, "Unable to allocate memory for features array.\n");
@@ -506,14 +492,14 @@ main (int argc,
   bfip = rglmdf_get_features(&data);
   for (size_t i = 0; i < u64; i++) {
     re = fread(&i16, sizeof(int16_t), 1, ifp);
-    if (re != 1) print_error_and_stop(-72);
+    if (re != 1) print_error_and_stop(i_arg, -72);
     bfip[i] = i16;
   }
   if (verbose) rglmdf_features_to_text_stream(&data, stdout);
 
   /* Reads the pattern_cnt, patterns input fields.*/
   re = fread(&u64, sizeof(uint64_t), 1, ifp);
-  if (re != 1) print_error_and_stop(-74);
+  if (re != 1) print_error_and_stop(i_arg, -74);
   v64 = rglmdf_set_pattern_cnt(&data, u64);
   if (v64 != u64) {
     fprintf(stderr, "Unable to allocate memory for patterns array.\n");
@@ -522,14 +508,14 @@ main (int argc,
   bpip = rglmdf_get_patterns(&data);
   for (size_t i = 0; i < u64; i++) {
     re = fread(&i16, sizeof(int16_t), 1, ifp);
-    if (re != 1) print_error_and_stop(-80);
+    if (re != 1) print_error_and_stop(i_arg, -80);
     bpip[i] = i16;
   }
   if (verbose) rglmdf_patterns_to_text_stream(&data, stdout);
 
   /* Reads the position summary table. */
   re = fread(&u64, sizeof(uint64_t), 1, ifp);
-  if (re != 1) print_error_and_stop(-90);
+  if (re != 1) print_error_and_stop(i_arg, -90);
   v64 = rglmdf_set_position_summary_ntuples(&data, u64);
   if (v64 != u64) {
     fprintf(stderr, "Unable to allocate memory for the records of position summary table.\n");
@@ -537,16 +523,16 @@ main (int argc,
   }
   psrp = rglmdf_get_position_summary_records(&data);
   re = fread(psrp, sizeof(rglmdf_position_summary_record_t), u64, ifp);
-  if (re != u64) print_error_and_stop(-100);
+  if (re != u64) print_error_and_stop(i_arg, -100);
   if (verbose) rglmdf_position_summary_cnt_to_text_stream(&data, stdout);
 
   /* Reads the pattern frequency summary table. */
   re = fread(&u64_a, sizeof(uint64_t), 1, ifp);
-  if (re != 1) print_error_and_stop(-110);
+  if (re != 1) print_error_and_stop(i_arg, -110);
   re = fread(&u64_b, sizeof(uint64_t), 1, ifp);
-  if (re != 1) print_error_and_stop(-112);
+  if (re != 1) print_error_and_stop(i_arg, -112);
   re = fread(&u64, sizeof(uint64_t), 1, ifp);
-  if (re != 1) print_error_and_stop(-114);
+  if (re != 1) print_error_and_stop(i_arg, -114);
   v64 = rglmdf_set_pattern_freq_summary_ntuples(&data, u64_a, u64_b, u64);
   if (v64 != u64) {
     fprintf(stderr, "Unable to allocate memory for the records of pattern freq summary table.\n");
@@ -554,7 +540,7 @@ main (int argc,
   }
   pfsrp = rglmdf_get_pattern_freq_summary_records(&data);
   re = fread(pfsrp, sizeof(rglmdf_pattern_freq_summary_record_t), u64, ifp);
-  if (re != u64) print_error_and_stop(-120);
+  if (re != u64) print_error_and_stop(i_arg, -120);
   if (verbose) rglmdf_pattern_freq_summary_cnt_to_text_stream(&data, stdout);
 
   /* Creates the mapping betweeen (pattern_id, principal_index_value) --> glm_variable_id */
@@ -563,10 +549,10 @@ main (int argc,
 
   /* Reads the iarrai data type. */
   re = fread(&u8, sizeof(uint8_t), 1, ifp);
-  if (re != 1) print_error_and_stop(-130);
+  if (re != 1) print_error_and_stop(i_arg, -130);
   /* Read the number of record for the solved and classified game position table. */
   re = fread(&u64, sizeof(uint64_t), 1, ifp);
-  if (re != 1) print_error_and_stop(-132);
+  if (re != 1) print_error_and_stop(i_arg, -132);
   v64 = rglmdf_set_positions_ntuples(&data, u64, u8);
   if (v64 != u64) {
     fprintf(stderr, "Unable to allocate memory for the positions table.\n");
@@ -581,7 +567,7 @@ main (int argc,
   size_t n_record_read = 0;
   for (;;) {
     re = fread(&data_chunk_size, sizeof(uint64_t), 1, ifp);
-    if (re != 1) print_error_and_stop(-140);
+    if (re != 1) print_error_and_stop(i_arg, -140);
     n_record_read += data_chunk_size;
     if (n_record_read > u64) {
       fprintf(stderr, "Data chunks cumulated so far are more than expected.\n");
@@ -596,14 +582,14 @@ main (int argc,
       break;
     }
     re = fread(scgprp, sizeof(rglmdf_solved_and_classified_gp_record_t), data_chunk_size, ifp);
-    if (re != data_chunk_size) print_error_and_stop(-150);
+    if (re != data_chunk_size) print_error_and_stop(i_arg, -150);
     if (nf != 0) {
       re = fread(farrayp, sizeof(double) * nf, data_chunk_size, ifp);
-      if (re != data_chunk_size) print_error_and_stop(-160);
+      if (re != data_chunk_size) print_error_and_stop(i_arg, -160);
     }
     if (ni != 0) {
       re = fread(iarrayp, sizeof(uint32_t) * ni, data_chunk_size, ifp);
-      if (re != data_chunk_size) print_error_and_stop(-162);
+      if (re != data_chunk_size) print_error_and_stop(i_arg, -162);
     }
     scgprp += data_chunk_size;
     farrayp += nf * data_chunk_size;
