@@ -17,6 +17,7 @@
  *       move to Maximum Likelihood Estimation (MLE), or offer the selection among the two.
  *
  * @todo The INTERCEPT is 'hyper-static', and do not take the value corresponding to the average game value.
+ *       This behavior is not expected, and should be investigated further.
  *
  * @todo A much more powerful mobility measure could in principle better asses positions like 35900656.
  *       This position has a value of +64, but the best evaluator with ALL the patterns give an evaluation of

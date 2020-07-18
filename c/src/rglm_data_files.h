@@ -312,6 +312,14 @@ typedef struct rglmdf_general_data_s {
 } rglmdf_general_data_t;
 
 /**
+ * @brief Check the endianness of the architecture.
+ *
+ * @return 0 when little, 1 when big endian
+ */
+extern int
+rglmdf_get_endianness (void);
+
+/**
  * @brief Checks that data type have the expected sizeof.
  *
  * @return true when checks are ok

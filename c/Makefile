@@ -28,7 +28,7 @@ MAINS = endgame_solver utest read_pve_dump intel_intrinsics_trial \
 
 UTEST_PROGS = ut_utest ut_llist ut_memory_object_pool ut_main_option_parse ut_bit_works ut_isqrt ut_sha3 ut_prng ut_file_utils ut_sort_utils ut_red_black_tree \
               ut_linear_algebra ut_board ut_board_trans ut_board_pattern ut_game_position_db ut_game_tree_utils ut_game_position ut_endgame_solver ut_es_pv ut_cfg \
-              ut_rglm_utils ut_trsm ut_flame
+              ut_rglm_utils ut_rglm_data_files ut_trsm ut_flame
 
 #
 # No changes from here to the end, unless a structurar change of the build process happens.
@@ -83,11 +83,11 @@ CC = gcc
 # add -ftree-vectorize -ftree-vectorizer-verbose=2 to get from gcc the explanation for code vectorization
 # add -flto to the CFLAGS list to improve execution speed ( it takes much more to link executables )
 ARCH_FLAGS = -mpopcnt -mavx2 -mfma
-CFLAGS = -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fopenmp -DNDEBUG
+CFLAGS = -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fopenmp
 LDFLAGS := $(FLAME_LDFLAGS)
 CFLAGS_TEST = -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(EXT_INC)
 LDFLAGS_TEST =
-ASMFLAGS = -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -masm=intel -fopenmp -DNDEBUG
+ASMFLAGS = -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -masm=intel -fopenmp
 LIBS = -lm -L$(PG_LIB_DIR) $(PG_LIBS)  $(FLAME_LIB) $(BLIS_LIB) -lgomp -lpthread
 TEST_LIBS =
 SRCDIR = src

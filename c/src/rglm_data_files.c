@@ -41,7 +41,29 @@
 #define RGLM_MAX_PATTERN_CNT 1024
 #define RGLM_MAX_PATTERN_INSTANCE_CNT 8
 
-extern bool
+int
+rglmdf_get_endianness (void)
+{
+  int ret;
+  const uint32_t u32 = 1;
+  const char *const c = (char *) &u32;
+  if (*c) {
+    assert(*(c+0) == 0x01);
+    assert(*(c+1) == 0x00);
+    assert(*(c+2) == 0x00);
+    assert(*(c+3) == 0x00);
+    ret = 0;
+  } else {
+    assert(*(c+0) == 0x00);
+    assert(*(c+1) == 0x00);
+    assert(*(c+2) == 0x00);
+    assert(*(c+3) == 0x01);
+    ret = 1;
+  }
+  return ret;
+}
+
+bool
 rglmdf_verify_type_sizes (void)
 {
   if (sizeof(char) != 1) return false;
