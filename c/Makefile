@@ -158,6 +158,28 @@ $(UTEST_BINS): $(TEST_OBJS) $(OBJS) | $(TEST_BINDIR)
 	$(eval OBJECT = $(addsuffix .o,$(basename $(subst $(TEST_BINDIR),$(TEST_OBJDIR),$@))))
 	$(CC) $(LDFLAGS_TEST) $(OBJECT) $(TEST_OBJS_NO_MAIN) $(OBJS_NO_MAIN) $(LIBS) $(TEST_LIBS) -o $@
 
+###
+#
+# 2020-07-25 : prototype for a more granular , and mode "boilerplate" make process.
+#
+###
+#
+#UNIT_TEST_OBJ          := $(OBJDIR)/unit_test.o
+#TIME_UTILS_OBJ         := $(OBJDIR)/time_utils.o
+#LINKED_LIST_OBJ        := $(OBJDIR)/linked_list.o
+#MAIN_OPTION_PARSE_OBJ  := $(OBJDIR)/main_option_parse.o
+#
+#BIT_WORKS_OBJ    := $(OBJDIR)/bit_works.o
+#UT_BIT_WORKS     := $(TEST_BINDIR)/ut_bit_works
+#UT_BIT_WORKS_OBJ := $(TEST_OBJDIR)/ut_bit_works.o
+#
+#ut_bit_works: $(UT_BIT_WORKS)
+#
+#$(UT_BIT_WORKS): $(UT_BIT_WORKS_OBJ) $(BIT_WORKS_OBJ) $(UNIT_TEST_OBJ) $(TIME_UTILS_OBJ) $(LINKED_LIST_OBJ) $(MAIN_OPTION_PARSE_OBJ) | $(TEST_BINDIR)
+#	$(CC) $(UT_BIT_WORKS_OBJ) $(BIT_WORKS_OBJ) $(UNIT_TEST_OBJ) $(TIME_UTILS_OBJ) $(LINKED_LIST_OBJ) $(MAIN_OPTION_PARSE_OBJ) -o $(UT_BIT_WORKS)
+#
+###
+
 .PHONY: utest
 utest: $(UTEST_BINS)
 	./build/bin/utest -s=/utest/fail -s=/utest/abort -s=/utest/exit -s=/utest/assert_false $(UTEST_BINS)

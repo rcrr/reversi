@@ -67,6 +67,18 @@ rglmdf_verify_type_sizes_t (ut_test_t *const t)
   ut_assert(t, true);
 }
 
+static void
+rglmdf_general_data_init_t (ut_test_t *const t)
+{
+  rglmdf_general_data_t gds;
+  rglmdf_general_data_t *gd;
+
+  gd = &gds;
+
+  rglmdf_general_data_init(gd);
+
+  ut_assert(t, true);
+}
 
 
 /**
@@ -85,6 +97,7 @@ main (int argc,
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmdf_get_endianness", rglmdf_get_endianness_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmdf_verify_type_sizes", rglmdf_verify_type_sizes_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmdf_general_data_init", rglmdf_general_data_init_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);
