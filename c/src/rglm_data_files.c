@@ -36,6 +36,7 @@
 #include <assert.h>
 
 #include "sha3.h"
+#include "file_utils.h"
 #include "rglm_data_files.h"
 
 #define RGLM_MAX_PATTERN_CNT 1024
@@ -438,7 +439,7 @@ rglmdf_set_pattern_freq_summary_ntuples (rglmdf_general_data_t *gd,
 {
   assert(gd);
   assert(feature_ntuples + pattern_ntuples == ntuples);
-  assert(ntuples > RGLM_INVALID_GLM_VARIABLE_ID - 1);
+  assert(ntuples < RGLM_INVALID_GLM_VARIABLE_ID);
   if (gd->feature_cnt + gd->pattern_cnt > RGLM_MAX_PATTERN_CNT) {
     fprintf(stderr, "Error: gd->feature_cnt + gd->pattern_cnt > RGLM_MAX_PATTERN_CNT\n");
     fprintf(stderr, "       gd->feature_cnt = %zu\n", gd->feature_cnt);
@@ -832,6 +833,82 @@ rglmdf_fpfs_table_to_csv_file (rglmdf_general_data_t *gd,
 }
 
 int
+rglmdf_check_sha3_file_digest (char *file_name)
+{
+  assert(file_name);
+  const char *hash_extension = "SHA3-256";
+  int ccount;
+  char hash_name[1024];
+  char hash[65];
+  size_t l;
+  sha3_ctx_t ctx;
+
+  static const size_t buf_size = 4 * 1024;
+  char buf[buf_size];
+  char msg_digest[sha3_256_digest_lenght];
+  char msg_digest_to_s[2 * sha3_256_digest_lenght + 1];
+
+  FILE *hash_file, *data_file;
+
+  memset(hash, '\0', sizeof(hash));
+
+  ccount = snprintf(hash_name, sizeof hash_name, "%s.%s", file_name, hash_extension);
+  if (!(ccount < sizeof hash_name)) {
+    fprintf(stderr, "Error: the lenght of hash_name is larger than %zu characters.\n", sizeof hash_name);
+    fprintf(stderr, "file_name: \"%s\".\n", file_name);
+    fprintf(stderr, "hash_name: \"%s\".\n", hash_name);
+    return EXIT_FAILURE;
+  }
+
+  if (!fut_file_exists(file_name)) {
+    fprintf(stderr, "Error: data file \"%s\" does not exist.\n", file_name);
+    return EXIT_FAILURE;
+  }
+
+  if (!fut_file_exists(hash_name)) {
+    fprintf(stderr, "Error: hash file \"%s\" does not exist.\n", hash_name);
+    return EXIT_FAILURE;
+  }
+
+  hash_file = fopen(hash_name, "r");
+  if (!hash_file) {
+    fprintf(stderr, "Error: not able to open hash file \"%s\".\n", hash_name);
+    return EXIT_FAILURE;
+  }
+
+  l = fread(hash, 64, 1, hash_file);
+  if (l != 1) {
+    fprintf(stderr, "Error: not able to read the hash properly from file \"%s\".\n", hash_name);
+    fprintf(stderr, "hash = \"%s\"\n", hash);
+    return EXIT_FAILURE;
+  }
+  fclose(hash_file);
+
+  sha3_init(&ctx, sha3_256_digest_lenght);
+  data_file = fopen(file_name, "r");
+  if (!data_file) {
+    fprintf(stderr, "Error: not able to open data file \"%s\".\n", file_name);
+    return EXIT_FAILURE;
+  }
+  do {
+    l = fread(buf, 1, buf_size, data_file);
+    sha3_update(&ctx, buf, l);
+  } while (l != 0);
+  fclose(data_file);
+  sha3_final(&ctx, msg_digest);
+  sha3_msg_digest_to_string(msg_digest_to_s, msg_digest, sha3_256_digest_lenght);
+
+  if (strcmp(hash, msg_digest_to_s) != 0) {
+    fprintf(stderr, "Error: computed hash does not match the expected one.\n");
+    fprintf(stderr, "Expected hash = \"%s\"\n", hash);
+    fprintf(stderr, "Computed hash = \"%s\"\n", msg_digest_to_s);
+    return EXIT_FAILURE;
+  }
+
+  return EXIT_SUCCESS;
+}
+
+int
 rglmdf_generate_sha3_file_digest (char *file_name)
 {
   assert(file_name);
@@ -942,6 +1019,308 @@ rglmdf_write_rglm_weights_to_binary_file (rglmdf_general_data_t *gd,
       fwrite(&w, sizeof(double), 1, ofp);
     }
   }
+
+  return EXIT_SUCCESS;
+}
+
+int
+rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
+                                           char *filename,
+                                           bool verbose)
+{
+  assert(gd);
+  assert(filename);
+
+  int ret;
+  uint64_t u64, v64, *u64p, u64_a, u64_b;
+  int16_t i16;
+  uint8_t u8;
+  char **cpp;
+  board_feature_id_t *bfip;
+  board_pattern_id_t *bpip;
+  rglmdf_position_summary_record_t *psrp;
+  rglmdf_pattern_freq_summary_record_t *pfsrp;
+  rglmdf_solved_and_classified_gp_record_t *scgprp;
+  uint32_t *iarrayp;
+  double *farrayp;
+  uint64_t data_chunk_size;
+  size_t l;
+  char buf[512];
+
+  /* Checks that the file has not been corrupted. */
+  ret = rglmdf_check_sha3_file_digest(filename);
+  if (ret != EXIT_SUCCESS) return EXIT_FAILURE;
+
+  /* Any previous data held by gd is discarded and deallocated. */
+  rglmdf_general_data_release(gd);
+  rglmdf_general_data_init(gd);
+
+  /* Opens the binary file. */
+  FILE *ifp = fopen(filename, "r");
+  if (!ifp) {
+    fprintf(stderr, "Unable to open binary input file: %s\n", filename);
+    return EXIT_FAILURE;
+  }
+
+  /* Reads the file creation time field. */
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1) {
+    fprintf(stderr, "Error while reading time of write from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  rglmdf_set_file_creation_time(gd, u64);
+  if (verbose) {
+    rglmdf_get_file_creation_time_as_string(gd, buf);
+    fprintf(stdout, "Input file started to be written on (UTC) %s", buf);
+  }
+
+  /* Reads the batch_id_cnt, batch_ids input fields.*/
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1) {
+    fprintf(stderr, "Error while reading batch_id_cnt from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  v64 = rglmdf_set_batch_id_cnt(gd, u64);
+  if (v64 != u64) {
+    fprintf(stderr, "Unable to allocate memory for batch_ids array.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  u64p = rglmdf_get_batch_ids(gd);
+  l = fread(u64p, sizeof(uint64_t), u64, ifp);
+  if (l != u64) {
+    fprintf(stderr, "Error while reading batch_ids from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  if (verbose) {
+    rglmdf_batch_ids_to_text_stream(gd, stdout);
+  }
+
+  /* Reads the empty_count input field.*/
+  l = fread(&u8, sizeof(uint8_t), 1, ifp);
+  if (l != 1) {
+    fprintf(stderr, "Error while reading empty_count from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  rglmdf_set_empty_count(gd, u8);
+  if (verbose) fprintf(stdout, "Selected empty_count value: %u\n", u8);
+
+  /* Reads the position_status_cnt, position_statuses, position_status_buffer input fields.*/
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1) {
+    fprintf(stderr, "Error while reading position_status_cnt from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  v64 = rglmdf_set_position_status_cnt(gd, u64);
+  if (v64 != u64) {
+    fprintf(stderr, "Unable to allocate memory for position_statuses array.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  cpp = rglmdf_get_position_statuses(gd);
+  l = fread(*cpp, RGLM_POSITION_STATUS_BUF_SIZE, u64, ifp);
+  if (l != u64) {
+    fprintf(stderr, "Error while reading position_statuses from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  if (verbose) rglmdf_position_statuses_to_text_stream(gd, stdout);
+
+  /* Reads the feature_cnt, features input fields.*/
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1) {
+    fprintf(stderr, "Error while reading feature_cnt from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  v64 = rglmdf_set_feature_cnt(gd, u64);
+  if (v64 != u64) {
+    fprintf(stderr, "Unable to allocate memory for features array.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  bfip = rglmdf_get_features(gd);
+  for (size_t i = 0; i < u64; i++) {
+    l = fread(&i16, sizeof(int16_t), 1, ifp);
+    if (l != 1) {
+      fprintf(stderr, "Error while reading feature[%zu] from the input binary file.\n", i);
+      fclose(ifp);
+      return EXIT_FAILURE;
+    }
+    bfip[i] = i16;
+  }
+  if (verbose) rglmdf_features_to_text_stream(gd, stdout);
+
+  /* Reads the pattern_cnt, patterns input fields.*/
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1) {
+    fprintf(stderr, "Error while reading pattern_cnt from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  v64 = rglmdf_set_pattern_cnt(gd, u64);
+  if (v64 != u64) {
+    fprintf(stderr, "Unable to allocate memory for patterns array.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  bpip = rglmdf_get_patterns(gd);
+  for (size_t i = 0; i < u64; i++) {
+    l = fread(&i16, sizeof(int16_t), 1, ifp);
+    if (l != 1) {
+      fprintf(stderr, "Error while reading pattern[%zu] from the input binary file.\n", i);
+      fclose(ifp);
+      return EXIT_FAILURE;
+    }
+    bpip[i] = i16;
+  }
+  if (verbose) rglmdf_patterns_to_text_stream(gd, stdout);
+
+  /* Reads the position summary table. */
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1) {
+    fprintf(stderr, "Error while reading position_summary_ntuples from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  v64 = rglmdf_set_position_summary_ntuples(gd, u64);
+  if (v64 != u64) {
+    fprintf(stderr, "Unable to allocate memory for the records of position summary table.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  psrp = rglmdf_get_position_summary_records(gd);
+  l = fread(psrp, sizeof(rglmdf_position_summary_record_t), u64, ifp);
+  if (l != u64) {
+    fprintf(stderr, "Error while reading position_summary_table from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  if (verbose) rglmdf_position_summary_cnt_to_text_stream(gd, stdout);
+
+  /* Reads the pattern frequency summary table. */
+  l = fread(&u64_a, sizeof(uint64_t), 1, ifp);
+  if (l != 1) {
+    fprintf(stderr, "Error while reading feature_ntuples from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  l = fread(&u64_b, sizeof(uint64_t), 1, ifp);
+  if (l != 1) {
+    fprintf(stderr, "Error while reading pattern_ntuples from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1) {
+    fprintf(stderr, "Error while reading ntuples from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  v64 = rglmdf_set_pattern_freq_summary_ntuples(gd, u64_a, u64_b, u64);
+  if (v64 != u64) {
+    fprintf(stderr, "Unable to allocate memory for the records of pattern freq summary table.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  pfsrp = rglmdf_get_pattern_freq_summary_records(gd);
+  l = fread(pfsrp, sizeof(rglmdf_pattern_freq_summary_record_t), u64, ifp);
+  if (l != u64) {
+    fprintf(stderr, "Error while reading freq_summary_table from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  if (verbose) rglmdf_pattern_freq_summary_cnt_to_text_stream(gd, stdout);
+
+  /* Creates the mapping betweeen (pattern_id, principal_index_value) --> glm_variable_id */
+  rglmdf_build_reverse_map(gd);
+  if (verbose) fprintf(stdout, "The reverse map \"(pattern_id, principal_index_value) --> glm_variable_id\" has been computed.\n");
+
+  /* Reads the iarrai data type. */
+  l = fread(&u8, sizeof(uint8_t), 1, ifp);
+  if (l != 1) {
+    fprintf(stderr, "Error while reading iarray_data_type from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  /* Read the number of record for the solved and classified game position table. */
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1) {
+    fprintf(stderr, "Error while reading positions_ntuples from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  v64 = rglmdf_set_positions_ntuples(gd, u64, u8);
+  if (v64 != u64) {
+    fprintf(stderr, "Unable to allocate memory for the positions table.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+
+  /* Reads the sequence of chunk of records. Each chunk is organized as: chunk size n, n records, n irecords. */
+  scgprp = rglmdf_get_positions_records(gd);
+  farrayp = rglmdf_get_positions_farray(gd);
+  iarrayp = rglmdf_get_positions_iarray(gd);
+  const size_t nf = rglmdf_get_positions_n_fvalues_per_record(gd);
+  const size_t ni = rglmdf_get_positions_n_index_values_per_record(gd);
+  size_t n_record_read = 0;
+  for (;;) {
+    l = fread(&data_chunk_size, sizeof(uint64_t), 1, ifp);
+    if (l != 1) {
+      fprintf(stderr, "Error while reading positions table data_chunk_size value.\n");
+      fclose(ifp);
+      return EXIT_FAILURE;
+    }
+    n_record_read += data_chunk_size;
+    if (n_record_read > u64) {
+      fprintf(stderr, "Data chunks cumulated so far are more than expected.\n");
+      fclose(ifp);
+      return EXIT_FAILURE;
+    }
+    if (data_chunk_size == 0) {
+      if (n_record_read != u64) {
+        fprintf(stderr, "Data chunks being read are less than expected.\n");
+        fprintf(stderr, "Expected = %lu, number of record read = %zu\n", u64, n_record_read);
+        fclose(ifp);
+        return EXIT_FAILURE;
+      }
+      break;
+    }
+    l = fread(scgprp, sizeof(rglmdf_solved_and_classified_gp_record_t), data_chunk_size, ifp);
+    if (l != data_chunk_size) {
+      fprintf(stderr, "Error while reading positions_table data chunk from the input binary file.\n");
+      fclose(ifp);
+      return EXIT_FAILURE;
+    }
+    if (nf != 0) {
+      l = fread(farrayp, sizeof(double) * nf, data_chunk_size, ifp);
+      if (l != data_chunk_size) {
+        fprintf(stderr, "Error while reading positions_table farray data chunk from the input binary file.\n");
+        fclose(ifp);
+        return EXIT_FAILURE;
+      }
+    }
+    if (ni != 0) {
+      l = fread(iarrayp, sizeof(uint32_t) * ni, data_chunk_size, ifp);
+      if (l != data_chunk_size) {
+        fprintf(stderr, "Error while reading positions_table iarray data chunk from the input binary file.\n");
+        fclose(ifp);
+        return EXIT_FAILURE;
+      }
+    }
+    scgprp += data_chunk_size;
+    farrayp += nf * data_chunk_size;
+    iarrayp += ni * data_chunk_size;
+  }
+  if (verbose) fprintf(stdout, "All solved and classified game positions has been read succesfully.\n");
+
+  /* Closes the binary file. */
+  fclose(ifp);
 
   return EXIT_SUCCESS;
 }

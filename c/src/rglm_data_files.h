@@ -959,6 +959,24 @@ rglmdf_fpfs_table_to_csv_file (rglmdf_general_data_t *gd,
                                FILE *f);
 
 /**
+ * @brief Checks sha3 digest.
+ *
+ * @details Opens the files named `file_name` and `file_name`.SHA3-256,
+ *          then computes the file digest of the first file and comapres it
+ *          with the one found in the second file.
+ *          When the two digest are equal returs `0`, otherwise `1`.
+ *          When one of the two files is not found returns `1`.
+ *
+ * @invariant Parameter `file_name` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] file_name name of the file being checked
+ * @return              `0` on succesful execution.
+ */
+extern int
+rglmdf_check_sha3_file_digest (char *file_name);
+
+/**
  * @brief Computes sha3 digest and write it to a new file.
  *
  * @details Opens the file named `file_name`, computes the SHA3-256 digest,
@@ -974,17 +992,20 @@ rglmdf_fpfs_table_to_csv_file (rglmdf_general_data_t *gd,
  * The invariant is guarded by an assertion.
  *
  * @param [in] file_name name of the file being digested
+ * @return              `0` on succesful execution.
  */
 extern int
 rglmdf_generate_sha3_file_digest (char *file_name);
 
 /**
- * @brief Saves the genaral data structure to a binary file.
+ * @brief Retrieves the genaral data structure from a binary file.
  *
- * @details Opens the file named `filename`, and stores the data
- *          contained by the `gd` general data structure in it.
- *          When the file is closed the function computes the SHA3-256
- *          hash and save it into a secon file named `filename`.SHA3-256.
+ * @details Opens the file named `filename`, and retrieves the data
+ *          from the file populating the `gd` general data structure.
+ *          The function looks for a second file named `filename`.SHA3-256
+ *          reads the hash from it, and compares it with the digest of `filename`.
+ *          An error is rised if the sha3-256 file is not found , or in case the hash
+ *          doesn't match.
  *
  * @invariant Parameter `gd` must be not `NULL`.
  * The invariant is guarded by an assertion.
@@ -993,7 +1014,31 @@ rglmdf_generate_sha3_file_digest (char *file_name);
  * The invariant is guarded by an assertion.
  *
  * @param [in] gd       reference to the general data structure
- * @param [in] filename name of the file being digested
+ * @param [in] filename name of the file being retrieved
+ * @param [in] verbose  when true send log output to stdout
+ * @return              `0` on succesful execution.
+ */
+extern int
+rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
+                                           char *filename,
+                                           bool verbose);
+
+/**
+ * @brief Saves the genaral data structure to a binary file.
+ *
+ * @details Opens the file named `filename`, and stores the data
+ *          contained by the `gd` general data structure in it.
+ *          When the file is closed the function computes the SHA3-256
+ *          hash and save it into a second file named `filename`.SHA3-256.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `filename` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd       reference to the general data structure
+ * @param [in] filename name of the file being written
  * @return              `0` on succesful execution.
  */
 extern int

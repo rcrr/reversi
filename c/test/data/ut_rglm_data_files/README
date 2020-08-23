@@ -1,0 +1,95 @@
+
+  README
+
+  Copyright (c) 2020 Roberto Corradini. All rights reserved.
+
+  This file is part of the reversi program
+  http://github.com/rcrr/reversi
+
+  This program is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by the
+  Free Software Foundation; either version 3, or (at your option) any
+  later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+  or visit the site <http://www.gnu.org/licenses/>.
+
+This file describes the test data used by the rglm_data_files module.
+
+$ ./build/bin/regab -v -a extract -c cfg/regab.cfg -e test -b 7 -y 20 -u CMS -f INTERCEPT,MOBILITY -p DIAG3 -o test/data/ut_rglm_data_files/b7_y20_ucms_fintercept-mobility_pdiag3.dat
+Output file "test/data/ut_rglm_data_files/b7_y20_ucms_fintercept-mobility_pdiag3.dat" has been overwritten.
+
+-----------------------------------------------------------
+--- Last entries from the regab database connection log ---
+-----------------------------------------------------------
+seq                           con_time                      
+2220                          2020-08-02 10:26:56.28241     
+2221                          2020-08-02 10:27:18.314889    
+2222                          2020-08-02 10:33:01.379245    
+-----------------------------------------------------------
+
+Current time is Sun Aug  2 10:33:01 2020
+_____________________________________
+
+Searched batch_ids: 7
+Batch ids found matching the query
+_____________________________________
+      |          |        |          
+ ---- | batch_id | status |   ngames 
+______|__________|________|__________
+ 0000 |        7 |   CMP  |       10
+
+Procedure do_action_extract_check_features(): nothing to underline.
+____________________________________________________
+
+Searched patterns: 12
+Patterns found matching the query
+____________________________________________________
+      |            |        |            |          
+ ---- | pattern_id |  name  | ninstances | nsquares 
+______|____________|________|____________|__________
+ 0000 |         12 | DIAG3  |          4 |        3
+
+Searched position statuses: CMS
+
+Binary output file "test/data/ut_rglm_data_files/b7_y20_ucms_fintercept-mobility_pdiag3.dat" opened succesfully.
+Header data written succesfully to binary output file "test/data/ut_rglm_data_files/b7_y20_ucms_fintercept-mobility_pdiag3.dat".
+Procedure regab_action_extract_count_positions() executed succesfully.
+
+   ----------------------------
+      Position Summary Table   
+   ----------------------------
+________________________________________________________
+      |          |        |            |                
+ ---- | batch_id | status |   gp_cnt   | classified_cnt 
+______|__________|________|____________|________________
+ 0000 |        7 |   CMS  |         10 |             10
+
+Position summary table written succesfully to binary output file "test/data/ut_rglm_data_files/b7_y20_ucms_fintercept-mobility_pdiag3.dat".
+Procedure regab_action_extract_count_pattern_freqs() executed succesfully.
+GLM variables are 18, given by features are 2, and by patterns are 16.
+Pattern frequency summary table written succesfully to binary output file "test/data/ut_rglm_data_files/b7_y20_ucms_fintercept-mobility_pdiag3.dat".
+Procedure do_action_extract_game_pos_prepare_cursor() executed succesfully.
+Game Position Records written succesfully. Total record count is 10.
+Database transaction and output file "test/data/ut_rglm_data_files/b7_y20_ucms_fintercept-mobility_pdiag3.dat" have been closed.
+Computed SHA3-256 digest, written to file.
+
+$ ls -l test/data/ut_rglm_data_files
+total 12
+-rw-rw-r-- 1 rcrr rcrr 1804 Aug  2 10:33 b7_y20_ucms_fintercept-mobility_pdiag3.dat
+-rw-rw-r-- 1 rcrr rcrr  138 Aug  2 10:33 b7_y20_ucms_fintercept-mobility_pdiag3.dat.SHA3-256
+-rw-rw-r-- 1 rcrr rcrr  640 Aug  2 10:34 README
+
+
+$ cat test/data/ut_rglm_data_files/b7_y20_ucms_fintercept-mobility_pdiag3.dat.SHA3-256 
+5c9a215d50519204eb9856a4861ad66598375b34f1f97b8a587bc0d3206a43d1  test/data/ut_rglm_data_files/b7_y20_ucms_fintercept-mobility_pdiag3.dat
+
+$ rhash --sha3-256 test/data/ut_rglm_data_files/b7_y20_ucms_fintercept-mobility_pdiag3.dat
+5c9a215d50519204eb9856a4861ad66598375b34f1f97b8a587bc0d3206a43d1  test/data/ut_rglm_data_files/b7_y20_ucms_fintercept-mobility_pdiag3.dat
