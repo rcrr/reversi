@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
 
 #include "unit_test.h"
 #include "file_utils.h"
@@ -142,6 +143,133 @@ rglmdf_read_general_data_from_binary_file_t (ut_test_t *const t)
 
   ret = rglmdf_read_general_data_from_binary_file(gd, filename, verbose);
   ut_assert(t, ret == 0);
+
+  if (false) printf("rglmdf_get_file_creation_time(gd)=%ld\n", rglmdf_get_file_creation_time(gd));
+  ut_assert(t, 1598276431 == rglmdf_get_file_creation_time(gd));
+
+  char creation_time_as_string[25];
+  rglmdf_get_file_creation_time_as_string(gd, creation_time_as_string);
+  ut_assert(t, strcmp("Mon Aug 24 13:40:31 2020", creation_time_as_string) == 0);
+
+  ut_assert(t, 1 == rglmdf_get_batch_id_cnt(gd));
+
+  uint64_t *batch_ids;
+  batch_ids = rglmdf_get_batch_ids(gd);
+  ut_assert(t, 7 == batch_ids[0]);
+
+  ut_assert(t, 20 == rglmdf_get_empty_count(gd));
+
+  ut_assert(t, 1 == rglmdf_get_position_status_cnt(gd));
+
+  char** position_statuses;
+  position_statuses = rglmdf_get_position_statuses(gd);
+  ut_assert(t, strcmp("CMS", position_statuses[0]) == 0);
+
+  ut_assert(t, 2 == rglmdf_get_feature_cnt(gd));
+
+  board_feature_id_t *features;
+  features = rglmdf_get_features(gd);
+  ut_assert(t, BOARD_FEATURE_INTERCEPT == features[0]);
+  ut_assert(t, BOARD_FEATURE_MOBILITY == features[1]);
+
+  ut_assert(t, 2 == rglmdf_get_glm_f_variable_cnt(gd));
+
+  ut_assert(t, 1 == rglmdf_get_pattern_cnt(gd));
+
+  board_pattern_id_t *patterns;
+  patterns = rglmdf_get_patterns(gd);
+  ut_assert(t, BOARD_PATTERN_DIAG3 == patterns[0]);
+
+  ut_assert(t, 16 == rglmdf_get_glm_p_variable_cnt(gd));
+
+  ut_assert(t, 1 == rglmdf_get_position_summary_ntuples(gd));
+
+  rglmdf_position_summary_record_t *psrs;
+  psrs = rglmdf_get_position_summary_records(gd);
+  ut_assert(t, 7 == psrs[0].batch_id);
+  ut_assert(t, strcmp("CMS", psrs[0].status) == 0);
+  ut_assert(t, 10 == psrs[0].game_position_cnt);
+  ut_assert(t, 10 == psrs[0].classified_cnt);
+
+  ut_assert(t, 18 == rglmdf_get_pattern_freq_summary_ntuples(gd));
+
+  rglmdf_pattern_freq_summary_record_t *pfsrs;
+  pfsrs = rglmdf_get_pattern_freq_summary_records(gd);
+
+  ut_assert(t,                       0 == pfsrs[0].glm_variable_id);
+  ut_assert(t,                       0 == pfsrs[0].variable_class);
+  ut_assert(t, BOARD_FEATURE_INTERCEPT == pfsrs[0].pattern_id);
+  ut_assert(t,                       0 == pfsrs[0].principal_index_value);
+  ut_assert(t,                      10 == pfsrs[0].total_cnt);
+  ut_assert(t,                     1.0 == pfsrs[0].relative_frequency);
+  ut_assert(t,                     1.0 == pfsrs[0].theoretical_probability);
+  ut_assert(t,                     0.0 == pfsrs[0].weight);
+
+  ut_assert(t,                      1 == pfsrs[1].glm_variable_id);
+  ut_assert(t,                      0 == pfsrs[1].variable_class);
+  ut_assert(t, BOARD_FEATURE_MOBILITY == pfsrs[1].pattern_id);
+  ut_assert(t,                      0 == pfsrs[1].principal_index_value);
+  ut_assert(t,                     10 == pfsrs[1].total_cnt);
+  ut_assert(t,                    1.0 == pfsrs[1].relative_frequency);
+  ut_assert(t,                    1.0 == pfsrs[1].theoretical_probability);
+  ut_assert(t,                    0.0 == pfsrs[1].weight);
+
+  ut_assert(t,                   2 == pfsrs[2].glm_variable_id);
+  ut_assert(t,                   1 == pfsrs[2].variable_class);
+  ut_assert(t, BOARD_PATTERN_DIAG3 == pfsrs[2].pattern_id);
+  ut_assert(t,                   0 == pfsrs[2].principal_index_value);
+  ut_assert(t,                   2 == pfsrs[2].total_cnt);
+  ut_assert(t,                0.05 == pfsrs[2].relative_frequency);
+  ut_assert(t,                1.0  >= pfsrs[2].theoretical_probability);
+  ut_assert(t,                0.0  == pfsrs[2].weight);
+
+  ut_assert(t,                  17 == pfsrs[17].glm_variable_id);
+  ut_assert(t,                   1 == pfsrs[17].variable_class);
+  ut_assert(t, BOARD_PATTERN_DIAG3 == pfsrs[17].pattern_id);
+  ut_assert(t,                  26 == pfsrs[17].principal_index_value);
+  ut_assert(t,                   2 == pfsrs[17].total_cnt);
+  ut_assert(t,                0.05 == pfsrs[17].relative_frequency);
+  ut_assert(t,                1.0  >= pfsrs[17].theoretical_probability);
+  ut_assert(t,                0.0  == pfsrs[17].weight);
+
+  ut_assert(t, 10 == rglmdf_get_positions_ntuples(gd));
+
+  rglmdf_solved_and_classified_gp_record_t *rs;
+  rs = rglmdf_get_positions_records(gd);
+
+  ut_assert(t, 0 == rs[0].row_n);
+  ut_assert(t, 68230056 == rs[0].gp_id);
+  ut_assert(t, 4611717676283199524 == rs[0].mover);
+  ut_assert(t, -7855295674223658936 == rs[0].opponent);
+  ut_assert(t, 10 == rs[0].game_value);
+
+  for (int i = 0; i < 10; i++) ut_assert(t, i == rs[i].row_n);
+
+  ut_assert(t, 2 == rglmdf_get_positions_n_fvalues_per_record(gd));
+
+  ut_assert(t, 4 == rglmdf_get_positions_n_index_values_per_record(gd));
+
+  uint32_t *pis;
+  pis = rglmdf_get_positions_iarray(gd);
+
+  ut_assert(t,  9 == pis[0]);
+  ut_assert(t,  7 == pis[1]);
+  ut_assert(t,  6 == pis[2]);
+  ut_assert(t,  0 == pis[3]);
+
+  ut_assert(t, 25 == pis[36]);
+  ut_assert(t, 14 == pis[37]);
+  ut_assert(t,  2 == pis[38]);
+  ut_assert(t,  9 == pis[39]);
+
+  double *pfs;
+  pfs = rglmdf_get_positions_farray(gd);
+
+  ut_assert(t, 1.000 == pfs[0]);
+  ut_assert(t, 0.650 == pfs[1]);
+
+  ut_assert(t, 1.000 == pfs[18]);
+  ut_assert(t, 0.400 == pfs[19]);
 
   rglmdf_general_data_release(gd);
 }

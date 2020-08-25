@@ -211,7 +211,7 @@ typedef struct rglmdf_position_summary_table_s {
  * The group by operation executes three sums collecting the aggregated data stored into the fields `total_cnt`,
  * `relative_frequency`, `theoretical_probability`.
  *
- * The weight is set to `0.5` when the model is not yet optimized.
+ * The weight is set to `0.0` when the model is not yet optimized.
  *
  * The record has a fixed size and needs 48 bytes.
  */
@@ -368,7 +368,7 @@ rglmdf_get_file_creation_time (rglmdf_general_data_t *gd);
  *
  * @details Conversion happens as UTC value.
  *          The generated string is saved in the `buf` array.
- *          The buffer referenced by `buf` must be longer than `26` chars.
+ *          The buffer referenced by `buf` must be long `25` chars or more.
  *
  * @invariant Parameter `gd` must be not `NULL`.
  * The invariant is guarded by an assertion.

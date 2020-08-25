@@ -165,7 +165,7 @@ rglmdf_get_file_creation_time_as_string (rglmdf_general_data_t *gd,
 
   struct tm file_creation_time_tm;
   gmtime_r(&gd->file_creation_time, &file_creation_time_tm);
-  asctime_r(&file_creation_time_tm, buf);
+  strftime(buf, 25,"%c", &file_creation_time_tm);
 }
 
 size_t
@@ -1072,7 +1072,7 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
   rglmdf_set_file_creation_time(gd, u64);
   if (verbose) {
     rglmdf_get_file_creation_time_as_string(gd, buf);
-    fprintf(stdout, "Input file started to be written on (UTC) %s", buf);
+    fprintf(stdout, "Input file started to be written on (UTC) %s\n", buf);
   }
 
   /* Reads the batch_id_cnt, batch_ids input fields.*/
