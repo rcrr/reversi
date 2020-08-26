@@ -933,19 +933,22 @@ lial_dump_matrix (double **a,
 
   FILE *f;
   size_t n;
+  uint64_t u64;
 
   f = fopen(file_name, "w");
   if (!f) {
     if (ret_code) *ret_code = -1;
     return;
   }
-  n = fwrite(&nr, sizeof(size_t), 1, f);
+  u64 = nr;
+  n = fwrite(&u64, sizeof(uint64_t), 1, f);
   if (n != 1) {
     if (ret_code) *ret_code = -2;
     fclose(f);
     return;
   }
-  n = fwrite(&nc, sizeof(size_t), 1, f);
+  u64 = nc;
+  n = fwrite(&u64, sizeof(uint64_t), 1, f);
   if (n != 1) {
     if (ret_code) *ret_code = -3;
     fclose(f);
@@ -977,24 +980,27 @@ lial_retrieve_matrix (const char *file_name,
   FILE *f;
   size_t lnr, lnc, n;
   double **a;
+  uint64_t u64;
 
   f = fopen(file_name, "r");
   if (!f) {
     if (ret_code) *ret_code = -1;
     return NULL;
   }
-  n = fread(&lnr, sizeof(size_t), 1, f);
+  n = fread(&u64, sizeof(uint64_t), 1, f);
   if (n != 1) {
     if (ret_code) *ret_code = -2;
     fclose(f);
     return NULL;
   }
-  n = fread(&lnc, sizeof(size_t), 1, f);
+  lnr = u64;
+  n = fread(&u64, sizeof(uint64_t), 1, f);
   if (n != 1) {
     if (ret_code) *ret_code = -3;
     fclose(f);
     return NULL;
   }
+  lnc = u64;
   a = lial_allocate_matrix(lnr, lnc);
   if (!a) {
     if (ret_code) *ret_code = -4;
@@ -1048,13 +1054,15 @@ lial_dump_vector (double *v,
 
   FILE *f;
   size_t nw;
+  uint64_t u64;
 
   f = fopen(file_name, "w");
   if (!f) {
     if (ret_code) *ret_code = -1;
     return;
   }
-  nw = fwrite(&n, sizeof(size_t), 1, f);
+  u64 = n;
+  nw = fwrite(&u64, sizeof(uint64_t), 1, f);
   if (nw != 1) {
     if (ret_code) *ret_code = -2;
     fclose(f);
@@ -1082,18 +1090,20 @@ lial_retrieve_vector (char *file_name,
   FILE *f;
   size_t ln, nr;
   double *v;
+  uint64_t u64;
 
   f = fopen(file_name, "r");
   if (!f) {
     if (ret_code) *ret_code = -1;
     return NULL;
   }
-  nr = fread(&ln, sizeof(size_t), 1, f);
+  nr = fread(&u64, sizeof(uint64_t), 1, f);
   if (nr != 1) {
     if (ret_code) *ret_code = -2;
     fclose(f);
     return NULL;
   }
+  ln = u64;
   v = lial_allocate_vector(ln);
   if (!v) {
     if (ret_code) *ret_code = -3;
