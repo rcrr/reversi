@@ -7,10 +7,21 @@
  *       These new functions are going to enable an API for the two programs that is then usable by
  *       test modules.
  *
- * @todo Write a function in rglm_data_files that read ( also write ? ) the rglm
+ * @todo Write a function in rglm_data_files that read, and one that also write, the rglm
  *       binary data file.
- *       Formats for binary data files are more than one. There is the 'general' format,
- *       'weights', 'game-positions', and the 'hessian' format.
+ *       Formats for binary data files are more than one. There are the
+ *       - 'general'
+ *          Read and write functions are written.
+ *          Read function has all the tests. Write function needs the tests.
+ *          The functions has to replace the duplicated code in the clients.
+ *       - 'weights'
+ *          It needs a complete review.
+ *          The program rglm_fit_utility is completely wrong. It lacks proper feature and pattern code ...
+ *       - 'game-positions'
+ *          To be analyzed.
+ *       - 'hessian'
+ *          It is just a dump of the matrix using the linear_algebra utility functions. It is ok.
+ *       formats.
  *       Should be all documented and rationalized.
  *
  * @todo The algorithm used to compute the weights is Minimum Mean Square Error (MMSE),
@@ -445,7 +456,7 @@ main (int argc,
   rglmdf_set_file_creation_time(&data, u64);
   if (verbose) {
     rglmdf_get_file_creation_time_as_string(&data, buf);
-    fprintf(stdout, "Input file started to be written on (UTC) %s", buf);
+    fprintf(stdout, "Input file started to be written on (UTC) %s\n", buf);
   }
 
   /* Reads the batch_id_cnt, batch_ids input fields.*/

@@ -327,6 +327,8 @@ BEGIN
 
       FOR i IN 0..(ninstances - 1) LOOP
 
+        --RAISE NOTICE '--C.2.a-- i=%, timeofday: %', i, timeofday();
+
         EXECUTE format(
         'WITH index_values AS (
           SELECT
@@ -346,10 +348,14 @@ BEGIN
           SELECT iv AS iv, count(1) AS cnt FROM index_values GROUP BY iv ORDER BY iv
         )
         UPDATE regab_action_extract_count_pattern_freqs_tmp_table_a AS ta
-          SET (cnt_%s) = (SELECT tb.cnt FROM grouped_values AS tb WHERE tb.iv = ta.index_value) WHERE ta.pattern_id = $4;',
+          SET cnt_%s = tb.cnt
+          FROM grouped_values AS tb
+          WHERE tb.iv = ta.index_value AND ta.pattern_id = $4;',
           lower(pattern_name), i, i
         ) USING empty_count_arg, status_array_arg, batch_id_array_arg, pattern_id_current;
-      
+
+        --RAISE NOTICE '--C.2.b--      timeofday: %', timeofday();
+
       END LOOP;
 
       --RAISE NOTICE '--C.3-- pattern_id_current=%, timeofday: %', pattern_id_current, timeofday();
@@ -373,6 +379,8 @@ BEGIN
     END LOOP;
   END IF;
 
+  --RAISE NOTICE '--D.0-- timeofday: %', timeofday();
+
   INSERT INTO regab_action_extract_count_pattern_freqs_tmp_table_b
     (glm_variable_id, pattern_id, principal_index_value, total_cnt, relative_frequency, theoretical_probability)
   SELECT
@@ -395,7 +403,9 @@ BEGIN
         GROUP BY
           pattern_id, principal_index_value
        ) AS ta;
-  
+
+  --RAISE NOTICE '--D.1-- timeofday: %', timeofday();
+
   OPEN cursor_a_arg FOR
   SELECT
     ta.pattern_id,
@@ -410,6 +420,8 @@ BEGIN
   SELECT count(1) INTO row_cnt FROM regab_action_extract_count_pattern_freqs_tmp_table_a;
   RETURN NEXT;
 
+  --RAISE NOTICE '--D.2-- timeofday: %', timeofday();
+
   OPEN cursor_b_arg FOR
   SELECT
     tb.glm_variable_id,
@@ -422,7 +434,9 @@ BEGIN
   cur_name := cursor_b_arg;
   SELECT count(1) INTO row_cnt FROM regab_action_extract_count_pattern_freqs_tmp_table_b;
   RETURN NEXT;
-  
+
+  --RAISE NOTICE '--D.3-- timeofday: %', timeofday();
+
 END;
 $$ LANGUAGE plpgsql VOLATILE;
 
