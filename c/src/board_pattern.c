@@ -152,7 +152,7 @@ bool
 board_feature_get_id_by_name (board_feature_id_t *idp,
                               char *name)
 {
-  for (int i = 0; i < BOARD_FEATURE_INVALID; i++) {
+  for (int i = 0; i < BOARD_FEATURE_COUNT; i++) {
     if (strcmp(name, board_features[i].name) == 0) {
       if (idp) *idp = i;
       return true;
@@ -166,7 +166,7 @@ board_pattern_mask (SquareSet s,
                     board_pattern_index_t p,
                     unsigned int instance)
 {
-  assert(p < BOARD_PATTERN_INVALID);
+  assert(p < BOARD_PATTERN_COUNT);
   assert (instance < 8);
   return s & board_patterns[p].masks[instance];
 }
@@ -419,7 +419,7 @@ bool
 board_pattern_get_id_by_name (board_pattern_id_t *idp,
                               char *name)
 {
-  for (int i = 0; i < BOARD_PATTERN_INVALID; i++) {
+  for (int i = 0; i < BOARD_PATTERN_COUNT; i++) {
     if (strcmp(name, board_patterns[i].name) == 0) {
       if (idp) *idp = i;
       return true;
@@ -487,7 +487,7 @@ board_pattern_compute_principal_indexes (board_pattern_index_t *principals,
   if (!initialized) {
     board_pattern_index_t *p = a;
     size_t s = 0;
-    for (board_pattern_id_t bp = 0; bp < BOARD_PATTERN_INVALID; bp++) {
+    for (board_pattern_id_t bp = 0; bp < BOARD_PATTERN_COUNT; bp++) {
       const unsigned long int n = board_patterns[bp].n_configurations;
       ap[bp] = p;
       for (board_pattern_index_t idx = 0; idx < n; idx++) {

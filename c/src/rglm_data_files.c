@@ -287,6 +287,13 @@ rglmdf_set_feature_cnt (rglmdf_general_data_t *gd,
 {
   assert(gd);
 
+  if (cnt == 0) {
+    free(gd->features);
+    gd->features = NULL;
+    gd->feature_cnt = 0;
+    return 0;
+  }
+
   const size_t s = sizeof(board_feature_id_t) * cnt;
   board_feature_id_t *buf;
   buf = (board_feature_id_t *) malloc(s);
@@ -320,6 +327,7 @@ rglmdf_features_to_text_stream (rglmdf_general_data_t *gd,
                                 FILE *stream)
 {
   fprintf(stream, "Selected feature values: ");
+  if (gd->feature_cnt == 0) fprintf(stream, "--\n");
   for (size_t i = 0; i < gd->feature_cnt; i++ ) {
     fprintf(stream, "%s", board_features[gd->features[i]].name);
     fprintf(stream, "%s", (i < gd->feature_cnt - 1) ? ", ": "\n");
@@ -338,6 +346,13 @@ rglmdf_set_pattern_cnt (rglmdf_general_data_t *gd,
                         size_t cnt)
 {
   assert(gd);
+
+  if (cnt == 0) {
+    free(gd->patterns);
+    gd->patterns = NULL;
+    gd->pattern_cnt = 0;
+    return 0;
+  }
 
   const size_t s = sizeof(board_pattern_id_t) * cnt;
   board_pattern_id_t *buf;
@@ -372,6 +387,7 @@ rglmdf_patterns_to_text_stream (rglmdf_general_data_t *gd,
                                 FILE *stream)
 {
   fprintf(stream, "Selected pattern values: ");
+  if (gd->pattern_cnt == 0) fprintf(stream, "--\n");
   for (size_t i = 0; i < gd->pattern_cnt; i++ ) {
     fprintf(stream, "%s", board_patterns[gd->patterns[i]].name);
     fprintf(stream, "%s", (i < gd->pattern_cnt - 1) ? ", ": "\n");
@@ -452,7 +468,7 @@ rglmdf_set_pattern_freq_summary_ntuples (rglmdf_general_data_t *gd,
 
   size_t k;
 
-  size_t reverse_map_a_length = BOARD_FEATURE_INVALID + BOARD_PATTERN_INVALID;
+  size_t reverse_map_a_length = BOARD_FEATURE_COUNT + BOARD_PATTERN_COUNT;
   size_t reverse_map_b_length = 0;
 
   k = 0;
@@ -472,8 +488,8 @@ rglmdf_set_pattern_freq_summary_ntuples (rglmdf_general_data_t *gd,
   /*
    * Allocates memory for the three vectors.
    */
-  const size_t s_a =  sizeof(uint64_t *) * reverse_map_a_length;
-  const size_t s_b =  sizeof(uint64_t) * reverse_map_b_length;
+  const size_t s_a = sizeof(uint64_t *) * reverse_map_a_length;
+  const size_t s_b = sizeof(uint64_t) * reverse_map_b_length;
   const size_t s_c = sizeof(rglmdf_pattern_freq_summary_record_t) * ntuples;
   uint64_t **arr_a_f = (uint64_t **) malloc(s_a);
   if (!arr_a_f) return 0;
@@ -482,7 +498,7 @@ rglmdf_set_pattern_freq_summary_ntuples (rglmdf_general_data_t *gd,
     free(arr_a_f);
     return 0;
   }
-  uint64_t **arr_a_p = arr_a_f + + BOARD_FEATURE_INVALID;
+  uint64_t **arr_a_p = arr_a_f + BOARD_FEATURE_COUNT;
   rglmdf_pattern_freq_summary_record_t *arr_c = (rglmdf_pattern_freq_summary_record_t *) malloc(s_c);
   if (!arr_c) {
     free(arr_a_f);
@@ -537,7 +553,7 @@ rglmdf_pattern_freq_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
   fprintf(stream, "Feature and Pattern Frequency Summary Table: number of tuples = %zu\n",
           gd->pattern_freq_summary.ntuples);
 
-  int16_t variable_class;
+  int16_t entity_class;
   int16_t pattern_id;
   int64_t total_cnt;
   double relative_frequency;
@@ -550,30 +566,30 @@ rglmdf_pattern_freq_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
   v_cnt = -1;
 
   f_index_cnt = p_index_cnt = 0;
-  variable_class = -1;
+  entity_class = BOARD_ENTITY_CLASS_INVALID;
   pattern_id = -1;
   for (size_t i = 0; i < gd->pattern_freq_summary.ntuples; i++) {
     rglmdf_pattern_freq_summary_record_t *rec = &gd->pattern_freq_summary.records[i];
-    if (rec->variable_class != variable_class || rec->pattern_id != pattern_id) {
+    if (rec->entity_class != entity_class || rec->pattern_id != pattern_id) {
       v_cnt = 0;
       total_cnt = 0;
       relative_frequency = 0.;
       theoretical_probability = 0.;
-      variable_class = rec->variable_class;
+      entity_class = rec->entity_class;
       pattern_id = rec->pattern_id;
     }
     v_cnt++;
     total_cnt += rec->total_cnt;
     relative_frequency += rec->relative_frequency;
     theoretical_probability += rec->theoretical_probability;
-    if (i + 1 == gd->pattern_freq_summary.ntuples || (rec + 1)->variable_class != variable_class || (rec + 1)->pattern_id != pattern_id) {
-      if (variable_class == 0) {
+    if (i + 1 == gd->pattern_freq_summary.ntuples || (rec + 1)->entity_class != entity_class || (rec + 1)->pattern_id != pattern_id) {
+      if (entity_class == BOARD_ENTITY_CLASS_FEATURE) {
         const char *feature_name = board_features[pattern_id].name;
         const int first_index = f_index_cnt;
         f_index_cnt += board_features[pattern_id].field_cnt;
         fprintf(stream, "  Feature id: %2d [%10s][%6d][F_%03d:F_%03d], total_cnt = %8ld\n",
                 pattern_id, feature_name, v_cnt, first_index, f_index_cnt - 1, total_cnt);
-      } else if (variable_class == 1) {
+      } else if (entity_class == BOARD_ENTITY_CLASS_PATTERN) {
         const char *pattern_name = board_patterns[pattern_id].name;
         const int64_t gp_cnt = total_cnt / board_patterns[pattern_id].n_instances;
         const int first_index = p_index_cnt;
@@ -581,7 +597,7 @@ rglmdf_pattern_freq_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
         fprintf(stream, "  Pattern id: %2d     [%6s][%6d][I_%03d:I_%03d], total_cnt = %8ld, gp_cnt = %8ld, cumulated relative frequency = %1.4f, cumulated theoretical probability = %1.4f\n",
                 pattern_id, pattern_name, v_cnt, first_index, p_index_cnt - 1, total_cnt, gp_cnt, relative_frequency, theoretical_probability);
       } else {
-        fprintf(stream, "Invalid variable_class value %d, it must be in the range [0..1]. Aborting ...\n", variable_class);
+        fprintf(stream, "Invalid entity_class value %d, it must be in the range [0..1]. Aborting ...\n", entity_class);
         abort();
       }
     }
@@ -702,15 +718,15 @@ rglmdf_build_reverse_map (rglmdf_general_data_t *gd)
       fprintf(stderr, "Error, inconsistent record order in table Pattern Frequency Summary. Aborting ...\n");
       abort();
     }
-    const int16_t vc  = t->records[i].variable_class;
+    const int16_t ec  = t->records[i].entity_class;
     const int16_t pid = t->records[i].pattern_id;
     const int32_t piv = t->records[i].principal_index_value;
-    if (vc == 0) {
+    if (ec == BOARD_ENTITY_CLASS_FEATURE) {
       gd->reverse_map_a_f[pid][piv] = i;
-    } else if (vc == 1) {
+    } else if (ec == BOARD_ENTITY_CLASS_PATTERN) {
       gd->reverse_map_a_p[pid][piv] = i;
     } else {
-      fprintf(stderr, "Error, inconsistent value of variable_class. Aborting ...\n");
+      fprintf(stderr, "Error, inconsistent value of entity_class. Aborting ...\n");
       abort();
     }
   }
@@ -718,16 +734,18 @@ rglmdf_build_reverse_map (rglmdf_general_data_t *gd)
 
 uint32_t
 rglmdf_map_pid_and_piv_to_glm_vid (rglmdf_general_data_t *gd,
-                                   uint16_t variable_class,
+                                   uint16_t entity_class,
                                    uint16_t pattern_id,
                                    uint32_t principal_index_value)
 {
   assert(gd);
-  assert(variable_class == 0 || variable_class == 1);
-  if (variable_class == 0)
+  assert(entity_class == BOARD_ENTITY_CLASS_FEATURE || entity_class == BOARD_ENTITY_CLASS_PATTERN);
+  if (entity_class == BOARD_ENTITY_CLASS_FEATURE)
     return gd->reverse_map_a_f[pattern_id][principal_index_value];
-  else
+  else if (entity_class == BOARD_ENTITY_CLASS_PATTERN)
     return gd->reverse_map_a_p[pattern_id][principal_index_value];
+  else
+    abort();
 }
 
 void
@@ -823,10 +841,10 @@ rglmdf_fpfs_table_to_csv_file (rglmdf_general_data_t *gd,
   assert(gd);
   rglmdf_pattern_freq_summary_record_t *r = rglmdf_get_pattern_freq_summary_records(gd);
   size_t n = rglmdf_get_pattern_freq_summary_ntuples(gd);
-  fprintf(f, "     SEQ; GLM_VARIABLE_ID; VARIABLE_CLASS; PATTERN_ID; PRINCIPAL_INDEX_VALUE;   TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_FREQUENCY;              WEIGHT\n");
+  fprintf(f, "     SEQ; GLM_VARIABLE_ID;   ENTITY_CLASS; PATTERN_ID; PRINCIPAL_INDEX_VALUE;   TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_FREQUENCY;              WEIGHT\n");
   for (size_t i = 0; i < n; i++) {
     fprintf(f, "%08zu;%16ld;%15d;%11d;%22d;%12ld;%19.6f;%22.6f;%+20.15f\n",
-            i, r[i].glm_variable_id, r[i].variable_class, r[i].pattern_id,
+            i, r[i].glm_variable_id, r[i].entity_class, r[i].pattern_id,
             r[i].principal_index_value, r[i].total_cnt, r[i].relative_frequency,
             r[i].theoretical_probability, r[i].weight);
   }

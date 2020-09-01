@@ -217,7 +217,7 @@ typedef struct rglmdf_position_summary_table_s {
  */
 typedef struct rglmdf_pattern_freq_summary_record_s {
   int64_t glm_variable_id;         /**< @brief It is the unique variable index for the GLM (Generalized Linear Model). */
-  int16_t variable_class;          /**< @brief It is 0 when feature and 1 when pattern. */
+  int16_t entity_class;            /**< @brief It is a value in board_entity_class_t enum. */
   int16_t pattern_id;              /**< @brief Board Pattern Id, as defined by REGAB table regab_prng_patterns. */
   int32_t principal_index_value;   /**< @brief Principal Index Value for Pattern as defined by REGAB table regab_prng_pattern_ranges. */
   int64_t total_cnt;               /**< @brief Number of times that the pattern, or its mirror, is found in the game position selection. */
@@ -238,6 +238,23 @@ typedef struct rglmdf_pattern_freq_summary_table_s {
   size_t ntuples;                                  /**< @brief Number of records. */
   rglmdf_pattern_freq_summary_record_t *records;   /**< @brief Records of the table. */
 } rglmdf_pattern_freq_summary_table_t;
+
+/* ### ### */
+
+typedef struct rglmdf_feature_or_pattern_to_glm_var_id_map_record_s {
+  int16_t entity_class;          /**< @brief It is 0 when feature and 1 when pattern. */
+  int16_t entity_id;             /**< @brief Board Pattern Id, as defined by REGAB table regab_prng_patterns. */
+  int32_t index_value;
+  int32_t principal_index_value;
+  int64_t glm_variable_id;
+} rglmdf_feature_or_pattern_to_glm_var_id_map_record_t;
+
+typedef struct rglmdf_feature_or_pattern_to_glm_var_id_map_table_s {
+  size_t ntuples;
+  rglmdf_feature_or_pattern_to_glm_var_id_map_record_t *records;
+} rglmdf_feature_or_pattern_to_glm_var_id_map_table_t;
+
+/* ### ### */
 
 /**
  * @brief Reversi GLM data file record definition for the solved and classified game position table.
@@ -888,14 +905,14 @@ rglmdf_build_reverse_map (rglmdf_general_data_t *gd);
  * The invariant is guarded by an assertion.
  *
  * @param [in] gd                    reference to the general data structure
- * @param [in] variable_class        class of the variable
+ * @param [in] entity_class          class of the entity ( feature or pattern )
  * @param [in] pattern_id            pattern id key
  * @param [in] principal_index_value principal index value key
  * @return                           the corresponding value for the `glm_variable_id`
  */
 extern uint32_t
 rglmdf_map_pid_and_piv_to_glm_vid (rglmdf_general_data_t *gd,
-                                   uint16_t variable_class,
+                                   uint16_t entity_class,
                                    uint16_t pattern_id,
                                    uint32_t principal_index_value);
 

@@ -1338,7 +1338,7 @@ do_action_extract_pattern_freqs_cursor_fetch (int *result,
     return_table->ntuples = PQntuples(res);
     for (size_t i = 0; i < return_table->ntuples; i++) {
       return_table->records[i].glm_variable_id = atol(PQgetvalue(res, i, 0));
-      return_table->records[i].variable_class = 1; // 0 = pattern
+      return_table->records[i].entity_class = BOARD_ENTITY_CLASS_PATTERN;
       return_table->records[i].pattern_id = atol(PQgetvalue(res, i, 1));
       return_table->records[i].principal_index_value = atol(PQgetvalue(res, i, 2));
       return_table->records[i].total_cnt = atol(PQgetvalue(res, i, 3));
@@ -1408,6 +1408,15 @@ do_action_extract_pattern_freqs_prepare_cursor (int *result,
 
   for (size_t i = 0; i < position_status_cnt; i++) {
     cl += snprintf(cp, command_size - cl, "\"%s\"%s", position_statuses[i], (i < position_status_cnt - 1) ? ", " : "}', '{");
+    cp = command + cl;
+    if (cl >= command_size) {
+      fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
+      abort();
+    }
+  }
+
+  if (pattern_cnt == 0) {
+    cl += snprintf(cp, command_size - cl, "}', ");
     cp = command + cl;
     if (cl >= command_size) {
       fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
@@ -2287,8 +2296,8 @@ main (int argc,
       fprintf(stderr, "Option -u, --position-status, is mandatory when option -a, --action, has value \"extract\".\n");
       return EXIT_FAILURE;
     }
-    if (!p_flag && !g_flag) {
-      fprintf(stderr, "One option among -p, --pattern, and -g, --game-positions, is mandatory when option -a, --action, has value \"extract\".\n");
+    if (!p_flag && !f_flag && !g_flag) {
+      fprintf(stderr, "One option among -p, --pattern, -f --feature, and -g, --game-positions, is mandatory when option -a, --action, has value \"extract\".\n");
       return EXIT_FAILURE;
     }
     if (!o_flag) {
@@ -2785,7 +2794,7 @@ main (int argc,
   if (verbose) fprintf(stdout, "Header data written succesfully to binary output file \"%s\".\n", output_file_name);
 
   /* - 04 - Collects from the DB the game positions statistics and writes them to the binary file. */
-  if (p_flag) {
+  if (p_flag || f_flag) {
     do_action_extract_count_positions(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses, &position_summary);
     u64 = position_summary.ntuples;
     fwrite(&u64, sizeof(uint64_t), 1, ofp);
@@ -2795,7 +2804,7 @@ main (int argc,
   }
 
   /* - 05 - Collects from the DB the pattern index statistics, assigns the global variable index value, writes them to the binary file ... */
-  if (p_flag) {
+  if (p_flag || f_flag) {
     for (size_t i = 0; i < feature_cnt; i++) {
       board_feature_id_t fid = features[i];
       pattern_freq_summary.glm_f_variable_cnt += board_features[fid].field_cnt;
@@ -2804,6 +2813,10 @@ main (int argc,
                                                    pattern_cnt, patterns, pattern_freq_summary.glm_f_variable_cnt,
                                                    sql_cursor_name_pattern_freqs_debug, sql_cursor_name_pattern_freqs,
                                                    &pattern_freq_summary.glm_p_variable_cnt);
+    if (result != 0) {
+      fprintf(stderr, "Error occured into function do_action_extract_pattern_freqs_prepare_cursor(). Aborting ...\n");
+      abort();
+    }
     pattern_freq_summary.ntuples = pattern_freq_summary.glm_f_variable_cnt + pattern_freq_summary.glm_p_variable_cnt;
     if (verbose) fprintf(stdout, "GLM variables are %zu, given by features are %zu, and by patterns are %zu.\n",
                          pattern_freq_summary.ntuples, pattern_freq_summary.glm_f_variable_cnt, pattern_freq_summary.glm_p_variable_cnt);
@@ -2829,7 +2842,7 @@ main (int argc,
       board_feature_id_t fid = features[i];
       for (size_t j = 0; j < board_features[fid].field_cnt; j++) {
         pattern_freq_summary.records[k].glm_variable_id = k;
-        pattern_freq_summary.records[k].variable_class = 0; // 0 = feature
+        pattern_freq_summary.records[k].entity_class = BOARD_ENTITY_CLASS_FEATURE;
         pattern_freq_summary.records[k].pattern_id = fid;
         pattern_freq_summary.records[k].principal_index_value = j;
         pattern_freq_summary.records[k].total_cnt = selected_gp_record_cnt;

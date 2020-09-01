@@ -366,6 +366,18 @@ board_set_square_sets (board_t *b,
  */
 
 /**
+ * @enum board_entity_class_t
+ * @brief Used to uniquely identify features vs patterns.
+ */
+typedef enum {
+  BOARD_ENTITY_CLASS_FEATURE,        /**< Feature ( e.g. Mobility ) */
+  BOARD_ENTITY_CLASS_PATTERN,        /**< Pattern ( e.g. EDGE ) */
+  BOARD_ENTITY_CLASS_INVALID         /**< Not a valid entity class. */
+} board_entity_class_t;
+
+#define BOARD_ENTITY_CLASS_COUNT BOARD_ENTITY_CLASS_INVALID
+
+/**
  * @enum board_feature_id_t
  * @brief Features are a defined property of the board convertible to a real number.
  */
@@ -376,6 +388,8 @@ typedef enum {
   BOARD_FEATURE_MOBILITY3,           /**< Mobility - Mobility^2 - Mobility^3 */
   BOARD_FEATURE_INVALID              /**< Not a valid feature. */
 } board_feature_id_t;
+
+#define BOARD_FEATURE_COUNT BOARD_FEATURE_INVALID
 
 /*
  * The entry order in the board_pattern_id_t enum MUST match the

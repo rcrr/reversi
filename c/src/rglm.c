@@ -624,7 +624,7 @@ main (int argc,
     if (verbose) fprintf(stdout, "Position summary table dumped to CSV file: \"%s\".\n", A_arg);
   }
 
-  /* If B flag is turned on, dumps the position summary table to the output file. */
+  /* If B flag is turned on, dumps the feature and pattern frequency summary table to the output file. */
   if (B_arg) {
     ofp = fopen(B_arg, "w");
     if (!ofp) {
