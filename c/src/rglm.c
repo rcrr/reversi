@@ -264,6 +264,8 @@ main (int argc,
   rglmdf_general_data_t data;
   rglmdf_general_data_init(&data);
 
+  time_t saved_time;
+
   bool verbose = false;
 
   FILE *ofp = NULL;
@@ -280,6 +282,7 @@ main (int argc,
   char *i_arg = NULL;
   int o_flag = false;
   char *o_arg = NULL;
+  int t_flag = false;
   int b_flag = false;
   char *b_arg = NULL;
   int A_flag = false;
@@ -306,6 +309,7 @@ main (int argc,
      {"solve",                's', MOP_NONE},
      {"input-file",           'i', MOP_REQUIRED},
      {"output-file",          'o', MOP_REQUIRED},
+     {"no-time-out-file",     't', MOP_NONE},
      {"rglm-par-output-file", 'b', MOP_REQUIRED},
      {"extract-ps-table",     'A', MOP_REQUIRED},
      {"extract-pfs-table",    'B', MOP_REQUIRED},
@@ -328,6 +332,7 @@ main (int argc,
     "  -s, --solve                Solve the Generalized Linear Model\n"
     "  -i, --input-file           Input file name - Mandatory\n"
     "  -o, --output-file          Output file name\n"
+    "  -t, --no-time-out-file     Write a 'zero time' in the output file\n"
     "  -b, --rglm-par-output-file RGLM parameters values output file name\n"
     "  -A, --extract-ps-table     Dumps the position summary table in a CSV format\n"
     "  -B, --extract-pfs-table    Dumps the feature and pattern frequency summary table in a CSV format\n"
@@ -368,6 +373,9 @@ main (int argc,
     case 'o':
       o_flag = true;
       o_arg = options.optarg;
+      break;
+    case 't':
+      t_flag = true;
       break;
     case 'b':
       b_flag = true;
@@ -430,6 +438,14 @@ main (int argc,
   if (!i_flag) {
     fprintf(stderr, "Option -i, --input-file is mandatory.\n");
     return -3;
+  }
+
+  /* Checks command line options for consistency: t flag requires o flag.*/
+  if (t_flag) {
+    if (!o_flag) {
+      fprintf(stderr, "Option -t, --no-time-out-file requires option -o, --out-file.\n");
+      return EXIT_FAILURE;
+    }
   }
 
   /* Checks command line options for consistency: H flag is exclusive. */
@@ -1003,7 +1019,8 @@ main (int argc,
 
   /* Writes the binary output file. */
   if (o_arg) {
-    ret_code = rglmdf_write_general_data_to_binary_file(&data, o_arg);
+    saved_time = t_flag ? (time_t) 0 : time(NULL);
+    ret_code = rglmdf_write_general_data_to_binary_file(&data, o_arg, saved_time);
     if (ret_code == EXIT_SUCCESS) {
       if (verbose) fprintf(stdout, "Binary output file written to %s, computed SHA3-256 digest, written to file %s.sha3-256.\n", o_arg, o_arg);
     } else {

@@ -11,7 +11,8 @@
  * Structures used to write and read binary files relay on "fixed" size fields, this is to make the code
  * more robust in case of an architectural change. Saved files should be readable also by different
  * hardware and software platforms.
- * The function #rglmdf_verify_type_sizes checks that the data types have the expected storage definition.
+ * The function #rglmdf_verify_type_sizes() checks that the data types have the expected storage definition.
+ * The function #rglmdf_get_endianness() returns the "endianess" of the system, only little endian systems has been tested so far.
  *
  * The `Solved and Pattern Classified Set of Game Positions` is stored in a binary file using
  * the format here described.
@@ -57,6 +58,9 @@
  *   - `2 bytes` field x `pattern_cnt` times, read/written as multiple times `int16_t`, converted to `enum` #board_pattern_id_t.<br>
  *     Meaning: array of pattern entries.<br>
  *     Ref: `patterns`, array.<br>
+ *<br>
+ *   - `8 bytes` field, read/written as `uint64_t`, not converted.<br>
+ *     Meaning: the read value has to be equal to `RGLM_VALID_A`, it is a formal validity check, the value is not used.<br>
  * <p>
  * --- Summary Tables. Position Summary Table, Pattern Frequency Summary Table. ---
  *   - `8 bytes` field, read/written as `uint64_t`, converted to `size_t` value.<br>
@@ -143,11 +147,20 @@
 #ifndef RGLM_DATA_FILES_H
 #define RGLM_DATA_FILES_H
 
+/* 64 bits values used as a "sanity check" in reading and writing binary files. */
+#define RGLM_VALID_A 0x289fab30715d828c
+#define RGLM_VALID_B 0xa947d47ef2c6510e
+#define RGLM_VALID_C 0x502774e7b1ac9730
+#define RGLM_VALID_D 0x820cc6eab481d935
+
 /* Position status has length 3, plus one char for proper termination. */
 #define RGLM_POSITION_STATUS_BUF_SIZE 4
 
 /* This is a conventional out of range value. */
 #define RGLM_INVALID_GLM_VARIABLE_ID UINT32_MAX
+
+/* The number of records into a data chunk. */
+#define RGLMDF_GPS_DATA_CHUNK_SIZE 4096
 
 #include <inttypes.h>
 #include <time.h>
@@ -217,7 +230,7 @@ typedef struct rglmdf_position_summary_table_s {
  */
 typedef struct rglmdf_pattern_freq_summary_record_s {
   int64_t glm_variable_id;         /**< @brief It is the unique variable index for the GLM (Generalized Linear Model). */
-  int16_t entity_class;            /**< @brief It is a value in board_entity_class_t enum. */
+  int16_t entity_class;            /**< @brief It is a value in board_entity_class_tg enum. */
   int16_t pattern_id;              /**< @brief Board Pattern Id, as defined by REGAB table regab_prng_patterns. */
   int32_t principal_index_value;   /**< @brief Principal Index Value for Pattern as defined by REGAB table regab_prng_pattern_ranges. */
   int64_t total_cnt;               /**< @brief Number of times that the pattern, or its mirror, is found in the game position selection. */
@@ -241,18 +254,29 @@ typedef struct rglmdf_pattern_freq_summary_table_s {
 
 /* ### ### */
 
-typedef struct rglmdf_feature_or_pattern_to_glm_var_id_map_record_s {
+/**
+ * @brief Reversi GLM data file record definition for the entity to glm variable id mapping table.
+ *
+ * @details Each record is identified by a unique key composed by `(entity_class,entity_id,index_value)`.
+ *
+ */
+typedef struct rglmdf_entity_to_glm_var_id_map_record_s {
   int16_t entity_class;          /**< @brief It is 0 when feature and 1 when pattern. */
   int16_t entity_id;             /**< @brief Board Pattern Id, as defined by REGAB table regab_prng_patterns. */
   int32_t index_value;
   int32_t principal_index_value;
   int64_t glm_variable_id;
-} rglmdf_feature_or_pattern_to_glm_var_id_map_record_t;
+} rglmdf_entity_to_glm_var_id_map_record_t;
 
-typedef struct rglmdf_feature_or_pattern_to_glm_var_id_map_table_s {
+/**
+ * @brief Reversi GLM data file table holding the mapping between entities and glm variable ids.
+ *
+ * @details There are two mappings .
+ */
+typedef struct rglmdf_entity_to_glm_var_id_map_table_s {
   size_t ntuples;
-  rglmdf_feature_or_pattern_to_glm_var_id_map_record_t *records;
-} rglmdf_feature_or_pattern_to_glm_var_id_map_table_t;
+  rglmdf_entity_to_glm_var_id_map_record_t *records;
+} rglmdf_entity_to_glm_var_id_map_table_t;
 
 /* ### ### */
 
@@ -1041,28 +1065,6 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
                                            bool verbose);
 
 /**
- * @brief Saves the genaral data structure to a binary file.
- *
- * @details Opens the file named `filename`, and stores the data
- *          contained by the `gd` general data structure in it.
- *          When the file is closed the function computes the SHA3-256
- *          hash and save it into a second file named `filename`.SHA3-256.
- *
- * @invariant Parameter `gd` must be not `NULL`.
- * The invariant is guarded by an assertion.
- *
- * @invariant Parameter `filename` must be not `NULL`.
- * The invariant is guarded by an assertion.
- *
- * @param [in] gd       reference to the general data structure
- * @param [in] filename name of the file being written
- * @return              `0` on succesful execution.
- */
-extern int
-rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
-                                          char *filename);
-
-/**
  * @brief Dumps the RGLM weights to a binary file.
  *
  * @details Opens the file named `filename`, and stores the RGLM parameters in it.
@@ -1083,5 +1085,31 @@ rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
 extern int
 rglmdf_write_rglm_weights_to_binary_file (rglmdf_general_data_t *gd,
                                           char *filename);
+
+/**
+ * @brief Dumps the RGLM weights to a binary file.
+ *
+ * @details Opens the file named `filename`, and stores the RGLM parameters in it.
+ *          All parameters belonging to to the list of patterns considered by the model
+ *          are saved. Parameters corresponding to missing pattern configurations are
+ *          valued as zero.
+ *          The time field saved in the file is the actual time.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `filename` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd       reference to the general data structure
+ * @param [in] filename name of the file being digested
+ * @param [in] time     the value of the time field saved in the file
+ * @return              `0` on succesful execution.
+ */
+extern int
+rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
+                                          char *filename,
+                                          time_t time);
+
 
 #endif /* RGLM_DATA_FILES_H */

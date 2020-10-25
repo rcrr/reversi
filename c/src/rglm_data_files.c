@@ -1343,9 +1343,23 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
   return EXIT_SUCCESS;
 }
 
+static size_t
+fwrite2 (const void *ptr,
+         size_t size,
+         size_t nmemb,
+         FILE *stream,
+         size_t *written_byte_count)
+{
+  size_t n;
+  n = fwrite(ptr, size, nmemb, stream);
+  *written_byte_count = n * nmemb;
+  return n;
+}
+
 int
 rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
-                                          char *filename)
+                                          char *filename,
+                                          time_t time)
 {
   assert(gd);
   assert(filename);
@@ -1354,7 +1368,13 @@ rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
   uint64_t u64;
   int16_t i16;
 
-  time_t current_time = (time_t) -1;
+  size_t ntuples_written;
+  size_t ntuples_to_write;
+  size_t fwn;
+
+  rglmdf_solved_and_classified_gp_record_t *rp;
+  double *fap;
+  uint32_t *iap;
 
   FILE *ofp = fopen(filename, "w");
   if (!ofp) {
@@ -1362,70 +1382,88 @@ rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
     return EXIT_FAILURE;
   }
 
-  /* Obtains current time as seconds elapsed since the Epoch. */
-  current_time = time(NULL);
-  assert(current_time != ((time_t) -1));
+  /* Progressive count of bytes written to file. */
+  fwn = 0;
 
-  /* Writes current time to the binary file. */
-  u64 = current_time;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  /* Writes time to the binary file. */
+  u64 = time;
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
 
   /* Writes count of batch ids, and the batch_ids array to the binary file. */
   u64 = gd->batch_id_cnt;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
-  fwrite(gd->batch_ids, sizeof(uint64_t), gd->batch_id_cnt, ofp);
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
+  fwrite2(gd->batch_ids, sizeof(uint64_t), gd->batch_id_cnt, ofp, &fwn);
 
   /* Writes empty count to the binary file. */
   u8 = gd->empty_count;
-  fwrite(&u8, sizeof(uint8_t), 1, ofp);
+  fwrite2(&u8, sizeof(uint8_t), 1, ofp, &fwn);
 
   /* Writes the count of position status, and the text buffer containing the terminated strings. */
   u64 = gd->position_status_cnt;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
-  fwrite(gd->position_status_buffer, RGLM_POSITION_STATUS_BUF_SIZE, gd->position_status_cnt, ofp);
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
+  fwrite2(gd->position_status_buffer, RGLM_POSITION_STATUS_BUF_SIZE, gd->position_status_cnt, ofp, &fwn);
 
   /* Writes the feature count, and the array of feature id to the binary file. */
   u64 = gd->feature_cnt;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
   for (size_t i = 0; i < gd->feature_cnt; i++) {
     i16 = gd->features[i];
-    fwrite(&i16, sizeof(int16_t), 1, ofp);
+    fwrite2(&i16, sizeof(int16_t), 1, ofp, &fwn);
   }
 
   /* Writes the pattern count, and the array of pattern id to the binary file. */
   u64 = gd->pattern_cnt;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
   for (size_t i = 0; i < gd->pattern_cnt; i++) {
     i16 = gd->patterns[i];
-    fwrite(&i16, sizeof(int16_t), 1, ofp);
+    fwrite2(&i16, sizeof(int16_t), 1, ofp, &fwn);
   }
 
   /* Writes the statistics for game positions to the binary file ( position_summary table ). */
   u64 = gd->position_summary.ntuples;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
-  fwrite(gd->position_summary.records, sizeof(rglmdf_position_summary_record_t), gd->position_summary.ntuples, ofp);
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
+  fwrite2(gd->position_summary.records, sizeof(rglmdf_position_summary_record_t), gd->position_summary.ntuples, ofp, &fwn);
 
   /* Writes the statistics for pattern indexes to the binary file ( pattern_freq_summary table ). */
   u64 = gd->pattern_freq_summary.glm_f_variable_cnt;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
   u64 = gd->pattern_freq_summary.glm_p_variable_cnt;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
   u64 = gd->pattern_freq_summary.ntuples;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
-  fwrite(gd->pattern_freq_summary.records, sizeof(rglmdf_pattern_freq_summary_record_t), gd->pattern_freq_summary.ntuples, ofp);
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
+  fwrite2(gd->pattern_freq_summary.records, sizeof(rglmdf_pattern_freq_summary_record_t), gd->pattern_freq_summary.ntuples, ofp, &fwn);
 
   /* Writes the classified and resolved game positions to the binary file. */
   u8 = gd->positions.iarray_data_type;
-  fwrite(&u8, sizeof(uint8_t), 1, ofp);
+  fwrite2(&u8, sizeof(uint8_t), 1, ofp, &fwn);
   u64 = gd->positions.ntuples;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
-  /* The file format prescribes to read/write this section in chunks, here we group everything into one single chunk. */
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
-  fwrite(gd->positions.records, sizeof(rglmdf_solved_and_classified_gp_record_t), gd->positions.ntuples, ofp);
-  fwrite(gd->positions.farray, sizeof(double) * gd->positions.n_fvalues_per_record, gd->positions.ntuples, ofp);
-  fwrite(gd->positions.iarray, sizeof(uint32_t) * gd->positions.n_index_values_per_record, gd->positions.ntuples, ofp);
-  u64 = 0;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
+  ntuples_written = 0;
+  ntuples_to_write = gd->positions.ntuples;
+  rp = gd->positions.records;
+  fap = gd->positions.farray;
+  iap = gd->positions.iarray;
+  for (;;) {
+    u64 = ntuples_to_write > RGLMDF_GPS_DATA_CHUNK_SIZE ? RGLMDF_GPS_DATA_CHUNK_SIZE : ntuples_to_write;
+    fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
+    if (u64 == 0) {
+      if (ntuples_written != gd->positions.ntuples) {
+        fprintf(stderr, "The number of game positions being written doesn't match the value gd->positions.ntuples.\n");
+        return EXIT_FAILURE;
+      }
+      break;
+    }
+    fwrite2(rp, sizeof(rglmdf_solved_and_classified_gp_record_t), u64, ofp, &fwn);
+    fwrite2(fap, sizeof(double) * gd->positions.n_fvalues_per_record, u64, ofp, &fwn);
+    //fwrite2(gd->positions.iarray + (ntuples_written  * gd->positions.n_index_values_per_record),
+    //        sizeof(uint32_t) * gd->positions.n_index_values_per_record, u64, ofp, &fwn);
+    fwrite2(iap, sizeof(uint32_t) * gd->positions.n_index_values_per_record, u64, ofp, &fwn);
+    ntuples_written += u64;
+    ntuples_to_write -= u64;
+    rp += u64;
+    fap += u64 * gd->positions.n_fvalues_per_record;
+    iap += u64 * gd->positions.n_index_values_per_record;
+  }
 
   /* Closes the binary file. */
   fclose(ofp);
