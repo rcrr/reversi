@@ -1782,7 +1782,6 @@ main (int argc,
   char *output_file_name = NULL;
 
   size_t nbytes;
-  int nchars;
 
   mop_init(&options, argc, argv);
   while ((opt = mop_parse_long(&options, olist, &oindex)) != -1) {
@@ -2629,16 +2628,6 @@ main (int argc,
 
 
   /*
-   * Piano:
-   *  - Marchiamo tutte le aggiunte con la stringa DAIEE.01, DAIEE.02, ....
-   *  - creiamo la struttura rglmdf_general_data_t
-   *  - mentre il programma colletta i dati dal DB, appena dopo ogni WRITE nel binary file
-   *    popoliamo la struttura.
-   *  - alla fine scriviamo la struttura usando la funzione rglmdf_write_general_data_to_binary_file
-   *  - Verifichiamo che i due files sono uguali.
-   */
-
-  /*
    * Extracts the selected, solved and classified positions from the regab database.
    *
    * There are two options, the "full extract", and the "game positions extract", first option is
@@ -2663,10 +2652,8 @@ main (int argc,
  regab_action_extract:
   ;
 
-  /* DAIEE.00 */
   rglmdf_general_data_t gd;
   rglmdf_general_data_init(&gd);
-  /* DAIEE.00-END */
 
   rglmdf_position_summary_table_t position_summary;
   position_summary.ntuples = 0;
@@ -2688,7 +2675,6 @@ main (int argc,
   }
   memset(pattern_freq_summary.records, 0, nbytes);
 
-  //const size_t gps_data_chunk_size = 4096;
   const size_t gps_data_chunk_size = RGLMDF_GPS_DATA_CHUNK_SIZE;
   const char *sql_cursor_name_gps_data = "sql_cursor_name_gps_data";
   size_t gps_data_total_record_cnt = 0;
@@ -2724,7 +2710,6 @@ main (int argc,
   memset(gps_data.iarray, 0, nbytes);
 
   time_t current_time;
-  uint8_t u8;
   uint64_t u64;
 
   if (t_flag) {
@@ -2745,7 +2730,6 @@ main (int argc,
   }
 
   PGresult *res = NULL;
-  FILE *ofp = NULL;
 
   /* - 00 - Starts a DB transaction. */
   res = PQexec(con, "BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ");
@@ -2792,43 +2776,6 @@ main (int argc,
     }
   }
 
-  /* - 02 - Opens output file. */
-  ofp = fopen(output_file_name, "w");
-  if (!ofp) {
-    fprintf(stderr, "Unable to open output file: %s\n", output_file_name);
-    res = PQexec(con, "ROLLBACK");
-    PQfinish(con);
-    return EXIT_FAILURE;
-  }
-  if (verbose) fprintf(stdout, "Binary output file \"%s\" opened succesfully.\n", output_file_name);
-
-  /* - 03 - Writes the header of the file. */
-  u64 = current_time;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
-  u64 = batch_id_cnt;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
-  fwrite(batch_ids, sizeof(uint64_t), batch_id_cnt, ofp);
-  u8 = empty_count;
-  fwrite(&u8, sizeof(uint8_t), 1, ofp);
-  u64 = position_status_cnt;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
-  fwrite(position_status_buffer, RGLM_POSITION_STATUS_BUF_SIZE, position_status_cnt, ofp);
-  u64 = feature_cnt;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
-  for (size_t i = 0; i < feature_cnt; i++) {
-    int16_t i16 = features[i];
-    fwrite(&i16, sizeof(int16_t), 1, ofp);
-  }
-  u64 = pattern_cnt;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
-  for (size_t i = 0; i < pattern_cnt; i++) {
-    int16_t i16 = patterns[i];
-    fwrite(&i16, sizeof(int16_t), 1, ofp);
-  }
-  fflush(ofp);
-  if (verbose) fprintf(stdout, "Header data written succesfully to binary output file \"%s\".\n", output_file_name);
-
-  /* DAIEE.01 */
   rglmdf_set_file_creation_time(&gd, current_time);
   u64 = rglmdf_set_batch_id_cnt(&gd, batch_id_cnt);
   if (u64 != batch_id_cnt) {
@@ -2864,16 +2811,11 @@ main (int argc,
     return EXIT_FAILURE;
   }
   memcpy(rglmdf_get_patterns(&gd), patterns, sizeof(board_pattern_id_t) * pattern_cnt);
-  /* DAIEE.01-END */
 
   /* - 04 - Collects from the DB the game positions statistics and writes them to the binary file. */
   if (p_flag || f_flag) {
     do_action_extract_count_positions(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses, &position_summary);
     u64 = position_summary.ntuples;
-    fwrite(&u64, sizeof(uint64_t), 1, ofp);
-    fwrite(position_summary.records, sizeof(rglmdf_position_summary_record_t), position_summary.ntuples, ofp);
-    if (verbose) fprintf(stdout, "Position summary table written succesfully to binary output file \"%s\".\n", output_file_name);
-    /* DAIEE.02 */
     u64 = rglmdf_set_position_summary_ntuples(&gd, position_summary.ntuples);
     if (u64 != position_summary.ntuples) {
       fprintf(stderr, "Unable to allocate memory for position summary table.\n");
@@ -2882,7 +2824,6 @@ main (int argc,
       return EXIT_FAILURE;
     }
     memcpy(rglmdf_get_position_summary_records(&gd), position_summary.records, sizeof(rglmdf_position_summary_record_t) * position_summary.ntuples);
-    /* DAIEE.02-END */
     free(position_summary.records);
   }
 
@@ -2903,13 +2844,6 @@ main (int argc,
     pattern_freq_summary.ntuples = pattern_freq_summary.glm_f_variable_cnt + pattern_freq_summary.glm_p_variable_cnt;
     if (verbose) fprintf(stdout, "GLM variables are %zu, given by features are %zu, and by patterns are %zu.\n",
                          pattern_freq_summary.ntuples, pattern_freq_summary.glm_f_variable_cnt, pattern_freq_summary.glm_p_variable_cnt);
-    u64 = pattern_freq_summary.glm_f_variable_cnt;
-    fwrite(&u64, sizeof(uint64_t), 1, ofp);
-    u64 = pattern_freq_summary.glm_p_variable_cnt;
-    fwrite(&u64, sizeof(uint64_t), 1, ofp);
-    u64 = pattern_freq_summary.ntuples;
-    fwrite(&u64, sizeof(uint64_t), 1, ofp);
-    /* DAIEE.03.a */
     u64 = rglmdf_set_pattern_freq_summary_ntuples(&gd,
                                                   pattern_freq_summary.glm_f_variable_cnt,
                                                   pattern_freq_summary.glm_p_variable_cnt,
@@ -2920,7 +2854,6 @@ main (int argc,
       PQfinish(con);
       return EXIT_FAILURE;
     }
-    /* DAIEE.03.a-END */
 
     if (pattern_freq_summary_chunk_size < pattern_freq_summary.glm_f_variable_cnt) {
       fprintf(stderr, "Error: The count of variables belonging to features is larger than the allocated memory.\n");
@@ -2947,13 +2880,10 @@ main (int argc,
         k++;
       }
     }
-    fwrite(pattern_freq_summary.records, sizeof(rglmdf_pattern_freq_summary_record_t), pattern_freq_summary.glm_f_variable_cnt, ofp);
-    /* DAIEE.03.b */
     rglmdf_pattern_freq_summary_record_t *pfsrp;
     pfsrp = rglmdf_get_pattern_freq_summary_records(&gd);
     memcpy(pfsrp, pattern_freq_summary.records, sizeof(rglmdf_pattern_freq_summary_record_t) * pattern_freq_summary.glm_f_variable_cnt);
     pfsrp += pattern_freq_summary.glm_f_variable_cnt;
-    /* DAIEE.03.b-END */
 
     for (;;) {
       do_action_extract_pattern_freqs_cursor_fetch(&result, con, verbose, sql_cursor_name_pattern_freqs, pattern_freq_summary_chunk_size, &pattern_freq_summary);
@@ -2962,20 +2892,15 @@ main (int argc,
         if (pattern_freq_summary_fetched_record_cnt != pattern_freq_summary.glm_p_variable_cnt) {
           res = PQexec(con, "ROLLBACK");
           PQfinish(con);
-          fclose(ofp);
           fprintf(stderr, "Records count mismatch, do_action_extract_pattern_freqs_cursor_fetch returned an unexpectd number of records.\n");
           return EXIT_FAILURE;
         }
         break;
       }
-      fwrite(pattern_freq_summary.records, sizeof(rglmdf_pattern_freq_summary_record_t), pattern_freq_summary.ntuples, ofp);
-      /* DAIEE.03.c */
       memcpy(pfsrp, pattern_freq_summary.records, sizeof(rglmdf_pattern_freq_summary_record_t) * pattern_freq_summary.ntuples);
       pfsrp += pattern_freq_summary.ntuples;
-      /* DAIEE.03.c-END */
     }
     free(pattern_freq_summary.records);
-    if (verbose) fprintf(stdout, "Pattern frequency summary table written succesfully to binary output file \"%s\".\n", output_file_name);
   }
 
   /* - 07 - Creates the CURSOR variable, and writes the total amount of expected records. */
@@ -2983,11 +2908,6 @@ main (int argc,
                                             pattern_cnt, patterns, sql_cursor_name_gps_data, &gps_data_total_record_cnt);
   rglmdf_iarray_data_type_t iarray_data_type;
   iarray_data_type = p_flag ? RGLMDF_IARRAY_IS_INDEX : RGLMDF_IARRAY_IS_MISSING;
-  u8 = iarray_data_type;
-  fwrite(&u8, sizeof(uint8_t), 1, ofp);
-  u64 = gps_data_total_record_cnt;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
-  /* DAIEE.04.a */
   u64 = rglmdf_set_positions_ntuples(&gd, gps_data_total_record_cnt, iarray_data_type);
   if (u64 != gps_data_total_record_cnt) {
     fprintf(stderr, "Unable to allocate memory for solved and classified game positions table.\n");
@@ -3000,49 +2920,31 @@ main (int argc,
   uint32_t *iarrayp = rglmdf_get_positions_iarray(&gd);
   const size_t nf = rglmdf_get_positions_n_fvalues_per_record(&gd);
   const size_t ni = rglmdf_get_positions_n_index_values_per_record(&gd);
-  /* DAIEE.04.a-END */
 
   /* - 08 - Iterates over chunks of data retrieved from the cursor. */
   for (;;) {
     do_action_extract_game_pos_cursor_fetch(&result, con, verbose, feature_cnt, features, sql_cursor_name_gps_data, gps_data_chunk_size, &gps_data);
-    u64 = gps_data.ntuples;
-    fwrite(&u64, sizeof(uint64_t), 1, ofp);
-    /* DAIEE.04.b */
-    // Nothing to load here ...
-    /* DAIEE.04.b-END */
     gps_data_fetched_record_cnt += gps_data.ntuples;
     if (gps_data.ntuples == 0) {
       if (gps_data_fetched_record_cnt != gps_data_total_record_cnt) {
         res = PQexec(con, "ROLLBACK");
         PQfinish(con);
-        fclose(ofp);
         fprintf(stderr, "Records count mismatch, do_action_extract_game_pos_cursor_fetch returned an unexpectd number of records.\n");
         return EXIT_FAILURE;
       }
       break;
     }
-    fwrite(gps_data.records, sizeof(rglmdf_solved_and_classified_gp_record_t), gps_data.ntuples, ofp);
-    fwrite(gps_data.farray, sizeof(double) * gps_data.n_fvalues_per_record, gps_data.ntuples, ofp);
-    fwrite(gps_data.iarray, sizeof(uint32_t) * gps_data.n_index_values_per_record, gps_data.ntuples, ofp);
-    /* DAIEE.04.c */
     memcpy(scgprp, gps_data.records, sizeof(rglmdf_solved_and_classified_gp_record_t) * gps_data.ntuples);
     memcpy(farrayp, gps_data.farray, sizeof(double) * nf * gps_data.ntuples);
     memcpy(iarrayp, gps_data.iarray, sizeof(uint32_t) * ni * gps_data.ntuples);
     scgprp += gps_data.ntuples;
     farrayp += nf * gps_data.ntuples;
     iarrayp += ni * gps_data.ntuples;
-    /* DAIEE.04.c-END */
   }
   free(gps_data.iarray);
   free(gps_data.farray);
   free(gps_data.records);
-  if (verbose) fprintf(stdout, "Game Position Records written succesfully. Total record count is %zu.\n", gps_data_total_record_cnt);
-
-  /* - 11 - Clean up output file. */
-  int fclose_ret = fclose(ofp);
-  assert(fclose_ret == 0);
-  (void) fclose_ret; /* Suppress the warning "unused variable" rised when compiling without assertions. */
-
+  if (verbose) fprintf(stdout, "Total count of Game Position Records is %zu.\n", gps_data_total_record_cnt);
 
   /* - 12 - Closes the DB transaction. */
   res = PQexec(con, "END");
@@ -3052,38 +2954,19 @@ main (int argc,
     return EXIT_FAILURE;
   }
   PQclear(res);
-  if (verbose) fprintf(stdout, "Database transaction and output file \"%s\" have been closed.\n", output_file_name);
-
-  /* - 13 - Computes the SHA3 digest. */
-  int ret_code;
-  ret_code = rglmdf_generate_sha3_file_digest(output_file_name);
-  if (ret_code != 0) {
-    fprintf(stderr, "Unabelo to compute and write SHA3-256 digest file.\n");
-    PQfinish(con);
-    return EXIT_FAILURE;
-  }
-  if (verbose) fprintf(stdout, "Computed SHA3-256 digest, written to file.\n");
+  if (verbose) fprintf(stdout, "Database transaction has been closed.\n");
 
   /* Writes the binary output file. */
-  /* DAIEE.05 */
-  if (true) {
-    char output_file_name2[1024];
-    time_t saved_time;
-    nchars = snprintf(output_file_name2, sizeof(output_file_name2), "%s%s", o_arg, "_b");
-    if (nchars >= sizeof(output_file_name2)) {
-      fprintf(stderr, "Error, buffer output_file_name2 doesn't have the required size. Aborting ...\n");
-      abort();
-    }
-    saved_time = t_flag ? (time_t) 0 : time(NULL);
-    ret_code = rglmdf_write_general_data_to_binary_file(&gd, output_file_name2, saved_time);
-    if (ret_code == EXIT_SUCCESS) {
-      if (verbose) fprintf(stdout, "Binary output file written to %s, computed SHA3-256 digest, written to file %s.sha3-256.\n", output_file_name2, output_file_name2);
-    } else {
-      fprintf(stderr, "Unable to write correctly binary output file: %s\n", output_file_name2);
-      return ret_code;
-    }
+  time_t output_time;
+  int ret_code;
+  output_time = t_flag ? (time_t) 0 : time(NULL);
+  ret_code = rglmdf_write_general_data_to_binary_file(&gd, output_file_name, output_time);
+  if (ret_code == EXIT_SUCCESS) {
+    if (verbose) fprintf(stdout, "Binary output file written to %s, computed SHA3-256 digest, written to file %s.sha3-256.\n", output_file_name, output_file_name);
+  } else {
+    fprintf(stderr, "Unable to write correctly binary output file: %s\n", output_file_name);
+    return ret_code;
   }
-  /* DAIEE.05.END */
 
   goto regab_program_end;
 
