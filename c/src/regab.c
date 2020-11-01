@@ -1467,20 +1467,15 @@ static void
 do_action_extract_count_positions (int *result,
                                    PGconn *con,
                                    bool verbose,
-                                   uint8_t empty_count,
-                                   size_t batch_id_cnt,
-                                   uint64_t *batch_ids,
-                                   size_t position_status_cnt,
-                                   char **position_statuses,
-                                   rglmdf_position_summary_table_t *return_table)
+                                   rglmdf_general_data_t *gd)
 {
   static const size_t command_size = 1024;
 
   PGresult *res = NULL;
   char command[command_size];
-  size_t cl;
-  size_t records_nbytes;
+  size_t cl, n;
   char *cp;
+  rglmdf_position_summary_record_t *rec;
 
   if (!result) return;
   if (!con) {
@@ -1495,31 +1490,35 @@ do_action_extract_count_positions (int *result,
   cp = command + cl;
   if (cl >= command_size) {
     fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-    abort();
+    *result = -1;
+    return;
   }
 
-  cl += snprintf(cp, command_size - cl, "%d, '{", empty_count);
+  cl += snprintf(cp, command_size - cl, "%d, '{", gd->empty_count);
   cp = command + cl;
   if (cl >= command_size) {
     fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-    abort();
+    *result = -1;
+    return;
   }
 
-  for (size_t i = 0; i < batch_id_cnt; i++) {
-    cl += snprintf(cp, command_size - cl, "%zu%s", batch_ids[i], (i < batch_id_cnt - 1) ? ", " : "}', '{");
+  for (size_t i = 0; i < gd->batch_id_cnt; i++) {
+    cl += snprintf(cp, command_size - cl, "%zu%s", gd->batch_ids[i], (i < gd->batch_id_cnt - 1) ? ", " : "}', '{");
     cp = command + cl;
     if (cl >= command_size) {
       fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-      abort();
+      *result = -1;
+      return;
     }
   }
 
-  for (size_t i = 0; i < position_status_cnt; i++) {
-    cl += snprintf(cp, command_size - cl, "\"%s\"%s", position_statuses[i], (i < position_status_cnt - 1) ? ", " : "}');");
+  for (size_t i = 0; i < gd->position_status_cnt; i++) {
+    cl += snprintf(cp, command_size - cl, "\"%s\"%s", gd->position_statuses[i], (i < gd->position_status_cnt - 1) ? ", " : "}');");
     cp = command + cl;
     if (cl >= command_size) {
       fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-      abort();
+      *result = -1;
+      return;
     }
   }
 
@@ -1528,16 +1527,17 @@ do_action_extract_count_positions (int *result,
     fprintf(stderr, "%s", PQerrorMessage(con));
     *result = -1;
   } else {
-    return_table->ntuples = PQntuples(res);
-    records_nbytes = sizeof(rglmdf_position_summary_record_t) * return_table->ntuples;
-    return_table->records = (rglmdf_position_summary_record_t *) malloc(records_nbytes);
-    if (!return_table->records) {
-      fprintf(stderr, "Unable to allocate memory for return_table->records array.\n");
-      abort();
+    gd->position_summary.ntuples = PQntuples(res);
+
+    n = rglmdf_set_position_summary_ntuples(gd, gd->position_summary.ntuples);
+    if (n != gd->position_summary.ntuples) {
+      fprintf(stderr, "Unable to allocate memory for position summary table.\n");
+      *result = -1;
+      goto end;
     }
-    memset(return_table->records, 0, records_nbytes);
-    for (size_t i = 0; i < return_table->ntuples; i++) {
-      rglmdf_position_summary_record_t *rec = &return_table->records[i];
+
+    for (size_t i = 0; i < gd->position_summary.ntuples; i++) {
+      rec = &gd->position_summary.records[i];
       rec->batch_id = atoi(PQgetvalue(res, i, 0));
       strcpy(rec->status, PQgetvalue(res, i, 1));
       rec->game_position_cnt = atol(PQgetvalue(res, i, 2));
@@ -1552,16 +1552,19 @@ do_action_extract_count_positions (int *result,
       fprintf(stdout, "   ----------------------------\n");
       fprintf(stdout, "________________________________________________________\n");
       fprintf(stdout, "      |          |        |            |                \n");
-      fprintf(stdout, " ---- | batch_id | status |   gp_cnt   | classified_cnt \n");
+      fprintf(stdout, " rec  | batch_id | status |   gp_cnt   | classified_cnt \n");
       fprintf(stdout, "______|__________|________|____________|________________\n");
-      for (size_t i = 0; i < return_table->ntuples; i++) {
-        rglmdf_position_summary_record_t *rec = &return_table->records[i];
-        fprintf(stdout, " %04zu | %8d |   %s  | %10zu |     %10zu\n", i, rec->batch_id, rec->status, rec->game_position_cnt, rec->classified_cnt);
+      for (size_t i = 0; i < gd->position_summary.ntuples; i++) {
+        rec = &gd->position_summary.records[i];
+        fprintf(stdout, " %04zu | %8d |   %s  | %10zu |     %10zu\n",
+                i, rec->batch_id, rec->status, rec->game_position_cnt, rec->classified_cnt);
       }
       fprintf(stdout, "\n");
     }
     *result = 0;
   }
+
+ end:
   PQclear(res);
 }
 
@@ -2655,10 +2658,6 @@ main (int argc,
   rglmdf_general_data_t gd;
   rglmdf_general_data_init(&gd);
 
-  rglmdf_position_summary_table_t position_summary;
-  position_summary.ntuples = 0;
-  position_summary.records = NULL;
-
   const size_t pattern_freq_summary_chunk_size = 1024;
   const char *sql_cursor_name_pattern_freqs_debug = "sql_cursor_name_pattern_freqs_debug";
   const char *sql_cursor_name_pattern_freqs = "sql_cursor_name_pattern_freqs";
@@ -2709,27 +2708,25 @@ main (int argc,
   }
   memset(gps_data.iarray, 0, nbytes);
 
-  time_t current_time;
+  time_t saved_time;
   uint64_t u64;
 
+  PGresult *res = NULL;
+
+  /*
+   * The time saved into the gd structure is the current time when the t_flag is NULL,
+   * when t_flag is selected the value is set to zero.
+   * Setting to zero is used for testing, when an always changing value is changing the file hash.
+   */
   if (t_flag) {
-    current_time = (time_t) 0;
+    saved_time = (time_t) 0;
   } else {
     /* Obtain current time as seconds elapsed since the Epoch. */
-    current_time = time(NULL);
-    assert(current_time != ((time_t) 0));
+    saved_time = time(NULL);
+    assert(saved_time != ((time_t) 0));
   }
-
-  if (verbose) {
-    char* c_time_string = NULL;
-    /* Convert to local time format. */
-    c_time_string = ctime(&current_time);
-    assert(c_time_string);
-    /* ctime() has already added a terminating newline character. */
-    fprintf(stdout, "Current time is %s", c_time_string);
-  }
-
-  PGresult *res = NULL;
+  if (verbose) fprintf(stdout, "Time saved to file is %s", ctime(&saved_time));
+  rglmdf_set_file_creation_time(&gd, saved_time);
 
   /* - 00 - Starts a DB transaction. */
   res = PQexec(con, "BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ");
@@ -2740,12 +2737,40 @@ main (int argc,
   }
   PQclear(res);
 
-  /* - 01.a - Checks batch_id argument data. */
+  /* - 01.a - Checks batch_id argument data, then copies it into the gd structure. */
   do_action_extract_check_batches(&result, con, verbose, batch_ids, batch_id_cnt);
   if (result != 0) {
     res = PQexec(con, "ROLLBACK");
     PQfinish(con);
     return EXIT_FAILURE;
+  }
+  u64 = rglmdf_set_batch_id_cnt(&gd, batch_id_cnt);
+  if (u64 != batch_id_cnt) {
+    fprintf(stderr, "Unable to allocate memory for batch_ids array.\n");
+    res = PQexec(con, "ROLLBACK");
+    PQfinish(con);
+    return EXIT_FAILURE;
+  }
+  memcpy(rglmdf_get_batch_ids(&gd), batch_ids, sizeof(batch_ids) * batch_id_cnt);
+
+  /* Copies the empty_count field into the gd structure. */
+  rglmdf_set_empty_count(&gd, empty_count);
+
+  /* Copies the position_status field into the gd structure. */
+  u64 = rglmdf_set_position_status_cnt(&gd, position_status_cnt);
+  if (u64 != position_status_cnt) {
+    fprintf(stderr, "Unable to allocate memory for position_statuses array.\n");
+    res = PQexec(con, "ROLLBACK");
+    PQfinish(con);
+    return EXIT_FAILURE;
+  }
+  char **cpp = rglmdf_get_position_statuses(&gd);
+  memcpy(*cpp, position_status_buffer, RGLM_POSITION_STATUS_BUF_SIZE * position_status_cnt);
+  if (verbose) {
+    fprintf(stdout, "Searched position statuses: ");
+    for (size_t i = 0; i < position_status_cnt; i++) {
+      fprintf(stdout, "%s%s", position_statuses[i], i == position_status_cnt - 1 ? "\n\n" : ", ");
+    }
   }
 
   /* - 01.b - Checks feature argument data. */
@@ -2757,6 +2782,14 @@ main (int argc,
       return EXIT_FAILURE;
     }
   }
+  u64 = rglmdf_set_feature_cnt(&gd, feature_cnt);
+  if (u64 != feature_cnt) {
+    fprintf(stderr, "Unable to allocate memory for features array.\n");
+    res = PQexec(con, "ROLLBACK");
+    PQfinish(con);
+    return EXIT_FAILURE;
+  }
+  memcpy(rglmdf_get_features(&gd), features, sizeof(board_feature_id_t) * feature_cnt);
 
   /* - 01.c - Checks pattern argument data. */
   if (p_flag) {
@@ -2767,42 +2800,6 @@ main (int argc,
       return EXIT_FAILURE;
     }
   }
-
-  /* - 01.d - Logs selected statuses for the game positions. */
-  if (verbose) {
-    fprintf(stdout, "Searched position statuses: ");
-    for (size_t i = 0; i < position_status_cnt; i++) {
-      fprintf(stdout, "%s%s", position_statuses[i], i == position_status_cnt - 1 ? "\n\n" : ", ");
-    }
-  }
-
-  rglmdf_set_file_creation_time(&gd, current_time);
-  u64 = rglmdf_set_batch_id_cnt(&gd, batch_id_cnt);
-  if (u64 != batch_id_cnt) {
-    fprintf(stderr, "Unable to allocate memory for batch_ids array.\n");
-    res = PQexec(con, "ROLLBACK");
-    PQfinish(con);
-    return EXIT_FAILURE;
-  }
-  memcpy(rglmdf_get_batch_ids(&gd), batch_ids, sizeof(batch_ids) * batch_id_cnt);
-  rglmdf_set_empty_count(&gd, empty_count);
-  u64 = rglmdf_set_position_status_cnt(&gd, position_status_cnt);
-  if (u64 != position_status_cnt) {
-    fprintf(stderr, "Unable to allocate memory for position_statuses array.\n");
-    res = PQexec(con, "ROLLBACK");
-    PQfinish(con);
-    return EXIT_FAILURE;
-  }
-  char **cpp = rglmdf_get_position_statuses(&gd);
-  memcpy(*cpp, position_status_buffer, RGLM_POSITION_STATUS_BUF_SIZE * position_status_cnt);
-  u64 = rglmdf_set_feature_cnt(&gd, feature_cnt);
-  if (u64 != feature_cnt) {
-    fprintf(stderr, "Unable to allocate memory for features array.\n");
-    res = PQexec(con, "ROLLBACK");
-    PQfinish(con);
-    return EXIT_FAILURE;
-  }
-  memcpy(rglmdf_get_features(&gd), features, sizeof(board_feature_id_t) * feature_cnt);
   u64 = rglmdf_set_pattern_cnt(&gd, pattern_cnt);
   if (u64 != pattern_cnt) {
     fprintf(stderr, "Unable to allocate memory for patterns array.\n");
@@ -2812,19 +2809,9 @@ main (int argc,
   }
   memcpy(rglmdf_get_patterns(&gd), patterns, sizeof(board_pattern_id_t) * pattern_cnt);
 
-  /* - 04 - Collects from the DB the game positions statistics and writes them to the binary file. */
+  /* - 04 - Collects from the DB the game positions statistics and stores them into the gd structure. */
   if (p_flag || f_flag) {
-    do_action_extract_count_positions(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses, &position_summary);
-    u64 = position_summary.ntuples;
-    u64 = rglmdf_set_position_summary_ntuples(&gd, position_summary.ntuples);
-    if (u64 != position_summary.ntuples) {
-      fprintf(stderr, "Unable to allocate memory for position summary table.\n");
-      res = PQexec(con, "ROLLBACK");
-      PQfinish(con);
-      return EXIT_FAILURE;
-    }
-    memcpy(rglmdf_get_position_summary_records(&gd), position_summary.records, sizeof(rglmdf_position_summary_record_t) * position_summary.ntuples);
-    free(position_summary.records);
+    do_action_extract_count_positions(&result, con, verbose, &gd);
   }
 
   /* - 05 - Collects from the DB the pattern index statistics, assigns the global variable index value, writes them to the binary file ... */
@@ -2992,8 +2979,6 @@ main (int argc,
   free(feature_buffer);
   free(pattern_buffer);
   free(patterns);
-
-  /* DAIEE.99 */
   rglmdf_general_data_release(&gd);
 
   return 0;
