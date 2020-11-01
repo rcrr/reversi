@@ -1302,7 +1302,8 @@ do_action_extract_pattern_freqs_cursor_fetch (int *result,
                                               bool verbose,
                                               const char *sql_cursor_name,
                                               size_t chunk_size,
-                                              rglmdf_pattern_freq_summary_table_t *return_table)
+                                              rglmdf_pattern_freq_summary_record_t *rec,
+                                              size_t *fetched_record_cnt)
 {
   static const size_t command_size = 1024;
 
@@ -1339,16 +1340,17 @@ do_action_extract_pattern_freqs_cursor_fetch (int *result,
     fprintf(stderr, "%s", PQerrorMessage(con));
     *result = -1;
   } else {
-    return_table->ntuples = PQntuples(res);
-    for (size_t i = 0; i < return_table->ntuples; i++) {
-      return_table->records[i].glm_variable_id = atol(PQgetvalue(res, i, 0));
-      return_table->records[i].entity_class = BOARD_ENTITY_CLASS_PATTERN;
-      return_table->records[i].pattern_id = atol(PQgetvalue(res, i, 1));
-      return_table->records[i].principal_index_value = atol(PQgetvalue(res, i, 2));
-      return_table->records[i].total_cnt = atol(PQgetvalue(res, i, 3));
-      return_table->records[i].relative_frequency = atof(PQgetvalue(res, i, 4));
-      return_table->records[i].theoretical_probability = atof(PQgetvalue(res, i, 5));
-      return_table->records[i].weight = 0.0; // Weight is set to 0.0 that is the neutral value (game value equal to zero) for the evaluation function.
+    *fetched_record_cnt = PQntuples(res);
+    for (size_t i = 0; i < *fetched_record_cnt; i++) {
+      rec->glm_variable_id = atol(PQgetvalue(res, i, 0));
+      rec->entity_class = BOARD_ENTITY_CLASS_PATTERN;
+      rec->pattern_id = atol(PQgetvalue(res, i, 1));
+      rec->principal_index_value = atol(PQgetvalue(res, i, 2));
+      rec->total_cnt = atol(PQgetvalue(res, i, 3));
+      rec->relative_frequency = atof(PQgetvalue(res, i, 4));
+      rec->theoretical_probability = atof(PQgetvalue(res, i, 5));
+      rec->weight = 0.0; // Weight is set to 0.0 that is the neutral value (game value equal to zero) for the evaluation function.
+      rec++;
     }
     *result = 0;
   }
@@ -2662,17 +2664,6 @@ main (int argc,
   const char *sql_cursor_name_pattern_freqs_debug = "sql_cursor_name_pattern_freqs_debug";
   const char *sql_cursor_name_pattern_freqs = "sql_cursor_name_pattern_freqs";
   size_t pattern_freq_summary_fetched_record_cnt = 0;
-  rglmdf_pattern_freq_summary_table_t pattern_freq_summary;
-  pattern_freq_summary.glm_f_variable_cnt = 0;
-  pattern_freq_summary.glm_p_variable_cnt = 0;
-  pattern_freq_summary.ntuples = 0;
-  nbytes = sizeof(rglmdf_pattern_freq_summary_record_t) * pattern_freq_summary_chunk_size;
-  pattern_freq_summary.records = (rglmdf_pattern_freq_summary_record_t *) malloc(nbytes);
-  if (!pattern_freq_summary.records) {
-    fprintf(stderr, "Unable to allocate memory for pattern_freq_summary.records array.\n");
-    abort();
-  }
-  memset(pattern_freq_summary.records, 0, nbytes);
 
   const size_t gps_data_chunk_size = RGLMDF_GPS_DATA_CHUNK_SIZE;
   const char *sql_cursor_name_gps_data = "sql_cursor_name_gps_data";
@@ -2812,71 +2803,70 @@ main (int argc,
   /* - 04 - Collects from the DB the game positions statistics and stores them into the gd structure. */
   if (p_flag || f_flag) {
     do_action_extract_count_positions(&result, con, verbose, &gd);
+    if (result != 0) {
+      fprintf(stderr, "Error occured into function do_action_extract_count_positions(). Exiting ...\n");
+      res = PQexec(con, "ROLLBACK");
+      PQfinish(con);
+      return EXIT_FAILURE;
+    }
   }
 
-  /* - 05 - Collects from the DB the pattern index statistics, assigns the global variable index value, writes them to the binary file ... */
+  /* - 05 - Collects from the DB the feature and pattern index statistics, assigns the global variable index value,
+   *        saves them into the  pattern_freq_summary table into the general data structure. */
   if (p_flag || f_flag) {
-    for (size_t i = 0; i < feature_cnt; i++) {
-      board_feature_id_t fid = features[i];
-      pattern_freq_summary.glm_f_variable_cnt += board_features[fid].field_cnt;
-    }
+    size_t glm_f_variable_cnt = 0;
+    size_t glm_p_variable_cnt = 0;
+    size_t ntuples = 0;
+    for (size_t i = 0; i < feature_cnt; i++)
+      glm_f_variable_cnt += board_features[features[i]].field_cnt;
     do_action_extract_pattern_freqs_prepare_cursor(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses,
-                                                   pattern_cnt, patterns, pattern_freq_summary.glm_f_variable_cnt,
+                                                   pattern_cnt, patterns, glm_f_variable_cnt,
                                                    sql_cursor_name_pattern_freqs_debug, sql_cursor_name_pattern_freqs,
-                                                   &pattern_freq_summary.glm_p_variable_cnt);
+                                                   &glm_p_variable_cnt);
     if (result != 0) {
       fprintf(stderr, "Error occured into function do_action_extract_pattern_freqs_prepare_cursor(). Aborting ...\n");
-      abort();
+      res = PQexec(con, "ROLLBACK");
+      PQfinish(con);
+      return EXIT_FAILURE;
     }
-    pattern_freq_summary.ntuples = pattern_freq_summary.glm_f_variable_cnt + pattern_freq_summary.glm_p_variable_cnt;
+    ntuples = glm_f_variable_cnt + glm_p_variable_cnt;
     if (verbose) fprintf(stdout, "GLM variables are %zu, given by features are %zu, and by patterns are %zu.\n",
-                         pattern_freq_summary.ntuples, pattern_freq_summary.glm_f_variable_cnt, pattern_freq_summary.glm_p_variable_cnt);
-    u64 = rglmdf_set_pattern_freq_summary_ntuples(&gd,
-                                                  pattern_freq_summary.glm_f_variable_cnt,
-                                                  pattern_freq_summary.glm_p_variable_cnt,
-                                                  pattern_freq_summary.ntuples);
-    if (u64 != pattern_freq_summary.ntuples) {
+                         ntuples, glm_f_variable_cnt, glm_p_variable_cnt);
+    u64 = rglmdf_set_pattern_freq_summary_ntuples(&gd, glm_f_variable_cnt, glm_p_variable_cnt, ntuples);
+    if (u64 != ntuples) {
       fprintf(stderr, "Unable to allocate memory for frequency summary table.\n");
       res = PQexec(con, "ROLLBACK");
       PQfinish(con);
       return EXIT_FAILURE;
     }
 
-    if (pattern_freq_summary_chunk_size < pattern_freq_summary.glm_f_variable_cnt) {
-      fprintf(stderr, "Error: The count of variables belonging to features is larger than the allocated memory.\n");
-      fprintf(stderr, "       Consider to increment the value of pattern_freq_summary_chunk_size, or change the program to write records in chunks.\n");
-      fprintf(stderr, "       pattern_freq_summary_chunk_size         = %zu.\n", pattern_freq_summary_chunk_size);
-      fprintf(stderr, "       pattern_freq_summary.glm_f_variable_cnt = %zu.\n", pattern_freq_summary.glm_f_variable_cnt);
-      fprintf(stderr, "       Aborting ...\n");
-      abort();
-    }
     size_t selected_gp_record_cnt = 0;
     do_action_extract_game_pos_cnt(&result, con, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses, &selected_gp_record_cnt);
     size_t k = 0;
+    rglmdf_pattern_freq_summary_record_t *pfsrp;
+    pfsrp = rglmdf_get_pattern_freq_summary_records(&gd);
     for (size_t i = 0; i < feature_cnt; i++) {
-      board_feature_id_t fid = features[i];
-      for (size_t j = 0; j < board_features[fid].field_cnt; j++) {
-        pattern_freq_summary.records[k].glm_variable_id = k;
-        pattern_freq_summary.records[k].entity_class = BOARD_ENTITY_CLASS_FEATURE;
-        pattern_freq_summary.records[k].pattern_id = fid;
-        pattern_freq_summary.records[k].principal_index_value = j;
-        pattern_freq_summary.records[k].total_cnt = selected_gp_record_cnt;
-        pattern_freq_summary.records[k].relative_frequency = 1.0;
-        pattern_freq_summary.records[k].theoretical_probability = 1.0;
-        pattern_freq_summary.records[k].weight = 0.0;
+      for (size_t j = 0; j < board_features[features[i]].field_cnt; j++) {
+        rglmdf_pattern_freq_summary_record_t *rec = &gd.pattern_freq_summary.records[k];
+        rec->glm_variable_id = k;
+        rec->entity_class = BOARD_ENTITY_CLASS_FEATURE;
+        rec->pattern_id = features[i];
+        rec->principal_index_value = j;
+        rec->total_cnt = selected_gp_record_cnt;
+        rec->relative_frequency = 1.0;
+        rec->theoretical_probability = 1.0;
+        rec->weight = 0.0;
         k++;
       }
     }
-    rglmdf_pattern_freq_summary_record_t *pfsrp;
-    pfsrp = rglmdf_get_pattern_freq_summary_records(&gd);
-    memcpy(pfsrp, pattern_freq_summary.records, sizeof(rglmdf_pattern_freq_summary_record_t) * pattern_freq_summary.glm_f_variable_cnt);
-    pfsrp += pattern_freq_summary.glm_f_variable_cnt;
+    pfsrp += glm_f_variable_cnt;
 
     for (;;) {
-      do_action_extract_pattern_freqs_cursor_fetch(&result, con, verbose, sql_cursor_name_pattern_freqs, pattern_freq_summary_chunk_size, &pattern_freq_summary);
-      pattern_freq_summary_fetched_record_cnt += pattern_freq_summary.ntuples;
-      if (pattern_freq_summary.ntuples == 0) {
-        if (pattern_freq_summary_fetched_record_cnt != pattern_freq_summary.glm_p_variable_cnt) {
+      size_t fetched_record_cnt = 0;
+      do_action_extract_pattern_freqs_cursor_fetch(&result, con, verbose, sql_cursor_name_pattern_freqs, pattern_freq_summary_chunk_size, pfsrp, &fetched_record_cnt);
+      pattern_freq_summary_fetched_record_cnt += fetched_record_cnt;
+      if (fetched_record_cnt == 0) {
+        if (pattern_freq_summary_fetched_record_cnt != glm_p_variable_cnt) {
           res = PQexec(con, "ROLLBACK");
           PQfinish(con);
           fprintf(stderr, "Records count mismatch, do_action_extract_pattern_freqs_cursor_fetch returned an unexpectd number of records.\n");
@@ -2884,10 +2874,8 @@ main (int argc,
         }
         break;
       }
-      memcpy(pfsrp, pattern_freq_summary.records, sizeof(rglmdf_pattern_freq_summary_record_t) * pattern_freq_summary.ntuples);
-      pfsrp += pattern_freq_summary.ntuples;
+      pfsrp += fetched_record_cnt;
     }
-    free(pattern_freq_summary.records);
   }
 
   /* - 07 - Creates the CURSOR variable, and writes the total amount of expected records. */
