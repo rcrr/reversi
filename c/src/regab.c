@@ -1074,14 +1074,16 @@ do_action_extract_game_pos_cnt (int *result,
   cp = command + cl;
   if (cl >= command_size) {
     fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-    abort();
+    *result = -1;
+    return;
   }
 
   cl += snprintf(cp, command_size - cl, "%d AND gp.status = ANY ('{", empty_count);
   cp = command + cl;
   if (cl >= command_size) {
     fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-    abort();
+    *result = -1;
+    return;
   }
 
   for (size_t i = 0; i < position_status_cnt; i++) {
@@ -1089,7 +1091,8 @@ do_action_extract_game_pos_cnt (int *result,
     cp = command + cl;
     if (cl >= command_size) {
       fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-      abort();
+      *result = -1;
+      return;
     }
   }
 
@@ -1098,7 +1101,8 @@ do_action_extract_game_pos_cnt (int *result,
     cp = command + cl;
     if (cl >= command_size) {
       fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-      abort();
+      *result = -1;
+      return;
     }
   }
 
@@ -1325,14 +1329,16 @@ do_action_extract_pattern_freqs_cursor_fetch (int *result,
   cp = command + cl;
   if (cl >= command_size) {
     fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-    abort();
+    *result = -1;
+    return;
   }
 
   cl += snprintf(cp, command_size - cl, "%zu FROM %s;", chunk_size, sql_cursor_name);
   cp = command + cl;
   if (cl >= command_size) {
     fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-    abort();
+    *result = -1;
+    return;
   }
 
   res = PQexec(con, command);
@@ -1393,14 +1399,16 @@ do_action_extract_pattern_freqs_prepare_cursor (int *result,
   cp = command + cl;
   if (cl >= command_size) {
     fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-    abort();
+    *result = -1;
+    return;
   }
 
   cl += snprintf(cp, command_size - cl, "%d, %d, '{", glm_variable_id_offset, empty_count);
   cp = command + cl;
   if (cl >= command_size) {
     fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-    abort();
+    *result = -1;
+    return;
   }
 
   for (size_t i = 0; i < batch_id_cnt; i++) {
@@ -1408,7 +1416,8 @@ do_action_extract_pattern_freqs_prepare_cursor (int *result,
     cp = command + cl;
     if (cl >= command_size) {
       fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-      abort();
+      *result = -1;
+      return;
     }
   }
 
@@ -1417,7 +1426,8 @@ do_action_extract_pattern_freqs_prepare_cursor (int *result,
     cp = command + cl;
     if (cl >= command_size) {
       fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-      abort();
+      *result = -1;
+      return;
     }
   }
 
@@ -1426,7 +1436,8 @@ do_action_extract_pattern_freqs_prepare_cursor (int *result,
     cp = command + cl;
     if (cl >= command_size) {
       fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-      abort();
+      *result = -1;
+      return;
     }
   }
 
@@ -1435,7 +1446,8 @@ do_action_extract_pattern_freqs_prepare_cursor (int *result,
     cp = command + cl;
     if (cl >= command_size) {
       fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-      abort();
+      *result = -1;
+      return;
     }
   }
 
@@ -1443,7 +1455,8 @@ do_action_extract_pattern_freqs_prepare_cursor (int *result,
   cp = command + cl;
   if (cl >= command_size) {
     fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-    abort();
+    *result = -1;
+    return;
   }
 
   res = PQexec(con, command);
@@ -1571,22 +1584,6 @@ do_action_extract_count_positions (int *result,
 }
 
 static void
-do_action_extract_check_features (int *result,
-                                  PGconn *con,
-                                  bool verbose,
-                                  board_feature_id_t *features,
-                                  size_t feature_cnt)
-{
-  /*
-   * Currently there is no feature that requires to record its value for the position set in the database.
-   * So we do not have a dedicated extension in the SQL DB for the features. Values are computed on the fly
-   * during the extraction.
-   */
-  if (verbose) printf("Procedure do_action_extract_check_features(): nothing to underline.\n");
-  *result = 0;
-}
-
-static void
 do_action_extract_check_patterns (int *result,
                                   PGconn *con,
                                   bool verbose,
@@ -1623,7 +1620,8 @@ do_action_extract_check_patterns (int *result,
     cp = command + cl;
     if (cl >= command_size) {
       fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command (4).\n");
-      abort();
+      *result = -1;
+      return;
     }
   }
   res = PQexec(con, command);
@@ -1699,7 +1697,8 @@ do_action_extract_check_batches (int *result,
     cp = command + cl;
     if (cl >= command_size) {
       fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command (4).\n");
-      abort();
+      *result = -1;
+      return;
     }
   }
   res = PQexec(con, command);
@@ -2731,6 +2730,7 @@ main (int argc,
   /* - 01.a - Checks batch_id argument data, then copies it into the gd structure. */
   do_action_extract_check_batches(&result, con, verbose, batch_ids, batch_id_cnt);
   if (result != 0) {
+    fprintf(stderr, "Error occured into function do_action_extract_check_batches(). Exiting ...\n");
     res = PQexec(con, "ROLLBACK");
     PQfinish(con);
     return EXIT_FAILURE;
@@ -2765,14 +2765,6 @@ main (int argc,
   }
 
   /* - 01.b - Checks feature argument data. */
-  if (f_flag) {
-    do_action_extract_check_features(&result, con, verbose, features, feature_cnt);
-    if (result != 0) {
-      res = PQexec(con, "ROLLBACK");
-      PQfinish(con);
-      return EXIT_FAILURE;
-    }
-  }
   u64 = rglmdf_set_feature_cnt(&gd, feature_cnt);
   if (u64 != feature_cnt) {
     fprintf(stderr, "Unable to allocate memory for features array.\n");
@@ -2786,6 +2778,7 @@ main (int argc,
   if (p_flag) {
     do_action_extract_check_patterns(&result, con, verbose, patterns, pattern_cnt);
     if (result != 0) {
+      fprintf(stderr, "Error occured into do_action_extract_check_patterns(). Exiting ...\n");
       res = PQexec(con, "ROLLBACK");
       PQfinish(con);
       return EXIT_FAILURE;
@@ -2824,7 +2817,7 @@ main (int argc,
                                                    sql_cursor_name_pattern_freqs_debug, sql_cursor_name_pattern_freqs,
                                                    &glm_p_variable_cnt);
     if (result != 0) {
-      fprintf(stderr, "Error occured into function do_action_extract_pattern_freqs_prepare_cursor(). Aborting ...\n");
+      fprintf(stderr, "Error occured into function do_action_extract_pattern_freqs_prepare_cursor(). Exiting ...\n");
       res = PQexec(con, "ROLLBACK");
       PQfinish(con);
       return EXIT_FAILURE;
@@ -2842,6 +2835,12 @@ main (int argc,
 
     size_t selected_gp_record_cnt = 0;
     do_action_extract_game_pos_cnt(&result, con, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses, &selected_gp_record_cnt);
+    if (result != 0) {
+      fprintf(stderr, "Error occured into function do_action_extract_game_pos_cnt(). Exiting ...\n");
+      res = PQexec(con, "ROLLBACK");
+      PQfinish(con);
+      return EXIT_FAILURE;
+    }
     size_t k = 0;
     rglmdf_pattern_freq_summary_record_t *pfsrp;
     pfsrp = rglmdf_get_pattern_freq_summary_records(&gd);
@@ -2864,6 +2863,12 @@ main (int argc,
     for (;;) {
       size_t fetched_record_cnt = 0;
       do_action_extract_pattern_freqs_cursor_fetch(&result, con, verbose, sql_cursor_name_pattern_freqs, pattern_freq_summary_chunk_size, pfsrp, &fetched_record_cnt);
+      if (result != 0) {
+        fprintf(stderr, "Error occured into do_action_extract_pattern_freqs_cursor_fetch(). Exiting ...\n");
+        res = PQexec(con, "ROLLBACK");
+        PQfinish(con);
+        return EXIT_FAILURE;
+      }
       pattern_freq_summary_fetched_record_cnt += fetched_record_cnt;
       if (fetched_record_cnt == 0) {
         if (pattern_freq_summary_fetched_record_cnt != glm_p_variable_cnt) {
@@ -2969,5 +2974,5 @@ main (int argc,
   free(patterns);
   rglmdf_general_data_release(&gd);
 
-  return 0;
+  return EXIT_SUCCESS;
 }
