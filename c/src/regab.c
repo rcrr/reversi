@@ -1153,14 +1153,16 @@ do_action_extract_game_pos_prepare_cursor (int *result,
   cp = command + cl;
   if (cl >= command_size) {
     fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-    abort();
+    *result = -1;
+    return;
   }
 
   cl += snprintf(cp, command_size - cl, "%d, '{", empty_count);
   cp = command + cl;
   if (cl >= command_size) {
     fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-    abort();
+    *result = -1;
+    return;
   }
 
   for (size_t i = 0; i < batch_id_cnt; i++) {
@@ -1168,7 +1170,8 @@ do_action_extract_game_pos_prepare_cursor (int *result,
     cp = command + cl;
     if (cl >= command_size) {
       fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-      abort();
+      *result = -1;
+      return;
     }
   }
 
@@ -1177,7 +1180,8 @@ do_action_extract_game_pos_prepare_cursor (int *result,
     cp = command + cl;
     if (cl >= command_size) {
       fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-      abort();
+      *result = -1;
+      return;
     }
   }
 
@@ -1186,7 +1190,8 @@ do_action_extract_game_pos_prepare_cursor (int *result,
     cp = command + cl;
     if (cl >= command_size) {
       fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-      abort();
+      *result = -1;
+      return;
     }
   }
 
@@ -1194,14 +1199,16 @@ do_action_extract_game_pos_prepare_cursor (int *result,
   cp = command + cl;
   if (cl >= command_size) {
     fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-    abort();
+    *result = -1;
+    return;
   }
 
   cl += snprintf(cp, command_size - cl, "'%s');", sql_cursor_name);
   cp = command + cl;
   if (cl >= command_size) {
     fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-    abort();
+    *result = -1;
+    return;
   }
 
   res = PQexec(con, command);
@@ -1225,11 +1232,13 @@ static void
 do_action_extract_game_pos_cursor_fetch (int *result,
                                          PGconn *con,
                                          bool verbose,
-                                         size_t feature_cnt,
-                                         board_feature_id_t *features,
+                                         rglmdf_general_data_t *gd,
+                                         size_t *returned_ntuples,
+                                         rglmdf_solved_and_classified_gp_record_t *scgprp,
+                                         double *farrayp,
+                                         uint32_t *iarrayp,
                                          const char *sql_cursor_name,
-                                         size_t chunk_size,
-                                         rglmdf_solved_and_classified_gp_table_t *return_table)
+                                         size_t chunk_size)
 {
   static const size_t command_size = 1024;
 
@@ -1237,19 +1246,23 @@ do_action_extract_game_pos_cursor_fetch (int *result,
   char command[command_size];
   size_t cl;
   char *cp;
-  size_t ni, nf, fv_idx;
+  size_t fv_idx;
   board_feature_id_t fid;
   board_t b;
   double *feature_values;
 
   if (!result) return;
-  if (!con || !return_table) {
+  if (!con || !gd) {
     *result = -1;
     return;
   }
   *result = 0;
-  ni = return_table->n_index_values_per_record;
-  nf = return_table->n_fvalues_per_record;
+
+  const size_t nf = rglmdf_get_positions_n_fvalues_per_record(gd);
+  const size_t ni = rglmdf_get_positions_n_index_values_per_record(gd);
+  const size_t feature_cnt = rglmdf_get_feature_cnt(gd);
+  const board_feature_id_t *features = rglmdf_get_features(gd);
+  *returned_ntuples = 0;
 
   const char *c0 = "FETCH FORWARD ";
 
@@ -1257,14 +1270,16 @@ do_action_extract_game_pos_cursor_fetch (int *result,
   cp = command + cl;
   if (cl >= command_size) {
     fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-    abort();
+    *result = -1;
+    return;
   }
 
   cl += snprintf(cp, command_size - cl, "%zu FROM %s;", chunk_size, sql_cursor_name);
   cp = command + cl;
   if (cl >= command_size) {
     fprintf(stderr, "Error: command buffer is not long enough to contain the SQL command.\n");
-    abort();
+    *result = -1;
+    return;
   }
 
   res = PQexec(con, command);
@@ -1272,24 +1287,24 @@ do_action_extract_game_pos_cursor_fetch (int *result,
     fprintf(stderr, "%s", PQerrorMessage(con));
     *result = -1;
   } else {
-    return_table->ntuples = PQntuples(res);
-    for (size_t i = 0; i < return_table->ntuples; i++) {
-      return_table->records[i].row_n = atol(PQgetvalue(res, i, 0));
-      return_table->records[i].gp_id = atol(PQgetvalue(res, i, 1));
-      return_table->records[i].mover = atol(PQgetvalue(res, i, 2));
-      return_table->records[i].opponent = atol(PQgetvalue(res, i, 3));
-      return_table->records[i].game_value = atoi(PQgetvalue(res, i, 4));
-      return_table->records[i].game_value_transformed = 0.0;
-      return_table->records[i].evaluation_function = 0.0;
-      return_table->records[i].residual = 0.0;
+    *returned_ntuples = PQntuples(res);
+    for (size_t i = 0; i < *returned_ntuples; i++) {
+      scgprp[i].row_n = atol(PQgetvalue(res, i, 0));
+      scgprp[i].gp_id = atol(PQgetvalue(res, i, 1));
+      scgprp[i].mover = atol(PQgetvalue(res, i, 2));
+      scgprp[i].opponent = atol(PQgetvalue(res, i, 3));
+      scgprp[i].game_value = atoi(PQgetvalue(res, i, 4));
+      scgprp[i].game_value_transformed = 0.0;
+      scgprp[i].evaluation_function = 0.0;
+      scgprp[i].residual = 0.0;
       for (size_t j = 0; j < ni; j++) {
-        return_table->iarray[i * ni + j] = atol(PQgetvalue(res, i, 5 + j));
+        iarrayp[i * ni + j] = atol(PQgetvalue(res, i, 5 + j));
       }
       fv_idx = 0;
       for (size_t j = 0; j < feature_cnt; j++) {
         fid = board_features[features[j]].id;
-        board_set_square_sets(&b, return_table->records[i].mover, return_table->records[i].opponent);
-        feature_values = &return_table->farray[i * nf + fv_idx];
+        board_set_square_sets(&b, scgprp[i].mover, scgprp[i].opponent);
+        feature_values = &farrayp[i * nf + fv_idx];
         if (board_features[fid].feature_values_f)
           board_features[fid].feature_values_f(&b, feature_values);
         fv_idx += board_features[fid].field_cnt;
@@ -2664,42 +2679,14 @@ main (int argc,
   const char *sql_cursor_name_pattern_freqs = "sql_cursor_name_pattern_freqs";
   size_t pattern_freq_summary_fetched_record_cnt = 0;
 
-  const size_t gps_data_chunk_size = RGLMDF_GPS_DATA_CHUNK_SIZE;
   const char *sql_cursor_name_gps_data = "sql_cursor_name_gps_data";
   size_t gps_data_total_record_cnt = 0;
   size_t gps_data_fetched_record_cnt = 0;
-  rglmdf_solved_and_classified_gp_table_t gps_data;
-  gps_data.ntuples = 0;
-  gps_data.n_fvalues_per_record = 0;
-  gps_data.n_index_values_per_record = 0;
-  for (size_t i = 0; i < feature_cnt; i++)
-    gps_data.n_fvalues_per_record += board_features[features[i]].field_cnt;
-  for (size_t i = 0; i < pattern_cnt; i++)
-    gps_data.n_index_values_per_record += board_patterns[patterns[i]].n_instances;
-  nbytes = sizeof(rglmdf_solved_and_classified_gp_record_t) * gps_data_chunk_size;
-  gps_data.records = (rglmdf_solved_and_classified_gp_record_t *) malloc(nbytes);
-  if (!gps_data.records) {
-    fprintf(stderr, "Unable to allocate memory for gps_data.records array.\n");
-    abort();
-  }
-  memset(gps_data.records, 0, nbytes);
-  nbytes = sizeof(double) * gps_data.n_fvalues_per_record * gps_data_chunk_size;
-  gps_data.farray = (double *) malloc(nbytes);
-  if (!gps_data.farray) {
-    fprintf(stderr, "Unable to allocate memory for gps_data.farray array.\n");
-    abort();
-  }
-  memset(gps_data.farray, 0, nbytes);
-  nbytes = sizeof(uint32_t) * gps_data.n_index_values_per_record * gps_data_chunk_size;
-  gps_data.iarray = (uint32_t *) malloc(nbytes);
-  if (!gps_data.iarray) {
-    fprintf(stderr, "Unable to allocate memory for gps_data.iarray array.\n");
-    abort();
-  }
-  memset(gps_data.iarray, 0, nbytes);
+
+  size_t selected_gp_record_cnt = 0;
 
   time_t saved_time;
-  uint64_t u64;
+  size_t n;
 
   PGresult *res = NULL;
 
@@ -2735,8 +2722,8 @@ main (int argc,
     PQfinish(con);
     return EXIT_FAILURE;
   }
-  u64 = rglmdf_set_batch_id_cnt(&gd, batch_id_cnt);
-  if (u64 != batch_id_cnt) {
+  n = rglmdf_set_batch_id_cnt(&gd, batch_id_cnt);
+  if (n != batch_id_cnt) {
     fprintf(stderr, "Unable to allocate memory for batch_ids array.\n");
     res = PQexec(con, "ROLLBACK");
     PQfinish(con);
@@ -2748,8 +2735,8 @@ main (int argc,
   rglmdf_set_empty_count(&gd, empty_count);
 
   /* Copies the position_status field into the gd structure. */
-  u64 = rglmdf_set_position_status_cnt(&gd, position_status_cnt);
-  if (u64 != position_status_cnt) {
+  n = rglmdf_set_position_status_cnt(&gd, position_status_cnt);
+  if (n != position_status_cnt) {
     fprintf(stderr, "Unable to allocate memory for position_statuses array.\n");
     res = PQexec(con, "ROLLBACK");
     PQfinish(con);
@@ -2765,8 +2752,8 @@ main (int argc,
   }
 
   /* - 01.b - Checks feature argument data. */
-  u64 = rglmdf_set_feature_cnt(&gd, feature_cnt);
-  if (u64 != feature_cnt) {
+  n = rglmdf_set_feature_cnt(&gd, feature_cnt);
+  if (n != feature_cnt) {
     fprintf(stderr, "Unable to allocate memory for features array.\n");
     res = PQexec(con, "ROLLBACK");
     PQfinish(con);
@@ -2784,8 +2771,8 @@ main (int argc,
       return EXIT_FAILURE;
     }
   }
-  u64 = rglmdf_set_pattern_cnt(&gd, pattern_cnt);
-  if (u64 != pattern_cnt) {
+  n = rglmdf_set_pattern_cnt(&gd, pattern_cnt);
+  if (n != pattern_cnt) {
     fprintf(stderr, "Unable to allocate memory for patterns array.\n");
     res = PQexec(con, "ROLLBACK");
     PQfinish(con);
@@ -2825,15 +2812,14 @@ main (int argc,
     ntuples = glm_f_variable_cnt + glm_p_variable_cnt;
     if (verbose) fprintf(stdout, "GLM variables are %zu, given by features are %zu, and by patterns are %zu.\n",
                          ntuples, glm_f_variable_cnt, glm_p_variable_cnt);
-    u64 = rglmdf_set_pattern_freq_summary_ntuples(&gd, glm_f_variable_cnt, glm_p_variable_cnt, ntuples);
-    if (u64 != ntuples) {
+    n = rglmdf_set_pattern_freq_summary_ntuples(&gd, glm_f_variable_cnt, glm_p_variable_cnt, ntuples);
+    if (n != ntuples) {
       fprintf(stderr, "Unable to allocate memory for frequency summary table.\n");
       res = PQexec(con, "ROLLBACK");
       PQfinish(con);
       return EXIT_FAILURE;
     }
 
-    size_t selected_gp_record_cnt = 0;
     do_action_extract_game_pos_cnt(&result, con, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses, &selected_gp_record_cnt);
     if (result != 0) {
       fprintf(stderr, "Error occured into function do_action_extract_game_pos_cnt(). Exiting ...\n");
@@ -2886,10 +2872,16 @@ main (int argc,
   /* - 07 - Creates the CURSOR variable, and writes the total amount of expected records. */
   do_action_extract_game_pos_prepare_cursor(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses,
                                             pattern_cnt, patterns, sql_cursor_name_gps_data, &gps_data_total_record_cnt);
+  if (result != 0) {
+    fprintf(stderr, "Error occured into do_action_extract_game_pos_prepare_cursor(). Exiting ...\n");
+    res = PQexec(con, "ROLLBACK");
+    PQfinish(con);
+    return EXIT_FAILURE;
+  }
   rglmdf_iarray_data_type_t iarray_data_type;
   iarray_data_type = p_flag ? RGLMDF_IARRAY_IS_INDEX : RGLMDF_IARRAY_IS_MISSING;
-  u64 = rglmdf_set_positions_ntuples(&gd, gps_data_total_record_cnt, iarray_data_type);
-  if (u64 != gps_data_total_record_cnt) {
+  n = rglmdf_set_positions_ntuples(&gd, gps_data_total_record_cnt, iarray_data_type);
+  if (n != gps_data_total_record_cnt) {
     fprintf(stderr, "Unable to allocate memory for solved and classified game positions table.\n");
     res = PQexec(con, "ROLLBACK");
     PQfinish(con);
@@ -2900,30 +2892,31 @@ main (int argc,
   uint32_t *iarrayp = rglmdf_get_positions_iarray(&gd);
   const size_t nf = rglmdf_get_positions_n_fvalues_per_record(&gd);
   const size_t ni = rglmdf_get_positions_n_index_values_per_record(&gd);
+  size_t returned_ntuples = 0;
 
   /* - 08 - Iterates over chunks of data retrieved from the cursor. */
   for (;;) {
-    do_action_extract_game_pos_cursor_fetch(&result, con, verbose, feature_cnt, features, sql_cursor_name_gps_data, gps_data_chunk_size, &gps_data);
-    gps_data_fetched_record_cnt += gps_data.ntuples;
-    if (gps_data.ntuples == 0) {
+    do_action_extract_game_pos_cursor_fetch(&result, con, verbose, &gd, &returned_ntuples, scgprp, farrayp, iarrayp, sql_cursor_name_gps_data, RGLMDF_GPS_DATA_CHUNK_SIZE);
+    if (result != 0) {
+      fprintf(stderr, "Error occured into do_action_extract_game_pos_cursor_fetch(). Exiting ...\n");
+      res = PQexec(con, "ROLLBACK");
+      PQfinish(con);
+      return EXIT_FAILURE;
+    }
+    gps_data_fetched_record_cnt += returned_ntuples;
+    if (returned_ntuples == 0) {
       if (gps_data_fetched_record_cnt != gps_data_total_record_cnt) {
         res = PQexec(con, "ROLLBACK");
         PQfinish(con);
-        fprintf(stderr, "Records count mismatch, do_action_extract_game_pos_cursor_fetch returned an unexpectd number of records.\n");
+        fprintf(stderr, "Records count mismatch, do_action_extract_game_pos_cursor_fetch() returned an unexpectd number of records.\n");
         return EXIT_FAILURE;
       }
       break;
     }
-    memcpy(scgprp, gps_data.records, sizeof(rglmdf_solved_and_classified_gp_record_t) * gps_data.ntuples);
-    memcpy(farrayp, gps_data.farray, sizeof(double) * nf * gps_data.ntuples);
-    memcpy(iarrayp, gps_data.iarray, sizeof(uint32_t) * ni * gps_data.ntuples);
-    scgprp += gps_data.ntuples;
-    farrayp += nf * gps_data.ntuples;
-    iarrayp += ni * gps_data.ntuples;
+    scgprp += returned_ntuples;
+    farrayp += nf * returned_ntuples;
+    iarrayp += ni * returned_ntuples;
   }
-  free(gps_data.iarray);
-  free(gps_data.farray);
-  free(gps_data.records);
   if (verbose) fprintf(stdout, "Total count of Game Position Records is %zu.\n", gps_data_total_record_cnt);
 
   /* - 12 - Closes the DB transaction. */
