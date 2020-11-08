@@ -1508,7 +1508,7 @@ do_action_extract_count_positions (int *result,
   rglmdf_position_summary_record_t *rec;
 
   if (!result) return;
-  if (!con) {
+  if (!con || !gd) {
     *result = -1;
     return;
   }
@@ -2653,19 +2653,23 @@ main (int argc,
    * designated by the p_flag or f_flag boolean variables being true, the second one by the g_flag.
    *
    * Steps:
-   *  - 00 - Starts a DB transaction.
-   *  - 01 - Checks that the imput data (batch_id, pattern) is consistent with the DB data.
-   *  - 02 - Opens the output binary file.
-   *  - 03 - Writes the header.
-   *  - 04 - Collects from the DB the game positions statistics and writes them to the binary file.
-   *  - 05 - Collects from the DB the pattern index statistics, writes them to the binary file,
-   *         and accumulates the data into the DB temp table.
-   *         This step also assigns the global variable index value to each record in the DB temp table.
-   *         This action generates the mapping between pattern_id, index_value tuples and the GLM global variables.
-   *  - 07 - Creates the CURSOR variable over the query collecting game_positions, game_value, pattern values.
-   *  - 08 - Iterates by chunks of data collected from the cusrsor, and writes them into the binary file.
-   *  - 11 - Closes the output file.
-   *  - 12 - Commits the DB transaction, this action deletes the temporary database tables and the cursor variable.
+   *  - 00   - Collects and set the "saved time".
+   *  - 01   - Starts a DB transaction.
+   *  - 02.a - Checks batch_id argument data, then copies it into the gd structure.
+   *  - 02.b - Copies the empty_count field into the gd structure.
+   *  - 02.c - Copies the position_status field into the gd structure.
+   *  - 02.d - Copies feature argument data into the gd structure.
+   *  - 02.e - Checks first and then copies pattern argument data into the gd structure.
+   *  - 03   - Collects from the DB the game positions statistics (the position summary table) and
+   *             stores them into the gd structure.
+   *  - 04   - Collects from the DB the feature and pattern index statistics, assigns the global variable index value,
+   *             saves them into the pattern_freq_summary table into the general data structure.
+   *             This step also assigns the global variable index value to each feature or pattern.
+   *             This action generates the mapping between pattern_id, index_value tuples and the GLM global variables.
+   *  - 05   - Creates the CURSOR variable over the query collecting game_positions, game_value, pattern values.
+   *  - 06   - Iterates by chunks of data collected from the cusrsor, and writes them into the binary file.
+   *  - 07   - Commits and closes the DB transaction, this action deletes the temporary database tables and the cursor variable.
+   *  - 08   - Writes the binary output file.
    *
    */
  regab_action_extract:
@@ -2686,11 +2690,19 @@ main (int argc,
   size_t selected_gp_record_cnt = 0;
 
   time_t saved_time;
-  size_t n;
+  size_t n, ntuples;
+
+  size_t glm_f_variable_cnt = 0;
+  size_t glm_p_variable_cnt = 0;
+
+  rglmdf_iarray_data_type_t iarray_data_type;
 
   PGresult *res = NULL;
+  int ret_code;
 
   /*
+   * - 00 - Collects and set the "saved time".
+   *
    * The time saved into the gd structure is the current time when the t_flag is NULL,
    * when t_flag is selected the value is set to zero.
    * Setting to zero is used for testing, when an always changing value is changing the file hash.
@@ -2705,7 +2717,7 @@ main (int argc,
   if (verbose) fprintf(stdout, "Time saved to file is %s", ctime(&saved_time));
   rglmdf_set_file_creation_time(&gd, saved_time);
 
-  /* - 00 - Starts a DB transaction. */
+  /* - 01 - Starts a DB transaction. */
   res = PQexec(con, "BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ");
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
     fprintf(stderr, "PQexec: BEGIN command failed: %s", PQerrorMessage(con));
@@ -2714,7 +2726,7 @@ main (int argc,
   }
   PQclear(res);
 
-  /* - 01.a - Checks batch_id argument data, then copies it into the gd structure. */
+  /* - 02.a - Checks batch_id argument data, then copies it into the gd structure. */
   do_action_extract_check_batches(&result, con, verbose, batch_ids, batch_id_cnt);
   if (result != 0) {
     fprintf(stderr, "Error occured into function do_action_extract_check_batches(). Exiting ...\n");
@@ -2731,10 +2743,10 @@ main (int argc,
   }
   memcpy(rglmdf_get_batch_ids(&gd), batch_ids, sizeof(batch_ids) * batch_id_cnt);
 
-  /* Copies the empty_count field into the gd structure. */
+  /* - 02.b - Copies the empty_count field into the gd structure. */
   rglmdf_set_empty_count(&gd, empty_count);
 
-  /* Copies the position_status field into the gd structure. */
+  /* - 02.c - Copies the position_status field into the gd structure. */
   n = rglmdf_set_position_status_cnt(&gd, position_status_cnt);
   if (n != position_status_cnt) {
     fprintf(stderr, "Unable to allocate memory for position_statuses array.\n");
@@ -2751,7 +2763,7 @@ main (int argc,
     }
   }
 
-  /* - 01.b - Checks feature argument data. */
+  /* - 02.d - Copies feature argument data into the gd structure. */
   n = rglmdf_set_feature_cnt(&gd, feature_cnt);
   if (n != feature_cnt) {
     fprintf(stderr, "Unable to allocate memory for features array.\n");
@@ -2761,7 +2773,7 @@ main (int argc,
   }
   memcpy(rglmdf_get_features(&gd), features, sizeof(board_feature_id_t) * feature_cnt);
 
-  /* - 01.c - Checks pattern argument data. */
+  /* - 02.e - Checks first and then copies pattern argument data into the gd structure. */
   if (p_flag) {
     do_action_extract_check_patterns(&result, con, verbose, patterns, pattern_cnt);
     if (result != 0) {
@@ -2780,7 +2792,7 @@ main (int argc,
   }
   memcpy(rglmdf_get_patterns(&gd), patterns, sizeof(board_pattern_id_t) * pattern_cnt);
 
-  /* - 04 - Collects from the DB the game positions statistics and stores them into the gd structure. */
+  /* - 03 - Collects from the DB the game positions statistics (the position summary table) and stores them into the gd structure. */
   if (p_flag || f_flag) {
     do_action_extract_count_positions(&result, con, verbose, &gd);
     if (result != 0) {
@@ -2791,12 +2803,9 @@ main (int argc,
     }
   }
 
-  /* - 05 - Collects from the DB the feature and pattern index statistics, assigns the global variable index value,
-   *        saves them into the  pattern_freq_summary table into the general data structure. */
+  /* - 04 - Collects from the DB the feature and pattern index statistics, assigns the global variable index value,
+   *        saves them into the pattern_freq_summary table into the general data structure. */
   if (p_flag || f_flag) {
-    size_t glm_f_variable_cnt = 0;
-    size_t glm_p_variable_cnt = 0;
-    size_t ntuples = 0;
     for (size_t i = 0; i < feature_cnt; i++)
       glm_f_variable_cnt += board_features[features[i]].field_cnt;
     do_action_extract_pattern_freqs_prepare_cursor(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses,
@@ -2869,7 +2878,7 @@ main (int argc,
     }
   }
 
-  /* - 07 - Creates the CURSOR variable, and writes the total amount of expected records. */
+  /* - 05 - Creates the CURSOR variable, and writes the total amount of expected records. */
   do_action_extract_game_pos_prepare_cursor(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses,
                                             pattern_cnt, patterns, sql_cursor_name_gps_data, &gps_data_total_record_cnt);
   if (result != 0) {
@@ -2878,7 +2887,6 @@ main (int argc,
     PQfinish(con);
     return EXIT_FAILURE;
   }
-  rglmdf_iarray_data_type_t iarray_data_type;
   iarray_data_type = p_flag ? RGLMDF_IARRAY_IS_INDEX : RGLMDF_IARRAY_IS_MISSING;
   n = rglmdf_set_positions_ntuples(&gd, gps_data_total_record_cnt, iarray_data_type);
   if (n != gps_data_total_record_cnt) {
@@ -2887,14 +2895,14 @@ main (int argc,
     PQfinish(con);
     return EXIT_FAILURE;
   }
+
+  /* - 06 - Iterates over chunks of data retrieved from the cursor. */
   rglmdf_solved_and_classified_gp_record_t *scgprp = rglmdf_get_positions_records(&gd);
   double *farrayp = rglmdf_get_positions_farray(&gd);
   uint32_t *iarrayp = rglmdf_get_positions_iarray(&gd);
   const size_t nf = rglmdf_get_positions_n_fvalues_per_record(&gd);
   const size_t ni = rglmdf_get_positions_n_index_values_per_record(&gd);
   size_t returned_ntuples = 0;
-
-  /* - 08 - Iterates over chunks of data retrieved from the cursor. */
   for (;;) {
     do_action_extract_game_pos_cursor_fetch(&result, con, verbose, &gd, &returned_ntuples, scgprp, farrayp, iarrayp, sql_cursor_name_gps_data, RGLMDF_GPS_DATA_CHUNK_SIZE);
     if (result != 0) {
@@ -2919,7 +2927,7 @@ main (int argc,
   }
   if (verbose) fprintf(stdout, "Total count of Game Position Records is %zu.\n", gps_data_total_record_cnt);
 
-  /* - 12 - Closes the DB transaction. */
+  /* - 7 - Closes the DB transaction. */
   res = PQexec(con, "END");
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
     fprintf(stderr, "PQexec: END command failed: %s", PQerrorMessage(con));
@@ -2929,11 +2937,8 @@ main (int argc,
   PQclear(res);
   if (verbose) fprintf(stdout, "Database transaction has been closed.\n");
 
-  /* Writes the binary output file. */
-  time_t output_time;
-  int ret_code;
-  output_time = t_flag ? (time_t) 0 : time(NULL);
-  ret_code = rglmdf_write_general_data_to_binary_file(&gd, output_file_name, output_time);
+  /* - 8 - Writes the binary output file. */
+  ret_code = rglmdf_write_general_data_to_binary_file(&gd, output_file_name, saved_time);
   if (ret_code == EXIT_SUCCESS) {
     if (verbose) fprintf(stdout, "Binary output file written to %s, computed SHA3-256 digest, written to file %s.sha3-256.\n", output_file_name, output_file_name);
   } else {
