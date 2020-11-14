@@ -145,11 +145,11 @@ rglmdf_read_general_data_from_binary_file_t (ut_test_t *const t)
   ut_assert(t, ret == 0);
 
   if (false) printf("rglmdf_get_file_creation_time(gd)=%ld\n", rglmdf_get_file_creation_time(gd));
-  ut_assert(t, 1598276431 == rglmdf_get_file_creation_time(gd));
+  ut_assert(t, 0 == rglmdf_get_file_creation_time(gd));
 
   char creation_time_as_string[25];
   rglmdf_get_file_creation_time_as_string(gd, creation_time_as_string);
-  ut_assert(t, strcmp("Mon Aug 24 13:40:31 2020", creation_time_as_string) == 0);
+  ut_assert(t, strcmp("Thu Jan  1 00:00:00 1970", creation_time_as_string) == 0);
 
   ut_assert(t, 1 == rglmdf_get_batch_id_cnt(gd));
 

@@ -24,6 +24,12 @@
  *       formats.
  *       Should be all documented and rationalized.
  *
+ * @todo Insert the RGLM_VALID_A, RGLM_VALID_B , .... values into the binary files.
+ *       They are guards to increment the robustness of the format.
+ *
+ * @todo When appropriate substitutes "_pattern_" with "_entity_" into structures, and field names.
+ *       The underlining reason is the introduction of features .... we do not have any longer just patterns.
+ *
  * @todo The algorithm used to compute the weights is Minimum Mean Square Error (MMSE),
  *       move to Maximum Likelihood Estimation (MLE), or offer the selection among the two.
  *
@@ -465,6 +471,14 @@ main (int argc,
   /* Opens the binary file for reading. */
   FILE *ifp = fopen(i_arg, "r");
   assert(ifp);
+
+  /* Reads the A valid milestone. */
+  re = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (re != 1 || u64 != RGLM_VALID_A) {
+    fprintf(stderr, "Error while reading the A valid milestone from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
 
   /* Reads the File Creation time field. */
   re = fread(&u64, sizeof(uint64_t), 1, ifp);

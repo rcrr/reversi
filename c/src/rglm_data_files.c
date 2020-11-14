@@ -1080,6 +1080,14 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
     return EXIT_FAILURE;
   }
 
+  /* Reads the A valid milestone. */
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1 || u64 != RGLM_VALID_A) {
+    fprintf(stderr, "Error while reading the A valid milestone from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+
   /* Reads the file creation time field. */
   l = fread(&u64, sizeof(uint64_t), 1, ifp);
   if (l != 1) {
@@ -1384,6 +1392,10 @@ rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
 
   /* Progressive count of bytes written to file. */
   fwn = 0;
+
+  /* Writes the A valid milestone. */
+  u64 = RGLM_VALID_A;
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
 
   /* Writes time to the binary file. */
   u64 = time;

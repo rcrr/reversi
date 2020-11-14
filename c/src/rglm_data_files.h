@@ -18,6 +18,9 @@
  * the format here described.
  * <p>
  * --- Header ---
+ *   - `8 bytes` field, read/written as `uint64_t`, not converted.<br>
+ *     Meaning: the read value has to be equal to `RGLM_VALID_A`, it is a formal validity check, the value is not used.<br>
+ *<br>
  *   - `8 bytes` field, read/written as `uint64_t`, converted to a `time_t` value.<br>
  *     Meaning: the file creation time.<br>
  *     Ref: `file_creation_time`, scalar.<br>
@@ -60,7 +63,7 @@
  *     Ref: `patterns`, array.<br>
  *<br>
  *   - `8 bytes` field, read/written as `uint64_t`, not converted.<br>
- *     Meaning: the read value has to be equal to `RGLM_VALID_A`, it is a formal validity check, the value is not used.<br>
+ *     Meaning: the read value has to be equal to `RGLM_VALID_B`, it is a formal validity check, the value is not used.<br>
  * <p>
  * --- Summary Tables. Position Summary Table, Pattern Frequency Summary Table. ---
  *   - `8 bytes` field, read/written as `uint64_t`, converted to `size_t` value.<br>
