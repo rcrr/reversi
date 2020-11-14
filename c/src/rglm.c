@@ -231,13 +231,7 @@
 
 
 /* Static functions. */
-static void
-print_error_and_stop (char *input_file_name,
-                      int ret_code)
-{
-  fprintf(stderr, "rglm: format error reading file \"%s\", ret_code = %d\n", input_file_name, ret_code);
-  exit(ret_code);
-}
+
 
 /**
  * @endcond
@@ -252,19 +246,6 @@ int
 main (int argc,
       char *argv[])
 {
-  uint64_t u64, u64_a, u64_b, v64, *u64p;
-  int16_t i16;
-  uint8_t u8;
-  char **cpp;
-  board_feature_id_t *bfip;
-  board_pattern_id_t *bpip;
-  char buf[512];
-  rglmdf_position_summary_record_t *psrp;
-  rglmdf_pattern_freq_summary_record_t *pfsrp;
-  rglmdf_solved_and_classified_gp_record_t *scgprp;
-  uint32_t *iarrayp;
-  double *farrayp;
-  uint64_t data_chunk_size;
   int ret_code;
 
   rglmdf_general_data_t data;
@@ -276,7 +257,6 @@ main (int argc,
 
   FILE *ofp = NULL;
 
-  size_t re;
   int opt;
   int oindex = -1;
 
@@ -468,179 +448,12 @@ main (int argc,
     return EXIT_FAILURE;
   }
 
-  /* Opens the binary file for reading. */
-  FILE *ifp = fopen(i_arg, "r");
-  assert(ifp);
-
-  /* Reads the A valid milestone. */
-  re = fread(&u64, sizeof(uint64_t), 1, ifp);
-  if (re != 1 || u64 != RGLM_VALID_A) {
-    fprintf(stderr, "Error while reading the A valid milestone from the input binary file.\n");
-    fclose(ifp);
-    return EXIT_FAILURE;
-  }
-
-  /* Reads the File Creation time field. */
-  re = fread(&u64, sizeof(uint64_t), 1, ifp);
-  if (re != 1) print_error_and_stop(i_arg, -10);
-  rglmdf_set_file_creation_time(&data, u64);
-  if (verbose) {
-    rglmdf_get_file_creation_time_as_string(&data, buf);
-    fprintf(stdout, "Input file started to be written on (UTC) %s\n", buf);
-  }
-
-  /* Reads the batch_id_cnt, batch_ids input fields.*/
-  re = fread(&u64, sizeof(uint64_t), 1, ifp);
-  if (re != 1) print_error_and_stop(i_arg, -20);
-  v64 = rglmdf_set_batch_id_cnt(&data, u64);
-  if (v64 != u64) {
-    fprintf(stderr, "Unable to allocate memory for batch_ids array.\n");
-    return EXIT_FAILURE;
-  }
-  u64p = rglmdf_get_batch_ids(&data);
-  re = fread(u64p, sizeof(uint64_t), u64, ifp);
-  if (re != u64) print_error_and_stop(i_arg, -30);
-  if (verbose) {
-    rglmdf_batch_ids_to_text_stream(&data, stdout);
-  }
-
-  /* Reads the empty_count input field.*/
-  re = fread(&u8, sizeof(uint8_t), 1, ifp);
-  if (re != 1) print_error_and_stop(i_arg, -40);
-  rglmdf_set_empty_count(&data, u8);
-  if (verbose) fprintf(stdout, "Selected empty_count value: %u\n", u8);
-
-  /* Reads the position_status_cnt, position_statuses, position_status_buffer input fields.*/
-  re = fread(&u64, sizeof(uint64_t), 1, ifp);
-  if (re != 1) print_error_and_stop(i_arg, -50);
-  v64 = rglmdf_set_position_status_cnt(&data, u64);
-  if (v64 != u64) {
-    fprintf(stderr, "Unable to allocate memory for position_statuses array.\n");
-    return EXIT_FAILURE;
-  }
-  cpp = rglmdf_get_position_statuses(&data);
-  re = fread(*cpp, RGLM_POSITION_STATUS_BUF_SIZE, u64, ifp);
-  if (re != u64) print_error_and_stop(i_arg, -60);
-  if (verbose) rglmdf_position_statuses_to_text_stream(&data, stdout);
-
-  /* Reads the feature_cnt, features input fields.*/
-  re = fread(&u64, sizeof(uint64_t), 1, ifp);
-  if (re != 1) print_error_and_stop(i_arg, -70);
-  v64 = rglmdf_set_feature_cnt(&data, u64);
-  if (v64 != u64) {
-    fprintf(stderr, "Unable to allocate memory for features array.\n");
-    return EXIT_FAILURE;
-  }
-  bfip = rglmdf_get_features(&data);
-  for (size_t i = 0; i < u64; i++) {
-    re = fread(&i16, sizeof(int16_t), 1, ifp);
-    if (re != 1) print_error_and_stop(i_arg, -72);
-    bfip[i] = i16;
-  }
-  if (verbose) rglmdf_features_to_text_stream(&data, stdout);
-
-  /* Reads the pattern_cnt, patterns input fields.*/
-  re = fread(&u64, sizeof(uint64_t), 1, ifp);
-  if (re != 1) print_error_and_stop(i_arg, -74);
-  v64 = rglmdf_set_pattern_cnt(&data, u64);
-  if (v64 != u64) {
-    fprintf(stderr, "Unable to allocate memory for patterns array.\n");
-    return EXIT_FAILURE;
-  }
-  bpip = rglmdf_get_patterns(&data);
-  for (size_t i = 0; i < u64; i++) {
-    re = fread(&i16, sizeof(int16_t), 1, ifp);
-    if (re != 1) print_error_and_stop(i_arg, -80);
-    bpip[i] = i16;
-  }
-  if (verbose) rglmdf_patterns_to_text_stream(&data, stdout);
-
-  /* Reads the position summary table. */
-  re = fread(&u64, sizeof(uint64_t), 1, ifp);
-  if (re != 1) print_error_and_stop(i_arg, -90);
-  v64 = rglmdf_set_position_summary_ntuples(&data, u64);
-  if (v64 != u64) {
-    fprintf(stderr, "Unable to allocate memory for the records of position summary table.\n");
-    return EXIT_FAILURE;
-  }
-  psrp = rglmdf_get_position_summary_records(&data);
-  re = fread(psrp, sizeof(rglmdf_position_summary_record_t), u64, ifp);
-  if (re != u64) print_error_and_stop(i_arg, -100);
-  if (verbose) rglmdf_position_summary_cnt_to_text_stream(&data, stdout);
-
-  /* Reads the pattern frequency summary table. */
-  re = fread(&u64_a, sizeof(uint64_t), 1, ifp);
-  if (re != 1) print_error_and_stop(i_arg, -110);
-  re = fread(&u64_b, sizeof(uint64_t), 1, ifp);
-  if (re != 1) print_error_and_stop(i_arg, -112);
-  re = fread(&u64, sizeof(uint64_t), 1, ifp);
-  if (re != 1) print_error_and_stop(i_arg, -114);
-  v64 = rglmdf_set_pattern_freq_summary_ntuples(&data, u64_a, u64_b, u64);
-  if (v64 != u64) {
-    fprintf(stderr, "Unable to allocate memory for the records of pattern freq summary table.\n");
-    return EXIT_FAILURE;
-  }
-  pfsrp = rglmdf_get_pattern_freq_summary_records(&data);
-  re = fread(pfsrp, sizeof(rglmdf_pattern_freq_summary_record_t), u64, ifp);
-  if (re != u64) print_error_and_stop(i_arg, -120);
-  if (verbose) rglmdf_pattern_freq_summary_cnt_to_text_stream(&data, stdout);
-
-  /* Creates the mapping betweeen (pattern_id, principal_index_value) --> glm_variable_id */
-  rglmdf_build_reverse_map(&data);
-  if (verbose) fprintf(stdout, "The reverse map \"(pattern_id, principal_index_value) --> glm_variable_id\" has been computed.\n");
-
-  /* Reads the iarrai data type. */
-  re = fread(&u8, sizeof(uint8_t), 1, ifp);
-  if (re != 1) print_error_and_stop(i_arg, -130);
-  /* Read the number of record for the solved and classified game position table. */
-  re = fread(&u64, sizeof(uint64_t), 1, ifp);
-  if (re != 1) print_error_and_stop(i_arg, -132);
-  v64 = rglmdf_set_positions_ntuples(&data, u64, u8);
-  if (v64 != u64) {
-    fprintf(stderr, "Unable to allocate memory for the positions table.\n");
-    return EXIT_FAILURE;
-  }
-  /* Reads the sequence of chunk of records. Each chunk is organized as: chunk size n, n records, n irecords. */
-  scgprp = rglmdf_get_positions_records(&data);
-  farrayp = rglmdf_get_positions_farray(&data);
-  iarrayp = rglmdf_get_positions_iarray(&data);
-  const size_t nf = rglmdf_get_positions_n_fvalues_per_record(&data);
-  const size_t ni = rglmdf_get_positions_n_index_values_per_record(&data);
-  size_t n_record_read = 0;
-  for (;;) {
-    re = fread(&data_chunk_size, sizeof(uint64_t), 1, ifp);
-    if (re != 1) print_error_and_stop(i_arg, -140);
-    n_record_read += data_chunk_size;
-    if (n_record_read > u64) {
-      fprintf(stderr, "Data chunks cumulated so far are more than expected.\n");
+  /* Reads the binary input file. */
+  ret_code = rglmdf_read_general_data_from_binary_file(&data, i_arg, verbose);
+  if (ret_code != EXIT_SUCCESS) {
+      fprintf(stderr, "Unable to read properly the binary input file: %s\n", i_arg);
       return EXIT_FAILURE;
-    }
-    if (data_chunk_size == 0) {
-      if (n_record_read != u64) {
-        fprintf(stderr, "Data chunks being read are less than expected.\n");
-        fprintf(stderr, "Expected = %lu, number of record read = %zu\n", u64, n_record_read);
-        return EXIT_FAILURE;
-      }
-      break;
-    }
-    re = fread(scgprp, sizeof(rglmdf_solved_and_classified_gp_record_t), data_chunk_size, ifp);
-    if (re != data_chunk_size) print_error_and_stop(i_arg, -150);
-    if (nf != 0) {
-      re = fread(farrayp, sizeof(double) * nf, data_chunk_size, ifp);
-      if (re != data_chunk_size) print_error_and_stop(i_arg, -160);
-    }
-    if (ni != 0) {
-      re = fread(iarrayp, sizeof(uint32_t) * ni, data_chunk_size, ifp);
-      if (re != data_chunk_size) print_error_and_stop(i_arg, -162);
-    }
-    scgprp += data_chunk_size;
-    farrayp += nf * data_chunk_size;
-    iarrayp += ni * data_chunk_size;
   }
-  if (verbose) fprintf(stdout, "All solved and classified game positions has been read succesfully.\n");
-
-  /* Closes the binary imput file. */
-  fclose(ifp);
 
   /* If A flag is turned on, dumps the position summary table to the output file. */
   if (A_arg) {
