@@ -295,15 +295,15 @@ main (int argc,
   re = fread(&u64, sizeof(uint64_t), 1, pfp);
   if (re != 1) print_error_and_stop(-150, p_arg);
   position_status_cnt = u64;
-  position_statuses_buf = (char *) malloc(sizeof(char) * RGLM_POSITION_STATUS_BUF_SIZE * position_status_cnt);
+  position_statuses_buf = (char *) malloc(sizeof(char) * RGLMDF_POSITION_STATUS_BUF_SIZE * position_status_cnt);
   position_statuses = (char **) malloc(sizeof(char *) * position_status_cnt);
   if (!position_statuses_buf || !position_statuses) {
     fprintf(stderr, "Error: unable to allocate memory for the position_statuses arrays.\n");
     return EXIT_FAILURE;
   }
   for (size_t i = 0; i < position_status_cnt; i++ )
-    position_statuses[i] = position_statuses_buf + RGLM_POSITION_STATUS_BUF_SIZE * i;
-  re = fread(position_statuses_buf, RGLM_POSITION_STATUS_BUF_SIZE, position_status_cnt, pfp);
+    position_statuses[i] = position_statuses_buf + RGLMDF_POSITION_STATUS_BUF_SIZE * i;
+  re = fread(position_statuses_buf, RGLMDF_POSITION_STATUS_BUF_SIZE, position_status_cnt, pfp);
   if (verbose) {
     fprintf(stdout, "Selected position_statuses values: ");
     for (size_t i = 0; i < position_status_cnt; i++ ) {

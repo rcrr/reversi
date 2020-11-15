@@ -234,7 +234,7 @@ rglmdf_set_position_status_cnt (rglmdf_general_data_t *gd,
 {
   assert(gd);
 
-  const size_t sbuf = sizeof(char) * RGLM_POSITION_STATUS_BUF_SIZE * cnt;
+  const size_t sbuf = sizeof(char) * RGLMDF_POSITION_STATUS_BUF_SIZE * cnt;
   const size_t sarr = sizeof(char *) * cnt;
   char *buf;
   char **arr;
@@ -248,7 +248,7 @@ rglmdf_set_position_status_cnt (rglmdf_general_data_t *gd,
     gd->position_status_cnt = cnt;
     memset(gd->position_status_buffer, 0, sbuf);
     for (size_t i = 0; i < cnt; i++ ) {
-      gd->position_statuses[i] = gd->position_status_buffer + RGLM_POSITION_STATUS_BUF_SIZE * i;
+      gd->position_statuses[i] = gd->position_status_buffer + RGLMDF_POSITION_STATUS_BUF_SIZE * i;
     }
     return cnt;
   } else {
@@ -455,7 +455,7 @@ rglmdf_set_pattern_freq_summary_ntuples (rglmdf_general_data_t *gd,
 {
   assert(gd);
   assert(feature_ntuples + pattern_ntuples == ntuples);
-  assert(ntuples < RGLM_INVALID_GLM_VARIABLE_ID);
+  assert(ntuples < RGLMDF_INVALID_GLM_VARIABLE_ID);
   if (gd->feature_cnt + gd->pattern_cnt > RGLM_MAX_PATTERN_CNT) {
     fprintf(stderr, "Error: gd->feature_cnt + gd->pattern_cnt > RGLM_MAX_PATTERN_CNT\n");
     fprintf(stderr, "       gd->feature_cnt = %zu\n", gd->feature_cnt);
@@ -517,7 +517,7 @@ rglmdf_set_pattern_freq_summary_ntuples (rglmdf_general_data_t *gd,
   gd->reverse_map_a_p = arr_a_p;
 
   for (size_t i = 0; i < reverse_map_b_length; i++)
-    arr_b[i] = RGLM_INVALID_GLM_VARIABLE_ID;
+    arr_b[i] = RGLMDF_INVALID_GLM_VARIABLE_ID;
   gd->reverse_map_b = arr_b;
 
   memset(arr_c, 0, s_c);
@@ -1030,7 +1030,7 @@ rglmdf_write_rglm_weights_to_binary_file (rglmdf_general_data_t *gd,
       board_pattern_index_t principal;
       board_pattern_compute_principal_indexes(&principal, &j, &board_patterns[pid], true);
       uint32_t glm_variable_id = rglmdf_map_pid_and_piv_to_glm_vid(gd, pattern_class_type, pid, principal);
-      if (glm_variable_id == RGLM_INVALID_GLM_VARIABLE_ID)
+      if (glm_variable_id == RGLMDF_INVALID_GLM_VARIABLE_ID)
         w = 0.0;
       else
         w = gd->pattern_freq_summary.records[glm_variable_id].weight;
@@ -1062,7 +1062,7 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
   uint32_t *iarrayp;
   double *farrayp;
   uint64_t data_chunk_size;
-  size_t l;
+  size_t l, n;
   char buf[512];
 
   /* Checks that the file has not been corrupted. */
@@ -1082,8 +1082,19 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
 
   /* Reads the A valid milestone. */
   l = fread(&u64, sizeof(uint64_t), 1, ifp);
-  if (l != 1 || u64 != RGLM_VALID_A) {
+  if (l != 1 || u64 != RGLMDF_VALID_A) {
     fprintf(stderr, "Error while reading the A valid milestone from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+
+  /* Reads the version of the format used by the binary data file. */
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1 || u64 != RGLMDF_BINARY_DATA_FILE_FORMAT_VERSION) {
+    fprintf(stderr, "Error while reading the RGLMDF_BINARY_DATA_FILE_FORMAT_VERSION from the input binary file.\n");
+    fprintf(stderr, "  The file format version is %zu\n", u64);
+    fprintf(stderr, "  The executable program is compatible with format version %zu\n",
+            (uint64_t) RGLMDF_BINARY_DATA_FILE_FORMAT_VERSION);
     fclose(ifp);
     return EXIT_FAILURE;
   }
@@ -1149,7 +1160,7 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
     return EXIT_FAILURE;
   }
   cpp = rglmdf_get_position_statuses(gd);
-  l = fread(*cpp, RGLM_POSITION_STATUS_BUF_SIZE, u64, ifp);
+  l = fread(*cpp, RGLMDF_POSITION_STATUS_BUF_SIZE, u64, ifp);
   if (l != u64) {
     fprintf(stderr, "Error while reading position_statuses from the input binary file.\n");
     fclose(ifp);
@@ -1207,6 +1218,14 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
   }
   if (verbose) rglmdf_patterns_to_text_stream(gd, stdout);
 
+  /* Reads the B valid milestone. */
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1 || u64 != RGLMDF_VALID_B) {
+    fprintf(stderr, "Error while reading the B valid milestone from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+
   /* Reads the position summary table. */
   l = fread(&u64, sizeof(uint64_t), 1, ifp);
   if (l != 1) {
@@ -1228,6 +1247,14 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
     return EXIT_FAILURE;
   }
   if (verbose) rglmdf_position_summary_cnt_to_text_stream(gd, stdout);
+
+  /* Reads the C valid milestone. */
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1 || u64 != RGLMDF_VALID_C) {
+    fprintf(stderr, "Error while reading the C valid milestone from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
 
   /* Reads the pattern frequency summary table. */
   l = fread(&u64_a, sizeof(uint64_t), 1, ifp);
@@ -1263,6 +1290,14 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
   }
   if (verbose) rglmdf_pattern_freq_summary_cnt_to_text_stream(gd, stdout);
 
+  /* Reads the D valid milestone. */
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1 || u64 != RGLMDF_VALID_D) {
+    fprintf(stderr, "Error while reading the D valid milestone from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+
   /* Creates the mapping betweeen (pattern_id, principal_index_value) --> glm_variable_id */
   rglmdf_build_reverse_map(gd);
   if (verbose) fprintf(stdout, "The reverse map \"(pattern_id, principal_index_value) --> glm_variable_id\" has been computed.\n");
@@ -1274,7 +1309,8 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
     fclose(ifp);
     return EXIT_FAILURE;
   }
-  /* Read the number of record for the solved and classified game position table. */
+
+  /* Reads the number of record for the solved and classified game position table. */
   l = fread(&u64, sizeof(uint64_t), 1, ifp);
   if (l != 1) {
     fprintf(stderr, "Error while reading positions_ntuples from the input binary file.\n");
@@ -1284,6 +1320,15 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
   v64 = rglmdf_set_positions_ntuples(gd, u64, u8);
   if (v64 != u64) {
     fprintf(stderr, "Unable to allocate memory for the positions table.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  n = u64;
+
+  /* Reads the E valid milestone. */
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1 || u64 != RGLMDF_VALID_E) {
+    fprintf(stderr, "Error while reading the E valid milestone from the input binary file.\n");
     fclose(ifp);
     return EXIT_FAILURE;
   }
@@ -1303,15 +1348,15 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
       return EXIT_FAILURE;
     }
     n_record_read += data_chunk_size;
-    if (n_record_read > u64) {
+    if (n_record_read > n) {
       fprintf(stderr, "Data chunks cumulated so far are more than expected.\n");
       fclose(ifp);
       return EXIT_FAILURE;
     }
     if (data_chunk_size == 0) {
-      if (n_record_read != u64) {
+      if (n_record_read != n) {
         fprintf(stderr, "Data chunks being read are less than expected.\n");
-        fprintf(stderr, "Expected = %lu, number of record read = %zu\n", u64, n_record_read);
+        fprintf(stderr, "Expected = %lu, number of record read = %zu\n", n, n_record_read);
         fclose(ifp);
         return EXIT_FAILURE;
       }
@@ -1342,8 +1387,24 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
     scgprp += data_chunk_size;
     farrayp += nf * data_chunk_size;
     iarrayp += ni * data_chunk_size;
+
+    /* Reads the F valid milestone. */
+    l = fread(&u64, sizeof(uint64_t), 1, ifp);
+    if (l != 1 || u64 != RGLMDF_VALID_F) {
+      fprintf(stderr, "Error while reading the F valid milestone from the input binary file.\n");
+      fclose(ifp);
+      return EXIT_FAILURE;
+    }
   }
   if (verbose) fprintf(stdout, "All solved and classified game positions has been read succesfully.\n");
+
+  /* Reads the G valid milestone. */
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1 || u64 != RGLMDF_VALID_G) {
+    fprintf(stderr, "Error while reading the G valid milestone from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
 
   /* Closes the binary file. */
   fclose(ifp);
@@ -1394,7 +1455,11 @@ rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
   fwn = 0;
 
   /* Writes the A valid milestone. */
-  u64 = RGLM_VALID_A;
+  u64 = RGLMDF_VALID_A;
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
+
+  /* Writes the version of the format used by the binary data file. */
+  u64 = RGLMDF_BINARY_DATA_FILE_FORMAT_VERSION;
   fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
 
   /* Writes time to the binary file. */
@@ -1413,7 +1478,7 @@ rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
   /* Writes the count of position status, and the text buffer containing the terminated strings. */
   u64 = gd->position_status_cnt;
   fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
-  fwrite2(gd->position_status_buffer, RGLM_POSITION_STATUS_BUF_SIZE, gd->position_status_cnt, ofp, &fwn);
+  fwrite2(gd->position_status_buffer, RGLMDF_POSITION_STATUS_BUF_SIZE, gd->position_status_cnt, ofp, &fwn);
 
   /* Writes the feature count, and the array of feature id to the binary file. */
   u64 = gd->feature_cnt;
@@ -1431,10 +1496,18 @@ rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
     fwrite2(&i16, sizeof(int16_t), 1, ofp, &fwn);
   }
 
+  /* Writes the B valid milestone. */
+  u64 = RGLMDF_VALID_B;
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
+
   /* Writes the statistics for game positions to the binary file ( position_summary table ). */
   u64 = gd->position_summary.ntuples;
   fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
   fwrite2(gd->position_summary.records, sizeof(rglmdf_position_summary_record_t), gd->position_summary.ntuples, ofp, &fwn);
+
+  /* Writes the C valid milestone. */
+  u64 = RGLMDF_VALID_C;
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
 
   /* Writes the statistics for pattern indexes to the binary file ( pattern_freq_summary table ). */
   u64 = gd->pattern_freq_summary.glm_f_variable_cnt;
@@ -1445,7 +1518,11 @@ rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
   fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
   fwrite2(gd->pattern_freq_summary.records, sizeof(rglmdf_pattern_freq_summary_record_t), gd->pattern_freq_summary.ntuples, ofp, &fwn);
 
-  /* Writes the classified and resolved game positions to the binary file. */
+  /* Writes the D valid milestone. */
+  u64 = RGLMDF_VALID_D;
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
+
+  /* Writes the header data of the classified and resolved game positions to the binary file. */
   u8 = gd->positions.iarray_data_type;
   fwrite2(&u8, sizeof(uint8_t), 1, ofp, &fwn);
   u64 = gd->positions.ntuples;
@@ -1455,6 +1532,12 @@ rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
   rp = gd->positions.records;
   fap = gd->positions.farray;
   iap = gd->positions.iarray;
+
+  /* Writes the E valid milestone. */
+  u64 = RGLMDF_VALID_E;
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
+
+  /* Writes the classified and resolved game positions to the binary file. */
   for (;;) {
     u64 = ntuples_to_write > RGLMDF_GPS_DATA_CHUNK_SIZE ? RGLMDF_GPS_DATA_CHUNK_SIZE : ntuples_to_write;
     fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
@@ -1467,15 +1550,21 @@ rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
     }
     fwrite2(rp, sizeof(rglmdf_solved_and_classified_gp_record_t), u64, ofp, &fwn);
     fwrite2(fap, sizeof(double) * gd->positions.n_fvalues_per_record, u64, ofp, &fwn);
-    //fwrite2(gd->positions.iarray + (ntuples_written  * gd->positions.n_index_values_per_record),
-    //        sizeof(uint32_t) * gd->positions.n_index_values_per_record, u64, ofp, &fwn);
     fwrite2(iap, sizeof(uint32_t) * gd->positions.n_index_values_per_record, u64, ofp, &fwn);
     ntuples_written += u64;
     ntuples_to_write -= u64;
     rp += u64;
     fap += u64 * gd->positions.n_fvalues_per_record;
     iap += u64 * gd->positions.n_index_values_per_record;
+
+    /* Writes the F valid milestone. */
+    u64 = RGLMDF_VALID_F;
+    fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
   }
+
+  /* Writes the G valid milestone. */
+  u64 = RGLMDF_VALID_G;
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
 
   /* Closes the binary file. */
   fclose(ofp);

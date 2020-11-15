@@ -7,7 +7,7 @@
  *       These new functions are going to enable an API for the two programs that is then usable by
  *       test modules.
  *
- * @todo Write a function in rglm_data_files that read, and one that also write, the rglm
+ * @todo Write a function in rglm_data_files that reads, and one that also writes, the rglm
  *       binary data file.
  *       Formats for binary data files are more than one. There are the
  *       - 'general'
@@ -23,9 +23,6 @@
  *          It is just a dump of the matrix using the linear_algebra utility functions. It is ok.
  *       formats.
  *       Should be all documented and rationalized.
- *
- * @todo Insert the RGLM_VALID_A, RGLM_VALID_B , .... values into the binary files.
- *       They are guards to increment the robustness of the format.
  *
  * @todo When appropriate substitutes "_pattern_" with "_entity_" into structures, and field names.
  *       The underlining reason is the introduction of features .... we do not have any longer just patterns.
@@ -173,6 +170,10 @@
  * @todo [2020-07-13 - done] Move the options of the main program from static declarations
  *                           to the main function. The reason is to avoid potential collisions,
  *                           and as a general rule it is a way to increase encapsulation.
+ *
+ * @todo [2020-11-15 - done] Insert the RGLM_VALID_A, RGLM_VALID_B , .... values into the binary files.
+ *                           They are guards to increment the robustness of the format.
+ *                           Add the file format version RGLMDF_BINARY_DATA_FILE_FORMAT_VERSION.
  *
  *
  *

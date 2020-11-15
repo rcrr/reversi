@@ -19,7 +19,10 @@
  * <p>
  * --- Header ---
  *   - `8 bytes` field, read/written as `uint64_t`, not converted.<br>
- *     Meaning: the read value has to be equal to `RGLM_VALID_A`, it is a formal validity check, the value is not used.<br>
+ *     Meaning: the read value has to be equal to `RGLMDF_VALID_A`, it is a formal validity check, the value is not used.<br>
+ *<br>
+ *   - `8 bytes` field, read/written as `uint64_t`, not converted.<br>
+ *     Meaning: the read value has to be equal to `RGLMDF_BINARY_DATA_FILE_FORMAT_VERSION`, it is a formal validity check, the value is not used.<br>
  *<br>
  *   - `8 bytes` field, read/written as `uint64_t`, converted to a `time_t` value.<br>
  *     Meaning: the file creation time.<br>
@@ -31,7 +34,7 @@
  *<br>
  *   - `8 bytes` field x `batch_id_cnt` times, read/written as multiple times `uint64_t`, not converted.<br>
  *     Meaning: array of batch_id entries.<br>
- *     Ref: `barch_ids`, array.<br>
+ *     Ref: `batch_ids`, array.<br>
  *<br>
  *   - `1 byte` field, read/written as `uint8_t`, not converted.<br>
  *     Meaning: board empty square count.<br>
@@ -41,10 +44,10 @@
  *     Meaning: count of status entries.<br>
  *     Ref: `position_status_cnt`, scalar.<br>
  *<br>
- *   - `RGLM_POSITION_STATUS_BUF_SIZE bytes` field x `position_status_cnt` times, read/written as multiple times `char[RGLM_POSITION_STATUS_BUF_SIZE * position_status_cnt]`, not converted.<br>
+ *   - `RGLMDF_POSITION_STATUS_BUF_SIZE bytes` field x `position_status_cnt` times, read/written as multiple times `char[RGLMDF_POSITION_STATUS_BUF_SIZE * position_status_cnt]`, not converted.<br>
  *     Meaning: buffer of position status entries.<br>
  *     Ref: `position_status_buffer`, array.<br>
- *     Macro `RGLM_POSITION_STATUS_BUF_SIZE` is defined being equal to `4`<br>
+ *     Macro `RGLMDF_POSITION_STATUS_BUF_SIZE` is defined being equal to `4`<br>
  *<br>
  *   - `8 bytes` field, read/written as `uint64_t`, converted to a `size_t` value.<br>
  *     Meaning: count of features.<br>
@@ -63,7 +66,7 @@
  *     Ref: `patterns`, array.<br>
  *<br>
  *   - `8 bytes` field, read/written as `uint64_t`, not converted.<br>
- *     Meaning: the read value has to be equal to `RGLM_VALID_B`, it is a formal validity check, the value is not used.<br>
+ *     Meaning: the read value has to be equal to `RGLMDF_VALID_B`, it is a formal validity check, the value is not used.<br>
  * <p>
  * --- Summary Tables. Position Summary Table, Pattern Frequency Summary Table. ---
  *   - `8 bytes` field, read/written as `uint64_t`, converted to `size_t` value.<br>
@@ -73,6 +76,9 @@
  *   - `1 rglmdf_position_summary_record_t` field x `position_summary.ntuples` times.<br>
  *     Meaning: the set of records in the table.<br>
  *     Ref: `position_summary.records`, array.<br>
+ *<br>
+ *   - `8 bytes` field, read/written as `uint64_t`, not converted.<br>
+ *     Meaning: the read value has to be equal to `RGLMDF_VALID_C`, it is a formal validity check, the value is not used.<br>
  *<br>
  *   - `8 bytes` field, read/written as `uint64_t`, converted to a `size_t` value.<br>
  *     Meaning: count of GLM independent variables belonging to features.<br>
@@ -89,6 +95,9 @@
  *   - `1 rglmdf_pattern_freq_summary_record_t` field x `pattern_freq_summary.ntuples` times.<br>
  *     Meaning: the set of records in the table.<br>
  *     Ref: `pattern_freq_summary.records`, array.<br>
+ *<br>
+ *   - `8 bytes` field, read/written as `uint64_t`, not converted.<br>
+ *     Meaning: the read value has to be equal to `RGLMDF_VALID_D`, it is a formal validity check, the value is not used.<br>
  * <p>
  * --- Game Positions ---
  *   - `1 byte` field, read/written as `uint8_t`, converted to `rglmdf_iarray_data_type_t` value.<br>
@@ -98,6 +107,9 @@
  *   - `8 bytes` field, read/written as `uint64_t`, converted to `size_t` value.<br>
  *     Meaning: count of records in the game position table.<br>
  *     Ref: `positions.ntuples`, scalar.<br>
+ *<br>
+ *   - `8 bytes` field, read/written as `uint64_t`, not converted.<br>
+ *     Meaning: the read value has to be equal to `RGLMDF_VALID_E`, it is a formal validity check, the value is not used.<br>
  *<br>
  *   - Sequence of data chunks:<br>
  *      - `8 bytes` field, read/written as `uint64_t`, converted to `size_t` value.<br>
@@ -112,12 +124,18 @@
  *      - `double` field x `n_fvalues_per_record` x `data_chunk_size` times.<br>
  *        Meaning: the array of feature values in the data chunk.<br>
  *        Ref: `positions.farray`, array ( each data chunk is collected in the array following the previos one ).<br>
- *        Notice: the value `n_fvalues_per_record` is computed summing up the field count for each feature being selected.
+ *        Notice: the value `n_fvalues_per_record` is computed summing up the field count for each feature being selected.<br>
  *<br>
  *      - `uint32_t` field x `n_index_values_per_record` x `data_chunk_size` times.<br>
  *        Meaning: the array of pattern index values in the data chunk.<br>
  *        Ref: `positions.iarray`, array ( each data chunk is collected in the array following the previos one ).<br>
- *        Notice: the value `n_index_values_per_record` is computed summing up the field count for each pattern being selected.
+ *        Notice: the value `n_index_values_per_record` is computed summing up the field count for each pattern being selected.<br>
+ *<br>
+ *      - `8 bytes` field, read/written as `uint64_t`, not converted.<br>
+ *        Meaning: the read value has to be equal to `RGLMDF_VALID_F`, it is a formal validity check, the value is not used.<br>
+ *<br>
+ *   - `8 bytes` field, read/written as `uint64_t`, not converted.<br>
+ *     Meaning: the read value has to be equal to `RGLMDF_VALID_G`, it is a formal validity check, the value is not used.<br>
  *<br>
  *
  * @par rglm_data_files.h
@@ -150,17 +168,29 @@
 #ifndef RGLM_DATA_FILES_H
 #define RGLM_DATA_FILES_H
 
+/*
+ * The version of the format used by the binary data file.
+ * Every time that the file format is modified, this value has to be incremented.
+ * Adopting consistently this practice, enforce the consistency of existing files
+ * with new version of the executables running the rglmdf_read_general_data_from_binary_file()
+ * function.
+ */
+#define RGLMDF_BINARY_DATA_FILE_FORMAT_VERSION 1
+
 /* 64 bits values used as a "sanity check" in reading and writing binary files. */
-#define RGLM_VALID_A 0x289fab30715d828c
-#define RGLM_VALID_B 0xa947d47ef2c6510e
-#define RGLM_VALID_C 0x502774e7b1ac9730
-#define RGLM_VALID_D 0x820cc6eab481d935
+#define RGLMDF_VALID_A 0x289fab30715d828c
+#define RGLMDF_VALID_B 0xa947d47ef2c6510e
+#define RGLMDF_VALID_C 0x502774e7b1ac9730
+#define RGLMDF_VALID_D 0x820cc6eab481d935
+#define RGLMDF_VALID_E 0x07f9ba20206c8901
+#define RGLMDF_VALID_F 0x686d3d28511bc982
+#define RGLMDF_VALID_G 0x2976a5fa6c200816
 
 /* Position status has length 3, plus one char for proper termination. */
-#define RGLM_POSITION_STATUS_BUF_SIZE 4
+#define RGLMDF_POSITION_STATUS_BUF_SIZE 4
 
 /* This is a conventional out of range value. */
-#define RGLM_INVALID_GLM_VARIABLE_ID UINT32_MAX
+#define RGLMDF_INVALID_GLM_VARIABLE_ID UINT32_MAX
 
 /* The number of records into a data chunk. */
 #define RGLMDF_GPS_DATA_CHUNK_SIZE 4096
@@ -197,10 +227,10 @@ typedef enum {
  * The record has a fixed size and needs 24 bytes.
  */
 typedef struct rglmdf_position_summary_record_s {
-  int32_t batch_id;                             /**< @brief Key field, maps the batch_id::regab_prng_gp field in the REGAB database. */
-  char status[RGLM_POSITION_STATUS_BUF_SIZE];   /**< @brief Key field, maps the status::regab_prng_gp field in the REGAB database. */
-  int64_t game_position_cnt;                    /**< @brief Count of game position matching the key values in the regab_prng_gp table. */
-  int64_t classified_cnt;                       /**< @brief Count of classified game position in table regab_prng_pattern_class referenced by the selection. */
+  int32_t batch_id;                               /**< @brief Key field, maps the batch_id::regab_prng_gp field in the REGAB database. */
+  char status[RGLMDF_POSITION_STATUS_BUF_SIZE];   /**< @brief Key field, maps the status::regab_prng_gp field in the REGAB database. */
+  int64_t game_position_cnt;                      /**< @brief Count of game position matching the key values in the regab_prng_gp table. */
+  int64_t classified_cnt;                         /**< @brief Count of classified game position in table regab_prng_pattern_class referenced by the selection. */
 } rglmdf_position_summary_record_t;
 
 /**

@@ -2755,7 +2755,7 @@ main (int argc,
     return EXIT_FAILURE;
   }
   char **cpp = rglmdf_get_position_statuses(&gd);
-  memcpy(*cpp, position_status_buffer, RGLM_POSITION_STATUS_BUF_SIZE * position_status_cnt);
+  memcpy(*cpp, position_status_buffer, RGLMDF_POSITION_STATUS_BUF_SIZE * position_status_cnt);
   if (verbose) {
     fprintf(stdout, "Searched position statuses: ");
     for (size_t i = 0; i < position_status_cnt; i++) {
