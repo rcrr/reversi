@@ -2655,7 +2655,8 @@ main (int argc,
    * designated by the p_flag or f_flag boolean variables being true, the second one by the g_flag.
    *
    * Steps:
-   *  - 00   - Collects and set the "saved time".
+   *  - 00.a - Collects and set the "saved time".
+   *  - 00.b - Sets the format type.
    *  - 01   - Starts a DB transaction.
    *  - 02.a - Checks batch_id argument data, then copies it into the gd structure.
    *  - 02.b - Copies the empty_count field into the gd structure.
@@ -2698,12 +2699,13 @@ main (int argc,
   size_t glm_p_variable_cnt = 0;
 
   rglmdf_iarray_data_type_t iarray_data_type;
+  rglmdf_file_data_format_type_t file_data_format;
 
   PGresult *res = NULL;
   int ret_code;
 
   /*
-   * - 00 - Collects and set the "saved time".
+   * - 00.a - Collects and set the "saved time".
    *
    * The time saved into the gd structure is the current time when the t_flag is NULL,
    * when t_flag is selected the value is set to zero.
@@ -2718,6 +2720,10 @@ main (int argc,
   }
   if (verbose) fprintf(stdout, "Time saved to file is %s", ctime(&saved_time));
   rglmdf_set_file_creation_time(&gd, saved_time);
+
+  /* - 00.b - Sets the format type. */
+  file_data_format = (f_flag || p_flag) ? RGLMDF_FILE_DATA_FORMAT_TYPE_IS_GENERAL : RGLMDF_FILE_DATA_FORMAT_TYPE_IS_POSITIONS;
+  rglmdf_set_format(&gd, file_data_format);
 
   /* - 01 - Starts a DB transaction. */
   res = PQexec(con, "BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ");
@@ -2793,19 +2799,17 @@ main (int argc,
   memcpy(rglmdf_get_patterns(&gd), patterns, sizeof(board_pattern_id_t) * pattern_cnt);
 
   /* - 03 - Collects from the DB the game positions statistics (the position summary table) and stores them into the gd structure. */
-  if (p_flag || f_flag) {
-    do_action_extract_count_positions(&result, con, verbose, &gd);
-    if (result != 0) {
-      fprintf(stderr, "Error occured into function do_action_extract_count_positions(). Exiting ...\n");
-      res = PQexec(con, "ROLLBACK");
-      PQfinish(con);
-      return EXIT_FAILURE;
-    }
+  do_action_extract_count_positions(&result, con, verbose, &gd);
+  if (result != 0) {
+    fprintf(stderr, "Error occured into function do_action_extract_count_positions(). Exiting ...\n");
+    res = PQexec(con, "ROLLBACK");
+    PQfinish(con);
+    return EXIT_FAILURE;
   }
 
   /* - 04 - Collects from the DB the feature and pattern index statistics, assigns the global variable index value,
    *        saves them into the pattern_freq_summary table into the general data structure. */
-  if (p_flag || f_flag) {
+  if (file_data_format == RGLMDF_FILE_DATA_FORMAT_TYPE_IS_GENERAL) {
     for (size_t i = 0; i < feature_cnt; i++)
       glm_f_variable_cnt += board_features[features[i]].field_cnt;
     do_action_extract_pattern_freqs_prepare_cursor(&result, con, verbose, empty_count, batch_id_cnt, batch_ids, position_status_cnt, position_statuses,

@@ -92,6 +92,7 @@ rglmdf_general_data_init (rglmdf_general_data_t *gd)
 {
   assert(gd);
   gd->file_creation_time = (time_t) 0; // "Thu Jan  1 00:0:00 1970 (UTC)"
+  gd->format = RGLMDF_FILE_DATA_FORMAT_TYPE_IS_INVALID;
   gd->batch_id_cnt = 0;
   gd->batch_ids = NULL;
   gd->empty_count = 0;
@@ -154,6 +155,47 @@ rglmdf_get_file_creation_time (rglmdf_general_data_t *gd)
 {
   assert(gd);
   return gd->file_creation_time;
+}
+
+void
+rglmdf_set_format (rglmdf_general_data_t *gd,
+                   rglmdf_file_data_format_type_t f)
+{
+  assert(gd);
+  gd->format = f;
+}
+
+rglmdf_file_data_format_type_t
+rglmdf_get_format (rglmdf_general_data_t *gd)
+{
+  assert(gd);
+  return gd->format;
+}
+
+void
+rglmdf_format_to_text_stream (rglmdf_general_data_t *gd,
+                              FILE *stream)
+{
+  assert(gd);
+  if (!stream) return;
+
+  char *s;
+
+  switch (gd->format) {
+  case RGLMDF_FILE_DATA_FORMAT_TYPE_IS_GENERAL:
+    s = "GENERAL";
+    break;
+  case RGLMDF_FILE_DATA_FORMAT_TYPE_IS_POSITIONS:
+    s = "POSITIONS";
+    break;
+  case RGLMDF_FILE_DATA_FORMAT_TYPE_IS_INVALID:
+    s = "INVALID";
+    break;
+  default:
+    abort();
+  }
+
+  fprintf(stream, "The format of the binary data file is: %s\n", s);
 }
 
 void
@@ -287,6 +329,11 @@ rglmdf_set_feature_cnt (rglmdf_general_data_t *gd,
 {
   assert(gd);
 
+  /* Only if the format is GENERAL, cnt could be different from zero. */
+  if (gd->format != RGLMDF_FILE_DATA_FORMAT_TYPE_IS_GENERAL && cnt > 0) {
+    return 0;
+  }
+
   if (cnt == 0) {
     free(gd->features);
     gd->features = NULL;
@@ -346,6 +393,11 @@ rglmdf_set_pattern_cnt (rglmdf_general_data_t *gd,
                         size_t cnt)
 {
   assert(gd);
+
+  /* Only if the format is GENERAL, cnt could be different from zero. */
+  if (gd->format != RGLMDF_FILE_DATA_FORMAT_TYPE_IS_GENERAL && cnt > 0) {
+    return 0;
+  }
 
   if (cnt == 0) {
     free(gd->patterns);
@@ -456,6 +508,14 @@ rglmdf_set_pattern_freq_summary_ntuples (rglmdf_general_data_t *gd,
   assert(gd);
   assert(feature_ntuples + pattern_ntuples == ntuples);
   assert(ntuples < RGLMDF_INVALID_GLM_VARIABLE_ID);
+
+  /* Only when format is GENERAL the table is populated. */
+  if (gd->format != RGLMDF_FILE_DATA_FORMAT_TYPE_IS_GENERAL) {
+    if (feature_ntuples != 0 || pattern_ntuples != 0 || ntuples != 0) {
+      return 0;
+    }
+  }
+
   if (gd->feature_cnt + gd->pattern_cnt > RGLM_MAX_PATTERN_CNT) {
     fprintf(stderr, "Error: gd->feature_cnt + gd->pattern_cnt > RGLM_MAX_PATTERN_CNT\n");
     fprintf(stderr, "       gd->feature_cnt = %zu\n", gd->feature_cnt);
@@ -1112,6 +1172,16 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
     fprintf(stdout, "Input file started to be written on (UTC) %s\n", buf);
   }
 
+  /* Reads the format data type. */
+  l = fread(&u8, sizeof(uint8_t), 1, ifp);
+  if (l != 1) {
+    fprintf(stderr, "Error while reading format from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  rglmdf_set_format(gd, u8);
+  if (verbose) rglmdf_format_to_text_stream(gd, stdout);
+
   /* Reads the batch_id_cnt, batch_ids input fields.*/
   l = fread(&u64, sizeof(uint64_t), 1, ifp);
   if (l != 1) {
@@ -1177,7 +1247,7 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
   }
   v64 = rglmdf_set_feature_cnt(gd, u64);
   if (v64 != u64) {
-    fprintf(stderr, "Unable to allocate memory for features array.\n");
+    fprintf(stderr, "Error in function rglmdf_set_feature_cnt() or unable to allocate memory for features array.\n");
     fclose(ifp);
     return EXIT_FAILURE;
   }
@@ -1202,7 +1272,7 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
   }
   v64 = rglmdf_set_pattern_cnt(gd, u64);
   if (v64 != u64) {
-    fprintf(stderr, "Unable to allocate memory for patterns array.\n");
+    fprintf(stderr, "Error in function rglmdf_set_pattern_cnt() or unable to allocate memory for patterns array.\n");
     fclose(ifp);
     return EXIT_FAILURE;
   }
@@ -1277,7 +1347,7 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
   }
   v64 = rglmdf_set_pattern_freq_summary_ntuples(gd, u64_a, u64_b, u64);
   if (v64 != u64) {
-    fprintf(stderr, "Unable to allocate memory for the records of pattern freq summary table.\n");
+    fprintf(stderr, "Error in function rglmdf_set_pattern_freq_summary_ntuples() or unable to allocate memory for the records of pattern freq summary table.\n");
     fclose(ifp);
     return EXIT_FAILURE;
   }
@@ -1396,7 +1466,7 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
       return EXIT_FAILURE;
     }
   }
-  if (verbose) fprintf(stdout, "All solved and classified game positions has been read succesfully.\n");
+  if (verbose) fprintf(stdout, "All %zu solved and classified game positions has been read succesfully.\n", n_record_read);
 
   /* Reads the G valid milestone. */
   l = fread(&u64, sizeof(uint64_t), 1, ifp);
@@ -1465,6 +1535,10 @@ rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
   /* Writes time to the binary file. */
   u64 = time;
   fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
+
+  /* Writes the format to binary file. */
+  u8 = gd->format;
+  fwrite2(&u8, sizeof(uint8_t), 1, ofp, &fwn);
 
   /* Writes count of batch ids, and the batch_ids array to the binary file. */
   u64 = gd->batch_id_cnt;

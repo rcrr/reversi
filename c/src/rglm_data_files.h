@@ -24,6 +24,10 @@
  *   - `8 bytes` field, read/written as `uint64_t`, not converted.<br>
  *     Meaning: the read value has to be equal to `RGLMDF_BINARY_DATA_FILE_FORMAT_VERSION`, it is a formal validity check, the value is not used.<br>
  *<br>
+ *   - `1 byte` field, read/written as `uint8_t`, converted to `rglmdf_file_data_format_type_t` value.<br>
+ *     Meaning: the format of the binary data file.<br>
+ *     Ref: `format`, scalar.<br>
+ *<br>
  *   - `8 bytes` field, read/written as `uint64_t`, converted to a `time_t` value.<br>
  *     Meaning: the file creation time.<br>
  *     Ref: `file_creation_time`, scalar.<br>
@@ -201,14 +205,23 @@
 #include "board_pattern.h"
 
 /**
- * @enum rglmdf_file_data_type_t
+ * @enum rglmdf_file_data_format_type_t
  * @brief Format of the binary file.
+ *
+ * @details The data file can have two distinct formats:
+ *          - The general format
+ *          - The game positions format
+ *
+ *          The general format contains features or patterns, and by consequence it has glm variables.
+ *          Variables then imply the summary tables.
+ *
+ *          The game position format doesn't have features, patterns, variables and the summary tables.
  */
 typedef enum {
   RGLMDF_FILE_DATA_FORMAT_TYPE_IS_GENERAL,              /**< File format having the RGLM variables. */
   RGLMDF_FILE_DATA_FORMAT_TYPE_IS_POSITIONS,            /**< File format with just the positions. */
   RGLMDF_FILE_DATA_FORMAT_TYPE_IS_INVALID               /**< Not a valid format type. */
-} rglmdf_file_data_type_t;
+} rglmdf_file_data_format_type_t;
 
 /**
  * @enum rglmdf_iarray_data_type_t
@@ -377,6 +390,7 @@ typedef struct rglmdf_solved_and_classified_gp_table_s {
  */
 typedef struct rglmdf_general_data_s {
   time_t file_creation_time;                                  /**< @brief Creation time of the data file. */
+  rglmdf_file_data_format_type_t format;                      /**< @brief The format of the file and of the general data associated to it. */
   size_t batch_id_cnt;                                        /**< @brief Count of batch id entries. */
   uint64_t *batch_ids;                                        /**< @brief Array of batch_id values. */
   uint8_t empty_count;                                        /**< @brief Empty square count. */
@@ -446,6 +460,44 @@ rglmdf_set_file_creation_time (rglmdf_general_data_t *gd,
  */
 extern time_t
 rglmdf_get_file_creation_time (rglmdf_general_data_t *gd);
+
+/**
+ * @brief Sets the attribute field `format`.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] gd reference to the general data structure
+ * @param [in]     f  new updated value
+ */
+extern void
+rglmdf_set_format (rglmdf_general_data_t *gd,
+                   rglmdf_file_data_format_type_t f);
+
+/**
+ * @brief Gets the attribute field `format`.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the value of the field
+ */
+extern rglmdf_file_data_format_type_t
+rglmdf_get_format (rglmdf_general_data_t *gd);
+
+/**
+ * @brief Outputs to `stream` a text message with the file data format.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd     reference to the general data structure
+ * @param [in] stream the output file handler
+ */
+extern void
+rglmdf_format_to_text_stream (rglmdf_general_data_t *gd,
+                              FILE *stream);
 
 /**
  * @brief Translates the field `file_creation_time` as a character string.

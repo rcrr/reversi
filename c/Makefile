@@ -54,17 +54,6 @@ BLIS_LIB  := ./ext/lib/libblis.a
 FLAME_LIB := ./ext/lib/libflame.a
 
 FLAME_LDFLAGS := 
-#FLAME_LDFLAGS += -L/usr/lib/gcc/x86_64-linux-gnu/8
-#FLAME_LDFLAGS += -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu
-#FLAME_LDFLAGS += -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib
-#FLAME_LDFLAGS += -L/lib/x86_64-linux-gnu
-#FLAME_LDFLAGS += -L/lib/../lib
-#FLAME_LDFLAGS += -L/usr/lib/x86_64-linux-gnu
-#FLAME_LDFLAGS += -L/usr/lib/../lib
-#FLAME_LDFLAGS += -L/usr/lib/gcc/x86_64-linux-gnu/8/../../..
-#FLAME_LDFLAGS += -lgfortran
-#FLAME_LDFLAGS += -lm
-#FLAME_LDFLAGS += -lquadmath
 
 #
 # Add all the external header file in the ext/include directory.
