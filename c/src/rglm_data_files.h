@@ -201,6 +201,16 @@
 #include "board_pattern.h"
 
 /**
+ * @enum rglmdf_file_data_type_t
+ * @brief Format of the binary file.
+ */
+typedef enum {
+  RGLMDF_FILE_DATA_FORMAT_TYPE_IS_GENERAL,              /**< File format having the RGLM variables. */
+  RGLMDF_FILE_DATA_FORMAT_TYPE_IS_POSITIONS,            /**< File format with just the positions. */
+  RGLMDF_FILE_DATA_FORMAT_TYPE_IS_INVALID               /**< Not a valid format type. */
+} rglmdf_file_data_type_t;
+
+/**
  * @enum rglmdf_iarray_data_type_t
  * @brief Meaning of the data stored into the iarray field.
  */

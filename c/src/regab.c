@@ -1621,6 +1621,8 @@ do_action_extract_check_patterns (int *result,
   }
   *result = 0;
 
+  if (pattern_cnt == 0) return;
+
   const char *c0 = "SELECT * FROM regab_action_extract_check_patterns('{";
   const char *c1 = "%d%s";
   const char *c2 = ", ";
@@ -2774,14 +2776,12 @@ main (int argc,
   memcpy(rglmdf_get_features(&gd), features, sizeof(board_feature_id_t) * feature_cnt);
 
   /* - 02.e - Checks first and then copies pattern argument data into the gd structure. */
-  if (p_flag) {
-    do_action_extract_check_patterns(&result, con, verbose, patterns, pattern_cnt);
-    if (result != 0) {
-      fprintf(stderr, "Error occured into do_action_extract_check_patterns(). Exiting ...\n");
-      res = PQexec(con, "ROLLBACK");
-      PQfinish(con);
-      return EXIT_FAILURE;
-    }
+  do_action_extract_check_patterns(&result, con, verbose, patterns, pattern_cnt);
+  if (result != 0) {
+    fprintf(stderr, "Error occured into do_action_extract_check_patterns(). Exiting ...\n");
+    res = PQexec(con, "ROLLBACK");
+    PQfinish(con);
+    return EXIT_FAILURE;
   }
   n = rglmdf_set_pattern_cnt(&gd, pattern_cnt);
   if (n != pattern_cnt) {
@@ -2887,7 +2887,7 @@ main (int argc,
     PQfinish(con);
     return EXIT_FAILURE;
   }
-  iarray_data_type = p_flag ? RGLMDF_IARRAY_IS_INDEX : RGLMDF_IARRAY_IS_MISSING;
+  iarray_data_type = (pattern_cnt != 0) ? RGLMDF_IARRAY_IS_INDEX : RGLMDF_IARRAY_IS_MISSING;
   n = rglmdf_set_positions_ntuples(&gd, gps_data_total_record_cnt, iarray_data_type);
   if (n != gps_data_total_record_cnt) {
     fprintf(stderr, "Unable to allocate memory for solved and classified game positions table.\n");
