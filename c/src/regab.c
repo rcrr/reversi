@@ -1212,6 +1212,8 @@ do_action_extract_game_pos_prepare_cursor (int *result,
     return;
   }
 
+  if (false) fprintf(stdout, "command = \"%s\"\n", command);
+
   res = PQexec(con, command);
   if (PQresultStatus(res) != PGRES_TUPLES_OK) {
     fprintf(stderr, "%s", PQerrorMessage(con));
@@ -1552,6 +1554,8 @@ do_action_extract_count_positions (int *result,
       return;
     }
   }
+
+  if (false) fprintf(stdout, "command = \"%s\"\n", command);
 
   res = PQexec(con, command);
   if (PQresultStatus(res) != PGRES_TUPLES_OK) {

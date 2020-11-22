@@ -7,8 +7,11 @@
  *       These new functions are going to enable an API for the two programs that is then usable by
  *       test modules.
  *
- * @todo The REGAB extraction with the -g option is still subject to having the game position being classified ... ??
- *       Action: check it, and if it is true, remove the dependency.
+ * @todo The REGAB extraction with the -g option is subject to having the game position being classified.
+ *       The classification is performed after the REGAB solve and offspring actions, and is done at the
+ *       SQL prompt using the regab_gp_populate_pattern_class_table stored procedure.
+ *       Removing the dependency and adding the classify action to the REGAB program is not a priority.
+ *       Action: we keep as it is.
  *
  * @todo Write a function in rglm_data_files that reads, and one that also writes, the rglm
  *       binary data file.
