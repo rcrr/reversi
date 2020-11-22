@@ -52,6 +52,7 @@
 #include "exact_solver.h"
 #include "sort_utils.h"
 #include "rglm_data_files.h"
+#include "rglm_utils.h"
 
 
 
@@ -1294,9 +1295,9 @@ do_action_extract_game_pos_cursor_fetch (int *result,
       scgprp[i].mover = atol(PQgetvalue(res, i, 2));
       scgprp[i].opponent = atol(PQgetvalue(res, i, 3));
       scgprp[i].game_value = atoi(PQgetvalue(res, i, 4));
-      scgprp[i].game_value_transformed = 0.0;
-      scgprp[i].evaluation_function = 0.0;
-      scgprp[i].residual = 0.0;
+      scgprp[i].game_value_transformed = rglmut_gv_scale(scgprp[i].game_value);
+      scgprp[i].evaluation_function = 0.5; // 0.5 is the mid point between 0 and 1.
+      scgprp[i].residual = scgprp[i].evaluation_function - scgprp[i].game_value_transformed;
       for (size_t j = 0; j < ni; j++) {
         iarrayp[i * ni + j] = atol(PQgetvalue(res, i, 5 + j));
       }

@@ -7,6 +7,9 @@
  *       These new functions are going to enable an API for the two programs that is then usable by
  *       test modules.
  *
+ * @todo The REGAB extraction with the -g option is still subject to having the game position being classified ... ??
+ *       Action: check it, and if it is true, remove the dependency.
+ *
  * @todo Write a function in rglm_data_files that reads, and one that also writes, the rglm
  *       binary data file.
  *       Formats for binary data files are more than one. There are the
@@ -186,6 +189,12 @@
  *                           having as input the output of the previous run.
  *                           Action: remove the -W option.
  *
+ * @todo [2020-11-22 - done] The flags -T, --extract-gp-ttable, and -R, --extract-residuals, are equal.
+ *                           Action: remove the -R option.
+ *                           The fields extracted to the CSV file: GAME_VALUE_TRANSFORMED; EVALUATION_FUNCTION; RESIDUAL are
+ *                           not populated when the GLM problem has not been resolved.
+ *                           Action: populate them as soon as the first file is created.
+ *
  *
  *
  *
@@ -293,8 +302,6 @@ main (int argc,
   char *Q_arg = NULL;
   int T_flag = false;
   char *T_arg = NULL;
-  int R_flag = false;
-  char *R_arg = NULL;
   int H_flag = false;
   char *H_arg = NULL;
 
@@ -335,7 +342,6 @@ main (int argc,
     "  -P, --extract-gp-table     Dumps the solved and classified game position table in a CSV format, with original pattern indexes\n"
     "  -Q, --extract-gp-ptable    Dumps the solved and classified game position table in a CSV format, with principal pattern indexes\n"
     "  -T, --extract-gp-ttable    Dumps the solved and classified game position table transformed to glm_variable_id in a CSV format\n"
-    "  -R, --extract-residuals    Dumps the residuals of the minimization of the GLM model in a CSV format\n"
     "  -H, --dump-hessian-matrix  Dumps the unresolved Hessian matrix to a binary file and exits\n"
     "\n"
     "Description:\n"
@@ -396,10 +402,6 @@ main (int argc,
       T_flag = true;
       T_arg = options.optarg;
       break;
-    case 'R':
-      R_flag = true;
-      R_arg = options.optarg;
-      break;
     case 'H':
       H_flag = true;
       H_arg = options.optarg;
@@ -441,7 +443,7 @@ main (int argc,
 
   /* Checks command line options for consistency: H flag is exclusive. */
   if (H_arg) {
-    if (o_flag || b_flag || A_flag || B_flag || P_flag || Q_flag || T_flag || R_flag || s_flag ) {
+    if (o_flag || b_flag || A_flag || B_flag || P_flag || Q_flag || T_flag || s_flag ) {
       fprintf(stderr, "Option -H, --dump-hessian-matrix is not compatible with other selected flags.\n");
       return -4;
     }
@@ -831,18 +833,6 @@ main (int argc,
    * Weights computed.
    *
    */
-
-  /* If R flag is turned on, dumps the game position table to the output file. */
-  if (R_arg) {
-    ofp = fopen(R_arg, "w");
-    if (!ofp) {
-      fprintf(stderr, "Unable to open output file: %s\n", R_arg);
-      return EXIT_FAILURE;
-    }
-    rglmdf_gp_table_to_csv_file(&data, ofp);
-    fclose(ofp);
-    if (verbose) fprintf(stdout, "Game positions dumped to CSV file: \"%s\".\n", R_arg);
-  }
 
   /* Writes the binary output file. */
   if (o_arg) {
