@@ -901,9 +901,9 @@ rglmdf_fpfs_table_to_csv_file (rglmdf_general_data_t *gd,
   assert(gd);
   rglmdf_pattern_freq_summary_record_t *r = rglmdf_get_pattern_freq_summary_records(gd);
   size_t n = rglmdf_get_pattern_freq_summary_ntuples(gd);
-  fprintf(f, "     SEQ; GLM_VARIABLE_ID;   ENTITY_CLASS; PATTERN_ID; PRINCIPAL_INDEX_VALUE;   TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_FREQUENCY;              WEIGHT\n");
+  fprintf(f, "     SEQ; GLM_VARIABLE_ID;   ENTITY_CLASS; PATTERN_ID; PRINCIPAL_INDEX_VALUE;   TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_PROBABILITY;              WEIGHT\n");
   for (size_t i = 0; i < n; i++) {
-    fprintf(f, "%08zu;%16ld;%15d;%11d;%22d;%12ld;%19.6f;%22.6f;%+20.15f\n",
+    fprintf(f, "%08zu;%16ld;%15d;%11d;%22d;%12ld;%19.6f;%24.6f;%+20.15f\n",
             i, r[i].glm_variable_id, r[i].entity_class, r[i].pattern_id,
             r[i].principal_index_value, r[i].total_cnt, r[i].relative_frequency,
             r[i].theoretical_probability, r[i].weight);

@@ -178,6 +178,14 @@
  *                           They are guards to increment the robustness of the format.
  *                           Add the file format version RGLMDF_BINARY_DATA_FILE_FORMAT_VERSION.
  *
+ * @todo [2020-11-22 - done] The dump of the weights is done in the same way by the -B, --extract-pfs-table, and -W, --extract-weights, arguments.
+ *                           In both cases the program call the rglmdf_fpfs_table_to_csv_file() function.
+ *                           The difference is that the -B options dumps the CVS file before solving the GLM problem, the -W one does id after.
+ *                           It is better to remove the -W option and to follow a different practice.
+ *                           Solve the GLM with the -s option togeter with an -o option. Then run the rglm program again without the -s and -B options
+ *                           having as input the output of the previous run.
+ *                           Action: remove the -W option.
+ *
  *
  *
  *
@@ -285,8 +293,6 @@ main (int argc,
   char *Q_arg = NULL;
   int T_flag = false;
   char *T_arg = NULL;
-  int W_flag = false;
-  char *W_arg = NULL;
   int R_flag = false;
   char *R_arg = NULL;
   int H_flag = false;
@@ -329,7 +335,6 @@ main (int argc,
     "  -P, --extract-gp-table     Dumps the solved and classified game position table in a CSV format, with original pattern indexes\n"
     "  -Q, --extract-gp-ptable    Dumps the solved and classified game position table in a CSV format, with principal pattern indexes\n"
     "  -T, --extract-gp-ttable    Dumps the solved and classified game position table transformed to glm_variable_id in a CSV format\n"
-    "  -W, --extract-weights      Dumps the weights, the optimized value assigned to the glm_variable_id keys in a CSV format\n"
     "  -R, --extract-residuals    Dumps the residuals of the minimization of the GLM model in a CSV format\n"
     "  -H, --dump-hessian-matrix  Dumps the unresolved Hessian matrix to a binary file and exits\n"
     "\n"
@@ -391,10 +396,6 @@ main (int argc,
       T_flag = true;
       T_arg = options.optarg;
       break;
-    case 'W':
-      W_flag = true;
-      W_arg = options.optarg;
-      break;
     case 'R':
       R_flag = true;
       R_arg = options.optarg;
@@ -440,7 +441,7 @@ main (int argc,
 
   /* Checks command line options for consistency: H flag is exclusive. */
   if (H_arg) {
-    if (o_flag || b_flag || A_flag || B_flag || P_flag || Q_flag || T_flag || W_flag || R_flag || s_flag ) {
+    if (o_flag || b_flag || A_flag || B_flag || P_flag || Q_flag || T_flag || R_flag || s_flag ) {
       fprintf(stderr, "Option -H, --dump-hessian-matrix is not compatible with other selected flags.\n");
       return -4;
     }
@@ -830,18 +831,6 @@ main (int argc,
    * Weights computed.
    *
    */
-
-  /* If W flag is turned on, dumps the weights table to the output file. */
-  if (W_arg) {
-    ofp = fopen(W_arg, "w");
-    if (!ofp) {
-      fprintf(stderr, "Unable to open output file: %s\n", W_arg);
-      return EXIT_FAILURE;
-    }
-    rglmdf_fpfs_table_to_csv_file(&data, ofp);
-    fclose(ofp);
-    if (verbose) fprintf(stdout, "Optimized Weights table dumped to CSV file: \"%s\".\n", W_arg);
-  }
 
   /* If R flag is turned on, dumps the game position table to the output file. */
   if (R_arg) {
