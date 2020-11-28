@@ -2830,7 +2830,7 @@ main (int argc,
     ntuples = glm_f_variable_cnt + glm_p_variable_cnt;
     if (verbose) fprintf(stdout, "GLM variables are %zu, given by features are %zu, and by patterns are %zu.\n",
                          ntuples, glm_f_variable_cnt, glm_p_variable_cnt);
-    n = rglmdf_set_pattern_freq_summary_ntuples(&gd, glm_f_variable_cnt, glm_p_variable_cnt, ntuples);
+    n = rglmdf_set_entity_freq_summary_ntuples(&gd, glm_f_variable_cnt, glm_p_variable_cnt, ntuples);
     if (n != ntuples) {
       fprintf(stderr, "Unable to allocate memory for frequency summary table.\n");
       res = PQexec(con, "ROLLBACK");

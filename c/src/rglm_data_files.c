@@ -500,10 +500,10 @@ rglmdf_position_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
 }
 
 size_t
-rglmdf_set_pattern_freq_summary_ntuples (rglmdf_general_data_t *gd,
-                                         size_t feature_ntuples,
-                                         size_t pattern_ntuples,
-                                         size_t ntuples)
+rglmdf_set_entity_freq_summary_ntuples (rglmdf_general_data_t *gd,
+                                        size_t feature_ntuples,
+                                        size_t pattern_ntuples,
+                                        size_t ntuples)
 {
   assert(gd);
   assert(feature_ntuples + pattern_ntuples == ntuples);
@@ -795,15 +795,15 @@ rglmdf_build_reverse_map (rglmdf_general_data_t *gd)
 uint32_t
 rglmdf_map_pid_and_piv_to_glm_vid (rglmdf_general_data_t *gd,
                                    uint16_t entity_class,
-                                   uint16_t pattern_id,
+                                   uint16_t entity_id,
                                    uint32_t principal_index_value)
 {
   assert(gd);
   assert(entity_class == BOARD_ENTITY_CLASS_FEATURE || entity_class == BOARD_ENTITY_CLASS_PATTERN);
   if (entity_class == BOARD_ENTITY_CLASS_FEATURE)
-    return gd->reverse_map_a_f[pattern_id][principal_index_value];
+    return gd->reverse_map_a_f[entity_id][principal_index_value];
   else if (entity_class == BOARD_ENTITY_CLASS_PATTERN)
-    return gd->reverse_map_a_p[pattern_id][principal_index_value];
+    return gd->reverse_map_a_p[entity_id][principal_index_value];
   else
     abort();
 }
@@ -901,7 +901,7 @@ rglmdf_fpfs_table_to_csv_file (rglmdf_general_data_t *gd,
   assert(gd);
   rglmdf_pattern_freq_summary_record_t *r = rglmdf_get_pattern_freq_summary_records(gd);
   size_t n = rglmdf_get_pattern_freq_summary_ntuples(gd);
-  fprintf(f, "     SEQ; GLM_VARIABLE_ID;   ENTITY_CLASS; PATTERN_ID; PRINCIPAL_INDEX_VALUE;   TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_PROBABILITY;              WEIGHT\n");
+  fprintf(f, "     SEQ; GLM_VARIABLE_ID;   ENTITY_CLASS;  ENTITY_ID; PRINCIPAL_INDEX_VALUE;   TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_PROBABILITY;              WEIGHT\n");
   for (size_t i = 0; i < n; i++) {
     fprintf(f, "%08zu;%16ld;%15d;%11d;%22d;%12ld;%19.6f;%24.6f;%+20.15f\n",
             i, r[i].glm_variable_id, r[i].entity_class, r[i].entity_id,
@@ -1345,9 +1345,9 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
     fclose(ifp);
     return EXIT_FAILURE;
   }
-  v64 = rglmdf_set_pattern_freq_summary_ntuples(gd, u64_a, u64_b, u64);
+  v64 = rglmdf_set_entity_freq_summary_ntuples(gd, u64_a, u64_b, u64);
   if (v64 != u64) {
-    fprintf(stderr, "Error in function rglmdf_set_pattern_freq_summary_ntuples() or unable to allocate memory for the records of pattern freq summary table.\n");
+    fprintf(stderr, "Error in function rglmdf_set_entity_freq_summary_ntuples() or unable to allocate memory for the records of pattern freq summary table.\n");
     fclose(ifp);
     return EXIT_FAILURE;
   }

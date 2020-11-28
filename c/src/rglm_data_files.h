@@ -437,6 +437,17 @@ extern void
 rglmdf_general_data_init (rglmdf_general_data_t *gd);
 
 /**
+ * @brief Frees all the allocated memory in the substructures of `gd`.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd     reference to the general data structure
+ */
+extern void
+rglmdf_general_data_release (rglmdf_general_data_t *gd);
+
+/**
  * @brief Sets the attribute field `file_creation_time`.
  *
  * @invariant Parameter `gd` must be not `NULL`.
@@ -448,6 +459,26 @@ rglmdf_general_data_init (rglmdf_general_data_t *gd);
 extern void
 rglmdf_set_file_creation_time (rglmdf_general_data_t *gd,
                                time_t t);
+
+/**
+ * @brief Translates the field `file_creation_time` as a character string.
+ *
+ * @details Conversion happens as UTC value.
+ *          The generated string is saved in the `buf` array.
+ *          The buffer referenced by `buf` must be long `25` chars or more.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `buf` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in]  gd  reference to the general data structure
+ * @param [out] buf reference to the character buffer
+ */
+extern void
+rglmdf_get_file_creation_time_as_string (rglmdf_general_data_t *gd,
+                                         char *buf);
 
 /**
  * @brief Gets the attribute field `file_creation_time`.
@@ -498,26 +529,6 @@ rglmdf_get_format (rglmdf_general_data_t *gd);
 extern void
 rglmdf_format_to_text_stream (rglmdf_general_data_t *gd,
                               FILE *stream);
-
-/**
- * @brief Translates the field `file_creation_time` as a character string.
- *
- * @details Conversion happens as UTC value.
- *          The generated string is saved in the `buf` array.
- *          The buffer referenced by `buf` must be long `25` chars or more.
- *
- * @invariant Parameter `gd` must be not `NULL`.
- * The invariant is guarded by an assertion.
- *
- * @invariant Parameter `buf` must be not `NULL`.
- * The invariant is guarded by an assertion.
- *
- * @param [in]  gd  reference to the general data structure
- * @param [out] buf reference to the character buffer
- */
-extern void
-rglmdf_get_file_creation_time_as_string (rglmdf_general_data_t *gd,
-                                         char *buf);
 
 /**
  * @brief Allocates memory for the batch_ids array.
@@ -574,17 +585,6 @@ rglmdf_get_batch_ids (rglmdf_general_data_t *gd);
 extern void
 rglmdf_batch_ids_to_text_stream (rglmdf_general_data_t *gd,
                                  FILE *stream);
-
-/**
- * @brief Frees all the allocated memory in the substructures of `gd`.
- *
- * @invariant Parameter `gd` must be not `NULL`.
- * The invariant is guarded by an assertion.
- *
- * @param [in] gd     reference to the general data structure
- */
-extern void
-rglmdf_general_data_release (rglmdf_general_data_t *gd);
 
 /**
  * @brief Getter function for the `empty_count` field.
@@ -860,10 +860,10 @@ rglmdf_position_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
  * @return                         the number of allocated records
  */
 extern size_t
-rglmdf_set_pattern_freq_summary_ntuples (rglmdf_general_data_t *gd,
-                                         size_t feature_ntuples,
-                                         size_t pattern_ntuples,
-                                         size_t ntuples);
+rglmdf_set_entity_freq_summary_ntuples (rglmdf_general_data_t *gd,
+                                        size_t feature_ntuples,
+                                        size_t pattern_ntuples,
+                                        size_t ntuples);
 
 /**
  * @brief Getter function for the `pattern_freq_summary.ntuples` field.
@@ -1002,9 +1002,9 @@ rglmdf_get_positions_farray (rglmdf_general_data_t *gd);
  *
  * @details This function has to be called once just after having populated
  *          the Pattern Frequency Summary Table.
- *          The pocedure populates the data in the array `reverse_map_b`.
+ *          The procedure populates the data in the array `reverse_map_b`.
  *          The data in `reverse_map_a_f`, as well as the memory allocation are
- *          prepared before by the call to #rglmdf_set_pattern_freq_summary_ntuples.
+ *          prepared before by the call to #rglmdf_set_entity_freq_summary_ntuples.
  *
  * @invariant Parameter `gd` must be not `NULL`.
  * The invariant is guarded by an assertion.
@@ -1025,14 +1025,14 @@ rglmdf_build_reverse_map (rglmdf_general_data_t *gd);
  *
  * @param [in] gd                    reference to the general data structure
  * @param [in] entity_class          class of the entity ( feature or pattern )
- * @param [in] pattern_id            pattern id key
+ * @param [in] entity_id             entity id key
  * @param [in] principal_index_value principal index value key
  * @return                           the corresponding value for the `glm_variable_id`
  */
 extern uint32_t
 rglmdf_map_pid_and_piv_to_glm_vid (rglmdf_general_data_t *gd,
                                    uint16_t entity_class,
-                                   uint16_t pattern_id,
+                                   uint16_t entity_id,
                                    uint32_t principal_index_value);
 
 /**

@@ -7,11 +7,16 @@
  *       These new functions are going to enable an API for the two programs that is then usable by
  *       test modules.
  *
- * @todo The REGAB extraction with the -g option is subject to having the game position being classified.
- *       The classification is performed after the REGAB solve and offspring actions, and is done at the
- *       SQL prompt using the regab_gp_populate_pattern_class_table stored procedure.
- *       Removing the dependency and adding the classify action to the REGAB program is not a priority.
- *       Action: we keep as it is.
+ * @todo The General Data structure has three principal states, taked by the iarray_data_type field into the
+ *       positions table.
+ *       Values ae in the range _IS_INDES, _IS_PINCIPAL_INDEX, _IS_GLM_VARIABLE_ID, _IS_MISSING.
+ *       Transitions happens calling the rglmdf_transform_piv_to_glm_variable_id() function.
+ *       This is saving space in memory and in the file at the price of:
+ *       being cumbersome, losing the history, duplicating the code to output the CSV files.
+ *       Action: add to the positions table two more "iarray like" fields, (i0array, i1array, i2array)
+ *       where i0array is the INDEX array, i1array is the PRINCIPAL INDEX array, and 12array is the GLM VAIABLE ID array.
+ *       Or as an alternative multiply by 3 the iarray size ....
+ *       All the fnction accessing the iarray has to be rewritten ....
  *
  * @todo Write a function in rglm_data_files that reads, and one that also writes, the rglm
  *       binary data file.
@@ -198,6 +203,11 @@
  * @todo [2020-11-28 - done] When appropriate substitutes "_pattern_" with "_entity_" into structures, and field names.
  *                           The underlining reason is the introduction of features .... we do not have any longer just patterns.
  *
+ * @todo [2020-11-28 - done] The REGAB extraction with the -g option is subject to having the game position being classified.
+ *                           The classification is performed after the REGAB solve and offspring actions, and is done at the
+ *                           SQL prompt using the regab_gp_populate_pattern_class_table stored procedure.
+ *                           Removing the dependency and adding the classify action to the REGAB program is not a priority.
+ *                           Action: we keep as it is.
  *
  *
  *
