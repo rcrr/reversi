@@ -286,13 +286,13 @@ typedef struct rglmdf_position_summary_table_s {
  */
 typedef struct rglmdf_pattern_freq_summary_record_s {
   int64_t glm_variable_id;         /**< @brief It is the unique variable index for the GLM (Generalized Linear Model). */
-  int16_t entity_class;            /**< @brief It is a value in board_entity_class_tg enum. */
-  int16_t entity_id;               /**< @brief Board Pattern Id, as defined by REGAB table regab_prng_patterns. */
-  int32_t principal_index_value;   /**< @brief Principal Index Value for Pattern as defined by REGAB table regab_prng_pattern_ranges. */
-  int64_t total_cnt;               /**< @brief Number of times that the pattern, or its mirror, is found in the game position selection. */
-  double relative_frequency;       /**< @brief Relative frequency of the pattern configuration in the data. */
-  double theoretical_probability;  /**< @brief Expected probability of the pattern configuration. */
-  double weight;                   /**< @brief Weight of the pattern configuration in the evaluation function. */
+  int16_t entity_class;            /**< @brief It is a value in board_entity_class_t enum. */
+  int16_t entity_id;               /**< @brief Board feature Id or Board Pattern Id, as defined by REGAB table regab_prng_patterns. */
+  int32_t principal_index_value;   /**< @brief Feature Index Value or Principal Index Value for Pattern as defined by REGAB table regab_prng_pattern_ranges. */
+  int64_t total_cnt;               /**< @brief Number of times that the feature or pattern, or its mirror, is found in the game position selection. */
+  double relative_frequency;       /**< @brief Relative frequency of the entity configuration in the data. */
+  double theoretical_probability;  /**< @brief Expected probability of the entity configuration. */
+  double weight;                   /**< @brief Weight of the glm variable in the evaluation function. */
 } rglmdf_pattern_freq_summary_record_t;
 
 /**
