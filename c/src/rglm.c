@@ -33,9 +33,6 @@
  *       Add the data format type.
  *       Should be all documented and rationalized.
  *
- * @todo When appropriate substitutes "_pattern_" with "_entity_" into structures, and field names.
- *       The underlining reason is the introduction of features .... we do not have any longer just patterns.
- *
  * @todo The algorithm used to compute the weights is Minimum Mean Square Error (MMSE),
  *       move to Maximum Likelihood Estimation (MLE), or offer the selection among the two.
  *
@@ -197,6 +194,9 @@
  *                           The fields extracted to the CSV file: GAME_VALUE_TRANSFORMED; EVALUATION_FUNCTION; RESIDUAL are
  *                           not populated when the GLM problem has not been resolved.
  *                           Action: populate them as soon as the first file is created.
+ *
+ * @todo [2020-11-28 - done] When appropriate substitutes "_pattern_" with "_entity_" into structures, and field names.
+ *                           The underlining reason is the introduction of features .... we do not have any longer just patterns.
  *
  *
  *

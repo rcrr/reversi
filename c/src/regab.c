@@ -1368,7 +1368,7 @@ do_action_extract_pattern_freqs_cursor_fetch (int *result,
     for (size_t i = 0; i < *fetched_record_cnt; i++) {
       rec->glm_variable_id = atol(PQgetvalue(res, i, 0));
       rec->entity_class = BOARD_ENTITY_CLASS_PATTERN;
-      rec->pattern_id = atol(PQgetvalue(res, i, 1));
+      rec->entity_id = atol(PQgetvalue(res, i, 1));
       rec->principal_index_value = atol(PQgetvalue(res, i, 2));
       rec->total_cnt = atol(PQgetvalue(res, i, 3));
       rec->relative_frequency = atof(PQgetvalue(res, i, 4));
@@ -2853,7 +2853,7 @@ main (int argc,
         rglmdf_pattern_freq_summary_record_t *rec = &gd.pattern_freq_summary.records[k];
         rec->glm_variable_id = k;
         rec->entity_class = BOARD_ENTITY_CLASS_FEATURE;
-        rec->pattern_id = features[i];
+        rec->entity_id = features[i];
         rec->principal_index_value = j;
         rec->total_cnt = selected_gp_record_cnt;
         rec->relative_frequency = 1.0;

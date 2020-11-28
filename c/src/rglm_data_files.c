@@ -614,7 +614,7 @@ rglmdf_pattern_freq_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
           gd->pattern_freq_summary.ntuples);
 
   int16_t entity_class;
-  int16_t pattern_id;
+  int16_t entity_id;
   int64_t total_cnt;
   double relative_frequency;
   double theoretical_probability;
@@ -627,35 +627,35 @@ rglmdf_pattern_freq_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
 
   f_index_cnt = p_index_cnt = 0;
   entity_class = BOARD_ENTITY_CLASS_INVALID;
-  pattern_id = -1;
+  entity_id = -1;
   for (size_t i = 0; i < gd->pattern_freq_summary.ntuples; i++) {
     rglmdf_pattern_freq_summary_record_t *rec = &gd->pattern_freq_summary.records[i];
-    if (rec->entity_class != entity_class || rec->pattern_id != pattern_id) {
+    if (rec->entity_class != entity_class || rec->entity_id != entity_id) {
       v_cnt = 0;
       total_cnt = 0;
       relative_frequency = 0.;
       theoretical_probability = 0.;
       entity_class = rec->entity_class;
-      pattern_id = rec->pattern_id;
+      entity_id = rec->entity_id;
     }
     v_cnt++;
     total_cnt += rec->total_cnt;
     relative_frequency += rec->relative_frequency;
     theoretical_probability += rec->theoretical_probability;
-    if (i + 1 == gd->pattern_freq_summary.ntuples || (rec + 1)->entity_class != entity_class || (rec + 1)->pattern_id != pattern_id) {
+    if (i + 1 == gd->pattern_freq_summary.ntuples || (rec + 1)->entity_class != entity_class || (rec + 1)->entity_id != entity_id) {
       if (entity_class == BOARD_ENTITY_CLASS_FEATURE) {
-        const char *feature_name = board_features[pattern_id].name;
+        const char *feature_name = board_features[entity_id].name;
         const int first_index = f_index_cnt;
-        f_index_cnt += board_features[pattern_id].field_cnt;
+        f_index_cnt += board_features[entity_id].field_cnt;
         fprintf(stream, "  Feature id: %2d [%10s][%6d][F_%03d:F_%03d], total_cnt = %8ld\n",
-                pattern_id, feature_name, v_cnt, first_index, f_index_cnt - 1, total_cnt);
+                entity_id, feature_name, v_cnt, first_index, f_index_cnt - 1, total_cnt);
       } else if (entity_class == BOARD_ENTITY_CLASS_PATTERN) {
-        const char *pattern_name = board_patterns[pattern_id].name;
-        const int64_t gp_cnt = total_cnt / board_patterns[pattern_id].n_instances;
+        const char *pattern_name = board_patterns[entity_id].name;
+        const int64_t gp_cnt = total_cnt / board_patterns[entity_id].n_instances;
         const int first_index = p_index_cnt;
-        p_index_cnt += board_patterns[pattern_id].n_instances;
+        p_index_cnt += board_patterns[entity_id].n_instances;
         fprintf(stream, "  Pattern id: %2d     [%6s][%6d][I_%03d:I_%03d], total_cnt = %8ld, gp_cnt = %8ld, cumulated relative frequency = %1.4f, cumulated theoretical probability = %1.4f\n",
-                pattern_id, pattern_name, v_cnt, first_index, p_index_cnt - 1, total_cnt, gp_cnt, relative_frequency, theoretical_probability);
+                entity_id, pattern_name, v_cnt, first_index, p_index_cnt - 1, total_cnt, gp_cnt, relative_frequency, theoretical_probability);
       } else {
         fprintf(stream, "Invalid entity_class value %d, it must be in the range [0..1]. Aborting ...\n", entity_class);
         abort();
@@ -779,7 +779,7 @@ rglmdf_build_reverse_map (rglmdf_general_data_t *gd)
       abort();
     }
     const int16_t ec  = t->records[i].entity_class;
-    const int16_t pid = t->records[i].pattern_id;
+    const int16_t pid = t->records[i].entity_id;
     const int32_t piv = t->records[i].principal_index_value;
     if (ec == BOARD_ENTITY_CLASS_FEATURE) {
       gd->reverse_map_a_f[pid][piv] = i;
@@ -904,7 +904,7 @@ rglmdf_fpfs_table_to_csv_file (rglmdf_general_data_t *gd,
   fprintf(f, "     SEQ; GLM_VARIABLE_ID;   ENTITY_CLASS; PATTERN_ID; PRINCIPAL_INDEX_VALUE;   TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_PROBABILITY;              WEIGHT\n");
   for (size_t i = 0; i < n; i++) {
     fprintf(f, "%08zu;%16ld;%15d;%11d;%22d;%12ld;%19.6f;%24.6f;%+20.15f\n",
-            i, r[i].glm_variable_id, r[i].entity_class, r[i].pattern_id,
+            i, r[i].glm_variable_id, r[i].entity_class, r[i].entity_id,
             r[i].principal_index_value, r[i].total_cnt, r[i].relative_frequency,
             r[i].theoretical_probability, r[i].weight);
   }

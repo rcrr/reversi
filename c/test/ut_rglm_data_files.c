@@ -198,7 +198,7 @@ rglmdf_read_general_data_from_binary_file_t (ut_test_t *const t)
 
   ut_assert(t,                       0 == pfsrs[0].glm_variable_id);
   ut_assert(t,                       0 == pfsrs[0].entity_class);
-  ut_assert(t, BOARD_FEATURE_INTERCEPT == pfsrs[0].pattern_id);
+  ut_assert(t, BOARD_FEATURE_INTERCEPT == pfsrs[0].entity_id);
   ut_assert(t,                       0 == pfsrs[0].principal_index_value);
   ut_assert(t,                      10 == pfsrs[0].total_cnt);
   ut_assert(t,                     1.0 == pfsrs[0].relative_frequency);
@@ -207,7 +207,7 @@ rglmdf_read_general_data_from_binary_file_t (ut_test_t *const t)
 
   ut_assert(t,                      1 == pfsrs[1].glm_variable_id);
   ut_assert(t,                      0 == pfsrs[1].entity_class);
-  ut_assert(t, BOARD_FEATURE_MOBILITY == pfsrs[1].pattern_id);
+  ut_assert(t, BOARD_FEATURE_MOBILITY == pfsrs[1].entity_id);
   ut_assert(t,                      0 == pfsrs[1].principal_index_value);
   ut_assert(t,                     10 == pfsrs[1].total_cnt);
   ut_assert(t,                    1.0 == pfsrs[1].relative_frequency);
@@ -216,7 +216,7 @@ rglmdf_read_general_data_from_binary_file_t (ut_test_t *const t)
 
   ut_assert(t,                   2 == pfsrs[2].glm_variable_id);
   ut_assert(t,                   1 == pfsrs[2].entity_class);
-  ut_assert(t, BOARD_PATTERN_DIAG3 == pfsrs[2].pattern_id);
+  ut_assert(t, BOARD_PATTERN_DIAG3 == pfsrs[2].entity_id);
   ut_assert(t,                   0 == pfsrs[2].principal_index_value);
   ut_assert(t,                   2 == pfsrs[2].total_cnt);
   ut_assert(t,                0.05 == pfsrs[2].relative_frequency);
@@ -225,7 +225,7 @@ rglmdf_read_general_data_from_binary_file_t (ut_test_t *const t)
 
   ut_assert(t,                  17 == pfsrs[17].glm_variable_id);
   ut_assert(t,                   1 == pfsrs[17].entity_class);
-  ut_assert(t, BOARD_PATTERN_DIAG3 == pfsrs[17].pattern_id);
+  ut_assert(t, BOARD_PATTERN_DIAG3 == pfsrs[17].entity_id);
   ut_assert(t,                  26 == pfsrs[17].principal_index_value);
   ut_assert(t,                   2 == pfsrs[17].total_cnt);
   ut_assert(t,                0.05 == pfsrs[17].relative_frequency);
