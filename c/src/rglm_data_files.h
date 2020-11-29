@@ -380,7 +380,7 @@ typedef struct rglmdf_solved_and_classified_gp_table_s {
   size_t n_index_values_per_record;                    /**< @brief Count of pattern index values fields. */
   rglmdf_solved_and_classified_gp_record_t *records;   /**< @brief Records of the table. */
   double *farray;                                      /**< @brief Feature values records. */
-  uint32_t *iarray;                                    /**< @brief Pattern index values records. */
+  uint32_t *i0array;                                   /**< @brief Pattern index values records. */
 } rglmdf_solved_and_classified_gp_table_t;
 
 /**

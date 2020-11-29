@@ -7,7 +7,7 @@
  *       These new functions are going to enable an API for the two programs that is then usable by
  *       test modules.
  *
- * @todo The General Data structure has three principal states, taked by the iarray_data_type field into the
+ * @todo The General Data structure has three principal states, described by the iarray_data_type field into the
  *       positions table.
  *       Values ae in the range _IS_INDES, _IS_PINCIPAL_INDEX, _IS_GLM_VARIABLE_ID, _IS_MISSING.
  *       Transitions happens calling the rglmdf_transform_piv_to_glm_variable_id() function.
@@ -17,6 +17,12 @@
  *       where i0array is the INDEX array, i1array is the PRINCIPAL INDEX array, and 12array is the GLM VAIABLE ID array.
  *       Or as an alternative multiply by 3 the iarray size ....
  *       All the fnction accessing the iarray has to be rewritten ....
+ *
+ * @todo Verify if there is a function already written that takes a GAME POSITION and maps it into a value ?
+ *       function (GP, MODEL) -> features / patterns -> GLM ID / variable value / weights -> game value
+ *       A generic function, where the model is taken as an argument ( a gd pointer :) ) ???
+ *       The program rglm_fit_utility should do this.
+ *       Action: verify and eventually write it.
  *
  * @todo Write a function in rglm_data_files that reads, and one that also writes, the rglm
  *       binary data file.

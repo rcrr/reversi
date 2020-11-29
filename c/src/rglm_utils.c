@@ -95,7 +95,7 @@ rglmut_evaluation_function_eval (rglmdf_general_data_t *data,
     for (size_t j = 0; j < nf; j++) {
       sum += w[j] * feature_values[j];
     }
-    glm_variable_ids = &data->positions.iarray[i * ni];
+    glm_variable_ids = &data->positions.i0array[i * ni];
     for (size_t j = 0; j < ni; j++) {
       sum += w[glm_variable_ids[j]];
     }
@@ -162,7 +162,7 @@ rglmut_minus_grad_f_eval (rglmdf_general_data_t *data,
 
   for (size_t i = 0; i < emme; i++) {
     feature_values = &data->positions.farray[i * nf];
-    glm_variable_ids = &data->positions.iarray[i * ni];
+    glm_variable_ids = &data->positions.i0array[i * ni];
     z = r[i] * de[i];
     for (size_t j = 0; j < nf; j++)
       minus_grad_f[j] += z * feature_values[j];
@@ -209,7 +209,7 @@ rgmlut_big_b_eval (rglmdf_general_data_t *data,
   /* Computes the upper triangle of the B matrix. */
   for (size_t k = 0; k < emme; k++) {
     feature_values = &data->positions.farray[k * nf];
-    glm_variable_ids = &data->positions.iarray[k * ni];
+    glm_variable_ids = &data->positions.i0array[k * ni];
     z = de[k] * (v[k] - 2*(1 + v[k])*e[k] + 3*e[k]*e[k]);
 
     for (size_t i = 0; i < nf; i++) {

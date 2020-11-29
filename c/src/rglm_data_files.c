@@ -117,7 +117,7 @@ rglmdf_general_data_init (rglmdf_general_data_t *gd)
   gd->positions.n_index_values_per_record = 0;
   gd->positions.records = NULL;
   gd->positions.farray = NULL;
-  gd->positions.iarray = NULL;
+  gd->positions.i0array = NULL;
 
   gd->reverse_map_a_f = NULL;
   gd->reverse_map_a_p = NULL;
@@ -131,7 +131,7 @@ rglmdf_general_data_release (rglmdf_general_data_t *gd)
   free(gd->reverse_map_b);
   free(gd->reverse_map_a_f);
   free(gd->positions.farray);
-  free(gd->positions.iarray);
+  free(gd->positions.i0array);
   free(gd->positions.records);
   free(gd->pattern_freq_summary.records);
   free(gd->position_summary.records);
@@ -708,9 +708,9 @@ rglmdf_set_positions_ntuples (rglmdf_general_data_t *gd,
   gd->positions.farray = farr;
   memset(gd->positions.farray, 0, fi);
 
-  free(gd->positions.iarray);
-  gd->positions.iarray = iarr;
-  memset(gd->positions.iarray, 0, si);
+  free(gd->positions.i0array);
+  gd->positions.i0array = iarr;
+  memset(gd->positions.i0array, 0, si);
 
   free(gd->positions.records);
   gd->positions.records = arr;
@@ -756,7 +756,7 @@ uint32_t *
 rglmdf_get_positions_iarray (rglmdf_general_data_t *gd)
 {
   assert(gd);
-  return gd->positions.iarray;
+  return gd->positions.i0array;
 }
 
 double *
@@ -843,14 +843,14 @@ rglmdf_transform_piv_to_glm_variable_id (rglmdf_general_data_t *gd,
       board_pattern_index_t index_value, principal_index_value;
       const uint32_t pattern_id = idx[j];
       if (first_step) {
-        index_value = gd->positions.iarray[i * ni + j];
+        index_value = gd->positions.i0array[i * ni + j];
         board_pattern_compute_principal_indexes(&principal_index_value, &index_value, &board_patterns[pattern_id], true);
         output = principal_index_value;
       } else {
-        principal_index_value = gd->positions.iarray[i * ni + j];
+        principal_index_value = gd->positions.i0array[i * ni + j];
         output = rglmdf_map_pid_and_piv_to_glm_vid(gd, pattern_class_type, pattern_id, principal_index_value);
       }
-      gd->positions.iarray[i * ni + j] = output;
+      gd->positions.i0array[i * ni + j] = output;
     }
   }
   gd->positions.iarray_data_type = first_step ? RGLMDF_IARRAY_IS_PRINCIPAL_INDEX : RGLMDF_IARRAY_IS_GLM_VARIABLE_ID;
@@ -876,7 +876,7 @@ rglmdf_gp_table_to_csv_file (rglmdf_general_data_t *gd,
     for (size_t j = 0; j < nf; j++)
       fprintf(f, ";%+16.6f", gd->positions.farray[i * nf + j]);
     for (size_t j = 0; j < ni; j++)
-      fprintf(f, ";%8u", gd->positions.iarray[i * ni + j]);
+      fprintf(f, ";%8u", gd->positions.i0array[i * ni + j]);
     fprintf(f, "\n");
   }
 }
@@ -1605,7 +1605,7 @@ rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
   ntuples_to_write = gd->positions.ntuples;
   rp = gd->positions.records;
   fap = gd->positions.farray;
-  iap = gd->positions.iarray;
+  iap = gd->positions.i0array;
 
   /* Writes the E valid milestone. */
   u64 = RGLMDF_VALID_E;
