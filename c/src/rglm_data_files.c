@@ -42,6 +42,41 @@
 #define RGLM_MAX_PATTERN_CNT 1024
 #define RGLM_MAX_PATTERN_INSTANCE_CNT 8
 
+/*
+ * Computes and populates the reverse map structures.
+ *
+ * This function has to be called once just after having populated
+ * the Pattern Frequency Summary Table.
+ * The procedure populates the data in the array `reverse_map_b`.
+ * The data in `reverse_map_a_f`, as well as the memory allocation are
+ * prepared before by the call to rglmdf_set_entity_freq_summary_ntuples().
+ */
+static void
+rglmdf_build_reverse_map (rglmdf_general_data_t *gd)
+{
+  assert(gd);
+  rglmdf_pattern_freq_summary_table_t *t = &gd->pattern_freq_summary;
+  const size_t n = t->ntuples;
+
+  for (size_t i = 0; i < n; i++) {
+    if (i != t->records[i].glm_variable_id) {
+      fprintf(stderr, "Error, inconsistent record order in table Pattern Frequency Summary. Aborting ...\n");
+      abort();
+    }
+    const int16_t ec  = t->records[i].entity_class;
+    const int16_t eid = t->records[i].entity_id;
+    const int32_t piv = t->records[i].principal_index_value;
+    if (ec == BOARD_ENTITY_CLASS_FEATURE) {
+      gd->reverse_map_a_f[eid][piv] = i;
+    } else if (ec == BOARD_ENTITY_CLASS_PATTERN) {
+      gd->reverse_map_a_p[eid][piv] = i;
+    } else {
+      fprintf(stderr, "Error, inconsistent value of entity_class. Aborting ...\n");
+      abort();
+    }
+  }
+}
+
 int
 rglmdf_get_endianness (void)
 {
@@ -118,6 +153,8 @@ rglmdf_general_data_init (rglmdf_general_data_t *gd)
   gd->positions.records = NULL;
   gd->positions.farray = NULL;
   gd->positions.i0array = NULL;
+  gd->positions.i1array = NULL;
+  gd->positions.i2array = NULL;
 
   gd->reverse_map_a_f = NULL;
   gd->reverse_map_a_p = NULL;
@@ -131,6 +168,8 @@ rglmdf_general_data_release (rglmdf_general_data_t *gd)
   free(gd->reverse_map_b);
   free(gd->reverse_map_a_f);
   free(gd->positions.farray);
+  free(gd->positions.i2array);
+  free(gd->positions.i1array);
   free(gd->positions.i0array);
   free(gd->positions.records);
   free(gd->pattern_freq_summary.records);
@@ -576,6 +615,7 @@ rglmdf_set_entity_freq_summary_ntuples (rglmdf_general_data_t *gd,
   gd->reverse_map_a_f = arr_a_f;
   gd->reverse_map_a_p = arr_a_p;
 
+  free(gd->reverse_map_b);
   for (size_t i = 0; i < reverse_map_b_length; i++)
     arr_b[i] = RGLMDF_INVALID_GLM_VARIABLE_ID;
   gd->reverse_map_b = arr_b;
@@ -688,10 +728,16 @@ rglmdf_set_positions_ntuples (rglmdf_general_data_t *gd,
     n_index_values_per_record += board_patterns[pid].n_instances;
   }
   const size_t si = sizeof(uint32_t) * n_index_values_per_record * ntuples;
-  uint32_t *iarr;
-  iarr = (uint32_t *) malloc(si);
-  if (!iarr) {
+  uint32_t *i0arr, *i1arr, *i2arr;
+  i0arr = NULL; i1arr = NULL; i2arr = NULL;
+  i0arr = (uint32_t *) malloc(si);
+  i1arr = (uint32_t *) malloc(si);
+  i2arr = (uint32_t *) malloc(si);
+  if (!i0arr || !i1arr || !i2arr) {
     free(farr);
+    if (i0arr) free(i0arr);
+    if (i1arr) free(i1arr);
+    if (i2arr) free(i2arr);
     return 0;
   }
 
@@ -699,7 +745,7 @@ rglmdf_set_positions_ntuples (rglmdf_general_data_t *gd,
   rglmdf_solved_and_classified_gp_record_t *arr;
   arr = (rglmdf_solved_and_classified_gp_record_t *) malloc(s);
   if (!arr) {
-    free(iarr);
+    free(i0arr);
     free(farr);
     return 0;
   }
@@ -709,8 +755,16 @@ rglmdf_set_positions_ntuples (rglmdf_general_data_t *gd,
   memset(gd->positions.farray, 0, fi);
 
   free(gd->positions.i0array);
-  gd->positions.i0array = iarr;
+  gd->positions.i0array = i0arr;
   memset(gd->positions.i0array, 0, si);
+
+  free(gd->positions.i1array);
+  gd->positions.i1array = i1arr;
+  memset(gd->positions.i1array, 0, si);
+
+  free(gd->positions.i2array);
+  gd->positions.i2array = i2arr;
+  memset(gd->positions.i2array, 0, si);
 
   free(gd->positions.records);
   gd->positions.records = arr;
@@ -753,10 +807,24 @@ rglmdf_get_positions_n_index_values_per_record (rglmdf_general_data_t *gd)
 }
 
 uint32_t *
-rglmdf_get_positions_iarray (rglmdf_general_data_t *gd)
+rglmdf_get_positions_i0array (rglmdf_general_data_t *gd)
 {
   assert(gd);
   return gd->positions.i0array;
+}
+
+uint32_t *
+rglmdf_get_positions_i1array (rglmdf_general_data_t *gd)
+{
+  assert(gd);
+  return gd->positions.i1array;
+}
+
+uint32_t *
+rglmdf_get_positions_i2array (rglmdf_general_data_t *gd)
+{
+  assert(gd);
+  return gd->positions.i2array;
 }
 
 double *
@@ -764,32 +832,6 @@ rglmdf_get_positions_farray (rglmdf_general_data_t *gd)
 {
   assert(gd);
   return gd->positions.farray;
-}
-
-void
-rglmdf_build_reverse_map (rglmdf_general_data_t *gd)
-{
-  assert(gd);
-  rglmdf_pattern_freq_summary_table_t *t = &gd->pattern_freq_summary;
-  const size_t n = t->ntuples;
-
-  for (size_t i = 0; i < n; i++) {
-    if (i != t->records[i].glm_variable_id) {
-      fprintf(stderr, "Error, inconsistent record order in table Pattern Frequency Summary. Aborting ...\n");
-      abort();
-    }
-    const int16_t ec  = t->records[i].entity_class;
-    const int16_t pid = t->records[i].entity_id;
-    const int32_t piv = t->records[i].principal_index_value;
-    if (ec == BOARD_ENTITY_CLASS_FEATURE) {
-      gd->reverse_map_a_f[pid][piv] = i;
-    } else if (ec == BOARD_ENTITY_CLASS_PATTERN) {
-      gd->reverse_map_a_p[pid][piv] = i;
-    } else {
-      fprintf(stderr, "Error, inconsistent value of entity_class. Aborting ...\n");
-      abort();
-    }
-  }
 }
 
 uint32_t
@@ -1119,7 +1161,7 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
   rglmdf_position_summary_record_t *psrp;
   rglmdf_pattern_freq_summary_record_t *pfsrp;
   rglmdf_solved_and_classified_gp_record_t *scgprp;
-  uint32_t *iarrayp;
+  uint32_t *i0arrayp;
   double *farrayp;
   uint64_t data_chunk_size;
   size_t l, n;
@@ -1368,9 +1410,9 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
     return EXIT_FAILURE;
   }
 
-  /* Creates the mapping betweeen (pattern_id, principal_index_value) --> glm_variable_id */
+  /* Creates the mapping betweeen (entity_class, entity_id, principal_index_value) --> glm_variable_id */
   rglmdf_build_reverse_map(gd);
-  if (verbose) fprintf(stdout, "The reverse map \"(pattern_id, principal_index_value) --> glm_variable_id\" has been computed.\n");
+  if (verbose) fprintf(stdout, "The reverse map \"(entity_class, entity_id, principal_index_value) --> glm_variable_id\" has been computed.\n");
 
   /* Reads the iarrai data type. */
   l = fread(&u8, sizeof(uint8_t), 1, ifp);
@@ -1406,7 +1448,7 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
   /* Reads the sequence of chunk of records. Each chunk is organized as: chunk size n, n records, n irecords. */
   scgprp = rglmdf_get_positions_records(gd);
   farrayp = rglmdf_get_positions_farray(gd);
-  iarrayp = rglmdf_get_positions_iarray(gd);
+  i0arrayp = rglmdf_get_positions_i0array(gd);
   const size_t nf = rglmdf_get_positions_n_fvalues_per_record(gd);
   const size_t ni = rglmdf_get_positions_n_index_values_per_record(gd);
   size_t n_record_read = 0;
@@ -1447,7 +1489,7 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
       }
     }
     if (ni != 0) {
-      l = fread(iarrayp, sizeof(uint32_t) * ni, data_chunk_size, ifp);
+      l = fread(i0arrayp, sizeof(uint32_t) * ni, data_chunk_size, ifp);
       if (l != data_chunk_size) {
         fprintf(stderr, "Error while reading positions_table iarray data chunk from the input binary file.\n");
         fclose(ifp);
@@ -1456,7 +1498,7 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
     }
     scgprp += data_chunk_size;
     farrayp += nf * data_chunk_size;
-    iarrayp += ni * data_chunk_size;
+    i0arrayp += ni * data_chunk_size;
 
     /* Reads the F valid milestone. */
     l = fread(&u64, sizeof(uint64_t), 1, ifp);

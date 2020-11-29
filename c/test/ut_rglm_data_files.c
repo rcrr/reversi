@@ -250,7 +250,7 @@ rglmdf_read_general_data_from_binary_file_t (ut_test_t *const t)
   ut_assert(t, 4 == rglmdf_get_positions_n_index_values_per_record(gd));
 
   uint32_t *pis;
-  pis = rglmdf_get_positions_iarray(gd);
+  pis = rglmdf_get_positions_i0array(gd);
 
   ut_assert(t,  9 == pis[0]);
   ut_assert(t,  7 == pis[1]);

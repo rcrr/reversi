@@ -381,6 +381,8 @@ typedef struct rglmdf_solved_and_classified_gp_table_s {
   rglmdf_solved_and_classified_gp_record_t *records;   /**< @brief Records of the table. */
   double *farray;                                      /**< @brief Feature values records. */
   uint32_t *i0array;                                   /**< @brief Pattern index values records. */
+  uint32_t *i1array;                                   /**< @brief Pattern index values records. */
+  uint32_t *i2array;                                   /**< @brief Pattern index values records. */
 } rglmdf_solved_and_classified_gp_table_t;
 
 /**
@@ -974,7 +976,7 @@ extern size_t
 rglmdf_get_positions_n_index_values_per_record (rglmdf_general_data_t *gd);
 
 /**
- * @brief Getter function for the `positions.iarray` field.
+ * @brief Getter function for the `positions.i0array` field.
  *
  * @invariant Parameter `gd` must be not `NULL`.
  * The invariant is guarded by an assertion.
@@ -983,7 +985,31 @@ rglmdf_get_positions_n_index_values_per_record (rglmdf_general_data_t *gd);
  * @return        the `patterns` field
  */
 extern uint32_t *
-rglmdf_get_positions_iarray (rglmdf_general_data_t *gd);
+rglmdf_get_positions_i0array (rglmdf_general_data_t *gd);
+
+/**
+ * @brief Getter function for the `positions.i1array` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `patterns` field
+ */
+extern uint32_t *
+rglmdf_get_positions_i1array (rglmdf_general_data_t *gd);
+
+/**
+ * @brief Getter function for the `positions.i2array` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gd reference to the general data structure
+ * @return        the `patterns` field
+ */
+extern uint32_t *
+rglmdf_get_positions_i2array (rglmdf_general_data_t *gd);
 
 /**
  * @brief Getter function for the `positions.farray` field.
@@ -996,23 +1022,6 @@ rglmdf_get_positions_iarray (rglmdf_general_data_t *gd);
  */
 extern double *
 rglmdf_get_positions_farray (rglmdf_general_data_t *gd);
-
-/**
- * @brief Computes and populates the reverse map structures.
- *
- * @details This function has to be called once just after having populated
- *          the Pattern Frequency Summary Table.
- *          The procedure populates the data in the array `reverse_map_b`.
- *          The data in `reverse_map_a_f`, as well as the memory allocation are
- *          prepared before by the call to #rglmdf_set_entity_freq_summary_ntuples.
- *
- * @invariant Parameter `gd` must be not `NULL`.
- * The invariant is guarded by an assertion.
- *
- * @param [in] gd reference to the general data structure
- */
-extern void
-rglmdf_build_reverse_map (rglmdf_general_data_t *gd);
 
 /**
  * @brief Queries the glm variable id.

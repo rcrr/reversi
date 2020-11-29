@@ -1239,7 +1239,7 @@ do_action_extract_game_pos_cursor_fetch (int *result,
                                          size_t *returned_ntuples,
                                          rglmdf_solved_and_classified_gp_record_t *scgprp,
                                          double *farrayp,
-                                         uint32_t *iarrayp,
+                                         uint32_t *i0arrayp,
                                          const char *sql_cursor_name,
                                          size_t chunk_size)
 {
@@ -1301,7 +1301,7 @@ do_action_extract_game_pos_cursor_fetch (int *result,
       scgprp[i].evaluation_function = 0.5; // 0.5 is the mid point between 0 and 1.
       scgprp[i].residual = scgprp[i].evaluation_function - scgprp[i].game_value_transformed;
       for (size_t j = 0; j < ni; j++) {
-        iarrayp[i * ni + j] = atol(PQgetvalue(res, i, 5 + j));
+        i0arrayp[i * ni + j] = atol(PQgetvalue(res, i, 5 + j));
       }
       fv_idx = 0;
       for (size_t j = 0; j < feature_cnt; j++) {
@@ -2908,12 +2908,12 @@ main (int argc,
   /* - 06 - Iterates over chunks of data retrieved from the cursor. */
   rglmdf_solved_and_classified_gp_record_t *scgprp = rglmdf_get_positions_records(&gd);
   double *farrayp = rglmdf_get_positions_farray(&gd);
-  uint32_t *iarrayp = rglmdf_get_positions_iarray(&gd);
+  uint32_t *i0arrayp = rglmdf_get_positions_i0array(&gd);
   const size_t nf = rglmdf_get_positions_n_fvalues_per_record(&gd);
   const size_t ni = rglmdf_get_positions_n_index_values_per_record(&gd);
   size_t returned_ntuples = 0;
   for (;;) {
-    do_action_extract_game_pos_cursor_fetch(&result, con, verbose, &gd, &returned_ntuples, scgprp, farrayp, iarrayp, sql_cursor_name_gps_data, RGLMDF_GPS_DATA_CHUNK_SIZE);
+    do_action_extract_game_pos_cursor_fetch(&result, con, verbose, &gd, &returned_ntuples, scgprp, farrayp, i0arrayp, sql_cursor_name_gps_data, RGLMDF_GPS_DATA_CHUNK_SIZE);
     if (result != 0) {
       fprintf(stderr, "Error occured into do_action_extract_game_pos_cursor_fetch(). Exiting ...\n");
       res = PQexec(con, "ROLLBACK");
@@ -2932,7 +2932,7 @@ main (int argc,
     }
     scgprp += returned_ntuples;
     farrayp += nf * returned_ntuples;
-    iarrayp += ni * returned_ntuples;
+    i0arrayp += ni * returned_ntuples;
   }
   if (verbose) fprintf(stdout, "Total count of Game Position Records is %zu.\n", gps_data_total_record_cnt);
 
