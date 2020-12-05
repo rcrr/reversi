@@ -7,15 +7,18 @@
  *       These new functions are going to enable an API for the two programs that is then usable by
  *       test modules.
  *
+ * @todo Add documentation to rglm_utils.h
+ *
+ * @todo Rename pattern_freq_summary into entity_freq_summary.
+ *
  * @todo The General Data structure has three principal states, described by the iarray_data_type field into the
  *       positions table.
- *       Values ae in the range _IS_INDES, _IS_PINCIPAL_INDEX, _IS_GLM_VARIABLE_ID, _IS_MISSING.
+ *       Values are in the range _IS_INDES, _IS_PINCIPAL_INDEX, _IS_GLM_VARIABLE_ID, _IS_MISSING.
  *       Transitions happens calling the rglmdf_transform_piv_to_glm_variable_id() function.
  *       This is saving space in memory and in the file at the price of:
  *       being cumbersome, losing the history, duplicating the code to output the CSV files.
  *       Action: add to the positions table two more "iarray like" fields, (i0array, i1array, i2array)
- *       where i0array is the INDEX array, i1array is the PRINCIPAL INDEX array, and 12array is the GLM VAIABLE ID array.
- *       Or as an alternative multiply by 3 the iarray size ....
+ *       where i0array is the INDEX array, i1array is the PRINCIPAL INDEX array, and i2array is the GLM VAIABLE ID array.
  *       All the fnction accessing the iarray has to be rewritten ....
  *
  * @todo Verify if there is a function already written that takes a GAME POSITION and maps it into a value ?
@@ -214,6 +217,8 @@
  *                           SQL prompt using the regab_gp_populate_pattern_class_table stored procedure.
  *                           Removing the dependency and adding the classify action to the REGAB program is not a priority.
  *                           Action: we keep as it is.
+ *
+ * @todo [2020-12-05 - done] Refactor rglm_utils removing references to the inner definition of rglmdf_general_data_t.
  *
  *
  *

@@ -77,6 +77,50 @@ rglmdf_build_reverse_map (rglmdf_general_data_t *gd)
   }
 }
 
+/*
+ *
+ */
+static void
+rglmdf_transform_piv_to_glm_variable_id2 (rglmdf_general_data_t *gd)
+{
+  assert(gd);
+
+  uint32_t idx[RGLM_MAX_PATTERN_CNT * RGLM_MAX_PATTERN_INSTANCE_CNT];
+
+  if (gd->pattern_cnt > RGLM_MAX_PATTERN_CNT) {
+    fprintf(stderr, "gd->pattern_cnt > RGLM_MAX_PATTERN_CNT. gd->pattern_cnt = %zu. Aborting ...\n", gd->pattern_cnt);
+    abort();
+  }
+
+  const uint16_t pattern_class_type = 1;
+
+  size_t k = 0;
+  for (size_t i = 0; i < gd->pattern_cnt; i++) {
+    const board_pattern_id_t pid = gd->patterns[i];
+    if (board_patterns[pid].n_instances > RGLM_MAX_PATTERN_INSTANCE_CNT) {
+      fprintf(stderr, "board_patterns[pid].n_instances > RGLM_MAX_PATTERN_INSTANCE_CNT. Aborting ... \n");
+      abort();
+    }
+    for (size_t j = 0; j < board_patterns[pid].n_instances; j++) {
+      idx[k++] = pid;
+    }
+  }
+
+  const size_t ni = rglmdf_get_positions_n_index_values_per_record(gd);
+  for (size_t i = 0; i < gd->positions.ntuples; i++) {
+    for (size_t j = 0; j < ni; j++) {
+      board_pattern_index_t index_value, principal_index_value;
+      int64_t glm_variable_id;
+      const uint32_t pattern_id = idx[j];
+      index_value = gd->positions.i0array[i * ni + j];
+      board_pattern_compute_principal_indexes(&principal_index_value, &index_value, &board_patterns[pattern_id], true);
+      glm_variable_id = rglmdf_map_pid_and_piv_to_glm_vid(gd, pattern_class_type, pattern_id, principal_index_value);
+      gd->positions.i1array[i * ni + j] = principal_index_value;
+      gd->positions.i2array[i * ni + j] = glm_variable_id;
+    }
+  }
+}
+
 int
 rglmdf_get_endianness (void)
 {
@@ -908,7 +952,9 @@ rglmdf_gp_table_to_csv_file (rglmdf_general_data_t *gd,
   const size_t ni = rglmdf_get_positions_n_index_values_per_record(gd);
   fprintf(f, "       I;    ROW_N;      GP_ID;                MOVER;             OPPONENT; GAME_VALUE; GAME_VALUE_TRANSFORMED; EVALUATION_FUNCTION;         RESIDUAL");
   for (size_t j = 0; j < nf; j++) fprintf(f, ";           F_%03zu", j);
-  for (size_t j = 0; j < ni; j++) fprintf(f, ";   I_%03zu", j);
+  for (size_t j = 0; j < ni; j++) fprintf(f, ";  I0_%03zu", j);
+  for (size_t j = 0; j < ni; j++) fprintf(f, ";  I1_%03zu", j);
+  for (size_t j = 0; j < ni; j++) fprintf(f, ";  I2_%03zu", j);
   fprintf(f, "\n");
   for (size_t i = 0; i < gd->positions.ntuples; i++) {
     rglmdf_solved_and_classified_gp_record_t *r = &gd->positions.records[i];
@@ -919,6 +965,10 @@ rglmdf_gp_table_to_csv_file (rglmdf_general_data_t *gd,
       fprintf(f, ";%+16.6f", gd->positions.farray[i * nf + j]);
     for (size_t j = 0; j < ni; j++)
       fprintf(f, ";%8u", gd->positions.i0array[i * ni + j]);
+    for (size_t j = 0; j < ni; j++)
+      fprintf(f, ";%8u", gd->positions.i1array[i * ni + j]);
+    for (size_t j = 0; j < ni; j++)
+      fprintf(f, ";%8u", gd->positions.i2array[i * ni + j]);
     fprintf(f, "\n");
   }
 }
@@ -1520,6 +1570,9 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
 
   /* Closes the binary file. */
   fclose(ifp);
+
+  /* Computes the i1array and i2array on data read from the file and stored into i0array. */
+  rglmdf_transform_piv_to_glm_variable_id2(gd);
 
   return EXIT_SUCCESS;
 }
