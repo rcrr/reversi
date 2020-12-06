@@ -173,7 +173,6 @@ main (int argc,
   char **position_statuses;
   size_t feature_cnt;
   size_t pattern_cnt;
-  rglmdf_iarray_data_type_t iarray_type;
   size_t game_position_cnt;
   board_feature_id_t *board_feature_ids;
   board_pattern_id_t *board_pattern_ids;
@@ -335,12 +334,6 @@ main (int argc,
   /* Reads the iarrai data type. */
   re = fread(&u8, sizeof(uint8_t), 1, pfp);
   if (re != 1) print_error_and_stop(-170, p_arg);
-  iarray_type = u8;
-  if (iarray_type != RGLMDF_IARRAY_IS_MISSING) {
-    fprintf(stderr, "iarray_type = %d\n", iarray_type);
-    fprintf(stderr, "Error: iarray data type must be RGLMDF_IARRAY_IS_MISSING, this file is not compatible with the option --game-positions.\n");
-    return EXIT_FAILURE;
-  }
 
   /* Reads the count of game positions. */
   re = fread(&u64, sizeof(uint64_t), 1, pfp);

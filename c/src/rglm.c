@@ -7,17 +7,8 @@
  *       These new functions are going to enable an API for the two programs that is then usable by
  *       test modules.
  *
- * @todo Remove the rglmdf_iarray_data_type_t enum. having introduced the i0array, i1array,and i2array , it doesn't have any more any meaning.
- *
- * @todo The General Data structure has three principal states, described by the iarray_data_type field into the
- *       positions table.
- *       Values are in the range _IS_INDES, _IS_PINCIPAL_INDEX, _IS_GLM_VARIABLE_ID, _IS_MISSING.
- *       Transitions happens calling the rglmdf_transform_piv_to_glm_variable_id() function.
- *       This is saving space in memory and in the file at the price of:
- *       being cumbersome, losing the history, duplicating the code to output the CSV files.
- *       Action: add to the positions table two more "iarray like" fields, (i0array, i1array, i2array)
- *       where i0array is the INDEX array, i1array is the PRINCIPAL INDEX array, and i2array is the GLM VAIABLE ID array.
- *       All the fnction accessing the iarray has to be rewritten ....
+ * @todo Remove two among the three flags -P -T -Q, they now should do the same.
+ *       The format of the game positions table is now invariant.
  *
  * @todo Verify if there is a function already written that takes a GAME POSITION and maps it into a value ?
  *       function (GP, MODEL) -> features / patterns -> GLM ID / variable value / weights -> game value
@@ -221,6 +212,18 @@
  * @todo [2020-12-06 - done] Add documentation to rglm_utils.h
  *
  * @todo [2020-12-06 - done] Rename pattern_freq_summary into entity_freq_summary.
+ *
+ * @todo [2020-12-06 - done] Remove the rglmdf_iarray_data_type_t enum. Having introduced the i0array, i1array,and i2array, it doesn't have any more any meaning.
+ *
+ * @todo [2020-12-06 - done] The General Data structure has three principal states, described by the iarray_data_type field into the
+ *                           positions table.
+ *                           Values are in the range _IS_INDES, _IS_PINCIPAL_INDEX, _IS_GLM_VARIABLE_ID, _IS_MISSING.
+ *                           Transitions happens calling the rglmdf_transform_piv_to_glm_variable_id() function.
+ *                           This is saving space in memory and in the file at the price of:
+ *                           being cumbersome, losing the history, duplicating the code to output the CSV files.
+ *                           Action: add to the positions table two more "iarray like" fields, (i0array, i1array, i2array)
+ *                           where i0array is the INDEX array, i1array is the PRINCIPAL INDEX array, and i2array is the GLM VAIABLE ID array.
+ *                           All the fnction accessing the iarray has to be rewritten ....
  *
  *
  *
@@ -521,7 +524,8 @@ main (int argc,
 
   /* If P flag is turned on, dumps the game position table to the output file. */
   if (P_arg) {
-    if (data.positions.iarray_data_type == RGLMDF_IARRAY_IS_INDEX) {
+    //if (data.positions.iarray_data_type == RGLMDF_IARRAY_IS_INDEX) {
+    if (false) {
       ofp = fopen(P_arg, "w");
       if (!ofp) {
         fprintf(stderr, "Unable to open output file: %s\n", P_arg);
@@ -535,15 +539,10 @@ main (int argc,
     }
   }
 
-  /* Transforms the pattern index values to the principal ones. */
-  if (data.positions.iarray_data_type == RGLMDF_IARRAY_IS_INDEX) {
-    rglmdf_transform_piv_to_glm_variable_id(&data, true);
-    if (verbose) fprintf(stdout, "Pattern index values have been translated to principal ones.\n");
-  }
-
   /* If Q flag is turned on, dumps the game position transformed table to the output file. */
   if (Q_arg) {
-    if (data.positions.iarray_data_type == RGLMDF_IARRAY_IS_PRINCIPAL_INDEX) {
+    //if (data.positions.iarray_data_type == RGLMDF_IARRAY_IS_PRINCIPAL_INDEX) {
+    if (false) {
       ofp = fopen(Q_arg, "w");
       if (!ofp) {
         fprintf(stderr, "Unable to open output file: %s\n", Q_arg);
@@ -555,12 +554,6 @@ main (int argc,
     } else {
       fprintf(stdout, "Game positions are classified with a format that doesn't allow (currently) to recall the principal pattern configuration index values.\n");
     }
-  }
-
-  /* Transforms the pattern principal index values to the corresponding global GLM variable id, in the game position table. */
-  if (data.positions.iarray_data_type == RGLMDF_IARRAY_IS_PRINCIPAL_INDEX) {
-    rglmdf_transform_piv_to_glm_variable_id(&data, false);
-    if (verbose) fprintf(stdout, "Pattern principal index values have been translated to global GLM variable id.\n");
   }
 
   /* If T flag is turned on, dumps the game position transformed table to the output file. */

@@ -78,10 +78,16 @@ rglmdf_build_reverse_map (rglmdf_general_data_t *gd)
 }
 
 /*
+ * Transforms the positions.i0array values and populates positions.i1array and positions.i2array.
  *
+ * This function has to be called once after having loaded the i0array.
+ * First it transforms the pattern index values to the principal values stored into i1array.
+ * Then it transforms the pattern principal index values to the glm_variable_id value.
+ *
+ * The function can be called after the `positions` table has been fully populated.
  */
 static void
-rglmdf_transform_piv_to_glm_variable_id2 (rglmdf_general_data_t *gd)
+rglmdf_transform_piv_to_glm_variable_id (rglmdf_general_data_t *gd)
 {
   assert(gd);
 
@@ -191,7 +197,7 @@ rglmdf_general_data_init (rglmdf_general_data_t *const gd)
   gd->entity_freq_summary.ntuples = 0;
   gd->entity_freq_summary.records = NULL;
 
-  gd->positions.iarray_data_type = RGLMDF_IARRAY_IS_INDEX;
+  //gd->positions.iarray_data_type = RGLMDF_IARRAY_IS_INDEX;
   gd->positions.ntuples = 0;
   gd->positions.n_fvalues_per_record = 0;
   gd->positions.n_index_values_per_record = 0;
@@ -751,8 +757,7 @@ rglmdf_entity_freq_summary_cnt_to_text_stream (const rglmdf_general_data_t *cons
 
 size_t
 rglmdf_set_positions_ntuples (rglmdf_general_data_t *const gd,
-                              const size_t ntuples,
-                              const rglmdf_iarray_data_type_t iarray_data_type)
+                              const size_t ntuples)
 {
   assert(gd);
 
@@ -815,7 +820,7 @@ rglmdf_set_positions_ntuples (rglmdf_general_data_t *const gd,
   gd->positions.records = arr;
   memset(gd->positions.records, 0, s);
 
-  gd->positions.iarray_data_type = iarray_data_type;
+  //gd->positions.iarray_data_type = iarray_data_type;
   gd->positions.ntuples = ntuples;
   gd->positions.n_index_values_per_record = n_index_values_per_record;
   gd->positions.n_fvalues_per_record = n_fvalues_per_record;
@@ -893,54 +898,6 @@ rglmdf_map_pid_and_piv_to_glm_vid (const rglmdf_general_data_t *const gd,
     return gd->reverse_map_a_p[entity_id][principal_index_value];
   else
     abort();
-}
-
-void
-rglmdf_transform_piv_to_glm_variable_id (rglmdf_general_data_t *const gd,
-                                         const bool first_step)
-{
-  assert(gd);
-  assert(gd->positions.iarray_data_type == (first_step ? RGLMDF_IARRAY_IS_INDEX : RGLMDF_IARRAY_IS_PRINCIPAL_INDEX));
-
-  uint32_t idx[RGLM_MAX_PATTERN_CNT * RGLM_MAX_PATTERN_INSTANCE_CNT];
-
-  if (gd->pattern_cnt > RGLM_MAX_PATTERN_CNT) {
-    fprintf(stderr, "gd->pattern_cnt > RGLM_MAX_PATTERN_CNT. gd->pattern_cnt = %zu. Aborting ...\n", gd->pattern_cnt);
-    abort();
-  }
-
-  const uint16_t pattern_class_type = 1;
-
-  size_t k = 0;
-  for (size_t i = 0; i < gd->pattern_cnt; i++) {
-    const board_pattern_id_t pid = gd->patterns[i];
-    if (board_patterns[pid].n_instances > RGLM_MAX_PATTERN_INSTANCE_CNT) {
-      fprintf(stderr, "board_patterns[pid].n_instances > RGLM_MAX_PATTERN_INSTANCE_CNT. Aborting ... \n");
-      abort();
-    }
-    for (size_t j = 0; j < board_patterns[pid].n_instances; j++) {
-      idx[k++] = pid;
-    }
-  }
-
-  const size_t ni = rglmdf_get_positions_n_index_values_per_record(gd);
-  for (size_t i = 0; i < gd->positions.ntuples; i++) {
-    for (size_t j = 0; j < ni; j++) {
-      uint32_t output;
-      board_pattern_index_t index_value, principal_index_value;
-      const uint32_t pattern_id = idx[j];
-      if (first_step) {
-        index_value = gd->positions.i0array[i * ni + j];
-        board_pattern_compute_principal_indexes(&principal_index_value, &index_value, &board_patterns[pattern_id], true);
-        output = principal_index_value;
-      } else {
-        principal_index_value = gd->positions.i0array[i * ni + j];
-        output = rglmdf_map_pid_and_piv_to_glm_vid(gd, pattern_class_type, pattern_id, principal_index_value);
-      }
-      gd->positions.i0array[i * ni + j] = output;
-    }
-  }
-  gd->positions.iarray_data_type = first_step ? RGLMDF_IARRAY_IS_PRINCIPAL_INDEX : RGLMDF_IARRAY_IS_GLM_VARIABLE_ID;
 }
 
 void
@@ -1465,14 +1422,6 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *const gd,
   rglmdf_build_reverse_map(gd);
   if (verbose) fprintf(stdout, "The reverse map \"(entity_class, entity_id, principal_index_value) --> glm_variable_id\" has been computed.\n");
 
-  /* Reads the iarrai data type. */
-  l = fread(&u8, sizeof(uint8_t), 1, ifp);
-  if (l != 1) {
-    fprintf(stderr, "Error while reading iarray_data_type from the input binary file.\n");
-    fclose(ifp);
-    return EXIT_FAILURE;
-  }
-
   /* Reads the number of record for the solved and classified game position table. */
   l = fread(&u64, sizeof(uint64_t), 1, ifp);
   if (l != 1) {
@@ -1480,7 +1429,7 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *const gd,
     fclose(ifp);
     return EXIT_FAILURE;
   }
-  v64 = rglmdf_set_positions_ntuples(gd, u64, u8);
+  v64 = rglmdf_set_positions_ntuples(gd, u64);
   if (v64 != u64) {
     fprintf(stderr, "Unable to allocate memory for the positions table.\n");
     fclose(ifp);
@@ -1573,7 +1522,7 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *const gd,
   fclose(ifp);
 
   /* Computes the i1array and i2array on data read from the file and stored into i0array. */
-  rglmdf_transform_piv_to_glm_variable_id2(gd);
+  rglmdf_transform_piv_to_glm_variable_id(gd);
 
   return EXIT_SUCCESS;
 }
@@ -1693,8 +1642,6 @@ rglmdf_write_general_data_to_binary_file (const rglmdf_general_data_t *const gd,
   fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
 
   /* Writes the header data of the classified and resolved game positions to the binary file. */
-  u8 = gd->positions.iarray_data_type;
-  fwrite2(&u8, sizeof(uint8_t), 1, ofp, &fwn);
   u64 = gd->positions.ntuples;
   fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
   ntuples_written = 0;

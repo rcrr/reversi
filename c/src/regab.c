@@ -2703,7 +2703,6 @@ main (int argc,
   size_t glm_f_variable_cnt = 0;
   size_t glm_p_variable_cnt = 0;
 
-  rglmdf_iarray_data_type_t iarray_data_type;
   rglmdf_file_data_format_type_t file_data_format;
 
   PGresult *res = NULL;
@@ -2896,8 +2895,7 @@ main (int argc,
     PQfinish(con);
     return EXIT_FAILURE;
   }
-  iarray_data_type = (pattern_cnt != 0) ? RGLMDF_IARRAY_IS_INDEX : RGLMDF_IARRAY_IS_MISSING;
-  n = rglmdf_set_positions_ntuples(&gd, gps_data_total_record_cnt, iarray_data_type);
+  n = rglmdf_set_positions_ntuples(&gd, gps_data_total_record_cnt);
   if (n != gps_data_total_record_cnt) {
     fprintf(stderr, "Unable to allocate memory for solved and classified game positions table.\n");
     res = PQexec(con, "ROLLBACK");

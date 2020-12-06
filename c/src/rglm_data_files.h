@@ -104,10 +104,6 @@
  *     Meaning: the read value has to be equal to `RGLMDF_VALID_D`, it is a formal validity check, the value is not used.<br>
  * <p>
  * --- Game Positions ---
- *   - `1 byte` field, read/written as `uint8_t`, converted to `rglmdf_iarray_data_type_t` value.<br>
- *     Meaning: type of data stored into iarray fields.<br>
- *     Ref: `iarray_data_type`, scalar.<br>
- *<br>
  *   - `8 bytes` field, read/written as `uint64_t`, converted to `size_t` value.<br>
  *     Meaning: count of records in the game position table.<br>
  *     Ref: `positions.ntuples`, scalar.<br>
@@ -222,17 +218,6 @@ typedef enum {
   RGLMDF_FILE_DATA_FORMAT_TYPE_IS_POSITIONS,            /**< File format with just the positions. */
   RGLMDF_FILE_DATA_FORMAT_TYPE_IS_INVALID               /**< Not a valid format type. */
 } rglmdf_file_data_format_type_t;
-
-/**
- * @enum rglmdf_iarray_data_type_t
- * @brief Meaning of the data stored into the iarray field.
- */
-typedef enum {
-  RGLMDF_IARRAY_IS_INDEX,              /**< Pattern configuration index value. */
-  RGLMDF_IARRAY_IS_PRINCIPAL_INDEX,    /**< Pattern configuration principal index value. */
-  RGLMDF_IARRAY_IS_GLM_VARIABLE_ID,    /**< Generalized linear model variable id. */
-  RGLMDF_IARRAY_IS_MISSING             /**< There are no iarray fields in the record. */
-} rglmdf_iarray_data_type_t;
 
 /**
  * @brief Reversi GLM data file record definition for the position summary table.
@@ -385,7 +370,6 @@ typedef struct rglmdf_solved_and_classified_gp_record_s {
  *          The `i2array` contains the transformation to glm_variable_id.
  */
 typedef struct rglmdf_solved_and_classified_gp_table_s {
-  rglmdf_iarray_data_type_t iarray_data_type;          /**< @brief Specifies what is the meaning of the data in the iarray fields. */
   size_t ntuples;                                      /**< @brief Number of records. */
   size_t n_fvalues_per_record;                         /**< @brief Count of feature values fields. */
   size_t n_index_values_per_record;                    /**< @brief Count of pattern index values fields. */
@@ -935,8 +919,7 @@ rglmdf_entity_freq_summary_cnt_to_text_stream (const rglmdf_general_data_t *gd,
  */
 extern size_t
 rglmdf_set_positions_ntuples (rglmdf_general_data_t *gd,
-                              size_t ntuples,
-                              rglmdf_iarray_data_type_t iarray_data_type);
+                              size_t ntuples);
 
 /**
  * @brief Getter function for the `positions.ntuples` field.
@@ -1054,26 +1037,6 @@ rglmdf_map_pid_and_piv_to_glm_vid (const rglmdf_general_data_t *gd,
                                    uint16_t entity_class,
                                    uint16_t entity_id,
                                    uint32_t principal_index_value);
-
-/**
- * @brief Transforms the `positions.iarray` values.
- *
- * @details This function has to be called two times, once with thw parameter `first_step`
- *          set to `true`, and a second time with the parameter set to `false`.
- *          The first call transforms the pattern index values to the principal values.
- *          The second call transforms the pattern principal index values to the `glm_variable_id`
- *          value.
- *          The function can be called after the `positions` table has been fully populated.
- *
- * @invariant Parameter `gd` must be not `NULL`.
- * The invariant is guarded by an assertion.
- *
- * @param [in,out] gd         reference to the general data structure
- * @param [in]     first_step governs the transformation to apply
- */
-extern void
-rglmdf_transform_piv_to_glm_variable_id (rglmdf_general_data_t *gd,
-                                         bool first_step);
 
 /**
  * @brief Outputs to `f` the game positions table in CSV format.
