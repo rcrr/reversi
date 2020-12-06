@@ -877,7 +877,7 @@ rglmdf_set_entity_freq_summary_ntuples (rglmdf_general_data_t *gd,
  * @return        the `patterns` field
  */
 extern size_t
-rglmdf_get_pattern_freq_summary_ntuples (rglmdf_general_data_t *gd);
+rglmdf_get_pattern_freq_summary_ntuples (const rglmdf_general_data_t *gd);
 
 /**
  * @brief Getter function for the `pattern_freq_summary.records` field.
@@ -937,7 +937,7 @@ rglmdf_set_positions_ntuples (rglmdf_general_data_t *gd,
  * @return        the `patterns` field
  */
 extern size_t
-rglmdf_get_positions_ntuples (rglmdf_general_data_t *gd);
+rglmdf_get_positions_ntuples (const rglmdf_general_data_t *gd);
 
 /**
  * @brief Getter function for the `positions.records` field.
@@ -949,7 +949,7 @@ rglmdf_get_positions_ntuples (rglmdf_general_data_t *gd);
  * @return        the `patterns` field
  */
 extern rglmdf_solved_and_classified_gp_record_t *
-rglmdf_get_positions_records (rglmdf_general_data_t *gd);
+rglmdf_get_positions_records (const rglmdf_general_data_t *gd);
 
 /**
  * @brief Getter function for the `positions.n_fvalues_per_record` field.
@@ -961,7 +961,7 @@ rglmdf_get_positions_records (rglmdf_general_data_t *gd);
  * @return        the `patterns` field
  */
 extern size_t
-rglmdf_get_positions_n_fvalues_per_record (rglmdf_general_data_t *gd);
+rglmdf_get_positions_n_fvalues_per_record (const rglmdf_general_data_t *gd);
 
 /**
  * @brief Getter function for the `positions.n_index_values_per_record` field.
@@ -973,7 +973,7 @@ rglmdf_get_positions_n_fvalues_per_record (rglmdf_general_data_t *gd);
  * @return        the `patterns` field
  */
 extern size_t
-rglmdf_get_positions_n_index_values_per_record (rglmdf_general_data_t *gd);
+rglmdf_get_positions_n_index_values_per_record (const rglmdf_general_data_t *gd);
 
 /**
  * @brief Getter function for the `positions.i0array` field.
@@ -1009,7 +1009,7 @@ rglmdf_get_positions_i1array (rglmdf_general_data_t *gd);
  * @return        the `patterns` field
  */
 extern uint32_t *
-rglmdf_get_positions_i2array (rglmdf_general_data_t *gd);
+rglmdf_get_positions_i2array (const rglmdf_general_data_t *gd);
 
 /**
  * @brief Getter function for the `positions.farray` field.
@@ -1021,7 +1021,7 @@ rglmdf_get_positions_i2array (rglmdf_general_data_t *gd);
  * @return        the `patterns` field
  */
 extern double *
-rglmdf_get_positions_farray (rglmdf_general_data_t *gd);
+rglmdf_get_positions_farray (const rglmdf_general_data_t *gd);
 
 /**
  * @brief Queries the glm variable id.

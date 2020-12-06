@@ -7,8 +7,6 @@
  *       These new functions are going to enable an API for the two programs that is then usable by
  *       test modules.
  *
- * @todo Add documentation to rglm_utils.h
- *
  * @todo Rename pattern_freq_summary into entity_freq_summary.
  *
  * @todo The General Data structure has three principal states, described by the iarray_data_type field into the
@@ -219,6 +217,8 @@
  *                           Action: we keep as it is.
  *
  * @todo [2020-12-05 - done] Refactor rglm_utils removing references to the inner definition of rglmdf_general_data_t.
+ *
+ * @todo [2020-12-06 - done] Add documentation to rglm_utils.h
  *
  *
  *

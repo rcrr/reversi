@@ -38,56 +38,48 @@
 #include "rglm_utils.h"
 
 double
-rglmut_logistic_function (double x)
+rglmut_logistic_function (const double x)
 {
-  static const double e =  2.71828182845904523536;
+  const double e =  2.71828182845904523536;
   return (double) 1.0 / ((double) 1.0 + pow(e, -x));
 }
 
 double
-rglmut_gv_scale (int v)
+rglmut_gv_scale (const int v)
 {
   return (double) 0.00765625 * (double) v + (double) 0.5;
 }
 
 void
-rglmut_gv_init (rglmdf_general_data_t *data,
-                size_t emme,
-                double *v)
+rglmut_gv_init (const rglmdf_general_data_t *data,
+                const size_t emme,
+                double *const v)
 {
   assert(data);
   assert(emme == rglmdf_get_positions_ntuples(data));
-  assert(v);
+  assert(emme > 0 ? (bool) v  : true);
 
-  rglmdf_solved_and_classified_gp_record_t *const records = rglmdf_get_positions_records(data);
+  const rglmdf_solved_and_classified_gp_record_t *const records = rglmdf_get_positions_records(data);
 
   for (size_t i = 0; i < emme; i++)
     v[i] = rglmut_gv_scale(records[i].game_value);
 }
 
 void
-rglmut_evaluation_function_eval (rglmdf_general_data_t *data,
-                                 size_t enne,
-                                 double *w,
-                                 size_t emme,
-                                 double *e)
+rglmut_evaluation_function_eval (const rglmdf_general_data_t *const data,
+                                 const size_t enne,
+                                 const double *w,
+                                 const size_t emme,
+                                 double *const e)
 {
   assert(data);
-  assert(emme == rglmdf_get_positions_ntuples(data));
-  assert(w);
   assert(enne == rglmdf_get_pattern_freq_summary_ntuples(data));
-  assert(e);
+  assert(enne > 0 ? (bool) w  : true);
+  assert(emme == rglmdf_get_positions_ntuples(data));
+  assert(emme > 0 ? (bool) e  : true);
 
-  double sum;
-
-  uint32_t *const i2array = rglmdf_get_positions_i2array(data);
-  double *const farray = rglmdf_get_positions_farray(data);
-
-  /* Vector of glm variables id belonging to a solved and classified game position. */
-  uint32_t *glm_variable_ids;
-
-  /* Vector of feature values belonging to a solved and classified game position. */
-  double *feature_values;
+  const uint32_t *const i2array = rglmdf_get_positions_i2array(data);
+  const double *const farray = rglmdf_get_positions_farray(data);
 
   /* ni: number of pattern instances considered by the model. */
   const size_t ni = rglmdf_get_positions_n_index_values_per_record(data);
@@ -96,12 +88,14 @@ rglmut_evaluation_function_eval (rglmdf_general_data_t *data,
   const size_t nf = rglmdf_get_positions_n_fvalues_per_record(data);
 
   for (size_t i = 0; i < emme; i++) {
-    sum = 0.0;
-    feature_values = &farray[i * nf];
+    double sum = 0.0;
+    /* Vector of feature values belonging to a solved and classified game position. */
+    const double *const feature_values = &farray[i * nf];
     for (size_t j = 0; j < nf; j++) {
       sum += w[j] * feature_values[j];
     }
-    glm_variable_ids = &i2array[i * ni];
+    /* Vector of glm variables id belonging to a solved and classified game position. */
+    const uint32_t *const glm_variable_ids = &i2array[i * ni];
     for (size_t j = 0; j < ni; j++) {
       sum += w[glm_variable_ids[j]];
     }
@@ -110,56 +104,44 @@ rglmut_evaluation_function_eval (rglmdf_general_data_t *data,
 }
 
 void
-rglmut_evaluation_function_derivative_eval (size_t emme,
-                                            double *e,
-                                            double *de)
+rglmut_evaluation_function_derivative_eval (const size_t emme,
+                                            const double *const e,
+                                            double *const de)
 {
-  assert(e);
-  assert(de);
+  assert(emme > 0 ? (bool) e && (bool) de : true);
 
   for (size_t i = 0; i < emme; i++)
     de[i] = e[i] * (1 - e[i]);
 }
 
 void
-rglmut_residual_value_eval (size_t emme,
-                            double *e,
-                            double *v,
-                            double *r)
+rglmut_residual_value_eval (const size_t emme,
+                            const double *const e,
+                            const double *const v,
+                            double *const r)
 {
-  assert(e);
-  assert(v);
-  assert(r);
+  assert(emme > 0 ? (bool) e && (bool) v && (bool) r : true);
 
   for (size_t i = 0; i < emme; i++)
     r[i] = v[i] - e[i];
 }
 
 void
-rglmut_minus_grad_f_eval (rglmdf_general_data_t *data,
-                          double *minus_grad_f,
-                          size_t enne,
-                          size_t emme,
-                          double *r,
-                          double *de)
+rglmut_minus_grad_f_eval (const rglmdf_general_data_t *const data,
+                          double *const minus_grad_f,
+                          const size_t enne,
+                          const size_t emme,
+                          const double *r,
+                          const double *de)
 {
   assert(data);
-  assert(minus_grad_f);
-  assert(emme == rglmdf_get_positions_ntuples(data));
   assert(enne == rglmdf_get_pattern_freq_summary_ntuples(data));
-  assert(r);
-  assert(de);
+  assert(enne > 0 ? (bool) minus_grad_f : true);
+  assert(emme == rglmdf_get_positions_ntuples(data));
+  assert(emme > 0 ? (bool) r && (bool) de : true);
 
-  double z;
-
-  uint32_t *const i2array = rglmdf_get_positions_i2array(data);
-  double *const farray = rglmdf_get_positions_farray(data);
-
-  /* Vector of glm variables id belonging to a solved and classified game position. */
-  uint32_t *glm_variable_ids;
-
-  /* Vector of feature values belonging to a solved and classified game position. */
-  double *feature_values;
+  const uint32_t *const i2array = rglmdf_get_positions_i2array(data);
+  const double *const farray = rglmdf_get_positions_farray(data);
 
   /* ni: number of pattern instances considered by the model. */
   const size_t ni = rglmdf_get_positions_n_index_values_per_record(data);
@@ -171,9 +153,11 @@ rglmut_minus_grad_f_eval (rglmdf_general_data_t *data,
   for (size_t k = 0; k < enne; k++) minus_grad_f[k] = 0.0;
 
   for (size_t i = 0; i < emme; i++) {
-    feature_values = &farray[i * nf];
-    glm_variable_ids = &i2array[i * ni];
-    z = r[i] * de[i];
+    /* Vector of feature values belonging to a solved and classified game position. */
+    const double *const feature_values = &farray[i * nf];
+    /* Vector of glm variables id belonging to a solved and classified game position. */
+    const uint32_t *const glm_variable_ids = &i2array[i * ni];
+    const double z = r[i] * de[i];
     for (size_t j = 0; j < nf; j++)
       minus_grad_f[j] += z * feature_values[j];
     for (size_t j = 0; j < ni; j++)
@@ -182,33 +166,22 @@ rglmut_minus_grad_f_eval (rglmdf_general_data_t *data,
 }
 
 void
-rgmlut_big_b_eval (rglmdf_general_data_t *data,
-                   double **big_b,
-                   size_t enne,
-                   size_t emme,
-                   double *e,
-                   double *de,
-                   double *v)
+rgmlut_big_b_eval (const rglmdf_general_data_t *const data,
+                   double **const big_b,
+                   const size_t enne,
+                   const size_t emme,
+                   const double *e,
+                   const double *de,
+                   const double *v)
 {
   assert(data);
-  assert(big_b);
-  assert(emme == rglmdf_get_positions_ntuples(data));
   assert(enne == rglmdf_get_pattern_freq_summary_ntuples(data));
-  assert(e);
-  assert(de);
-  assert(v);
+  assert(enne > 0 ? (bool) big_b : true);
+  assert(emme == rglmdf_get_positions_ntuples(data));
+  assert(emme > 0 ? (bool) e && (bool) de && (bool) v : true);
 
-  size_t idi, idj;
-  double z;
-
-  uint32_t *const i2array = rglmdf_get_positions_i2array(data);
-  double *const farray = rglmdf_get_positions_farray(data);
-
-  /* Vector of glm variables id belonging to a solved and classified game position. */
-  uint32_t *glm_variable_ids;
-
-  /* Vector of feature values belonging to a solved and classified game position. */
-  double *feature_values;
+  const uint32_t *const i2array = rglmdf_get_positions_i2array(data);
+  const double *const farray = rglmdf_get_positions_farray(data);
 
   /* ni: number of pattern instances considered by the model. */
   const size_t ni = rglmdf_get_positions_n_index_values_per_record(data);
@@ -223,23 +196,25 @@ rgmlut_big_b_eval (rglmdf_general_data_t *data,
 
   /* Computes the upper triangle of the B matrix. */
   for (size_t k = 0; k < emme; k++) {
-    feature_values = &farray[k * nf];
-    glm_variable_ids = &i2array[k * ni];
-    z = de[k] * (v[k] - 2*(1 + v[k])*e[k] + 3*e[k]*e[k]);
+    /* Vector of feature values belonging to a solved and classified game position. */
+    const double *const feature_values = &farray[k * nf];
+    /* Vector of glm variables id belonging to a solved and classified game position. */
+    const uint32_t *const glm_variable_ids = &i2array[k * ni];
+    const double z = de[k] * (v[k] - 2*(1 + v[k])*e[k] + 3*e[k]*e[k]);
 
     for (size_t i = 0; i < nf; i++) {
       for (size_t j = i; j < nf; j++) {
         big_b[i][j] -= z * feature_values[i] * feature_values[j];
       }
       for (size_t j = 0; j < ni; j++) {
-        idj = glm_variable_ids[j];
+        const size_t idj = glm_variable_ids[j];
         big_b[i][idj] -= z * feature_values[i];
       }
     }
     for (size_t i = 0; i < ni; i++) {
       for (size_t j = 0; j < ni; j++) {
-        idi = glm_variable_ids[i];
-        idj = glm_variable_ids[j];
+        const size_t idi = glm_variable_ids[i];
+        const size_t idj = glm_variable_ids[j];
         if (idj >= idi) big_b[idi][idj] -= z;
       }
     }
