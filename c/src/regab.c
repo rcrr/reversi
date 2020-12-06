@@ -1324,7 +1324,7 @@ do_action_extract_pattern_freqs_cursor_fetch (int *result,
                                               bool verbose,
                                               const char *sql_cursor_name,
                                               size_t chunk_size,
-                                              rglmdf_pattern_freq_summary_record_t *rec,
+                                              rglmdf_entity_freq_summary_record_t *rec,
                                               size_t *fetched_record_cnt)
 {
   static const size_t command_size = 1024;
@@ -2671,7 +2671,7 @@ main (int argc,
    *  - 03   - Collects from the DB the game positions statistics (the position summary table) and
    *             stores them into the gd structure.
    *  - 04   - Collects from the DB the feature and pattern index statistics, assigns the global variable index value,
-   *             saves them into the pattern_freq_summary table into the general data structure.
+   *             saves them into the entity_freq_summary table into the general data structure.
    *             This step also assigns the global variable index value to each feature or pattern.
    *             This action generates the mapping between pattern_id, index_value tuples and the GLM global variables.
    *  - 05   - Creates the CURSOR variable over the query collecting game_positions, game_value, pattern values.
@@ -2686,10 +2686,10 @@ main (int argc,
   rglmdf_general_data_t gd;
   rglmdf_general_data_init(&gd);
 
-  const size_t pattern_freq_summary_chunk_size = 1024;
+  const size_t entity_freq_summary_chunk_size = 1024;
   const char *sql_cursor_name_pattern_freqs_debug = "sql_cursor_name_pattern_freqs_debug";
   const char *sql_cursor_name_pattern_freqs = "sql_cursor_name_pattern_freqs";
-  size_t pattern_freq_summary_fetched_record_cnt = 0;
+  size_t entity_freq_summary_fetched_record_cnt = 0;
 
   const char *sql_cursor_name_gps_data = "sql_cursor_name_gps_data";
   size_t gps_data_total_record_cnt = 0;
@@ -2813,7 +2813,7 @@ main (int argc,
   }
 
   /* - 04 - Collects from the DB the feature and pattern index statistics, assigns the global variable index value,
-   *        saves them into the pattern_freq_summary table into the general data structure. */
+   *        saves them into the entity_freq_summary table into the general data structure. */
   if (file_data_format == RGLMDF_FILE_DATA_FORMAT_TYPE_IS_GENERAL) {
     for (size_t i = 0; i < feature_cnt; i++)
       glm_f_variable_cnt += board_features[features[i]].field_cnt;
@@ -2846,11 +2846,11 @@ main (int argc,
       return EXIT_FAILURE;
     }
     size_t k = 0;
-    rglmdf_pattern_freq_summary_record_t *pfsrp;
-    pfsrp = rglmdf_get_pattern_freq_summary_records(&gd);
+    rglmdf_entity_freq_summary_record_t *pfsrp;
+    pfsrp = rglmdf_get_entity_freq_summary_records(&gd);
     for (size_t i = 0; i < feature_cnt; i++) {
       for (size_t j = 0; j < board_features[features[i]].field_cnt; j++) {
-        rglmdf_pattern_freq_summary_record_t *rec = &gd.pattern_freq_summary.records[k];
+        rglmdf_entity_freq_summary_record_t *rec = &gd.entity_freq_summary.records[k];
         rec->glm_variable_id = k;
         rec->entity_class = BOARD_ENTITY_CLASS_FEATURE;
         rec->entity_id = features[i];
@@ -2866,16 +2866,16 @@ main (int argc,
 
     for (;;) {
       size_t fetched_record_cnt = 0;
-      do_action_extract_pattern_freqs_cursor_fetch(&result, con, verbose, sql_cursor_name_pattern_freqs, pattern_freq_summary_chunk_size, pfsrp, &fetched_record_cnt);
+      do_action_extract_pattern_freqs_cursor_fetch(&result, con, verbose, sql_cursor_name_pattern_freqs, entity_freq_summary_chunk_size, pfsrp, &fetched_record_cnt);
       if (result != 0) {
         fprintf(stderr, "Error occured into do_action_extract_pattern_freqs_cursor_fetch(). Exiting ...\n");
         res = PQexec(con, "ROLLBACK");
         PQfinish(con);
         return EXIT_FAILURE;
       }
-      pattern_freq_summary_fetched_record_cnt += fetched_record_cnt;
+      entity_freq_summary_fetched_record_cnt += fetched_record_cnt;
       if (fetched_record_cnt == 0) {
-        if (pattern_freq_summary_fetched_record_cnt != glm_p_variable_cnt) {
+        if (entity_freq_summary_fetched_record_cnt != glm_p_variable_cnt) {
           res = PQexec(con, "ROLLBACK");
           PQfinish(con);
           fprintf(stderr, "Records count mismatch, do_action_extract_pattern_freqs_cursor_fetch returned an unexpectd number of records.\n");

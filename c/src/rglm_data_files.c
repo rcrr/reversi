@@ -55,7 +55,7 @@ static void
 rglmdf_build_reverse_map (rglmdf_general_data_t *gd)
 {
   assert(gd);
-  rglmdf_pattern_freq_summary_table_t *t = &gd->pattern_freq_summary;
+  rglmdf_entity_freq_summary_table_t *t = &gd->entity_freq_summary;
   const size_t n = t->ntuples;
 
   for (size_t i = 0; i < n; i++) {
@@ -158,7 +158,7 @@ rglmdf_verify_type_sizes (void)
   if (sizeof( int64_t) != 8) return false;
 
   if (sizeof(rglmdf_position_summary_record_t) != 24) return false;
-  if (sizeof(rglmdf_pattern_freq_summary_record_t) != 48) return false;
+  if (sizeof(rglmdf_entity_freq_summary_record_t) != 48) return false;
   if (sizeof(rglmdf_solved_and_classified_gp_record_t) != 48) return false;
 
   if (sizeof(double) != 8) return false;
@@ -167,9 +167,10 @@ rglmdf_verify_type_sizes (void)
 }
 
 void
-rglmdf_general_data_init (rglmdf_general_data_t *gd)
+rglmdf_general_data_init (rglmdf_general_data_t *const gd)
 {
   assert(gd);
+
   gd->file_creation_time = (time_t) 0; // "Thu Jan  1 00:0:00 1970 (UTC)"
   gd->format = RGLMDF_FILE_DATA_FORMAT_TYPE_IS_INVALID;
   gd->batch_id_cnt = 0;
@@ -185,10 +186,10 @@ rglmdf_general_data_init (rglmdf_general_data_t *gd)
 
   gd->position_summary.ntuples = 0;
   gd->position_summary.records = NULL;
-  gd->pattern_freq_summary.glm_f_variable_cnt = 0;
-  gd->pattern_freq_summary.glm_p_variable_cnt = 0;
-  gd->pattern_freq_summary.ntuples = 0;
-  gd->pattern_freq_summary.records = NULL;
+  gd->entity_freq_summary.glm_f_variable_cnt = 0;
+  gd->entity_freq_summary.glm_p_variable_cnt = 0;
+  gd->entity_freq_summary.ntuples = 0;
+  gd->entity_freq_summary.records = NULL;
 
   gd->positions.iarray_data_type = RGLMDF_IARRAY_IS_INDEX;
   gd->positions.ntuples = 0;
@@ -206,9 +207,10 @@ rglmdf_general_data_init (rglmdf_general_data_t *gd)
 }
 
 void
-rglmdf_general_data_release (rglmdf_general_data_t *gd)
+rglmdf_general_data_release (rglmdf_general_data_t *const gd)
 {
   assert(gd);
+
   free(gd->reverse_map_b);
   free(gd->reverse_map_a_f);
   free(gd->positions.farray);
@@ -216,7 +218,7 @@ rglmdf_general_data_release (rglmdf_general_data_t *gd)
   free(gd->positions.i1array);
   free(gd->positions.i0array);
   free(gd->positions.records);
-  free(gd->pattern_freq_summary.records);
+  free(gd->entity_freq_summary.records);
   free(gd->position_summary.records);
   free(gd->patterns);
   free(gd->features);
@@ -226,38 +228,50 @@ rglmdf_general_data_release (rglmdf_general_data_t *gd)
 }
 
 void
-rglmdf_set_file_creation_time (rglmdf_general_data_t *gd,
-                               time_t t)
+rglmdf_set_file_creation_time (rglmdf_general_data_t *const gd,
+                               const time_t t)
 {
   assert(gd);
   gd->file_creation_time = t;
 }
 
 time_t
-rglmdf_get_file_creation_time (rglmdf_general_data_t *gd)
+rglmdf_get_file_creation_time (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->file_creation_time;
 }
 
 void
-rglmdf_set_format (rglmdf_general_data_t *gd,
-                   rglmdf_file_data_format_type_t f)
+rglmdf_get_file_creation_time_as_string (const rglmdf_general_data_t *const gd,
+                                         char *const buf)
+{
+  assert(gd);
+  assert(buf);
+
+  struct tm file_creation_time_tm;
+  gmtime_r(&gd->file_creation_time, &file_creation_time_tm);
+  strftime(buf, 25,"%c", &file_creation_time_tm);
+}
+
+void
+rglmdf_set_format (rglmdf_general_data_t *const gd,
+                   const rglmdf_file_data_format_type_t f)
 {
   assert(gd);
   gd->format = f;
 }
 
 rglmdf_file_data_format_type_t
-rglmdf_get_format (rglmdf_general_data_t *gd)
+rglmdf_get_format (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->format;
 }
 
 void
-rglmdf_format_to_text_stream (rglmdf_general_data_t *gd,
-                              FILE *stream)
+rglmdf_format_to_text_stream (const rglmdf_general_data_t *const gd,
+                              FILE *const stream)
 {
   assert(gd);
   if (!stream) return;
@@ -281,27 +295,14 @@ rglmdf_format_to_text_stream (rglmdf_general_data_t *gd,
   fprintf(stream, "The format of the binary data file is: %s\n", s);
 }
 
-void
-rglmdf_get_file_creation_time_as_string (rglmdf_general_data_t *gd,
-                                         char *buf)
-{
-  assert(gd);
-  assert(buf);
-
-  struct tm file_creation_time_tm;
-  gmtime_r(&gd->file_creation_time, &file_creation_time_tm);
-  strftime(buf, 25,"%c", &file_creation_time_tm);
-}
-
 size_t
-rglmdf_set_batch_id_cnt (rglmdf_general_data_t *gd,
-                         size_t cnt)
+rglmdf_set_batch_id_cnt (rglmdf_general_data_t *const gd,
+                         const size_t cnt)
 {
   assert(gd);
 
   const size_t s = sizeof(uint64_t) * cnt;
-  uint64_t *buf;
-  buf = (uint64_t *) malloc(s);
+  uint64_t *const buf = (uint64_t *) malloc(s);
   if (buf) {
     free(gd->batch_ids);
     gd->batch_ids = buf;
@@ -314,22 +315,22 @@ rglmdf_set_batch_id_cnt (rglmdf_general_data_t *gd,
 }
 
 size_t
-rglmdf_get_batch_id_cnt (rglmdf_general_data_t *gd)
+rglmdf_get_batch_id_cnt (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->batch_id_cnt;
 }
 
 uint64_t *
-rglmdf_get_batch_ids (rglmdf_general_data_t *gd)
+rglmdf_get_batch_ids (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->batch_ids;
 }
 
 void
-rglmdf_batch_ids_to_text_stream (rglmdf_general_data_t *gd,
-                                 FILE *stream)
+rglmdf_batch_ids_to_text_stream (const rglmdf_general_data_t *const gd,
+                                 FILE *const stream)
 {
   fprintf(stream, "Selected batch_id values: ");
   for (size_t i = 0; i < gd->batch_id_cnt; i++ ) {
@@ -339,23 +340,23 @@ rglmdf_batch_ids_to_text_stream (rglmdf_general_data_t *gd,
 }
 
 uint8_t
-rglmdf_get_empty_count (rglmdf_general_data_t *gd)
+rglmdf_get_empty_count (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->empty_count;
 }
 
 void
-rglmdf_set_empty_count (rglmdf_general_data_t *gd,
-                        uint8_t empty_count)
+rglmdf_set_empty_count (rglmdf_general_data_t *const gd,
+                        const uint8_t empty_count)
 {
   assert(gd);
   gd->empty_count = empty_count;
 }
 
 size_t
-rglmdf_set_position_status_cnt (rglmdf_general_data_t *gd,
-                                size_t cnt)
+rglmdf_set_position_status_cnt (rglmdf_general_data_t *const gd,
+                                const size_t cnt)
 {
   assert(gd);
 
@@ -382,22 +383,22 @@ rglmdf_set_position_status_cnt (rglmdf_general_data_t *gd,
 }
 
 size_t
-rglmdf_get_position_status_cnt (rglmdf_general_data_t *gd)
+rglmdf_get_position_status_cnt (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->position_status_cnt;
 }
 
 char **
-rglmdf_get_position_statuses (rglmdf_general_data_t *gd)
+rglmdf_get_position_statuses (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->position_statuses;
 }
 
 void
-rglmdf_position_statuses_to_text_stream (rglmdf_general_data_t *gd,
-                                         FILE *stream)
+rglmdf_position_statuses_to_text_stream (const rglmdf_general_data_t *const gd,
+                                         FILE *const stream)
 {
   fprintf(stream, "Selected position_statuses values: ");
   for (size_t i = 0; i < gd->position_status_cnt; i++ ) {
@@ -407,8 +408,8 @@ rglmdf_position_statuses_to_text_stream (rglmdf_general_data_t *gd,
 }
 
 size_t
-rglmdf_set_feature_cnt (rglmdf_general_data_t *gd,
-                        size_t cnt)
+rglmdf_set_feature_cnt (rglmdf_general_data_t *const gd,
+                        const size_t cnt)
 {
   assert(gd);
 
@@ -439,22 +440,22 @@ rglmdf_set_feature_cnt (rglmdf_general_data_t *gd,
 }
 
 size_t
-rglmdf_get_feature_cnt (rglmdf_general_data_t *gd)
+rglmdf_get_feature_cnt (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->feature_cnt;
 }
 
 board_feature_id_t *
-rglmdf_get_features (rglmdf_general_data_t *gd)
+rglmdf_get_features (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->features;
 }
 
 void
-rglmdf_features_to_text_stream (rglmdf_general_data_t *gd,
-                                FILE *stream)
+rglmdf_features_to_text_stream (const rglmdf_general_data_t *const gd,
+                                FILE *const stream)
 {
   fprintf(stream, "Selected feature values: ");
   if (gd->feature_cnt == 0) fprintf(stream, "--\n");
@@ -465,15 +466,15 @@ rglmdf_features_to_text_stream (rglmdf_general_data_t *gd,
 }
 
 size_t
-rglmdf_get_glm_f_variable_cnt (rglmdf_general_data_t *gd)
+rglmdf_get_glm_f_variable_cnt (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
-  return gd->pattern_freq_summary.glm_f_variable_cnt;
+  return gd->entity_freq_summary.glm_f_variable_cnt;
 }
 
 size_t
-rglmdf_set_pattern_cnt (rglmdf_general_data_t *gd,
-                        size_t cnt)
+rglmdf_set_pattern_cnt (rglmdf_general_data_t *const gd,
+                        const size_t cnt)
 {
   assert(gd);
 
@@ -504,22 +505,22 @@ rglmdf_set_pattern_cnt (rglmdf_general_data_t *gd,
 }
 
 size_t
-rglmdf_get_pattern_cnt (rglmdf_general_data_t *gd)
+rglmdf_get_pattern_cnt (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->pattern_cnt;
 }
 
 board_pattern_id_t *
-rglmdf_get_patterns (rglmdf_general_data_t *gd)
+rglmdf_get_patterns (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->patterns;
 }
 
 void
-rglmdf_patterns_to_text_stream (rglmdf_general_data_t *gd,
-                                FILE *stream)
+rglmdf_patterns_to_text_stream (const rglmdf_general_data_t *const gd,
+                                FILE *const stream)
 {
   fprintf(stream, "Selected pattern values: ");
   if (gd->pattern_cnt == 0) fprintf(stream, "--\n");
@@ -530,15 +531,15 @@ rglmdf_patterns_to_text_stream (rglmdf_general_data_t *gd,
 }
 
 size_t
-rglmdf_get_glm_p_variable_cnt (rglmdf_general_data_t *gd)
+rglmdf_get_glm_p_variable_cnt (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
-  return gd->pattern_freq_summary.glm_p_variable_cnt;
+  return gd->entity_freq_summary.glm_p_variable_cnt;
 }
 
 size_t
-rglmdf_set_position_summary_ntuples (rglmdf_general_data_t *gd,
-                                     size_t ntuples)
+rglmdf_set_position_summary_ntuples (rglmdf_general_data_t *const gd,
+                                     const size_t ntuples)
 {
   assert(gd);
 
@@ -557,22 +558,22 @@ rglmdf_set_position_summary_ntuples (rglmdf_general_data_t *gd,
 }
 
 size_t
-rglmdf_get_position_summary_ntuples (rglmdf_general_data_t *gd)
+rglmdf_get_position_summary_ntuples (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->position_summary.ntuples;
 }
 
 rglmdf_position_summary_record_t *
-rglmdf_get_position_summary_records (rglmdf_general_data_t *gd)
+rglmdf_get_position_summary_records (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->position_summary.records;
 }
 
 void
-rglmdf_position_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
-                                            FILE *stream)
+rglmdf_position_summary_cnt_to_text_stream (const rglmdf_general_data_t *const gd,
+                                            FILE *const stream)
 {
   assert(gd);
   size_t solved_classified_gp_cnt = 0;
@@ -583,10 +584,10 @@ rglmdf_position_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
 }
 
 size_t
-rglmdf_set_entity_freq_summary_ntuples (rglmdf_general_data_t *gd,
-                                        size_t feature_ntuples,
-                                        size_t pattern_ntuples,
-                                        size_t ntuples)
+rglmdf_set_entity_freq_summary_ntuples (rglmdf_general_data_t *const gd,
+                                        const size_t feature_ntuples,
+                                        const size_t pattern_ntuples,
+                                        const size_t ntuples)
 {
   assert(gd);
   assert(feature_ntuples + pattern_ntuples == ntuples);
@@ -633,7 +634,7 @@ rglmdf_set_entity_freq_summary_ntuples (rglmdf_general_data_t *gd,
    */
   const size_t s_a = sizeof(uint64_t *) * reverse_map_a_length;
   const size_t s_b = sizeof(uint64_t) * reverse_map_b_length;
-  const size_t s_c = sizeof(rglmdf_pattern_freq_summary_record_t) * ntuples;
+  const size_t s_c = sizeof(rglmdf_entity_freq_summary_record_t) * ntuples;
   uint64_t **arr_a_f = (uint64_t **) malloc(s_a);
   if (!arr_a_f) return 0;
   uint64_t *arr_b = (uint64_t *) malloc(s_b);
@@ -642,7 +643,7 @@ rglmdf_set_entity_freq_summary_ntuples (rglmdf_general_data_t *gd,
     return 0;
   }
   uint64_t **arr_a_p = arr_a_f + BOARD_FEATURE_COUNT;
-  rglmdf_pattern_freq_summary_record_t *arr_c = (rglmdf_pattern_freq_summary_record_t *) malloc(s_c);
+  rglmdf_entity_freq_summary_record_t *arr_c = (rglmdf_entity_freq_summary_record_t *) malloc(s_c);
   if (!arr_c) {
     free(arr_a_f);
     free(arr_b);
@@ -665,37 +666,37 @@ rglmdf_set_entity_freq_summary_ntuples (rglmdf_general_data_t *gd,
   gd->reverse_map_b = arr_b;
 
   memset(arr_c, 0, s_c);
-  free(gd->pattern_freq_summary.records);
-  gd->pattern_freq_summary.records = arr_c;
-  gd->pattern_freq_summary.glm_f_variable_cnt = feature_ntuples;
-  gd->pattern_freq_summary.glm_p_variable_cnt = pattern_ntuples;
-  gd->pattern_freq_summary.ntuples = ntuples;
+  free(gd->entity_freq_summary.records);
+  gd->entity_freq_summary.records = arr_c;
+  gd->entity_freq_summary.glm_f_variable_cnt = feature_ntuples;
+  gd->entity_freq_summary.glm_p_variable_cnt = pattern_ntuples;
+  gd->entity_freq_summary.ntuples = ntuples;
 
   return ntuples;
 }
 
 size_t
-rglmdf_get_pattern_freq_summary_ntuples (const rglmdf_general_data_t *gd)
+rglmdf_get_entity_freq_summary_ntuples (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
-  return gd->pattern_freq_summary.ntuples;
+  return gd->entity_freq_summary.ntuples;
 }
 
-rglmdf_pattern_freq_summary_record_t *
-rglmdf_get_pattern_freq_summary_records (rglmdf_general_data_t *gd)
+rglmdf_entity_freq_summary_record_t *
+rglmdf_get_entity_freq_summary_records (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
-  return gd->pattern_freq_summary.records;
+  return gd->entity_freq_summary.records;
 }
 
 void
-rglmdf_pattern_freq_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
-                                                FILE *stream)
+rglmdf_entity_freq_summary_cnt_to_text_stream (const rglmdf_general_data_t *const gd,
+                                               FILE *const stream)
 {
   assert(gd);
   if (!stream) return;
   fprintf(stream, "Feature and Pattern Frequency Summary Table: number of tuples = %zu\n",
-          gd->pattern_freq_summary.ntuples);
+          gd->entity_freq_summary.ntuples);
 
   int16_t entity_class;
   int16_t entity_id;
@@ -712,8 +713,8 @@ rglmdf_pattern_freq_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
   f_index_cnt = p_index_cnt = 0;
   entity_class = BOARD_ENTITY_CLASS_INVALID;
   entity_id = -1;
-  for (size_t i = 0; i < gd->pattern_freq_summary.ntuples; i++) {
-    rglmdf_pattern_freq_summary_record_t *rec = &gd->pattern_freq_summary.records[i];
+  for (size_t i = 0; i < gd->entity_freq_summary.ntuples; i++) {
+    rglmdf_entity_freq_summary_record_t *rec = &gd->entity_freq_summary.records[i];
     if (rec->entity_class != entity_class || rec->entity_id != entity_id) {
       v_cnt = 0;
       total_cnt = 0;
@@ -726,7 +727,7 @@ rglmdf_pattern_freq_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
     total_cnt += rec->total_cnt;
     relative_frequency += rec->relative_frequency;
     theoretical_probability += rec->theoretical_probability;
-    if (i + 1 == gd->pattern_freq_summary.ntuples || (rec + 1)->entity_class != entity_class || (rec + 1)->entity_id != entity_id) {
+    if (i + 1 == gd->entity_freq_summary.ntuples || (rec + 1)->entity_class != entity_class || (rec + 1)->entity_id != entity_id) {
       if (entity_class == BOARD_ENTITY_CLASS_FEATURE) {
         const char *feature_name = board_features[entity_id].name;
         const int first_index = f_index_cnt;
@@ -749,9 +750,9 @@ rglmdf_pattern_freq_summary_cnt_to_text_stream (rglmdf_general_data_t *gd,
 }
 
 size_t
-rglmdf_set_positions_ntuples (rglmdf_general_data_t *gd,
-                              size_t ntuples,
-                              rglmdf_iarray_data_type_t iarray_data_type)
+rglmdf_set_positions_ntuples (rglmdf_general_data_t *const gd,
+                              const size_t ntuples,
+                              const rglmdf_iarray_data_type_t iarray_data_type)
 {
   assert(gd);
 
@@ -823,66 +824,66 @@ rglmdf_set_positions_ntuples (rglmdf_general_data_t *gd,
 }
 
 size_t
-rglmdf_get_positions_ntuples (const rglmdf_general_data_t *gd)
+rglmdf_get_positions_ntuples (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->positions.ntuples;
 }
 
 rglmdf_solved_and_classified_gp_record_t *
-rglmdf_get_positions_records (const rglmdf_general_data_t *gd)
+rglmdf_get_positions_records (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->positions.records;
 }
 
 size_t
-rglmdf_get_positions_n_fvalues_per_record (const rglmdf_general_data_t *gd)
+rglmdf_get_positions_n_fvalues_per_record (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->positions.n_fvalues_per_record;
 }
 
 size_t
-rglmdf_get_positions_n_index_values_per_record (const rglmdf_general_data_t *gd)
+rglmdf_get_positions_n_index_values_per_record (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->positions.n_index_values_per_record;
 }
 
 uint32_t *
-rglmdf_get_positions_i0array (rglmdf_general_data_t *gd)
+rglmdf_get_positions_i0array (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->positions.i0array;
 }
 
 uint32_t *
-rglmdf_get_positions_i1array (rglmdf_general_data_t *gd)
+rglmdf_get_positions_i1array (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->positions.i1array;
 }
 
 uint32_t *
-rglmdf_get_positions_i2array (const rglmdf_general_data_t *gd)
+rglmdf_get_positions_i2array (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->positions.i2array;
 }
 
 double *
-rglmdf_get_positions_farray (const rglmdf_general_data_t *gd)
+rglmdf_get_positions_farray (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->positions.farray;
 }
 
 uint32_t
-rglmdf_map_pid_and_piv_to_glm_vid (rglmdf_general_data_t *gd,
-                                   uint16_t entity_class,
-                                   uint16_t entity_id,
-                                   uint32_t principal_index_value)
+rglmdf_map_pid_and_piv_to_glm_vid (const rglmdf_general_data_t *const gd,
+                                   const uint16_t entity_class,
+                                   const uint16_t entity_id,
+                                   const uint32_t principal_index_value)
 {
   assert(gd);
   assert(entity_class == BOARD_ENTITY_CLASS_FEATURE || entity_class == BOARD_ENTITY_CLASS_PATTERN);
@@ -895,8 +896,8 @@ rglmdf_map_pid_and_piv_to_glm_vid (rglmdf_general_data_t *gd,
 }
 
 void
-rglmdf_transform_piv_to_glm_variable_id (rglmdf_general_data_t *gd,
-                                         bool first_step)
+rglmdf_transform_piv_to_glm_variable_id (rglmdf_general_data_t *const gd,
+                                         const bool first_step)
 {
   assert(gd);
   assert(gd->positions.iarray_data_type == (first_step ? RGLMDF_IARRAY_IS_INDEX : RGLMDF_IARRAY_IS_PRINCIPAL_INDEX));
@@ -943,8 +944,8 @@ rglmdf_transform_piv_to_glm_variable_id (rglmdf_general_data_t *gd,
 }
 
 void
-rglmdf_gp_table_to_csv_file (rglmdf_general_data_t *gd,
-                             FILE *f)
+rglmdf_gp_table_to_csv_file (const rglmdf_general_data_t *const gd,
+                             FILE *const f)
 {
   assert(gd);
   assert(f);
@@ -974,8 +975,8 @@ rglmdf_gp_table_to_csv_file (rglmdf_general_data_t *gd,
 }
 
 void
-rglmdf_ps_table_to_csv_file (rglmdf_general_data_t *gd,
-                             FILE *f)
+rglmdf_ps_table_to_csv_file (const rglmdf_general_data_t *const gd,
+                             FILE *const f)
 {
   assert(gd);
   rglmdf_position_summary_record_t *r = rglmdf_get_position_summary_records(gd);
@@ -987,12 +988,12 @@ rglmdf_ps_table_to_csv_file (rglmdf_general_data_t *gd,
 }
 
 void
-rglmdf_fpfs_table_to_csv_file (rglmdf_general_data_t *gd,
-                               FILE *f)
+rglmdf_fpfs_table_to_csv_file (const rglmdf_general_data_t *const gd,
+                               FILE *const f)
 {
   assert(gd);
-  rglmdf_pattern_freq_summary_record_t *r = rglmdf_get_pattern_freq_summary_records(gd);
-  size_t n = rglmdf_get_pattern_freq_summary_ntuples(gd);
+  rglmdf_entity_freq_summary_record_t *r = rglmdf_get_entity_freq_summary_records(gd);
+  size_t n = rglmdf_get_entity_freq_summary_ntuples(gd);
   fprintf(f, "     SEQ; GLM_VARIABLE_ID;   ENTITY_CLASS;  ENTITY_ID; PRINCIPAL_INDEX_VALUE;   TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_PROBABILITY;              WEIGHT\n");
   for (size_t i = 0; i < n; i++) {
     fprintf(f, "%08zu;%16ld;%15d;%11d;%22d;%12ld;%19.6f;%24.6f;%+20.15f\n",
@@ -1003,7 +1004,7 @@ rglmdf_fpfs_table_to_csv_file (rglmdf_general_data_t *gd,
 }
 
 int
-rglmdf_check_sha3_file_digest (char *file_name)
+rglmdf_check_sha3_file_digest (const char *const file_name)
 {
   assert(file_name);
   const char *hash_extension = "SHA3-256";
@@ -1079,7 +1080,7 @@ rglmdf_check_sha3_file_digest (char *file_name)
 }
 
 int
-rglmdf_generate_sha3_file_digest (char *file_name)
+rglmdf_generate_sha3_file_digest (const char *const file_name)
 {
   assert(file_name);
 
@@ -1185,7 +1186,7 @@ rglmdf_write_rglm_weights_to_binary_file (rglmdf_general_data_t *gd,
       if (glm_variable_id == RGLMDF_INVALID_GLM_VARIABLE_ID)
         w = 0.0;
       else
-        w = gd->pattern_freq_summary.records[glm_variable_id].weight;
+        w = gd->entity_freq_summary.records[glm_variable_id].weight;
       fwrite(&w, sizeof(double), 1, ofp);
     }
   }
@@ -1194,9 +1195,9 @@ rglmdf_write_rglm_weights_to_binary_file (rglmdf_general_data_t *gd,
 }
 
 int
-rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
-                                           char *filename,
-                                           bool verbose)
+rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *const gd,
+                                           const char *const filename,
+                                           const bool verbose)
 {
   assert(gd);
   assert(filename);
@@ -1209,7 +1210,7 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
   board_feature_id_t *bfip;
   board_pattern_id_t *bpip;
   rglmdf_position_summary_record_t *psrp;
-  rglmdf_pattern_freq_summary_record_t *pfsrp;
+  rglmdf_entity_freq_summary_record_t *pfsrp;
   rglmdf_solved_and_classified_gp_record_t *scgprp;
   uint32_t *i0arrayp;
   double *farrayp;
@@ -1443,14 +1444,14 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
     fclose(ifp);
     return EXIT_FAILURE;
   }
-  pfsrp = rglmdf_get_pattern_freq_summary_records(gd);
-  l = fread(pfsrp, sizeof(rglmdf_pattern_freq_summary_record_t), u64, ifp);
+  pfsrp = rglmdf_get_entity_freq_summary_records(gd);
+  l = fread(pfsrp, sizeof(rglmdf_entity_freq_summary_record_t), u64, ifp);
   if (l != u64) {
     fprintf(stderr, "Error while reading freq_summary_table from the input binary file.\n");
     fclose(ifp);
     return EXIT_FAILURE;
   }
-  if (verbose) rglmdf_pattern_freq_summary_cnt_to_text_stream(gd, stdout);
+  if (verbose) rglmdf_entity_freq_summary_cnt_to_text_stream(gd, stdout);
 
   /* Reads the D valid milestone. */
   l = fread(&u64, sizeof(uint64_t), 1, ifp);
@@ -1591,9 +1592,9 @@ fwrite2 (const void *ptr,
 }
 
 int
-rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
-                                          char *filename,
-                                          time_t time)
+rglmdf_write_general_data_to_binary_file (const rglmdf_general_data_t *const gd,
+                                          const char *const filename,
+                                          const time_t time)
 {
   assert(gd);
   assert(filename);
@@ -1678,14 +1679,14 @@ rglmdf_write_general_data_to_binary_file (rglmdf_general_data_t *gd,
   u64 = RGLMDF_VALID_C;
   fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
 
-  /* Writes the statistics for pattern indexes to the binary file ( pattern_freq_summary table ). */
-  u64 = gd->pattern_freq_summary.glm_f_variable_cnt;
+  /* Writes the statistics for pattern indexes to the binary file ( entity_freq_summary table ). */
+  u64 = gd->entity_freq_summary.glm_f_variable_cnt;
   fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
-  u64 = gd->pattern_freq_summary.glm_p_variable_cnt;
+  u64 = gd->entity_freq_summary.glm_p_variable_cnt;
   fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
-  u64 = gd->pattern_freq_summary.ntuples;
+  u64 = gd->entity_freq_summary.ntuples;
   fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
-  fwrite2(gd->pattern_freq_summary.records, sizeof(rglmdf_pattern_freq_summary_record_t), gd->pattern_freq_summary.ntuples, ofp, &fwn);
+  fwrite2(gd->entity_freq_summary.records, sizeof(rglmdf_entity_freq_summary_record_t), gd->entity_freq_summary.ntuples, ofp, &fwn);
 
   /* Writes the D valid milestone. */
   u64 = RGLMDF_VALID_D;

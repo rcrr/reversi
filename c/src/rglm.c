@@ -7,7 +7,7 @@
  *       These new functions are going to enable an API for the two programs that is then usable by
  *       test modules.
  *
- * @todo Rename pattern_freq_summary into entity_freq_summary.
+ * @todo Remove the rglmdf_iarray_data_type_t enum. having introduced the i0array, i1array,and i2array , it doesn't have any more any meaning.
  *
  * @todo The General Data structure has three principal states, described by the iarray_data_type field into the
  *       positions table.
@@ -132,7 +132,7 @@
  *       It means that these configuration has to be detected upfront, and stored in the
  *       binary file. There is a change to be applied in the REGAB program as well as in the
  *       binary file format and in the RGLM utility that read the file.
- *       The pattern_freq_summary table has to be extended with the frequencies of positions
+ *       The entity_freq_summary table has to be extended with the frequencies of positions
  *       by outcome value, it is an array of 65 integers for each glm variable.
  *
  *       A more automated procedure is then needed to orchestrate all the regressions, storing the
@@ -219,6 +219,8 @@
  * @todo [2020-12-05 - done] Refactor rglm_utils removing references to the inner definition of rglmdf_general_data_t.
  *
  * @todo [2020-12-06 - done] Add documentation to rglm_utils.h
+ *
+ * @todo [2020-12-06 - done] Rename pattern_freq_summary into entity_freq_summary.
  *
  *
  *
@@ -599,7 +601,7 @@ main (int argc,
     bool cholesky_fact_ok;
 
     /* enne: number of parameters to be fitted. */
-    const size_t enne = data.pattern_freq_summary.ntuples;
+    const size_t enne = data.entity_freq_summary.ntuples;
 
     /* emme: number of solved and classified game positions. */
     const size_t emme = data.positions.ntuples;
@@ -622,7 +624,7 @@ main (int argc,
     /* w: weigths.*/
     w = lial_allocate_vector(enne);
     if (!w) abort();
-    for (size_t i = 0; i < enne; i++) w[i] = data.pattern_freq_summary.records[i].weight;
+    for (size_t i = 0; i < enne; i++) w[i] = data.entity_freq_summary.records[i].weight;
 
     /* e: evaluation function for the game positions.*/
     e = lial_allocate_vector(emme);
@@ -831,7 +833,7 @@ main (int argc,
     ;
 
     /* Copies the optimized weighs into the general data structure. */
-    for (size_t i = 0; i < enne; i++) data.pattern_freq_summary.records[i].weight = w[i];
+    for (size_t i = 0; i < enne; i++) data.entity_freq_summary.records[i].weight = w[i];
 
     /* Copies residual and game value into the general data structure. */
     rglmut_evaluation_function_eval(&data, enne, w, emme, e);

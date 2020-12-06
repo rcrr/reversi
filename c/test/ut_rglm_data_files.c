@@ -191,10 +191,10 @@ rglmdf_read_general_data_from_binary_file_t (ut_test_t *const t)
   ut_assert(t, 10 == psrs[0].game_position_cnt);
   ut_assert(t, 10 == psrs[0].classified_cnt);
 
-  ut_assert(t, 18 == rglmdf_get_pattern_freq_summary_ntuples(gd));
+  ut_assert(t, 18 == rglmdf_get_entity_freq_summary_ntuples(gd));
 
-  rglmdf_pattern_freq_summary_record_t *pfsrs;
-  pfsrs = rglmdf_get_pattern_freq_summary_records(gd);
+  rglmdf_entity_freq_summary_record_t *pfsrs;
+  pfsrs = rglmdf_get_entity_freq_summary_records(gd);
 
   ut_assert(t,                       0 == pfsrs[0].glm_variable_id);
   ut_assert(t,                       0 == pfsrs[0].entity_class);

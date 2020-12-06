@@ -73,7 +73,7 @@ rglmut_evaluation_function_eval (const rglmdf_general_data_t *const data,
                                  double *const e)
 {
   assert(data);
-  assert(enne == rglmdf_get_pattern_freq_summary_ntuples(data));
+  assert(enne == rglmdf_get_entity_freq_summary_ntuples(data));
   assert(enne > 0 ? (bool) w  : true);
   assert(emme == rglmdf_get_positions_ntuples(data));
   assert(emme > 0 ? (bool) e  : true);
@@ -135,7 +135,7 @@ rglmut_minus_grad_f_eval (const rglmdf_general_data_t *const data,
                           const double *de)
 {
   assert(data);
-  assert(enne == rglmdf_get_pattern_freq_summary_ntuples(data));
+  assert(enne == rglmdf_get_entity_freq_summary_ntuples(data));
   assert(enne > 0 ? (bool) minus_grad_f : true);
   assert(emme == rglmdf_get_positions_ntuples(data));
   assert(emme > 0 ? (bool) r && (bool) de : true);
@@ -175,7 +175,7 @@ rgmlut_big_b_eval (const rglmdf_general_data_t *const data,
                    const double *v)
 {
   assert(data);
-  assert(enne == rglmdf_get_pattern_freq_summary_ntuples(data));
+  assert(enne == rglmdf_get_entity_freq_summary_ntuples(data));
   assert(enne > 0 ? (bool) big_b : true);
   assert(emme == rglmdf_get_positions_ntuples(data));
   assert(emme > 0 ? (bool) e && (bool) de && (bool) v : true);
