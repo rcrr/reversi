@@ -375,9 +375,9 @@ typedef struct rglmdf_solved_and_classified_gp_table_s {
   size_t n_index_values_per_record;                    /**< @brief Count of pattern index values fields. */
   rglmdf_solved_and_classified_gp_record_t *records;   /**< @brief Records of the table. */
   double *farray;                                      /**< @brief Feature values records. */
-  uint32_t *i0array;                                   /**< @brief Pattern index values records. */
-  uint32_t *i1array;                                   /**< @brief Pattern principal index values records. */
-  uint32_t *i2array;                                   /**< @brief glm_variable_id records. */
+  int32_t *i0array;                                    /**< @brief Pattern index values records. */
+  int32_t *i1array;                                    /**< @brief Pattern principal index values records. */
+  int32_t *i2array;                                    /**< @brief glm_variable_id records. */
 } rglmdf_solved_and_classified_gp_table_t;
 
 /**
@@ -401,9 +401,9 @@ typedef struct rglmdf_general_data_s {
   rglmdf_position_summary_table_t position_summary;           /**< @brief Aggregated data for positions. */
   rglmdf_entity_freq_summary_table_t entity_freq_summary;     /**< @brief Aggregated data for entity frequencies. */
   rglmdf_solved_and_classified_gp_table_t positions;          /**< @brief Table of game positions. */
-  uint64_t **reverse_map_a_f;                                 /**< @brief Maps feature_id to the first entry belonging to the feature in reverse_map_b. */
-  uint64_t **reverse_map_a_p;                                 /**< @brief Maps pattern_id to the first entry belonging to the pattern in reverse_map_b. */
-  uint64_t *reverse_map_b;                                    /**< @brief Maps entity_class, entity_id and principal index value to the glm variable id. */
+  int64_t **reverse_map_a_f;                                  /**< @brief Maps feature_id to the first entry belonging to the feature in reverse_map_b. */
+  int64_t **reverse_map_a_p;                                  /**< @brief Maps pattern_id to the first entry belonging to the pattern in reverse_map_b. */
+  int64_t *reverse_map_b;                                     /**< @brief Maps entity_class, entity_id and principal index value to the glm variable id. */
 } rglmdf_general_data_t;
 
 /**
@@ -978,7 +978,7 @@ rglmdf_get_positions_n_index_values_per_record (const rglmdf_general_data_t *gd)
  * @param [in] gd reference to the general data structure
  * @return        the `patterns` field
  */
-extern uint32_t *
+extern int32_t *
 rglmdf_get_positions_i0array (const rglmdf_general_data_t *gd);
 
 /**
@@ -990,7 +990,7 @@ rglmdf_get_positions_i0array (const rglmdf_general_data_t *gd);
  * @param [in] gd reference to the general data structure
  * @return        the `patterns` field
  */
-extern uint32_t *
+extern int32_t *
 rglmdf_get_positions_i1array (const rglmdf_general_data_t *gd);
 
 /**
@@ -1002,7 +1002,7 @@ rglmdf_get_positions_i1array (const rglmdf_general_data_t *gd);
  * @param [in] gd reference to the general data structure
  * @return        the `patterns` field
  */
-extern uint32_t *
+extern int32_t *
 rglmdf_get_positions_i2array (const rglmdf_general_data_t *gd);
 
 /**
@@ -1032,11 +1032,11 @@ rglmdf_get_positions_farray (const rglmdf_general_data_t *gd);
  * @param [in] principal_index_value principal index value key
  * @return                           the corresponding value for the `glm_variable_id`
  */
-extern uint32_t
+extern int32_t
 rglmdf_map_pid_and_piv_to_glm_vid (const rglmdf_general_data_t *gd,
-                                   uint16_t entity_class,
-                                   uint16_t entity_id,
-                                   uint32_t principal_index_value);
+                                   int16_t entity_class,
+                                   int16_t entity_id,
+                                   int32_t principal_index_value);
 
 /**
  * @brief Outputs to `f` the game positions table in CSV format.

@@ -1239,7 +1239,7 @@ do_action_extract_game_pos_cursor_fetch (int *result,
                                          size_t *returned_ntuples,
                                          rglmdf_solved_and_classified_gp_record_t *scgprp,
                                          double *farrayp,
-                                         uint32_t *i0arrayp,
+                                         int32_t *i0arrayp,
                                          const char *sql_cursor_name,
                                          size_t chunk_size)
 {
@@ -2906,7 +2906,7 @@ main (int argc,
   /* - 06 - Iterates over chunks of data retrieved from the cursor. */
   rglmdf_solved_and_classified_gp_record_t *scgprp = rglmdf_get_positions_records(&gd);
   double *farrayp = rglmdf_get_positions_farray(&gd);
-  uint32_t *i0arrayp = rglmdf_get_positions_i0array(&gd);
+  int32_t *i0arrayp = rglmdf_get_positions_i0array(&gd);
   const size_t nf = rglmdf_get_positions_n_fvalues_per_record(&gd);
   const size_t ni = rglmdf_get_positions_n_index_values_per_record(&gd);
   size_t returned_ntuples = 0;

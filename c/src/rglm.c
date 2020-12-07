@@ -7,6 +7,12 @@
  *       These new functions are going to enable an API for the two programs that is then usable by
  *       test modules.
  *
+ * @todo We do need a new data structure to hold the computed model, having:
+ *       empty_count, feature_cnt, features, pattern_cnt, patterns, the weights table.
+ *       The table hosts: entity_class, entity_id, index_value, principal_index_value, glm_variable_id, weight.
+ *       The computed model could be written to a binary file or/and to a CSV file.
+ *       We do need also a reading function.
+ *
  * @todo Verify if there is a function already written that takes a GAME POSITION and maps it into a value ?
  *       function (GP, MODEL) -> features / patterns -> GLM ID / variable value / weights -> game value
  *       A generic function, where the model is taken as an argument ( a gd pointer :) ) ???
@@ -225,6 +231,10 @@
  * @todo [2020-12-07 - done] Remove two among the three flags -P -T -Q, they now should do the same.
  *                           The format of the game positions table is now invariant.
  *                           Action: remove flags -Q and -T from the options of the RGLM program.
+ *
+ * @todo [2020-12-07 - done] Use consistently int16_t, int32_t, and int64_t for the fields:
+ *                           entity_class, entity_id, principal_index_value, glm_variable_id, reverse_map_a_f, reverse_map_a_p,
+ *                           and reverse_map_b. And also for i0array, i1array, and i2array.
  *
  *
  *

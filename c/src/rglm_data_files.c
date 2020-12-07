@@ -641,14 +641,14 @@ rglmdf_set_entity_freq_summary_ntuples (rglmdf_general_data_t *const gd,
   const size_t s_a = sizeof(uint64_t *) * reverse_map_a_length;
   const size_t s_b = sizeof(uint64_t) * reverse_map_b_length;
   const size_t s_c = sizeof(rglmdf_entity_freq_summary_record_t) * ntuples;
-  uint64_t **arr_a_f = (uint64_t **) malloc(s_a);
+  int64_t **arr_a_f = (int64_t **) malloc(s_a);
   if (!arr_a_f) return 0;
-  uint64_t *arr_b = (uint64_t *) malloc(s_b);
+  int64_t *arr_b = (int64_t *) malloc(s_b);
   if (!arr_b) {
     free(arr_a_f);
     return 0;
   }
-  uint64_t **arr_a_p = arr_a_f + BOARD_FEATURE_COUNT;
+  int64_t **arr_a_p = arr_a_f + BOARD_FEATURE_COUNT;
   rglmdf_entity_freq_summary_record_t *arr_c = (rglmdf_entity_freq_summary_record_t *) malloc(s_c);
   if (!arr_c) {
     free(arr_a_f);
@@ -777,12 +777,12 @@ rglmdf_set_positions_ntuples (rglmdf_general_data_t *const gd,
     board_pattern_id_t pid = gd->patterns[i];
     n_index_values_per_record += board_patterns[pid].n_instances;
   }
-  const size_t si = sizeof(uint32_t) * n_index_values_per_record * ntuples;
-  uint32_t *i0arr, *i1arr, *i2arr;
+  const size_t si = sizeof(int32_t) * n_index_values_per_record * ntuples;
+  int32_t *i0arr, *i1arr, *i2arr;
   i0arr = NULL; i1arr = NULL; i2arr = NULL;
-  i0arr = (uint32_t *) malloc(si);
-  i1arr = (uint32_t *) malloc(si);
-  i2arr = (uint32_t *) malloc(si);
+  i0arr = (int32_t *) malloc(si);
+  i1arr = (int32_t *) malloc(si);
+  i2arr = (int32_t *) malloc(si);
   if (!i0arr || !i1arr || !i2arr) {
     free(farr);
     if (i0arr) free(i0arr);
@@ -856,21 +856,21 @@ rglmdf_get_positions_n_index_values_per_record (const rglmdf_general_data_t *con
   return gd->positions.n_index_values_per_record;
 }
 
-uint32_t *
+int32_t *
 rglmdf_get_positions_i0array (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->positions.i0array;
 }
 
-uint32_t *
+int32_t *
 rglmdf_get_positions_i1array (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->positions.i1array;
 }
 
-uint32_t *
+int32_t *
 rglmdf_get_positions_i2array (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
@@ -884,11 +884,11 @@ rglmdf_get_positions_farray (const rglmdf_general_data_t *const gd)
   return gd->positions.farray;
 }
 
-uint32_t
+int32_t
 rglmdf_map_pid_and_piv_to_glm_vid (const rglmdf_general_data_t *const gd,
-                                   const uint16_t entity_class,
-                                   const uint16_t entity_id,
-                                   const uint32_t principal_index_value)
+                                   const int16_t entity_class,
+                                   const int16_t entity_id,
+                                   const int32_t principal_index_value)
 {
   assert(gd);
   assert(entity_class == BOARD_ENTITY_CLASS_FEATURE || entity_class == BOARD_ENTITY_CLASS_PATTERN);
@@ -1139,7 +1139,7 @@ rglmdf_write_rglm_weights_to_binary_file (rglmdf_general_data_t *gd,
     for (board_pattern_index_t j = 0; j < board_patterns[pid].n_configurations; j++) {
       board_pattern_index_t principal;
       board_pattern_compute_principal_indexes(&principal, &j, &board_patterns[pid], true);
-      uint32_t glm_variable_id = rglmdf_map_pid_and_piv_to_glm_vid(gd, pattern_class_type, pid, principal);
+      int32_t glm_variable_id = rglmdf_map_pid_and_piv_to_glm_vid(gd, pattern_class_type, pid, principal);
       if (glm_variable_id == RGLMDF_INVALID_GLM_VARIABLE_ID)
         w = 0.0;
       else
@@ -1169,7 +1169,7 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *const gd,
   rglmdf_position_summary_record_t *psrp;
   rglmdf_entity_freq_summary_record_t *pfsrp;
   rglmdf_solved_and_classified_gp_record_t *scgprp;
-  uint32_t *i0arrayp;
+  int32_t *i0arrayp;
   double *farrayp;
   uint64_t data_chunk_size;
   size_t l, n;
@@ -1489,7 +1489,7 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *const gd,
       }
     }
     if (ni != 0) {
-      l = fread(i0arrayp, sizeof(uint32_t) * ni, data_chunk_size, ifp);
+      l = fread(i0arrayp, sizeof(int32_t) * ni, data_chunk_size, ifp);
       if (l != data_chunk_size) {
         fprintf(stderr, "Error while reading positions_table iarray data chunk from the input binary file.\n");
         fclose(ifp);
@@ -1558,7 +1558,7 @@ rglmdf_write_general_data_to_binary_file (const rglmdf_general_data_t *const gd,
 
   rglmdf_solved_and_classified_gp_record_t *rp;
   double *fap;
-  uint32_t *iap;
+  int32_t *iap;
 
   FILE *ofp = fopen(filename, "w");
   if (!ofp) {
