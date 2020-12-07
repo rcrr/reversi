@@ -7,9 +7,6 @@
  *       These new functions are going to enable an API for the two programs that is then usable by
  *       test modules.
  *
- * @todo Remove two among the three flags -P -T -Q, they now should do the same.
- *       The format of the game positions table is now invariant.
- *
  * @todo Verify if there is a function already written that takes a GAME POSITION and maps it into a value ?
  *       function (GP, MODEL) -> features / patterns -> GLM ID / variable value / weights -> game value
  *       A generic function, where the model is taken as an argument ( a gd pointer :) ) ???
@@ -225,6 +222,10 @@
  *                           where i0array is the INDEX array, i1array is the PRINCIPAL INDEX array, and i2array is the GLM VAIABLE ID array.
  *                           All the fnction accessing the iarray has to be rewritten ....
  *
+ * @todo [2020-12-07 - done] Remove two among the three flags -P -T -Q, they now should do the same.
+ *                           The format of the game positions table is now invariant.
+ *                           Action: remove flags -Q and -T from the options of the RGLM program.
+ *
  *
  *
  * @brief RGLM, Revrsi Generalized Linear Model.
@@ -327,10 +328,6 @@ main (int argc,
   char *B_arg = NULL;
   int P_flag = false;
   char *P_arg = NULL;
-  int Q_flag = false;
-  char *Q_arg = NULL;
-  int T_flag = false;
-  char *T_arg = NULL;
   int H_flag = false;
   char *H_arg = NULL;
 
@@ -346,10 +343,6 @@ main (int argc,
      {"extract-ps-table",     'A', MOP_REQUIRED},
      {"extract-pfs-table",    'B', MOP_REQUIRED},
      {"extract-gp-table",     'P', MOP_REQUIRED},
-     {"extract-gp-ptable",    'Q', MOP_REQUIRED},
-     {"extract-gp-ttable",    'T', MOP_REQUIRED},
-     {"extract-weights",      'W', MOP_REQUIRED},
-     {"extract-residuals",    'R', MOP_REQUIRED},
      {"dump-hessian-matrix",  'H', MOP_REQUIRED},
      {0, 0, 0}
     };
@@ -369,8 +362,6 @@ main (int argc,
     "  -A, --extract-ps-table     Dumps the position summary table in a CSV format\n"
     "  -B, --extract-pfs-table    Dumps the feature and pattern frequency summary table in a CSV format\n"
     "  -P, --extract-gp-table     Dumps the solved and classified game position table in a CSV format, with original pattern indexes\n"
-    "  -Q, --extract-gp-ptable    Dumps the solved and classified game position table in a CSV format, with principal pattern indexes\n"
-    "  -T, --extract-gp-ttable    Dumps the solved and classified game position table transformed to glm_variable_id in a CSV format\n"
     "  -H, --dump-hessian-matrix  Dumps the unresolved Hessian matrix to a binary file and exits\n"
     "\n"
     "Description:\n"
@@ -423,14 +414,6 @@ main (int argc,
       P_flag = true;
       P_arg = options.optarg;
       break;
-    case 'Q':
-      Q_flag = true;
-      Q_arg = options.optarg;
-      break;
-    case 'T':
-      T_flag = true;
-      T_arg = options.optarg;
-      break;
     case 'H':
       H_flag = true;
       H_arg = options.optarg;
@@ -472,7 +455,7 @@ main (int argc,
 
   /* Checks command line options for consistency: H flag is exclusive. */
   if (H_arg) {
-    if (o_flag || b_flag || A_flag || B_flag || P_flag || Q_flag || T_flag || s_flag ) {
+    if (o_flag || b_flag || A_flag || B_flag || P_flag || s_flag ) {
       fprintf(stderr, "Option -H, --dump-hessian-matrix is not compatible with other selected flags.\n");
       return -4;
     }
@@ -524,48 +507,14 @@ main (int argc,
 
   /* If P flag is turned on, dumps the game position table to the output file. */
   if (P_arg) {
-    //if (data.positions.iarray_data_type == RGLMDF_IARRAY_IS_INDEX) {
-    if (false) {
-      ofp = fopen(P_arg, "w");
-      if (!ofp) {
-        fprintf(stderr, "Unable to open output file: %s\n", P_arg);
-        return EXIT_FAILURE;
-      }
-      rglmdf_gp_table_to_csv_file(&data, ofp);
-      fclose(ofp);
-      if (verbose) fprintf(stdout, "Game positions dumped to CSV file: \"%s\".\n", P_arg);
-    } else {
-      fprintf(stdout, "Game positions are classified with a format that doesn't allow to recall the pattern configuration index values.\n");
-    }
-  }
-
-  /* If Q flag is turned on, dumps the game position transformed table to the output file. */
-  if (Q_arg) {
-    //if (data.positions.iarray_data_type == RGLMDF_IARRAY_IS_PRINCIPAL_INDEX) {
-    if (false) {
-      ofp = fopen(Q_arg, "w");
-      if (!ofp) {
-        fprintf(stderr, "Unable to open output file: %s\n", Q_arg);
-        return EXIT_FAILURE;
-      }
-      rglmdf_gp_table_to_csv_file(&data, ofp);
-      fclose(ofp);
-      if (verbose) fprintf(stdout, "Game positions, with pattern indexes being remapped to principal values, dumped to CSV file: \"%s\".\n", Q_arg);
-    } else {
-      fprintf(stdout, "Game positions are classified with a format that doesn't allow (currently) to recall the principal pattern configuration index values.\n");
-    }
-  }
-
-  /* If T flag is turned on, dumps the game position transformed table to the output file. */
-  if (T_arg) {
-    ofp = fopen(T_arg, "w");
+    ofp = fopen(P_arg, "w");
     if (!ofp) {
-      fprintf(stderr, "Unable to open output file: %s\n", T_arg);
+      fprintf(stderr, "Unable to open output file: %s\n", P_arg);
       return EXIT_FAILURE;
     }
     rglmdf_gp_table_to_csv_file(&data, ofp);
     fclose(ofp);
-    if (verbose) fprintf(stdout, "Transformed game positions dumped to CSV file: \"%s\".\n", T_arg);
+    if (verbose) fprintf(stdout, "Game positions dumped to CSV file: \"%s\".\n", P_arg);
   }
 
   /*
