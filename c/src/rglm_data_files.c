@@ -166,6 +166,7 @@ rglmdf_verify_type_sizes (void)
   if (sizeof(rglmdf_position_summary_record_t) != 24) return false;
   if (sizeof(rglmdf_entity_freq_summary_record_t) != 48) return false;
   if (sizeof(rglmdf_solved_and_classified_gp_record_t) != 48) return false;
+  if (sizeof(rglmdf_weight_record_t) != 24) return false;
 
   if (sizeof(double) != 8) return false;
 
@@ -173,10 +174,57 @@ rglmdf_verify_type_sizes (void)
 }
 
 void
+rglmdf_model_weights_init (rglmdf_model_weights_t *const mw)
+{
+  assert(mw);
+
+  mw->file_creation_time = (time_t) 0; // "Thu Jan  1 00:0:00 1970 (UTC)"
+  mw->general_data_checksum = NULL;
+  mw->empty_count = 0;
+  mw->feature_cnt = 0;
+  mw->features = NULL;
+  mw->pattern_cnt = 0;
+  mw->patterns = NULL;
+  mw->weight_cnt = 0;
+  mw->weights = NULL;
+}
+
+void
+rglmdf_model_weights_release (rglmdf_model_weights_t *const mw)
+{
+  assert(mw);
+
+  free(mw->general_data_checksum);
+  free(mw->features);
+  free(mw->patterns);
+  free(mw->weights);
+}
+
+int
+rglmdf_model_veights_load (rglmdf_model_weights_t *const mw,
+                           const rglmdf_general_data_t *const gd)
+{
+  assert(mw);
+  assert(gd);
+
+  if (gd->format != RGLMDF_FILE_DATA_FORMAT_TYPE_IS_GENERAL) {
+    rglmdf_format_to_text_stream(gd, stderr);
+    fprintf(stderr, "The general data structure must have format equal to GENERAL.\n");
+    fprintf(stderr, "Exiting with failure return code from function rglmdf_model_veights_load().\n");
+    return EXIT_FAILURE;
+  }
+
+  /* It is not relevant to set the fild file_creation_time, it is set when the binary file is written. */
+
+  return EXIT_FAILURE;
+}
+
+void
 rglmdf_general_data_init (rglmdf_general_data_t *const gd)
 {
   assert(gd);
 
+  gd->file_digest = NULL;
   gd->file_creation_time = (time_t) 0; // "Thu Jan  1 00:0:00 1970 (UTC)"
   gd->format = RGLMDF_FILE_DATA_FORMAT_TYPE_IS_INVALID;
   gd->batch_id_cnt = 0;
@@ -197,7 +245,6 @@ rglmdf_general_data_init (rglmdf_general_data_t *const gd)
   gd->entity_freq_summary.ntuples = 0;
   gd->entity_freq_summary.records = NULL;
 
-  //gd->positions.iarray_data_type = RGLMDF_IARRAY_IS_INDEX;
   gd->positions.ntuples = 0;
   gd->positions.n_fvalues_per_record = 0;
   gd->positions.n_index_values_per_record = 0;
@@ -231,6 +278,36 @@ rglmdf_general_data_release (rglmdf_general_data_t *const gd)
   free(gd->position_statuses);
   free(gd->position_status_buffer);
   free(gd->batch_ids);
+  free(gd->file_digest);
+}
+
+int
+rglmdf_set_file_digest (rglmdf_general_data_t *const gd,
+                        const char *const file_digest)
+{
+  assert(gd);
+
+  const size_t s = 2 * sha3_256_digest_lenght + 1; // 65
+
+  if (file_digest) {
+    gd->file_digest = (char *) malloc(s);
+    if (gd->file_digest) {
+      memcpy(gd->file_digest, file_digest, s);
+      return s;
+    } else {
+      return -1;
+    }
+  } else {
+    return 0;
+  }
+
+}
+
+char *
+rglmdf_get_file_digest (const rglmdf_general_data_t *const gd)
+{
+  assert(gd);
+  return gd->file_digest;
 }
 
 void
@@ -820,7 +897,6 @@ rglmdf_set_positions_ntuples (rglmdf_general_data_t *const gd,
   gd->positions.records = arr;
   memset(gd->positions.records, 0, s);
 
-  //gd->positions.iarray_data_type = iarray_data_type;
   gd->positions.ntuples = ntuples;
   gd->positions.n_index_values_per_record = n_index_values_per_record;
   gd->positions.n_fvalues_per_record = n_fvalues_per_record;
@@ -961,7 +1037,8 @@ rglmdf_fpfs_table_to_csv_file (const rglmdf_general_data_t *const gd,
 }
 
 int
-rglmdf_check_sha3_file_digest (const char *const file_name)
+rglmdf_check_sha3_file_digest (const char *const file_name,
+                               char *const file_digest)
 {
   assert(file_name);
   const char *hash_extension = "SHA3-256";
@@ -971,7 +1048,7 @@ rglmdf_check_sha3_file_digest (const char *const file_name)
   size_t l;
   sha3_ctx_t ctx;
 
-  static const size_t buf_size = 4 * 1024;
+  const size_t buf_size = 4 * 1024;
   char buf[buf_size];
   char msg_digest[sha3_256_digest_lenght];
   char msg_digest_to_s[2 * sha3_256_digest_lenght + 1];
@@ -1025,6 +1102,8 @@ rglmdf_check_sha3_file_digest (const char *const file_name)
   fclose(data_file);
   sha3_final(&ctx, msg_digest);
   sha3_msg_digest_to_string(msg_digest_to_s, msg_digest, sha3_256_digest_lenght);
+
+  if (file_digest) memcpy(file_digest, msg_digest_to_s, 2 * sha3_256_digest_lenght + 1);
 
   if (strcmp(hash, msg_digest_to_s) != 0) {
     fprintf(stderr, "Error: computed hash does not match the expected one.\n");
@@ -1085,68 +1164,15 @@ rglmdf_generate_sha3_file_digest (const char *const file_name)
 }
 
 int
-rglmdf_write_rglm_weights_to_binary_file (rglmdf_general_data_t *gd,
-                                          char *filename)
+rglmdf_write_model_weights_to_binary_file (const rglmdf_model_weights_t *const mw,
+                                           const char *const filename,
+                                           const time_t t)
 {
-  assert(gd);
+  assert(mw);
   assert(filename);
 
-  uint64_t u64;
-  uint8_t u8;
-  int16_t i16;
-  double w;
+  /* To be implemented. */
 
-  time_t current_time = (time_t) -1;
-
-  FILE *ofp = fopen(filename, "w");
-  if (!ofp) {
-    fprintf(stderr, "Unable to open binary output file: %s\n", filename);
-    return EXIT_FAILURE;
-  }
-
-  /* Obtains current time as seconds elapsed since the Epoch. */
-  current_time = time(NULL);
-  assert(current_time != ((time_t) -1));
-
-  /* Writes current time to the binary file. */
-  u64 = current_time;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
-
-  /* Writes empty count to the binary file. */
-  u8 = gd->empty_count;
-  fwrite(&u8, sizeof(uint8_t), 1, ofp);
-
-  /* Writes the feature count, and the array of feature id to the binary file. */
-  u64 = gd->feature_cnt;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
-  for (size_t i = 0; i < gd->feature_cnt; i++) {
-    i16 = gd->features[i];
-    fwrite(&i16, sizeof(int16_t), 1, ofp);
-  }
-
-  /* Writes the pattern count, and the array of pattern id to the binary file. */
-  u64 = gd->pattern_cnt;
-  fwrite(&u64, sizeof(uint64_t), 1, ofp);
-  for (size_t i = 0; i < gd->pattern_cnt; i++) {
-    i16 = gd->patterns[i];
-    fwrite(&i16, sizeof(int16_t), 1, ofp);
-  }
-
-  /* Writes the weights to the binary file. */
-  const uint16_t pattern_class_type = 1;
-  for (size_t i = 0; i < gd->pattern_cnt; i++) {
-    board_pattern_id_t pid = gd->patterns[i];
-    for (board_pattern_index_t j = 0; j < board_patterns[pid].n_configurations; j++) {
-      board_pattern_index_t principal;
-      board_pattern_compute_principal_indexes(&principal, &j, &board_patterns[pid], true);
-      int32_t glm_variable_id = rglmdf_map_pid_and_piv_to_glm_vid(gd, pattern_class_type, pid, principal);
-      if (glm_variable_id == RGLMDF_INVALID_GLM_VARIABLE_ID)
-        w = 0.0;
-      else
-        w = gd->entity_freq_summary.records[glm_variable_id].weight;
-      fwrite(&w, sizeof(double), 1, ofp);
-    }
-  }
 
   return EXIT_SUCCESS;
 }
@@ -1174,10 +1200,14 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *const gd,
   uint64_t data_chunk_size;
   size_t l, n;
   char buf[512];
+  char file_digest[2 * sha3_256_digest_lenght + 1];
 
   /* Checks that the file has not been corrupted. */
-  ret = rglmdf_check_sha3_file_digest(filename);
+  ret = rglmdf_check_sha3_file_digest(filename, file_digest);
   if (ret != EXIT_SUCCESS) return EXIT_FAILURE;
+
+  if (verbose)
+    fprintf(stdout, "Opening RGLM general data binary file: \"%s\" - SHA3-256 file digest: %s\n", filename, file_digest);
 
   /* Any previous data held by gd is discarded and deallocated. */
   rglmdf_general_data_release(gd);
@@ -1543,7 +1573,7 @@ fwrite2 (const void *ptr,
 int
 rglmdf_write_general_data_to_binary_file (const rglmdf_general_data_t *const gd,
                                           const char *const filename,
-                                          const time_t time)
+                                          const time_t t)
 {
   assert(gd);
   assert(filename);
@@ -1578,7 +1608,7 @@ rglmdf_write_general_data_to_binary_file (const rglmdf_general_data_t *const gd,
   fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
 
   /* Writes time to the binary file. */
-  u64 = time;
+  u64 = t;
   fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
 
   /* Writes the format to binary file. */

@@ -105,7 +105,7 @@ rglmdf_check_sha3_file_digest_t (ut_test_t *const t)
   ut_assert(t, ccount < sizeof hashname);
   ut_assert(t, fut_file_exists(hashname));
 
-  ret = rglmdf_check_sha3_file_digest(filename);
+  ret = rglmdf_check_sha3_file_digest(filename, NULL);
   ut_assert(t, ret == 0);
 }
 

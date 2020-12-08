@@ -8,7 +8,7 @@
  *       test modules.
  *
  * @todo We do need a new data structure to hold the computed model, having:
- *       empty_count, feature_cnt, features, pattern_cnt, patterns, the weights table.
+ *       file_creation_time, empty_count, feature_cnt, features, pattern_cnt, patterns, and the weights table.
  *       The table hosts: entity_class, entity_id, index_value, principal_index_value, glm_variable_id, weight.
  *       The computed model could be written to a binary file or/and to a CSV file.
  *       We do need also a reading function.
@@ -187,7 +187,7 @@
  *                           They are guards to increment the robustness of the format.
  *                           Add the file format version RGLMDF_BINARY_DATA_FILE_FORMAT_VERSION.
  *
- * @todo [2020-11-22 - done] The dump of the weights is done in the same way by the -B, --extract-pfs-table, and -W, --extract-weights, arguments.
+ * @todo [2020-11-22 - done] The dump of the weights is done in the same way by the -B, --extract-efs-table, and -W, --extract-weights, arguments.
  *                           In both cases the program call the rglmdf_fpfs_table_to_csv_file() function.
  *                           The difference is that the -B options dumps the CVS file before solving the GLM problem, the -W one does id after.
  *                           It is better to remove the -W option and to follow a different practice.
@@ -334,8 +334,8 @@ main (int argc,
   int o_flag = false;
   char *o_arg = NULL;
   int t_flag = false;
-  int b_flag = false;
-  char *b_arg = NULL;
+  int w_flag = false;
+  char *w_arg = NULL;
   int A_flag = false;
   char *A_arg = NULL;
   int B_flag = false;
@@ -347,17 +347,17 @@ main (int argc,
 
   mop_options_long_t opt_list[] =
     {
-     {"help",                 'h', MOP_NONE},
-     {"verbose",              'v', MOP_NONE},
-     {"solve",                's', MOP_NONE},
-     {"input-file",           'i', MOP_REQUIRED},
-     {"output-file",          'o', MOP_REQUIRED},
-     {"no-time-out-file",     't', MOP_NONE},
-     {"rglm-par-output-file", 'b', MOP_REQUIRED},
-     {"extract-ps-table",     'A', MOP_REQUIRED},
-     {"extract-pfs-table",    'B', MOP_REQUIRED},
-     {"extract-gp-table",     'P', MOP_REQUIRED},
-     {"dump-hessian-matrix",  'H', MOP_REQUIRED},
+     {"help",                      'h', MOP_NONE},
+     {"verbose",                   'v', MOP_NONE},
+     {"solve",                     's', MOP_NONE},
+     {"input-file",                'i', MOP_REQUIRED},
+     {"output-file",               'o', MOP_REQUIRED},
+     {"no-time-out-file",          't', MOP_NONE},
+     {"model-weights-output-file", 'w', MOP_REQUIRED},
+     {"extract-ps-table",          'A', MOP_REQUIRED},
+     {"extract-efs-table",         'B', MOP_REQUIRED},
+     {"extract-gp-table",          'P', MOP_REQUIRED},
+     {"dump-hessian-matrix",       'H', MOP_REQUIRED},
      {0, 0, 0}
     };
 
@@ -366,17 +366,17 @@ main (int argc,
     "rglm [OPTION...] - Reversi Generalized Linear Model solver\n"
     "\n"
     "Options:\n"
-    "  -h, --help                 Show help options\n"
-    "  -v, --verbose              Verbose output\n"
-    "  -s, --solve                Solve the Generalized Linear Model\n"
-    "  -i, --input-file           Input file name - Mandatory\n"
-    "  -o, --output-file          Output file name\n"
-    "  -t, --no-time-out-file     Write a 'zero time' in the output file\n"
-    "  -b, --rglm-par-output-file RGLM parameters values output file name\n"
-    "  -A, --extract-ps-table     Dumps the position summary table in a CSV format\n"
-    "  -B, --extract-pfs-table    Dumps the feature and pattern frequency summary table in a CSV format\n"
-    "  -P, --extract-gp-table     Dumps the solved and classified game position table in a CSV format, with original pattern indexes\n"
-    "  -H, --dump-hessian-matrix  Dumps the unresolved Hessian matrix to a binary file and exits\n"
+    "  -h, --help                      Show help options\n"
+    "  -v, --verbose                   Verbose output\n"
+    "  -s, --solve                     Solve the Generalized Linear Model\n"
+    "  -i, --input-file                Input file name - Mandatory\n"
+    "  -o, --output-file               Output file name\n"
+    "  -t, --no-time-out-file          Write a 'zero time' in the output file\n"
+    "  -w, --model-weights-output-file RGLM parameters values output file name\n"
+    "  -A, --extract-ps-table          Extract the position summary table in a CSV format\n"
+    "  -B, --extract-efs-table         Extract the entity (feature and pattern) frequency summary table in a CSV format\n"
+    "  -P, --extract-gp-table          Extract the solved and classified game position table in a CSV format, with original pattern indexes\n"
+    "  -H, --dump-hessian-matrix       Dump the unresolved Hessian matrix to a binary file and exits\n"
     "\n"
     "Description:\n"
     "The Reversi Generalized Linear Model solver is the main entry to a group of utilities dedicated to process a set of solved and classified game position retrieved from a binary imput file.\n"
@@ -412,9 +412,9 @@ main (int argc,
     case 't':
       t_flag = true;
       break;
-    case 'b':
-      b_flag = true;
-      b_arg = options.optarg;
+    case 'w':
+      w_flag = true;
+      w_arg = options.optarg;
       break;
     case 'A':
       A_flag = true;
@@ -439,7 +439,7 @@ main (int argc,
       fprintf(stderr, "Option parsing failed: %s\n", options.errmsg);
       return -2;
     default:
-      fprintf(stderr, "Unexpectd error. Aborting ...\n");
+      fprintf(stderr, "Unexpectd error parsing the arguments. Aborting ...\n");
       abort();
     }
   }
@@ -469,7 +469,7 @@ main (int argc,
 
   /* Checks command line options for consistency: H flag is exclusive. */
   if (H_arg) {
-    if (o_flag || b_flag || A_flag || B_flag || P_flag || s_flag ) {
+    if (o_flag || w_flag || A_flag || B_flag || P_flag || s_flag ) {
       fprintf(stderr, "Option -H, --dump-hessian-matrix is not compatible with other selected flags.\n");
       return -4;
     }
@@ -828,15 +828,24 @@ main (int argc,
     }
   }
 
-  /* Writes the parameters (weights) binary file. */
-  if (b_arg) {
-    ret_code = rglmdf_write_rglm_weights_to_binary_file(&data, b_arg);
-    if (ret_code == EXIT_SUCCESS) {
-      if (verbose) fprintf(stdout, "RGLM parameters binary file written to %s\n", b_arg);
-    } else {
-      fprintf(stderr, "Unable to write correctly RGLM parameters binary file: %s\n", b_arg);
+  /* Writes the model weights binary file. */
+  if (w_arg) {
+    rglmdf_model_weights_t model_weights;
+    rglmdf_model_weights_init(&model_weights);
+    ret_code = rglmdf_model_veights_load(&model_weights, &data);
+    if (ret_code == EXIT_FAILURE) {
+      fprintf(stderr, "Unable to load the RGLM model weights data structure.\n");
       return ret_code;
     }
+    saved_time = t_flag ? (time_t) 0 : time(NULL);
+    ret_code = rglmdf_write_model_weights_to_binary_file(&model_weights, w_arg, saved_time);
+    if (ret_code == EXIT_SUCCESS) {
+      if (verbose) fprintf(stdout, "RGLM model weights binary file written to %s\n", w_arg);
+    } else {
+      fprintf(stderr, "Unable to write correctly RGLM model weights binary file: %s\n", w_arg);
+      return ret_code;
+    }
+    rglmdf_model_weights_release(&model_weights);
   }
 
   /* Frees resources. */

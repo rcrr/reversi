@@ -312,34 +312,6 @@ typedef struct rglmdf_entity_freq_summary_table_s {
   rglmdf_entity_freq_summary_record_t *records;    /**< @brief Records of the table. */
 } rglmdf_entity_freq_summary_table_t;
 
-/* ### ### */
-
-/**
- * @brief Reversi GLM data file record definition for the entity to glm variable id mapping table.
- *
- * @details Each record is identified by a unique key composed by `(entity_class,entity_id,index_value)`.
- *
- */
-typedef struct rglmdf_entity_to_glm_var_id_map_record_s {
-  int16_t entity_class;          /**< @brief It is 0 when feature and 1 when pattern. */
-  int16_t entity_id;             /**< @brief Board Pattern Id, as defined by REGAB table regab_prng_patterns. */
-  int32_t index_value;
-  int32_t principal_index_value;
-  int32_t glm_variable_id;
-} rglmdf_entity_to_glm_var_id_map_record_t;
-
-/**
- * @brief Reversi GLM data file table holding the mapping between entities and glm variable ids.
- *
- * @details There are two mappings .
- */
-typedef struct rglmdf_entity_to_glm_var_id_map_table_s {
-  size_t ntuples;
-  rglmdf_entity_to_glm_var_id_map_record_t *records;
-} rglmdf_entity_to_glm_var_id_map_table_t;
-
-/* ### ### */
-
 /**
  * @brief Reversi GLM data file record definition for the solved and classified game position table.
  *
@@ -396,6 +368,7 @@ typedef struct rglmdf_solved_and_classified_gp_table_s {
  * @details The type contains all the info saved/retrieved from a RGLM Data File.
  */
 typedef struct rglmdf_general_data_s {
+  char *file_digest;                                          /**< @brief File digest of the read binary file. 0 otherwise. */
   time_t file_creation_time;                                  /**< @brief Creation time of the data file. */
   rglmdf_file_data_format_type_t format;                      /**< @brief The format of the file and of the general data associated to it. */
   size_t batch_id_cnt;                                        /**< @brief Count of batch id entries. */
@@ -417,19 +390,47 @@ typedef struct rglmdf_general_data_s {
 } rglmdf_general_data_t;
 
 /**
+ * @brief Reversi GLM data file record definition for the weights table.
+ *
+ * @details Each record is identified by a unique key composed by `(entity_class,entity_id,index_value)`.
+ *          When the entity_class is FEATURE, index_value and principal_index_value have the same value.
+ *
+ *          The record has a fixed size and needs 24 bytes.
+ */
+typedef struct rglmdf_weight_record_s {
+  int16_t entity_class;                                       /**< @brief It is 0 when feature and 1 when pattern. */
+  int16_t entity_id;                                          /**< @brief Entity Id (Feature Id or Board Pattern Id, as defined by REGAB table regab_prng_patterns). */
+  int32_t index_value;                                        /**< @brief The index value for the entity. */
+  int32_t principal_index_value;                              /**< @brief The principal index value for the entity.. */
+  int32_t glm_variable_id;                                    /**< @brief The associated GLM Variable Id, or -1. */
+  double weight;                                              /**< @brief The weight computed by the optimization for this variable id. */
+} rglmdf_weight_record_t;
+
+/**
  * @brief Reversi GLM data file model weights.
  *
- * @details The type contains all the info saved/retrieved to describe a RGLM Data File Model Weights.
+ * @details The model is defined by empty_count, features, patterns.
+ *          Given the model definition, the weigh count is a given fixed value.
+ *          All the feature and pattern configuration are stored sequentially in the weights table.
+ *          For a given model, the fields entity_class, entity_id, index_value, and Principal_index_value
+ *          are equal. Meaning: same number of records, same ordering, same values.
+ *          Equal models could have difefrent values of the fields glm_variable_id and weight. It depends
+ *          on the data used to generate the model (the game position selected in the general data structure) and on the
+ *          optimization of the weights (number of steps, or different algorithms).
+ *          The general_data_checksum contains the SHA3-255 fingerprint of the general model binary file used to generate
+ *          the structure, giving a complete traceability of the computed weights.
  */
 typedef struct rglmdf_model_weights_s {
   time_t file_creation_time;                                  /**< @brief Creation time of the data file. */
+  char *general_data_checksum;                                /**< @brief A 64 character string, plus terminantion, having the sha3 256 file digest of the general data binary file. */
   uint8_t empty_count;                                        /**< @brief Empty square count. */
   size_t feature_cnt;                                         /**< @brief Count of features. */
   board_feature_id_t *features;                               /**< @brief Array of features. */
   size_t pattern_cnt;                                         /**< @brief Count of patterns. */
   board_pattern_id_t *patterns;                               /**< @brief Array of patterns. */
-  // weights
-} rglmdf_model_weights_s;
+  size_t weight_cnt;                                          /**< @brief The number of tuples in the weights table. */
+  rglmdf_weight_record_t *weights;                            /**< @brief the array of records of the weights table. */
+} rglmdf_model_weights_t;
 
 /**
  * @brief Check the endianness of the architecture.
@@ -446,6 +447,45 @@ rglmdf_get_endianness (void);
  */
 extern bool
 rglmdf_verify_type_sizes (void);
+
+/**
+ * @brief Initializes the model weights structure.
+ *
+ * @invariant Parameter `mw` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] mw reference to the model weights structure
+ */
+extern void
+rglmdf_model_weights_init (rglmdf_model_weights_t *mw);
+
+/**
+ * @brief Frees all the allocated memory in the substructures of `mw`.
+ *
+ * @invariant Parameter `mw` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] mw reference to the model weights structure
+ */
+extern void
+rglmdf_model_weights_release (rglmdf_model_weights_t *mw);
+
+/**
+ * @brief Frees all the allocated memory in the substructures of `mw`.
+ *
+ * @invariant Parameter `mw` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] mw reference to the model weights structure
+ * @param [in]     gd reference to the general data structure
+ * @return            on success `EXIT_SUCCESS` otherwise `EXIT_FAILURE`
+ */
+extern int
+rglmdf_model_veights_load (rglmdf_model_weights_t *mw,
+                           const rglmdf_general_data_t *gd);
 
 /**
  * @brief Initializes the general data structure.
@@ -468,6 +508,13 @@ rglmdf_general_data_init (rglmdf_general_data_t *gd);
  */
 extern void
 rglmdf_general_data_release (rglmdf_general_data_t *gd);
+
+extern int
+rglmdf_set_file_digest (rglmdf_general_data_t *const gd,
+                        const char *const file_digest);
+
+extern char *
+rglmdf_get_file_digest (const rglmdf_general_data_t *const gd);
 
 /**
  * @brief Sets the attribute field `file_creation_time`.
@@ -939,7 +986,6 @@ rglmdf_entity_freq_summary_cnt_to_text_stream (const rglmdf_general_data_t *gd,
  *
  * @param [in,out] gd               reference to the general data structure
  * @param [in]     ntuples          the new capacity of the table
- * @param [in]     iarray_data_type type of data stored in iarray fields
  * @return                          the number of allocated records
  */
 extern size_t
@@ -1111,14 +1157,23 @@ rglmdf_fpfs_table_to_csv_file (const rglmdf_general_data_t *gd,
  *          When the two digest are equal returs `0`, otherwise `1`.
  *          When one of the two files is not found returns `1`.
  *
+ *          If the `file_digest` argument is not null, the 65 bytes
+ *          of the fingerprint (64 characters plus string termination,
+ *          or in case you want avoid magic numbers: `2 * sha3_256_digest_lenght + 1`)
+ *          are copied to it.
+ *          It is responsibility of the coller preparing a buffer having
+ *          as a minimum 65 bytes.
+ *
  * @invariant Parameter `file_name` must be not `NULL`.
  * The invariant is guarded by an assertion.
  *
- * @param [in] file_name name of the file being checked
- * @return              `0` on succesful execution.
+ * @param [in]  file_name   name of the file being checked
+ * @param [out] file_digest the file digest string.
+ * @return                  `0` on succesful execution.
  */
 extern int
-rglmdf_check_sha3_file_digest (const char *file_name);
+rglmdf_check_sha3_file_digest (const char *file_name,
+                               char *file_digest);
 
 /**
  * @brief Computes sha3 digest and write it to a new file.
@@ -1168,26 +1223,25 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *gd,
                                            bool verbose);
 
 /**
- * @brief Dumps the RGLM weights to a binary file.
+ * @brief Dumps the RGLM model weights to a binary file.
  *
- * @details Opens the file named `filename`, and stores the RGLM parameters in it.
- *          All parameters belonging to to the list of patterns considered by the model
- *          are saved. Parameters corresponding to missing pattern configurations are
- *          valued as zero.
+ * @details Opens the file named `filename`, and stores the RGLM model weights in it.
  *
- * @invariant Parameter `gd` must be not `NULL`.
+ * @invariant Parameter `mw` must be not `NULL`.
  * The invariant is guarded by an assertion.
  *
  * @invariant Parameter `filename` must be not `NULL`.
  * The invariant is guarded by an assertion.
  *
- * @param [in] gd       reference to the general data structure
+ * @param [in] mw       reference to the general data structure
  * @param [in] filename name of the file being digested
+ * @param [in] t        the value of the time field saved in the file
  * @return              `0` on succesful execution.
  */
 extern int
-rglmdf_write_rglm_weights_to_binary_file (rglmdf_general_data_t *gd,
-                                          char *filename);
+rglmdf_write_model_weights_to_binary_file (const rglmdf_model_weights_t *mw,
+                                           const char *filename,
+                                           time_t t);
 
 /**
  * @brief Saves the general data structure to a binary file.
@@ -1204,13 +1258,13 @@ rglmdf_write_rglm_weights_to_binary_file (rglmdf_general_data_t *gd,
  *
  * @param [in] gd       reference to the general data structure
  * @param [in] filename name of the file being digested
- * @param [in] time     the value of the time field saved in the file
+ * @param [in] t        the value of the time field saved in the file
  * @return              `0` on succesful execution.
  */
 extern int
 rglmdf_write_general_data_to_binary_file (const rglmdf_general_data_t *gd,
                                           const char *filename,
-                                          time_t time);
+                                          time_t t);
 
 
 #endif /* RGLM_DATA_FILES_H */
