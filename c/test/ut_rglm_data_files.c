@@ -66,7 +66,7 @@ static void
 rglmdf_verify_type_sizes_t (ut_test_t *const t)
 {
   rglmdf_verify_type_sizes();
-  ut_assert(t, true);
+  ut_assert(t, rglmdf_verify_type_sizes());
 }
 
 static void
@@ -249,7 +249,7 @@ rglmdf_read_general_data_from_binary_file_t (ut_test_t *const t)
 
   ut_assert(t, 4 == rglmdf_get_positions_n_index_values_per_record(gd));
 
-  uint32_t *pis;
+  int32_t *pis;
   pis = rglmdf_get_positions_i0array(gd);
 
   ut_assert(t,  9 == pis[0]);

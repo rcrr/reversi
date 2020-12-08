@@ -236,6 +236,10 @@
  *                           entity_class, entity_id, principal_index_value, glm_variable_id, reverse_map_a_f, reverse_map_a_p,
  *                           and reverse_map_b. And also for i0array, i1array, and i2array.
  *
+ * @todo [2020-12-07 - done] Change glm_variable_id from 64 to 32 bits.
+ *                           The index_value, principal_indix_value, and i.array are 32 bits, there is no reason to have
+ *                           glm_variable_id being 64.
+ *
  *
  *
  * @brief RGLM, Revrsi Generalized Linear Model.

@@ -2,9 +2,14 @@
  * @file
  *
  * @brief Reversi Generalized Linear Model data files.
- * @details This module defines data files, tables, and records being read and written to/from binary files.
  *
- * The `regab` program can extract data from the REGAB database and generate an appropriate binary file.
+ * @details This module defines binary data formats used to store info extracted from the REGAB database
+ * and elaborated by the `regab` and `rglm` programs.
+ * Moreover the module defines CSV (Comma Separated Values) files, and data structures like tables and records
+ * being read and written to/from the binary files.
+ *
+ * The `regab` program can extract data from the REGAB database and generate an appropriate binary file
+ * named RGLM_GENERAL_DATA.
  * This file can be read using the `rglm` program.
  * Please consult the documentation of the two programs for further details on their usage.
  *
@@ -15,7 +20,7 @@
  * The function #rglmdf_get_endianness() returns the "endianess" of the system, only little endian systems has been tested so far.
  *
  * The `Solved and Feature & Pattern Classified Set of Game Positions` is stored in a binary file using
- * the format here described.
+ * the RGLM_GENERAL_DATA format here described.
  * <p>
  * --- Header ---
  *   - `8 bytes` field, read/written as `uint64_t`, not converted.<br>
@@ -137,6 +142,11 @@
  *   - `8 bytes` field, read/written as `uint64_t`, not converted.<br>
  *     Meaning: the read value has to be equal to `RGLMDF_VALID_G`, it is a formal validity check, the value is not used.<br>
  *<br>
+ *
+ * A second binary data format named RGLM_MODEL_WEIGHTS is defined as here described.
+ *
+ *
+ *
  *
  * @par rglm_data_files.h
  * <tt>
@@ -274,12 +284,12 @@ typedef struct rglmdf_position_summary_table_s {
  * The "group by" operation executes three sums collecting the aggregated data stored into the fields `total_cnt`,
  * `relative_frequency`, `theoretical_probability`.
  *
- * The weight is set to `0.5` when the model is not yet optimized.
+ * The weight is set to `0.0`, the neutral value, when the model is not yet optimized.
  *
  * The record has a fixed size and needs 48 bytes.
  */
 typedef struct rglmdf_entity_freq_summary_record_s {
-  int64_t glm_variable_id;         /**< @brief It is the unique variable index for the GLM (Generalized Linear Model). */
+  int32_t glm_variable_id;         /**< @brief It is the unique variable index for the GLM (Generalized Linear Model). */
   int16_t entity_class;            /**< @brief It is a value in board_entity_class_t enum. */
   int16_t entity_id;               /**< @brief Board Feature Id or Board Pattern Id, as defined by REGAB table regab_prng_patterns. */
   int32_t principal_index_value;   /**< @brief Feature Index Value or Principal Index Value for Pattern as defined by REGAB table regab_prng_pattern_ranges. */
@@ -315,7 +325,7 @@ typedef struct rglmdf_entity_to_glm_var_id_map_record_s {
   int16_t entity_id;             /**< @brief Board Pattern Id, as defined by REGAB table regab_prng_patterns. */
   int32_t index_value;
   int32_t principal_index_value;
-  int64_t glm_variable_id;
+  int32_t glm_variable_id;
 } rglmdf_entity_to_glm_var_id_map_record_t;
 
 /**
@@ -401,10 +411,25 @@ typedef struct rglmdf_general_data_s {
   rglmdf_position_summary_table_t position_summary;           /**< @brief Aggregated data for positions. */
   rglmdf_entity_freq_summary_table_t entity_freq_summary;     /**< @brief Aggregated data for entity frequencies. */
   rglmdf_solved_and_classified_gp_table_t positions;          /**< @brief Table of game positions. */
-  int64_t **reverse_map_a_f;                                  /**< @brief Maps feature_id to the first entry belonging to the feature in reverse_map_b. */
-  int64_t **reverse_map_a_p;                                  /**< @brief Maps pattern_id to the first entry belonging to the pattern in reverse_map_b. */
-  int64_t *reverse_map_b;                                     /**< @brief Maps entity_class, entity_id and principal index value to the glm variable id. */
+  int32_t **reverse_map_a_f;                                  /**< @brief Maps feature_id to the first entry belonging to the feature in reverse_map_b. */
+  int32_t **reverse_map_a_p;                                  /**< @brief Maps pattern_id to the first entry belonging to the pattern in reverse_map_b. */
+  int32_t *reverse_map_b;                                     /**< @brief Maps entity_class, entity_id and principal index value to the glm variable id. */
 } rglmdf_general_data_t;
+
+/**
+ * @brief Reversi GLM data file model weights.
+ *
+ * @details The type contains all the info saved/retrieved to describe a RGLM Data File Model Weights.
+ */
+typedef struct rglmdf_model_weights_s {
+  time_t file_creation_time;                                  /**< @brief Creation time of the data file. */
+  uint8_t empty_count;                                        /**< @brief Empty square count. */
+  size_t feature_cnt;                                         /**< @brief Count of features. */
+  board_feature_id_t *features;                               /**< @brief Array of features. */
+  size_t pattern_cnt;                                         /**< @brief Count of patterns. */
+  board_pattern_id_t *patterns;                               /**< @brief Array of patterns. */
+  // weights
+} rglmdf_model_weights_s;
 
 /**
  * @brief Check the endianness of the architecture.

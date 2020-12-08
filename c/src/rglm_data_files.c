@@ -630,7 +630,7 @@ rglmdf_set_entity_freq_summary_ntuples (rglmdf_general_data_t *const gd,
   for (size_t i = 0; i < gd->pattern_cnt; i++) {
     const board_pattern_id_t pid = gd->patterns[i];
     unsigned int n = board_patterns[pid].n_squares;
-    uint32_t dim = 1; for (size_t j = 0; j < n; j++) dim *= 3;
+    unsigned int dim = 1; for (size_t j = 0; j < n; j++) dim *= 3;
     idx[k++] = reverse_map_b_length;
     reverse_map_b_length += dim;
   }
@@ -638,17 +638,17 @@ rglmdf_set_entity_freq_summary_ntuples (rglmdf_general_data_t *const gd,
   /*
    * Allocates memory for the three vectors.
    */
-  const size_t s_a = sizeof(uint64_t *) * reverse_map_a_length;
-  const size_t s_b = sizeof(uint64_t) * reverse_map_b_length;
+  const size_t s_a = sizeof(int32_t *) * reverse_map_a_length;
+  const size_t s_b = sizeof(int32_t) * reverse_map_b_length;
   const size_t s_c = sizeof(rglmdf_entity_freq_summary_record_t) * ntuples;
-  int64_t **arr_a_f = (int64_t **) malloc(s_a);
+  int32_t **arr_a_f = (int32_t **) malloc(s_a);
   if (!arr_a_f) return 0;
-  int64_t *arr_b = (int64_t *) malloc(s_b);
+  int32_t *arr_b = (int32_t *) malloc(s_b);
   if (!arr_b) {
     free(arr_a_f);
     return 0;
   }
-  int64_t **arr_a_p = arr_a_f + BOARD_FEATURE_COUNT;
+  int32_t **arr_a_p = arr_a_f + BOARD_FEATURE_COUNT;
   rglmdf_entity_freq_summary_record_t *arr_c = (rglmdf_entity_freq_summary_record_t *) malloc(s_c);
   if (!arr_c) {
     free(arr_a_f);
@@ -953,7 +953,7 @@ rglmdf_fpfs_table_to_csv_file (const rglmdf_general_data_t *const gd,
   size_t n = rglmdf_get_entity_freq_summary_ntuples(gd);
   fprintf(f, "     SEQ; GLM_VARIABLE_ID;   ENTITY_CLASS;  ENTITY_ID; PRINCIPAL_INDEX_VALUE;   TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_PROBABILITY;              WEIGHT\n");
   for (size_t i = 0; i < n; i++) {
-    fprintf(f, "%08zu;%16ld;%15d;%11d;%22d;%12ld;%19.6f;%24.6f;%+20.15f\n",
+    fprintf(f, "%08zu;%16d;%15d;%11d;%22d;%12ld;%19.6f;%24.6f;%+20.15f\n",
             i, r[i].glm_variable_id, r[i].entity_class, r[i].entity_id,
             r[i].principal_index_value, r[i].total_cnt, r[i].relative_frequency,
             r[i].theoretical_probability, r[i].weight);
