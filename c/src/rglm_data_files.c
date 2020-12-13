@@ -207,6 +207,8 @@ rglmdf_model_veights_load (rglmdf_model_weights_t *const mw,
   assert(mw);
   assert(gd);
 
+  size_t size;
+
   if (gd->format != RGLMDF_FILE_DATA_FORMAT_TYPE_IS_GENERAL) {
     rglmdf_format_to_text_stream(gd, stderr);
     fprintf(stderr, "The general data structure must have format equal to GENERAL.\n");
@@ -216,7 +218,193 @@ rglmdf_model_veights_load (rglmdf_model_weights_t *const mw,
 
   /* It is not relevant to set the fild file_creation_time, it is set when the binary file is written. */
 
-  return EXIT_FAILURE;
+  /* Field general_data_checksum */
+  if (mw->general_data_checksum) {
+    free(mw->general_data_checksum);
+    mw->general_data_checksum = NULL;
+  }
+  mw->general_data_checksum = (char *) malloc(2 * sha3_256_digest_lenght + 1);
+  if (!mw->general_data_checksum) {
+    fprintf(stderr, "Unamble to allocate memory for the general_data_checksum field.\n");
+    return EXIT_FAILURE;
+  }
+  const char *const file_digest = rglmdf_get_file_digest(gd);
+  memcpy(mw->general_data_checksum, file_digest, 2 * sha3_256_digest_lenght + 1);
+
+  /* Field empty_count. */
+  mw->empty_count = rglmdf_get_empty_count(gd);
+
+  /* Fields feature_cnt and features.*/
+  size = rglmdf_get_feature_cnt(gd);
+  if (mw->features) {
+    free(mw->features);
+    mw->features = NULL;
+  }
+  mw->features = (board_feature_id_t *) malloc(sizeof(board_feature_id_t) * size);
+  if (!mw->features) {
+    fprintf(stderr, "Unamble to allocate memory for the features field.\n");
+    return EXIT_FAILURE;
+  }
+  mw->feature_cnt = size;
+  for (size_t i = 0; i < size; i++) {
+    mw->features[i] = gd->features[i];
+  }
+
+  /* Fields pattern_cnt and patterns. */
+  size = rglmdf_get_pattern_cnt(gd);
+  if (mw->patterns) {
+    free(mw->patterns);
+    mw->patterns = NULL;
+  }
+  mw->patterns = (board_pattern_id_t *) malloc(sizeof(board_pattern_id_t) * size);
+  if (!mw->patterns) {
+    fprintf(stderr, "Unamble to allocate memory for the patterns field.\n");
+    return EXIT_FAILURE;
+  }
+  mw->pattern_cnt = size;
+  for (size_t i = 0; i < size; i++) {
+    mw->patterns[i] = gd->patterns[i];
+  }
+
+  /* Computes the field weights_cnt. */
+  size = 0;
+  for (size_t i = 0; i < mw->feature_cnt; i++) {
+    const board_feature_id_t id = mw->features[i];
+    const board_feature_t f = board_features[id];
+    size += f.field_cnt;
+  }
+  for (size_t i = 0; i < mw->pattern_cnt; i++) {
+    const board_pattern_id_t id = mw->patterns[i];
+    const board_pattern_t p = board_patterns[id];
+    size += p.n_configurations;
+  }
+  mw->weight_cnt = size;
+
+  /* Allocates memory for the weights array. */
+  if (mw->weights) {
+    free(mw->weights);
+    mw->weights = NULL;
+  }
+  mw->weights = (rglmdf_weight_record_t *) malloc(sizeof(rglmdf_weight_record_t) * size);
+  if (!mw->weights) {
+    fprintf(stderr, "Unamble to allocate memory for the patterns field.\n");
+    return EXIT_FAILURE;
+  }
+
+  /* Populates the weights array. */
+  const rglmdf_entity_freq_summary_record_t *const efsr = rglmdf_get_entity_freq_summary_records(gd);
+  rglmdf_weight_record_t *w = mw->weights;
+  for (size_t i = 0; i < mw->feature_cnt; i++) {
+    const board_feature_id_t id = mw->features[i];
+    const board_feature_t f = board_features[id];
+    for (size_t j = 0; j < f.field_cnt; j++, w++) {
+      const int32_t glm_variable_id = rglmdf_map_pid_and_piv_to_glm_vid(gd, BOARD_ENTITY_CLASS_FEATURE, id, j);
+      const rglmdf_entity_freq_summary_record_t *const record = &efsr[glm_variable_id];
+      if (record->glm_variable_id != glm_variable_id ||
+          record->entity_class != BOARD_ENTITY_CLASS_FEATURE ||
+          record->entity_id != id ||
+          record->principal_index_value != j) {
+        fprintf(stdout, "Something very bad happening in loading feature data into the weights table.\n");
+        return EXIT_FAILURE;
+      }
+      w->entity_class = BOARD_ENTITY_CLASS_FEATURE;
+      w->entity_id = id;
+      w->index_value = j;
+      w->principal_index_value = j;
+      w->glm_variable_id = glm_variable_id;
+      w->weight = record->weight;
+    }
+  }
+  for (size_t i = 0; i < mw->pattern_cnt; i++) {
+    const board_pattern_id_t id = mw->patterns[i];
+    const board_pattern_t p = board_patterns[id];
+    for (size_t j = 0; j < p.n_configurations; j++, w++) {
+      const board_pattern_index_t index_value = j;
+      board_pattern_index_t principal_index_value;
+      board_pattern_compute_principal_indexes(&principal_index_value, &index_value, &p, true);
+      const int32_t glm_variable_id = rglmdf_map_pid_and_piv_to_glm_vid(gd, BOARD_ENTITY_CLASS_PATTERN, id, principal_index_value);
+      w->entity_class = BOARD_ENTITY_CLASS_PATTERN;
+      w->entity_id = id;
+      w->index_value = index_value;
+      w->principal_index_value = principal_index_value;
+      w->glm_variable_id = glm_variable_id;
+      if (glm_variable_id >= 0) {
+        const rglmdf_entity_freq_summary_record_t *const record = &efsr[glm_variable_id];
+        if (record->glm_variable_id != glm_variable_id ||
+            record->entity_class != BOARD_ENTITY_CLASS_PATTERN ||
+            record->entity_id != id ||
+            record->principal_index_value != principal_index_value) {
+          fprintf(stdout, "Something very bad happening in loading pattern data into the weights table.\n");
+          return EXIT_FAILURE;
+        }
+        w->weight = record->weight;
+      } else {
+        w->weight = 0.0;
+      }
+    }
+  }
+  return EXIT_SUCCESS;
+}
+
+void
+rglmdf_model_weights_table_to_csv_file (const rglmdf_model_weights_t *const mw,
+                                        FILE *const file)
+{
+  assert(mw);
+  if (!file) return;
+
+  fprintf(file, "   SEQ; ENTITY_CLASS; ENTITY_ID; INDEX_VALUE; PRINCIPAL_INDEX_VALUE; GLM_VARIABLE_ID;                  WEIGHT\n");
+  for (size_t i = 0; i < mw->weight_cnt; i++) {
+    const rglmdf_weight_record_t *const w = &mw->weights[i];
+    fprintf(file, "%06zu;%13d;%10d;%12d;%22d;%16d;%+24.15f\n",
+            i, w->entity_class, w->entity_id, w->index_value, w->principal_index_value, w->glm_variable_id, w->weight);
+  }
+  fflush(file);
+}
+
+void
+rglmdf_model_weights_summary_to_stream (const rglmdf_model_weights_t *const mw,
+                                        FILE *const stream)
+{
+  assert(mw);
+  if (!stream) return;
+
+  char file_creation_time_as_string[64];
+
+  struct tm file_creation_time_tm;
+  gmtime_r(&mw->file_creation_time, &file_creation_time_tm);
+  strftime(file_creation_time_as_string, 25,"%c", &file_creation_time_tm);
+
+  fprintf(stream, "File Creation Time    : %s\n", file_creation_time_as_string);
+  fprintf(stream, "General Data Checksum : %s\n", mw->general_data_checksum);
+  fprintf(stream, "Empty Count           : %u\n", mw->empty_count);
+  fprintf(stream, "Feature Count         : %zu\n", mw->feature_cnt);
+  fprintf(stream, "Features              : ");
+  for (size_t i = 0; i < mw->feature_cnt; i++ ) {
+    fprintf(stream, "%s", board_features[mw->features[i]].name);
+    fprintf(stream, "%s", (i < mw->feature_cnt - 1) ? ", ": "\n");
+  }
+  fprintf(stream, "Pattern Count         : %zu\n", mw->pattern_cnt);
+  fprintf(stream, "Patterns              : ");
+  for (size_t i = 0; i < mw->pattern_cnt; i++ ) {
+    fprintf(stream, "%s", board_patterns[mw->patterns[i]].name);
+    fprintf(stream, "%s", (i < mw->pattern_cnt - 1) ? ", ": "\n");
+  }
+  fprintf(stream, "Weight Count          : %zu\n", mw->weight_cnt);
+  fprintf(stream, "Model Weight Summary Table:\n");
+  fprintf(stream, "   SEQ; F/P;  ID;        NAME; FIELD_COUNT/N_CONFIG\n");
+  size_t k = 0;
+  for (size_t i = 0; i < mw->feature_cnt; i++, k++) {
+    const board_feature_id_t id = mw->features[i];
+    const board_feature_t f = board_features[id];
+    fprintf(stream, "  %04zu;   F;%4u;%12s;%21u\n", k, id, f.name, f.field_cnt);
+  }
+  for (size_t i = 0; i < mw->pattern_cnt; i++, k++) {
+    const board_pattern_id_t id = mw->patterns[i];
+    const board_pattern_t p = board_patterns[id];
+    fprintf(stream, "  %04zu;   P;%4u;%12s;%21lu\n", k, id, p.name, p.n_configurations);
+  }
+  fflush(stream);
 }
 
 void
@@ -287,18 +475,18 @@ rglmdf_set_file_digest (rglmdf_general_data_t *const gd,
 {
   assert(gd);
 
-  const size_t s = 2 * sha3_256_digest_lenght + 1; // 65
+  const size_t size = 2 * sha3_256_digest_lenght + 1; // 65
 
   if (file_digest) {
-    gd->file_digest = (char *) malloc(s);
+    if (!gd->file_digest) gd->file_digest = (char *) malloc(size);
     if (gd->file_digest) {
-      memcpy(gd->file_digest, file_digest, s);
-      return s;
+      memcpy(gd->file_digest, file_digest, size);
+      return EXIT_SUCCESS;
     } else {
-      return -1;
+      return EXIT_FAILURE;
     }
   } else {
-    return 0;
+    return EXIT_SUCCESS;
   }
 
 }
@@ -1212,6 +1400,12 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *const gd,
   /* Any previous data held by gd is discarded and deallocated. */
   rglmdf_general_data_release(gd);
   rglmdf_general_data_init(gd);
+
+  ret = rglmdf_set_file_digest(gd, file_digest);
+  if (ret != EXIT_SUCCESS) {
+    fprintf(stderr, "Unable to set the file_digest field.\n");
+    return EXIT_FAILURE;
+  }
 
   /* Opens the binary file. */
   FILE *ifp = fopen(filename, "r");

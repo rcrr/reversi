@@ -7,11 +7,22 @@
  *       These new functions are going to enable an API for the two programs that is then usable by
  *       test modules.
  *
- * @todo We do need a new data structure to hold the computed model, having:
- *       file_creation_time, empty_count, feature_cnt, features, pattern_cnt, patterns, and the weights table.
- *       The table hosts: entity_class, entity_id, index_value, principal_index_value, glm_variable_id, weight.
- *       The computed model could be written to a binary file or/and to a CSV file.
- *       We do need also a reading function.
+ * @todo Document the new RGLMDF_MODEL_WEIGHTS file format.
+ *
+ * @todo Write the function that writes to a file binary the rglmdf_model_weights_t structure.
+ *
+ * @todo Write the function that writes to a CSV file the weights table contained into the rglmdf_model_weights_t structure.
+ *
+ * @todo Write the function that reads from file the rglmdf_model_weights_t structure.
+ *
+ * @todo Complete the rglmdf_weight_record_t with the statistical data in the general data frequency table.
+ *
+ * @todo Complete the rglmdf_model_weights_t with the data taken from the solved gd ( the gp count ).
+ *
+ * @todo Complete the rglmdf_general_data_t data structure with the solution KPI (Effe, Residual mod., Gradient mod.).
+ *       We need to generate a better measure of the fitting properties of the model.
+ *       Store them in the RGLM file, read/write them.
+ *       Copy them to the rglmdf_weight_record_t structure.
  *
  * @todo Verify if there is a function already written that takes a GAME POSITION and maps it into a value ?
  *       function (GP, MODEL) -> features / patterns -> GLM ID / variable value / weights -> game value
@@ -239,6 +250,10 @@
  * @todo [2020-12-07 - done] Change glm_variable_id from 64 to 32 bits.
  *                           The index_value, principal_indix_value, and i.array are 32 bits, there is no reason to have
  *                           glm_variable_id being 64.
+ *
+ * @todo [2020-12-13 - done] Create new data structure `rglmdf_model_weights_t` to hold the computed model, having:
+ *                           file_creation_time, empty_count, feature_cnt, features, pattern_cnt, patterns, and the weights table.
+ *                           The table hosts: entity_class, entity_id, index_value, principal_index_value, glm_variable_id, weight.
  *
  *
  *

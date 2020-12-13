@@ -200,7 +200,7 @@
 #define RGLMDF_POSITION_STATUS_BUF_SIZE 4
 
 /* This is a conventional out of range value. */
-#define RGLMDF_INVALID_GLM_VARIABLE_ID UINT32_MAX
+#define RGLMDF_INVALID_GLM_VARIABLE_ID -1
 
 /* The number of records into a data chunk. */
 #define RGLMDF_GPS_DATA_CHUNK_SIZE 4096
@@ -486,6 +486,14 @@ rglmdf_model_weights_release (rglmdf_model_weights_t *mw);
 extern int
 rglmdf_model_veights_load (rglmdf_model_weights_t *mw,
                            const rglmdf_general_data_t *gd);
+
+extern void
+rglmdf_model_weights_summary_to_stream (const rglmdf_model_weights_t *mw,
+                                        FILE *stream);
+
+extern void
+rglmdf_model_weights_table_to_csv_file (const rglmdf_model_weights_t *mw,
+                                        FILE *file);
 
 /**
  * @brief Initializes the general data structure.
