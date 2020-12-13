@@ -166,7 +166,7 @@ rglmdf_verify_type_sizes (void)
   if (sizeof(rglmdf_position_summary_record_t) != 24) return false;
   if (sizeof(rglmdf_entity_freq_summary_record_t) != 48) return false;
   if (sizeof(rglmdf_solved_and_classified_gp_record_t) != 48) return false;
-  if (sizeof(rglmdf_weight_record_t) != 24) return false;
+  if (sizeof(rglmdf_weight_record_t) != 48) return false;
 
   if (sizeof(double) != 8) return false;
 
@@ -312,6 +312,9 @@ rglmdf_model_veights_load (rglmdf_model_weights_t *const mw,
       w->index_value = j;
       w->principal_index_value = j;
       w->glm_variable_id = glm_variable_id;
+      w->total_cnt = record->total_cnt;
+      w->relative_frequency = record->relative_frequency;
+      w->theoretical_probability = record->theoretical_probability;
       w->weight = record->weight;
     }
   }
@@ -337,12 +340,19 @@ rglmdf_model_veights_load (rglmdf_model_weights_t *const mw,
           fprintf(stdout, "Something very bad happening in loading pattern data into the weights table.\n");
           return EXIT_FAILURE;
         }
+        w->total_cnt = record->total_cnt;
+        w->relative_frequency = record->relative_frequency;
+        w->theoretical_probability = record->theoretical_probability;
         w->weight = record->weight;
       } else {
+        w->total_cnt = 0;
+        w->relative_frequency = 0.0;
+        w->theoretical_probability = -1.0; // It should be collected from the REGAB DB, not from the general data structure.
         w->weight = 0.0;
       }
     }
   }
+  //rglmdf_model_weights_table_to_csv_file(mw, stdout);
   return EXIT_SUCCESS;
 }
 
@@ -353,11 +363,15 @@ rglmdf_model_weights_table_to_csv_file (const rglmdf_model_weights_t *const mw,
   assert(mw);
   if (!file) return;
 
-  fprintf(file, "   SEQ; ENTITY_CLASS; ENTITY_ID; INDEX_VALUE; PRINCIPAL_INDEX_VALUE; GLM_VARIABLE_ID;                  WEIGHT\n");
+  fprintf(file,
+          "   SEQ; ENTITY_CLASS; ENTITY_ID; INDEX_VALUE; PRINCIPAL_INDEX_VALUE; GLM_VARIABLE_ID;"
+          "  TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_PROBABILITY;                  WEIGHT\n");
   for (size_t i = 0; i < mw->weight_cnt; i++) {
     const rglmdf_weight_record_t *const w = &mw->weights[i];
-    fprintf(file, "%06zu;%13d;%10d;%12d;%22d;%16d;%+24.15f\n",
-            i, w->entity_class, w->entity_id, w->index_value, w->principal_index_value, w->glm_variable_id, w->weight);
+    fprintf(file,
+            "%06zu;%13d;%10d;%12d;%22d;%16d;%11ld;%19.15f;%24.15f;%+24.15f\n",
+            i, w->entity_class, w->entity_id, w->index_value, w->principal_index_value, w->glm_variable_id,
+            w->total_cnt, w->relative_frequency, w->theoretical_probability, w->weight);
   }
   fflush(file);
 }

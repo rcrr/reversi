@@ -395,7 +395,24 @@ typedef struct rglmdf_general_data_s {
  * @details Each record is identified by a unique key composed by `(entity_class,entity_id,index_value)`.
  *          When the entity_class is FEATURE, index_value and principal_index_value have the same value.
  *
- *          The record has a fixed size and needs 24 bytes.
+ *          The field relative_frequency is the ratio between the game position sample size multiplied by the occurrences of the pattern
+ *          and the number of configuration found in the sample.
+ *          If we have 1.999.175 game positions, and the pattern is the EDGE (4 occurrences), and we have found 177.374 edge configuration
+ *          of the given instance in the data set, the relative frequency is computed as: 177.374 / (1.999.175 * 4) = 0.022180899621094.
+ *
+ *          The field theoretical_probability sum up the probability for the pattern and its mirror configurations.
+ *          The two fields theoretical_probability and relative_frequency are comparable. For a good sample the two values has to be close.
+ *
+ *          The theoretical_probability is not loaded when the configuration is missing from the sample. It should be loaded from the
+ *          REGAB database (tables regab_prng_pattern_probs and regab_prng_pattern_ranges).
+ *          To collect the proper theoretical_probability from the database, the value of the probability belonging to indexes having the same
+ *          principal index value have to be summed up.
+ *
+ *          The values of relative_frequency and theoretical_probability are relative to the principal_index_value, that is duplicated on the
+ *          record of the mirrored configuration. In case of using the values for further statistics it is mandatory to execute a filter on the
+ *          table like this: SELECT * WHERE index_value = principal_index_value .
+ *
+ *          The record has a fixed size and needs 48 bytes.
  */
 typedef struct rglmdf_weight_record_s {
   int16_t entity_class;                                       /**< @brief It is 0 when feature and 1 when pattern. */
@@ -403,6 +420,9 @@ typedef struct rglmdf_weight_record_s {
   int32_t index_value;                                        /**< @brief The index value for the entity. */
   int32_t principal_index_value;                              /**< @brief The principal index value for the entity.. */
   int32_t glm_variable_id;                                    /**< @brief The associated GLM Variable Id, or -1. */
+  int64_t total_cnt;                                          /**< @brief Number of times that the feature or pattern, or its mirror, is found in the game position selection. */
+  double relative_frequency;                                  /**< @brief Relative frequency of the entity configuration in the data. */
+  double theoretical_probability;                             /**< @brief Expected probability of the entity configuration. */
   double weight;                                              /**< @brief The weight computed by the optimization for this variable id. */
 } rglmdf_weight_record_t;
 
