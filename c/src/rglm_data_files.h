@@ -443,6 +443,7 @@ typedef struct rglmdf_weight_record_s {
 typedef struct rglmdf_model_weights_s {
   time_t file_creation_time;                                  /**< @brief Creation time of the data file. */
   char *general_data_checksum;                                /**< @brief A 64 character string, plus terminantion, having the sha3 256 file digest of the general data binary file. */
+  int64_t gp_sample_size;                                      /**< @brief The count of game position used to optimize the model. */
   uint8_t empty_count;                                        /**< @brief Empty square count. */
   size_t feature_cnt;                                         /**< @brief Count of features. */
   board_feature_id_t *features;                               /**< @brief Array of features. */

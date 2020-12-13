@@ -20,8 +20,6 @@
  *       The function needs the appropriate reverse_map structures.
  *       Develop the GETTER functions for the record fields.
  *
- * @todo Complete the rglmdf_model_weights_t with the data taken from the solved gd ( the gp count ).
- *
  * @todo Complete the rglmdf_general_data_t data structure with the solution KPI (Effe, Residual mod., Gradient mod.).
  *       We need to generate a better measure of the fitting properties of the model.
  *       Store them in the RGLM file, read/write them.
@@ -259,6 +257,8 @@
  *                           The table hosts: entity_class, entity_id, index_value, principal_index_value, glm_variable_id, weight.
  *
  * @todo [2020-12-13 - done] Complete the rglmdf_weight_record_t with the statistical data in the general data frequency table.
+ *
+ * @todo [2020-12-13 - done] Complete the rglmdf_model_weights_t with the data taken from the solved gd ( the gp count ).
  *
  *
  *

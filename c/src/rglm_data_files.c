@@ -180,6 +180,7 @@ rglmdf_model_weights_init (rglmdf_model_weights_t *const mw)
 
   mw->file_creation_time = (time_t) 0; // "Thu Jan  1 00:0:00 1970 (UTC)"
   mw->general_data_checksum = NULL;
+  mw->gp_sample_size = 0;
   mw->empty_count = 0;
   mw->feature_cnt = 0;
   mw->features = NULL;
@@ -230,6 +231,9 @@ rglmdf_model_veights_load (rglmdf_model_weights_t *const mw,
   }
   const char *const file_digest = rglmdf_get_file_digest(gd);
   memcpy(mw->general_data_checksum, file_digest, 2 * sha3_256_digest_lenght + 1);
+
+  /* Field gp_sample_size. */
+  mw->gp_sample_size = rglmdf_get_positions_ntuples(gd);
 
   /* Field empty_count. */
   mw->empty_count = rglmdf_get_empty_count(gd);
@@ -352,7 +356,8 @@ rglmdf_model_veights_load (rglmdf_model_weights_t *const mw,
       }
     }
   }
-  //rglmdf_model_weights_table_to_csv_file(mw, stdout);
+  if (true) rglmdf_model_weights_summary_to_stream(mw, stdout);
+  if (false) rglmdf_model_weights_table_to_csv_file(mw, stdout);
   return EXIT_SUCCESS;
 }
 
@@ -389,23 +394,24 @@ rglmdf_model_weights_summary_to_stream (const rglmdf_model_weights_t *const mw,
   gmtime_r(&mw->file_creation_time, &file_creation_time_tm);
   strftime(file_creation_time_as_string, 25,"%c", &file_creation_time_tm);
 
-  fprintf(stream, "File Creation Time    : %s\n", file_creation_time_as_string);
-  fprintf(stream, "General Data Checksum : %s\n", mw->general_data_checksum);
-  fprintf(stream, "Empty Count           : %u\n", mw->empty_count);
-  fprintf(stream, "Feature Count         : %zu\n", mw->feature_cnt);
-  fprintf(stream, "Features              : ");
+  fprintf(stream, "File Creation Time         : %s\n", file_creation_time_as_string);
+  fprintf(stream, "General Data Checksum      : %s\n", mw->general_data_checksum);
+  fprintf(stream, "Game Positions Sample Size : %ld\n", mw->gp_sample_size);
+  fprintf(stream, "Empty Count                : %u\n", mw->empty_count);
+  fprintf(stream, "Feature Count              : %zu\n", mw->feature_cnt);
+  fprintf(stream, "Features                   : ");
   for (size_t i = 0; i < mw->feature_cnt; i++ ) {
     fprintf(stream, "%s", board_features[mw->features[i]].name);
     fprintf(stream, "%s", (i < mw->feature_cnt - 1) ? ", ": "\n");
   }
-  fprintf(stream, "Pattern Count         : %zu\n", mw->pattern_cnt);
-  fprintf(stream, "Patterns              : ");
+  fprintf(stream, "Pattern Count              : %zu\n", mw->pattern_cnt);
+  fprintf(stream, "Patterns                   : ");
   for (size_t i = 0; i < mw->pattern_cnt; i++ ) {
     fprintf(stream, "%s", board_patterns[mw->patterns[i]].name);
     fprintf(stream, "%s", (i < mw->pattern_cnt - 1) ? ", ": "\n");
   }
-  fprintf(stream, "Weight Count          : %zu\n", mw->weight_cnt);
-  fprintf(stream, "Model Weight Summary Table:\n");
+  fprintf(stream, "Weight Count               : %zu\n", mw->weight_cnt);
+  fprintf(stream, "Model Weight Summary Table :\n");
   fprintf(stream, "   SEQ; F/P;  ID;        NAME; FIELD_COUNT/N_CONFIG\n");
   size_t k = 0;
   for (size_t i = 0; i < mw->feature_cnt; i++, k++) {
