@@ -188,6 +188,8 @@ rglmdf_model_weights_init (rglmdf_model_weights_t *const mw)
   mw->patterns = NULL;
   mw->weight_cnt = 0;
   mw->weights = NULL;
+  mw->reverse_map_mw_a = NULL;
+  mw->reverse_map_mw_b = NULL;
 }
 
 void
@@ -199,6 +201,8 @@ rglmdf_model_weights_release (rglmdf_model_weights_t *const mw)
   free(mw->features);
   free(mw->patterns);
   free(mw->weights);
+  free(mw->reverse_map_mw_a);
+  free(mw->reverse_map_mw_b);
 }
 
 int
@@ -216,6 +220,43 @@ rglmdf_model_veights_load (rglmdf_model_weights_t *const mw,
     fprintf(stderr, "Exiting with failure return code from function rglmdf_model_veights_load().\n");
     return EXIT_FAILURE;
   }
+
+  /* Allocates memory for fields reverse_map_mw_a and reverse_map_mw_b.
+   * Sets the values in the reverse_map_mw_a array to the proper value.
+   * Initializes two arrays to NULL.
+   */
+  const size_t sizeof_revese_map_mw_a = BOARD_ENTITY_CLASS_INVALID;
+  if (mw->reverse_map_mw_a) {
+    free(mw->reverse_map_mw_a);
+    mw->reverse_map_mw_a = NULL;
+  }
+  mw->reverse_map_mw_a = (rglmdf_weight_record_t ***) malloc(sizeof(rglmdf_weight_record_t **) * sizeof_revese_map_mw_a);
+  if (!mw->reverse_map_mw_a) {
+    fprintf(stderr, "Unamble to allocate memory for the reverse_map_mw_a field.\n");
+    return EXIT_FAILURE;
+  }
+  const size_t sizeof_revese_map_mw_b = BOARD_FEATURE_INVALID + BOARD_PATTERN_INVALID;
+  if (mw->reverse_map_mw_b) {
+    free(mw->reverse_map_mw_b);
+    mw->reverse_map_mw_b = NULL;
+  }
+  mw->reverse_map_mw_b = (rglmdf_weight_record_t **) malloc(sizeof(rglmdf_weight_record_t *) * sizeof_revese_map_mw_b);
+  if (!mw->reverse_map_mw_b) {
+    fprintf(stderr, "Unamble to allocate memory for the reverse_map_mw_b field.\n");
+    return EXIT_FAILURE;
+  }
+  size_t reverse_map_mw_a_index = 0;
+  size_t reverse_map_mw_b_index = 0;
+  mw->reverse_map_mw_a[reverse_map_mw_a_index++] = &mw->reverse_map_mw_b[reverse_map_mw_b_index];
+  for (size_t i = 0; i < BOARD_FEATURE_INVALID; i++) {
+    mw->reverse_map_mw_b[reverse_map_mw_b_index++] = NULL;
+  }
+  mw->reverse_map_mw_a[reverse_map_mw_a_index++] = &mw->reverse_map_mw_b[reverse_map_mw_b_index];
+  for (size_t i = 0; i < BOARD_PATTERN_INVALID; i++) {
+    mw->reverse_map_mw_b[reverse_map_mw_b_index++] = NULL;
+  }
+  assert(reverse_map_mw_a_index == BOARD_ENTITY_CLASS_INVALID);
+  assert(reverse_map_mw_b_index == BOARD_FEATURE_INVALID + BOARD_PATTERN_INVALID);
 
   /* It is not relevant to set the fild file_creation_time, it is set when the binary file is written. */
 
@@ -301,6 +342,7 @@ rglmdf_model_veights_load (rglmdf_model_weights_t *const mw,
   for (size_t i = 0; i < mw->feature_cnt; i++) {
     const board_feature_id_t id = mw->features[i];
     const board_feature_t f = board_features[id];
+    mw->reverse_map_mw_a[BOARD_ENTITY_CLASS_FEATURE][id] = w;
     for (size_t j = 0; j < f.field_cnt; j++, w++) {
       const int32_t glm_variable_id = rglmdf_map_pid_and_piv_to_glm_vid(gd, BOARD_ENTITY_CLASS_FEATURE, id, j);
       const rglmdf_entity_freq_summary_record_t *const record = &efsr[glm_variable_id];
@@ -325,6 +367,7 @@ rglmdf_model_veights_load (rglmdf_model_weights_t *const mw,
   for (size_t i = 0; i < mw->pattern_cnt; i++) {
     const board_pattern_id_t id = mw->patterns[i];
     const board_pattern_t p = board_patterns[id];
+    mw->reverse_map_mw_a[BOARD_ENTITY_CLASS_PATTERN][id] = w;
     for (size_t j = 0; j < p.n_configurations; j++, w++) {
       const board_pattern_index_t index_value = j;
       board_pattern_index_t principal_index_value;
@@ -356,9 +399,41 @@ rglmdf_model_veights_load (rglmdf_model_weights_t *const mw,
       }
     }
   }
-  if (true) rglmdf_model_weights_summary_to_stream(mw, stdout);
+
+  if (false) rglmdf_model_weights_summary_to_stream(mw, stdout);
   if (false) rglmdf_model_weights_table_to_csv_file(mw, stdout);
   return EXIT_SUCCESS;
+}
+
+rglmdf_weight_record_t *
+rglmdf_model_weights_table_lookup_record (const rglmdf_model_weights_t *const mw,
+                                          const int16_t entity_class,
+                                          const int16_t entity_id,
+                                          const int32_t index_value)
+{
+#ifndef NDEBUG
+  assert(mw);
+  assert(entity_class >= BOARD_ENTITY_CLASS_FEATURE && entity_class < BOARD_ENTITY_CLASS_INVALID);
+  assert(entity_id >= 0);
+  int16_t invalid_entity_id = 0;
+  if (entity_class == BOARD_ENTITY_CLASS_FEATURE) invalid_entity_id = BOARD_FEATURE_INVALID;
+  if (entity_class == BOARD_ENTITY_CLASS_PATTERN) invalid_entity_id = BOARD_PATTERN_INVALID;
+  assert(entity_id < invalid_entity_id);
+  assert(index_value >= 0);
+  int16_t invalid_index_id = 0;
+  if (entity_class == BOARD_ENTITY_CLASS_FEATURE) invalid_index_id = board_features[entity_id].field_cnt;
+  if (entity_class == BOARD_ENTITY_CLASS_PATTERN) invalid_index_id = board_patterns[entity_id].n_configurations;
+  assert(index_value < invalid_index_id);
+#endif
+
+  const rglmdf_weight_record_t *const weights = mw->weights;
+  if (!weights) return NULL;
+
+  rglmdf_weight_record_t *record = NULL;
+
+  record = mw->reverse_map_mw_a[entity_class][entity_id] + index_value;
+
+  return record;
 }
 
 void

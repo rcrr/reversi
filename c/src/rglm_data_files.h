@@ -450,7 +450,9 @@ typedef struct rglmdf_model_weights_s {
   size_t pattern_cnt;                                         /**< @brief Count of patterns. */
   board_pattern_id_t *patterns;                               /**< @brief Array of patterns. */
   size_t weight_cnt;                                          /**< @brief The number of tuples in the weights table. */
-  rglmdf_weight_record_t *weights;                            /**< @brief the array of records of the weights table. */
+  rglmdf_weight_record_t *weights;                            /**< @brief The array of records of the weights table. */
+  rglmdf_weight_record_t ***reverse_map_mw_a;                 /**< @brief Array of pointers that reference reverse_map_mw_b. */
+  rglmdf_weight_record_t **reverse_map_mw_b;                  /**< @brief Array of pointers that reference weights. */
 } rglmdf_model_weights_t;
 
 /**
@@ -507,6 +509,12 @@ rglmdf_model_weights_release (rglmdf_model_weights_t *mw);
 extern int
 rglmdf_model_veights_load (rglmdf_model_weights_t *mw,
                            const rglmdf_general_data_t *gd);
+
+extern rglmdf_weight_record_t *
+rglmdf_model_weights_table_lookup_record (const rglmdf_model_weights_t *mw,
+                                          int16_t entity_class,
+                                          int16_t entity_id,
+                                          int32_t index_value);
 
 extern void
 rglmdf_model_weights_summary_to_stream (const rglmdf_model_weights_t *mw,

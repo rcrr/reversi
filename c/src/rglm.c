@@ -15,11 +15,6 @@
  *
  * @todo Write the function that reads from file the rglmdf_model_weights_t structure.
  *
- * @todo Write a function that "enters" the rglmdf_model_weights_t with the key:
- *       (entity_class, entity_id, index_value) and returns a pointer to record or NULL if not found.
- *       The function needs the appropriate reverse_map structures.
- *       Develop the GETTER functions for the record fields.
- *
  * @todo Complete the rglmdf_general_data_t data structure with the solution KPI (Effe, Residual mod., Gradient mod.).
  *       We need to generate a better measure of the fitting properties of the model.
  *       Store them in the RGLM file, read/write them.
@@ -259,6 +254,10 @@
  * @todo [2020-12-13 - done] Complete the rglmdf_weight_record_t with the statistical data in the general data frequency table.
  *
  * @todo [2020-12-13 - done] Complete the rglmdf_model_weights_t with the data taken from the solved gd ( the gp count ).
+ *
+ * @todo [2020-12-15 - done] Write a function that "enters" the rglmdf_model_weights_t with the key:
+ *                           (entity_class, entity_id, index_value) and returns a pointer to record or NULL if not found.
+ *                           The function needs the appropriate reverse_map structures.
  *
  *
  *
