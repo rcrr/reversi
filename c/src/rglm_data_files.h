@@ -179,13 +179,14 @@
 #define RGLM_DATA_FILES_H
 
 /*
- * The version of the format used by the binary data file.
+ * The version of the format used by the binary data files.
  * Every time that the file format is modified, this value has to be incremented.
  * Adopting consistently this practice, enforce the consistency of existing files
  * with new version of the executables running the rglmdf_read_general_data_from_binary_file()
  * function.
  */
-#define RGLMDF_BINARY_DATA_FILE_FORMAT_VERSION 1
+#define RGLMDF_GENERAL_DATA_BINARY_DATA_FILE_FORMAT_VERSION 1
+#define RGLMDF_MODL_WEIGHTS_BINARY_DATA_FILE_FORMAT_VERSION 1
 
 /* 64 bits values used as a "sanity check" in reading and writing binary files. */
 #define RGLMDF_VALID_A 0x289fab30715d828c
@@ -443,7 +444,7 @@ typedef struct rglmdf_weight_record_s {
 typedef struct rglmdf_model_weights_s {
   time_t file_creation_time;                                  /**< @brief Creation time of the data file. */
   char *general_data_checksum;                                /**< @brief A 64 character string, plus terminantion, having the sha3 256 file digest of the general data binary file. */
-  int64_t gp_sample_size;                                      /**< @brief The count of game position used to optimize the model. */
+  int64_t gp_sample_size;                                     /**< @brief The count of game position used to optimize the model. */
   uint8_t empty_count;                                        /**< @brief Empty square count. */
   size_t feature_cnt;                                         /**< @brief Count of features. */
   board_feature_id_t *features;                               /**< @brief Array of features. */
@@ -523,6 +524,53 @@ rglmdf_model_weights_summary_to_stream (const rglmdf_model_weights_t *mw,
 extern void
 rglmdf_model_weights_table_to_csv_file (const rglmdf_model_weights_t *mw,
                                         FILE *file);
+
+/**
+ * @brief Sets the attribute field `file_creation_time`.
+ *
+ * @invariant Parameter `mw` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] mw reference to the model weights structure
+ * @param [in]     t  new updated value
+ */
+extern void
+rglmdf_model_weights_set_file_creation_time (rglmdf_model_weights_t *mw,
+                                             time_t t);
+
+/**
+ * @brief Gets the attribute field `file_creation_time`.
+ *
+ * @invariant Parameter `mw` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] mw reference to the general data structure
+ * @return        the value of the field
+ */
+extern time_t
+rglmdf_model_weights_get_file_creation_time (const rglmdf_model_weights_t *mw);
+
+/**
+ * @brief Translates the field `file_creation_time` as a character string.
+ *
+ * @details Conversion happens as UTC value.
+ *          The generated string is saved in the `buf` array.
+ *          The buffer referenced by `buf` must be long `25` chars or more.
+ *
+ * @invariant Parameter `mw` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `buf` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in]  mw  reference to the model weights structure
+ * @param [out] buf reference to the character buffer
+ */
+extern void
+rglmdf_model_weights_get_file_creation_time_as_string (const rglmdf_model_weights_t *mw,
+                                                       char *buf);
+
+/* --- --- general data --- --- */
 
 /**
  * @brief Initializes the general data structure.
@@ -1279,6 +1327,32 @@ extern int
 rglmdf_write_model_weights_to_binary_file (const rglmdf_model_weights_t *mw,
                                            const char *filename,
                                            time_t t);
+
+/**
+ * @brief Retrieves the model weights structure from a binary file.
+ *
+ * @details Opens the file named `filename`, and retrieves the data
+ *          from the file populating the `mw` model weights structure.
+ *          The function looks for a second file named `filename`.SHA3-256
+ *          reads the hash from it, and compares it with the digest of `filename`.
+ *          An error is rised if the sha3-256 file is not found , or in case the hash
+ *          doesn't match.
+ *
+ * @invariant Parameter `mw` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `filename` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] mw       reference to the model weights structure
+ * @param [in]     filename name of the file being retrieved
+ * @param [in]     verbose  when true send log output to stdout
+ * @return                  `0` on succesful execution.
+ */
+extern int
+rglmdf_read_model_weights_from_binary_file (rglmdf_model_weights_t *mw,
+                                            const char *filename,
+                                            bool verbose);
 
 /**
  * @brief Saves the general data structure to a binary file.

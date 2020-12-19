@@ -9,11 +9,7 @@
  *
  * @todo Document the new RGLMDF_MODEL_WEIGHTS file format.
  *
- * @todo Write the function that writes to a file binary the rglmdf_model_weights_t structure.
- *
  * @todo Write the function that writes to a CSV file the weights table contained into the rglmdf_model_weights_t structure.
- *
- * @todo Write the function that reads from file the rglmdf_model_weights_t structure.
  *
  * @todo Complete the rglmdf_general_data_t data structure with the solution KPI (Effe, Residual mod., Gradient mod.).
  *       We need to generate a better measure of the fitting properties of the model.
@@ -258,6 +254,10 @@
  * @todo [2020-12-15 - done] Write a function that "enters" the rglmdf_model_weights_t with the key:
  *                           (entity_class, entity_id, index_value) and returns a pointer to record or NULL if not found.
  *                           The function needs the appropriate reverse_map structures.
+ *
+ * @todo [2020-12-19 - done] Write the function that writes to a file binary the rglmdf_model_weights_t structure.
+ *
+ * @todo [2020-12-19 - done] Write the function that reads from file the rglmdf_model_weights_t structure.
  *
  *
  *
@@ -849,22 +849,22 @@ main (int argc,
 
   /* Writes the model weights binary file. */
   if (w_arg) {
-    rglmdf_model_weights_t model_weights;
-    rglmdf_model_weights_init(&model_weights);
-    ret_code = rglmdf_model_veights_load(&model_weights, &data);
+    rglmdf_model_weights_t mw;
+    rglmdf_model_weights_init(&mw);
+    ret_code = rglmdf_model_veights_load(&mw, &data);
     if (ret_code == EXIT_FAILURE) {
       fprintf(stderr, "Unable to load the RGLM model weights data structure.\n");
       return ret_code;
     }
     saved_time = t_flag ? (time_t) 0 : time(NULL);
-    ret_code = rglmdf_write_model_weights_to_binary_file(&model_weights, w_arg, saved_time);
+    ret_code = rglmdf_write_model_weights_to_binary_file(&mw, w_arg, saved_time);
     if (ret_code == EXIT_SUCCESS) {
       if (verbose) fprintf(stdout, "RGLM model weights binary file written to %s\n", w_arg);
     } else {
       fprintf(stderr, "Unable to write correctly RGLM model weights binary file: %s\n", w_arg);
       return ret_code;
     }
-    rglmdf_model_weights_release(&model_weights);
+    rglmdf_model_weights_release(&mw);
   }
 
   /* Frees resources. */

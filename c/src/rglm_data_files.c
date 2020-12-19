@@ -127,6 +127,20 @@ rglmdf_transform_piv_to_glm_variable_id (rglmdf_general_data_t *gd)
   }
 }
 
+/* Wrapper for the fwrite library function. */
+static size_t
+fwrite2 (const void *ptr,
+         size_t size,
+         size_t nmemb,
+         FILE *stream,
+         size_t *written_byte_count)
+{
+  size_t n;
+  n = fwrite(ptr, size, nmemb, stream);
+  *written_byte_count = n * nmemb;
+  return n;
+}
+
 int
 rglmdf_get_endianness (void)
 {
@@ -198,28 +212,25 @@ rglmdf_model_weights_release (rglmdf_model_weights_t *const mw)
   assert(mw);
 
   free(mw->general_data_checksum);
+  mw->general_data_checksum = NULL;
   free(mw->features);
+  mw->features = NULL;
   free(mw->patterns);
+  mw->patterns = NULL;
   free(mw->weights);
+  mw->weights = NULL;
   free(mw->reverse_map_mw_a);
+  mw->reverse_map_mw_a = NULL;
   free(mw->reverse_map_mw_b);
+  mw->reverse_map_mw_b = NULL;
 }
 
-int
-rglmdf_model_veights_load (rglmdf_model_weights_t *const mw,
-                           const rglmdf_general_data_t *const gd)
+/* Computes and populates the field reverse_map_mw_a and reverse_map_mw_b.
+ * The function must be called after the weights table has been populated.
+ */
+static int
+rglmdf_model_veights_compute_reverse_map (rglmdf_model_weights_t *const mw)
 {
-  assert(mw);
-  assert(gd);
-
-  size_t size;
-
-  if (gd->format != RGLMDF_FILE_DATA_FORMAT_TYPE_IS_GENERAL) {
-    rglmdf_format_to_text_stream(gd, stderr);
-    fprintf(stderr, "The general data structure must have format equal to GENERAL.\n");
-    fprintf(stderr, "Exiting with failure return code from function rglmdf_model_veights_load().\n");
-    return EXIT_FAILURE;
-  }
 
   /* Allocates memory for fields reverse_map_mw_a and reverse_map_mw_b.
    * Sets the values in the reverse_map_mw_a array to the proper value.
@@ -242,7 +253,7 @@ rglmdf_model_veights_load (rglmdf_model_weights_t *const mw,
   }
   mw->reverse_map_mw_b = (rglmdf_weight_record_t **) malloc(sizeof(rglmdf_weight_record_t *) * sizeof_revese_map_mw_b);
   if (!mw->reverse_map_mw_b) {
-    fprintf(stderr, "Unamble to allocate memory for the reverse_map_mw_b field.\n");
+    fprintf(stderr, "Unable to allocate memory for the reverse_map_mw_b field.\n");
     return EXIT_FAILURE;
   }
   size_t reverse_map_mw_a_index = 0;
@@ -258,7 +269,40 @@ rglmdf_model_veights_load (rglmdf_model_weights_t *const mw,
   assert(reverse_map_mw_a_index == BOARD_ENTITY_CLASS_INVALID);
   assert(reverse_map_mw_b_index == BOARD_FEATURE_INVALID + BOARD_PATTERN_INVALID);
 
-  /* It is not relevant to set the fild file_creation_time, it is set when the binary file is written. */
+  rglmdf_weight_record_t *w = mw->weights;
+  for (size_t i = 0; i < mw->feature_cnt; i++) {
+    const board_feature_id_t id = mw->features[i];
+    const board_feature_t f = board_features[id];
+    mw->reverse_map_mw_a[BOARD_ENTITY_CLASS_FEATURE][id] = w;
+    w += f.field_cnt;
+  }
+  for (size_t i = 0; i < mw->pattern_cnt; i++) {
+    const board_pattern_id_t id = mw->patterns[i];
+    const board_pattern_t p = board_patterns[id];
+    mw->reverse_map_mw_a[BOARD_ENTITY_CLASS_PATTERN][id] = w;
+    w += p.n_configurations;
+  }
+
+  return EXIT_SUCCESS;
+}
+
+int
+rglmdf_model_veights_load (rglmdf_model_weights_t *const mw,
+                           const rglmdf_general_data_t *const gd)
+{
+  assert(mw);
+  assert(gd);
+
+  size_t size;
+
+  if (gd->format != RGLMDF_FILE_DATA_FORMAT_TYPE_IS_GENERAL) {
+    rglmdf_format_to_text_stream(gd, stderr);
+    fprintf(stderr, "The general data structure must have format equal to GENERAL.\n");
+    fprintf(stderr, "Exiting with failure return code from function rglmdf_model_veights_load().\n");
+    return EXIT_FAILURE;
+  }
+
+  /* It is not relevant to set the field file_creation_time, it is set when the binary file is written. */
 
   /* Field general_data_checksum */
   if (mw->general_data_checksum) {
@@ -342,7 +386,6 @@ rglmdf_model_veights_load (rglmdf_model_weights_t *const mw,
   for (size_t i = 0; i < mw->feature_cnt; i++) {
     const board_feature_id_t id = mw->features[i];
     const board_feature_t f = board_features[id];
-    mw->reverse_map_mw_a[BOARD_ENTITY_CLASS_FEATURE][id] = w;
     for (size_t j = 0; j < f.field_cnt; j++, w++) {
       const int32_t glm_variable_id = rglmdf_map_pid_and_piv_to_glm_vid(gd, BOARD_ENTITY_CLASS_FEATURE, id, j);
       const rglmdf_entity_freq_summary_record_t *const record = &efsr[glm_variable_id];
@@ -367,7 +410,6 @@ rglmdf_model_veights_load (rglmdf_model_weights_t *const mw,
   for (size_t i = 0; i < mw->pattern_cnt; i++) {
     const board_pattern_id_t id = mw->patterns[i];
     const board_pattern_t p = board_patterns[id];
-    mw->reverse_map_mw_a[BOARD_ENTITY_CLASS_PATTERN][id] = w;
     for (size_t j = 0; j < p.n_configurations; j++, w++) {
       const board_pattern_index_t index_value = j;
       board_pattern_index_t principal_index_value;
@@ -399,9 +441,8 @@ rglmdf_model_veights_load (rglmdf_model_weights_t *const mw,
       }
     }
   }
+  rglmdf_model_veights_compute_reverse_map(mw);
 
-  if (false) rglmdf_model_weights_summary_to_stream(mw, stdout);
-  if (false) rglmdf_model_weights_table_to_csv_file(mw, stdout);
   return EXIT_SUCCESS;
 }
 
@@ -503,6 +544,35 @@ rglmdf_model_weights_summary_to_stream (const rglmdf_model_weights_t *const mw,
 }
 
 void
+rglmdf_model_weights_set_file_creation_time (rglmdf_model_weights_t *const mw,
+                                             const time_t t)
+{
+  assert(mw);
+  mw->file_creation_time = t;
+}
+
+time_t
+rglmdf_model_weights_get_file_creation_time (const rglmdf_model_weights_t *const mw)
+{
+  assert(mw);
+  return mw->file_creation_time;
+}
+
+void
+rglmdf_model_weights_get_file_creation_time_as_string (const rglmdf_model_weights_t *const mw,
+                                                       char *const buf)
+{
+  assert(mw);
+  assert(buf);
+
+  struct tm file_creation_time_tm;
+  gmtime_r(&mw->file_creation_time, &file_creation_time_tm);
+  strftime(buf, 25,"%c", &file_creation_time_tm);
+}
+
+/* --- --- --- */
+
+void
 rglmdf_general_data_init (rglmdf_general_data_t *const gd)
 {
   assert(gd);
@@ -548,20 +618,35 @@ rglmdf_general_data_release (rglmdf_general_data_t *const gd)
   assert(gd);
 
   free(gd->reverse_map_b);
+  gd->reverse_map_b = NULL;
   free(gd->reverse_map_a_f);
+  gd->reverse_map_a_f = NULL;
   free(gd->positions.farray);
+  gd->positions.farray = NULL;
   free(gd->positions.i2array);
+  gd->positions.i2array = NULL;
   free(gd->positions.i1array);
+  gd->positions.i1array = NULL;
   free(gd->positions.i0array);
+  gd->positions.i0array = NULL;
   free(gd->positions.records);
+  gd->positions.records = NULL;
   free(gd->entity_freq_summary.records);
+  gd->entity_freq_summary.records = NULL;
   free(gd->position_summary.records);
+  gd->position_summary.records = NULL;
   free(gd->patterns);
+  gd->patterns = NULL;
   free(gd->features);
+  gd->features = NULL;
   free(gd->position_statuses);
+  gd->position_statuses = NULL;
   free(gd->position_status_buffer);
+  gd->position_status_buffer = NULL;
   free(gd->batch_ids);
+  gd->batch_ids = NULL;
   free(gd->file_digest);
+  gd->file_digest = NULL;
 }
 
 int
@@ -1447,6 +1532,256 @@ rglmdf_generate_sha3_file_digest (const char *const file_name)
 }
 
 int
+rglmdf_read_model_weights_from_binary_file (rglmdf_model_weights_t *const mw,
+                                            const char *const filename,
+                                            const bool verbose)
+{
+  assert(mw);
+  assert(filename);
+
+  int ret;
+  size_t l;
+  uint64_t u64;
+  int16_t i16;
+  char file_digest[2 * sha3_256_digest_lenght + 1];
+  char file_creation_time_as_string[64];
+
+  /* Checks that the file has not been corrupted. */
+  ret = rglmdf_check_sha3_file_digest(filename, file_digest);
+  if (ret != EXIT_SUCCESS) return EXIT_FAILURE;
+
+  if (verbose)
+    fprintf(stdout, "Opening RGLM model weights binary file: \"%s\" - SHA3-256 file digest: %s\n", filename, file_digest);
+
+  /* Opens the binary file. */
+  FILE *ifp = fopen(filename, "r");
+  if (!ifp) {
+    fprintf(stderr, "Unable to open binary input file: %s\n", filename);
+    return EXIT_FAILURE;
+  }
+
+  /* Reads the B valid milestone. */
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1 || u64 != RGLMDF_VALID_B) {
+    fprintf(stderr, "Error while reading the B valid milestone from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+
+  /* Reads the version of the format used by the binary data file. */
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1 || u64 != RGLMDF_MODL_WEIGHTS_BINARY_DATA_FILE_FORMAT_VERSION) {
+    fprintf(stderr, "Error while reading the RGLMDF_MODL_WEIGHTS_BINARY_DATA_FILE_FORMAT_VERSION from the input binary file.\n");
+    fprintf(stderr, "  The file format version is %zu\n", u64);
+    fprintf(stderr, "  The executable program is compatible with format version %zu\n",
+            (uint64_t) RGLMDF_MODL_WEIGHTS_BINARY_DATA_FILE_FORMAT_VERSION);
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+
+  /* Reads the file creation time field. */
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1) {
+    fprintf(stderr, "Error while reading time of write from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  rglmdf_model_weights_set_file_creation_time(mw, u64);
+  if (verbose) {
+    rglmdf_model_weights_get_file_creation_time_as_string(mw, file_creation_time_as_string);
+    fprintf(stdout, "Input file started to be written on (UTC) %s\n", file_creation_time_as_string);
+  }
+
+  /* Reads the general data checksum from the binary file. */
+  if (mw->general_data_checksum) {
+    free(mw->general_data_checksum);
+    mw->general_data_checksum = NULL;
+  }
+  mw->general_data_checksum = (char *) malloc(2 * sha3_256_digest_lenght + 1);
+  if (!mw->general_data_checksum) {
+    fprintf(stderr, "Unamble to allocate memory for the general_data_checksum field.\n");
+    return EXIT_FAILURE;
+  }
+  l = fread(mw->general_data_checksum, sizeof(char), 2 * sha3_256_digest_lenght + 1, ifp);
+  if (l != 2 * sha3_256_digest_lenght + 1) {
+    fprintf(stderr, "Error while reading field general_data_checksum from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  if (strlen(mw->general_data_checksum) != 2 * sha3_256_digest_lenght) {
+    fprintf(stderr, "The string general_data_checksum has an incorrect lenghth.\n");
+    return EXIT_FAILURE;;
+  }
+  if (verbose) fprintf(stdout, "General data checksum (SHA3-256 file digest): %s\n", mw->general_data_checksum);
+
+  /* Reads the field gp_sample_size from the binary file. */
+  l = fread(&mw->gp_sample_size, sizeof(int64_t), 1, ifp);
+  if (l != 1) {
+    fprintf(stderr, "Error while reading field gp_sample_size from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  if (verbose) fprintf(stdout, "Game position sample size: %ld\n", mw->gp_sample_size);
+
+  /* Reads the field empty_count from the binary file. */
+  l = fread(&mw->empty_count, sizeof(uint8_t), 1, ifp);
+  if (l != 1) {
+    fprintf(stderr, "Error while reading field empty_count from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  if (verbose) fprintf(stdout, "Empty count: %u\n", mw->empty_count);
+
+  /* Reads the C valid milestone. */
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1 || u64 != RGLMDF_VALID_C) {
+    fprintf(stderr, "Error while reading the C valid milestone from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+
+  /* Reads the field feature_cnt from the binary file. */
+  l = fread(&mw->feature_cnt, sizeof(int64_t), 1, ifp);
+  if (l != 1) {
+    fprintf(stderr, "Error while reading field feature_cnt from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  if (verbose) fprintf(stdout, "Feature count: %ld\n", mw->feature_cnt);
+
+  /* Reads the array features from the binary file. */
+  if (mw->features) {
+    free(mw->features);
+    mw->features = NULL;
+  }
+  mw->features = (board_feature_id_t *) malloc(sizeof(board_feature_id_t) * mw->feature_cnt);
+  if (!mw->features) {
+    fprintf(stderr, "Unamble to allocate memory for the features field.\n");
+    return EXIT_FAILURE;
+  }
+  for (size_t i = 0; i < mw->feature_cnt; i++) {
+    l = fread(&i16, sizeof(int16_t), 1, ifp);
+    if (l != 1) {
+      fprintf(stderr, "Error while reading feature[%zu] from the input binary file.\n", i);
+      fclose(ifp);
+      return EXIT_FAILURE;
+    }
+    mw->features[i] = i16;
+  }
+  if (verbose) {
+    fprintf(stdout, "Features: ");
+    for (size_t i = 0; i < mw->feature_cnt; i++ ) {
+      fprintf(stdout, "%s", board_features[mw->features[i]].name);
+      fprintf(stdout, "%s", (i < mw->feature_cnt - 1) ? ", ": "\n");
+    }
+  }
+
+  /* Reads the D valid milestone. */
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1 || u64 != RGLMDF_VALID_D) {
+    fprintf(stderr, "Error while reading the D valid milestone from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+
+  /* Reads the field pattern_cnt from the binary file. */
+  l = fread(&mw->pattern_cnt, sizeof(int64_t), 1, ifp);
+  if (l != 1) {
+    fprintf(stderr, "Error while reading field pattern_cnt from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+   }
+  if (verbose) fprintf(stdout, "Pattern count: %ld\n", mw->pattern_cnt);
+
+  /* Reads the array patterns from the binary file. */
+  if (mw->patterns) {
+    free(mw->patterns);
+    mw->patterns = NULL;
+  }
+  mw->patterns = (board_pattern_id_t *) malloc(sizeof(board_pattern_id_t) * mw->pattern_cnt);
+  if (!mw->patterns) {
+    fprintf(stderr, "Unamble to allocate memory for the patterns field.\n");
+    return EXIT_FAILURE;
+  }
+  for (size_t i = 0; i < mw->pattern_cnt; i++) {
+    l = fread(&i16, sizeof(int16_t), 1, ifp);
+    if (l != 1) {
+      fprintf(stderr, "Error while reading pattern[%zu] from the input binary file.\n", i);
+      fclose(ifp);
+      return EXIT_FAILURE;
+    }
+    mw->patterns[i] = i16;
+  }
+  if (verbose) {
+    fprintf(stdout, "Patterns: ");
+    for (size_t i = 0; i < mw->pattern_cnt; i++ ) {
+      fprintf(stdout, "%s", board_patterns[mw->patterns[i]].name);
+      fprintf(stdout, "%s", (i < mw->pattern_cnt - 1) ? ", ": "\n");
+    }
+  }
+
+  /* Reads the E valid milestone. */
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1 || u64 != RGLMDF_VALID_E) {
+    fprintf(stderr, "Error while reading the E valid milestone from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+
+  /* Reads the field weight_cnt from the binary file. */
+  l = fread(&mw->weight_cnt, sizeof(int64_t), 1, ifp);
+  if (l != 1) {
+    fprintf(stderr, "Error while reading field weight_cnt from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  if (verbose) fprintf(stdout, "Weight array size: %ld\n", mw->weight_cnt);
+
+  /* Reads the array weights from the binary file. */
+  if (mw->weights) {
+    free(mw->weights);
+    mw->weights = NULL;
+  }
+  mw->weights = (rglmdf_weight_record_t *) malloc(sizeof(rglmdf_weight_record_t) * mw->weight_cnt);
+  if (!mw->weights) {
+    fprintf(stderr, "Unamble to allocate memory for the patterns field.\n");
+    return EXIT_FAILURE;
+  }
+  l = fread(mw->weights, sizeof(rglmdf_weight_record_t), mw->weight_cnt, ifp);
+  if (l != mw->weight_cnt) {
+    fprintf(stderr, "Error while reading the weights array from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+  if (verbose) fprintf(stdout, "Read %zu weight records.\n", mw->weight_cnt);
+
+  /* Reads the F valid milestone. */
+  l = fread(&u64, sizeof(uint64_t), 1, ifp);
+  if (l != 1 || u64 != RGLMDF_VALID_F) {
+    fprintf(stderr, "Error while reading the F valid milestone from the input binary file.\n");
+    fclose(ifp);
+    return EXIT_FAILURE;
+  }
+
+  /* Closes the binary file. */
+  fclose(ifp);
+  if (verbose) fprintf(stdout, "File: \"%s\" read and closed succesfully.\n", filename);
+
+  /* Computes the reverse maps. */
+  ret = rglmdf_model_veights_compute_reverse_map(mw);
+  if (ret != EXIT_SUCCESS) {
+    fprintf(stderr, "Error while computing the reverse map fields.\n");
+    return EXIT_FAILURE;
+  }
+  if (verbose) {
+    fprintf(stdout, "Reverse map computed succesfully.\n");
+    fprintf(stdout, "RGLM model weights data structure loaded and ready.\n");
+  }
+
+  return EXIT_SUCCESS;
+}
+
+int
 rglmdf_write_model_weights_to_binary_file (const rglmdf_model_weights_t *const mw,
                                            const char *const filename,
                                            const time_t t)
@@ -1454,8 +1789,89 @@ rglmdf_write_model_weights_to_binary_file (const rglmdf_model_weights_t *const m
   assert(mw);
   assert(filename);
 
-  /* To be implemented. */
+  uint64_t u64;
 
+  FILE *ofp = fopen(filename, "w");
+  if (!ofp) {
+    fprintf(stderr, "Unable to open binary output file: %s\n", filename);
+    return EXIT_FAILURE;
+  }
+
+  /* Progressive count of bytes written to file. */
+  size_t fwn = 0;
+
+  /* Writes the B valid milestone, model weights start from B, not A,
+   * so it is recognizable from the general data format. */
+  u64 = RGLMDF_VALID_B;
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
+
+  /* Writes the version of the format used by the binary data file. */
+  u64 = RGLMDF_MODL_WEIGHTS_BINARY_DATA_FILE_FORMAT_VERSION;
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
+
+  /* Writes time to the binary file. */
+  u64 = t;
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
+
+  /* Writes the general data checksum to the binary file. */
+  fwrite2(mw->general_data_checksum, sizeof(char) * (2 * sha3_256_digest_lenght + 1), 1, ofp, &fwn);
+
+  /* Writes the field gp_sample_size to the binary file. */
+  fwrite2(&mw->gp_sample_size, sizeof(int64_t), 1, ofp, &fwn);
+
+  /* Writes the field empty_count to the binary file. */
+  fwrite2(&mw->empty_count, sizeof(uint8_t), 1, ofp, &fwn);
+
+  /* Writes the C valid milestone. */
+  u64 = RGLMDF_VALID_C;
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
+
+  /* Writes the field feature_cnt to the binary file. */
+  fwrite2(&mw->feature_cnt, sizeof(int64_t), 1, ofp, &fwn);
+
+  /* Writes the array features to the binary file. */
+  for (size_t i = 0; i < mw->feature_cnt; i++) {
+    const int16_t i16 = mw->features[i];
+    fwrite2(&i16, sizeof(int16_t), 1, ofp, &fwn);
+  }
+
+  /* Writes the D valid milestone. */
+  u64 = RGLMDF_VALID_D;
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
+
+  /* Writes the field pattern_cnt to the binary file. */
+  fwrite2(&mw->pattern_cnt, sizeof(int64_t), 1, ofp, &fwn);
+
+  /* Writes the array patterns to the binary file. */
+  for (size_t i = 0; i < mw->pattern_cnt; i++) {
+    const int16_t i16 = mw->patterns[i];
+    fwrite2(&i16, sizeof(int16_t), 1, ofp, &fwn);
+  }
+
+  /* Writes the E valid milestone. */
+  u64 = RGLMDF_VALID_E;
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
+
+  /* Writes the field weight_cnt to the binary file. */
+  fwrite2(&mw->weight_cnt, sizeof(int64_t), 1, ofp, &fwn);
+
+  /* Writes the array weights to the binary file. */
+  fwrite2(mw->weights, sizeof(rglmdf_weight_record_t), mw->weight_cnt, ofp, &fwn);
+
+  /* Writes the F valid milestone. */
+  u64 = RGLMDF_VALID_F;
+  fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
+
+  /* Closes the binary file. */
+  fclose(ofp);
+
+  /* Computes the SHA3 digest. */
+  int ret_code;
+  ret_code = rglmdf_generate_sha3_file_digest(filename);
+  if (ret_code != 0) {
+    fprintf(stderr, "Unable to compute and write SHA3-256 digest file.\n");
+    return EXIT_FAILURE;
+  }
 
   return EXIT_SUCCESS;
 }
@@ -1519,11 +1935,11 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *const gd,
 
   /* Reads the version of the format used by the binary data file. */
   l = fread(&u64, sizeof(uint64_t), 1, ifp);
-  if (l != 1 || u64 != RGLMDF_BINARY_DATA_FILE_FORMAT_VERSION) {
-    fprintf(stderr, "Error while reading the RGLMDF_BINARY_DATA_FILE_FORMAT_VERSION from the input binary file.\n");
+  if (l != 1 || u64 != RGLMDF_GENERAL_DATA_BINARY_DATA_FILE_FORMAT_VERSION) {
+    fprintf(stderr, "Error while reading the RGLMDF_GENERAL_DATA_BINARY_DATA_FILE_FORMAT_VERSION from the input binary file.\n");
     fprintf(stderr, "  The file format version is %zu\n", u64);
     fprintf(stderr, "  The executable program is compatible with format version %zu\n",
-            (uint64_t) RGLMDF_BINARY_DATA_FILE_FORMAT_VERSION);
+            (uint64_t) RGLMDF_GENERAL_DATA_BINARY_DATA_FILE_FORMAT_VERSION);
     fclose(ifp);
     return EXIT_FAILURE;
   }
@@ -1846,19 +2262,6 @@ rglmdf_read_general_data_from_binary_file (rglmdf_general_data_t *const gd,
   return EXIT_SUCCESS;
 }
 
-static size_t
-fwrite2 (const void *ptr,
-         size_t size,
-         size_t nmemb,
-         FILE *stream,
-         size_t *written_byte_count)
-{
-  size_t n;
-  n = fwrite(ptr, size, nmemb, stream);
-  *written_byte_count = n * nmemb;
-  return n;
-}
-
 int
 rglmdf_write_general_data_to_binary_file (const rglmdf_general_data_t *const gd,
                                           const char *const filename,
@@ -1893,7 +2296,7 @@ rglmdf_write_general_data_to_binary_file (const rglmdf_general_data_t *const gd,
   fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
 
   /* Writes the version of the format used by the binary data file. */
-  u64 = RGLMDF_BINARY_DATA_FILE_FORMAT_VERSION;
+  u64 = RGLMDF_GENERAL_DATA_BINARY_DATA_FILE_FORMAT_VERSION;
   fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
 
   /* Writes time to the binary file. */
