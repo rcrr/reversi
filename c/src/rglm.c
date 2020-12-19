@@ -7,8 +7,6 @@
  *       These new functions are going to enable an API for the two programs that is then usable by
  *       test modules.
  *
- * @todo Document the new RGLMDF_MODEL_WEIGHTS file format.
- *
  * @todo Write the function that writes to a CSV file the weights table contained into the rglmdf_model_weights_t structure.
  *
  * @todo Complete the rglmdf_general_data_t data structure with the solution KPI (Effe, Residual mod., Gradient mod.).
@@ -258,6 +256,8 @@
  * @todo [2020-12-19 - done] Write the function that writes to a file binary the rglmdf_model_weights_t structure.
  *
  * @todo [2020-12-19 - done] Write the function that reads from file the rglmdf_model_weights_t structure.
+ *
+ * @todo [2020-12-19 - done] Document the new RGLMDF_MODEL_WEIGHTS file format.
  *
  *
  *
@@ -857,7 +857,7 @@ main (int argc,
       return ret_code;
     }
     saved_time = t_flag ? (time_t) 0 : time(NULL);
-    ret_code = rglmdf_write_model_weights_to_binary_file(&mw, w_arg, saved_time);
+    ret_code = rglmdf_model_weights_write_to_binary_file(&mw, w_arg, saved_time);
     if (ret_code == EXIT_SUCCESS) {
       if (verbose) fprintf(stdout, "RGLM model weights binary file written to %s\n", w_arg);
     } else {
