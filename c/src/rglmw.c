@@ -1,7 +1,7 @@
 /**
  * @file
  *
- * @brief RGLM fit utility.
+ * @brief RGLM weights program.
  * @details Computes the residual, gaps, errors, between the true game values and
  *          the evaluation function.
  *          Two files are loaded, one having the solved game positions, and a
@@ -9,7 +9,7 @@
  *          the pattern configurations.
  *          Gaps are computed and logged to a CSV file.
  *
- * @par rglm_fit_utility.c
+ * @par rglmw.c
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
