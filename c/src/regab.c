@@ -2953,6 +2953,8 @@ main (int argc,
     return ret_code;
   }
 
+  rglmdf_general_data_release(&gd);
+
   goto regab_program_end;
 
 
@@ -2977,7 +2979,6 @@ main (int argc,
   free(feature_buffer);
   free(pattern_buffer);
   free(patterns);
-  rglmdf_general_data_release(&gd);
 
   return EXIT_SUCCESS;
 }
