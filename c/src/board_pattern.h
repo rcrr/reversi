@@ -560,26 +560,26 @@ union board_pattern_rotated_u {
 };
 
 extern void
-board_feature_values_intercept (board_t *board,
+board_feature_values_intercept (const board_t *board,
                                 double *values);
 
 extern void
-board_feature_values_mobility (board_t *board,
+board_feature_values_mobility (const board_t *board,
                                double *values);
 
 extern void
-board_feature_values_mobility2 (board_t *board,
+board_feature_values_mobility2 (const board_t *board,
                                 double *values);
 
 extern void
-board_feature_values_mobility3 (board_t *board,
+board_feature_values_mobility3 (const board_t *board,
                                 double *values);
 
 struct board_feature_s {
   board_feature_id_t id;
   char name[11];
   unsigned int field_cnt;
-  void (*feature_values_f) (board_t *, double *);
+  void (*feature_values_f) (const board_t *, double *);
 };
 
 static const board_feature_t board_features[] =
@@ -606,6 +606,9 @@ static const board_feature_t board_features[] =
 
     { BOARD_FEATURE_INVALID, "NULL", 0, NULL }
   };
+
+#define BOARD_FEATURE_MAX_FIELD_CNT 3
+#define BOARD_FEATURE_COMBINED_FIELD_CNT 7
 
 struct board_pattern_s {
   board_pattern_id_t id;
@@ -894,7 +897,7 @@ board_pattern_index_to_packed (board_t *packed,
                                board_pattern_index_t index);
 
 extern void
-board_pattern_compute_rotated (board_t *board,
+board_pattern_compute_rotated (const board_t *board,
                                board_pattern_rotated_t *rotated);
 
 #endif

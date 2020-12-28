@@ -754,6 +754,9 @@ extern void
 rglmdf_format_to_text_stream (const rglmdf_general_data_t *gd,
                               FILE *stream);
 
+extern void
+rglmdf_transform_format_from_general_to_positions (rglmdf_general_data_t *gd);
+
 /**
  * @brief Allocates memory for the batch_ids array.
  *

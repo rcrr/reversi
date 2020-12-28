@@ -1109,6 +1109,30 @@ rglmdf_format_to_text_stream (const rglmdf_general_data_t *const gd,
   fprintf(stream, "The format of the binary data file is: %s\n", s);
 }
 
+// HHHH
+
+extern void
+rglmdf_transform_format_from_general_to_positions (rglmdf_general_data_t *gd)
+{
+  rglmdf_set_format(gd, RGLMDF_FILE_DATA_FORMAT_TYPE_IS_POSITIONS);
+  rglmdf_set_feature_cnt(gd, 0);
+  rglmdf_set_pattern_cnt(gd, 0);
+  rglmdf_set_entity_freq_summary_ntuples(gd, 0, 0, 0);
+
+  gd->positions.n_fvalues_per_record = 0;
+  free(gd->positions.farray);
+  gd->positions.farray = NULL;
+
+  gd->positions.n_index_values_per_record = 0;
+  free(gd->positions.i0array);
+  gd->positions.i0array = NULL;
+  free(gd->positions.i1array);
+  gd->positions.i1array = NULL;
+  free(gd->positions.i2array);
+  gd->positions.i2array = NULL;
+}
+
+
 size_t
 rglmdf_set_batch_id_cnt (rglmdf_general_data_t *const gd,
                          const size_t cnt)
@@ -1408,10 +1432,23 @@ rglmdf_set_entity_freq_summary_ntuples (rglmdf_general_data_t *const gd,
   assert(ntuples < RGLMDF_INVALID_GLM_VARIABLE_ID);
 
   /* Only when format is GENERAL the table is populated. */
-  if (gd->format != RGLMDF_FILE_DATA_FORMAT_TYPE_IS_GENERAL) {
+  if (gd->format == RGLMDF_FILE_DATA_FORMAT_TYPE_IS_POSITIONS) {
     if (feature_ntuples != 0 || pattern_ntuples != 0 || ntuples != 0) {
-      return 0;
+      return ntuples + 1; // This is a way to report an error ....
     }
+    free(gd->entity_freq_summary.records);
+    gd->entity_freq_summary.records = NULL;
+    gd->entity_freq_summary.glm_f_variable_cnt = 0;
+    gd->entity_freq_summary.glm_p_variable_cnt = 0;
+    gd->entity_freq_summary.ntuples = 0;
+
+    free(gd->reverse_map_a_f);
+    gd->reverse_map_a_f = NULL;
+    gd->reverse_map_a_p = NULL;
+    free(gd->reverse_map_b);
+    gd->reverse_map_b = NULL;
+
+    return 0;
   }
 
   if (gd->feature_cnt + gd->pattern_cnt > RGLM_MAX_PATTERN_CNT) {

@@ -7,18 +7,10 @@
  *       These new functions are going to enable an API for the two programs that is then usable by
  *       test modules.
  *
- * @todo Write the function that writes to a CSV file the weights table contained into the rglmdf_model_weights_t structure.
- *
  * @todo Complete the rglmdf_general_data_t data structure with the solution KPI (Effe, Residual mod., Gradient mod.).
  *       We need to generate a better measure of the fitting properties of the model.
  *       Store them in the RGLM file, read/write them.
  *       Copy them to the rglmdf_weight_record_t structure.
- *
- * @todo Verify if there is a function already written that takes a GAME POSITION and maps it into a value ?
- *       function (GP, MODEL) -> features / patterns -> GLM ID / variable value / weights -> game value
- *       A generic function, where the model is taken as an argument ( a gd pointer :) ) ???
- *       The program rglm_fit_utility should do this.
- *       Action: verify and eventually write it.
  *
  * @todo Write a function in rglm_data_files that reads, and one that also writes, the rglm
  *       binary data file.
@@ -258,6 +250,13 @@
  * @todo [2020-12-19 - done] Write the function that reads from file the rglmdf_model_weights_t structure.
  *
  * @todo [2020-12-19 - done] Document the new RGLMDF_MODEL_WEIGHTS file format.
+ *
+ * @todo [2020-12-28 - done] Write the function that writes to a CSV file the weights table contained into the rglmdf_model_weights_t structure.
+ *
+ * @todo [2020-12-28 - done] Verify if there is a function already written that takes a GAME POSITION and maps it into a value.
+ *                           function (GP, MODEL) -> game value
+ *                           Action: verify and eventually write it.
+ *                           Resolution: the function was missing. it has been written: rglmut_eval_gp_using_model_weights(), part of rglm_utils module.
  *
  *
  *

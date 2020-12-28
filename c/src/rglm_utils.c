@@ -38,6 +38,50 @@
 #include "rglm_utils.h"
 
 double
+rglmut_eval_gp_using_model_weights (const rglmdf_model_weights_t *const mw,
+                                    const board_t *const b)
+{
+  assert(mw);
+  assert(b);
+
+  const board_feature_id_t *const features = mw->features;
+  const board_pattern_id_t *const patterns = mw->patterns;
+
+  double feature_values[BOARD_FEATURE_MAX_FIELD_CNT];
+
+  double gp_eval = 0.0;
+
+  for (size_t j = 0; j < mw->feature_cnt; j++) {
+    const board_feature_id_t fid = features[j];
+    board_features[fid].feature_values_f(b, feature_values);
+    for (size_t k = 0; k < board_features[fid].field_cnt; k++) {
+      const rglmdf_weight_record_t *const wrec =
+        rglmdf_model_weights_table_lookup_record(mw, BOARD_ENTITY_CLASS_FEATURE, fid, k);
+      gp_eval += wrec->weight * feature_values[k];
+    }
+  }
+
+  board_pattern_rotated_t r;
+  board_pattern_compute_rotated(b, &r);
+
+  for (size_t j = 0; j < mw->pattern_cnt; j++) {
+    const board_pattern_id_t pid = patterns[j];
+    const board_pattern_t *const bpp = &board_patterns[pid];
+    for (size_t k = 0; k < bpp->n_instances; k++) {
+      board_t tr;
+      tr.square_sets[0] = bpp->pattern_pack_f(r.board_array[k].square_sets[0]);
+      tr.square_sets[1] = bpp->pattern_pack_f(r.board_array[k].square_sets[1]);
+      const board_pattern_index_t index_value = board_pattern_packed_to_index(&tr, bpp->n_squares);
+      const rglmdf_weight_record_t *const wrec =
+        rglmdf_model_weights_table_lookup_record(mw, BOARD_ENTITY_CLASS_PATTERN, pid, index_value);
+      gp_eval += wrec->weight;
+    }
+  }
+
+  return rglmut_logistic_function(gp_eval);
+}
+
+double
 rglmut_logistic_function (const double x)
 {
   const double e =  2.71828182845904523536;

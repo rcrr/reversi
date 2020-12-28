@@ -37,6 +37,26 @@
 #include "rglm_data_files.h"
 
 /**
+ * @brief Computes the game evaluation for the given board.
+ *
+ * @details Returns the game value of the board `b` given the
+ *          RGLM model weights `mw`.
+ *
+ * @invariant Parameter `mw` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `b` must be not `NULL`.
+ * The invariant is guardegd by an assertion.
+ *
+ * @param  [in] mw the model weights data structure
+ * @param  [in] b  the game board
+ * @return         the game value of the board
+ */
+extern double
+rglmut_eval_gp_using_model_weights (const rglmdf_model_weights_t *const mw,
+                                    const board_t *const b);
+
+/**
  * @brief Computes the value of the logistic function.
  *
  * @details Returns the value of the function `1 / ( 1 + pow(e, -x))`,

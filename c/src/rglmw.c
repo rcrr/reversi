@@ -62,30 +62,6 @@
 
 /* Static functions. */
 
-//static double
-double
-evaluation_function (size_t pattern_cnt,
-                     board_pattern_id_t *board_pattern_ids,
-                     board_pattern_index_t *indexes,
-                     double **pattern_to_weight_index)
-{
-  double sum;
-  const board_pattern_t *bpp;
-  board_pattern_index_t index_value;
-
-  sum = 0.0;
-
-  for (size_t i = 0; i < pattern_cnt; i++) {
-    bpp = &board_patterns[board_pattern_ids[i]];
-    for (size_t k = 0; k < bpp->n_instances; k++) {
-      index_value = *indexes++;
-      sum += pattern_to_weight_index[board_pattern_ids[i]][index_value];
-    }
-  }
-
-  return rglmut_logistic_function(sum);
-}
-
 /**
  * @endcond
  */
@@ -108,11 +84,23 @@ main (int argc,
   int w_flag = false;
   char *w_arg = NULL;
 
+  int p_flag = false;
+  char *p_arg = NULL;
+
+  int W_flag = false;
+  char *W_arg = NULL;
+
+  int P_flag = false;
+  char *P_arg = NULL;
+
   mop_options_long_t opt_list[] =
     {
      {"help",                'h', MOP_NONE},
      {"verbose",             'v', MOP_NONE},
      {"weights-file",        'w', MOP_REQUIRED},
+     {"positions-file",      'p', MOP_REQUIRED},
+     {"extract-weights",     'W', MOP_REQUIRED},
+     {"extract-positions",   'P', MOP_REQUIRED},
      {0, 0, 0}
     };
 
@@ -123,7 +111,10 @@ main (int argc,
     "Options:\n"
     "  -h, --help                Show help options\n"
     "  -v, --verbose             Verbose output\n"
-    "  -w, --weights-file        Pattern configurations weights input file name - Mandatory\n"
+    "  -w, --weights-file        RGLM model weights input file name - Mandatory\n"
+    "  -p, --positions-file      RGLM general data input file name\n"
+    "  -W, --extract-weights     Extract the model weights table in a CSV format\n"
+    "  -P, --extract-positions   Extract the game positions table in a CSV format\n"
     "\n"
     "Description:\n"
     "The Reversi Generalized Linear Model Weights program computes the gaps between the true value of game positions and the outcome of the evaluation function.\n"
@@ -154,6 +145,18 @@ main (int argc,
       w_flag = true;
       w_arg = options.optarg;
       break;
+    case 'p':
+      p_flag = true;
+      p_arg = options.optarg;
+      break;
+    case 'W':
+      W_flag = true;
+      W_arg = options.optarg;
+      break;
+    case 'P':
+      P_flag = true;
+      P_arg = options.optarg;
+      break;
     case ':':
       fprintf(stderr, "Option parsing failed: %s\n", options.errmsg);
       return -1;
@@ -181,124 +184,96 @@ main (int argc,
     return EXIT_FAILURE;
   }
 
-  if (verbose) fprintf(stdout, "RGLMW ....\n");
+  if (P_flag && !p_flag) {
+    fprintf(stderr, "Option -P, --extract-positions, requires that option -p, --positions-file, is selected.\n");
+    return EXIT_FAILURE;
+  }
 
+  /* Checks size of types. */
+  if (!rglmdf_verify_type_sizes()) {
+    fprintf(stderr, "Data types read from, or written to, the binary file have a size that is not consistent with the original one.\n");
+    return EXIT_FAILURE;
+  }
+
+  int ret_code = 0;
+
+  /* Loads the RGLM model weights structure from the binary input data file. */
   rglmdf_model_weights_t model_weights;
   rglmdf_model_weights_t *const mw = &model_weights;
   rglmdf_model_weights_init(mw);
-  rglmdf_model_weights_read_from_binary_file(mw, w_arg, verbose);
+  ret_code = rglmdf_model_weights_read_from_binary_file(mw, w_arg, verbose);
+  if (ret_code != EXIT_SUCCESS) {
+    fprintf(stderr, "Error while reading the RGLM model weights binary input file.\n");
+    return EXIT_FAILURE;
+  }
 
-  return EXIT_SUCCESS;
-}
+  /* If W flag is turned on, dumps the model weights table to the CSV output file. */
+  if (W_flag) {
+    FILE *ofp = fopen(W_arg, "w");
+    if (!ofp) {
+      fprintf(stderr, "Unable to open output file: %s\n", W_arg);
+      return EXIT_FAILURE;
+    }
+    rglmdf_model_weights_table_to_csv_file(mw, ofp);
+    fclose(ofp);
+    if (verbose) fprintf(stdout, "RGLM model weights table exported to CSV file: \"%s\".\n", W_arg);
+  }
 
-/**
- * @brief Main entry for the RGLM ( Reversi Generalized Linear Model ) fit utility program.
- */
-int
-old_main (int argc,
-          char *argv[])
-{
+  if (p_flag) {
 
-  /*
+    /* Prepares the empty RGLM GENERAL DATA data structure, to host the game positions. */
+    rglmdf_general_data_t general_data;
+    rglmdf_general_data_t *const gd = &general_data;
+    rglmdf_general_data_init(gd);
 
-  FILE *pfp, *wfp, *ofp;
+    /* Reads the game positions binary input file. */
+    ret_code = rglmdf_read_general_data_from_binary_file(gd, p_arg, verbose);
+    if (ret_code != EXIT_SUCCESS) {
+      fprintf(stderr, "Unable to read properly the game positions binary input file: %s\n", p_arg);
+      return EXIT_FAILURE;
+    }
 
-  size_t n, s, re;
+    /* If the game positions are a GENERAL format, transform it into a POSITION one. */
+    const rglmdf_file_data_format_type_t format = rglmdf_get_format(gd);
+    if (format == RGLMDF_FILE_DATA_FORMAT_TYPE_IS_GENERAL) {
+      rglmdf_transform_format_from_general_to_positions(gd);
+      if (verbose) fprintf(stdout, "RGLM general data format transformed from GENERAL to POSITIONS.\n");
+    }
 
-  char buf[512];
-  uint64_t u64;
-  uint8_t u8;
-  int16_t i16;
+    /* npos is the count of game position that we have in the general data structure. */
+    const size_t npos = rglmdf_get_positions_ntuples(gd);
 
-  time_t file_creation_time;
-  struct tm file_creation_time_tm;
+    /* gp_records is the array of game position records. */
+    rglmdf_solved_and_classified_gp_record_t *const gp_records = rglmdf_get_positions_records(gd);
 
-  size_t batch_id_cnt;
-  uint64_t *batch_ids;
-  uint8_t empty_count;
-  size_t position_status_cnt;
-  char *position_statuses_buf;
-  char **position_statuses;
-  size_t feature_cnt;
-  size_t pattern_cnt;
-  size_t game_position_cnt;
-  board_feature_id_t *board_feature_ids;
-  board_pattern_id_t *board_pattern_ids;
-  double *weights;
-  double *pattern_to_weight_index[BOARD_PATTERN_COUNT];
-  size_t data_chunk_size;
-  size_t n_record_read = 0;
-  rglmdf_solved_and_classified_gp_record_t *game_positions;
-  rglmdf_solved_and_classified_gp_record_t *gpsp;
+    /* Loop on the array of game position to be evaluated. */
+    for (size_t i = 0; i < npos; i++) {
+      rglmdf_solved_and_classified_gp_record_t *const gp_record = &gp_records[i];
 
-  bool verbose = false;
+      board_t b;
+      board_set_square_sets(&b, gp_record->mover, gp_record->opponent);
 
-  board_t b, tr;
-  board_pattern_rotated_t r;
-  //GamePositionX gpx, gpx1;
+      gp_record->evaluation_function = rglmut_eval_gp_using_model_weights(mw, &b);
+      gp_record->residual = gp_record->evaluation_function - gp_record->game_value_transformed;
+    }
 
-  */
+    /* If P flag is turned on, dumps the game position table to the output file. */
+    if (P_flag) {
+      FILE *ofp = fopen(P_arg, "w");
+      if (!ofp) {
+        fprintf(stderr, "Unable to open output file: %s\n", P_arg);
+        return EXIT_FAILURE;
+      }
+      rglmdf_gp_table_to_csv_file(gd, ofp);
+      fclose(ofp);
+      if (verbose) fprintf(stdout, "Game positions dumped to CSV file: \"%s\".\n", P_arg);
+    }
 
+    rglmdf_general_data_release(gd);
 
-  /**/
-  //for (size_t i = 0; i < game_position_cnt; i++) {
-  //  gpsp = &game_positions[i];
-  //  board_set_square_sets(&b, gpsp->mover, gpsp->opponent);
+  } // End of p_flag
 
-    /*
-    gpx.blacks = board_get_mover_square_set(&b);
-    gpx.whites = board_get_opponent_square_set(&b);
-    gpx.player = BLACK_PLAYER;
-    game_position_x_print(buf, &gpx);
-    printf("\ngp_id = %ld\n\n%s\n", gpsp->gp_id, buf);
-    */
-
-    /* Computes rotated boards. */
-  //  board_pattern_compute_rotated(&b, &r);
-
-    /* Computes pattern indexes. */
-    //
-  //  const board_pattern_t *bpp;
-  //  board_pattern_index_t index_value;
-  //  board_pattern_index_t *indexp;
-  //  board_pattern_index_t indexes[BOARD_PATTERN_MAX_N_INSTANCES * BOARD_PATTERN_COUNT];
-  //  memset(indexes, 0, sizeof(board_pattern_index_t) * BOARD_PATTERN_MAX_N_INSTANCES * BOARD_PATTERN_COUNT);
-    //gpx1.player = BLACK_PLAYER;
-  //  indexp = indexes;
-  //   for (size_t j = 0; j < pattern_cnt; j++) {
-  //    bpp = &board_patterns[board_pattern_ids[j]];
-      //printf("[%s] n_instances=%d\n", bpp->name, bpp->n_instances);
-  //    for (size_t k = 0; k < bpp->n_instances; k++) {
-        //printf("  instance=%zu\n", k);
-
-        /*
-        gpx1.blacks = r.board_array[k].square_sets[0];
-        gpx1.whites = r.board_array[k].square_sets[1];
-        game_position_x_print(buf, &gpx1);
-        printf("\ngp_id = %ld\n\n%s\n", gpsp->gp_id, buf);
-        */
-
-  //      tr.square_sets[0] = bpp->pattern_pack_f(r.board_array[k].square_sets[0]);
-  //      tr.square_sets[1] = bpp->pattern_pack_f(r.board_array[k].square_sets[1]);
-
-  //      index_value = board_pattern_packed_to_index(&tr, bpp->n_squares);
-  //      *indexp++ = index_value;
-  //    }
-  //  }
-  //  gpsp->game_value_transformed = rglmut_gv_scale(gpsp->game_value);
-  //  gpsp->evaluation_function = evaluation_function(pattern_cnt, board_pattern_ids, indexes, pattern_to_weight_index);
-  //  gpsp->residual = gpsp->evaluation_function - gpsp->game_value_transformed;
-  //}
-
-  /* Frees resources. */
-  /*
-  free(weights);
-  free(board_pattern_ids);
-  free(game_positions);
-  free(position_statuses);
-  free(position_statuses_buf);
-  free(batch_ids);
-  */
+  rglmdf_model_weights_release(mw);
 
   return EXIT_SUCCESS;
 }

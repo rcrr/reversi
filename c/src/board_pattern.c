@@ -83,14 +83,14 @@ board_set_square_sets (board_t *b,
  */
 
 void
-board_feature_values_intercept (board_t *board,
+board_feature_values_intercept (const board_t *board,
                                 double *values)
 {
   values[0] = 1.0;
 }
 
 static double
-board_feature_values_mobility0 (board_t *board)
+board_feature_values_mobility0 (const board_t *board)
 {
   GamePositionX gpx;
   SquareSet legal_moves, empties;
@@ -123,14 +123,14 @@ board_feature_values_mobility0 (board_t *board)
 }
 
 void
-board_feature_values_mobility (board_t *board,
+board_feature_values_mobility (const board_t *board,
                                double *values)
 {
   values[0] = board_feature_values_mobility0(board);
 }
 
 void
-board_feature_values_mobility2 (board_t *board,
+board_feature_values_mobility2 (const board_t *board,
                                 double *values)
 {
   double mobility = board_feature_values_mobility0(board);
@@ -139,7 +139,7 @@ board_feature_values_mobility2 (board_t *board,
 }
 
 void
-board_feature_values_mobility3 (board_t *board,
+board_feature_values_mobility3 (const board_t *board,
                                 double *values)
 {
   double mobility = board_feature_values_mobility0(board);
@@ -578,7 +578,7 @@ board_pattern_index_to_packed (board_t *packed,
 }
 
 void
-board_pattern_compute_rotated (board_t *board,
+board_pattern_compute_rotated (const board_t *board,
                                board_pattern_rotated_t *rotated)
 {
   assert(board);
