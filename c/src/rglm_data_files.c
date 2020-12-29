@@ -469,10 +469,10 @@ rglmdf_model_weights_table_lookup_record (const rglmdf_model_weights_t *const mw
   if (entity_class == BOARD_ENTITY_CLASS_PATTERN) invalid_entity_id = BOARD_PATTERN_INVALID;
   assert(entity_id < invalid_entity_id);
   assert(index_value >= 0);
-  int16_t invalid_index_id = 0;
-  if (entity_class == BOARD_ENTITY_CLASS_FEATURE) invalid_index_id = board_features[entity_id].field_cnt;
-  if (entity_class == BOARD_ENTITY_CLASS_PATTERN) invalid_index_id = board_patterns[entity_id].n_configurations;
-  assert(index_value < invalid_index_id);
+  int32_t invalid_index_value = 0;
+  if (entity_class == BOARD_ENTITY_CLASS_FEATURE) invalid_index_value = board_features[entity_id].field_cnt;
+  if (entity_class == BOARD_ENTITY_CLASS_PATTERN) invalid_index_value = board_patterns[entity_id].n_configurations;
+  assert(index_value < invalid_index_value);
 #endif
 
   const rglmdf_weight_record_t *const weights = mw->weights;
