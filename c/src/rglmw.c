@@ -254,7 +254,7 @@ main (int argc,
       board_set_square_sets(&b, gp_record->mover, gp_record->opponent);
 
       gp_record->evaluation_function = rglmut_eval_gp_using_model_weights(mw, &b);
-      gp_record->residual = gp_record->evaluation_function - gp_record->game_value_transformed;
+      gp_record->residual = gp_record->game_value_transformed - gp_record->evaluation_function; // resiual := observed - predicted
     }
 
     /* If P flag is turned on, dumps the game position table to the output file. */

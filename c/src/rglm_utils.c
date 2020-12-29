@@ -94,6 +94,18 @@ rglmut_gv_scale (const int v)
   return (double) 0.00765625 * (double) v + (double) 0.5;
 }
 
+double
+rglmut_gv_scale_back_f (const double v)
+{
+  return (v - 0.5) / 0.00765625;
+}
+
+int
+rglmut_gv_scale_back_i (const double v)
+{
+  return 2 * rint(rglmut_gv_scale_back_f(v) * 0.5);
+}
+
 void
 rglmut_gv_init (const rglmdf_general_data_t *data,
                 const size_t emme,
@@ -166,6 +178,7 @@ rglmut_residual_value_eval (const size_t emme,
 {
   assert(emme > 0 ? (bool) e && (bool) v && (bool) r : true);
 
+  /* resiual := observed - predicted */
   for (size_t i = 0; i < emme; i++)
     r[i] = v[i] - e[i];
 }

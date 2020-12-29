@@ -316,6 +316,67 @@
 
 /* Static functions. */
 
+/*
+ * The Kahan summation algorithm, also known as compensated summation, reduces the numerical error in the
+ * total obtained by adding a sequence of finite-precision floating-point numbers, compared to the obvious approach.
+ * This is done by keeping a separate running compensation (a variable to accumulate small errors).
+ *
+ * The formula for the variance, first computes the sample mean,
+ * and then computes the sum of the squares of the differences from the mean.
+ * This two pass algorithm applies the Kahan summation in both of them.
+ *
+ * The no-rounding-math attribute should be the default, anyway it is better to reaffirm the intention.
+ *
+ * On the contrary, the attribute fast-math compiles to a very different code.
+ *     __attribute__((optimize ("fast-math")))
+ */
+__attribute__((optimize ("no-rounding-math")))
+static void
+rglm_residual_compute_mean_and_var (double *v,
+                                    size_t n,
+                                    double *mean,
+                                    double *var)
+{
+  double s, c, m;
+
+  if (!mean && !var) return;
+  if (n == 0) {
+    if (mean) *mean = 0.0;
+    if (var) *var = 0.0;
+    return;
+  }
+
+  /* Kahan summation algorithm. */
+  s = 0.0;
+  c = 0.0;
+  for (size_t i = 0; i < n; i++) {
+    const double y = v[i] - c;
+    const double t = s + y;
+    c = (t - s) - y;
+    s = t;
+  }
+  m = s / (double) n;
+  if (mean) *mean = m;
+
+  if (!var) return;
+  if (n == 1) {
+    *var = 0.0;
+    return;
+  }
+
+  /* Kahan summation algorithm again. */
+  s = 0.0;
+  c = 0.0;
+  for (size_t i = 0; i < n; i++) {
+    const double x = v[i] - m;
+    const double z = x * x;
+    const double y = z - c;
+    const double t = s + y;
+    c = (t - s) - y;
+    s = t;
+  }
+  *var = s / (double) (n - 1);
+}
 
 /**
  * @endcond
@@ -679,6 +740,10 @@ main (int argc,
       clock_gettime(CLOCK_REALTIME, &end_time);
 
       if (verbose) {
+        double r_mean, r_var, r_sd;
+        rglm_residual_compute_mean_and_var(r, emme, &r_mean, &r_var);
+        r_sd = sqrt(r_var);
+        printf("   Residual: mean = %15.12f, variance = %15.12f, standard deviation = %15.12f (%5.2f) [%2d]\n", r_mean, r_var, r_sd, rglmut_gv_scale_back_f(0.5 + r_sd), rglmut_gv_scale_back_i(0.5 + r_sd));
         printf("   Effe             = %30.18f\n", effe);
         printf("   Residual modulus = %30.18f; abs min = [%24.18f,%8zu]; abs max = [%24.18f,%8zu]\n", r_magnitude, r_abs_min, r_abs_min_pos, r_abs_max, r_abs_max_pos);
         printf("   Gradient modulus = %30.18f; abs min = [%24.18f,%8zu]; abs max = [%24.18f,%8zu]\n", grad_magnitude, g_abs_min, g_abs_min_pos, g_abs_max, g_abs_max_pos);
@@ -799,6 +864,10 @@ main (int argc,
       } else {
         printf("Max number of iterations reached:\n");
       }
+      double r_mean, r_var, r_sd;
+      rglm_residual_compute_mean_and_var(r, emme, &r_mean, &r_var);
+      r_sd = sqrt(r_var);
+      printf("   Residual: mean = %15.12f, variance = %15.12f, standard deviation = %15.12f (%5.2f) [%2d]\n", r_mean, r_var, r_sd, rglmut_gv_scale_back_f(0.5 + r_sd), rglmut_gv_scale_back_i(0.5 + r_sd));
       printf("   Effe             = %30.18f\n", effe);
       printf("   Residual modulus = %30.18f; abs min = [%24.18f,%8zu]; abs max = [%24.18f,%8zu]\n", r_magnitude, r_abs_min, r_abs_min_pos, r_abs_max, r_abs_max_pos);
       printf("   Gradient modulus = %30.18f; abs min = [%24.18f,%8zu]; abs max = [%24.18f,%8zu]\n", grad_magnitude, g_abs_min, g_abs_min_pos, g_abs_max, g_abs_max_pos);
@@ -812,11 +881,10 @@ main (int argc,
 
     /* Copies residual and game value into the general data structure. */
     rglmut_evaluation_function_eval(&data, enne, w, emme, e);
+    rglmut_residual_value_eval(emme, e, v, r);
     for (size_t i = 0; i < emme; i++) {
-      const double gvt = rglmut_gv_scale(data.positions.records[i].game_value);
-      data.positions.records[i].game_value_transformed = gvt;
       data.positions.records[i].evaluation_function = e[i];
-      data.positions.records[i].residual = e[i] - gvt;
+      data.positions.records[i].residual = r[i];
     }
 
     lial_free_matrix(big_b, enne);

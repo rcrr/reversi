@@ -85,6 +85,32 @@ extern double
 rglmut_gv_scale (int v);
 
 /**
+ * @brief Computes the game value scaling back operation.
+ *
+ * @details Reverts the game value to the scale `[-64.:+64.]`
+ *          without rounding to the nearest even integer.
+ *          The function is pure.
+ *
+ * @param  [in] v the value of the independent variable
+ * @return        the mapped value
+ */
+extern double
+rglmut_gv_scale_back_f (const double v);
+
+/**
+ * @brief Computes the game value scaling back operation.
+ *
+ * @details Reverts the game value to the scale `[-64:+64]`
+ *          rounding to the nearest even integer.
+ *          The function is pure.
+ *
+ * @param  [in] v the value of the independent variable
+ * @return        the mapped value
+ */
+extern int
+rglmut_gv_scale_back_i (const double v);
+
+/**
  * @brief Initializes the vector `v`.
  *
  * @details The game values taken from the game positions contained int the

@@ -6,6 +6,7 @@ setwd('/home/rcrr/base/prj/reversi/c/r')
 
 dt_edge  <- fread('../tmp/bid_03_f_INT_MO2_p_EDGE_01.w.P.csv')
 dt_xedge <- fread('../tmp/bid_03_f_INT_MO2_p_XEDGE_01.w.P.csv')
+dt_corner <- fread('../tmp/bid_03_f_INT_MO2_p_CORNER_01.w.P.csv')
 
 gvt_mean <- mean(dt_edge$GAME_VALUE_TRANSFORMED)
 
@@ -17,8 +18,13 @@ residual_xedge_mean <- mean(dt_xedge$RESIDUAL)
 residual_xedge_var <- var(dt_xedge$RESIDUAL)
 residual_xedge_sd <- sd(dt_xedge$RESIDUAL)
 
+residual_corner_mean <- mean(dt_corner$RESIDUAL)
+residual_corner_var <- var(dt_corner$RESIDUAL)
+residual_corner_sd <- sd(dt_corner$RESIDUAL)
+
 p1 <- ggplot() +
   geom_density(aes_string(x = dt_edge$GAME_VALUE_TRANSFORMED - gvt_mean), color = "black") +
   geom_density(aes_string(x = dt_edge$RESIDUAL), color = "red") +
-  geom_density(aes_string(x = dt_xedge$RESIDUAL), color = "blue")
+  geom_density(aes_string(x = dt_xedge$RESIDUAL), color = "blue") +
+  geom_density(aes_string(x = dt_corner$RESIDUAL), color = "orange")
   
