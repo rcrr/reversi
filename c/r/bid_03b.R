@@ -1,5 +1,6 @@
 
 library(ggplot2)
+library(bit64)
 library(data.table)
 
 setwd('/home/rcrr/base/prj/reversi/c/r')
