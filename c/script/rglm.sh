@@ -61,8 +61,7 @@
 #
 # -2- Extracts from the REGAB database the POSITIONS DATA file and save it as ${OUT_DIR}/${RUNCODE}_positions_check.dat
 #     As well the files generated are ./rglmdata/A000_positions_check.dat data file,
-#     together with its has file (./rglmdata/A000_positions_check.dat.SHA3-256) and a log file (./rglmdata/A000_positions_check.log).
-#     This second extraction is executed only if the file doesn't exist.
+#     together with its hash file (./rglmdata/A000_positions_check.dat.SHA3-256) and a log file (./rglmdata/A000_positions_check.log).
 #
 # -3- Solves the RGLM problem, saving the result as "$OUT_DIR/${RUNCODE}_01.dat". The checksum and log files are created as well.
 #
@@ -206,30 +205,27 @@ fi
 # REGAB extraction of positions used to check the fitness of the model.
 #
 
-REGAB_POSITIONS_OUT="${OUT_DIR}/positions_check.dat"
-REGAB_POSITIONS_LOG="${OUT_DIR}/positions_check.log"
+REGAB_POSITIONS_OUT="${OUT_DIR}/${RUNCODE}_positions_check.dat"
+REGAB_POSITIONS_LOG="${OUT_DIR}/${RUNCODE}_positions_check.log"
 
-if [ ! -f $REGAB_POSITIONS_OUT ]
+REGAB_CMD="$REGAB -v --action extract"
+REGAB_CMD+=" --config-file $REGAB_CFG"
+REGAB_CMD+=" --env $REGAB_ENV"
+REGAB_CMD+=" --batch-id $RGLM_DATA_VALID_BATCH"
+REGAB_CMD+=" --position-status $REGAB_PSTAT"
+REGAB_CMD+=" --empty-count $REGAB_EC"
+REGAB_CMD+=" --game-positions"
+REGAB_CMD+=" --out-file $REGAB_POSITIONS_OUT"
+REGAB_CMD+=" 2>&1 | tee $REGAB_POSITIONS_LOG"
+
+echo -e "The REGAB command is: \"$REGAB_CMD\""
+
+eval $REGAB_CMD
+STATUS=$?
+if [ $STATUS -ne 0 ]
 then
-    REGAB_CMD="$REGAB -v --action extract"
-    REGAB_CMD+=" --config-file $REGAB_CFG"
-    REGAB_CMD+=" --env $REGAB_ENV"
-    REGAB_CMD+=" --batch-id $RGLM_DATA_VALID_BATCH"
-    REGAB_CMD+=" --position-status $REGAB_PSTAT"
-    REGAB_CMD+=" --empty-count $REGAB_EC"
-    REGAB_CMD+=" --game-positions"
-    REGAB_CMD+=" --out-file $REGAB_POSITIONS_OUT"
-    REGAB_CMD+=" 2>&1 | tee $REGAB_POSITIONS_LOG"
-
-    echo -e "The REGAB command is: \"$REGAB_CMD\""
-
-    eval $REGAB_CMD
-    STATUS=$?
-    if [ $STATUS -ne 0 ]
-    then
-        echo -e "Program REGAB ended abnormally, exiting script."
-        exit 1
-    fi
+    echo -e "Program REGAB ended abnormally, exiting script."
+    exit 1
 fi
 
 #
