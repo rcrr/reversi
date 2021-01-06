@@ -1,7 +1,7 @@
 
   README-GLM
 
-  Copyright (c) 2018, 2019, 2020 Roberto Corradini. All rights reserved.
+  Copyright (c) 2018, 2019, 2020, 2021 Roberto Corradini. All rights reserved.
 
   This file is part of the reversi program
   http://github.com/rcrr/reversi
@@ -21,15 +21,124 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
   or visit the site <http://www.gnu.org/licenses/>.
 
+Todo: Add Features to section three.
 
-This file describes the procedure to compose and solve the GLM (Generalized Linear Model) problem
-in section one, and how to add new Patterns ( or GLM covariates ) to the program in section two.
-
+This file describes how to use the REGAB (REversi GAme Base) program, database, and procedures in section 1.
+The procedure to compose and solve the GLM (Generalized Linear Model) problem in section two, and how to add
+new Patterns and Features (or GLM covariates) to the program in section three.
 
 ###
 ### Section --1--
 ###
-### This file describes the procedure to compose and solve the GLM (Generalized Linear Model) problem.
+### This section describes the procedures to generate new data sets for the RGLM (Reversi Generalized Linear Model) optimizer.
+###
+
+First step is to insert the BATCH of game positions into the REGAB database.
+The seq field is assigned by the database (this is going to change most likely because the batch_id is the name used by the
+REGAB program to name the batches), the png_seed is unique, and it is the "real name" of the batch.
+
+$ time ./build/bin/regab -v -a generate -c cfg/regab.cfg -e test -s 77357 -n 2000000
+
+tst_regab=> SELECT * FROM regab_prng_gp_h;
+ seq |          ins_time          | status | prng_seed | ngames  | npositions 
+-----+----------------------------+--------+-----------+---------+------------
+   1 | 2017-12-17 18:19:16.440571 | CMP    |     97531 |       1 |         61
+   3 | 2017-12-17 18:42:13.782953 | CMP    |     13579 | 1000000 |   61412190
+   4 | 2018-01-03 16:25:52.05024  | CMP    |         0 |    1000 |      61356
+   5 | 2018-01-03 16:27:08.188697 | CMP    |      5577 |   10000 |     614283
+   6 | 2018-01-03 16:30:24.238143 | CMP    |       881 |  100000 |    6142003
+   7 | 2018-01-03 16:38:51.097299 | CMP    |       277 |      10 |        614
+   8 | 2018-01-03 16:39:24.466546 | CMP    |       607 |     100 |       6140
+   9 | 2020-12-20 12:45:08.459759 | CMP    |     77357 | 2000000 |  122829157
+(8 rows)
+
+After the batch is loaded, we can start solving the game positions.
+Here we are solving 10 positions, having 10 empty_positions, from the batch_id 9.
+
+$ ./build/bin/regab -v -a solve -c cfg/regab.cfg -e test -b 9 -n 10 -y 10
+
+tst_regab=> SELECT * FROM regab_prng_gp WHERE batch_id = 9 AND empty_count = 10 AND status = 'CMP';
+    seq    | batch_id | game_id | pos_id |          ins_time          | status |          cst_time          |        mover         |       opponent       | player | empty_count |    legal_move_set    | legal_move_count | legal_move_count_adjusted | parent_move | game_value | best_move | leaf_count | node_count | parent_gp_id 
+-----------+----------+---------+--------+----------------------------+--------+----------------------------+----------------------+----------------------+--------+-------------+----------------------+------------------+---------------------------+-------------+------------+-----------+------------+------------+--------------
+ 121251820 |        9 |       0 |     50 | 2020-12-20 12:45:08.461138 | CMP    | 2020-12-20 19:11:02.072029 | -8126914241586325758 |  4631980193233266808 |      0 |          10 |  3494934048353058948 |                9 |                         9 | G1          |         46 | A4        |       1336 |       7441 |             
+ 121251882 |        9 |       1 |     50 | 2020-12-20 12:45:08.472645 | CMP    | 2020-12-20 19:11:02.074865 |  -364534762366528462 |   291632734808394500 |      0 |          10 |      844433520205897 |                8 |                         8 | A5          |         26 | A1        |        561 |       3386 |             
+ 121251944 |        9 |       2 |     50 | 2020-12-20 12:45:08.476641 | CMP    | 2020-12-20 19:11:02.076976 |  4765656358079874688 | -8872957360183625612 |      0 |          10 |  2882321903458976008 |                6 |                         6 | H8          |         -4 | D1        |        799 |       4154 |             
+ 121252007 |        9 |       3 |     50 | 2020-12-20 12:45:08.480801 | CMP    | 2020-12-20 19:11:02.078886 |    14359685600542289 |   -86421132224233332 |      0 |          10 |         549755846658 |                3 |                         3 | H6          |        -28 | H5        |        886 |       4467 |             
+ 121252068 |        9 |       4 |     50 | 2020-12-20 12:45:08.484482 | CMP    | 2020-12-20 19:11:02.080525 | -9151878496980305672 |  1008807416446060032 |      0 |          10 |           4294967559 |                5 |                         5 | C2          |         34 | A5        |         70 |        446 |             
+ 121252129 |        9 |       5 |     50 | 2020-12-20 12:45:08.488424 | CMP    | 2020-12-20 19:11:02.082709 | -1210572089017039104 |    55398784596244512 |      0 |          10 |     2251799813947608 |                6 |                         6 | D2          |         48 | H1        |        757 |       4084 |             
+ 121252190 |        9 |       6 |     50 | 2020-12-20 12:45:08.491951 | CMP    | 2020-12-20 19:11:02.084698 |      311811455810365 |   -36587313543773182 |      0 |          10 |    36029211483340800 |                5 |                         5 | G7          |          0 | H2        |        816 |       4037 |             
+ 121252252 |        9 |       7 |     50 | 2020-12-20 12:45:08.495761 | CMP    | 2020-12-20 19:11:02.086777 |  2536409961289187089 |   343571631670067206 |      0 |          10 | -8644659484737666936 |                5 |                         5 | C8          |         18 | D1        |       1029 |       5636 |             
+ 121252313 |        9 |       8 |     50 | 2020-12-20 12:45:08.49937  | CMP    | 2020-12-20 19:11:02.08884  |      292283404878342 |  2251437161518366136 |      0 |          10 |  2359956573504143425 |                8 |                         8 | B7          |         30 | A1        |       1225 |       6371 |             
+ 121252374 |        9 |       9 |     50 | 2020-12-20 12:45:08.502952 | CMP    | 2020-12-20 19:11:02.090841 |   157418227048670208 |  4328131815292771103 |      0 |          10 |  4611721204946960416 |                4 |                         4 | E1          |        -36 | F1        |       1092 |       5864 |             
+(10 rows)
+
+When game positions are solved we need to generate offsprings. It means that from STATUS = 'CMP' we derive the 'CMS' and 'CMR' statuses.
+
+Here a brief explanation of the different status that a game position can take:
+  - INS: Inserted.
+  - WIP: Selected for game_value calculation.
+  - CMP: game_value has been coputed and saved.
+  - CMQ: Marked for offspring generation.
+  - CMW: Selected and locked for offspring generation.
+  - CMR: It is the offspring generated by a parent game position by playing the best move.
+  - CMS: Offspring has been generated.
+
+The first step is to move our game position from status CMP to status CMQ running the following database procedure:
+
+=> SELECT empty_count, status, count(1) FROM regab_prng_gp WHERE batch_id = 9 AND empty_count < 20 GROUP BY empty_count, status ORDER BY empty_count, status;
+=> UPDATE regab_prng_gp SET status = 'CMQ', cst_time = now() WHERE status = 'CMP' AND batch_id = 9;
+
+Then run the REGAB program with the action "offspring" to generate from the CMQ the CMR record, and update status from CMQ to CMS.
+
+$ ./build/bin/regab -v -a offspring -c cfg/regab.cfg -e test -b 9 -y 10 -n 20
+=> SELECT empty_count, status, count(1) FROM regab_prng_gp WHERE batch_id = 9 AND empty_count < 20 GROUP BY empty_count, status ORDER BY empty_count, status;
+
+It is relevant to notice that, tacking off the case of a pass-move, a CMQ record having an empty_count field equal to Y, generates a CMR record having empty_count
+equal to Y-1, and a CMS record having empty_count equal to Y.
+When we select the game positions, extracted with the REGAB program, for an RGLM model we select records with a given empty_count Y having status IN('CMS', CMR'), so the solved game positions belong
+to Y and Y+1 empty_count.
+
+Let's make a real example:
+
+=> SELECT empty_count, status, count(1) FROM regab_prng_gp WHERE batch_id = 9 AND empty_count = 0 GROUP BY empty_count, status ORDER BY empty_count, status;
+ empty_count | status |  count  
+-------------+--------+---------
+           0 | CMP    | 1980705
+(1 row)
+
+=> UPDATE regab_prng_gp SET status = 'CMQ', cst_time = now() WHERE status = 'CMP' AND batch_id = 9 AND empty_count = 0;
+UPDATE 1980705
+
+=> SELECT empty_count, status, count(1) FROM regab_prng_gp WHERE batch_id = 9 AND empty_count = 0 GROUP BY empty_count, status ORDER BY empty_count, status;
+ empty_count | status |  count  
+-------------+--------+---------
+           0 | CMQ    | 1980705
+(1 row)
+
+$ ./build/bin/regab -a offspring -c cfg/regab.cfg -e production -b 9 -y 0 -n 2000000 > ./build/out/regab.o.00.txt &
+
+=> SELECT empty_count, status, count(1) FROM regab_prng_gp WHERE batch_id = 9 AND empty_count = 0 GROUP BY empty_count, status ORDER BY empty_count, status;
+ empty_count | status |  count  
+-------------+--------+---------
+           0 | CMR    | 1980705
+           0 | CMS    | 1980705
+(2 rows)
+
+######################## REMENBER TO CLASSIFY !!!
+######################## SELECT * FROM regab_gp_populate_pattern_class_table(1, 20, 30, '{CMR,CMS}', FALSE, FALSE);
+########################
+#
+# This query checks what is missing to be classified.
+#
+# SELECT t1.batch_id, t1.empty_count, count(1) FROM regab_prng_gp AS t1 LEFT JOIN regab_prng_gp_pattern_class AS t2 ON t1.seq = t2.gp_id
+#   WHERE t2.gp_id IS NULL AND t1.status IN('CMS','CMR') GROUP BY t1.batch_id, t1.empty_count;
+#
+
+
+###
+### Section --2--
+###
+### This section describes the procedure to compose and solve the GLM (Generalized Linear Model) problem.
 ###
 
 First step is to extract the data from the REGAB database. Data is structured as a set of solved positions.
@@ -121,7 +230,7 @@ tst_regab=> SELECT * FROM regab_prng_gp_h ORDER BY seq;
 ./build/bin/rglm_fit_utility -v -p tmp/bid_06_game_positions.dat -w tmp/bid_03_p_CORNER_01_weights.dat -R tmp/eval_bid_06_by_bid_03_p_CORNER_01_weights.csv
 
 ###
-### Section --2--
+### Section --3--
 ###
 ### How to create a new Pattern or a new GLM covariate
 ###
