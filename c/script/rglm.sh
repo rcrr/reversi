@@ -30,28 +30,28 @@
 #
 # As input it requires four mandatory arguments:
 #
-# - $1 : empty count    - Board empty square count used for the selection of the game positions 
-# - $2 : features       - The list of selected features, separated by commas, without spaces (e.g. MOBILITY,INTERCEPT) 
-# - $3 : patterns       - The list of selected features, separated by commas, without spaces (e.g. EDGE,DIAG8)
-# - $4 : run-code       - A string used to build the names of the output files. (e.g. A000)
-# - $5 : check sentinel - If present and equal to check_sentinel the program checks the existence of the sentinel file
-#                         and skips the procedure if found
+# - $1 : empty count        - Board empty square count used for the selection of the game positions 
+# - $2 : features           - The list of selected features, separated by commas, without spaces (e.g. MOBILITY,INTERCEPT) 
+# - $3 : patterns           - The list of selected features, separated by commas, without spaces (e.g. EDGE,DIAG8)
+# - $4 : run-code           - A string used to build the names of the output files. (e.g. A000)
+# - $5 : train batches      - It is the REGAB batch_id list (e.g. 3,9) used for the extraction and then for the trainining of the model
+# - $6 : validation batches - It is the REGAB batch_id list (e.g. 5,6) used for the extraction and then for the validation of the model
+# - $7 : REGAB env          - It is the selected section in the REGAB configuration file (e.g test, production, ...)
+# - $8 : check sentinel     - If present and equal to check_sentinel the program checks the existence of the sentinel file
+#                             and skips the procedure if found
 #
 # There are further parameters that oversight the script behaviour:
 #
 # - OUT_DIR=./rglmdata      - It is the target diregtory for the generated files
-# - RGLM_DATA_TRAIN_BATCH=3 - It is the REGAB batch_id list (e.g. 3,9) used for the extraction and then for the trainining of the model
-# - RGLM_DATA_VALID_BATCH=6 - It is the REGAB batch_id list (e.g. 5,6) used for the extraction and then for the validation of the model
 # - BINARY_DIR=./build/bin  - It is the directory where are located the REGAB, RGLM, and RGLMW binaries
 # - REGAB_CFG=cfg/regab.cfg - it is the REGAB configuration file used to access the database
-# - REGAB_ENV=test          - It is the used section in the configuration file
 # - REGAB_PSTAT=CMS,CMR     - It is the list of game position status used for the selection into the REGAB database
 #
 # The default values are meant to support an usage scenario where the script is located in the ./script directory.
 # The script is run from the "REVERSI C base directory", and the output is directed into the ./rglmdata.
 # Here an example for a run:
 #
-#   ./script/rglm.sh 20 MOBILITY,INTERCEPT EDGE A000
+#   ./script/rglm.sh 20 MOBILITY,INTERCEPT EDGE A000 3 6 test check_sentinel
 #
 # The script executes the following steps:
 #
@@ -101,10 +101,7 @@
 
 BINARY_DIR=./build/bin
 OUT_DIR=./rglmdata
-RGLM_DATA_TRAIN_BATCH=3
-RGLM_DATA_VALID_BATCH=6
 REGAB_CFG=cfg/regab.cfg
-REGAB_ENV=test
 REGAB_PSTAT=CMS,CMR
 
 CHECK_SENTINEL=false
@@ -153,7 +150,28 @@ then
 fi
 RUNCODE=$4
 
-if [ "$5" = "check_sentinel" ]
+if [ "$5" = "" ]
+then
+    echo "Positional parameter 5 (TBATCH) is empty, exiting script."
+    exit 1
+fi
+TBATCH=$5
+
+if [ "$6" = "" ]
+then
+    echo "Positional parameter 6 (VBATCH) is empty, exiting script."
+    exit 1
+fi
+VBATCH=$6
+
+if [ "$7" = "" ]
+then
+    echo "Positional parameter 7 (REGAB_ENV) is empty, exiting script."
+    exit 1
+fi
+REGAB_ENV=$7
+
+if [ "$8" = "check_sentinel" ]
 then
     CHECK_SENTINEL=true
 fi
@@ -162,6 +180,10 @@ if [ $CHECK_SENTINEL = true ] && [ -f $SENTINEL ]
 then
     exit 0
 fi
+
+
+RGLM_DATA_TRAIN_BATCH=${TBATCH}
+RGLM_DATA_VALID_BATCH=${VBATCH}
 
 #
 # REGAB extraction.
