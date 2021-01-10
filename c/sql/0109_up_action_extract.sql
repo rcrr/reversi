@@ -342,8 +342,8 @@ BEGIN
           WHERE
             gp.legal_move_count_adjusted > 0 AND
             gp.empty_count = $1 AND
-            gp.status = ANY ($2) AND
-            gp.batch_id = ANY ($3)
+            gp.status = ANY($2) AND
+            gp.batch_id = ANY($3)
         ), grouped_values AS (
           SELECT iv AS iv, count(1) AS cnt FROM index_values GROUP BY iv ORDER BY iv
         )
