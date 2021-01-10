@@ -393,6 +393,13 @@ main (int argc,
 {
   int ret_code;
 
+  /* Sets LINEBUFFER mode on stdout. It is a nice feature when using tee ... */
+  ret_code = setvbuf(stdout, NULL, _IOLBF, 0);
+  if (ret_code != 0) {
+    fprintf(stdout, "Unable to set line-buffer mode on stdout. Exiting ... \n");
+    return EXIT_FAILURE;
+  }
+
   rglmdf_general_data_t data;
   rglmdf_general_data_init(&data);
 
