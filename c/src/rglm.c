@@ -7,21 +7,7 @@
  *       These new functions are going to enable an API for the two programs that is then usable by
  *       test modules.
  *
- * @todo Complete the rglmdf_general_data_t data structure with the solution KPI (Effe, Residual mod., Gradient mod.).
- *       We need to generate a better measure of the fitting properties of the model.
- *       Store them in the RGLM file, read/write them.
- *       Copy them to the rglmdf_weight_record_t structure.
- *
  * @todo More comments are needed in order to better explain the algorithm.
- *
- * @todo A regression convergence createria has to be studied. The goodness of fit statistics, either
- *       residuals, deviance, or chi-square, or something else.
- *
- * @todo The algorithm used to compute the weights is Minimum Mean Square Error (MMSE),
- *       move to Maximum Likelihood Estimation (MLE), or offer the selection among the two.
- *
- * @todo The INTERCEPT is 'hyper-static', and does not take the value corresponding to the average game value.
- *       This behavior is not expected, and should be investigated further.
  *
  * @todo A much more powerful mobility measure could in principle better asses positions like 35900656.
  *       This position has a value of +64, but the best evaluator with ALL the patterns give an evaluation of
@@ -43,7 +29,7 @@
  *        Player to move: BLACK
  *       (1 row)
  *
- * @todo Classify the legal moves into types.
+ *       One option would be to llassify the legal moves into types.
  * @code
  * .    a    b    c    d    e    f    g    h
  *   =========================================
@@ -64,16 +50,28 @@
  * 8 =  V .. C .. A .. B .. B .. A .. C .. V =
  *   =========================================
  * @endcode
+ *       Or even to compute the adversarial possible moves in case of a "theorethical pass".
  *
- * @todo The evaluation function in the current implementation computes the expected outcome.
- *       This is improper at best, incorrect most likely.
- *       The logistic regression applied by the algorithm should model the probability
- *       of a dichotomous outcome.
- *       Here we have three options:
- *         - transform the implementation to a proper dichotomous logit model
- *         - develop the model as an ordinal logit regression
- *         - keep the model as it is, understanding it is not a classic logistic regression
- *       We are going to focus on the first one first.
+ * @todo The evaluation function in the current implementation computes the expected game outcome.
+ *       This is the reason why it is better to use Minimum Mean Square Error (MMSE),
+ *       it has a formal matemathical theory behind the model.
+ *
+ *       A second model could be based on computing the probability of win. In such a model
+ *       the natural algorithm to be used to compute the weights would be the Maximum
+ *       Likelihood Estimation (MLE).
+
+ *       In this second design, the logistic regression should model the probability
+ *       of a dichotomous outcome. To realize it we should develop the model as an ordinal logit regression.
+ *       The model could be realized ( see Agresti book ) with a sequence of dicotomous models
+ *       of the type:
+ *
+ *         - model  0: [-64:-64] = loss , [-62:+64] = win
+ *         - model  1: [-64:-62] = loss , [-60:+64] = win
+ *         - model  2: [-64:-60] = loss , [-58:+64] = win
+ *         - model  3: [-64:-58] = loss , [-56:+64] = win
+ *         - ...
+ *         - model 63: [-64:+62] = loss , [+64:+64] = win
+ *
  *       The idea is to identify a Target game Value (TV) and classify the position data-set
  *       using the recorded Game True Value (GTV): Pr(GTV > TV) = Pr(y = 1) = e(w) , where
  *       e(w) is the value of the evaluation function given the vector of weights w.
@@ -100,8 +98,17 @@
  *       The entity_freq_summary table has to be extended with the frequencies of positions
  *       by outcome value, it is an array of 65 integers for each glm variable.
  *
+ *       There is a huge literatire on dealing with Complete Separation. There are basicly two reason why
+ *       we could incurr in this case: the feature fully separate the model, or we have few data for rare events.
+ *       The second one is the issue. Approches to cope with it follow into two main categories: prior knowledge,
+ *       and Penalized Logistic Regression ( Ridge or Lasso methods ).
+ *
  *       A more automated procedure is then needed to orchestrate all the regressions, storing the
  *       results ( I mean the weights ) by TV, and also the regression KPI for future understanding.
+ *
+ *       A complete different approach is to compute the probability mass function as a Beta distribution knowing
+ *       the mean and the variance, that we know with the application of the first design.
+ *       Would it be a model describing the reality in an usefull manner ?
  *
  * --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
  *
@@ -258,6 +265,30 @@
  *                             It is just a dump of the matrix using the linear_algebra utility functions. It is ok.
  *                           Add the data format type.
  *                           Should be all documented and rationalized.
+ *
+ * @todo [2021-01-11 - done] A regression convergence createria has to be studied. The goodness of fit statistics, either
+ *                           residuals, deviance, or chi-square, or something else.
+ *                           Comment: deviance would be the way to go in case of a max likelihood ordinal GLM.
+ *                           But currently we are using a min residual square loss ... and most relevant overall, we are
+ *                           fitting the game value, not the winning probability.
+ *                           The choice at the moment is to use the standard deviation of the residual of a validation data set.
+ *                           It seams to be the right choice.
+ *
+ * @todo [2021-01-11 - done] Complete the rglmdf_general_data_t data structure with the solution KPI (Effe, Residual mod., Gradient mod.).
+ *                           We need to generate a better measure of the fitting properties of the model.
+ *                           Store them in the RGLM file, read/write them.
+ *                           Copy them to the rglmdf_weight_record_t structure.
+ *                           Action: cancelled.
+ *                           Having developed the rglm.sh and rglm_batch.sh scripts, that record all the data steps with appropriate logs
+ *                           there is no stringent need to keep in the binary file the optimization history.
+ *
+ * @todo [2021-01-11 - done] The INTERCEPT is 'hyper-static', and does not take the value corresponding to the average game value.
+ *                           This behavior is not expected, and should be investigated further.
+ *                           Checked: it is not true. The INTERCEPT feature taken alone does fit the average game value.
+ *                           What happens is that low relevant patterns ( e.g. DIAG3 ) are fitted with weights assuming very high value,
+ *                           all the instances belonging to a pattern take high values within a small range, and the INTERCEPT compensates
+ *                           this behaviour with a value having the same modulus but different size.
+ *                           Why this happens is not fully clear.
  *
  *
  *
