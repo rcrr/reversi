@@ -713,3 +713,30 @@ sample-46038578;...b.bb.wb.bbbb..bbb.bbw.bbbbbww.bbbbwbw..bwbbb...bbbbb..b.bbbb.
 #              |1       2       3       4       5       6       7       8       |
 #              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
 sample-67394859;...bb...w.bbbbb.wbwwwbb.wwwwwbbww.bwwbb..bbbwwbw....wwww...wwww.;b;Black loses with a score of -62, the residual of A2050 is -3.876559e-01;
+#
+#
+#
+# In the WOC final Keisuke played Piyanat Aunchelee, World Champion 2016.
+# Keisuke won the final with 2,5-0,5 points. (35-29, 32-32 & 34-30).
+# They were three very close, high-level games.
+# See the video at: https://www.youtube.com/watch?v=HLW5Ms-gZAw
+#
+# This is the firt game.
+# The board represented has empty_square = 20 (woc18-FKvsAP-20) after white plays G1, the best and only move that leads to +2.
+#
+#    a b c d e f g h
+# 1  . @ @ @ @ . O .
+# 2  . . O @ @ O . .
+# 3  . O O O O @ @ @
+# 4  O O O O O @ O @
+# 5  O O O @ O @ @ @
+# 6  . O @ O @ @ @ @
+# 7  . . O O O @ . .
+# 8  . . . O . . . .
+# Player to move: BLACK
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+woc18-FKvsAP-21;.bbbb.....wbbb...wwwbbbbwwwwwbwbwwwbwbbb.wbwbbbb..wwwb.....w....;w;WOC18 Fukuchi Keisuke vs Aunchulee Piyanat;
+woc18-FKvsAP-20;.bbbb.w...wbbw...wwwwbbbwwwwwbwbwwwbwbbb.wbwbbbb..wwwb.....w....;b;WOC18 Fukuchi Keisuke vs Aunchulee Piyanat;
+woc18-FKvsAP-19;.bbbb.w..bbbbw...wbwwbbbwwwbwbwbwwwbbbbb.wbwbbbb..wwwb.....w....;w;WOC18 Fukuchi Keisuke vs Aunchulee Piyanat;
