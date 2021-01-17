@@ -9,6 +9,72 @@
  *
  * @todo More comments are needed in order to better explain the algorithm.
  *
+ * @todo Residual = Observed value - predicted value
+ *       Are we consistent ?
+ *
+ * @todo Reopened: The INTERCEPT is 'hyper-static', and does not take the value corresponding to the average game value.
+ *       This behavior is not expected, and should be investigated further.
+ *       The INTERCEPT feature taken alone does fit the average game value.
+ *       What happens is that low relevant patterns ( e.g. DIAG3 ) are fitted with weights assuming very high value,
+ *       all the instances belonging to a pattern take high values within a small range, and the INTERCEPT compensates
+ *       this behaviour with a value having the same modulus but different size.
+ *       Why this happens is not clear.
+ *
+ * Here an analysis run with R, dt_a is the WEIGHTS data.table computed on model A1850 (2M positions),
+ * dt_b is model B1850 (4M pos.), dt_c is C1850 (6M pos.).
+ * The model has all patterns and is competed on empty_count = 18.
+ * V1 column is the mean of the weight grouped by the pattern_id.
+ * There are two points to notice:
+ *   - 1 - All the contributions are positive, with the exception of the INTERCEPT.
+ *   - 2 - Mobility starts flat and grows a lot after 5. At 7 we are above 500. seems to me to much ...
+ *
+ * > dt_a[INDEX_VALUE==PRINCIPAL_INDEX_VALUE & TOTAL_CNT > 0, mean(WEIGHT), by = list(ENTITY_CLASS, ENTITY_ID)]
+ *     ENTITY_CLASS ENTITY_ID           V1
+ *  1:            0         0 -90.52614079
+ *  2:            0         3   0.49295071
+ *  3:            1         1   0.11353875
+ *  4:            1         2   0.02384584
+ *  5:            1         3   0.17677227
+ *  6:            1         4   0.17841503
+ *  7:            1         5   0.39537714
+ *  8:            1         6  14.14114405
+ *  9:            1         7   4.52611704
+ * 10:            1         8   1.57065974
+ * 11:            1         9   0.78761965
+ * 12:            1        10   0.20141021
+ * 13:            1        11   0.03084498
+ * > dt_b[INDEX_VALUE==PRINCIPAL_INDEX_VALUE & TOTAL_CNT > 0, mean(WEIGHT), by = list(ENTITY_CLASS, ENTITY_ID)]
+ *     ENTITY_CLASS ENTITY_ID            V1
+ *  1:            0         0 -236.79886656
+ *  2:            0         3    0.49370139
+ *  3:            1         1    0.33835303
+ *  4:            1         2    0.06915251
+ *  5:            1         3    0.53053781
+ *  6:            1         4    0.53416219
+ *  7:            1         5    1.18507909
+ *  8:            1         6   34.47111123
+ *  9:            1         7   13.44621296
+ * 10:            1         8    4.75240017
+ * 11:            1         9    2.35388405
+ * 12:            1        10    0.60000846
+ * 13:            1        11    0.09081492
+ * > dt_c[INDEX_VALUE==PRINCIPAL_INDEX_VALUE & TOTAL_CNT > 0, mean(WEIGHT), by = list(ENTITY_CLASS, ENTITY_ID)]
+ *     ENTITY_CLASS ENTITY_ID            V1
+ *  1:            0         0 -245.55161311
+ *  2:            0         3    0.49274027
+ *  3:            1         1    0.45952941
+ *  4:            1         2    0.09265962
+ *  5:            1         3    0.72139033
+ *  6:            1         4    0.73226532
+ *  7:            1         5    1.63074611
+ *  8:            1         6   30.64418093
+ *  9:            1         7   15.81527700
+ * 10:            1         8    6.39677146
+ * 11:            1         9    3.25066545
+ * 12:            1        10    0.82053433
+ * 13:            1        11    0.12244913
+ *
+ *
  * @todo A much more powerful mobility measure could in principle better asses positions like 35900656.
  *       This position has a value of +64, but the best evaluator with ALL the patterns give an evaluation of
  *       a DRAW.
