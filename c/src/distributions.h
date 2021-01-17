@@ -101,5 +101,32 @@ dstrb_beta_cdf (double a,
                 double b,
                 double x);
 
+extern double
+dstrb_beta_mean (double a,
+                 double b);
+
+extern double
+dstrb_beta_mode (double a,
+                 double b);
+
+extern double
+dstrb_beta_variance (double a,
+                     double b);
+
+extern double
+dstrb_beta_skewness (double a,
+                     double b);
+
+extern double
+dstrb_beta_kurtosis (double a,
+                     double b);
+
+extern void
+dstrb_beta_parameter_estimation (double m,
+                                 double v,
+                                 double *a,
+                                 double *b,
+                                 int *err);
+
 
 #endif /* DSTRB_H */

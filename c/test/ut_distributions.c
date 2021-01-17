@@ -136,7 +136,7 @@ dstrb_beta_function_t (ut_test_t *const t)
      { .x =   3.0, .y =  6.0, .e =  0.005952380952380952380952 },
      { .x =   5.0, .y =  5.0, .e =  0.001587301587301587301587 },
      { .x =  10.0, .y = 10.0, .e =  1.082508822446902942259E-6 },
-     { .x =   0.2, .y =  0.2, .e =  9.501501389884365877947 },
+     { .x =   0.2, .y =  0.2, .e =  9.501501389884367415030576 },
      { .x =   0.1, .y = 15.0, .e =  7.278567591795812422652176 },
     };
 
@@ -268,6 +268,258 @@ dstrb_beta_pdf_t (ut_test_t *const t)
   }
 }
 
+static void
+dstrb_beta_mean_t (ut_test_t *const t)
+{
+  struct test_data {
+    double a;           /* Input value a. */
+    double b;           /* Input value b. */
+    double e;           /* Expected result. */
+  };
+
+  const struct test_data td[] =
+    {
+     { .a = 0.5, .b = 0.5, .e = 0.5 },
+     { .a = 5.0, .b = 1.0, .e = 0.8333333333333333333333 },
+     { .a = 1.0, .b = 3.0, .e = 0.25 },
+     { .a = 2.0, .b = 2.0, .e = 0.5 },
+     { .a = 2.0, .b = 5.0, .e = 0.2857142857142856984254 },
+     { .a = 1.0, .b = 1.0, .e = 0.5 },
+    };
+
+  const size_t td_size = sizeof(td) / sizeof(td[0]);
+
+  const double epsilon = 1.e-14;
+
+  const bool verbose = ut_run_time_is_verbose(t);
+
+  if (verbose) {
+    printf("\n");
+    printf("epsilon = %e\n", epsilon);
+  }
+  for (size_t i = 0; i < td_size; i++) {
+    const double r = dstrb_beta_mean(td[i].a, td[i].b);
+    const double d = fabs(r - td[i].e);
+    if (verbose)
+      printf("i = %2zu, a = %+23.18f, b = %+23.18f, e = %+23.18f, r = %+23.18f, fabs(r-e) = %+23.18f\n",
+             i, td[i].a, td[i].b, td[i].e, r, d);
+    ut_assert(t, d < epsilon);
+  }
+}
+
+static void
+dstrb_beta_mode_t (ut_test_t *const t)
+{
+  struct test_data {
+    double a;           /* Input value a. */
+    double b;           /* Input value b. */
+    double e;           /* Expected result. */
+  };
+
+  const struct test_data td[] =
+    {
+     { .a = 0.5, .b = 0.5, .e = 0.5 },
+     { .a = 5.0, .b = 1.0, .e = 1. },
+     { .a = 1.0, .b = 3.0, .e = 0. },
+     { .a = 2.0, .b = 2.0, .e = 0.5 },
+     { .a = 2.0, .b = 5.0, .e = 0.2 },
+     { .a = 1.0, .b = 1.0, .e = 0.5 },
+    };
+
+  const size_t td_size = sizeof(td) / sizeof(td[0]);
+
+  const double epsilon = 1.e-14;
+
+  const bool verbose = ut_run_time_is_verbose(t);
+
+  if (verbose) {
+    printf("\n");
+    printf("epsilon = %e\n", epsilon);
+  }
+  for (size_t i = 0; i < td_size; i++) {
+    const double r = dstrb_beta_mode(td[i].a, td[i].b);
+    const double d = fabs(r - td[i].e);
+    if (verbose)
+      printf("i = %2zu, a = %+23.18f, b = %+23.18f, e = %+23.18f, r = %+23.18f, fabs(r-e) = %+23.18f\n",
+             i, td[i].a, td[i].b, td[i].e, r, d);
+    ut_assert(t, d < epsilon);
+  }
+}
+
+static void
+dstrb_beta_variance_t (ut_test_t *const t)
+{
+  struct test_data {
+    double a;           /* Input value a. */
+    double b;           /* Input value b. */
+    double e;           /* Expected result. */
+  };
+
+  const struct test_data td[] =
+    {
+     { .a = 0.5, .b = 0.5, .e = 0.125 },
+     { .a = 5.0, .b = 1.0, .e = 0.01984126984126984016843 },
+     { .a = 1.0, .b = 3.0, .e = 0.03749999999999999861222 },
+     { .a = 2.0, .b = 2.0, .e = 0.05 },
+     { .a = 2.0, .b = 5.0, .e = 0.02551020408163265362766 },
+     { .a = 1.0, .b = 1.0, .e = 0.08333333333333333333333 },
+    };
+
+  const size_t td_size = sizeof(td) / sizeof(td[0]);
+
+  const double epsilon = 1.e-14;
+
+  const bool verbose = ut_run_time_is_verbose(t);
+
+  if (verbose) {
+    printf("\n");
+    printf("epsilon = %e\n", epsilon);
+  }
+  for (size_t i = 0; i < td_size; i++) {
+    const double r = dstrb_beta_variance(td[i].a, td[i].b);
+    const double d = fabs(r - td[i].e);
+    if (verbose)
+      printf("i = %2zu, a = %+23.18f, b = %+23.18f, e = %+23.18f, r = %+23.18f, fabs(r-e) = %+23.18f\n",
+             i, td[i].a, td[i].b, td[i].e, r, d);
+    ut_assert(t, d < epsilon);
+  }
+}
+
+static void
+dstrb_beta_skewness_t (ut_test_t *const t)
+{
+  struct test_data {
+    double a;           /* Input value a. */
+    double b;           /* Input value b. */
+    double e;           /* Expected result. */
+  };
+
+  const struct test_data td[] =
+    {
+     { .a = 0.5, .b = 0.5, .e = 0.0 },
+     { .a = 5.0, .b = 1.0, .e = -1.183215956619923181492 },
+     { .a = 1.0, .b = 3.0, .e = 0.8606629658238704738693 },
+     { .a = 2.0, .b = 2.0, .e = 0.0 },
+     { .a = 2.0, .b = 5.0, .e = 0.5962847939999439406122 },
+     { .a = 1.0, .b = 1.0, .e = 0.0 },
+    };
+
+  const size_t td_size = sizeof(td) / sizeof(td[0]);
+
+  const double epsilon = 1.e-14;
+
+  const bool verbose = ut_run_time_is_verbose(t);
+
+  if (verbose) {
+    printf("\n");
+    printf("epsilon = %e\n", epsilon);
+  }
+  for (size_t i = 0; i < td_size; i++) {
+    const double r = dstrb_beta_skewness(td[i].a, td[i].b);
+    const double d = fabs(r - td[i].e);
+    if (verbose)
+      printf("i = %2zu, a = %+23.18f, b = %+23.18f, e = %+23.18f, r = %+23.18f, fabs(r-e) = %+23.18f\n",
+             i, td[i].a, td[i].b, td[i].e, r, d);
+    ut_assert(t, d < epsilon);
+  }
+}
+
+static void
+dstrb_beta_kurtosis_t (ut_test_t *const t)
+{
+  struct test_data {
+    double a;           /* Input value a. */
+    double b;           /* Input value b. */
+    double e;           /* Expected result. */
+  };
+
+  const struct test_data td[] =
+    {
+     { .a = 0.5, .b = 0.5, .e = 1.5 },
+     { .a = 5.0, .b = 1.0, .e = 4.2 },
+     { .a = 1.0, .b = 3.0, .e = 3.095238095238095343831 },
+     { .a = 2.0, .b = 2.0, .e = 2.142857142857142793702 },
+     { .a = 2.0, .b = 5.0, .e = 2.879999999999999893419 },
+     { .a = 1.0, .b = 1.0, .e = 1.8 },
+    };
+
+  const size_t td_size = sizeof(td) / sizeof(td[0]);
+
+  const double epsilon = 1.e-14;
+
+  const bool verbose = ut_run_time_is_verbose(t);
+
+  if (verbose) {
+    printf("\n");
+    printf("epsilon = %e\n", epsilon);
+  }
+  for (size_t i = 0; i < td_size; i++) {
+    const double r = dstrb_beta_kurtosis(td[i].a, td[i].b);
+    const double d = fabs(r - td[i].e);
+    if (verbose)
+      printf("i = %2zu, a = %+23.18f, b = %+23.18f, e = %+23.18f, r = %+23.18f, fabs(r-e) = %+23.18f\n",
+             i, td[i].a, td[i].b, td[i].e, r, d);
+    ut_assert(t, d < epsilon);
+  }
+}
+
+static void
+dstrb_beta_parameter_estimation_t (ut_test_t *const t)
+{
+  struct test_data {
+    double m;           /* Input value m (mean). */
+    double v;           /* Input value v (variance). */
+    double a;           /* Expected a parameter. */
+    double b;           /* Expected b parameter. */
+    int err;            /* Expected error value. */
+  };
+
+  const struct test_data td[] =
+    {
+     { .m = 0.5, .v = 0.125, .a = 0.5, .b = 0.5, .err = 0 },
+     { .m = 0.8333333333333333333333, .v = 0.01984126984126984016843, .a = 5.0, .b = 1.0, .err = 0 },
+
+     { .m = 0.5, .v = 0.3, .a = 0.0, .b = 0.0, .err = 1 },
+
+     /* When both a & b are less then 1.0 the model doesn't fit the reality.
+      * I believe that the variance is smaller close to the limits of the interval (0,1).
+      */
+     { .m = 0.05, .v = 0.03, .a = 0.029166666666667, .b = 0.554166666666667, .err = 0 },
+    };
+
+  const size_t td_size = sizeof(td) / sizeof(td[0]);
+
+  double a, b;
+  int err;
+
+  const double epsilon = 1.e-14;
+
+  const bool verbose = ut_run_time_is_verbose(t);
+
+  if (verbose) {
+    printf("\n");
+    printf("epsilon = %e\n", epsilon);
+  }
+  for (size_t i = 0; i < td_size; i++) {
+    a = -1.0;
+    b = -1.0;
+    dstrb_beta_parameter_estimation(td[i].m, td[i].v, &a, &b, &err);
+    const double da = fabs(a - td[i].a);
+    const double db = fabs(b - td[i].b);
+    if (verbose) {
+      printf("i = %2zu, m = %+23.18f, v = %+23.18f, a = %+23.18f, b = %+23.18f, err = %d\n",
+             i, td[i].m, td[i].v, td[i].a, td[i].b, td[i].err);
+      printf("        result.a = %+23.18f, result.b = %+23.18f, result.err = %d, da = %+23.18f, db = %+23.18f\n",
+             a, b, err, da, db);
+    }
+    ut_assert(t, td[i].err == err);
+    if (err == 0) {
+      ut_assert(t, da < epsilon);
+      ut_assert(t, db < epsilon);
+    }
+  }
+}
+
 
 /**
  * @brief Runs the test suite.
@@ -286,6 +538,13 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "dstrb_beta_function", dstrb_beta_function_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "dstrb_beta_pdf", dstrb_beta_pdf_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "dstrb_beta_cdf", dstrb_beta_cdf_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "dstrb_beta_mean", dstrb_beta_mean_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "dstrb_beta_mode", dstrb_beta_mode_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "dstrb_beta_variance", dstrb_beta_variance_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "dstrb_beta_skewness", dstrb_beta_skewness_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "dstrb_beta_kurtosis", dstrb_beta_kurtosis_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "dstrb_beta_parameter_estimation", dstrb_beta_parameter_estimation_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);

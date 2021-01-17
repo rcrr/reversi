@@ -167,3 +167,76 @@ dstrb_beta_pdf (const double a,
   const double y0 = dstrb_beta_function(a, b);
   return y1 / y0;
 }
+
+double
+dstrb_beta_mean (const double a,
+                 const double b)
+{
+  assert(a > 0.);
+  assert(b > 0.);
+  return a / ( a + b);
+}
+
+double
+dstrb_beta_mode (const double a,
+                 const double b)
+{
+  assert(a > 0.);
+  assert(b > 0.);
+  if (a == 1. && b == 1.) return 0.5;
+  return (a - 1) / ( a + b - 2);
+}
+
+double
+dstrb_beta_variance (const double a,
+                     const double b)
+{
+  const double c = a + b;
+  return (a * b) / (c * c * (c + 1));
+}
+
+double
+dstrb_beta_skewness (const double a,
+                     const double b)
+{
+  assert(a > 0.);
+  assert(b > 0.);
+  return (2 * (b - a) * sqrt(a + b + 1)) / ((a + b + 2) * sqrt(a * b));
+}
+
+double
+dstrb_beta_kurtosis (const double a,
+                     const double b)
+{
+  assert(a > 0.);
+  assert(b > 0.);
+  const double c = a - b;
+  const double d = a * b;
+  const double ab1 = a + b + 1;
+  const double ab2 = a + b + 2;
+  const double ab3 = a + b + 3;
+  return 3 + 6 * (c * c * ab1 - d * ab2) / (d * ab2 * ab3);
+}
+
+void
+dstrb_beta_parameter_estimation (const double m,
+                                 const double v,
+                                 double *const a,
+                                 double *const b,
+                                 int *const err)
+{
+  assert(m > 0. && m < 1.);
+  assert(v > 0.);
+  assert(a);
+  assert(b);
+  const double r = m * (1.0 - m);
+  if (v > r) {
+    if (err) *err = 1;
+    return;
+  }
+  const double q = (r / v) - 1.0;
+  *a = m * q;
+  *b = (1.0 - m) * q;
+  if (err) *err = 0;
+  return;
+}
