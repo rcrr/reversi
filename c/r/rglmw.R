@@ -60,9 +60,119 @@ load_dtv_model_weights <- function(data_dir, runcode) {
   return(dtv)
 }
 
+# Game Value (gv) to Transformed Game Value (tgv)
+gv2tgv <- function(gv) {
+  b = 0.5
+  a = 0.00765625
+  tgv <- a * gv + b
+  return(tgv)
+}
+
+# Transformed Game Value (tgv) to Game Value (gv)
+tgv2gv <- function(tgv) {
+  b = 0.5
+  a = 0.00765625
+  gv <- (tgv - b) / a
+  return(gv)
+}
+
+round_gv <- function(gv) {
+  rgv = round(gv / 2) * 2
+  return(rgv)
+}
+
+game_value_by_ev_histogram <- function(mw, evaluation_game_value) {
+  e <- evaluation_game_value
+  if (nrow(mw$dtst[EGV==e])==0) {return(NULL)}
+  alpha <- mw$dtst[EGV==e]$ALPHA
+  beta <- mw$dtst[EGV==e]$BETA
+  m <- mw$dtst[EGV==e]$MEAN
+  v <- mw$dtst[EGV==e]$VAR
+  s <- mw$dtst[EGV==e]$SD
+  min <- mw$dtst[EGV==e]$MIN
+  max <- mw$dtst[EGV==e]$MAX
+  c <- mw$dtst[EGV==e]$COUNT
+  t <- gv2tgv(e)
+  p <- ggplot(mw$dtv[EGV==e], aes(x=GAME_VALUE_TRANSFORMED)) + geom_histogram(aes(y=stat(density)), binwidth = 1./64,
+                                                                              color='darkturquoise', fill='aquamarine') +
+    stat_function(fun = dbeta, args = list(shape1=alpha, shape2=beta), n=501, colour='blue') +
+    coord_cartesian(xlim = c(0., 1.)) +
+    xlab('Game value transformed') + ylab('Probability density') +
+    labs(title = mw$runcode, subtitle = paste('Evaluation Game Value: ', e, '(', t, ')', ' position count = ', c, '\n',
+                                              'mean = ', format(m, digits = 3), ', var = ', format(v, digits = 3),
+                                              ', sd = ', format(s, digits = 3),
+                                              ', min = ', format(min, digits = 3), ', max = ', format(max, digits = 3), '\n',
+                                              'alpha = ', format(alpha, digits = 3), ', beta = ', format(beta, digits = 3))) +
+    scale_x_continuous(n.breaks = 10)
+  return(p)
+}
+
+game_value_by_ev_barplot <- function(mw, evaluation_game_value) {
+  e <- evaluation_game_value
+  if (nrow(mw$dtst[EGV==e])==0) {return(NULL)}
+  m <- mw$dts[EGV==e]$MEAN
+  v <- mw$dts[EGV==e]$VAR
+  s <- mw$dts[EGV==e]$SD
+  min <- mw$dts[EGV==e]$MIN
+  max <- mw$dts[EGV==e]$MAX
+  c <- mw$dts[EGV==e]$COUNT
+
+  dt <- mw$dtv[EGV==e, .(N=.N, F=.N/c), by=GAME_VALUE][order(GAME_VALUE)]
+  
+  p <- ggplot(data=dt, aes(x=GAME_VALUE, y=F)) +
+    geom_bar(stat="identity") +
+    coord_cartesian(xlim = c(-64, +64)) +
+    scale_x_continuous(n.breaks = 10) +
+    xlab('Game value') + ylab('Frequency') +
+    labs(title = mw$runcode, subtitle = paste('Evaluation Game Value: ', e, ' - position count = ', c, '\n',
+                                              'mean = ', format(m, digits = 3), ', var = ', format(v, digits = 3),
+                                              ', sd = ', format(s, digits = 3),
+                                              ', min = ', format(min, digits = 3), ', max = ', format(max, digits = 3)))
+  return(p)
+}
+
+game_value_by_ev_boxplot <- function(mw) {
+  p <- ggplot(mw$dtv, aes(x=factor(EGV), y=GAME_VALUE)) + geom_boxplot() +
+    xlab('Evaluated game value') + ylab('Game value')  +
+    labs(title = mw$runcode) +
+    coord_cartesian(ylim = c(-64, +64)) +
+    scale_y_continuous(n.breaks = 10)
+  return(p)
+}
+
+beta_distrib_method_of_moments <- function(m, v) {
+  x <- m * (1 - m)
+  y <- (x / v) - 1
+  a <- y * m
+  b <- y * (1 - m)
+  return(list(a=a, b=b))
+}
+
 load_model_weights <- function(data_dir, runcode) {
   dt <- load_dt_model_weights(data_dir, runcode)
   dtv <- load_dtv_model_weights(data_dir, runcode)
+  
+  dtv[, EGV := round_gv(tgv2gv(EVALUATION_FUNCTION))]
+  dts <- dtv[, .(COUNT=.N,
+                 MEAN=mean(GAME_VALUE),
+                 MEDIAN=median(GAME_VALUE),
+                 VAR=var(GAME_VALUE),
+                 SD=sd(GAME_VALUE),
+                 MIN=min(GAME_VALUE),
+                 MAX=max(GAME_VALUE)),
+      by=EGV][order(EGV)]
+  
+  dtst <- dtv[, .(COUNT=.N,
+                  MEAN=mean(GAME_VALUE_TRANSFORMED),
+                  MEDIAN=median(GAME_VALUE_TRANSFORMED),
+                  VAR=var(GAME_VALUE_TRANSFORMED),
+                  SD=sd(GAME_VALUE_TRANSFORMED),
+                  MIN=min(GAME_VALUE_TRANSFORMED),
+                  MAX=max(GAME_VALUE_TRANSFORMED)),
+              by=EGV][order(EGV)]
+  
+  dtst[, ALPHA:=beta_distrib_method_of_moments(MEAN,VAR)$a]
+  dtst[, BETA:=beta_distrib_method_of_moments(MEAN,VAR)$b]
   
   game_value_transformed_mean <- mean(dt$GAME_VALUE_TRANSFORMED)
   dt[, REFERENCE := GAME_VALUE_TRANSFORMED - game_value_transformed_mean]
@@ -117,7 +227,8 @@ load_model_weights <- function(data_dir, runcode) {
     labs(title = 'RGLM Residuals vs Game Values', subtitle = runcode) +
     xlab('Game value') + ylab('Game value residual')
   
-  ret_val <- list(reference_sd=reference_sd,
+  ret_val <- list(runcode=runcode,
+                  reference_sd=reference_sd,
                   residual_sd=residual_sd,
                   validation_sd=validation_sd,
                   validation_mean=validation_mean,
@@ -125,6 +236,10 @@ load_model_weights <- function(data_dir, runcode) {
                   validation_kurtosis=validation_kurtosis,
                   plot_distrib=p0,
                   plot_res_vs_fitted=p1,
-                  plot_res_vs_gv=p2)
+                  plot_res_vs_gv=p2,
+                  dt=dt,
+                  dtv=dtv,
+                  dts=dts,
+                  dtst=dtst)
   return(ret_val)
 }
