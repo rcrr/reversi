@@ -1,44 +1,25 @@
 /**
  * @file
  *
- * @todo [done] Complete the removal of MoveList and MoveList Element from exact_solver.
  *
- * @todo [done] Harmonize the exact_solver algorithm to minimax, full use of the stack and no recursion.
+ * @todo Select one or more feature and write a proper evaluation function based on
+ *       the data analysis and the features.
+ *       Write a new solver based on the new RGLM Evaluation Function.
+ *       Test the effectiveness of sorting moves in the a-b algorithm based on the new evaluation function.
  *
- * @todo [done] Add to the exact_solver logging strategy a second file that logs
- *              when the function returns. There we can add the return value and the
- *              number of moves searched against the number of legal ones. This can give
- *              back a kpi of the alpha-beta efficiency in cutting irrelevant branches.
- *              It is needed than to develop the postgres tables and procedures to properly handle this new data.
- *
+ * @todo When available a new evaluation function that enable the sorting based on output
+ *       estimation we are ready to develop an iterative-deepening game search algorithm, as well as
+ *       a zero-windows search.
  * @todo Analyze the effectiveness of the a-b cut operated by es, compare it with a-b, and random a-b. The analysis require to have the tail-log-file tool.
- *
- * @todo [done] Remove json fields in the logging procedures, and from PostgreSQL.
- *
- * @todo [done] Develop an object allocator tool.
- *
- * @todo Memory Object Pool refinements:
- *       - Develop an optional check in the mopool_free function that verifies that the pointer released is a good allocated object.
- *       - Apply the allocator to core utilities like the red-black trees, and the linked list.
- *       - Look for all the call to malloc and properly handle the failure that may arise when NULL is returned.
- *       - Create the call-back functions for check the allocated objects, and for shrink the pool.
- *
- * @todo Change typedef from camel based to _t syntax. In all modules.
  *
  * @todo The output of the solvers is not always appropriate:
  *         - [done] Final board is not reported
  *         - The value of all the first level moves is not recorded
  *         - For random game sampler the output is meaningless
  *
- * @todo [done] Meter, and verify, performances of the new harmonized exact_solver vs the legacy one.
- *              Remove the legacy one when tests, and performances are OK.
- *
- * @todo Refactor game_tree_utils.
- *
- * @todo Add a new function in game_tree_utils that prints a human readable dump of the stack. Evaluate the option to have a binary dump, and next an
- *       independent reader.
- *       Could be relevant to have a binary format that supports multiple stack dumps, in order to log different evolution of the stack during program
- *       execution. The reader than should be able to list the dumps saved in the binary format and to print the requested selection.
+ * @todo When es searches the full pv the a-b values are taking values outside of the worst-best outcome (-72 for instance). This is very alarming.
+ *       The reason is that during the alpha-beta deepening at each iteration alpha is decreased by one.
+ *       Is it correct? It seems not, but a full investigation is required. Best done after the tail-log-file is operational.
  *
  * @todo Refactor the board module. Get rid of all game_position and board structures, prepare the new one with the {player, opponent} definition.
  *       Change the definition of game_position and board from: {black, white}, to {player, opponent}. This is a big change, the reason for it is that
@@ -48,9 +29,14 @@
  * @todo Remove GamePositionX and add board_t and game_position_t, where game_position_t has a bit-board for player and one for the opponent.
  *       board_t has also the player moving next.
  *
- * @todo When es searches the full pv the a-b values are taking values outside of the worst-best outcome (-72 for instance). This is very alarming.
- *       The reason is that during the alpha-beta deepening at each iteration alpha is decreased by one.
- *       Is it correct? It seems not, but a full investigation is required. Best done after the tail-log-file is operational.
+ * @todo Change typedef from camel based to _t syntax. In all modules.
+ *
+ * @todo Refactor game_tree_utils.
+ *
+ * @todo Add a new function in game_tree_utils that prints a human readable dump of the stack. Evaluate the option to have a binary dump, and next an
+ *       independent reader.
+ *       Could be relevant to have a binary format that supports multiple stack dumps, in order to log different evolution of the stack during program
+ *       execution. The reader than should be able to list the dumps saved in the binary format and to print the requested selection.
  *
  * @todo Re-make from scratch the PV module. This is large and big, and painful, we know it. Objectives:
  *       - Have a dedicated module.
@@ -66,49 +52,15 @@
  *       The removed duplication in the pv dag, obtained by implementing the index, and the sharp search due to the zero window search should
  *       contain to the minimum the time and memory overhead of this analysis.
  *
- * @todo [done] Develop the architecture and the procedures in C and in PostgreSQL to generate and store random games.
- *              It is needed:
- *              - a unique game id, generated by a sequence in the DB.
- *              - an header table having:
- *                * game_id
- *                * ARRAY of int8, that collects the random generator state at the beginning of the game (so the game is reproducible)
- *              - a game position table having:
- *                * game_id
- *                * sequence in the game
- *                * game position
- *                * empty_squares
- *                * is_solved
- *                * value
- *                * best move
- *              - add to the prng module a dump/load api functions that save and restore a random number generator from its internal state
- *              - prepare C procedures that interact with PostgreSQL for generating and storing the random games.
- *              - Establish a procedure to backup and restore the PostgreSQL DB.
- *
- * @todo Develop procedures that consume the position db, computing values and best moves. Moving from almost completed games backwards ...
- *
- * @todo Growth a db of solved, random, game position. Run on the server (Vilya) the batches.
- *
- * @todo Profile exact_solver against improved_fast_endgame_solver.
- *
- * @todo Analyze the parity feature in improved_fast_endgame.
- *
- * @todo Analyze the statistical properties of the solved random games. If needed develop SQL, spreadsheet, R procedures to understand the data.
- *       Select one or more patterns (features) and develop the appropriate statistics and correlation between game output and position features.
- *
- * @todo Select one or more feature and write a proper evaluation function based on the data analysis and the features.
- *       Test the effectiveness of sorting moves in the a-b algorithm based on the new evaluation function.
- *
- * @todo When available a new evaluation function that enable the sorting based on output estimation we are ready to develop an iterative-deepening
- *       game search algorithm.
- *
- * @todo Introduce the node cache by means of a shared hash-table.
- *
- * @todo Evaluate completely the possible pattern feature. Select the final set of feature for the exact solver.
- *       Evaluate possible optimization for the extraction of features from the game position.
+ * @todo Introduce the node cache by means of a shared hash-table (transposition-table).
  *
  * @todo Unit tests are far behind, a complete check is needed to ensure all functions have the appropriate testing.
  *
- * @todo Develop a new game machinery based on AVX-512.
+ * @todo Memory Object Pool refinements:
+ *       - Develop an optional check in the mopool_free function that verifies that the pointer released is a good allocated object.
+ *       - Apply the allocator to core utilities like the red-black trees, and the linked list.
+ *       - Look for all the call to malloc and properly handle the failure that may arise when NULL is returned.
+ *       - Create the call-back functions for check the allocated objects, and for shrink the pool.
  *
  * @todo Complete the Red-Black Tree implementation with set (merge, difference, intersection) functions.
  *
@@ -129,8 +81,77 @@
  *        - A description of the solvers.
  *        - A description of the PL/SQL reversi package.
  *
+ * --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
  *
+ * @todo [2021-01-24 - no longer relevant] Profile exact_solver against improved_fast_endgame_solver.
  *
+ * @todo [2021-01-24 - no longer relevant] Analyze the parity feature in improved_fast_endgame.
+ *
+ * @todo [2021-01-24 - done] Develop procedures that consume the position db, computing values and best moves.
+ *                           Moving from almost completed games backwards ...
+ *                           it is the REGAB programs and database.
+ *
+ * @todo [2021-01-24 - done] Growth a db of solved, random, game position. Run on the server (Vilya) the batches.
+ *
+ * @todo [2021-01-24 - done] Analyze the statistical properties of the solved random games. If needed develop SQL,
+ *                           spreadsheet, R procedures to understand the data.
+ *                           Select one or more patterns (features) and develop the appropriate statistics and correlation
+ *                           between game output and position features.
+ *                           We have done something more, and something less.
+ *                           Now there is a statistical model that correlates patterns and features with the game output.
+ *                           There is a very detailed analysis too.
+ *                           There is no direct analysis between features and game values, they are mutuated by the evaluation
+ *                           function.
+ *
+ * @todo [2021-01-24 - no longer relevant] Evaluate completely the possible pattern feature. Select the final set of feature for the exact solver.
+ *                                         Evaluate possible optimization for the extraction of features from the game position.
+ *                                         The direction taken has been a different one.
+ *                                         There is no need to move forward with furter enhancements on the exact solver code.
+ *
+ * @todo [2021-01-24 - done] Everything down from yere has been completed before Januay 24th, 2021.
+ *                           The development on REGAB and RGLM has arrived to a point where there is a need to
+ *                           pour the accumulated knowledge into the game engine.
+ *                           First step is the refresh of this TODO list.
+ *
+ * @todo [2021-01-24 - no longer relevant] Develop a new game machinery based on AVX-512.
+ *                                         AVX-512 has not been recognized as a breakthrough in the Cholesky Solver.
+ *                                         The BLAS function using AVX2 are as fast as the corresponding AVX-512 on
+ *                                         hardware capable of it.
+ *
+ * @todo [done] Complete the removal of MoveList and MoveList Element from exact_solver.
+ *
+ * @todo [done] Harmonize the exact_solver algorithm to minimax, full use of the stack and no recursion.
+ *
+ * @todo [done] Add to the exact_solver logging strategy a second file that logs
+ *              when the function returns. There we can add the return value and the
+ *              number of moves searched against the number of legal ones. This can give
+ *              back a kpi of the alpha-beta efficiency in cutting irrelevant branches.
+ *              It is needed than to develop the postgres tables and procedures to properly handle this new data.
+ *
+ * @todo [done] Remove json fields in the logging procedures, and from PostgreSQL.
+ *
+ * @todo [done] Develop an object allocator tool.
+ *
+ * @todo [done] Meter, and verify, performances of the new harmonized exact_solver vs the legacy one.
+ *              Remove the legacy one when tests, and performances are OK.
+ *
+ * @todo [done] Develop the architecture and the procedures in C and in PostgreSQL to generate and store random games.
+ *              It is needed:
+ *              - a unique game id, generated by a sequence in the DB.
+ *              - an header table having:
+ *                * game_id
+ *                * ARRAY of int8, that collects the random generator state at the beginning of the game (so the game is reproducible)
+ *              - a game position table having:
+ *                * game_id
+ *                * sequence in the game
+ *                * game position
+ *                * empty_squares
+ *                * is_solved
+ *                * value
+ *                * best move
+ *              - add to the prng module a dump/load api functions that save and restore a random number generator from its internal state
+ *              - prepare C procedures that interact with PostgreSQL for generating and storing the random games.
+ *              - Establish a procedure to backup and restore the PostgreSQL DB.
  *
  * @todo [done] Dependency from glib shall be removed from sources:
  *       - [done] game_tree_logger has file and directory tools based on glib
@@ -176,7 +197,6 @@
  *       - [duplicated] Add game values computation and output for first level moves.
  *       - [done] Add a function to compute PV hash code (it is useful for testing and database processing).
  *       - [done] The ExactSolution object should be replaced by a PVE reference.
- *
  *
  * @todo [done] Complete the random game player.
  *
@@ -237,6 +257,7 @@
  * @todo [done] Remove the dependency from GSL GNU library by replacing it with Mersenne Twister 64bit version foud at http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt64.html
  *              The reason is to avoid the dependency, but more important to have a 64 bit generator (the gsl library has a 32 bit one).
  *
+ * --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
  *
  *
  *
