@@ -1,15 +1,38 @@
 /**
  * @file
  *
+ * @todo Prepare an analytical study that show efficiency in the search down the game tree.
+ *       We need to measure the effectiveness of legal move sorting, and the benefit generated
+ *       by different sorting policies in terms of reduction of visited nodes, reduction obtained
+ *       thank to the increased efficiency of the alpha-beta algorithm when a good sorting is applied.
+ *       Requirements are:
+ *         - Solved game positions having the legal move list paired with the respective game values.
+ *           . Modify the es solver in order to compute and report the 1st level move:value pairs.
+ *           . Modify the REGAB database adding the full move profile for solved positions.
+ *           . Modify the es solver so that it saves the full move profile into the REGAB database.
+ *           . Modify the binary RGLM formats adding the moves:value pairs.
+ *             A good solution should be realized having the field optional in each game position,
+ *             so to have rglm files without the move:value pairs populated, and files where
+ *             some records have it, and some records don't.
+ *         - A best game tree expansion algorithm (minimal tree) used as a reference for comparison.
+ *           The endgame solver should have a flag asking for "minimal tree" solution.
+ *           The flag has a file as argument, this file contains the PV information, and the game value.
+ *           The alpha-beta search runs a zero-window search using the game value, and orders the moves
+ *           according to the PV.
+ *           The resulting game tree should then be "minimal".
+ *           The minimal tree function is a fast proof of the game value.
+ *         - Compare the exact-solver ordering policy with a policy that applies the RGLM evaluation function.
+ *         - Prepare an evaluation function going down multiple ply.
+ *         - Compare the number of nodes expanded by a solver that orders the moves with the RGLM evaluation function.
+ *         - Analyze the effectiveness of the a-b cut operated by es, compare it with a-b, andom a-b, and the new rglm solver.
  *
- * @todo Select one or more feature and write a proper evaluation function based on
- *       the data analysis and the features.
- *       Write a new solver based on the new RGLM Evaluation Function.
- *       Test the effectiveness of sorting moves in the a-b algorithm based on the new evaluation function.
+ * @todo Write a new effective solver (rglm) based on the new RGLM Evaluation Function.
+ *       The solver has to replace the es one in the task to mine new game positions.
  *
  * @todo When available a new evaluation function that enable the sorting based on output
  *       estimation we are ready to develop an iterative-deepening game search algorithm, as well as
  *       a zero-windows search.
+ *
  * @todo Analyze the effectiveness of the a-b cut operated by es, compare it with a-b, and random a-b. The analysis require to have the tail-log-file tool.
  *
  * @todo The output of the solvers is not always appropriate:
@@ -272,7 +295,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014, 2015, 2016, 2017, 2018 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2015, 2016, 2017, 2018, 2021 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -308,6 +331,7 @@
 #include "minimax_solver.h"
 #include "exact_solver.h"
 #include "board_pattern.h"
+#include "rglm_solver.h"
 
 
 
@@ -356,7 +380,7 @@ static const char *documentation =
   "  -h, --help             Show help options\n"
   "  -f, --file             Input file name          - Mandatory.\n"
   "  -q, --lookup-entry     Lookup entry             - Mandatory.\n"
-  "  -s, --solver           Solver                   - Mandatory - Must be in [es|ifes|rand|minimax|ab|rab].\n"
+  "  -s, --solver           Solver                   - Mandatory - Must be in [es|ifes|rand|minimax|ab|rab|rglm].\n"
   "  -n, --repeats          N. of repetitions        - Used with the rand/rab solvers.\n"
   "  -r, --prng-seed        random generator seed    - Used with rand/rab solvers.\n"
   "  -P, --pattern          Pattern                  - Used with the rand solver - Must be in [EDGE|CORNER|XEDGE|R2|R3|R4|DIAG4|DIAG5|DIAG6|DIAG7|DIAG8|2X5COR|DIAG3].\n"
@@ -398,10 +422,14 @@ static const char *documentation =
   "    It uses the alpha-beta pruning, ordering the moves by mean of a random criteria, a sample call is:\n"
   "    $ endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s rab -l out/log -n 3\n"
   "\n"
+  "  - rglm (reversi generalized linear model solver)\n"
+  "    It is an experimental solver under development, a sample call is:\n"
+  "    $ endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s rglm\n"
+  "\n"
   "Author:\n"
   "  Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
   "\n"
-  "Copyright (c) 2013, 2014, 2015, 2016, 2017, 2018 Roberto Corradini. All rights reserved.\n"
+  "Copyright (c) 2013, 2014, 2015, 2016, 2017, 2018, 2021 Roberto Corradini. All rights reserved.\n"
   "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
   "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n"
   ;
@@ -413,7 +441,8 @@ static const endgame_solver_t solvers[] =
     { .id = "rand",    .description = "random game sampler",          .function_name = "game_position_random_sampler", .fn = game_position_random_sampler },
     { .id = "minimax", .description = "minimax solver",               .function_name = "game_position_minimax_solve",  .fn = game_position_minimax_solve },
     { .id = "rab",     .description = "random alpha-beta solver",     .function_name = "game_position_rab_solve",      .fn = game_position_rab_solve },
-    { .id = "ab",      .description = "alpha-beta solver",            .function_name = "game_position_ab_solve",       .fn = game_position_ab_solve }
+    { .id = "ab",      .description = "alpha-beta solver",            .function_name = "game_position_ab_solve",       .fn = game_position_ab_solve },
+    { .id = "rglm",    .description = "rglm solver",                  .function_name = "game_position_rglm_solve",     .fn = game_position_rglm_solve },
   };
 
 static const int solvers_count = sizeof(solvers) / sizeof(solvers[0]);
