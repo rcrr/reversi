@@ -1135,6 +1135,15 @@ game_position_x_set_initial_position (GamePositionX *const gpx)
   gpx->player = BLACK_PLAYER;
 }
 
+int
+game_position_x_empty_count (const GamePositionX *const gpx)
+{
+  assert(gpx);
+  const SquareSet empties = game_position_x_empties(gpx);
+  const uint8_t square_count = bitw_bit_count_64(empties);
+  return square_count;
+}
+
 
 
 /**

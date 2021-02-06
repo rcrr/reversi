@@ -196,6 +196,7 @@ typedef struct {
   GamePositionX res_position;       /**< @brief The resulting position executing the move. */
   SquareSet     res_move_set;       /**< @brief The move set associated with the resulting position. */
   uint8_t       res_move_count;     /**< @brief The move count of the resulting position. */
+  double        evaluation;         /**< @brief Evaluation function predicted game value. */
 } gts_mle_t;
 
 /**

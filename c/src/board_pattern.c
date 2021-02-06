@@ -78,6 +78,19 @@ board_set_square_sets (board_t *b,
   b->square_sets[1] = o;
 }
 
+void
+board_from_gpx (board_t *const b,
+                const GamePositionX *const gpx)
+{
+  if (gpx->player == BLACK_PLAYER) {
+    b->square_sets[0] = gpx->blacks;
+    b->square_sets[1] = gpx->whites;
+  } else {
+    b->square_sets[0] = gpx->whites;
+    b->square_sets[1] = gpx->blacks;
+  }
+}
+
 /*
  * End of board_t implementation
  */

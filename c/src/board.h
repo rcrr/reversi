@@ -371,6 +371,9 @@ game_position_x_make_move (const GamePositionX *const current,
 extern void
 game_position_x_set_initial_position (GamePositionX *const gpx);
 
+extern int
+game_position_x_empty_count (const GamePositionX *const gpx);
+
 
 
 #endif /* BOARD_H */

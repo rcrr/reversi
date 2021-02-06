@@ -361,6 +361,10 @@ board_set_square_sets (board_t *b,
                        SquareSet m,
                        SquareSet o);
 
+extern void
+board_from_gpx (board_t *b,
+                const GamePositionX *gpx);
+
 /*
  * End of board_t definitions
  */

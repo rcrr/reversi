@@ -66,74 +66,87 @@ do_work () {
     return 0
 }
 
-do_work 20 INTERCEPT --     A2000 3 6 production check_sentinel
-do_work 20 MOBILITY  --     A2001 3 6 production check_sentinel
-do_work 20 MOBILITY2 --     A2002 3 6 production check_sentinel
-do_work 20 MOBILITY3 --     A2003 3 6 production check_sentinel
-do_work 20 --        EDGE   A2004 3 6 production check_sentinel
-do_work 20 --        R2     A2005 3 6 production check_sentinel
-do_work 20 --        R3     A2006 3 6 production check_sentinel
-do_work 20 --        R4     A2007 3 6 production check_sentinel
-do_work 20 --        DIAG8  A2008 3 6 production check_sentinel
-do_work 20 --        DIAG7  A2009 3 6 production check_sentinel
-do_work 20 --        DIAG6  A2010 3 6 production check_sentinel
-do_work 20 --        DIAG5  A2011 3 6 production check_sentinel
-do_work 20 --        DIAG4  A2012 3 6 production check_sentinel
-do_work 20 --        DIAG3  A2013 3 6 production check_sentinel
-do_work 20 --        CORNER A2014 3 6 production check_sentinel
-do_work 20 --        XEDGE  A2015 3 6 production check_sentinel
-do_work 20 --        2X5COR A2016 3 6 production check_sentinel
+#do_work 20 INTERCEPT --     A2000 3 6 production check_sentinel
+#do_work 20 MOBILITY  --     A2001 3 6 production check_sentinel
+#do_work 20 MOBILITY2 --     A2002 3 6 production check_sentinel
+#do_work 20 MOBILITY3 --     A2003 3 6 production check_sentinel
+#do_work 20 --        EDGE   A2004 3 6 production check_sentinel
+#do_work 20 --        R2     A2005 3 6 production check_sentinel
+#do_work 20 --        R3     A2006 3 6 production check_sentinel
+#do_work 20 --        R4     A2007 3 6 production check_sentinel
+#do_work 20 --        DIAG8  A2008 3 6 production check_sentinel
+#do_work 20 --        DIAG7  A2009 3 6 production check_sentinel
+#do_work 20 --        DIAG6  A2010 3 6 production check_sentinel
+#do_work 20 --        DIAG5  A2011 3 6 production check_sentinel
+#do_work 20 --        DIAG4  A2012 3 6 production check_sentinel
+#do_work 20 --        DIAG3  A2013 3 6 production check_sentinel
+#do_work 20 --        CORNER A2014 3 6 production check_sentinel
+#do_work 20 --        XEDGE  A2015 3 6 production check_sentinel
+#do_work 20 --        2X5COR A2016 3 6 production check_sentinel
 
-do_work 20 INTERCEPT,MOBILITY  -- A2020 3 6 production check_sentinel
-do_work 20 INTERCEPT,MOBILITY2 -- A2021 3 6 production check_sentinel
-do_work 20 INTERCEPT,MOBILITY3 -- A2022 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY  -- A2020 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY2 -- A2021 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 -- A2022 3 6 production check_sentinel
 
-do_work 20 -- EDGE,XEDGE A2025 3 6 production check_sentinel
+#do_work 20 -- EDGE,XEDGE A2025 3 6 production check_sentinel
 
-do_work 20 INTERCEPT,MOBILITY3 EDGE   A2030 3 6 production check_sentinel
-do_work 20 INTERCEPT,MOBILITY3 R2     A2031 3 6 production check_sentinel
-do_work 20 INTERCEPT,MOBILITY3 R3     A2032 3 6 production check_sentinel
-do_work 20 INTERCEPT,MOBILITY3 R4     A2033 3 6 production check_sentinel
-do_work 20 INTERCEPT,MOBILITY3 DIAG8  A2034 3 6 production check_sentinel
-do_work 20 INTERCEPT,MOBILITY3 XEDGE  A2035 3 6 production check_sentinel
-do_work 20 INTERCEPT,MOBILITY3 CORNER A2036 3 6 production check_sentinel
-do_work 20 INTERCEPT,MOBILITY3 2X5COR A2037 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 EDGE   A2030 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 R2     A2031 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 R3     A2032 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 R4     A2033 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 DIAG8  A2034 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 XEDGE  A2035 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 CORNER A2036 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 2X5COR A2037 3 6 production check_sentinel
 
-do_work 20 INTERCEPT,MOBILITY3 EDGE,R2,R3,R4                                     A2040 3 6 production check_sentinel
-do_work 20 INTERCEPT,MOBILITY3 EDGE,R2,R3,R4,DIAG3,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8 A2041 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 EDGE,R2,R3,R4                                     A2040 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 EDGE,R2,R3,R4,DIAG3,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8 A2041 3 6 production check_sentinel
 
-do_work 20 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A2050 3 6 production check_sentinel
-do_work 20 --                  XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A2051 3 6 production check_sentinel
-do_work 20 INTERCEPT,MOBILITY3 CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR       A2052 3 6 production check_sentinel
-do_work 20 INTERCEPT,MOBILITY3 XEDGE,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR        A2053 3 6 production check_sentinel
-do_work 20 INTERCEPT,MOBILITY3 XEDGE,CORNER,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR    A2054 3 6 production check_sentinel
-do_work 20 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR    A2055 3 6 production check_sentinel
-do_work 20 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR    A2056 3 6 production check_sentinel
-do_work 20 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR       A2057 3 6 production check_sentinel
-do_work 20 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG6,DIAG7,DIAG8,2X5COR       A2058 3 6 production check_sentinel
-do_work 20 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG7,DIAG8,2X5COR       A2059 3 6 production check_sentinel
-do_work 20 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG8,2X5COR       A2060 3 6 production check_sentinel
-do_work 20 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,2X5COR       A2061 3 6 production check_sentinel
-do_work 20 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8        A2062 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A2050 3 6 production check_sentinel
+#do_work 20 --                  XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A2051 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR       A2052 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 XEDGE,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR        A2053 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 XEDGE,CORNER,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR    A2054 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR    A2055 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR    A2056 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR       A2057 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG6,DIAG7,DIAG8,2X5COR       A2058 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG7,DIAG8,2X5COR       A2059 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG8,2X5COR       A2060 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,2X5COR       A2061 3 6 production check_sentinel
+#do_work 20 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8        A2062 3 6 production check_sentinel
 
-do_work 22 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A2250 3 6 production check_sentinel
-do_work 21 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A2150 3 6 production check_sentinel
+#do_work 22 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A2250 3 6 production check_sentinel
+#do_work 21 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A2150 3 6 production check_sentinel
 
-do_work 19 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A1950 3 6 production check_sentinel
-do_work 18 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A1850 3 6 production check_sentinel
-do_work 17 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A1750 3 6 production check_sentinel
-do_work 16 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A1650 3 6 production check_sentinel
-do_work 15 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A1550 3 6 production check_sentinel
-do_work 14 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A1450 3 6 production check_sentinel
+#do_work 19 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A1950 3 6 production check_sentinel
+#do_work 18 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A1850 3 6 production check_sentinel
+#do_work 17 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A1750 3 6 production check_sentinel
+#do_work 16 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A1650 3 6 production check_sentinel
+#do_work 15 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A1550 3 6 production check_sentinel
+#do_work 14 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A1450 3 6 production check_sentinel
+
+do_work 13 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A1350 3 6 test check_sentinel
+do_work 12 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A1250 3 6 test check_sentinel
+do_work 11 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A1150 3 6 test check_sentinel
+do_work 10 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A1050 3 6 test check_sentinel
+do_work  9 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A0950 3 6 test check_sentinel
+do_work  8 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A0850 3 6 test check_sentinel
+do_work  7 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A0750 3 6 test check_sentinel
+do_work  6 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A0650 3 6 test check_sentinel
+do_work  5 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A0550 3 6 test check_sentinel
+do_work  4 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A0450 3 6 test check_sentinel
+do_work  3 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A0350 3 6 test check_sentinel
+do_work  2 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A0250 3 6 test check_sentinel
 
 
 
-do_work 18 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR B1850 9 6 production check_sentinel
-do_work 18 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR C1850 9,3 6 production check_sentinel
+#do_work 18 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR B1850 9 6 production check_sentinel
+#do_work 18 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR C1850 9,3 6 production check_sentinel
 
 
 
-do_work 18 INTERCEPT,MOBILITY3 EDGE,CORNER T1850 3 6 production check_sentinel
+#do_work 18 INTERCEPT,MOBILITY3 EDGE,CORNER T1850 3 6 production check_sentinel
 
 
 exit 0
