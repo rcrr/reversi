@@ -716,27 +716,169 @@ sample-67394859;...bb...w.bbbbb.wbwwwbb.wwwwwbbww.bwwbb..bbbwwbw....wwww...wwww.
 #
 #
 #
-# In the WOC final Keisuke played Piyanat Aunchelee, World Champion 2016.
+# In the WOC final Keisuke Fukuchi played Piyanat Aunchelee, World Champion 2016.
 # Keisuke won the final with 2,5-0,5 points. (35-29, 32-32 & 34-30).
 # They were three very close, high-level games.
 # See the video at: https://www.youtube.com/watch?v=HLW5Ms-gZAw
+# See the transcripts at: https://woc2018.worldothello.org/live/woc2018_round14.htm
 #
-# This is the firt game.
-# The board represented has empty_square = 20 (woc18-FKvsAP-20) after white plays G1, the best and only move that leads to +2.
+# Firt game, Keisuke plays the black.
+# F5 D6 C3 D3 C4 F4 F6 F3 G4 G3 E6 B3 F2 E3 E2 C5 C6 E7 C7 H4 G5 H5 G6 D2 B6 D7 B4 E1 E8 A4 D8 B5 C2 F8 G8 F7 A6 A5 A3 B8 G7 A7 H3 B1 D1 A2 G2 B2 A1 C1 H7 F1 G1 H8 A8 H6 B7 C8 H1 H2
+# The board represented is the final configuration.
 #
 #    a b c d e f g h
-# 1  . @ @ @ @ . O .
-# 2  . . O @ @ O . .
-# 3  . O O O O @ @ @
-# 4  O O O O O @ O @
-# 5  O O O @ O @ @ @
-# 6  . O @ O @ @ @ @
-# 7  . . O O O @ . .
-# 8  . . . O . . . .
+# 1  @ @ @ @ @ @ @ O
+# 2  @ @ O O O @ @ @
+# 3  @ @ O O @ O @ @
+# 4  @ @ O O @ O @ O
+# 5  @ @ O @ O @ O O
+# 6  @ @ O @ @ O O O
+# 7  @ @ O @ @ O O O
+# 8  @ O O O O O O O
 # Player to move: BLACK
 #
-#              |1       2       3       4       5       6       7       8       |
-#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
-woc18-FKvsAP-21;.bbbb.....wbbb...wwwbbbbwwwwwbwbwwwbwbbb.wbwbbbb..wwwb.....w....;w;WOC18 Fukuchi Keisuke vs Aunchulee Piyanat;
-woc18-FKvsAP-20;.bbbb.w...wbbw...wwwwbbbwwwwwbwbwwwbwbbb.wbwbbbb..wwwb.....w....;b;WOC18 Fukuchi Keisuke vs Aunchulee Piyanat;
-woc18-FKvsAP-19;.bbbb.w..bbbbw...wbwwbbbwwwbwbwbwwwbbbbb.wbwbbbb..wwwb.....w....;w;WOC18 Fukuchi Keisuke vs Aunchulee Piyanat;
+#
+# EC=24 best move A5, move A6 !!!!
+# BLACK to move, position woc18-FKvsAP-g1-24. Final outcome: best move=A5, position value=6, PV: A5 A3 D1 A6 H6 B8 H3 F1 H7 G2 G7 C1 B2 A2 A1 B1 G1 H8 C8 B7 A7 A8 -- H2 -- --
+# BLACK moves A6, leading to 0
+#
+# EC=23 best move A5, move A5
+#
+# EC=22 best move F1, move A3 !!!!
+# BLACK to move, position woc18-FKvsAP-g1-22. Final outcome: best move=F1, position value=0, PV: F1 B2 C1 D1 A1 A2 B1 A3 G7 G2 H6 B8 H1 G1 H3 H2 C8 H8 H7 B7 A8 A7 -- --
+# BLACK moves A3 leading to -2
+#
+# EC=21 best move B8, move B8
+#
+# EC=20 best move D1 or F1 or G7, move G7
+#
+# EC=19 best move A7, move A7
+#
+# EC=18 best move A8 or H6, move H3 !!
+# BLACK to move, position woc18-FKvsAP-g1-18. Final outcome: best move=A8, position value=-2, PV: A8 C8 B7 B1 D1 H8 F1 H6 H3 B2 H7 H2 A1 C1 G2 A2 -- H1 G1 -- --
+# BLACK moves H3 leading to -4
+#
+# EC=17 best move B1, move B1
+#
+# EC=16 best move A8 or C1, move D1
+# BLACK to move, position woc18-FKvsAP-g1-16. Final outcome: best move=A8, position value=-4, PV: A8 C8 B7 H8 C1 D1 G1 H2 F1 H1 G2 B2 H6 H7 A1 A2 -- --
+# BLACK moves D1 leading to -6
+#
+# EC=15 best move F1, move A2 !!
+# WHITE to move, position woc18-FKvsAP-g1-15. Final outcome: best move=F1, position value=6, PV: F1 A8 C8 H7 H6 G2 G1 H1 H2 B7 H8 -- B2 C1 A1 A2 -- --
+# WHITE moves A2 leading to +4
+#
+# EC=14 best move F1, move G2 !!
+# BLACK to move, position woc18-FKvsAP-g1-14. Final outcome: best move=F1, position value=-4, PV: F1 B2 H7 H6 C8 H8 A1 C1 A8 H2 G2 H1 G1 -- B7 -- --
+# BLACK moves G2 leading to -8
+#
+# EC=13 best move B7 or H1, move B2 !!!!!!
+# WHITE to move, position woc18-FKvsAP-g1-13. Final outcome: best move=B7, position value=8, PV: B7 F1 H1 G1 B2 H6 H8 C8 H7 A8 C1 A1 H2 -- --
+# WHITE moves B2 leading to -4
+#
+# EC=12 best move A1, move A1
+#
+# EC=11 best move C1, move C1
+#
+# EC=10 best move F1, move H7 !!!!!!
+# BLACK to move, position woc18-FKvsAP-g1-10. Final outcome: best move=F1, position value=4, PV: F1 H8 A8 H1 B7 C8 H6 G1 H2 H7 -- --
+# BLACK moves H7 leading to -4
+#
+# EC=9 best move H6, move F1 !!!!!!
+# WHITE to move, position woc18-FKvsAP-g1-09. Final outcome: best move=H6, position value=4, PV: H6 F1 H1 H2 G1 A8 C8 B7 H8 -- --
+# WHITE moves H6 leading to -2
+#
+# EC=8 best move G1, move G1
+#
+# EC=7 best move H8, move H8
+#
+# EC=6 best move A8, move A8
+#
+# EC=5 best move H6, move H6
+#
+# EC=4 best move B7, move B7
+#
+# EC=3 best move C8, move C8
+#
+# EC=2 best move H2, move H1 !!
+# WHITE to move, position woc18-FKvsAP-g1-02. Final outcome: best move=H2, position value=-2, PV: H2 H1 -- -- 
+# WHITE moves H1 leading to -6
+#
+#                 |1       2       3       4       5       6       7       8       |
+#                 |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+woc18-FKvsAP-g1-60;...........................wb......bw...........................;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 60 EC;
+woc18-FKvsAP-g1-59;...........................wb......bbb..........................;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 59 EC;
+woc18-FKvsAP-g1-58;...........................wb......wbb.....w....................;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 58 EC;
+woc18-FKvsAP-g1-57;..................b........bb......wbb.....w....................;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 57 EC;
+woc18-FKvsAP-g1-56;..................bw.......wb......wbb.....w....................;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 56 EC;
+woc18-FKvsAP-g1-55;..................bw......bbb......wbb.....w....................;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 55 EC;
+woc18-FKvsAP-g1-54;..................bw......bbbw.....wwb.....w....................;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 54 EC;
+woc18-FKvsAP-g1-53;..................bw......bbbw.....wbb.....w.b..................;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 53 EC;
+woc18-FKvsAP-g1-52;..................bw.w....bbww.....wbb.....w.b..................;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 52 EC;
+woc18-FKvsAP-g1-51;..................bw.w....bbbbb....wbb.....w.b..................;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 51 EC;
+woc18-FKvsAP-g1-50;..................bw.ww...bbbwb....wwb.....w.b..................;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 50 EC;
+#
+#                 |1       2       3       4       5       6       7       8       |
+#                 |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+woc18-FKvsAP-g1-49;..................bw.ww...bbbwb....bbb.....wbb..................;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 49 EC;
+woc18-FKvsAP-g1-48;.................www.ww...bbbwb....bbb.....wbb..................;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 48 EC;
+woc18-FKvsAP-g1-47;.............b...www.bw...bbbbb....bbb.....wbb..................;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 47 EC;
+woc18-FKvsAP-g1-46;.............b...wwwwww...bbbbb....bbb.....wbb..................;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 46 EC;
+woc18-FKvsAP-g1-45;............bb...wwbbbw...bbbbb....bbb.....wbb..................;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 45 EC;
+woc18-FKvsAP-g1-44;............bb...wwbbbw...wbbbb...wbbb.....wbb..................;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 44 EC;
+woc18-FKvsAP-g1-43;............bb...wwbbbw...wbbbb...wbbb....bbbb..................;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 43 EC;
+woc18-FKvsAP-g1-42;............bb...wwbbbw...wbbbb...wbbb....bwbb......w...........;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 42 EC;
+woc18-FKvsAP-g1-41;............bb...wwbbbw...wbbbb...wbbb....bbbb....b.w...........;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 41 EC;
+woc18-FKvsAP-g1-40;............bb...wwbbbw...wwwwww..wbbb....bbbb....b.w...........;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 40 EC;
+#
+#                 |1       2       3       4       5       6       7       8       |
+#                 |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+woc18-FKvsAP-g1-39;............bb...wwbbbw...wwwbww..wbbbb...bbbb....b.w...........;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 39 EC;
+woc18-FKvsAP-g1-38;............bb...wwbbbw...wwwbww..wwwwww..bbbb....b.w...........;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 38 EC;
+woc18-FKvsAP-g1-37;............bb...wwbbbw...wwbbww..wwwbww..bbbbb...b.w...........;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 37 EC;
+woc18-FKvsAP-g1-36;...........wbb...wwwwbw...wwbwww..wwwbww..bbbbb...b.w...........;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 36 EC;
+woc18-FKvsAP-g1-35;...........wbb...wwwbbw...wbbwww..bwwbww.bbbbbb...b.w...........;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 35 EC;
+woc18-FKvsAP-g1-34;...........wbb...wwwbbw...wbbwww..bwwwww.bbwwbb...bww...........;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 34 EC;
+woc18-FKvsAP-g1-33;...........wbb...wwwbbw..bbbbwww..bwwwww.bbwwbb...bww...........;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 33 EC;
+woc18-FKvsAP-g1-32;....w......www...wwwwbw..bbbwwww..bwwwww.bbwwbb...bww...........;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 32 EC;
+woc18-FKvsAP-g1-31;....w......www...wwwwbw..bbbwwww..bwwwww.bbwwbb...bbw.......b...;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 31 EC;
+woc18-FKvsAP-g1-30;....w......www...wwwwbw.wwwwwwww..bwwwww.bbwwbb...bbw.......b...;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 30 EC;
+#
+#                 |1       2       3       4       5       6       7       8       |
+#                 |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+woc18-FKvsAP-g1-29;....w......www...wwwwbw.wwwwwwww..bwwwww.bbwwbb...bbb......bb...;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 29 EC;
+woc18-FKvsAP-g1-28;....w......www...wwwwbw.wwwwwwww.wwwwwww.bbwwbb...bbb......bb...;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 28 EC;
+woc18-FKvsAP-g1-27;....w.....bwww...wbbwbw.wwbwbwww.wbwwbww.bbwwbb...bbb......bb...;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 27 EC;
+woc18-FKvsAP-g1-26;....w.....bwww...wbbwbw.wwbwbwww.wbwwbww.bbwwbb...bbw......bbw..;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 26 EC;
+woc18-FKvsAP-g1-25;....w.....bwww...wbbwbw.wwbwbwww.wbwwbww.bbwwbb...bbw......bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 25 EC;
+woc18-FKvsAP-g1-24;....w.....bwww...wbbwbw.wwbwbwww.wbwwwww.bbwwww...bbww.....bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 24 EC;
+woc18-FKvsAP-g1-23;....w.....bwww...wbbwbw.wwbwbwww.bbwwwwwbbbwwww...bbww.....bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 23 EC;
+woc18-FKvsAP-g1-22;....w.....bwww...wbbwbw.wwbwbwwwwwwwwwwwbbbwwww...bbww.....bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 22 EC;
+woc18-FKvsAP-g1-21;....w.....bwww..bbbbwbw.bbbwbwwwbwbwwwwwbbbbwww...bbbw.....bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 21 EC;
+woc18-FKvsAP-g1-20;....w.....bwww..bbbbwbw.bbbwbwwwbwbwwwwwbbbwwww...wbbw...w.bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 20 EC;
+#
+#                 |1       2       3       4       5       6       7       8       |
+#                 |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+woc18-FKvsAP-g1-19;....w.....bwww..bbbbwbw.bbbbbwwwbwbwbwwwbbbwwbw...wbbbb..w.bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 19 EC;
+woc18-FKvsAP-g1-18;....w.....bwww..bbbbwbw.bbbwbwwwbwwwbwwwbwbwwbw.w.wbbbb..w.bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 18 EC;
+woc18-FKvsAP-g1-17;....w.....bwww..bbbbwbbbbbbwbwbwbwwwbbwwbwbwbbw.w.wbbbb..w.bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 17 EC;
+woc18-FKvsAP-g1-16;.w..w.....wwww..bbbwwbbbbbbwwwbwbwwwbwwwbwbwbbw.w.wbbbb..w.bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 16 EC;
+woc18-FKvsAP-g1-15;.w.bw.....bbbw..bbbbwbbbbbbbwwbwbwwbbwwwbwbbbbw.w.wbbbb..w.bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 15 EC;
+woc18-FKvsAP-g1-14;.w.bw...w.bbbw..wbbbwbbbwbbbwwbwwwwbbwwwwwbbbbw.w.wbbbb..w.bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 14 EC;
+woc18-FKvsAP-g1-13;.w.bw...w.bbbbb.wbbbwbbbwbbbwwbwwwwbbwwwwwbbbbw.w.wbbbb..w.bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 13 EC;
+woc18-FKvsAP-g1-12;.w.bw...wwbbbbb.wwbbwbbbwwbbwwbwwwwbbwwwwwbbbbw.w.wbbbb..w.bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 12 EC;
+woc18-FKvsAP-g1-11;bw.bw...wbbbbbb.wwbbwbbbwwbbwwbwwwwbbwwwwwbbbbw.w.wbbbb..w.bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 11 EC;
+woc18-FKvsAP-g1-10;bwwww...wwwwbbb.wwwbwbbbwwwbwwbwwwwbbwwwwwbbbbw.w.wbbbb..w.bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 10 EC;
+#
+#                 |1       2       3       4       5       6       7       8       |
+#                 |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+woc18-FKvsAP-g1-09;bwwww...wwwwbbb.wwwbwbbbwwwbbwbwwwwbbbwwwwbbbbb.w.wbbbbb.w.bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 09 EC;
+woc18-FKvsAP-g1-08;bwwwww..wwwwwwb.wwwwwwbbwwwbbwbwwwwbbbwwwwbbbbb.w.wbbbbb.w.bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 08 EC;
+woc18-FKvsAP-g1-07;bbbbbbb.wwwwwbb.wwwwbwbbwwwbbwbwwwwbbbwwwwbbbbb.w.wbbbbb.w.bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 07 EC;
+woc18-FKvsAP-g1-06;bbbbbbb.wwwwwbb.wwwwbwbbwwwwbwbwwwwbwbwwwwbbbwb.w.wbbbwb.w.bbbbw;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 06 EC;
+woc18-FKvsAP-g1-05;bbbbbbb.bwwwwbb.bwwwbwbbbwwwbwbwbwwbwbwwbwbbbwb.b.wbbbwbbw.bbbbw;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 05 EC;
+woc18-FKvsAP-g1-04;bbbbbbb.bwwwwbb.bwwwbwbbbwwwbwbwbwwbwbwwbwbbbwwwb.wbbbwwbw.bbbbw;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 04 EC;
+woc18-FKvsAP-g1-03;bbbbbbb.bbwwwbb.bbwwbwbbbbwwbwbwbbwbwbwwbbbbbwwwbbbbbbwwbw.bbbbw;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 03 EC;
+woc18-FKvsAP-g1-02;bbbbbbb.bbwwwbb.bbwwbwbbbbwwbwbwbbwbwbwwbbwbbwwwbbwbbbwwbwwwwwww;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 02 EC;
+woc18-FKvsAP-g1-01;bbbbbbbwbbwwwbw.bbwwbwbbbbwwbwbwbbwbwbwwbbwbbwwwbbwbbbwwbwwwwwww;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 01 EC;
+woc18-FKvsAP-g1-00;bbbbbbbwbbwwwbbbbbwwbwbbbbwwbwbwbbwbwbwwbbwbbwwwbbwbbbwwbwwwwwww;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 00 EC;
