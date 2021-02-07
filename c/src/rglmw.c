@@ -2,7 +2,7 @@
  * @file
  *
  * @brief RGLM weights program.
- * @details Computes the residual, gaps, errors, between the true game values and
+ * @details Computes the residuals, gaps, errors, between the true game values and
  *          the evaluation function.
  *          Two files are loaded, one having the solved game positions, and a
  *          second one having the selected patterns and the weights for all
@@ -15,7 +15,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2019, 2020 Roberto Corradini. All rights reserved.
+ * @copyright 2019, 2020, 2021 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -122,7 +122,7 @@ main (int argc,
     "Author:\n"
     "Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
     "\n"
-    "Copyright (c) 2019, 2020 Roberto Corradini. All rights reserved.\n"
+    "Copyright (c) 2019, 2020, 2021 Roberto Corradini. All rights reserved.\n"
     "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
     "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n"
     ;

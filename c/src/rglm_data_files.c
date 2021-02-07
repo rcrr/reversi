@@ -9,7 +9,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2018, 2019, 2020 Roberto Corradini. All rights reserved.
+ * @copyright 2018, 2019, 2020, 2021 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -418,6 +418,8 @@ rglmdf_model_veights_load (rglmdf_model_weights_t *const mw,
   for (size_t i = 0; i < mw->pattern_cnt; i++) {
     const board_pattern_id_t id = mw->patterns[i];
     const board_pattern_t p = board_patterns[id];
+    double weight_mean = 0.0;
+    rglmdf_weight_record_t *w0 = w;
     for (size_t j = 0; j < p.n_configurations; j++, w++) {
       const board_pattern_index_t index_value = j;
       board_pattern_index_t principal_index_value;
@@ -441,12 +443,17 @@ rglmdf_model_veights_load (rglmdf_model_weights_t *const mw,
         w->relative_frequency = record->relative_frequency;
         w->theoretical_probability = record->theoretical_probability;
         w->weight = record->weight;
+        weight_mean += record->weight * record->relative_frequency;
       } else {
         w->total_cnt = 0;
         w->relative_frequency = 0.0;
         w->theoretical_probability = -1.0; // It should be collected from the REGAB DB, not from the general data structure.
         w->weight = 0.0;
       }
+    }
+    for (size_t j = 0; j < p.n_configurations; j++, w0++) {
+      if (w0->glm_variable_id < 0)
+        w0->weight = weight_mean;
     }
   }
   rglmdf_model_veights_compute_reverse_map(mw);
