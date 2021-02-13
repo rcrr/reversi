@@ -58,8 +58,9 @@
  *         The value that should be used is the mean of the values taken by the weights belonging to the same pattern.
  *       - When the position is terminal (leaf node), the exact value should be used.
  *
- *       The solver should read the weighs files absed on a cfg file given by a command line argument.
+ *       The solver should read the weighs files based on a cfg file given by a command line argument.
  *
+ *       [2021-02-07] The value of the missing pattern configuration has been set as the weighed average of the weights of the pattern.
  *
  * @todo When available a new evaluation function that enable the sorting based on output
  *       estimation we are ready to develop an iterative-deepening game search algorithm, as well as

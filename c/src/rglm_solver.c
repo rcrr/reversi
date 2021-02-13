@@ -456,7 +456,19 @@ look_ahead_and_sort_moves_by_mobility_count (GameTreeStack *const stack)
         game_position_x_make_move(&c->gpx, (*mle)->move, &(*mle)->res_position);
         (*mle)->res_move_set = game_position_x_legal_moves(&(*mle)->res_position);
         (*mle)->res_move_count = bitw_bit_count_64((*mle)->res_move_set);
-        (*mle)->evaluation = mw_available ? rglm_eval_gp(&(*mle)->res_position) : -1.0;
+        bool is_leaf = false;
+        if (mw_available) {
+          if ((*mle)->res_move_count == 0) {
+            GamePositionX next;
+            game_position_x_pass(&(*mle)->res_position, &next);
+            if (!game_position_x_has_any_legal_move(&next)) is_leaf = true;
+          }
+          (*mle)->evaluation = is_leaf ?
+            (double) game_position_x_final_value(&(*mle)->res_position) :
+            rglm_eval_gp(&(*mle)->res_position);
+        } else {
+          (*mle)->evaluation = -1.0;
+        }
         mle++;
       }
     }
@@ -469,24 +481,6 @@ look_ahead_and_sort_moves_by_mobility_count (GameTreeStack *const stack)
     mle++;
   }
   (c + 1)->head_of_legal_move_list = mle;
-
-  /*
-  if (ec == 22) {
-    gts_mle_t **mle = c->head_of_legal_move_list;
-    const Square parent_move = (*(c - 1)->move_cursor)->move;
-    const GamePositionX current_gpx = c->gpx;
-    const double current_gv_by_ef = rglm_eval_gp(&current_gpx);
-    printf("empty_count=%d parent_move=%s ef=%f move_count=%02u [ ", ec, square_as_move_to_string(parent_move), current_gv_by_ef, c->move_count);
-    for (size_t i = 0; i < c->move_count; i++) {
-      const Square move = (*mle)->move;
-      const char *move_s = square_as_move_to_string(move);
-      printf("%s.(%f) ", move_s, (*mle)->evaluation);
-      mle++;
-    }
-    printf("]\n");
-    //exit(1);
-  }
-  */
 }
 
 static void
