@@ -12,7 +12,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2017, 2018, 2019, 2020 Roberto Corradini. All rights reserved.
+ * @copyright 2017, 2018, 2019, 2020, 2021 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -50,6 +50,7 @@
 #include "cfg.h"
 #include "prng.h"
 #include "exact_solver.h"
+#include "rglm_solver.h"
 #include "sort_utils.h"
 #include "rglm_data_files.h"
 #include "rglm_utils.h"
@@ -85,6 +86,12 @@ typedef enum {
   REGAB_ACTION_INVALID                  // Not a valid action.
 } regab_action_t;
 
+typedef enum {
+  REGAB_SOLVER_ES,                      // ES (Exact Solver) solver.
+  REGAB_SOLVER_RGLM,                    // RGLM (Reversi Generalized Linear Model) solver.
+  REGAB_SOLVER_INVALID                  // Not a valid solver.
+} regab_solver_t;
+
 typedef struct regab_prng_gp_record_s {
   int64_t seq;
   int batch_id;
@@ -106,6 +113,7 @@ typedef struct regab_prng_gp_record_s {
   int64_t leaf_count;
   int64_t node_count;
   int64_t parent_gp_id;
+  char solver[5];
 } regab_prng_gp_record_t;
 
 /*
@@ -128,6 +136,7 @@ static const mop_options_long_t olist[] = {
   {"game-positions",   'g', MOP_NONE},
   {"out-file",         'o', MOP_REQUIRED},
   {"no-time-out-file", 't', MOP_NONE},
+  {"solver",           'k', MOP_REQUIRED},
   {0, 0, 0}
 };
 
@@ -151,6 +160,7 @@ static const char *documentation =
   "  -g, --game-positions   Extract just game positions                                 - Mutually exclusive with option -p when action is [extract].\n"
   "  -o, --out-file         The output file name                                        - Mandatory when action is in [extract].\n"
   "  -t, --no-time-out-file Write a 'zero time' in the output file                      - Optional when action is in [extract].\n"
+  "  -k, --solver           The endgame solver                                          - Optional when action is in [solve] - Must be in [es|rglm].\n"
   "\n"
   "Description:\n"
   "  To be completed ... .\n"
@@ -213,7 +223,11 @@ static char *o_arg = NULL;
 
 static int t_flag = false;
 
+static int k_flag = false;
+static char *k_arg = NULL;
+
 static regab_action_t action = REGAB_ACTION_INVALID;
+static regab_solver_t solver = REGAB_SOLVER_INVALID;
 static char *config_file = NULL;
 static char *env = NULL;
 static bool verbose = false;
@@ -600,10 +614,10 @@ do_update_solved_position_results (int *result,
                   sizeof(command),
                   "UPDATE regab_prng_gp SET "
                   "game_value = %d, best_move = '%s', leaf_count = %"PRId64", node_count = %"PRId64", "
-                  "status = 'CMP', cst_time = now() "
+                  "status = 'CMP', cst_time = now(), solver = '%s' "
                   "WHERE seq = %"PRId64";",
                   record->game_value, square_as_move_to_string(record->best_move), record->leaf_count,
-                  record->node_count, record->seq);
+                  record->node_count, record->solver, record->seq);
   if (clen >= sizeof(command)) {
     fprintf(stderr, "Error: command buffer is not long enough to contain the SQL statement (7).\n");
     abort();
@@ -1868,6 +1882,10 @@ main (int argc,
     case 't':
       t_flag = true;
       break;
+    case 'k':
+      k_flag = true;
+      k_arg = options.optarg;
+      break;
     case ':':
       fprintf(stderr, "Option parsing failed: %s\n", options.errmsg);
       return EXIT_FAILURE;
@@ -2268,6 +2286,16 @@ main (int argc,
       return EXIT_FAILURE;
     }
   }
+  if (k_flag) {
+    if (strcmp("es", k_arg) == 0) solver = REGAB_SOLVER_ES;
+    else if (strcmp("rglm", k_arg) == 0) solver = REGAB_SOLVER_RGLM;
+    else {
+      fprintf(stderr, "Argument for option -k, --solver must be in [es|rglm] domain.\n");
+      return EXIT_FAILURE;
+    }
+  } else {
+    solver = REGAB_SOLVER_ES;
+  }
 
   /* Verifies that the config input file is available for reading. */
   FILE *fp = fopen(config_file, "r");
@@ -2514,6 +2542,16 @@ main (int argc,
    * Solves the selected games.
    */
  regab_action_solve:
+  if (solver == REGAB_SOLVER_RGLM) {
+    const bool verbose = false;
+    int ret_err;
+    ret_err = game_position_rglm_load_model_weights_files(verbose);
+    if (ret_err != EXIT_SUCCESS) {
+      fprintf(stderr, "Error loading RGLM solver model weights files. Aborting ...\n");
+      abort();
+    }
+  }
+
   for (unsigned long int i = 0; i < n_games; i++) {
     fprintf(stdout, "Solving game %lu of %lu ...\n", i + 1, n_games);
     regab_prng_gp_record_t record;
@@ -2546,7 +2584,22 @@ main (int argc,
           .pv_no_print = false
         };
 
-      ExactSolution *solution = game_position_es_solve(&gpx, &env);
+      ExactSolution *solution;
+      if (solver == REGAB_SOLVER_ES) {
+        solution = game_position_es_solve(&gpx, &env);
+        strcpy(record.solver, "es");
+      }
+      else if (solver == REGAB_SOLVER_RGLM) {
+        solution = game_position_rglm_solve_nlmw(&gpx, &env);
+        strcpy(record.solver, "rglm");
+      }
+      else if (solver == REGAB_SOLVER_INVALID) {
+        fprintf(stderr, "Solver is invalid. Aborting ...\n");
+        abort();
+      } else {
+        fprintf(stderr, "Solver is out of range. Aborting ...\n");
+        abort();
+      }
 
       printf("solution(outcome=%d, best_move=%s, leaf_count=%zu, node_count=%zu)\n\n",
              solution->outcome, square_as_move_to_string(solution->best_move), solution->leaf_count, solution->node_count);
@@ -2566,6 +2619,9 @@ main (int argc,
       PQfinish(con);
       return EXIT_FAILURE;
     }
+  }
+  if (solver == REGAB_SOLVER_RGLM) {
+    game_position_rglm_release_model_weights();
   }
   goto regab_program_end;
 

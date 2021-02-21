@@ -534,6 +534,13 @@ board_pattern_compute_principal_indexes (board_pattern_index_t *principals,
   }
 }
 
+/*
+ * This function accounts for a relevant time slice in the new endgame RGLM solver.
+ * Could be improved with the use of ABM, BMI1 and BMI2 instruction extensions ?
+ * In particular is PEXT (Parallel bits extract) a possible way forward ?
+ *
+ * See : https://en.wikipedia.org/wiki/Bit_manipulation_instruction_set
+ */
 board_pattern_index_t
 board_pattern_packed_to_index (board_t *packed,
                                unsigned int n_squares)

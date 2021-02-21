@@ -37,8 +37,10 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "file_utils.h"
+#include "cfg.h"
 #include "game_tree_logger.h"
-#include "exact_solver.h"
+#include "rglm_solver.h"
 #include "rglm_data_files.h"
 #include "rglm_utils.h"
 
@@ -56,11 +58,6 @@ static void
 game_position_solve_impl (ExactSolution *const result,
                           GameTreeStack *const stack);
 
-static int
-load_model_weights_files (bool verbose);
-
-static void
-release_model_weights (void);
 
 
 /*
@@ -103,6 +100,12 @@ static const int legal_moves_priority_cluster_count =
 /* Print debugging info ... */
 static const bool pv_internals_to_stream = false;
 
+/* Default rglm_solver_config file. */
+static const char *const rglm_solver_def_config_file = "./cfg/rglm_solver.cfg";
+
+/* The RGLM solver config. */
+static cfg_t *rglm_solver_config = NULL;
+
 /* The vector of model weighs structures indexed by empty_count. */
 static rglmdf_model_weights_t mws_s[EC_SIZE];
 
@@ -112,86 +115,27 @@ static rglmdf_model_weights_t mws_s[EC_SIZE];
  */
 static rglmdf_model_weights_t *mws[EC_SIZE];
 
-/* The names of the files to be loaded. */
-static const char *const mws_f[EC_SIZE] =
+/* The labels of the files to be loaded. */
+static const char *const mws_l[EC_SIZE] =
   {
-   // 0-
-   NULL, // 00
-   NULL, // 01
-   NULL, // 02
-   NULL, // 03
-   NULL, // 04
-   NULL, // 05
-   NULL, // "./rglmdata/A0650_01.w.dat", // 06
-   NULL, // "./rglmdata/A0750_01.w.dat", // 07
-   NULL, // "./rglmdata/A0850_01.w.dat", // 08
-   NULL, // "./rglmdata/A0950_01.w.dat", // 09
-   // 1-
-   "./rglmdata/A1050_01.w.dat", // 10
-   "./rglmdata/A1150_01.w.dat", // 11
-   "./rglmdata/A1250_01.w.dat", // 12
-   "./rglmdata/A1350_01.w.dat", // 13
-   "./rglmdata/A1450_01.w.dat", // 14
-   "./rglmdata/A1550_01.w.dat", // 15
-   "./rglmdata/A1650_01.w.dat", // 16
-   "./rglmdata/A1750_01.w.dat", // 17
-   "./rglmdata/A1850_01.w.dat", // 18
-   "./rglmdata/A1950_01.w.dat", // 19
-   // 2-
-   "./rglmdata/A2050_01.w.dat", // 20
-   "./rglmdata/A2150_01.w.dat", // 21
-   "./rglmdata/A2250_01.w.dat", // 22
-   NULL, // 23
-   NULL, // 24
-   NULL, // 25
-   NULL, // 26
-   NULL, // 27
-   NULL, // 28
-   NULL, // 29
-   // 3-
-   NULL, // 30
-   NULL, // 31
-   NULL, // 32
-   NULL, // 33
-   NULL, // 34
-   NULL, // 35
-   NULL, // 36
-   NULL, // 37
-   NULL, // 38
-   NULL, // 39
-   // 4-
-   NULL, // 40
-   NULL, // 41
-   NULL, // 42
-   NULL, // 43
-   NULL, // 44
-   NULL, // 45
-   NULL, // 46
-   NULL, // 47
-   NULL, // 48
-   NULL, // 49
-   // 5-
-   NULL, // 50
-   NULL, // 51
-   NULL, // 52
-   NULL, // 53
-   NULL, // 54
-   NULL, // 55
-   NULL, // 56
-   NULL, // 57
-   NULL, // 58
-   NULL, // 59
-   // 6-
-   NULL, // 60
-   // ---
+   "ec00", "ec01", "ec02", "ec03", "ec04", "ec05", "ec06", "ec07", "ec08", "ec09",
+   "ec10", "ec11", "ec12", "ec13", "ec14", "ec15", "ec16", "ec17", "ec18", "ec19",
+   "ec20", "ec21", "ec22", "ec23", "ec24", "ec25", "ec26", "ec27", "ec28", "ec29",
+   "ec30", "ec31", "ec32", "ec33", "ec34", "ec35", "ec36", "ec37", "ec38", "ec39",
+   "ec40", "ec41", "ec42", "ec43", "ec44", "ec45", "ec46", "ec47", "ec48", "ec49",
+   "ec50", "ec51", "ec52", "ec53", "ec54", "ec55", "ec56", "ec57", "ec58", "ec59",
+   "ec60"
   };
+
+/* The names of the files to be loaded. */
+static const char *mws_f[EC_SIZE];
+
+static bool mw_loaded = false;
 
 
 /**
  * @endcond
  */
-
-
 
 /**
  * @brief Solves the game position returning a new exact solution pointer.
@@ -207,13 +151,37 @@ ExactSolution *
 game_position_rglm_solve (const GamePositionX *const root,
                           const endgame_solver_env_t *const env)
 {
+  ExactSolution *result;
+  const bool verbose = false;
+  int ret_err;
+  ret_err = game_position_rglm_load_model_weights_files(verbose);
+  if (ret_err != EXIT_SUCCESS) {
+    fprintf(stderr, "Error loading RGLM solver model weights files. Aborting ...\n");
+    abort();
+  }
+  result = game_position_rglm_solve_nlmw(root, env);
+  game_position_rglm_release_model_weights();
+  return result;
+}
+
+
+/**
+ * @brief Solves the game position returning a new exact solution pointer.
+ *        No Load Model Weighs
+ *
+ * @invariant Parameters `root` and `env` must be not `NULL`.
+ *             The invariants are guarded by assertions.
+ *
+ * @param [in] root     the starting game position to be solved
+ * @param [in] env      parameter envelope
+ * @return              a pointer to a new exact solution structure
+ */
+ExactSolution *
+game_position_rglm_solve_nlmw (const GamePositionX *const root,
+                               const endgame_solver_env_t *const env)
+{
   assert(root);
   assert(env);
-
-  if (load_model_weights_files(true) != EXIT_SUCCESS) abort();
-
-  const int ec = game_position_x_empty_count(root);
-  printf("Empty count = %d\n", ec);
 
   ExactSolution *result = exact_solution_new();
   exact_solution_set_root(result, root);
@@ -304,9 +272,60 @@ game_position_rglm_solve (const GamePositionX *const root,
 
   gtl_close_log(log_env);
 
-  release_model_weights();
-
   return result;
+}
+
+int
+game_position_rglm_load_model_weights_files (bool verbose)
+{
+  int ret_value;
+
+  if (mw_loaded) return EXIT_SUCCESS;
+
+  /* rglm_solver_config_file should be passed as an argument, and if NULL the default should be assigned. */
+  const char *rglm_solver_config_file = rglm_solver_def_config_file;
+  if (!fut_file_exists(rglm_solver_config_file))
+    return EXIT_FAILURE;
+
+  rglm_solver_config = cfg_load(rglm_solver_config_file);
+
+  for (size_t i = 0; i < EC_SIZE; i++) {
+    mws_f[i] = cfg_get(rglm_solver_config, "rglm_solver", mws_l[i]);
+  }
+
+  for (size_t i = 0; i < EC_SIZE; i++) {
+    rglmdf_model_weights_init(mws_s);
+    mws[i] = NULL;
+  }
+
+  for (size_t i = 0; i < EC_SIZE; i++) {
+    const char *filename = mws_f[i];
+    if (filename) {
+      ret_value = rglmdf_model_weights_read_from_binary_file(&mws_s[i], filename, verbose);
+      if (ret_value != 0) {
+        fprintf(stderr, "Unable to load model weight file \"%s\"\n", filename);
+        return ret_value;
+      }
+      if (mws_s[i].empty_count != i) {
+        fprintf(stderr, "Empty count mismatch, expected %zu, found %u\n", i, mws_s[i].empty_count);
+        return EXIT_FAILURE;
+      }
+      mws[i] = &mws_s[i];
+    }
+  }
+  mw_loaded = true;
+  return EXIT_SUCCESS;
+}
+
+void
+game_position_rglm_release_model_weights (void)
+{
+  if (!mw_loaded) return;
+  for (size_t i = 0; i < EC_SIZE; i++) {
+    rglmdf_model_weights_release(&mws_s[i]);
+    mws[i] = NULL;
+  }
+  mw_loaded = false;
 }
 
 
@@ -369,44 +388,6 @@ rglm_eval_gp (const GamePositionX *const gpx)
 
   return rglmut_logistic_function(gp_eval);
 }
-
-static int
-load_model_weights_files (bool verbose)
-{
-  int ret_value;
-
-  for (size_t i = 0; i < EC_SIZE; i++) {
-    rglmdf_model_weights_init(mws_s);
-    mws[i] = NULL;
-  }
-
-  for (size_t i = 0; i < EC_SIZE; i++) {
-    const char *filename = mws_f[i];
-    if (filename) {
-      ret_value = rglmdf_model_weights_read_from_binary_file(&mws_s[i], filename, verbose);
-      if (ret_value != 0) {
-        fprintf(stderr, "Unable to load model weight file \"%s\"\n", filename);
-        return ret_value;
-      }
-      if (mws_s[i].empty_count != i) {
-        fprintf(stderr, "Empty count mismatch, expected %zu, found %u\n", i, mws_s[i].empty_count);
-        return EXIT_FAILURE;
-      }
-      mws[i] = &mws_s[i];
-    }
-  }
-  return EXIT_SUCCESS;
-}
-
-static void
-release_model_weights (void)
-{
-  for (size_t i = 0; i < EC_SIZE; i++) {
-    rglmdf_model_weights_release(&mws_s[i]);
-    mws[i] = NULL;
-  }
-}
-
 
 /*
  * Insertion sort.

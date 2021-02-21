@@ -42,5 +42,15 @@ extern ExactSolution *
 game_position_rglm_solve (const GamePositionX *const root,
                           const endgame_solver_env_t *const env);
 
+extern ExactSolution *
+game_position_rglm_solve_nlmw (const GamePositionX *const root,
+                               const endgame_solver_env_t *const env);
+
+extern int
+game_position_rglm_load_model_weights_files (bool verbose);
+
+extern void
+game_position_rglm_release_model_weights (void);
+
 
 #endif /* RGLM_SOLVER_H */
