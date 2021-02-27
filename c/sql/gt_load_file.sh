@@ -25,9 +25,9 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 # or visit the site <http://www.gnu.org/licenses/>.
 
-if [ "$#" -ne 3 ]; then
+if [ "$#" -ne 5 ]; then
   echo "PostgreSQL user, dabase, and filename arguments are required."
-  echo "Usage: $0 PSQL_USER PSQL_DATABASE FILE_TO_BE_LOADED"
+  echo "Usage: $0 PSQL_USER PSQL_DATABASE PSQL_SERVER_ADDR PSQL_IP_PORT FILE_TO_BE_LOADED"
   exit 1
 fi
 
@@ -35,15 +35,21 @@ PSQL_USER=$1
 
 PSQL_DB=$2
 
-FILE_NAME=$3
+PSQL_SERVER_ADDR=$3
+
+PSQL_IP_PORT=$4
+
+FILE_NAME=$5
 if [ ! -f $FILE_NAME ]; then
   echo "File $FILE_NAME does not exist."
 fi
 
+
+
 TABLE_NAME=game_tree_log_staging
 TABLE_NAME_AND_COLUMNS="$TABLE_NAME (sub_run_id, call_id, hash, parent_hash, blacks, whites, player, alpha, beta, call_level, empty_count, is_leaf, legal_move_count, legal_move_count_adjusted, parent_move, t_call_cnt, t_alpha, t_best_move, t_searched_move_cnt, legal_move_array, t_searched_move_array)"
 
-psql -U $PSQL_USER -w -d $PSQL_DB -h localhost <<EOF
+psql -U $PSQL_USER -w -d $PSQL_DB -h $PSQL_SERVER_ADDR -p $PSQL_IP_PORT <<EOF
 
 \set ON_ERROR_STOP on
 
