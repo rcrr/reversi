@@ -4,7 +4,7 @@
 #  This file is part of the reversi program
 #  http://github.com/rcrr/reversi
 #
-#  Copyright (c) 2013, 2014, 2016, 2017, 2018, 2019, 2020 Roberto Corradini. All rights reserved.
+#  Copyright (c) 2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021 Roberto Corradini. All rights reserved.
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -72,11 +72,11 @@ CC = gcc
 # add -ftree-vectorize -ftree-vectorizer-verbose=2 to get from gcc the explanation for code vectorization
 # add -flto to the CFLAGS list to improve execution speed ( it takes much more to link executables )
 ARCH_FLAGS = -mpopcnt -mavx2 -mfma
-CFLAGS = -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fopenmp -flto -DNDEBUG
+CFLAGS = -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fopenmp -fno-inline
 LDFLAGS := $(FLAME_LDFLAGS)
 CFLAGS_TEST = -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(EXT_INC)
 LDFLAGS_TEST =
-ASMFLAGS = -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -masm=intel -fopenmp
+ASMFLAGS = -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -masm=intel -fopenmp -fno-inline
 LIBS = -lm -L$(PG_LIB_DIR) $(PG_LIBS)  $(FLAME_LIB) $(BLIS_LIB) -lgomp -lpthread
 TEST_LIBS =
 SRCDIR = src
