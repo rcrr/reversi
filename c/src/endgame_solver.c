@@ -26,42 +26,6 @@
  *         - Compare the number of nodes expanded by a solver that orders the moves with the RGLM evaluation function.
  *         - Analyze the effectiveness of the a-b cut operated by es, compare it with a-b, andom a-b, and the new rglm solver.
  *
- * @todo Write a new effective solver (rglm) based on the new RGLM Evaluation Function.
- *       The solver has to replace the es one in the task to mine new game positions.
- *
- *       [2021-02-06]
- *       The solver has been prepared, it is not really "optimized", but the way it traverse the game tree is almost correct.
- *       Here some results on the ff0-42 game position (empty_count = 22).
- *
- *       $ time ./build/bin/endgame_solver -s es -f db/gpdb-ffo.txt -q ffo-42
- *       [node_count=586.695.875, leaf_count=109.953.274]
- *       Final outcome: best move=G2, position value=6
- *       real 0m33.436s
- *
- *       rglm 14-22 means that when empty_count is in [13..22] moves are sorted using the rglm evaluation.
- *       The time spent by the rglm solver contains the load of the .w.dat data files.
- *       Around 11 and 10 empty count, the use of the rglm knowledge doesn't pay off.
- *
- *        rglm   node_count  leaf_count       real
- *       14-22  127.510.254  22.856.963  0m10.161s
- *       13-22  122.193.435  21.871.728  0m10.084s
- *       12-22   95.210.368  16.640.160   0m8.447s
- *       11-22   91.625.664  15.959.447   0m8.499s
- *       10-22   80.969.399  13.700.789   0m9.005s
- *       09-22   78.598.271  13.231.276   0m9.644s
- *       08-22   77.314.901  12.690.430  0m12.914s
- *       07-22   76.223.643  12.457.218  0m15.279s
- *       06-22   79.173.975  12.766.751  0m24.515s
- *
- *       The solver has two quirks to be worked out:
- *       - The value of the missing weights is set to 0.0, but I believe it is not appropriate.
- *         The value that should be used is the mean of the values taken by the weights belonging to the same pattern.
- *       - When the position is terminal (leaf node), the exact value should be used.
- *
- *       The solver should read the weighs files based on a cfg file given by a command line argument.
- *
- *       [2021-02-07] The value of the missing pattern configuration has been set as the weighed average of the weights of the pattern.
- *
  * @todo When available a new evaluation function that enable the sorting based on output
  *       estimation we are ready to develop an iterative-deepening game search algorithm, as well as
  *       a zero-windows search.
@@ -138,6 +102,45 @@
  *        - A description of the PL/SQL reversi package.
  *
  * --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+ *
+ *
+ * @todo [2021-02-06 - done]
+ *       Write a new effective solver (rglm) based on the new RGLM Evaluation Function.
+ *       The solver has to replace the es one in the task to mine new game positions.
+ *       The REGAB program has a flag to select the solver. The solve action now save to the database the solver being used.
+ *
+ *       [2021-02-06]
+ *       The solver has been prepared, it is not really "optimized", but the way it traverse the game tree is almost correct.
+ *       Here some results on the ff0-42 game position (empty_count = 22).
+ *
+ *       $ time ./build/bin/endgame_solver -s es -f db/gpdb-ffo.txt -q ffo-42
+ *       [node_count=586.695.875, leaf_count=109.953.274]
+ *       Final outcome: best move=G2, position value=6
+ *       real 0m33.436s
+ *
+ *       rglm 14-22 means that when empty_count is in [13..22] moves are sorted using the rglm evaluation.
+ *       The time spent by the rglm solver contains the load of the .w.dat data files.
+ *       Around 11 and 10 empty count, the use of the rglm knowledge doesn't pay off.
+ *
+ *        rglm   node_count  leaf_count       real
+ *       14-22  127.510.254  22.856.963  0m10.161s
+ *       13-22  122.193.435  21.871.728  0m10.084s
+ *       12-22   95.210.368  16.640.160   0m8.447s
+ *       11-22   91.625.664  15.959.447   0m8.499s
+ *       10-22   80.969.399  13.700.789   0m9.005s
+ *       09-22   78.598.271  13.231.276   0m9.644s
+ *       08-22   77.314.901  12.690.430  0m12.914s
+ *       07-22   76.223.643  12.457.218  0m15.279s
+ *       06-22   79.173.975  12.766.751  0m24.515s
+ *
+ *       [2021-02-21 - done] The solver has two quirks to be worked out:
+ *       - The value of the missing weights is set to 0.0, but I believe it is not appropriate.
+ *         The value that should be used is the mean of the values taken by the weights belonging to the same pattern.
+ *       - When the position is terminal (leaf node), the exact value should be used.
+ *
+ *       [2021-02-21 - done] The solver should read the weighs files based on a cfg file given by a command line argument.
+ *
+ *       [2021-02-07 - done] The value of the missing pattern configuration has been set as the weighed average of the weights of the pattern.
  *
  * @todo [2021-01-24 - no longer relevant] Profile exact_solver against improved_fast_endgame_solver.
  *
