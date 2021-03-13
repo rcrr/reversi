@@ -54,7 +54,7 @@
  * @author Ben Pfaff mailto:blp@gnu.org
  * @copyright 2015 Roberto Corradini. All rights reserved.
  * @copyright 1998-2002, 2004 Free Software Foundation, Inc.
-*
+ *
  * @par License
  * <tt>
  * This program is free software; you can redistribute it and/or modify it

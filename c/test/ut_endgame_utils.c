@@ -1,10 +1,10 @@
 /**
  * @file
  *
- * @brief Endgame solver unit test suite.
+ * @brief Endgame utils unit test suite.
  * @details Collects tests and helper methods for all the solvers under the endgame_solver umbrella.
  *
- * @par ut_endgame_solver.c
+ * @par ut_endgame_utils.c
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
@@ -404,7 +404,7 @@ main (int argc,
   ut_prog_arg_config_t config;
   ut_init(&config, &argc, &argv);
 
-  ut_suite_t *const s = ut_suite_new(&config, "endgame_solver");
+  ut_suite_t *const s = ut_suite_new(&config, "endgame_utils");
 
   ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_001,
                             "es/ffo_05",

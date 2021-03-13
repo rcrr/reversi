@@ -1,16 +1,15 @@
 /**
  * @file
  *
- * @brief Improved fast endgame solver module definitions.
- * @details This module defines a solve function.
+ * @brief Endgame utils module.
  *
- * @par improved_fast_endgame_solver.h
+ * @par endgame_utils.c
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014, 2016, 2021 Roberto Corradini. All rights reserved.
+ * @copyright 2021 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -31,13 +30,8 @@
  * </tt>
  */
 
-#ifndef IMPROVED_FAST_ENDGAME_SOLVER_H
-#define IMPROVED_FAST_ENDGAME_SOLVER_H
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
 
 #include "endgame_utils.h"
-
-extern ExactSolution *
-game_position_ifes_solve (const GamePositionX *const root,
-                          const endgame_solver_env_t *const env);
-
-#endif /* IMPROVED_FAST_ENDGAME_SOLVER_H */

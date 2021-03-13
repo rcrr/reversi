@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <stddef.h>
 
 #include "game_tree_utils.h"
 #include "unit_test.h"

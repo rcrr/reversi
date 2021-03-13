@@ -4,13 +4,13 @@
  * @brief Linked list utils unit test suite.
  * @details Collects tests and helper methods for the linked list module.
  *
- * @par ut_llist.c
+ * @par ut_linked_list.c
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2015, 2017 Roberto Corradini. All rights reserved.
+ * @copyright 2015, 2017, 2021 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>

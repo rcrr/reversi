@@ -1,15 +1,15 @@
 /**
  * @file
  *
- * @brief Endgame solver module definitions.
+ * @brief Endgame utils module definitions.
  *
- * @par endgame_solver.h
+ * @par endgame_utils.h
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2015, 2016, 2017, 2018 Roberto Corradini. All rights reserved.
+ * @copyright 2015, 2016, 2017, 2018, 2021 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -30,8 +30,8 @@
  * </tt>
  */
 
-#ifndef ENDGAME_SOLVER_H
-#define ENDGAME_SOLVER_H
+#ifndef ENDGAME_UTILS_H
+#define ENDGAME_UTILS_H
 
 #include "game_tree_utils.h"
 
@@ -70,4 +70,4 @@ typedef ExactSolution *
 
 
 
-#endif /* ENDGAME_SOLVER_H */
+#endif /* ENDGAME_UTILS_H */

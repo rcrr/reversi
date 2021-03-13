@@ -359,7 +359,7 @@
 
 #include "main_option_parse.h"
 #include "file_utils.h"
-#include "endgame_solver.h"
+#include "endgame_utils.h"
 #include "game_position_db.h"
 #include "game_tree_logger.h"
 
@@ -854,7 +854,7 @@ main (int argc,
  */
 
 /**
- * @brief Ruturns the index in the solvers arry of the endgame solver identified by `id`.
+ * @brief Ruturns the index in the solvers array of the endgame solver identified by `id`.
  *
  * @details Compares the `id` parameter with the values in the solvers static array,
  *          if the `id` parameter matches with the solver id field then the solver

@@ -34,7 +34,7 @@
 #ifndef RGLM_SOLVER_H
 #define RGLM_SOLVER_H
 
-#include "endgame_solver.h"
+#include "endgame_utils.h"
 
 
 

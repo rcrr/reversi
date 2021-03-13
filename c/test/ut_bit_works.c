@@ -331,33 +331,33 @@ bitw_reset_lowest_set_bit_64_t (ut_test_t *const t)
 static void
 bitw_lowest_set_bit_64_t (ut_test_t *const t)
 {
- ut_assert(t, 0x01 == bitw_lowest_set_bit_64(0xFF));
- ut_assert(t, 0x02 == bitw_lowest_set_bit_64(0xFE));
- ut_assert(t, 0x80 == bitw_lowest_set_bit_64(0x80));
- ut_assert(t, 0x40 == bitw_lowest_set_bit_64(0xC0));
+  ut_assert(t, 0x01 == bitw_lowest_set_bit_64(0xFF));
+  ut_assert(t, 0x02 == bitw_lowest_set_bit_64(0xFE));
+  ut_assert(t, 0x80 == bitw_lowest_set_bit_64(0x80));
+  ut_assert(t, 0x40 == bitw_lowest_set_bit_64(0xC0));
 
- ut_assert(t, 0x0000000000000000 == bitw_lowest_set_bit_64(0x0000000000000000));
- ut_assert(t, 0x1000000000000000 == bitw_lowest_set_bit_64(0xF000000000000000));
- ut_assert(t, 0x0000000000000001 == bitw_lowest_set_bit_64(0x000000000000000F));
- ut_assert(t, 0x0000000000000001 == bitw_lowest_set_bit_64(0xFFFFFFFFFFFFFFFF));
- ut_assert(t, 0x8000000000000000 == bitw_lowest_set_bit_64(0x8000000000000000));
+  ut_assert(t, 0x0000000000000000 == bitw_lowest_set_bit_64(0x0000000000000000));
+  ut_assert(t, 0x1000000000000000 == bitw_lowest_set_bit_64(0xF000000000000000));
+  ut_assert(t, 0x0000000000000001 == bitw_lowest_set_bit_64(0x000000000000000F));
+  ut_assert(t, 0x0000000000000001 == bitw_lowest_set_bit_64(0xFFFFFFFFFFFFFFFF));
+  ut_assert(t, 0x8000000000000000 == bitw_lowest_set_bit_64(0x8000000000000000));
 }
 
 static void
 bitw_highest_set_bit_64_t (ut_test_t *const t)
 {
- ut_assert(t, 0x80 == bitw_highest_set_bit_64(0xFF));
- ut_assert(t, 0x80 == bitw_highest_set_bit_64(0xFE));
- ut_assert(t, 0x80 == bitw_highest_set_bit_64(0x80));
- ut_assert(t, 0x40 == bitw_highest_set_bit_64(0x7F));
+  ut_assert(t, 0x80 == bitw_highest_set_bit_64(0xFF));
+  ut_assert(t, 0x80 == bitw_highest_set_bit_64(0xFE));
+  ut_assert(t, 0x80 == bitw_highest_set_bit_64(0x80));
+  ut_assert(t, 0x40 == bitw_highest_set_bit_64(0x7F));
 
- ut_assert(t, 0x0000000000000000 == bitw_highest_set_bit_64(0x0000000000000000));
- ut_assert(t, 0x8000000000000000 == bitw_highest_set_bit_64(0xF000000000000000));
- ut_assert(t, 0x0000000000000008 == bitw_highest_set_bit_64(0x000000000000000F));
- ut_assert(t, 0x8000000000000000 == bitw_highest_set_bit_64(0xFFFFFFFFFFFFFFFF));
- ut_assert(t, 0x8000000000000000 == bitw_highest_set_bit_64(0x8000000000000000));
- ut_assert(t, 0x8000000000000000 == bitw_highest_set_bit_64(0x8000000000000001));
- ut_assert(t, 0x0000000000000001 == bitw_highest_set_bit_64(0x0000000000000001));
+  ut_assert(t, 0x0000000000000000 == bitw_highest_set_bit_64(0x0000000000000000));
+  ut_assert(t, 0x8000000000000000 == bitw_highest_set_bit_64(0xF000000000000000));
+  ut_assert(t, 0x0000000000000008 == bitw_highest_set_bit_64(0x000000000000000F));
+  ut_assert(t, 0x8000000000000000 == bitw_highest_set_bit_64(0xFFFFFFFFFFFFFFFF));
+  ut_assert(t, 0x8000000000000000 == bitw_highest_set_bit_64(0x8000000000000000));
+  ut_assert(t, 0x8000000000000000 == bitw_highest_set_bit_64(0x8000000000000001));
+  ut_assert(t, 0x0000000000000001 == bitw_highest_set_bit_64(0x0000000000000001));
 }
 
 static void

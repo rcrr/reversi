@@ -43,6 +43,7 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "game_tree_utils.h"
 #include "sort_utils.h"

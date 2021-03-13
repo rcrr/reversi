@@ -34,7 +34,7 @@
 #ifndef EXACT_SOLVER_H
 #define EXACT_SOLVER_H
 
-#include "endgame_solver.h"
+#include "endgame_utils.h"
 
 
 
