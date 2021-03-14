@@ -46,8 +46,8 @@ FLAME_LIB := ./ext/lib/libflame.a
 #
 EXT_INC := ./ext/include
 
-HDR_BLIS := $(EXT_INC)/blis.h
-HDR_FLAME := $(EXT_INC)/FLAME.h
+EXT_HDR_BLIS := $(EXT_INC)/blis.h
+EXT_HDR_FLAME := $(EXT_INC)/FLAME.h
 
 #
 # All test programs include the src directory to find the headers.
@@ -77,11 +77,16 @@ TMPDIR          := $(BUILDDIR)/tmp
 TEST_OBJDIR     := $(BTESTDIR)/obj
 TEST_BINDIR     := $(BTESTDIR)/bin
 
+#
 # Add all the programs that has a main and that will be compiled and linked as a bin executable.
+#
 MAINS := endgame_solver gpdb_verify intel_intrinsics_trial \
          read_game_tree_log read_pve_dump regab rglm rglmw \
          utest
 
+#
+# Add all the modules that will be compiled to object code.
+#
 MODULES := arch bit_works board board_pattern board_trans cfg distributions endgame_utils exact_solver file_utils \
            game_position_db game_tree_logger game_tree_utils improved_fast_endgame_solver \
            isqrt linear_algebra linked_list main_option_parse memory_manager memory_object_pool \
@@ -89,6 +94,9 @@ MODULES := arch bit_works board board_pattern board_trans cfg distributions endg
            rglm_data_files rglm_solver rglm_utils sha3 sort_utils time_utils \
            unit_test
 
+#
+# Add all the unit tests that will be compiled and linked.
+#
 UTEST_MAINS := ut_bit_works ut_board ut_board_pattern ut_board_trans ut_cfg ut_distributions \
                ut_endgame_utils ut_es_pv ut_file_utils ut_flame ut_game_position ut_game_position_db \
                ut_game_tree_utils ut_isqrt ut_linear_algebra ut_linked_list ut_main_option_parse \
@@ -270,102 +278,103 @@ ASMFLAGS := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -O3 $(ARCH
 ## Source and header file dependencies
 ##
 
-HDR_ARCH_DEP := $(HDR_ARCH)
-SRC_ARCH_DEP := $(SRC_ARCH) $(HDR_ARCH_DEP)
+HDR_ARCH_DEP := $(sort $(HDR_ARCH))
+SRC_ARCH_DEP := $(SRC_ARCH) $(sort $(HDR_ARCH_DEP))
 
-HDR_TIME_UTILS_DEP := $(HDR_TIME_UTILS)
-SRC_TIME_UTILS_DEP := $(SRC_TIME_UTILS) $(HDR_TIME_UTILS_DEP)
+HDR_TIME_UTILS_DEP := $(sort $(HDR_TIME_UTILS))
+SRC_TIME_UTILS_DEP := $(SRC_TIME_UTILS) $(sort $(HDR_TIME_UTILS_DEP))
 
-HDR_BIT_WORKS_DEP := $(HDR_BIT_WORKS)
-SRC_BIT_WORKS_DEP := $(SRC_BIT_WORKS) $(HDR_BIT_WORKS_DEP)
+HDR_BIT_WORKS_DEP := $(sort $(HDR_BIT_WORKS))
+SRC_BIT_WORKS_DEP := $(SRC_BIT_WORKS) $(sort $(HDR_BIT_WORKS_DEP))
 
-HDR_PRNG_DEP := $(HDR_PRNG)
-SRC_PRNG_DEP := $(SRC_PRNG) $(HDR_PRNG_DEP) $(HDR_TIME_UTILS_DEP) $(HDR_BIT_WORKS_DEP)
+HDR_PRNG_DEP := $(sort $(HDR_PRNG))
+SRC_PRNG_DEP := $(SRC_PRNG) $(sort $(HDR_PRNG_DEP) $(HDR_TIME_UTILS_DEP) $(HDR_BIT_WORKS_DEP))
 
-HDR_BOARD_DEP := $(HDR_BOARD) $(HDR_BIT_WORKS_DEP) $(HDR_PRNG_DEP)
-SRC_BOARD_DEP := $(SRC_BOARD) $(HDR_BOARD_DEP) $(HDR_ARCH_DEP)
+HDR_BOARD_DEP := $(sort $(HDR_BOARD) $(HDR_BIT_WORKS_DEP) $(HDR_PRNG_DEP))
+SRC_BOARD_DEP := $(SRC_BOARD) $(sort $(HDR_BOARD_DEP) $(HDR_ARCH_DEP))
 
-HDR_BOARD_TRANS_DEP := $(HDR_BOARD_TRANS) $(HDR_BOARD_DEP)
-SRC_BOARD_TRANS_DEP := $(SRC_BOARD_TRANS) $(HDR_BOARD_TRANS_DEP)
+HDR_BOARD_TRANS_DEP := $(sort $(HDR_BOARD_TRANS) $(HDR_BOARD_DEP))
+SRC_BOARD_TRANS_DEP := $(SRC_BOARD_TRANS) $(sort $(HDR_BOARD_TRANS_DEP))
 
-HDR_BOARD_PATTERN_DEP := $(HDR_BOARD_PATTERN) $(HDR_BOARD_TRANS_DEP)
-SRC_BOARD_PATTERN_DEP := $(SRC_BOARD_PATTERN) $(HDR_BOARD_PATTERN_DEP)
+HDR_BOARD_PATTERN_DEP := $(sort $(HDR_BOARD_PATTERN) $(HDR_BOARD_TRANS_DEP))
+SRC_BOARD_PATTERN_DEP := $(SRC_BOARD_PATTERN) $(sort $(HDR_BOARD_PATTERN_DEP))
 
-HDR_CFG_DEP := $(HDR_CFG)
-SRC_CFG_DEP := $(SRC_CFG) $(HDR_CFG_DEP)
+HDR_CFG_DEP := $(sort $(HDR_CFG))
+SRC_CFG_DEP := $(SRC_CFG) $(sort $(HDR_CFG_DEP))
 
-HDR_DISTRIBUTIONS_DEP := $(HDR_DISTRIBUTIONS)
-SRC_DISTRIBUTIONS_DEP := $(SRC_DISTRIBUTIONS) $(HDR_DISTRIBUTIONS_DEP)
+HDR_DISTRIBUTIONS_DEP := $(sort $(HDR_DISTRIBUTIONS))
+SRC_DISTRIBUTIONS_DEP := $(SRC_DISTRIBUTIONS) $(sort $(HDR_DISTRIBUTIONS_DEP))
 
-HDR_FILE_UTILS_DEP := $(HDR_FILE_UTILS)
-SRC_FILE_UTILS_DEP := $(SRC_FILE_UTILS) $(HDR_FILE_UTILS_DEP)
+HDR_FILE_UTILS_DEP := $(sort $(HDR_FILE_UTILS))
+SRC_FILE_UTILS_DEP := $(SRC_FILE_UTILS) $(sort $(HDR_FILE_UTILS_DEP))
 
-HDR_ISQRT_DEP := $(HDR_ISQRT)
-SRC_ISQRT_DEP := $(SRC_ISQRT) $(HDR_ISQRT_DEP)
+HDR_ISQRT_DEP := $(sort $(HDR_ISQRT))
+SRC_ISQRT_DEP := $(SRC_ISQRT) $(sort $(HDR_ISQRT_DEP))
 
-HDR_LINKED_LIST_DEP := $(HDR_LINKED_LIST)
-SRC_LINKED_LIST_DEP := $(SRC_LINKED_LIST) $(HDR_LINKED_LIST_DEP)
+HDR_LINKED_LIST_DEP := $(sort $(HDR_LINKED_LIST))
+SRC_LINKED_LIST_DEP := $(SRC_LINKED_LIST) $(sort $(HDR_LINKED_LIST_DEP))
 
-HDR_MAIN_OPTION_PARSE_DEP := $(HDR_MAIN_OPTION_PARSE)
-SRC_MAIN_OPTION_PARSE_DEP := $(SRC_MAIN_OPTION_PARSE) $(HDR_MAIN_OPTION_PARSE_DEP)
+HDR_MAIN_OPTION_PARSE_DEP := $(sort $(HDR_MAIN_OPTION_PARSE))
+SRC_MAIN_OPTION_PARSE_DEP := $(SRC_MAIN_OPTION_PARSE) $(sort $(HDR_MAIN_OPTION_PARSE_DEP))
 
-HDR_SORT_UTILS_DEP := $(HDR_SORT_UTILS)
-SRC_SORT_UTILS_DEP := $(SRC_SORT_UTILS) $(HDR_SORT_UTILS_DEP)
+HDR_SORT_UTILS_DEP := $(sort $(HDR_SORT_UTILS))
+SRC_SORT_UTILS_DEP := $(SRC_SORT_UTILS) $(sort $(HDR_SORT_UTILS_DEP))
 
-HDR_MEMORY_MANAGER_DEP := $(HDR_MEMORY_MANAGER)
-SRC_MEMORY_MANAGER_DEP := $(SRC_MEMORY_MANAGER) $(HDR_MEMORY_MANAGER_DEP)
+HDR_MEMORY_MANAGER_DEP := $(sort $(HDR_MEMORY_MANAGER))
+SRC_MEMORY_MANAGER_DEP := $(SRC_MEMORY_MANAGER) $(sort $(HDR_MEMORY_MANAGER_DEP))
 
-HDR_MEMORY_OBJECT_POOL_DEP := $(HDR_MEMORY_OBJECT_POOL)
-SRC_MEMORY_OBJECT_POOL_DEP := $(SRC_MEMORY_OBJECT_POOL) $(HDR_MEMORY_OBJECT_POOL_DEP) $(HDR_SORT_UTILS_DEP)
+HDR_MEMORY_OBJECT_POOL_DEP := $(sort $(HDR_MEMORY_OBJECT_POOL))
+SRC_MEMORY_OBJECT_POOL_DEP := $(SRC_MEMORY_OBJECT_POOL) $(sort $(HDR_MEMORY_OBJECT_POOL_DEP) $(HDR_SORT_UTILS_DEP))
 
-HDR_RED_BLACK_TREE_DEP := $(HDR_RED_BLACK_TREE) $(HDR_MEMORY_MANAGER)
-SRC_RED_BLACK_TREE_DEP := $(SRC_RED_BLACK_TREE) $(HDR_RED_BLACK_TREE_DEP)
+HDR_RED_BLACK_TREE_DEP := $(sort $(HDR_RED_BLACK_TREE) $(HDR_MEMORY_MANAGER))
+SRC_RED_BLACK_TREE_DEP := $(SRC_RED_BLACK_TREE) $(sort $(HDR_RED_BLACK_TREE_DEP))
 
-HDR_SHA3_DEP := $(HDR_SHA3)
-SRC_SHA3_DEP := $(SRC_SHA3) $(HDR_SHA3_DEP) $(HDR_BIT_WORKS)
+HDR_SHA3_DEP := $(sort $(HDR_SHA3))
+SRC_SHA3_DEP := $(SRC_SHA3) $(sort $(HDR_SHA3_DEP) $(HDR_BIT_WORKS))
 
-HDR_UNIT_TEST_DEP := $(HDR_UNIT_TEST) $(HDR_LINKED_LIST_DEP) $(HDR_TIME_UTILS_DEP)
-SRC_UNIT_TEST_DEP := $(SRC_UNIT_TEST) $(HDR_UNIT_TEST_DEP) $(HDR_MAIN_OPTION_PARSE_DEP)
+HDR_UNIT_TEST_DEP := $(sort $(HDR_UNIT_TEST) $(HDR_LINKED_LIST_DEP) $(HDR_TIME_UTILS_DEP))
+SRC_UNIT_TEST_DEP := $(SRC_UNIT_TEST) $(sort $(HDR_UNIT_TEST_DEP) $(HDR_MAIN_OPTION_PARSE_DEP))
 
-HDR_PRINCIPAL_VARIATION_DEP := $(HDR_PRINCIPAL_VARIATION)
-SRC_PRINCIPAL_VARIATION_DEP := $(SRC_PRINCIPAL_VARIATION) $(HDR_PRINCIPAL_VARIATION_DEP)
+HDR_PRINCIPAL_VARIATION_DEP := $(sort $(HDR_PRINCIPAL_VARIATION))
+SRC_PRINCIPAL_VARIATION_DEP := $(SRC_PRINCIPAL_VARIATION) $(sort $(HDR_PRINCIPAL_VARIATION_DEP))
 
-HDR_GAME_POSITION_DB_DEP := $(HDR_GAME_POSITION_DB) $(HDR_RED_BLACK_TREE_DEP) $(HDR_LINKED_LIST_DEP) $(HDR_BOARD_DEP)
-SRC_GAME_POSITION_DB_DEP := $(SRC_GAME_POSITION_DB) $(HDR_GAME_POSITION_DB_DEP) $(HDR_FILE_UTILS_DEP)
+HDR_GAME_POSITION_DB_DEP := $(sort $(HDR_GAME_POSITION_DB) $(HDR_RED_BLACK_TREE_DEP) $(HDR_LINKED_LIST_DEP) $(HDR_BOARD_DEP))
+SRC_GAME_POSITION_DB_DEP := $(SRC_GAME_POSITION_DB) $(sort $(HDR_GAME_POSITION_DB_DEP) $(HDR_FILE_UTILS_DEP))
 
-HDR_GAME_TREE_UTILS_DEP := $(HDR_GAME_TREE_UTILS) $(HDR_BOARD_DEP)
-SRC_GAME_TREE_UTILS_DEP := $(SRC_GAME_TREE_UTILS) $(HDR_GAME_TREE_UTILS_DEP) $(HDR_SORT_UTILS_DEP) $(HDR_TIME_UTILS_DEP)
+HDR_GAME_TREE_UTILS_DEP := $(sort $(HDR_GAME_TREE_UTILS) $(HDR_BOARD_DEP))
+SRC_GAME_TREE_UTILS_DEP := $(SRC_GAME_TREE_UTILS) $(sort $(HDR_GAME_TREE_UTILS_DEP) $(HDR_SORT_UTILS_DEP) $(HDR_TIME_UTILS_DEP))
 
-HDR_ENDGAME_UTILS_DEP := $(HDR_ENDGAME_UTILS)
-SRC_ENDGAME_UTILS_DEP := $(SRC_ENDGAME_UTILS) $(HDR_ENDGAME_UTILS_DEP)
+HDR_ENDGAME_UTILS_DEP := $(sort $(HDR_ENDGAME_UTILS))
+SRC_ENDGAME_UTILS_DEP := $(SRC_ENDGAME_UTILS) $(sort $(HDR_ENDGAME_UTILS_DEP))
 
-HDR_GAME_TREE_LOGGER_DEP := $(HDR_GAME_TREE_LOGGER) $(HDR_ENDGAME_UTILS_DEP)
-SRC_GAME_TREE_LOGGER_DEP := $(SRC_GAME_TREE_LOGGER) $(HDR_GAME_TREE_LOGGER_DEP) $(HDR_FILE_UTILS_DEP)
+HDR_GAME_TREE_LOGGER_DEP := $(sort $(HDR_GAME_TREE_LOGGER) $(HDR_ENDGAME_UTILS_DEP))
+SRC_GAME_TREE_LOGGER_DEP := $(SRC_GAME_TREE_LOGGER) $(sort $(HDR_GAME_TREE_LOGGER_DEP) $(HDR_FILE_UTILS_DEP))
 
-HDR_IMPROVED_FAST_ENDGAME_SOLVER_DEP := $(HDR_IMPROVED_FAST_ENDGAME_SOLVER) $(HDR_ENDGAME_UTILS_DEP)
-SRC_IMPROVED_FAST_ENDGAME_SOLVER_DEP := $(SRC_IMPROVED_FAST_ENDGAME_SOLVER) $(HDR_IMPROVED_FAST_ENDGAME_SOLVER_DEP) $(HDR_GAME_TREE_LOGGER_DEP)
+HDR_IMPROVED_FAST_ENDGAME_SOLVER_DEP := $(sort $(HDR_IMPROVED_FAST_ENDGAME_SOLVER) $(HDR_ENDGAME_UTILS_DEP))
+SRC_IMPROVED_FAST_ENDGAME_SOLVER_DEP := $(SRC_IMPROVED_FAST_ENDGAME_SOLVER) $(sort $(HDR_IMPROVED_FAST_ENDGAME_SOLVER_DEP) $(HDR_GAME_TREE_LOGGER_DEP))
 
-HDR_MINIMAX_SOLVER_DEP := $(HDR_MINIMAX_SOLVER) $(HDR_ENDGAME_UTILS_DEP)
-SRC_MINIMAX_SOLVER_DEP := $(SRC_MINIMAX_SOLVER) $(HDR_MINIMAX_SOLVER_DEP) $(HDR_GAME_TREE_LOGGER_DEP) $(HDR_BOARD_PATTERN_DEP)
+HDR_MINIMAX_SOLVER_DEP := $(sort $(HDR_MINIMAX_SOLVER) $(HDR_ENDGAME_UTILS_DEP))
+SRC_MINIMAX_SOLVER_DEP := $(SRC_MINIMAX_SOLVER) $(sort $(HDR_MINIMAX_SOLVER_DEP) $(HDR_GAME_TREE_LOGGER_DEP) $(HDR_BOARD_PATTERN_DEP))
 
-HDR_EXACT_SOLVER_DEP := $(HDR_EXACT_SOLVER) $(HDR_ENDGAME_UTILS_DEP)
-SRC_EXACT_SOLVER_DEP := $(SRC_EXACT_SOLVER) $(HDR_EXACT_SOLVER_DEP) $(HDR_GAME_TREE_LOGGER_DEP)
+HDR_EXACT_SOLVER_DEP := $(sort $(HDR_EXACT_SOLVER) $(HDR_ENDGAME_UTILS_DEP))
+SRC_EXACT_SOLVER_DEP := $(SRC_EXACT_SOLVER) $(sort $(HDR_EXACT_SOLVER_DEP) $(HDR_GAME_TREE_LOGGER_DEP))
 
-HDR_LINEAR_ALGEBRA_DEP := $(HDR_LINEAR_ALGEBRA) $(HDR_BLIS) $(HDR_FLAME)
-SRC_LINEAR_ALGEBRA_DEP := $(SRC_LINEAR_ALGEBRA) $(HDR_LINEAR_ALGEBRA_DEP) $(HDR_FILE_UTILS_DEP) $(HDR_TIME_UTILS_DEP)
+HDR_LINEAR_ALGEBRA_DEP := $(sort $(HDR_LINEAR_ALGEBRA))
+SRC_LINEAR_ALGEBRA_DEP := $(SRC_LINEAR_ALGEBRA) $(sort $(HDR_LINEAR_ALGEBRA_DEP) $(HDR_FILE_UTILS_DEP) $(HDR_TIME_UTILS_DEP))
 
-HDR_RGLM_DATA_FILES_DEP := $(HDR_RGLM_DATA_FILES) $(HDR_BOARD_PATTERN_DEP)
-SRC_RGLM_DATA_FILES_DEP := $(SRC_RGLM_DATA_FILES) $(HDR_RGLM_DATA_FILES_DEP) $(HDR_SHA3_DEP) $(HDR_FILE_UTILS_DEP)
+HDR_RGLM_DATA_FILES_DEP := $(sort $(HDR_RGLM_DATA_FILES) $(HDR_BOARD_PATTERN_DEP))
+SRC_RGLM_DATA_FILES_DEP := $(SRC_RGLM_DATA_FILES) $(sort $(HDR_RGLM_DATA_FILES_DEP) $(HDR_SHA3_DEP) $(HDR_FILE_UTILS_DEP))
 
-HDR_RGLM_UTILS_DEP := $(HDR_RGLM_UTILS) $(HDR_RGLM_DATA_FILES_DEP)
-SRC_RGLM_UTILS_DEP := $(SRC_RGLM_UTILS) $(HDR_RGLM_UTILS_DEP)
+HDR_RGLM_UTILS_DEP := $(sort $(HDR_RGLM_UTILS) $(HDR_RGLM_DATA_FILES_DEP))
+SRC_RGLM_UTILS_DEP := $(SRC_RGLM_UTILS) $(sort $(HDR_RGLM_UTILS_DEP))
 
 HDR_RGLM_SOLVER_DEP := $(sort $(HDR_RGLM_SOLVER) $(HDR_ENDGAME_UTILS_DEP))
 SRC_RGLM_SOLVER_DEP := $(SRC_RGLM_SOLVER) $(sort $(HDR_RGLM_SOLVER_DEP) $(HDR_FILE_UTILS_DEP) $(HDR_CFG_DEP) $(HDR_GAME_TREE_LOGGER_DEP) \
                        $(HDR_RGLM_DATA_FILES_DEP) $(HDR_RGLM_UTILS_DEP))
 
-
-#SRC_ENDGAME_SOLVER_DEP := $(SRC_ENDGAME_SOLVER) $(HDR_ENDGAME_SOLVER_DEP)
+SRC_ENDGAME_SOLVER_DEP := $(SRC_ENDGAME_SOLVER) $(sort $(HDR_MAIN_OPTION_PARSE_DEP) $(HDR_FILE_UTILS_DEP) $(HDR_ENDGAME_UTILS_DEP) \
+                          $(HDR_GAME_POSITION_DB_DEP) $(HDR_GAME_TREE_LOGGER_DEP) $(HDR_IMPROVED_FAST_ENDGAME_SOLVER_DEP) \
+                          $(HDR_MINIMAX_SOLVER_DEP) $(HDR_EXACT_SOLVER_DEP) $(HDR_BOARD_PATTERN_DEP) $(HDR_RGLM_SOLVER_DEP))
 
 SRC_UTEST_DEP := $(SRC_UTEST) $(sort $(HDR_UNIT_TEST_DEP))
 
@@ -385,7 +394,15 @@ SRC_RGLM_DEP := $(SRC_RGLM) $(sort $(HDR_TIME_UTILS_DEP) $(HDR_MAIN_OPTION_PARSE
 
 SRC_RGLMW_DEP := $(SRC_RGLMW) $(sort $(HDR_TIME_UTILS_DEP) $(HDR_MAIN_OPTION_PARSE_DEP) $(HDR_RGLM_UTILS_DEP) $(HDR_LINEAR_ALGEBRA_DEP))
 
+#
+# For further reduction of redundant code recipes could be generated with eval.
+# Look at this page for info.
+#
 # https://make.mad-scientist.net/the-eval-function/
+#
+# The tradeoff between readable code and avoiding duplication is not clear.
+# let's keep the makefile as it is for a while.
+#
 
 ##
 ## Unit test source file dependencies
@@ -673,18 +690,18 @@ $(UTE_DISTRIBUTIONS): $(UTO_DISTRIBUTIONS) $(UTE_DISTRIBUTIONS_OBJ_DEPENDENCIES)
 ##
 ## endgame_solver
 ##
-## endgame_solver.c : endgame_solver.h main_option_parse.h file_utils.h game_position_db.h game_tree_logger.h
+## endgame_solver.c : main_option_parse.h file_utils.h game_position_db.h game_tree_logger.h
 ##                    improved_fast_endgame_solver.h minimax_solver.h exact_solver.h board_pattern.h
 ##                    rglm_solver.h
 ##
 endgame_solver: $(BIN_ENDGAME_SOLVER)
 asm_endgame_solver: $(ASM_ENDGAME_SOLVER)
 
-$(ASM_ENDGAME_SOLVER): $(SRC_ENDGAME_SOLVER) $(HDR_ENDGAME_SOLVER) Makefile $(ASMDIR)/.dir_sentinel
+$(ASM_ENDGAME_SOLVER): $(SRC_ENDGAME_SOLVER_DEP) Makefile $(ASMDIR)/.dir_sentinel
 	@printf "Compiling source file $< into assembly $@\n"
 	@$(CC) $(ASMFLAGS) -S $< -o $@
 
-$(OBJ_ENDGAME_SOLVER): $(SRC_ENDGAME_SOLVER) $(HDR_ENDGAME_SOLVER) Makefile $(OBJDIR)/.dir_sentinel
+$(OBJ_ENDGAME_SOLVER): $(SRC_ENDGAME_SOLVER_DEP) Makefile $(OBJDIR)/.dir_sentinel
 	@printf "Compiling $< into $@\n"
 	@$(CC) $(CFLAGS) -c $< -o $@
 
@@ -1625,11 +1642,9 @@ $(UTE_UTEST): $(UTO_UTEST) $(UTE_UTEST_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)
 doxygen: $(DOCDIR)/.dir_sentinel
 	doxygen > build/doxygen.log
 
-.PHONY: clean
 clean:
 	rm -Rf $(BUILDDIR)
 
-.PHONY: info
 info:
 	@echo "MAINS = "$(MAINS)
 	@echo "MODULES = "$(MODULES)
@@ -1646,16 +1661,14 @@ info:
 	@echo "PG_INCLUDE_DIR = "$(PG_INCLUDE_DIR)
 
 
-.PHONY: $(ENDGAME_LOG_DIR)
-$(ENDGAME_LOG_DIR): $(ENDGAME_LOG_DIR)/.dir_sentinel | $(BUILDDIR)
+$(ENDGAME_LOG_DIR): $(ENDGAME_LOG_DIR)/.dir_sentinel $(BUILDDIR)/.dir_sentinel
 
 $(ENDGAME_LOG_DIR)/.dir_sentinel:
 	mkdir -p $(ENDGAME_LOG_DIR)
 	touch $(ENDGAME_LOG_DIR)/.dir_sentinel
 
 
-.PHONY: endgame_log_files
-endgame_log_files: $(ENDGAME_LOG_DIR)
+endgame_log_files: endgame_solver $(ENDGAME_LOG_DIR)/.dir_sentinel
 	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt -q ffo-01 -s es -l $(ENDGAME_LOG_DIR)/exact_solver_log-ffo-01
 	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt -q ffo-01 -s ifes -l $(ENDGAME_LOG_DIR)/ifes_solver_log-ffo-01
 	./$(BINDIR)/endgame_solver -f db/gpdb-sample-games.txt -q initial -s rand -n 100 -l $(ENDGAME_LOG_DIR)/random_game_sampler_log-t100
@@ -1663,8 +1676,7 @@ endgame_log_files: $(ENDGAME_LOG_DIR)
 	./$(BINDIR)/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s rab -n 3 -l $(ENDGAME_LOG_DIR)/rab_solver_log-ffo-01-simplified-4_n3
 	./$(BINDIR)/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s ab -l $(ENDGAME_LOG_DIR)/ab_solver_log-ffo-01-simplified-4
 
-.PHONY: endgame_pv_files
-endgame_pv_files: $(ENDGAME_LOG_DIR)
+endgame_pv_files: endgame_solver $(ENDGAME_LOG_DIR)/.dir_sentinel
 	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-01 -d $(ENDGAME_LOG_DIR)/pve-ffo-01.dat
 	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-02 -d $(ENDGAME_LOG_DIR)/pve-ffo-02.dat
 	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-03 -d $(ENDGAME_LOG_DIR)/pve-ffo-03.dat
@@ -1685,8 +1697,7 @@ endgame_pv_files: $(ENDGAME_LOG_DIR)
 	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-18 -d $(ENDGAME_LOG_DIR)/pve-ffo-18.dat
 	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-19 -d $(ENDGAME_LOG_DIR)/pve-ffo-19.dat
 
-.PHONY: dat2csv 
-dat2csv:
+dat2csv: read_game_tree_log $(ENDGAME_LOG_DIR)/.dir_sentinel
 	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/ab_solver_log-ffo-01-simplified-4.dat >     $(ENDGAME_LOG_DIR)/ab_solver_log-ffo-01-simplified-4.csv
 	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/exact_solver_log-ffo-01.dat >               $(ENDGAME_LOG_DIR)/exact_solver_log-ffo-01.csv
 	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/ifes_solver_log-ffo-01.dat >                $(ENDGAME_LOG_DIR)/ifes_solver_log-ffo-01.csv
