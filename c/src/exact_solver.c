@@ -130,9 +130,12 @@ game_position_es_solve (const GamePositionX *const root,
     first_node_info->alpha = out_of_range_defeat_score;
     first_node_info->beta = out_of_range_win_score;
   } else {
-    first_node_info->alpha = worst_score;
-    first_node_info->beta = best_score;
+    //first_node_info->alpha = worst_score;
+    //first_node_info->beta = best_score;
+    first_node_info->alpha = env->alpha;
+    first_node_info->beta = env->beta;
   }
+
 
   if (pv_recording) {
     pve = pve_new(root);

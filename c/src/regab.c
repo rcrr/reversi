@@ -2581,7 +2581,12 @@ main (int argc,
           .repeats = 0,
           .pv_recording = false,
           .pv_full_recording = false,
-          .pv_no_print = false
+          .pv_no_print = false,
+          .board_pattern_index = -1, // not used
+          .prng_seed_is_set = false,
+          .prng_seed = 0, // not used
+          .alpha = worst_score,
+          .beta = best_score
         };
 
       ExactSolution *solution;

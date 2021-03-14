@@ -356,6 +356,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <ctype.h>
 
 #include "main_option_parse.h"
 #include "file_utils.h"
@@ -405,6 +406,7 @@ static const mop_options_long_t olist[] = {
   {"pv-rec",            'R', MOP_NONE},
   {"pv-full-rec",       'F', MOP_NONE},
   {"pv-no-print",       'N', MOP_NONE},
+  {"ab-window",         'w', MOP_REQUIRED},
   {0, 0, 0}
 };
 
@@ -425,6 +427,7 @@ static const char *documentation =
   "  -R, --pv-rec           Collects PV info         - Available only for es solver.\n"
   "  -F, --pv-full-rec      Analyzes all PV variants - Available only for es solver.\n"
   "  -N, --pv-no-print      Does't print PV variants - Available only in conjuction with option pv-full-rec.\n"
+  "  -w, --ab-window        Alpha-beta search window - Available only for es solver"
   "\n"
   "Description:\n"
   "  Endgame solver is the front end for a group of algorithms aimed to analyze the final part of the game and to asses the game tree structure.\n"
@@ -519,6 +522,9 @@ static int R_flag = false;
 static int F_flag = false;
 static int N_flag = false;
 
+static int w_flag = false;
+static char *w_arg = NULL;
+
 static char *input_file = NULL;
 static char *lookup_entry = NULL;
 static int solver_index = -1;
@@ -531,7 +537,8 @@ static bool pv_no_print = false;
 static int board_pattern_index = -1;
 static uint64_t prng_seed = 0;
 static bool prng_seed_is_set = false;
-
+static int alpha = worst_score;
+static int beta = best_score;
 
 
 /*
@@ -543,6 +550,10 @@ egs_select_solver (const char *const id);
 
 static int
 egs_select_pattern (const char *const name);
+
+static void
+egs_parse_ab (int *alpha, int *beta, char *arg, int *err);
+
 
 /**
  * @endcond
@@ -609,6 +620,10 @@ main (int argc,
       break;
     case 'N':
       N_flag = true;
+      break;
+    case 'w':
+      w_flag = true;
+      w_arg = options.optarg;
       break;
     case ':':
       fprintf(stderr, "Option parsing failed: %s\n", options.errmsg);
@@ -737,7 +752,7 @@ main (int argc,
   }
 
   if (F_flag) {
-    if (!(strcmp("es", solver->id) == 0)) {
+    if (!((strcmp("es", solver->id) == 0) || (strcmp("rglm", solver->id) == 0))) {
       fprintf(stderr, "Option -F, --pv-full-rec can be used only with solver \"es\".\n");
       return -13;
     }
@@ -754,6 +769,23 @@ main (int argc,
       return -15;
     }
     pv_no_print = true;
+  }
+
+  if (w_flag) {
+    if (!((strcmp("es", solver->id) == 0) || (strcmp("rglm", solver->id) == 0))) {
+      fprintf(stderr, "Option -w, --ab-window can be used only with solvers [es,rglm].\n");
+      return EXIT_FAILURE;
+    }
+    if (pv_rec || pv_full_rec) {
+      fprintf(stderr, "Option -w, --ab-window cannot be used when computing the PV.\n");
+      return EXIT_FAILURE;
+    }
+    int return_error = 0;
+    egs_parse_ab(&alpha, &beta, w_arg, &return_error);
+    if (return_error != 0) {
+      fprintf(stderr, "Option -w, --ab-window, must be two integers values, separated by comma, ordered, not equal, in the range [-65..+65].\n");
+      return EXIT_FAILURE;
+    }
   }
 
   /* Verifies that the database input file is available for reading. */
@@ -784,7 +816,9 @@ main (int argc,
       .pv_no_print = false,
       .board_pattern_index = board_pattern_index,
       .prng_seed_is_set = prng_seed_is_set,
-      .prng_seed = prng_seed
+      .prng_seed = prng_seed,
+      .alpha = alpha,
+      .beta = beta
     };
 
   /* Loads the game position database. */
@@ -884,6 +918,93 @@ egs_select_pattern (const char *const name)
     if (strcmp(name, bp->name) == 0) return i;
   }
   return -1;
+}
+
+static void
+egs_parse_ab (int *alpha,
+              int *beta,
+              char *arg,
+              int *err)
+{
+  int parse_mode; // 0 means digits, 1 means separator.
+  char *beginptr;
+  char *endptr;
+  bool is_first_char;
+  int field_cnt;
+  int value;
+  int min, max;
+
+  parse_mode = 1;
+  beginptr = arg;
+  field_cnt = 1;
+  is_first_char = true;
+  while (*beginptr) {
+    if (',' == *beginptr) {
+      if (parse_mode != 0) {
+        fprintf(stderr, "Wrong format in -w, --ab-windows, argument value.\n");
+        *err = -1;
+        return;
+      }
+      field_cnt++;
+      parse_mode = 1;
+      is_first_char = true;
+    } else if (*beginptr == '+' || *beginptr == '-') {
+      if (!is_first_char) {
+        fprintf(stderr, "Wrong character in -w, --ab-windows, argument value.\n");
+        *err = -4;
+        return;
+      }
+      parse_mode = 0;
+      is_first_char = false;
+    } else if (isdigit(*beginptr)) {
+      parse_mode = 0;
+      is_first_char = false;
+    } else {
+      fprintf(stderr, "Wrong character in -w, --ab-windows, argument value.\n");
+      *err = -2;
+      return;
+    }
+    beginptr++;
+  }
+  if (parse_mode != 0) {
+    fprintf(stderr, "The value for -w, --ab-windows, argument value couldn't end with a comma.\n");
+    *err = -3;
+    return;
+  }
+  if (field_cnt != 2) {
+    fprintf(stderr, "The value for -w, --ab-windows, argument must have two fields separated by a comma.\n");
+    *err = -5;
+    return;
+  }
+
+  beginptr = arg;
+  for (size_t i = 0; i < field_cnt; i++) {
+    value = strtol(beginptr, &endptr, 10);
+    if (value < -65 || value > +65) {
+      fprintf(stderr, "The value for -w, --ab-windows, argument value couldn't end with a comma.\n");
+      *err = -10;
+      return;
+    }
+    if (i == 0) min = value;
+    if (i == 1) max = value;
+    beginptr = endptr + 1;
+  }
+  if (*endptr != '\0') {
+    fprintf(stderr, "Further characters after number in batch_id value: %s\n", endptr);
+    *err = -12;
+    return;
+  }
+
+  if (min >= max) {
+    fprintf(stderr, "The value for -w, --ab-windows, argument are not properly ordered, or are equal.\n");
+    *err = -14;
+    return;
+  }
+
+  *alpha = min;
+  *beta = max;
+  *err= 0;
+  return;
 }
 
 /**

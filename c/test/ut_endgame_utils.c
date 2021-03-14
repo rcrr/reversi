@@ -309,7 +309,15 @@ run_test_case_array (ut_test_t *const t,
   endgame_solver_env_t endgame_solver_env =
     { .log_file = NULL,
       .pve_dump_file = NULL,
-      .repeats = 0
+      .repeats = 0,
+      .pv_recording = false,
+      .pv_full_recording = false,
+      .pv_no_print = false,
+      .board_pattern_index = -1, // not used
+      .prng_seed_is_set = false,
+      .prng_seed = 0, // not used
+      .alpha = worst_score,
+      .beta = best_score
     };
 
   char moves_to_s[256];

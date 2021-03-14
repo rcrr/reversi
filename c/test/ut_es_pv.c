@@ -232,7 +232,12 @@ run_test_case_array (ut_test_t *const t,
       .repeats = 0,
       .pv_recording = true,
       .pv_full_recording = true,
-      .pv_no_print = true
+      .pv_no_print = true,
+      .board_pattern_index = -1, // not used
+      .prng_seed_is_set = false,
+      .prng_seed = 0, // not used
+      .alpha = worst_score,
+      .beta = best_score
     };
 
   const size_t buffer_size = 4096;

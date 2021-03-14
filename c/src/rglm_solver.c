@@ -59,6 +59,10 @@ game_position_solve_impl (ExactSolution *const result,
                           GameTreeStack *const stack);
 
 
+static double
+rglm_eval_gp (const GamePositionX *const gpx);
+
+
 
 /*
  * Internal variables and constants.
@@ -159,6 +163,15 @@ game_position_rglm_solve (const GamePositionX *const root,
     fprintf(stderr, "Error loading RGLM solver model weights files. Aborting ...\n");
     abort();
   }
+  const int ec = game_position_x_empty_count(root);
+  const bool mw_available = mws[ec] != NULL;
+  if (mw_available) {
+    const double estimated_game_value_transformed = rglm_eval_gp(root);
+    const double estimated_game_value = rglmut_gv_scale_back_f(estimated_game_value_transformed);
+    printf("RGLM solver: estimated_game_value = %f (%f)\n", estimated_game_value, estimated_game_value_transformed);
+  } else {
+    printf("RGLM solver: model weights for the game position is not available, ec=%d\n", ec);
+  }
   result = game_position_rglm_solve_nlmw(root, env);
   game_position_rglm_release_model_weights();
   return result;
@@ -196,8 +209,8 @@ game_position_rglm_solve_nlmw (const GamePositionX *const root,
     first_node_info->alpha = out_of_range_defeat_score;
     first_node_info->beta = out_of_range_win_score;
   } else {
-    first_node_info->alpha = worst_score;
-    first_node_info->beta = best_score;
+    first_node_info->alpha = env->alpha;
+    first_node_info->beta = env->beta;
   }
 
   if (pv_recording) {
