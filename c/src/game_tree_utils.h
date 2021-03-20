@@ -172,6 +172,11 @@ typedef struct {
   size_t          line_release_cell_count;       /**< @brief The number of times a cell is released in the pve_line_delete() function. */
 } PVEnv;
 
+typedef struct {
+  Square move;
+  int    value;
+} move_value_t;
+
 /**
  * @brief An exact solution is an entity that holds the result of a #endgame_solver_f run.
  */
@@ -183,6 +188,9 @@ typedef struct {
   uint64_t       leaf_count;                  /**< @brief The count of leaf nodes searched by the solver. */
   uint64_t       node_count;                  /**< @brief The count of all nodes touched by the solver. */
   PVEnv         *pve;                         /**< @brief A reference to the principal variation env. */
+  bool           all_legal_moves_solved;      /**< @brief True when all legal moves are valued. */
+  int            legal_move_count;            /**< @brief Count of legal moves that the root game position has. */
+  move_value_t   legal_move_values[64];       /**< @brief Vector of legal moves and game values. */
 } ExactSolution;
 
 /**
@@ -244,12 +252,12 @@ static const int invalid_outcome = 65;
 /**
  * @brief An out of range defeat score is a value lesser than the worst case.
  */
-static const int out_of_range_defeat_score = -65;
+static const int out_of_range_defeat_score = -66;
 
 /**
  * @brief An out of range win score is a value greater than the best case.
  */
-static const int out_of_range_win_score = +65;
+static const int out_of_range_win_score = +66;
 
 /**
  * @brief The best score achievable.
@@ -393,6 +401,12 @@ exact_solution_new (void);
 
 extern void
 exact_solution_free (ExactSolution *es);
+
+extern void
+exact_solution_init (ExactSolution *es);
+
+extern void
+exact_solution_sort_legal_moves_by_value (ExactSolution *es);
 
 extern void
 exact_solution_to_stream (FILE *const fp,

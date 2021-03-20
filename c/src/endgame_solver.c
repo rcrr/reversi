@@ -24,7 +24,7 @@
  *         - Compare the exact-solver ordering policy with a policy that applies the RGLM evaluation function.
  *         - Prepare an evaluation function going down multiple ply.
  *         - Compare the number of nodes expanded by a solver that orders the moves with the RGLM evaluation function.
- *         - Analyze the effectiveness of the a-b cut operated by es, compare it with a-b, andom a-b, and the new rglm solver.
+ *         - Analyze the effectiveness of the a-b cut operated by es, compare it with a-b, random a-b, and the new rglm solver.
  *
  * @todo When available a new evaluation function that enable the sorting based on output
  *       estimation we are ready to develop an iterative-deepening game search algorithm, as well as
@@ -60,7 +60,7 @@
  *
  * @todo Re-make from scratch the PV module. This is large and big, and painful, we know it. Objectives:
  *       - Have a dedicated module.
- *       - Discard the current (geometric) memory allocation, and leverage the new object allocatore (pre-requisite).
+ *       - Discard the current (geometric) memory allocation, and leverage the new object allocator (pre-requisite).
  *       - Evaluate a design without the line, using just the cell.
  *       - Organize an index of game positions and avoid to store duplicates. The format for printing the full pv has to change to accommodate
  *         the syntax for reference.
@@ -407,6 +407,7 @@ static const mop_options_long_t olist[] = {
   {"pv-full-rec",       'F', MOP_NONE},
   {"pv-no-print",       'N', MOP_NONE},
   {"ab-window",         'w', MOP_REQUIRED},
+  {"all-moves",         'a', MOP_NONE},
   {0, 0, 0}
 };
 
@@ -428,6 +429,7 @@ static const char *documentation =
   "  -F, --pv-full-rec      Analyzes all PV variants - Available only for es solver.\n"
   "  -N, --pv-no-print      Does't print PV variants - Available only in conjuction with option pv-full-rec.\n"
   "  -w, --ab-window        Alpha-beta search window - Available only for es solver"
+  "  -a, --all-moves        Values all moves         - Available only for es and rglm solvers.\n"
   "\n"
   "Description:\n"
   "  Endgame solver is the front end for a group of algorithms aimed to analyze the final part of the game and to asses the game tree structure.\n"
@@ -524,6 +526,8 @@ static int N_flag = false;
 
 static int w_flag = false;
 static char *w_arg = NULL;
+
+static int a_flag = false;
 
 static char *input_file = NULL;
 static char *lookup_entry = NULL;
@@ -624,6 +628,9 @@ main (int argc,
     case 'w':
       w_flag = true;
       w_arg = options.optarg;
+      break;
+    case 'a':
+      a_flag = true;
       break;
     case ':':
       fprintf(stderr, "Option parsing failed: %s\n", options.errmsg);
@@ -788,11 +795,26 @@ main (int argc,
     }
   }
 
+  if (a_flag) {
+    if (!((strcmp("es", solver->id) == 0) || (strcmp("rglm", solver->id) == 0))) {
+      fprintf(stderr, "Option -a, --all-moves, can be used only with solver \"es\" or \"rglm\".\n");
+      return -15;
+    }
+    if (pv_rec || pv_full_rec) {
+      fprintf(stderr, "Option -a, --all-moves, and options -R or -F, cannot be used together.\n");
+      return -16;
+    }
+    if (w_flag) {
+      fprintf(stderr, "Option -a, --all-moves, and options -w, cannot be used together.\n");
+      return -17;
+    }
+  }
+
   /* Verifies that the database input file is available for reading. */
   FILE *fp = fopen(input_file, "r");
   if (!fp) {
     fprintf(stderr, "Unable to open database resource for reading, file \"%s\" does not exist.\n", input_file);
-    return -16;
+    return -18;
   }
   fclose(fp);
 
@@ -818,7 +840,8 @@ main (int argc,
       .prng_seed_is_set = prng_seed_is_set,
       .prng_seed = prng_seed,
       .alpha = alpha,
-      .beta = beta
+      .beta = beta,
+      .all_moves = a_flag
     };
 
   /* Loads the game position database. */

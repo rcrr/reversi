@@ -55,6 +55,7 @@ typedef struct {
   uint64_t                prng_seed;           /**< @brief Pseudo Random Number Generator seed. */
   int                     alpha;               /**< @brief Lower bound of the search window. */
   int                     beta;                /**< @brief Upper bound of the search window. */
+  bool                    all_moves;           /**< @brief Search the value of all moves. */
 } endgame_solver_env_t;
 
 /**

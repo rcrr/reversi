@@ -882,3 +882,43 @@ woc18-FKvsAP-g1-03;bbbbbbb.bbwwwbb.bbwwbwbbbbwwbwbwbbwbwbwwbbbbbwwwbbbbbbwwbw.bb
 woc18-FKvsAP-g1-02;bbbbbbb.bbwwwbb.bbwwbwbbbbwwbwbwbbwbwbwwbbwbbwwwbbwbbbwwbwwwwwww;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 02 EC;
 woc18-FKvsAP-g1-01;bbbbbbbwbbwwwbw.bbwwbwbbbbwwbwbwbbwbwbwwbbwbbwwwbbwbbbwwbwwwwwww;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 01 EC;
 woc18-FKvsAP-g1-00;bbbbbbbwbbwwwbbbbbwwbwbbbbwwbwbwbbwbwbwwbbwbbwwwbbwbbbwwbwwwwwww;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 00 EC;
+#
+#
+#
+#   seq    | game_position_pp_mop  | game_value | legal_move_count 
+#----------+-----------------------+------------+------------------
+# 25774684 |    a b c d e f g h   +|        -64 |                5
+#          | 1  O O O O O O O O   +|            | 
+#          | 2  O O O O O @ . .   +|            | 
+#          | 3  O @ @ @ O @ @ @   +|            | 
+#          | 4  O @ . @ O @ @ @   +|            | 
+#          | 5  O O O @ O @ . @   +|            | 
+#          | 6  O O O O O . . .   +|            | 
+#          | 7  O @ . O . . . .   +|            | 
+#          | 8  O O O . O . . .   +|            | 
+#          | Player to move: BLACK |            | 
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+sample-25774684;wwwwwwwwwwwwwb..wbbbwbbbwb.bwbbbwwwbwb.bwwwww...wb.w....www.w...;b;REGAB database entry 25774684 - black loses -64;
+#
+#
+#
+#   seq    | game_position_pp_mop  | game_value | legal_move_count 
+#----------+-----------------------+------------+------------------
+# 47320341 |    a b c d e f g h   +|         64 |               10
+#          | 1  . @ @ @ @ @ O .   +|            | 
+#          | 2  O O O O O O O .   +|            | 
+#          | 3  O @ O @ @ O . .   +|            | 
+#          | 4  O @ @ @ O O O @   +|            | 
+#          | 5  O @ @ O O O O @   +|            | 
+#          | 6  @ @ O . O O O @   +|            | 
+#          | 7  . . . O O O O .   +|            | 
+#          | 8  . . . O O . . .   +|            | 
+#          | Player to move: BLACK |            | 
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+sample-47320341;.bbbbbw.wwwwwww.wbwbbw..wbbbwwwbwbbwwwwbbbw.wwwb...wwww....ww...;b;REGAB database entry 47320341 - black wins +64;
+#
+#

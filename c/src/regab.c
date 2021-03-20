@@ -2586,7 +2586,8 @@ main (int argc,
           .prng_seed_is_set = false,
           .prng_seed = 0, // not used
           .alpha = worst_score,
-          .beta = best_score
+          .beta = best_score,
+          .all_moves = false
         };
 
       ExactSolution *solution;

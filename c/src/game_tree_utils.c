@@ -208,6 +208,83 @@ exact_solution_free (ExactSolution *es)
 }
 
 /**
+ * @brief Initialize the exact solution structure.
+ *
+ * @invariant Parameter `es` must be not `NULL`.
+ *            Invariant is guarded by an assertion.
+ *
+ * @param [in]  es a pointer to the exact solution structure
+ */
+void
+exact_solution_init (ExactSolution *es)
+{
+  assert(es);
+
+  es->root_gpx.blacks = empty_square_set;
+  es->root_gpx.whites = empty_square_set;
+  es->root_gpx.player = BLACK_PLAYER;
+  es->outcome = invalid_outcome;
+  es->best_move = unknown_move;
+  es->final_state.blacks = empty_square_set;
+  es->final_state.whites = empty_square_set;
+  es->final_state.player = BLACK_PLAYER;
+  es->leaf_count = 0;
+  es->node_count = 0;
+  es->pve = NULL;
+  es->all_legal_moves_solved = false;
+  es->legal_move_count = 0;
+  for (int i = 0; i < 64; i++) {
+    move_value_t *mv = &es->legal_move_values[i];
+    mv->move = invalid_move;
+    mv->value = invalid_outcome;
+  }
+}
+
+/**
+ * @brief Sorts the legal moves by value.
+ *
+ * @invariant Parameter `es` must be not `NULL`.
+ *            Invariant is guarded by an assertion.
+ *
+ * @param [in]  es a pointer to the exact solution structure
+ */
+void
+exact_solution_sort_legal_moves_by_value (ExactSolution *es)
+{
+  assert(es);
+
+  if (!es->all_legal_moves_solved) return;
+
+  for (int i = 1; i < es->legal_move_count; i++) {
+    int j = i;
+    for (;;) {
+      move_value_t tmp;
+      move_value_t *ej0 = &es->legal_move_values[j];
+      move_value_t *ej1 = &es->legal_move_values[j - 1];
+      if (j == 0 || ej1->move <= ej0->move) break;
+      tmp.move = ej0->move, tmp.value = ej0->value;
+      ej0->move = ej1->move, ej0->value = ej1->value;
+      ej1->move = tmp.move, ej1->value = tmp.value;
+      j--;
+    }
+  }
+
+  for (int i = 1; i < es->legal_move_count; i++) {
+    int j = i;
+    for (;;) {
+      move_value_t tmp;
+      move_value_t *ej0 = &es->legal_move_values[j];
+      move_value_t *ej1 = &es->legal_move_values[j - 1];
+      if (j == 0 || ej1->value >= ej0->value) break;
+      tmp.move = ej0->move, tmp.value = ej0->value;
+      ej0->move = ej1->move, ej0->value = ej1->value;
+      ej1->move = tmp.move, ej1->value = tmp.value;
+      j--;
+    }
+  }
+}
+
+/**
  * @brief Outputs to `fp` a formatted string describing the exact solution structure.
  *
  * @invariant Parameter `fp` must be not `NULL`.
@@ -240,6 +317,15 @@ exact_solution_to_stream (FILE *const fp,
   fprintf(fp, "Final outcome: best move=%s, position value=%d\n",
           square_as_move_to_string(es->best_move),
           es->outcome);
+
+  if (es->all_legal_moves_solved) {
+    fprintf(fp, "Legal move count: %02d - [Index:Move:Value]: ", es->legal_move_count);
+    for (int i = 0; i < es->legal_move_count; i++) {
+      const move_value_t *const mv = &es->legal_move_values[i];
+      fprintf(fp, "[%02d:%2s:%+03d] ", i, square_as_move_to_string(mv->move), mv->value);
+    }
+    fprintf(fp, "\n");
+  }
 
   if (es->pve) {
     PVCell **rl  = es->pve->root_line;

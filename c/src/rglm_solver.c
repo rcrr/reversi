@@ -197,6 +197,7 @@ game_position_rglm_solve_nlmw (const GamePositionX *const root,
   assert(env);
 
   ExactSolution *result = exact_solution_new();
+  exact_solution_init(result);
   exact_solution_set_root(result, root);
 
   GameTreeStack *stack = game_tree_stack_new();

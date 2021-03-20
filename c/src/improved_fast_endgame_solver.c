@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014, 2016, 2017 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2016, 2017, 2021 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -429,6 +429,7 @@ game_position_ifes_solve (const GamePositionX *const root,
   }
 
   result = exact_solution_new();
+  exact_solution_init(result);
   exact_solution_set_root(result, root);
 
   game_position_to_ifes_board(root, board, &emp, &wc, &bc);
