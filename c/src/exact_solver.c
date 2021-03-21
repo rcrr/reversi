@@ -421,7 +421,7 @@ game_position_solve_impl (ExactSolution *const result,
     move_value_t *const mv = &result->legal_move_values[move_pos];
     mv->move = move;
     mv->value = value;
-    if (true) printf("  [%02d][%s:%+03d]\n", move_pos, square_as_move_to_string(move), value);
+    if (false) printf("  [%02d][%s:%+03d]\n", move_pos, square_as_move_to_string(move), value);
   }
   if (log_env->log_is_on) gtl_do_log_tail(result, stack, sub_run_id, log_env);
   c = --stack->active_node;
