@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2015, 2017 Roberto Corradini. All rights reserved.
+ * @copyright 2015, 2017, 2021 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -44,6 +44,7 @@
 #include "exact_solver.h"
 #include "improved_fast_endgame_solver.h"
 #include "minimax_solver.h"
+#include "rglm_solver.h"
 
 
 
@@ -349,6 +350,19 @@ run_test_case_array (ut_test_t *const t,
  */
 
 static void
+game_position_rglm_solve_t (ut_test_t *const t)
+{
+  assert(t);
+  assert(t->fixture);
+  assert(t->provided_data);
+
+  gpdb_dictionary_t *db = (gpdb_dictionary_t *) t->fixture;
+  test_case_t *tcap = (test_case_t *) t->provided_data;
+
+  run_test_case_array(t, db, tcap, game_position_rglm_solve);
+}
+
+static void
 game_position_es_solve_t (ut_test_t *const t)
 {
   assert(t);
@@ -449,7 +463,6 @@ main (int argc,
                             game_position_ab_solve_t,
                             gpdb_fixture_teardown);
 
-
   ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_10,
                             "minimax/ffo_05",
                             ffo_05,
@@ -457,6 +470,12 @@ main (int argc,
                             game_position_minimax_solve_t,
                             gpdb_fixture_teardown);
 
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_1,
+                            "rglm/ffo_05",
+                            ffo_05,
+                            gpdb_fixture_setup,
+                            game_position_rglm_solve_t,
+                            gpdb_fixture_teardown);
 
   ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_1,
                             "es/ffo_01_19",
@@ -479,6 +498,13 @@ main (int argc,
                             game_position_ab_solve_t,
                             gpdb_fixture_teardown);
 
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_100,
+                            "rglm/ffo_01_19",
+                            ffo_01_19,
+                            gpdb_fixture_setup,
+                            game_position_rglm_solve_t,
+                            gpdb_fixture_teardown);
+
 
   ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_100,
                             "es/ffo_20_29",
@@ -494,6 +520,13 @@ main (int argc,
                             game_position_ifes_solve_t,
                             gpdb_fixture_teardown);
 
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_100,
+                            "rglm/ffo_20_29",
+                            ffo_20_29,
+                            gpdb_fixture_setup,
+                            game_position_rglm_solve_t,
+                            gpdb_fixture_teardown);
+
 
   ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_1000,
                             "es/ffo_30_39",
@@ -507,6 +540,13 @@ main (int argc,
                             ffo_30_39,
                             gpdb_fixture_setup,
                             game_position_ifes_solve_t,
+                            gpdb_fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_1000,
+                            "rglm/ffo_30_39",
+                            ffo_30_39,
+                            gpdb_fixture_setup,
+                            game_position_rglm_solve_t,
                             gpdb_fixture_teardown);
 
 

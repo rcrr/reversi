@@ -165,12 +165,14 @@ game_position_rglm_solve (const GamePositionX *const root,
   }
   const int ec = game_position_x_empty_count(root);
   const bool mw_available = mws[ec] != NULL;
-  if (mw_available) {
-    const double estimated_game_value_transformed = rglm_eval_gp(root);
-    const double estimated_game_value = rglmut_gv_scale_back_f(estimated_game_value_transformed);
-    printf("RGLM solver: estimated_game_value = %f (%f)\n", estimated_game_value, estimated_game_value_transformed);
-  } else {
-    printf("RGLM solver: model weights for the game position is not available, ec=%d\n", ec);
+  if (false) {
+    if (mw_available) {
+      const double estimated_game_value_transformed = rglm_eval_gp(root);
+      const double estimated_game_value = rglmut_gv_scale_back_f(estimated_game_value_transformed);
+      printf("RGLM solver: estimated_game_value = %f (%f)\n", estimated_game_value, estimated_game_value_transformed);
+    } else {
+      printf("RGLM solver: model weights for the game position is not available, ec=%d\n", ec);
+    }
   }
   result = game_position_rglm_solve_nlmw(root, env);
   game_position_rglm_release_model_weights();
