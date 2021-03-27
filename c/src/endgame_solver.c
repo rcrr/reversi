@@ -363,12 +363,14 @@
 #include "endgame_utils.h"
 #include "game_position_db.h"
 #include "game_tree_logger.h"
+#include "board_pattern.h"
 
 #include "improved_fast_endgame_solver.h"
 #include "minimax_solver.h"
 #include "exact_solver.h"
-#include "board_pattern.h"
 #include "rglm_solver.h"
+
+#include "game_value_estimator.h"
 
 
 
@@ -419,7 +421,7 @@ static const char *documentation =
   "  -h, --help             Show help options\n"
   "  -f, --file             Input file name          - Mandatory.\n"
   "  -q, --lookup-entry     Lookup entry             - Mandatory.\n"
-  "  -s, --solver           Solver                   - Mandatory - Must be in [es|ifes|rand|minimax|ab|rab|rglm].\n"
+  "  -s, --solver           Solver                   - Mandatory - Must be in [es|ifes|rand|minimax|ab|rab|rglm|gve].\n"
   "  -n, --repeats          N. of repetitions        - Used with the rand/rab solvers.\n"
   "  -r, --prng-seed        random generator seed    - Used with rand/rab solvers.\n"
   "  -P, --pattern          Pattern                  - Used with the rand solver - Must be in [EDGE|CORNER|XEDGE|R2|R3|R4|DIAG4|DIAG5|DIAG6|DIAG7|DIAG8|2X5COR|DIAG3].\n"
@@ -477,13 +479,14 @@ static const char *documentation =
 
 static const endgame_solver_t solvers[] =
   {
-    { .id = "es",      .description = "exact solver",                 .function_name = "game_position_es_solve",       .fn = game_position_es_solve },
-    { .id = "ifes",    .description = "improved fast endgame solver", .function_name = "game_position_ifes_solve",     .fn = game_position_ifes_solve },
-    { .id = "rand",    .description = "random game sampler",          .function_name = "game_position_random_sampler", .fn = game_position_random_sampler },
-    { .id = "minimax", .description = "minimax solver",               .function_name = "game_position_minimax_solve",  .fn = game_position_minimax_solve },
-    { .id = "rab",     .description = "random alpha-beta solver",     .function_name = "game_position_rab_solve",      .fn = game_position_rab_solve },
-    { .id = "ab",      .description = "alpha-beta solver",            .function_name = "game_position_ab_solve",       .fn = game_position_ab_solve },
-    { .id = "rglm",    .description = "rglm solver",                  .function_name = "game_position_rglm_solve",     .fn = game_position_rglm_solve },
+    { .id = "es",      .description = "exact solver",                 .function_name = "game_position_es_solve",        .fn = game_position_es_solve },
+    { .id = "ifes",    .description = "improved fast endgame solver", .function_name = "game_position_ifes_solve",      .fn = game_position_ifes_solve },
+    { .id = "rand",    .description = "random game sampler",          .function_name = "game_position_random_sampler",  .fn = game_position_random_sampler },
+    { .id = "minimax", .description = "minimax solver",               .function_name = "game_position_minimax_solve",   .fn = game_position_minimax_solve },
+    { .id = "rab",     .description = "random alpha-beta solver",     .function_name = "game_position_rab_solve",       .fn = game_position_rab_solve },
+    { .id = "ab",      .description = "alpha-beta solver",            .function_name = "game_position_ab_solve",        .fn = game_position_ab_solve },
+    { .id = "rglm",    .description = "rglm solver",                  .function_name = "game_position_rglm_solve",      .fn = game_position_rglm_solve },
+    { .id = "gve",     .description = "game value estimator",         .function_name = "game_position_value_estimator", .fn = game_position_value_estimator },
   };
 
 static const int solvers_count = sizeof(solvers) / sizeof(solvers[0]);

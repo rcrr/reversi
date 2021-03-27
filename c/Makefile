@@ -88,7 +88,7 @@ MAINS := endgame_solver gpdb_verify intel_intrinsics_trial \
 # Add all the modules that will be compiled to object code.
 #
 MODULES := arch bit_works board board_pattern board_trans cfg distributions endgame_utils exact_solver file_utils \
-           game_position_db game_tree_logger game_tree_utils improved_fast_endgame_solver \
+           game_position_db game_tree_logger game_tree_utils game_value_estimator improved_fast_endgame_solver \
            isqrt linear_algebra linked_list main_option_parse memory_manager memory_object_pool \
            minimax_solver principal_variation prng red_black_tree \
            rglm_data_files rglm_solver rglm_utils sha3 sort_utils time_utils \
@@ -356,6 +356,10 @@ SRC_IMPROVED_FAST_ENDGAME_SOLVER_DEP := $(SRC_IMPROVED_FAST_ENDGAME_SOLVER) $(so
 HDR_MINIMAX_SOLVER_DEP := $(sort $(HDR_MINIMAX_SOLVER) $(HDR_ENDGAME_UTILS_DEP))
 SRC_MINIMAX_SOLVER_DEP := $(SRC_MINIMAX_SOLVER) $(sort $(HDR_MINIMAX_SOLVER_DEP) $(HDR_GAME_TREE_LOGGER_DEP) $(HDR_BOARD_PATTERN_DEP))
 
+HDR_GAME_VALUE_ESTIMATOR_DEP := $(sort $(HDR_GAME_VALUE_ESTIMATOR) $(HDR_ENDGAME_UTILS_DEP))
+SRC_GAME_VALUE_ESTIMATOR_DEP := $(SRC_GAME_VALUE_ESTIMATOR) $(sort $(HDR_GAME_VALUE_ESTIMATOR_DEP) $(HDR_CFG_DEP) \
+                                $(HDR_FILE_UTILS_DEP) $(HDR_RGLM_DATA_FILES_DEP) $(HDR_RGLM_UTILS_DEP) $(HDR_BOARD_DEP))
+
 HDR_EXACT_SOLVER_DEP := $(sort $(HDR_EXACT_SOLVER) $(HDR_ENDGAME_UTILS_DEP))
 SRC_EXACT_SOLVER_DEP := $(SRC_EXACT_SOLVER) $(sort $(HDR_EXACT_SOLVER_DEP) $(HDR_GAME_TREE_LOGGER_DEP))
 
@@ -374,7 +378,8 @@ SRC_RGLM_SOLVER_DEP := $(SRC_RGLM_SOLVER) $(sort $(HDR_RGLM_SOLVER_DEP) $(HDR_FI
 
 SRC_ENDGAME_SOLVER_DEP := $(SRC_ENDGAME_SOLVER) $(sort $(HDR_MAIN_OPTION_PARSE_DEP) $(HDR_FILE_UTILS_DEP) $(HDR_ENDGAME_UTILS_DEP) \
                           $(HDR_GAME_POSITION_DB_DEP) $(HDR_GAME_TREE_LOGGER_DEP) $(HDR_IMPROVED_FAST_ENDGAME_SOLVER_DEP) \
-                          $(HDR_MINIMAX_SOLVER_DEP) $(HDR_EXACT_SOLVER_DEP) $(HDR_BOARD_PATTERN_DEP) $(HDR_RGLM_SOLVER_DEP))
+                          $(HDR_MINIMAX_SOLVER_DEP) $(HDR_EXACT_SOLVER_DEP) $(HDR_BOARD_PATTERN_DEP) $(HDR_RGLM_SOLVER_DEP) \
+                          $(HDR_GAME_VALUE_ESTIMATOR_DEP))
 
 SRC_UTEST_DEP := $(SRC_UTEST) $(sort $(HDR_UNIT_TEST_DEP))
 
@@ -710,7 +715,7 @@ BIN_ENDGAME_SOLVER_OBJ_DEPENDENCIES := \
   $(OBJ_GAME_TREE_LOGGER) $(OBJ_EXACT_SOLVER) $(OBJ_IMPROVED_FAST_ENDGAME_SOLVER) $(OBJ_MINIMAX_SOLVER) \
   $(OBJ_RGLM_SOLVER) $(OBJ_BOARD_PATTERN) $(OBJ_BOARD_TRANS) $(OBJ_RGLM_DATA_FILES) $(OBJ_CFG) \
   $(OBJ_SORT_UTILS) $(OBJ_LINKED_LIST) $(OBJ_SHA3) $(OBJ_PRNG) $(OBJ_TIME_UTILS) $(OBJ_BIT_WORKS) \
-  $(OBJ_RGLM_UTILS) $(OBJ_RED_BLACK_TREE) $(OBJ_ARCH) $(OBJ_MEMORY_MANAGER)
+  $(OBJ_RGLM_UTILS) $(OBJ_RED_BLACK_TREE) $(OBJ_ARCH) $(OBJ_MEMORY_MANAGER) $(OBJ_GAME_VALUE_ESTIMATOR)
 
 LIB_ENDGAME_SOLVER := -lm
 
@@ -911,6 +916,24 @@ $(ASM_GAME_TREE_LOGGER): $(SRC_GAME_TREE_LOGGER_DEP) Makefile $(ASMDIR)/.dir_sen
 $(OBJ_GAME_TREE_LOGGER): $(SRC_GAME_TREE_LOGGER_DEP) Makefile $(OBJDIR)/.dir_sentinel
 	@printf "Compiling $< into $@\n"
 	@$(CC) $(CFLAGS) -c $< -o $@
+
+##
+## game_value_estimator
+##
+## game_value_estimator.h : endgame_utils.h
+## game_value_estimator.c : game_value_estimator.h cfg.h file_utils.h rglm_data_files.h rglm_utils.h board.h
+##
+game_value_estimator: $(OBJ_GAME_VALUE_ESTIMATOR)
+asm_game_value_estimator: $(ASM_GAME_VALUE_ESTIMATOR)
+
+$(ASM_GAME_VALUE_ESTIMATOR): $(SRC_GAME_VALUE_ESTIMATOR_DEP) Makefile $(ASMDIR)/.dir_sentinel
+	@printf "Compiling source file $< into assembly $@\n"
+	@$(CC) $(ASMFLAGS) -S $< -o $@
+
+$(OBJ_GAME_VALUE_ESTIMATOR): $(SRC_GAME_VALUE_ESTIMATOR_DEP) Makefile $(OBJDIR)/.dir_sentinel
+	@printf "Compiling $< into $@\n"
+	@$(CC) $(CFLAGS) -c $< -o $@
+
 
 ##
 ## game_tree_utils
