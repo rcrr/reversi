@@ -56,6 +56,7 @@ typedef struct {
   int                     alpha;               /**< @brief Lower bound of the search window. */
   int                     beta;                /**< @brief Upper bound of the search window. */
   bool                    all_moves;           /**< @brief Search the value of all moves. */
+  int                     search_depth;        /**< @brief Search depth. */
 } endgame_solver_env_t;
 
 /**

@@ -357,6 +357,7 @@
 #include <string.h>
 #include <assert.h>
 #include <ctype.h>
+#include <errno.h>
 
 #include "main_option_parse.h"
 #include "file_utils.h"
@@ -410,6 +411,7 @@ static const mop_options_long_t olist[] = {
   {"pv-no-print",       'N', MOP_NONE},
   {"ab-window",         'w', MOP_REQUIRED},
   {"all-moves",         'a', MOP_NONE},
+  {"search-depth",      'p', MOP_REQUIRED},
   {0, 0, 0}
 };
 
@@ -432,6 +434,7 @@ static const char *documentation =
   "  -N, --pv-no-print      Does't print PV variants - Available only in conjuction with option pv-full-rec.\n"
   "  -w, --ab-window        Alpha-beta search window - Available only for es solver"
   "  -a, --all-moves        Values all moves         - Available only for es and rglm solvers.\n"
+  "  -p, --search-depth     Search epth              - Available only for gve solver.\n"
   "\n"
   "Description:\n"
   "  Endgame solver is the front end for a group of algorithms aimed to analyze the final part of the game and to asses the game tree structure.\n"
@@ -532,6 +535,9 @@ static char *w_arg = NULL;
 
 static int a_flag = false;
 
+static int p_flag = false;
+static char *p_arg = NULL;
+
 static char *input_file = NULL;
 static char *lookup_entry = NULL;
 static int solver_index = -1;
@@ -546,6 +552,7 @@ static uint64_t prng_seed = 0;
 static bool prng_seed_is_set = false;
 static int alpha = worst_score;
 static int beta = best_score;
+static int search_depth = -1;
 
 
 /*
@@ -634,6 +641,10 @@ main (int argc,
       break;
     case 'a':
       a_flag = true;
+      break;
+    case 'p':
+      p_flag = true;
+      p_arg = options.optarg;
       break;
     case ':':
       fprintf(stderr, "Option parsing failed: %s\n", options.errmsg);
@@ -813,6 +824,32 @@ main (int argc,
     }
   }
 
+  if (p_flag) {
+    if (!(strcmp("gve", solver->id) == 0)) {
+      fprintf(stderr, "Option -p, --search-depth can be used only with solver \"gve\".\n");
+      return -99;
+    }
+    char *endptr;
+    errno = 0;
+    search_depth = strtol(p_arg, &endptr, 10);
+    if (errno != 0) {
+      perror("strtol");
+      return EXIT_FAILURE;
+    }
+    if (endptr == p_arg) {
+      fprintf(stderr, "No conversion was possible for search_depth: %s\n", p_arg);
+      return EXIT_FAILURE;
+    }
+    if (*endptr != '\0') {
+      fprintf(stderr, "Further characters after number in search_depth value: %s\n", endptr);
+      return EXIT_FAILURE;
+    }
+    if (search_depth < 0) {
+      fprintf(stderr, "Option -p, --search-depth, must not be negative.\n");
+      return EXIT_FAILURE;
+    }
+  }
+
   /* Verifies that the database input file is available for reading. */
   FILE *fp = fopen(input_file, "r");
   if (!fp) {
@@ -844,7 +881,8 @@ main (int argc,
       .prng_seed = prng_seed,
       .alpha = alpha,
       .beta = beta,
-      .all_moves = a_flag
+      .all_moves = a_flag,
+      .search_depth = search_depth,
     };
 
   /* Loads the game position database. */

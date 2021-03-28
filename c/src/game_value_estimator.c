@@ -99,7 +99,7 @@ static const int min_empty_count = 4;
 static uint64_t node_count;
 static uint64_t leaf_count;
 
-static int search_depth = 12;
+static int search_depth;
 
 
 /**
@@ -169,6 +169,8 @@ game_position_value_estimator (const GamePositionX *const root,
 
   node_count = 0;
   leaf_count = 0;
+
+  search_depth = env->search_depth;
 
   ExactSolution *result = NULL;
   const bool verbose = false;
