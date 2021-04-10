@@ -92,7 +92,7 @@ MODULES := arch bit_works board board_pattern board_trans cfg distributions endg
            isqrt linear_algebra linked_list main_option_parse memory_manager memory_object_pool \
            minimax_solver principal_variation prng red_black_tree \
            rglm_data_files rglm_solver rglm_utils sha3 sort_utils time_utils \
-           unit_test
+           transposition_table unit_test
 
 #
 # Add all the unit tests that will be compiled and linked.
@@ -101,7 +101,7 @@ UTEST_MAINS := ut_bit_works ut_board ut_board_pattern ut_board_trans ut_cfg ut_d
                ut_endgame_utils ut_es_pv ut_file_utils ut_flame ut_game_position ut_game_position_db \
                ut_game_tree_utils ut_isqrt ut_linear_algebra ut_linked_list ut_main_option_parse \
                ut_memory_object_pool ut_prng ut_red_black_tree ut_rglm_data_files ut_rglm_utils \
-               ut_sha3 ut_sort_utils ut_trsm ut_utest
+               ut_sha3 ut_sort_utils ut_transposition_table ut_trsm ut_utest
 
 MAINS_AND_MODULES := $(sort $(MAINS) $(MODULES))
 
@@ -338,6 +338,9 @@ SRC_UNIT_TEST_DEP := $(SRC_UNIT_TEST) $(sort $(HDR_UNIT_TEST_DEP) $(HDR_MAIN_OPT
 HDR_PRINCIPAL_VARIATION_DEP := $(sort $(HDR_PRINCIPAL_VARIATION))
 SRC_PRINCIPAL_VARIATION_DEP := $(SRC_PRINCIPAL_VARIATION) $(sort $(HDR_PRINCIPAL_VARIATION_DEP))
 
+HDR_TRANSPOSITION_TABLE_DEP := $(sort $(HDR_TRANSPOSITION_TABLE) $(HDR_BOARD_DEP))
+SRC_TRANSPOSITION_TABLE_DEP := $(SRC_TRANSPOSITION_TABLE) $(sort $(HDR_TRANSPOSITION_TABLE_DEP))
+
 HDR_GAME_POSITION_DB_DEP := $(sort $(HDR_GAME_POSITION_DB) $(HDR_RED_BLACK_TREE_DEP) $(HDR_LINKED_LIST_DEP) $(HDR_BOARD_DEP))
 SRC_GAME_POSITION_DB_DEP := $(SRC_GAME_POSITION_DB) $(sort $(HDR_GAME_POSITION_DB_DEP) $(HDR_FILE_UTILS_DEP))
 
@@ -358,7 +361,8 @@ SRC_MINIMAX_SOLVER_DEP := $(SRC_MINIMAX_SOLVER) $(sort $(HDR_MINIMAX_SOLVER_DEP)
 
 HDR_GAME_VALUE_ESTIMATOR_DEP := $(sort $(HDR_GAME_VALUE_ESTIMATOR) $(HDR_ENDGAME_UTILS_DEP))
 SRC_GAME_VALUE_ESTIMATOR_DEP := $(SRC_GAME_VALUE_ESTIMATOR) $(sort $(HDR_GAME_VALUE_ESTIMATOR_DEP) $(HDR_CFG_DEP) \
-                                $(HDR_FILE_UTILS_DEP) $(HDR_RGLM_DATA_FILES_DEP) $(HDR_RGLM_UTILS_DEP) $(HDR_BOARD_DEP))
+                                $(HDR_FILE_UTILS_DEP) $(HDR_RGLM_DATA_FILES_DEP) $(HDR_RGLM_UTILS_DEP) $(HDR_BOARD_DEP) \
+                                $(HDR_TRANSPOSITION_TABLE_DEP) $(HDR_TIME_UTILS_DEP))
 
 HDR_EXACT_SOLVER_DEP := $(sort $(HDR_EXACT_SOLVER) $(HDR_ENDGAME_UTILS_DEP))
 SRC_EXACT_SOLVER_DEP := $(SRC_EXACT_SOLVER) $(sort $(HDR_EXACT_SOLVER_DEP) $(HDR_GAME_TREE_LOGGER_DEP))
@@ -379,7 +383,7 @@ SRC_RGLM_SOLVER_DEP := $(SRC_RGLM_SOLVER) $(sort $(HDR_RGLM_SOLVER_DEP) $(HDR_FI
 SRC_ENDGAME_SOLVER_DEP := $(SRC_ENDGAME_SOLVER) $(sort $(HDR_MAIN_OPTION_PARSE_DEP) $(HDR_FILE_UTILS_DEP) $(HDR_ENDGAME_UTILS_DEP) \
                           $(HDR_GAME_POSITION_DB_DEP) $(HDR_GAME_TREE_LOGGER_DEP) $(HDR_IMPROVED_FAST_ENDGAME_SOLVER_DEP) \
                           $(HDR_MINIMAX_SOLVER_DEP) $(HDR_EXACT_SOLVER_DEP) $(HDR_BOARD_PATTERN_DEP) $(HDR_RGLM_SOLVER_DEP) \
-                          $(HDR_GAME_VALUE_ESTIMATOR_DEP))
+                          $(HDR_GAME_VALUE_ESTIMATOR_DEP) $(HDR_TRANSPOSITION_TABLE_DEP))
 
 SRC_UTEST_DEP := $(SRC_UTEST) $(sort $(HDR_UNIT_TEST_DEP))
 
@@ -715,7 +719,8 @@ BIN_ENDGAME_SOLVER_OBJ_DEPENDENCIES := \
   $(OBJ_GAME_TREE_LOGGER) $(OBJ_EXACT_SOLVER) $(OBJ_IMPROVED_FAST_ENDGAME_SOLVER) $(OBJ_MINIMAX_SOLVER) \
   $(OBJ_RGLM_SOLVER) $(OBJ_BOARD_PATTERN) $(OBJ_BOARD_TRANS) $(OBJ_RGLM_DATA_FILES) $(OBJ_CFG) \
   $(OBJ_SORT_UTILS) $(OBJ_LINKED_LIST) $(OBJ_SHA3) $(OBJ_PRNG) $(OBJ_TIME_UTILS) $(OBJ_BIT_WORKS) \
-  $(OBJ_RGLM_UTILS) $(OBJ_RED_BLACK_TREE) $(OBJ_ARCH) $(OBJ_MEMORY_MANAGER) $(OBJ_GAME_VALUE_ESTIMATOR)
+  $(OBJ_RGLM_UTILS) $(OBJ_RED_BLACK_TREE) $(OBJ_ARCH) $(OBJ_MEMORY_MANAGER) $(OBJ_GAME_VALUE_ESTIMATOR) \
+  $(OBJ_TRANSPOSITION_TABLE)
 
 LIB_ENDGAME_SOLVER := -lm
 
@@ -922,6 +927,7 @@ $(OBJ_GAME_TREE_LOGGER): $(SRC_GAME_TREE_LOGGER_DEP) Makefile $(OBJDIR)/.dir_sen
 ##
 ## game_value_estimator.h : endgame_utils.h
 ## game_value_estimator.c : game_value_estimator.h cfg.h file_utils.h rglm_data_files.h rglm_utils.h board.h
+##                          transposition_table.h time_utils.h
 ##
 game_value_estimator: $(OBJ_GAME_VALUE_ESTIMATOR)
 asm_game_value_estimator: $(ASM_GAME_VALUE_ESTIMATOR)
@@ -1584,6 +1590,38 @@ $(ASM_TIME_UTILS): $(SRC_TIME_UTILS_DEP) Makefile $(ASMDIR)/.dir_sentinel
 $(OBJ_TIME_UTILS): $(SRC_TIME_UTILS_DEP) Makefile $(OBJDIR)/.dir_sentinel
 	@printf "Compiling $< into $@\n"
 	@$(CC) $(CFLAGS) -c $< -o $@
+
+##
+## transposition_table
+##
+## transposition_table.h : board.h
+## transposition_table.c : transposition_table.h
+##
+transposition_table: $(OBJ_TRANSPOSITION_TABLE)
+asm_transposition_table: $(ASM_TRANSPOSITION_TABLE)
+
+$(ASM_TRANSPOSITION_TABLE): $(SRC_TRANSPOSITION_TABLE_DEP) Makefile $(ASMDIR)/.dir_sentinel
+	@printf "Compiling source file $< into assembly $@\n"
+	@$(CC) $(ASMFLAGS) -S $< -o $@
+
+$(OBJ_TRANSPOSITION_TABLE): $(SRC_TRANSPOSITION_TABLE_DEP) Makefile $(OBJDIR)/.dir_sentinel
+	@printf "Compiling $< into $@\n"
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+ut_transposition_table: $(UTE_TRANSPOSITION_TABLE)
+
+$(UTO_TRANSPOSITION_TABLE): $(UTS_TRANSPOSITION_TABLE) $(OBJ_UNIT_TEST) $(OBJ_TRANSPOSITION_TABLE) Makefile $(TEST_OBJDIR)/.dir_sentinel
+	@printf "Test suite: compiling $< into $@\n"
+	@$(CC) $(CFLAGS_TEST) -c $< -o $@ $(TEST_INCLUDE)
+
+UTE_TRANSPOSITION_TABLE_OBJ_DEPENDENCIES := \
+  $(OBJ_LINKED_LIST) $(OBJ_UNIT_TEST) $(OBJ_TIME_UTILS) $(OBJ_MAIN_OPTION_PARSE) $(OBJ_BIT_WORKS) \
+  $(OBJ_BOARD) $(OBJ_PRNG) $(OBJ_ARCH) \
+  $(OBJ_TRANSPOSITION_TABLE)
+
+$(UTE_TRANSPOSITION_TABLE): $(UTO_TRANSPOSITION_TABLE) $(UTE_TRANSPOSITION_TABLE_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
+	@printf "Test suite: linking executable $@\n"
+	@$(CC) $(LDFLAGS_TEST) $< $(UTE_TRANSPOSITION_TABLE_OBJ_DEPENDENCIES) -o $@
 
 ##
 ## trsm
