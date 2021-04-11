@@ -103,8 +103,8 @@ static uint64_t leaf_count;
 static int search_depth;
 
 static tratab_table_t *tt;
-//static const size_t tt_size = (size_t) 1024 * 1024 * 1024 * 2;
-static const size_t tt_size = (size_t) 256;
+static const size_t tt_size = (size_t) 1024 * 1024 * 1024 * 32;
+//static const size_t tt_size = (size_t) 256;
 
 
 
@@ -151,6 +151,19 @@ gv_f2d (const double f);
 /**
  * @endcond
  */
+
+
+
+static int64_t c0 = 0;
+static int64_t c1 = 0;
+static int64_t c2 = 0;
+static int64_t c3 = 0;
+static int64_t c4 = 0;
+static int64_t c5 = 0;
+static int64_t c6 = 0;
+static int64_t c7 = 0;
+static int64_t c8 = 0;
+
 
 
 
@@ -259,6 +272,16 @@ game_position_value_estimator (const GamePositionX *const root,
 
   tratab_table_destroy(tt);
   tt = NULL;
+
+  printf("c0=%zu\n", c0);
+  printf("c1=%zu\n", c1);
+  printf("c2=%zu\n", c2);
+  printf("c3=%zu\n", c3);
+  printf("c4=%zu\n", c4);
+  printf("c5=%zu\n", c5);
+  printf("c6=%zu\n", c6);
+  printf("c7=%zu\n", c7);
+  printf("c8=%zu\n", c8);
 
   return result;
 }
@@ -496,6 +519,154 @@ leaf_negamax (node_t *n,
 }
 
 /*
+
+int negascout (game_position, depth, alpga, beta)
+{
+  if (depth == 0 || game_is_over(game_position)) // evaluate leaf game position from current player's standpoint
+    return eval(game_position);
+  score = -INF; // present return value
+  n = beta;
+  moves = generate(game_position); // generate successor moves
+  for (int i = 0; i < sizeof(moves); i++) { // look over all moves
+    make(moves[i]); // execute current move
+    cur = -negascout(game_position, depth-1, -n, -alpha); // call other player, and switch sign of returned value
+    if (cur > score) {
+      if ((n == beta) || ( d <= 2))
+        score = cur;
+      else
+        score = -negascout(game_position, depth-1, -beta, -cur);
+    }
+    if (score > alpha) alpha = score;
+    undo(moves[i]);
+    if (alpha >= beta) return alpha;
+    n = alpha+1;
+  }
+  return score;
+}
+
+ */
+
+static const bool tt_active = true;
+
+static void
+negamax (node_t *n,
+         int depth,
+         int alpha,
+         int beta)
+{
+  int child_node_count;
+  node_t child_nodes[64];
+  node_t *child_nodes_p[64];
+  int empty_count;
+
+  node_count++;
+
+  uint64_t hash = 0;
+  tratab_item_t *item = NULL;
+  if (tt_active) {
+    hash = game_position_x_hash(&n->gpx);
+    item = tratab_item_retrieve(tt, hash, &n->gpx, depth);
+    if (item) {
+      if (item->data.lower_bound >= beta) {
+        n->value = item->data.lower_bound;
+        c0++;
+        return;
+      }
+      if (item->data.upper_bound <= alpha) {
+        n->value = item->data.upper_bound;
+        c1++;
+        return;
+      }
+      c2++;
+      alpha = max(alpha, item->data.lower_bound);
+      beta = min(beta, item->data.upper_bound);
+    }
+  }
+
+  if (is_terminal(n)) {
+    leaf_count++;
+    exact_terminal_game_value(n);
+  } else if (depth == 0) {
+    heuristic_game_value(n);
+  } else if ((empty_count = game_position_x_empty_count(&n->gpx)) < min_empty_count) {
+    leaf_negamax(n, alpha, beta);
+  } else {
+
+    generate_child_nodes(&child_node_count, child_nodes, n);
+    order_moves(child_node_count, child_nodes, child_nodes_p);
+
+    n->value = -66;
+    n->best_move = invalid_move;
+    for (int i = 0; i < child_node_count; i++) {
+      //if (search_depth - depth == 0) alpha = -64;
+      node_t *child = child_nodes_p[i];
+      // negamax(child, depth -1, -beta, -alpha);
+
+      int child_value;
+      if (i == 0) {
+        c3++;
+        negamax(child, depth -1, -beta, -alpha);
+        child_value = - child->value;
+      } else {
+        c4++;
+        negamax(child, depth -1, -alpha -2, -alpha);
+        child_value = - child->value;
+        if (child_value > alpha && child_value < beta) {
+          c5++;
+          negamax(child, depth -1, -beta, -child_value);
+          child_value = - child->value;
+        }
+      }
+
+      if (child_value > n->value) {
+        n->value = child_value;
+        n->best_move = child->parent_move;
+      }
+      alpha = max(alpha, n->value);
+      if (alpha >= beta) break;
+      if (search_depth - depth == 0) printf("%02d - %2s : %+03d\n", i, square_as_move_to_string(child->parent_move), -child->value);
+    }
+
+  } // end-of-else
+
+  if (tt_active && false) {
+    if (n->value <= alpha) {
+      tratab_insert_item(tt, hash, &n->gpx, depth, -66, n->value, n->best_move);
+    } else if (n->value > alpha && n->value < beta) {
+      tratab_insert_item(tt, hash, &n->gpx, depth, n->value, n->value, n->best_move);
+    } else if (n->value >= beta) {
+      tratab_insert_item(tt, hash, &n->gpx, depth, n->value, +66, n->best_move);
+    }
+  }
+  if (tt_active) {
+    int lower, upper;
+    if (item) {
+      c6++;
+      lower = item->data.lower_bound;
+      upper = item->data.upper_bound;
+    } else {
+      lower = -66;
+      upper = +66;
+    }
+    if (n->value < beta) {
+      c7++;
+      upper = n->value;
+    }
+    if (n->value > alpha) {
+      c8++;
+      lower = n->value;
+    }
+    tratab_insert_item(tt, hash, &n->gpx, depth, lower, upper, n->best_move);
+  }
+
+  return;
+}
+
+/**
+ * @endcond
+ */
+
+/*
   function negamax(node, depth, α, β, color) is
     if depth = 0 or node is a terminal node then
       return color × the heuristic value of node
@@ -511,11 +682,11 @@ leaf_negamax (node_t *n,
     return value
  */
 
-static void
-negamax (node_t *n,
-         int depth,
-         int alpha,
-         int beta)
+void
+negamax_true (node_t *n,
+              int depth,
+              int alpha,
+              int beta)
 {
   int child_node_count;
   node_t child_nodes[64];
@@ -580,7 +751,3 @@ negamax (node_t *n,
 
   return;
 }
-
-/**
- * @endcond
- */

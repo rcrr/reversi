@@ -216,6 +216,8 @@ game_position_rglm_solve_nlmw (const GamePositionX *const root,
     first_node_info->beta = env->beta;
   }
 
+  result->all_legal_moves_solved = env->all_moves;
+
   if (pv_recording) {
     pve = pve_new(root);
     result->pve = pve;
@@ -230,6 +232,7 @@ game_position_rglm_solve_nlmw (const GamePositionX *const root,
   NodeInfo *const c = stack->active_node;
   if (pv_recording) c->pve_line = pve->root_line;
   first_node_info->move_set = game_position_x_legal_moves(root);
+  result->legal_move_count = bitw_bit_count_64_popcnt(first_node_info->move_set);
   game_position_solve_impl(result, stack);
   if (pv_recording) pve->root_line = c->pve_line;
 
@@ -285,6 +288,8 @@ game_position_rglm_solve_nlmw (const GamePositionX *const root,
       printf(" --- --- pve_dump_to_binary_file() COMPLETED --- ---\n");
     }
   }
+
+  exact_solution_sort_legal_moves_by_value(result);
 
   gtl_close_log(log_env);
 
@@ -574,6 +579,7 @@ game_position_solve_impl (ExactSolution *const result,
 
   if (stack->hash_is_on) gts_compute_hash(stack);
   if (log_env->log_is_on) gtl_do_log_head(result, stack, sub_run_id, log_env);
+  if (result->all_legal_moves_solved && c - root == 2) {c->alpha = worst_score; c->beta = best_score;}
 
   if (!c->move_count) {
     result->leaf_count++;
@@ -600,6 +606,7 @@ game_position_solve_impl (ExactSolution *const result,
       c->best_move = (*c->move_cursor)->move;
       if (pv_recording) pv_create_first_line(stack);
       if (c->alpha > c->beta || (!pv_full_recording && c->alpha == c->beta)) {
+        if (result->all_legal_moves_solved && c - root == 1) continue;
         c->move_cursor++;
         goto end;
       }
@@ -614,6 +621,15 @@ game_position_solve_impl (ExactSolution *const result,
   }
 
  end:
+  if (result->all_legal_moves_solved && c - root == 2) {
+    const Square move = (*(c - 1)->move_cursor)->move;
+    const int value = -c->alpha;
+    const int move_pos = (c - 1)->move_cursor - (c - 1)->head_of_legal_move_list;
+    move_value_t *const mv = &result->legal_move_values[move_pos];
+    mv->move = move;
+    mv->value = value;
+    if (false) printf("  [%02d][%s:%+03d]\n", move_pos, square_as_move_to_string(move), value);
+  }
   if (log_env->log_is_on) gtl_do_log_tail(result, stack, sub_run_id, log_env);
   c = --stack->active_node;
   if (stack->active_node == root) return;
