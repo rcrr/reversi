@@ -87,7 +87,7 @@ MAINS := endgame_solver gpdb_verify intel_intrinsics_trial \
 #
 # Add all the modules that will be compiled to object code.
 #
-MODULES := arch bit_works board board_pattern board_trans cfg distributions endgame_utils exact_solver file_utils \
+MODULES := arch binary_heap bit_works board board_pattern board_trans cfg distributions endgame_utils exact_solver file_utils \
            game_position_db game_tree_logger game_tree_utils game_value_estimator improved_fast_endgame_solver \
            isqrt linear_algebra linked_list main_option_parse memory_manager memory_object_pool \
            minimax_solver principal_variation prng red_black_tree \
@@ -97,7 +97,7 @@ MODULES := arch bit_works board board_pattern board_trans cfg distributions endg
 #
 # Add all the unit tests that will be compiled and linked.
 #
-UTEST_MAINS := ut_bit_works ut_board ut_board_pattern ut_board_trans ut_cfg ut_distributions \
+UTEST_MAINS := ut_binary_heap ut_bit_works ut_board ut_board_pattern ut_board_trans ut_cfg ut_distributions \
                ut_endgame_utils ut_es_pv ut_file_utils ut_flame ut_game_position ut_game_position_db \
                ut_game_tree_utils ut_isqrt ut_linear_algebra ut_linked_list ut_main_option_parse \
                ut_memory_object_pool ut_prng ut_red_black_tree ut_rglm_data_files ut_rglm_utils \
@@ -283,6 +283,9 @@ SRC_ARCH_DEP := $(SRC_ARCH) $(sort $(HDR_ARCH_DEP))
 
 HDR_TIME_UTILS_DEP := $(sort $(HDR_TIME_UTILS))
 SRC_TIME_UTILS_DEP := $(SRC_TIME_UTILS) $(sort $(HDR_TIME_UTILS_DEP))
+
+HDR_BINARY_HEAP_DEP := $(sort $(HDR_BINARY_HEAP))
+SRC_BINARY_HEAP_DEP := $(SRC_BINARY_HEAP) $(sort $(HDR_BINARY_HEAP_DEP))
 
 HDR_BIT_WORKS_DEP := $(sort $(HDR_BIT_WORKS))
 SRC_BIT_WORKS_DEP := $(SRC_BIT_WORKS) $(sort $(HDR_BIT_WORKS_DEP))
@@ -503,6 +506,38 @@ $(ASM_ARCH): $(SRC_ARCH_DEP) Makefile $(ASMDIR)/.dir_sentinel
 $(OBJ_ARCH): $(SRC_ARCH_DEP) Makefile $(OBJDIR)/.dir_sentinel
 	@printf "Compiling $< into $@\n"
 	@$(CC) $(CFLAGS) -c $< -o $@
+
+##
+## binary_heap
+##
+## binary_heap.h    : (null)
+## binary_heap.c    : binary_heap.h
+## ut_binary_heap.c : unit_test.h binary_heap.h
+##
+binary_heap: $(OBJ_BINARY_HEAP)
+asm_binary_heap: $(ASM_BINARY_HEAP)
+
+$(ASM_BINARY_HEAP): $(SRC_BINARY_HEAP_DEP) Makefile $(ASMDIR)/.dir_sentinel
+	@printf "Compiling source file $< into assembly $@\n"
+	@$(CC) $(ASMFLAGS) -S $< -o $@
+
+$(OBJ_BINARY_HEAP): $(SRC_BINARY_HEAP_DEP) Makefile $(OBJDIR)/.dir_sentinel
+	@printf "Compiling $< into $@\n"
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+ut_binary_heap: $(UTE_BINARY_HEAP)
+
+$(UTO_BINARY_HEAP): $(UTS_BINARY_HEAP) $(OBJ_UNIT_TEST) $(OBJ_BINARY_HEAP) Makefile $(TEST_OBJDIR)/.dir_sentinel
+	@printf "Test suite: compiling $< into $@\n"
+	@$(CC) $(CFLAGS_TEST) -c $< -o $@ $(TEST_INCLUDE)
+
+UTE_BINARY_HEAP_OBJ_DEPENDENCIES := \
+  $(OBJ_LINKED_LIST) $(OBJ_UNIT_TEST) $(OBJ_TIME_UTILS) $(OBJ_MAIN_OPTION_PARSE) \
+  $(OBJ_BINARY_HEAP)
+
+$(UTE_BINARY_HEAP): $(UTO_BINARY_HEAP) $(UTE_BINARY_HEAP_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
+	@printf "Test suite: linking executable $@\n"
+	@$(CC) $(LDFLAGS_TEST) $< $(UTE_BINARY_HEAP_OBJ_DEPENDENCIES) -o $@
 
 ##
 ## bit_works

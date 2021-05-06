@@ -106,6 +106,7 @@ static tratab_table_t *tt;
 static const size_t tt_size = (size_t) 1024 * 1024 * 1024 * 32;
 //static const size_t tt_size = (size_t) 256;
 
+static int min (int a, int b);
 
 
 /**
@@ -165,6 +166,7 @@ static int64_t c7 = 0;
 static int64_t c8 = 0;
 
 
+static int search_depth_id;
 
 
 /*
@@ -210,6 +212,7 @@ game_position_value_estimator (const GamePositionX *const root,
 
   const int ec = game_position_x_empty_count(root);
   printf("Empty count = %d, Search depth = %d, Minimum empty count = %d\n", ec, search_depth, min_empty_count);
+  if (search_depth < 0) search_depth = ec * 2;
 
   const bool mw_available = mws[ec] != NULL;
 
@@ -241,7 +244,24 @@ game_position_value_estimator (const GamePositionX *const root,
   clock_gettime(CLOCK_REALTIME, &start_time);
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
 
-  negamax(&root_node, search_depth, -64, +64);
+  bool id = false;
+  if (id) {
+    int id_limit = min(search_depth, ec - min_empty_count);
+    printf("id_limit = %d\n", id_limit);
+    for (int i = 1; i <= id_limit; i++) {
+      printf(" ### ### ### id = %d\n", i);
+      search_depth_id = i;
+      negamax(&root_node, i, -66, +66);
+    }
+    if (search_depth > id_limit) {
+      printf(" ### ### ### LAST ### search_depth = %d\n", search_depth);
+      search_depth_id = search_depth;
+      negamax(&root_node, search_depth, -66, +66);
+    }
+  } else {
+    search_depth_id = search_depth;
+    negamax(&root_node, search_depth, -66, +66);
+  }
 
   /* Stops the stop-watch. */
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
@@ -430,8 +450,8 @@ generate_child_nodes (int *child_node_count,
                       node_t *child_nodes,
                       node_t *n)
 {
-  SquareSet lms;
-  int lmc;
+  SquareSet lms; // legal move set
+  int lmc;       // legal move count
 
   lms = game_position_x_legal_moves(&n->gpx);
   if (lms) {
@@ -520,7 +540,7 @@ leaf_negamax (node_t *n,
 
 /*
 
-int negascout (game_position, depth, alpga, beta)
+int negascout (game_position, depth, alpha, beta)
 {
   if (depth == 0 || game_is_over(game_position)) // evaluate leaf game position from current player's standpoint
     return eval(game_position);
@@ -600,7 +620,10 @@ negamax (node_t *n,
     for (int i = 0; i < child_node_count; i++) {
       //if (search_depth - depth == 0) alpha = -64;
       node_t *child = child_nodes_p[i];
-      // negamax(child, depth -1, -beta, -alpha);
+      if (search_depth_id - depth == 0) {
+        printf("%02d - %2s (%+03d) [%+03d..%+03d]: ", i, square_as_move_to_string(child->parent_move), -child->value, alpha, beta);
+        fflush(stdout);
+      }
 
       int child_value;
       if (i == 0) {
@@ -618,26 +641,23 @@ negamax (node_t *n,
         }
       }
 
+      if (search_depth_id - depth == 0) {
+        char *s;
+        if (-child->value <= alpha) s = "(failing low)   f+";
+        else if (-child->value >= beta) s = "(failing high) f-";
+        else s = "(success)       f ";
+        printf("%s = %+03d - cumulated node count %zu\n", s, -child->value, node_count);
+      }
       if (child_value > n->value) {
         n->value = child_value;
         n->best_move = child->parent_move;
       }
       alpha = max(alpha, n->value);
       if (alpha >= beta) break;
-      if (search_depth - depth == 0) printf("%02d - %2s : %+03d\n", i, square_as_move_to_string(child->parent_move), -child->value);
     }
 
   } // end-of-else
 
-  if (tt_active && false) {
-    if (n->value <= alpha) {
-      tratab_insert_item(tt, hash, &n->gpx, depth, -66, n->value, n->best_move);
-    } else if (n->value > alpha && n->value < beta) {
-      tratab_insert_item(tt, hash, &n->gpx, depth, n->value, n->value, n->best_move);
-    } else if (n->value >= beta) {
-      tratab_insert_item(tt, hash, &n->gpx, depth, n->value, +66, n->best_move);
-    }
-  }
   if (tt_active) {
     int lower, upper;
     if (item) {

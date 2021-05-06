@@ -70,7 +70,8 @@ typedef struct tratab_table_s {
   uint64_t       mask;            /**< @brief . */
   void          *memory;          /**< @brief . */
   size_t         n_slot_touched;  /**< @brief . */
-  size_t         n_update;        /**< @brief . */
+  size_t         n_update_bound;  /**< @brief . */
+  size_t         n_update_depth;  /**< @brief . */
   size_t         n_override;      /**< @brief . */
   size_t         n_conflict;      /**< @brief . */
   size_t         n_retrieve;      /**< @brief . */

@@ -144,7 +144,7 @@ ffo-41;.wwwww....wwwwb..wwwwww.bbbbbww..bbwwb..wwbwbb....wbbw...www..w.;b;FFO po
 #
 #     |1       2       3       4       5       6       7       8       |
 #     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
-ffo-42;..www.......bb.wwwwwwbww.wwwwbwwb.wwwbbw...wwbww...wwwbw..wwww..;b;FFO position 42, black to move, Penloup vs Shaman, Cambridge 1998.;
+ffo-42;..www.......bb.wwwwwwbww.wwwwbwwb.wwwbbw...wwbww...wwwbw..wwww..;b;FFO position 42, black to move, Penloup vs Shaman, Cambridge 1998. Move values: G2:+6. A4:+0. C6:-2. C2:-4. C7:-4. D2:-6. B5:-8. B2:-10. B6:-10.;
 #
 #
 #

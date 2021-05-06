@@ -108,14 +108,15 @@ tratab_table_init (tratab_table_t *table)
     item->gpx.blacks = 0;
     item->gpx.whites = 0;
     item->gpx.player = BLACK_PLAYER;
-    item->data.depth = 0;
+    item->data.depth = -1;
     item->data.lower_bound = -66;
     item->data.upper_bound = +66;
     item->data.best_move = invalid_move;
   }
 
   table->n_slot_touched = 0;
-  table->n_update = 0;
+  table->n_update_bound = 0;
+  table->n_update_depth = 0;
   table->n_override = 0;
   table->n_conflict = 0;
   table->n_retrieve = 0;
@@ -144,12 +145,24 @@ tratab_insert_item (tratab_table_t *table,
 
   tratab_item_t *const item = &items[index];
 
-  if (item->hash == 0) table->n_slot_touched++;
-  else if (item->hash == hash) {
+  if (item->hash == 0) {
+    table->n_slot_touched++;
+  } else if (item->hash == hash) {
     const int comp = game_position_x_compare(gpx, &item->gpx);
-    if (comp != 0 ) table->n_conflict++;
-    else table->n_update++;
-  } else table->n_override++;
+    if (comp != 0 ) {
+      table->n_conflict++;
+    } else {
+      if (item->data.depth == depth) {
+        table->n_update_bound++;
+      } else if (item->data.depth < depth) {
+        table->n_update_depth++;
+      } else {
+        return;
+      }
+    }
+  } else {
+    table->n_override++;
+  }
 
   /* Updates item. */
   item->hash = hash;
@@ -176,7 +189,8 @@ tratab_table_header_to_stream (tratab_table_t *table,
   fprintf(file, "mask_size      = %u\n",  table->mask_size);
   fprintf(file, "mask           = %zu\n", table->mask);
   fprintf(file, "n_slot_touched = %zu\n", table->n_slot_touched);
-  fprintf(file, "n_update       = %zu\n", table->n_update);
+  fprintf(file, "n_update_bound = %zu\n", table->n_update_bound);
+  fprintf(file, "n_update_depth = %zu\n", table->n_update_depth);
   fprintf(file, "n_override     = %zu\n", table->n_override);
   fprintf(file, "n_conflict     = %zu\n", table->n_conflict);
   fprintf(file, "n_retrieve     = %zu\n", table->n_retrieve);
@@ -197,7 +211,7 @@ tratab_item_retrieve (tratab_table_t *table,
   const size_t index = hash & table->mask;
   tratab_item_t *const item_with_matching_index = &items[index];
 
-  if (item_with_matching_index->hash == hash) {
+  if (item_with_matching_index->hash == hash && item_with_matching_index->data.depth >= depth) {
     item = item_with_matching_index;
     table->n_retrieve++;
   }
