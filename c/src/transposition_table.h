@@ -42,10 +42,10 @@
  *
  */
 typedef struct tratab_data_s {
-  uint8_t  depth;                /**< @brief . */
-  int8_t   lower_bound;          /**< @brief . */
-  int8_t   upper_bound;          /**< @brief . */
-  int8_t   best_move;            /**< @brief . */
+  uint8_t  depth;                /**< @brief aa. */
+  int8_t   lower_bound;          /**< @brief aa. */
+  int8_t   upper_bound;          /**< @brief aa. */
+  int8_t   best_move;            /**< @brief aa. */
 } tratab_data_t;
 
 /*
@@ -53,28 +53,28 @@ typedef struct tratab_data_s {
  */
 typedef struct tratab_item_s {
   uint64_t      hash;            /**< @brief Zobrist hash key. */
-  GamePositionX gpx;             /**< @brief . */
-  tratab_data_t data;            /**< @brief . */
+  GamePositionX gpx;             /**< @brief aaa. */
+  tratab_data_t data;            /**< @brief aaa. */
 } tratab_item_t;
 
 /*
  *
  */
 typedef struct tratab_table_s {
-  size_t         size;            /**< @brief . */
-  size_t         item_size;       /**< @brief . */
-  size_t         max_n_item;      /**< @brief . */
-  size_t         n_item;          /**< @brief . */
-  size_t         allocated_size;  /**< @brief . */
-  uint8_t        mask_size;       /**< @brief . */
-  uint64_t       mask;            /**< @brief . */
-  void          *memory;          /**< @brief . */
-  size_t         n_slot_touched;  /**< @brief . */
-  size_t         n_update_bound;  /**< @brief . */
-  size_t         n_update_depth;  /**< @brief . */
-  size_t         n_override;      /**< @brief . */
-  size_t         n_conflict;      /**< @brief . */
-  size_t         n_retrieve;      /**< @brief . */
+  size_t         size;            /**< @brief aaa. */
+  size_t         item_size;       /**< @brief aaa. */
+  size_t         max_n_item;      /**< @brief aaa. */
+  size_t         n_item;          /**< @brief aaa. */
+  size_t         allocated_size;  /**< @brief aaa. */
+  uint8_t        mask_size;       /**< @brief aaa. */
+  uint64_t       mask;            /**< @brief aaa. */
+  void          *memory;          /**< @brief aaa. */
+  size_t         n_slot_touched;  /**< @brief aaa. */
+  size_t         n_update_bound;  /**< @brief aaa. */
+  size_t         n_update_depth;  /**< @brief aaa. */
+  size_t         n_override;      /**< @brief aaa. */
+  size_t         n_conflict;      /**< @brief aaa. */
+  size_t         n_retrieve;      /**< @brief aaa. */
 } tratab_table_t;
 
 
