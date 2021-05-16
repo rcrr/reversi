@@ -155,15 +155,17 @@ gv_f2d (const double f);
 
 
 
-static int64_t c0 = 0;
-static int64_t c1 = 0;
-static int64_t c2 = 0;
-static int64_t c3 = 0;
-static int64_t c4 = 0;
-static int64_t c5 = 0;
-static int64_t c6 = 0;
-static int64_t c7 = 0;
-static int64_t c8 = 0;
+static int64_t c0  = 0;
+static int64_t c1  = 0;
+static int64_t c2  = 0;
+static int64_t c3  = 0;
+static int64_t c4  = 0;
+static int64_t c5  = 0;
+static int64_t c6  = 0;
+static int64_t c7  = 0;
+static int64_t c8  = 0;
+static int64_t c9  = 0;
+static int64_t c10 = 0;
 
 
 static int search_depth_id;
@@ -244,7 +246,7 @@ game_position_value_estimator (const GamePositionX *const root,
   clock_gettime(CLOCK_REALTIME, &start_time);
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
 
-  bool id = false;
+  bool id = false; // iterative-deepening
   if (id) {
     int id_limit = min(search_depth, ec - min_empty_count);
     printf("id_limit = %d\n", id_limit);
@@ -293,15 +295,17 @@ game_position_value_estimator (const GamePositionX *const root,
   tratab_table_destroy(tt);
   tt = NULL;
 
-  printf("c0=%zu\n", c0);
-  printf("c1=%zu\n", c1);
-  printf("c2=%zu\n", c2);
-  printf("c3=%zu\n", c3);
-  printf("c4=%zu\n", c4);
-  printf("c5=%zu\n", c5);
-  printf("c6=%zu\n", c6);
-  printf("c7=%zu\n", c7);
-  printf("c8=%zu\n", c8);
+  printf("c0  = %zu\n", c0);
+  printf("c1  = %zu\n", c1);
+  printf("c2  = %zu\n", c2);
+  printf("c3  = %zu\n", c3);
+  printf("c4  = %zu\n", c4);
+  printf("c5  = %zu\n", c5);
+  printf("c6  = %zu\n", c6);
+  printf("c7  = %zu\n", c7);
+  printf("c8  = %zu\n", c8);
+  printf("c9  = %zu\n", c9);
+  printf("c10 = %zu\n", c10);
 
   return result;
 }
@@ -570,16 +574,22 @@ static const bool tt_active = true;
 
 static void
 negamax (node_t *n,
-         int depth,
-         int alpha,
-         int beta)
+         const int depth,
+         const int alpha,
+         const int beta)
 {
   int child_node_count;
   node_t child_nodes[64];
   node_t *child_nodes_p[64];
   int empty_count;
 
+  int am = alpha; // alpha-mobile : local value that is adjusted during the search
+  int bm = beta;  // beta-mobile  : " ...
+
   node_count++;
+
+  c9++;
+
 
   uint64_t hash = 0;
   tratab_item_t *item = NULL;
@@ -587,19 +597,19 @@ negamax (node_t *n,
     hash = game_position_x_hash(&n->gpx);
     item = tratab_item_retrieve(tt, hash, &n->gpx, depth);
     if (item) {
-      if (item->data.lower_bound >= beta) {
+      if (item->data.lower_bound >= bm) {
         n->value = item->data.lower_bound;
         c0++;
         return;
       }
-      if (item->data.upper_bound <= alpha) {
+      if (item->data.upper_bound <= am) {
         n->value = item->data.upper_bound;
         c1++;
         return;
       }
       c2++;
-      alpha = max(alpha, item->data.lower_bound);
-      beta = min(beta, item->data.upper_bound);
+      am = max(am, item->data.lower_bound);
+      bm = min(bm, item->data.upper_bound);
     }
   }
 
@@ -609,7 +619,7 @@ negamax (node_t *n,
   } else if (depth == 0) {
     heuristic_game_value(n);
   } else if ((empty_count = game_position_x_empty_count(&n->gpx)) < min_empty_count) {
-    leaf_negamax(n, alpha, beta);
+    leaf_negamax(n, am, bm);
   } else {
 
     generate_child_nodes(&child_node_count, child_nodes, n);
@@ -618,33 +628,33 @@ negamax (node_t *n,
     n->value = -66;
     n->best_move = invalid_move;
     for (int i = 0; i < child_node_count; i++) {
-      //if (search_depth - depth == 0) alpha = -64;
+      //if (search_depth - depth == 0) am = -64;
       node_t *child = child_nodes_p[i];
       if (search_depth_id - depth == 0) {
-        printf("%02d - %2s (%+03d) [%+03d..%+03d]: ", i, square_as_move_to_string(child->parent_move), -child->value, alpha, beta);
+        printf("%02d - %2s (%+03d) [%+03d..%+03d]: ", i, square_as_move_to_string(child->parent_move), -child->value, am, bm);
         fflush(stdout);
       }
 
       int child_value;
       if (i == 0) {
         c3++;
-        negamax(child, depth -1, -beta, -alpha);
+        negamax(child, depth -1, -bm, -am);
         child_value = - child->value;
       } else {
         c4++;
-        negamax(child, depth -1, -alpha -2, -alpha);
+        negamax(child, depth -1, -am -2, -am);
         child_value = - child->value;
-        if (child_value > alpha && child_value < beta) {
+        if (child_value > am && child_value < bm) {
           c5++;
-          negamax(child, depth -1, -beta, -child_value);
+          negamax(child, depth -1, -bm, -child_value);
           child_value = - child->value;
         }
       }
 
       if (search_depth_id - depth == 0) {
         char *s;
-        if (-child->value <= alpha) s = "(failing low)   f+";
-        else if (-child->value >= beta) s = "(failing high) f-";
+        if (-child->value <= am) s = "(failing low)   f+";
+        else if (-child->value >= bm) s = "(failing high) f-";
         else s = "(success)       f ";
         printf("%s = %+03d - cumulated node count %zu\n", s, -child->value, node_count);
       }
@@ -652,8 +662,8 @@ negamax (node_t *n,
         n->value = child_value;
         n->best_move = child->parent_move;
       }
-      alpha = max(alpha, n->value);
-      if (alpha >= beta) break;
+      am = max(am, n->value);
+      if (am >= bm) break;
     }
 
   } // end-of-else
@@ -668,6 +678,7 @@ negamax (node_t *n,
       lower = -66;
       upper = +66;
     }
+    c10++;
     if (n->value < beta) {
       c7++;
       upper = n->value;
