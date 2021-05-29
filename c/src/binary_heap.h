@@ -1,7 +1,7 @@
 /**
  * @file
  *
- * @brief Binary Peap module definitions.
+ * @brief Binary Heap module definitions.
  * @details This module defines utilities based on the binary heap concept like:
  * max priority queue, min priority queue, and heap sort.
  *

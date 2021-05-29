@@ -88,7 +88,7 @@ MAINS := endgame_solver gpdb_verify intel_intrinsics_trial \
 # Add all the modules that will be compiled to object code.
 #
 MODULES := arch binary_heap bit_works board board_pattern board_trans cfg distributions endgame_utils exact_solver file_utils \
-           game_position_db game_tree_logger game_tree_utils game_value_estimator improved_fast_endgame_solver \
+           game_position_db game_tree_logger game_tree_utils game_value_estimator hashtable improved_fast_endgame_solver \
            isqrt linear_algebra linked_list main_option_parse memory_manager memory_object_pool \
            minimax_solver principal_variation prng red_black_tree \
            rglm_data_files rglm_solver rglm_utils sha3 sort_utils time_utils \
@@ -99,7 +99,7 @@ MODULES := arch binary_heap bit_works board board_pattern board_trans cfg distri
 #
 UTEST_MAINS := ut_binary_heap ut_bit_works ut_board ut_board_pattern ut_board_trans ut_cfg ut_distributions \
                ut_endgame_utils ut_es_pv ut_file_utils ut_flame ut_game_position ut_game_position_db \
-               ut_game_tree_utils ut_isqrt ut_linear_algebra ut_linked_list ut_main_option_parse \
+               ut_game_tree_utils ut_hashtable ut_isqrt ut_linear_algebra ut_linked_list ut_main_option_parse \
                ut_memory_object_pool ut_prng ut_red_black_tree ut_rglm_data_files ut_rglm_utils \
                ut_sha3 ut_sort_utils ut_transposition_table ut_trsm ut_utest
 
@@ -264,8 +264,8 @@ UTEST_BINS := $(addprefix $(TEST_BINDIR)/,$(UTEST_MAINS))
 # add -ftree-vectorize -ftree-vectorizer-verbose=2 to get from gcc the explanation for code vectorization
 # add -flto to the CFLAGS list to improve execution speed ( it takes much more to link executables )
 ARCH_FLAGS := -mpopcnt -mavx2 -mfma
-CFLAGS := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fopenmp -fno-inline
-CFLAGS_TEST := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(EXT_INC)
+CFLAGS := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O0 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fopenmp -fno-inline
+CFLAGS_TEST := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O0 $(ARCH_FLAGS) -I$(EXT_INC)
 LDFLAGS := 
 LDFLAGS_TEST :=
 #
@@ -289,6 +289,9 @@ SRC_BINARY_HEAP_DEP := $(SRC_BINARY_HEAP) $(sort $(HDR_BINARY_HEAP_DEP))
 
 HDR_BIT_WORKS_DEP := $(sort $(HDR_BIT_WORKS))
 SRC_BIT_WORKS_DEP := $(SRC_BIT_WORKS) $(sort $(HDR_BIT_WORKS_DEP))
+
+HDR_HASHTABLE_DEP := $(sort $(HDR_HASHTABLE))
+SRC_HASHTABLE_DEP := $(SRC_HASHTABLE) $(sort $(HDR_HASHTABLE_DEP))
 
 HDR_PRNG_DEP := $(sort $(HDR_PRNG))
 SRC_PRNG_DEP := $(SRC_PRNG) $(sort $(HDR_PRNG_DEP) $(HDR_TIME_UTILS_DEP) $(HDR_BIT_WORKS_DEP))
@@ -601,7 +604,7 @@ UTE_BOARD_OBJ_DEPENDENCIES := \
 
 $(UTE_BOARD): $(UTO_BOARD) $(UTE_BOARD_OBJ_DEPENDENCIES) $(TEST_BINDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
-	@$(CC) $(LDFLAGS_TEST) $< $(UTE_BOARD_OBJ_DEPENDENCIES) -o $@
+	@$(CC) $(LDFLAGS_TEST) $< $(UTE_BOARD_OBJ_DEPENDENCIES) -lm -o $@
 
 ##
 ## board_pattern
@@ -633,7 +636,7 @@ UTE_BOARD_PATTERN_OBJ_DEPENDENCIES := \
 
 $(UTE_BOARD_PATTERN): $(UTO_BOARD_PATTERN) $(UTE_BOARD_PATTERN_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
-	@$(CC) $(LDFLAGS_TEST) $< $(UTE_BOARD_PATTERN_OBJ_DEPENDENCIES) -o $@
+	@$(CC) $(LDFLAGS_TEST) $< $(UTE_BOARD_PATTERN_OBJ_DEPENDENCIES) -lm -o $@
 
 ##
 ## board_trans
@@ -665,7 +668,7 @@ UTE_BOARD_TRANS_OBJ_DEPENDENCIES := \
 
 $(UTE_BOARD_TRANS): $(UTO_BOARD_TRANS) $(UTE_BOARD_TRANS_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
-	@$(CC) $(LDFLAGS_TEST) $< $(UTE_BOARD_TRANS_OBJ_DEPENDENCIES) -o $@
+	@$(CC) $(LDFLAGS_TEST) $< $(UTE_BOARD_TRANS_OBJ_DEPENDENCIES) -lm -o $@
 
 ##
 ## cfg
@@ -818,7 +821,7 @@ LIB_ES_PV :=
 
 $(UTE_ES_PV): $(UTO_ES_PV) $(UTE_ES_PV_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel $(TMPDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
-	@$(CC) $(LDFLAGS_TEST) $< $(UTE_ES_PV_OBJ_DEPENDENCIES) $(LIB_ES_PV) -o $@
+	@$(CC) $(LDFLAGS_TEST) $< $(UTE_ES_PV_OBJ_DEPENDENCIES) $(LIB_ES_PV) -lm -o $@
 
 ##
 ## exact_solver
@@ -867,7 +870,7 @@ UTE_FILE_UTILS_OBJ_DEPENDENCIES := \
 
 $(UTE_FILE_UTILS): $(UTO_FILE_UTILS) $(UTE_FILE_UTILS_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel $(TMPDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
-	@$(CC) $(LDFLAGS_TEST) $< $(UTE_FILE_UTILS_OBJ_DEPENDENCIES) -o $@
+	@$(CC) $(LDFLAGS_TEST) $< $(UTE_FILE_UTILS_OBJ_DEPENDENCIES) -lm -o $@
 
 ##
 ## flame
@@ -902,7 +905,7 @@ UTE_GAME_POSITION_OBJ_DEPENDENCIES := \
   $(OBJ_GAME_POSITION_DB) $(OBJ_BOARD) $(OBJ_RED_BLACK_TREE) $(OBJ_FILE_UTILS) \
   $(OBJ_ARCH) $(OBJ_PRNG) $(OBJ_BIT_WORKS) $(OBJ_MEMORY_MANAGER)
 
-LIB_GAME_POSITION :=
+LIB_GAME_POSITION := -lm
 
 $(UTE_GAME_POSITION): $(UTO_GAME_POSITION) $(UTE_GAME_POSITION_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel $(TMPDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
@@ -938,7 +941,7 @@ UTE_GAME_POSITION_DB_OBJ_DEPENDENCIES := \
 
 $(UTE_GAME_POSITION_DB): $(UTO_GAME_POSITION_DB) $(UTE_GAME_POSITION_DB_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
-	@$(CC) $(LDFLAGS_TEST) $< $(UTE_GAME_POSITION_DB_OBJ_DEPENDENCIES) -o $@
+	@$(CC) $(LDFLAGS_TEST) $< $(UTE_GAME_POSITION_DB_OBJ_DEPENDENCIES) -lm -o $@
 
 ##
 ## game_tree_logger
@@ -1006,7 +1009,7 @@ UTE_GAME_TREE_UTILS_OBJ_DEPENDENCIES := \
 
 $(UTE_GAME_TREE_UTILS): $(UTO_GAME_TREE_UTILS) $(UTE_GAME_TREE_UTILS_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel $(TMPDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
-	@$(CC) $(LDFLAGS_TEST) $< $(UTE_GAME_TREE_UTILS_OBJ_DEPENDENCIES) -o $@
+	@$(CC) $(LDFLAGS_TEST) $< $(UTE_GAME_TREE_UTILS_OBJ_DEPENDENCIES) -lm -o $@
 
 ##
 ## gpdb_verify
@@ -1030,7 +1033,39 @@ BIN_GPDB_VERIFY_OBJ_DEPENDENCIES := $(OBJ_FILE_UTILS) $(OBJ_GAME_POSITION_DB) $(
 
 $(BIN_GPDB_VERIFY): $(OBJ_GPDB_VERIFY) $(BIN_GPDB_VERIFY_OBJ_DEPENDENCIES) Makefile $(BINDIR)/.dir_sentinel
 	@printf "Linking executable $@\n"
-	@$(CC) $(LDFLAGS) $< $(BIN_GPDB_VERIFY_OBJ_DEPENDENCIES) -o $@
+	@$(CC) $(LDFLAGS) $< $(BIN_GPDB_VERIFY_OBJ_DEPENDENCIES) -lm -o $@
+
+##
+## hashtable
+##
+## hashtable.h    : (null)
+## hashtable.c    : hashtable.h
+## ut_hashtable.c : unit_test.h hashtable.h
+##
+hashtable: $(OBJ_HASHTABLE)
+asm_hashtable: $(ASM_HASHTABLE)
+
+$(ASM_HASHTABLE): $(SRC_HASHTABLE_DEP) Makefile $(ASMDIR)/.dir_sentinel
+	@printf "Compiling source file $< into assembly $@\n"
+	@$(CC) $(ASMFLAGS) -S $< -o $@
+
+$(OBJ_HASHTABLE): $(SRC_HASHTABLE_DEP) Makefile $(OBJDIR)/.dir_sentinel
+	@printf "Compiling $< into $@\n"
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+ut_hashtable: $(UTE_HASHTABLE)
+
+$(UTO_HASHTABLE): $(UTS_HASHTABLE) $(OBJ_UNIT_TEST) $(OBJ_HASHTABLE) Makefile $(TEST_OBJDIR)/.dir_sentinel
+	@printf "Test suite: compiling $< into $@\n"
+	@$(CC) $(CFLAGS_TEST) -c $< -o $@ $(TEST_INCLUDE)
+
+UTE_HASHTABLE_OBJ_DEPENDENCIES := \
+  $(OBJ_LINKED_LIST) $(OBJ_UNIT_TEST) $(OBJ_TIME_UTILS) $(OBJ_MAIN_OPTION_PARSE) \
+  $(OBJ_HASHTABLE)
+
+$(UTE_HASHTABLE): $(UTO_HASHTABLE) $(UTE_HASHTABLE_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
+	@printf "Test suite: linking executable $@\n"
+	@$(CC) $(LDFLAGS_TEST) $< $(UTE_HASHTABLE_OBJ_DEPENDENCIES) -o $@
 
 ##
 ## improved_fast_endgame_solver
@@ -1305,7 +1340,7 @@ UTE_PRNG_OBJ_DEPENDENCIES := \
 
 $(UTE_PRNG): $(UTO_PRNG) $(UTE_PRNG_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
-	@$(CC) $(LDFLAGS_TEST) $< $(UTE_PRNG_OBJ_DEPENDENCIES) -o $@
+	@$(CC) $(LDFLAGS_TEST) $< $(UTE_PRNG_OBJ_DEPENDENCIES) -lm -o $@
 
 ##
 ## read_game_tree_log
@@ -1328,7 +1363,7 @@ BIN_READ_GAME_TREE_LOG_OBJ_DEPENDENCIES := $(OBJ_MAIN_OPTION_PARSE) $(OBJ_ARCH) 
 
 $(BIN_READ_GAME_TREE_LOG): $(OBJ_READ_GAME_TREE_LOG) $(BIN_READ_GAME_TREE_LOG_OBJ_DEPENDENCIES) Makefile $(BINDIR)/.dir_sentinel
 	@printf "Linking executable $@\n"
-	@$(CC) $(LDFLAGS) $< $(BIN_READ_GAME_TREE_LOG_OBJ_DEPENDENCIES) -o $@
+	@$(CC) $(LDFLAGS) $< $(BIN_READ_GAME_TREE_LOG_OBJ_DEPENDENCIES) -lm -o $@
 
 ##
 ## read_pve_dump
@@ -1351,7 +1386,7 @@ BIN_READ_PVE_DUMP_OBJ_DEPENDENCIES := $(OBJ_MAIN_OPTION_PARSE) $(OBJ_ARCH) $(OBJ
 
 $(BIN_READ_PVE_DUMP): $(OBJ_READ_PVE_DUMP) $(BIN_READ_PVE_DUMP_OBJ_DEPENDENCIES) Makefile $(BINDIR)/.dir_sentinel
 	@printf "Linking executable $@\n"
-	@$(CC) $(LDFLAGS) $< $(BIN_READ_PVE_DUMP_OBJ_DEPENDENCIES) -o $@
+	@$(CC) $(LDFLAGS) $< $(BIN_READ_PVE_DUMP_OBJ_DEPENDENCIES) -lm -o $@
 
 ##
 ## red_black_tree
@@ -1383,7 +1418,7 @@ UTE_RED_BLACK_TREE_OBJ_DEPENDENCIES := \
 
 $(UTE_RED_BLACK_TREE): $(UTO_RED_BLACK_TREE) $(UTE_RED_BLACK_TREE_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
-	@$(CC) $(LDFLAGS_TEST) $< $(UTE_RED_BLACK_TREE_OBJ_DEPENDENCIES) -o $@
+	@$(CC) $(LDFLAGS_TEST) $< $(UTE_RED_BLACK_TREE_OBJ_DEPENDENCIES) -lm -o $@
 
 ##
 ## regab
@@ -1466,7 +1501,7 @@ UTE_RGLM_DATA_FILES_OBJ_DEPENDENCIES := \
 
 $(UTE_RGLM_DATA_FILES): $(UTO_RGLM_DATA_FILES) $(UTE_RGLM_DATA_FILES_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
-	@$(CC) $(LDFLAGS_TEST) $< $(UTE_RGLM_DATA_FILES_OBJ_DEPENDENCIES) -o $@
+	@$(CC) $(LDFLAGS_TEST) $< $(UTE_RGLM_DATA_FILES_OBJ_DEPENDENCIES) -lm -o $@
 
 ##
 ## rglm_solver
@@ -1607,7 +1642,7 @@ UTE_SORT_UTILS_OBJ_DEPENDENCIES := \
 
 $(UTE_SORT_UTILS): $(UTO_SORT_UTILS) $(UTE_SORT_UTILS_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
-	@$(CC) $(LDFLAGS_TEST) $< $(UTE_SORT_UTILS_OBJ_DEPENDENCIES) -o $@
+	@$(CC) $(LDFLAGS_TEST) $< $(UTE_SORT_UTILS_OBJ_DEPENDENCIES) -lm -o $@
 
 ##
 ## time_utils
@@ -1656,7 +1691,7 @@ UTE_TRANSPOSITION_TABLE_OBJ_DEPENDENCIES := \
 
 $(UTE_TRANSPOSITION_TABLE): $(UTO_TRANSPOSITION_TABLE) $(UTE_TRANSPOSITION_TABLE_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
-	@$(CC) $(LDFLAGS_TEST) $< $(UTE_TRANSPOSITION_TABLE_OBJ_DEPENDENCIES) -o $@
+	@$(CC) $(LDFLAGS_TEST) $< $(UTE_TRANSPOSITION_TABLE_OBJ_DEPENDENCIES) -lm -o $@
 
 ##
 ## trsm
