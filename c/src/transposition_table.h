@@ -77,9 +77,6 @@ typedef struct tratab_table_s {
   size_t         n_retrieve;      /**< @brief aaa. */
 } tratab_table_t;
 
-
-#endif /* TRANSPOSITION_TABLE_H */
-
 extern tratab_table_t *
 tratab_table_create (size_t size);
 
@@ -107,3 +104,36 @@ tratab_item_retrieve (tratab_table_t *table,
                       uint64_t hash,
                       GamePositionX *gpx,
                       int depth);
+
+/* ### ### ### ### */
+
+
+#define T ttab_t
+#define I ttab_item_t
+
+typedef struct ttab_s *T;
+typedef struct ttab_item_s *I;
+
+extern T
+ttab_new (int log_size);
+
+extern void
+ttab_free (T *tp);
+
+extern void
+ttab_init (T t);
+
+extern void
+ttab_insert (T t,
+             I i);
+
+extern void
+ttab_retrieve (T t,
+               I i);
+
+extern void
+ttab_header_to_stream (T t,
+                       FILE *file);
+
+
+#endif /* TRANSPOSITION_TABLE_H */

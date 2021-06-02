@@ -33,8 +33,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 
+#include "hashtable.h"
+#include "binary_heap.h"
 #include "transposition_table.h"
 
 /*
@@ -215,4 +218,173 @@ tratab_item_retrieve (tratab_table_t *table,
   }
 
   return item;
+}
+
+
+/* ### ### ### ### */
+
+#define T ttab_t
+#define I ttab_item_t
+
+typedef struct ttab_item_s *I;
+
+struct ttab_item_s {
+  uint64_t hash;                 /**< @brief aa. */
+  uint8_t  depth;                /**< @brief aa. */
+  int8_t   lower_bound;          /**< @brief aa. */
+  int8_t   upper_bound;          /**< @brief aa. */
+  int8_t   best_move;            /**< @brief aa. */
+};
+
+typedef struct ttab_s *T;
+
+struct ttab_s {
+  size_t max_n_item;             /**< @brief Number of items that could be stored in the table. */
+  I items;                       /**< @brief Array of items. */
+  I next_item;                   /**< @brief Next item to be used when inserting. */
+  size_t n_item;                 /**< @brief The number of item currently held in the table. */
+  htab_t ht;                     /**< @brief Hashtable containing <Key:item , Item:item>. */
+  bihp_pq_t pq;                  /**< @brief Priority queue. */
+};
+
+static int
+cmp (const void *x,
+     const void *y)
+{
+  I ix = (I) x;
+  I iy = (I) y;
+  return ix->hash = iy->hash ? 0 : 1;
+}
+
+static unsigned
+hash (const void *key)
+{
+  I item = (I) key;
+  return item->hash;
+}
+
+static int
+priority (item_t a)
+{
+  I item = (I) a;
+  return item->depth;
+}
+
+static void
+print_item (item_t a,
+            FILE *f)
+{
+  /* Eventually to be completed. */
+  return;
+}
+
+
+
+T
+ttab_new (int log_size)
+{
+  T t;
+  int ht_hint;
+
+  assert(log_size < sizeof(size_t));
+
+  /* Allocating the table header. */
+  t = (T) malloc(sizeof(*t));
+  if (!t) return NULL;
+
+  /* Computing the table size (max number of items). */
+  if (log_size < 0)
+    t->max_n_item = 0;
+  else {
+    t->max_n_item = 1ULL << log_size;
+  }
+
+  /* Allocating the items array, and zeroing it. */
+  t->items = (I) malloc(t->max_n_item * sizeof(struct ttab_item_s));
+  if (!t->items) {
+    free(t);
+    return NULL;
+  }
+
+  /* Create the hew hashtable. */
+  ht_hint = t->max_n_item / 4;
+  if (ht_hint < 4 ) ht_hint = 4;
+  t->ht = htab_new(ht_hint, cmp, hash);
+  if (!t->ht) {
+    free(t->items);
+    free(t);
+    return NULL;
+  }
+
+  /* Crete the min priority queue. */
+  t->pq = bihp_pq_create(BIHP_PQ_TYPE_MIN, t->max_n_item, priority, print_item);
+  if (!t->pq) {
+    htab_free(&t->ht);
+    free(t->items);
+    free(t);
+    return NULL;
+  }
+
+  ttab_init(t);
+
+  return t;
+}
+
+void
+ttab_free (T *tp)
+{
+  assert(tp && *tp);
+
+  T t = *tp;
+
+  if (t->max_n_item > 0) {
+    assert(t->pq);
+    bihp_pq_destroy(t->pq);
+    assert(t->ht);
+    htab_free(&t->ht);
+    assert(t->items);
+    free(t->items);
+  }
+
+  free(t);
+  *tp = NULL;
+}
+
+void
+ttab_init (T t)
+{
+  assert(t);
+  assert(t->items);
+  assert(t->ht);
+  assert(t->pq);
+
+  /* Initialize next_item to be the on top of the array. */
+  t->next_item = t->items + t->max_n_item - 1;
+
+  /* Initialize n_item to be zero. */
+  t->n_item = 0;
+
+  /* Zeroes the items array. */
+  memset(t->items, 0, t->max_n_item * sizeof(struct ttab_item_s));
+}
+
+void
+ttab_insert (T t,
+             I i)
+{
+  ;
+}
+
+void
+ttab_retrieve (T t,
+               I i)
+{
+  ;
+}
+
+void
+ttab_header_to_stream (T t,
+                       FILE *file)
+{
+  ;
 }

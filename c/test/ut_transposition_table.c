@@ -104,6 +104,22 @@ tratab_insert_item_t (ut_test_t *const t)
   table = NULL;
 }
 
+/* ### ### ### ### */
+
+static void
+ttab_new_free_t (ut_test_t *const t)
+{
+  const int log_size = 4; // 0 --> 1, 1 --> 2, 2 --> 4; 3 --> 8; 4 --> 16 .....
+
+  ttab_t table;
+
+  table = ttab_new(log_size);
+  ut_assert(t, table);
+
+  ttab_free(&table);
+  ut_assert(t, table == NULL);
+}
+
 
 
 /**
@@ -122,6 +138,10 @@ main (int argc,
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "tratab_table_create", tratab_table_create_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "tratab_insert_item", tratab_insert_item_t);
+
+
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "ttab_new_free", ttab_new_free_t);
 
   int failure_count = ut_suite_run(s);
 
