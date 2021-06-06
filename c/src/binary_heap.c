@@ -46,15 +46,16 @@ typedef bool
                           const bihp_index_t index_b);
 
 struct bihp_pq_s {
-  bihp_pq_type_t t;                  /* priority queue type. */
-  bihp_priority_f pf;                /* priority function. */
-  bihp_print_item_f pif;             /* print item function. */
-  size_t array_size;                 /* max number of item, it is the size of the a and p arrays. */
-  size_t heap_size;                  /* number of items in the binary heap. */
-  item_t *a;                         /* array of pointers to items. */
-  int *p;                            /* array of priorities. */
-  bihp_compare_priority higher;      /* true when index_a has higher priority than index_b. */
-  bihp_compare_priority lower;       /* true when index_a has lower priority than index_b. */
+  bihp_pq_type_t t;                    /* priority queue type. */
+  bihp_priority_f pf;                  /* priority function. */
+  bihp_print_item_f pif;               /* print item function. */
+  bihp_item_call_back_on_swap_f icbf;  /* used to update the index value in the item structure. */
+  size_t array_size;                   /* max number of item, it is the size of the a and p arrays. */
+  size_t heap_size;                    /* number of items in the binary heap. */
+  item_t *a;                           /* array of pointers to items. */
+  int *p;                              /* array of priorities. */
+  bihp_compare_priority higher;        /* true when index_a has higher priority than index_b. */
+  bihp_compare_priority lower;         /* true when index_a has lower priority than index_b. */
 };
 
 static void
@@ -74,6 +75,11 @@ bihp_swap (const bihp_pq_t q,
   it = q->p[index_a];
   q->p[index_a] = q->p[index_b];
   q->p[index_b] = it;
+
+  if (q->icbf) {
+    q->icbf(*a, index_a);
+    q->icbf(*b, index_b);
+  }
 }
 
 /*
@@ -169,7 +175,8 @@ bihp_pq_t
 bihp_pq_create (bihp_pq_type_t t,
                 size_t array_size,
                 bihp_priority_f pf,
-                bihp_print_item_f pif)
+                bihp_print_item_f pif,
+                bihp_item_call_back_on_swap_f icbf)
 {
   bihp_pq_t q;
   item_t *a;
@@ -203,6 +210,7 @@ bihp_pq_create (bihp_pq_type_t t,
   q->t = t;
   q->pf = pf;
   q->pif = pif;
+  q->icbf = icbf;
   q->array_size = array_size;
   q->heap_size = 0;
   q->a = a;
@@ -303,6 +311,7 @@ bihp_pq_insert (bihp_pq_t q,
 
   q->a[q->heap_size] = item;
   q->p[q->heap_size] = q->pf(item);
+  if (q->icbf) q->icbf(item, q->heap_size);
   q->heap_size++;
   bihp_bubble_up(q, q->heap_size - 1);
 }
@@ -352,4 +361,45 @@ bihp_pq_has_heap_property (bihp_const_pq_t q,
   }
 
   return true;
+}
+
+void
+bihp_pq_update_priority (bihp_pq_t q,
+                         int index)
+{
+  assert(q);
+  assert(index >= 0 && index < q->heap_size);
+
+  enum direction_t { UP, DOWN } d;
+
+  const int new_priority = q->pf(q->a[index]);
+  const int old_priority = q->p[index];
+
+  if (new_priority == old_priority)
+    return;
+
+  q->p[index] = new_priority;
+
+  if (new_priority > old_priority)
+    d = (q->t == BIHP_PQ_TYPE_MAX) ? UP : DOWN;
+  else
+    d = (q->t == BIHP_PQ_TYPE_MIN) ? UP : DOWN;
+
+  if (d == UP)
+    bihp_bubble_up(q, index);
+  else
+    bihp_trickle_down(q, index);
+}
+
+int
+bihp_pq_find_index (bihp_pq_t q,
+                    item_t item)
+{
+  assert(q);
+
+  for (int i = 0; i < q->heap_size; i++) {
+    if (item == q->a[i]) return i;
+  }
+
+  return -1;
 }

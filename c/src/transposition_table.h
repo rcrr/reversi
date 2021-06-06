@@ -114,6 +114,15 @@ tratab_item_retrieve (tratab_table_t *table,
 typedef struct ttab_s *T;
 typedef struct ttab_item_s *I;
 
+struct ttab_item_s {
+  uint64_t hash;                 /**< @brief Item's hash. */
+  uint8_t  depth;                /**< @brief Number of ply used for the analysis counting from this node ut to the leafs. */
+  int8_t   lower_bound;          /**< @brief Minimum value in the windows of possible ones. */
+  int8_t   upper_bound;          /**< @brief Maximum value in the windows of possible ones. */
+  int8_t   best_move;            /**< @brief Best move found. */
+  int      pq_index;             /**< @brief the index used to retrieve the priority que item. */
+};
+
 extern T
 ttab_new (int log_size);
 
@@ -135,5 +144,7 @@ extern void
 ttab_header_to_stream (T t,
                        FILE *file);
 
+#undef T
+#undef I
 
 #endif /* TRANSPOSITION_TABLE_H */

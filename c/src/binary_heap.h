@@ -38,7 +38,7 @@
 #include <stdbool.h>
 
 /* This should go into item.h header file. */
-typedef const void * item_t;
+typedef void * item_t;
 
 
 
@@ -65,6 +65,10 @@ typedef void
 (*bihp_print_item_f) (item_t a,
                       FILE *f);
 
+typedef void
+(*bihp_item_call_back_on_swap_f) (item_t a,
+                                int index);
+
 /**
  * @enum bihp_pq_type_t
  * @brief Priority queue type.
@@ -89,7 +93,8 @@ extern bihp_pq_t
 bihp_pq_create (bihp_pq_type_t t,
                 size_t array_size,
                 bihp_priority_f pf,
-                bihp_print_item_f pif);
+                bihp_print_item_f pif,
+                bihp_item_call_back_on_swap_f icbf);
 
 extern void
 bihp_pq_destroy (bihp_pq_t q);
@@ -127,6 +132,12 @@ extern bool
 bihp_pq_has_heap_property (bihp_const_pq_t q,
                            long long int *offending_parent_index);
 
+extern void
+bihp_pq_update_priority (bihp_pq_t q,
+                         int index);
 
+extern int
+bihp_pq_find_index (bihp_pq_t q,
+                    item_t item);
 
 #endif /* BINARY_HEAP_H */

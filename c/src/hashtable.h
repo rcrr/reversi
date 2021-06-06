@@ -38,7 +38,7 @@
 #include <stdbool.h>
 
 /* This should go into item.h header file. */
-typedef const void * item_t;
+typedef void * item_t;
 
 #define T htab_t
 

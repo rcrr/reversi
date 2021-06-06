@@ -226,18 +226,6 @@ tratab_item_retrieve (tratab_table_t *table,
 #define T ttab_t
 #define I ttab_item_t
 
-typedef struct ttab_item_s *I;
-
-struct ttab_item_s {
-  uint64_t hash;                 /**< @brief aa. */
-  uint8_t  depth;                /**< @brief aa. */
-  int8_t   lower_bound;          /**< @brief aa. */
-  int8_t   upper_bound;          /**< @brief aa. */
-  int8_t   best_move;            /**< @brief aa. */
-};
-
-typedef struct ttab_s *T;
-
 struct ttab_s {
   size_t max_n_item;             /**< @brief Number of items that could be stored in the table. */
   I items;                       /**< @brief Array of items. */
@@ -246,6 +234,38 @@ struct ttab_s {
   htab_t ht;                     /**< @brief Hashtable containing <Key:item , Item:item>. */
   bihp_pq_t pq;                  /**< @brief Priority queue. */
 };
+
+/* bihp_item_call_back_on_swap_f */
+static void
+icbf (item_t i,
+      int index)
+{
+  ((I) i)->pq_index = index;
+}
+
+static I
+new_item (T t)
+{
+  I i, e;
+  if (t->n_item == t->max_n_item) {
+    i = bihp_pq_pull(t->pq);
+    e = htab_remove(t->ht, i);
+    assert(i == e);
+  } else {
+    i = t->next_item--;
+    t->n_item++;
+  }
+  return i;
+}
+
+static void
+copy (const void *origin,
+      const void *dest)
+{
+  I o = (I) origin;
+  I d = (I) dest;
+  *d = *o;
+}
 
 static int
 cmp (const void *x,
@@ -286,7 +306,7 @@ ttab_new (int log_size)
   T t;
   int ht_hint;
 
-  assert(log_size < sizeof(size_t));
+  assert(log_size < 8 * sizeof(size_t));
 
   /* Allocating the table header. */
   t = (T) malloc(sizeof(*t));
@@ -317,7 +337,7 @@ ttab_new (int log_size)
   }
 
   /* Crete the min priority queue. */
-  t->pq = bihp_pq_create(BIHP_PQ_TYPE_MIN, t->max_n_item, priority, print_item);
+  t->pq = bihp_pq_create(BIHP_PQ_TYPE_MIN, t->max_n_item, priority, print_item, icbf);
   if (!t->pq) {
     htab_free(&t->ht);
     free(t->items);
@@ -372,7 +392,28 @@ void
 ttab_insert (T t,
              I i)
 {
-  ;
+  assert(t);
+  if (!i) return;
+
+  printf("\n");
+  printf("hash        = %zu\n", i->hash);
+  printf("depth       = %u\n", i->depth);
+  printf("lower_bound = %d\n", i->lower_bound);
+  printf("upper_bound = %d\n", i->upper_bound);
+  printf("best_move   = %d\n", i->best_move);
+  printf("pq_index    = %d\n", i->pq_index);
+  printf("\n");
+
+  I e = htab_get(t->ht, i);
+  if (e) {
+    bihp_pq_update_priority(t->pq, i->pq_index);
+    copy(i, e);
+  } else {
+    e = new_item(t);
+    copy(i, e);
+    htab_put(t->ht, e, e);
+    bihp_pq_insert(t->pq, e);
+  }
 }
 
 void

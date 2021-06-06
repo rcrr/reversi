@@ -120,6 +120,32 @@ ttab_new_free_t (ut_test_t *const t)
   ut_assert(t, table == NULL);
 }
 
+static void
+ttab_insert_t (ut_test_t *const t)
+{
+  const int log_size = 16;
+
+  struct ttab_item_s is;
+  ttab_t table;
+  ttab_item_t item;
+
+  item = (ttab_item_t) &is;
+  is.hash = 1ULL;
+  is.depth = 0;
+  is.lower_bound = -66;
+  is.upper_bound = +66;
+  is.best_move = invalid_move;
+  is.pq_index = -1;
+
+  table = ttab_new(log_size);
+  ut_assert(t, table);
+
+  ttab_insert(table, item);
+
+  ttab_free(&table);
+  ut_assert(t, table == NULL);
+}
+
 
 
 /**
@@ -142,6 +168,7 @@ main (int argc,
 
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "ttab_new_free", ttab_new_free_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "ttab_insert", ttab_insert_t);
 
   int failure_count = ut_suite_run(s);
 

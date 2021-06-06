@@ -43,6 +43,7 @@
 
 typedef struct aux_item_s {
   int value;
+  int index;
 } * aux_item_t;
 
 typedef struct aux_item_s const * const_aux_item_t;
@@ -53,13 +54,14 @@ typedef struct aux_item_s const * const_aux_item_t;
  * bihp_pq_has_heap_property()
  */
 struct bihp_pq_s {
-  bihp_pq_type_t t;                  /* priority queue type. */
-  bihp_priority_f pf;                /* priority function. */
-  bihp_print_item_f pif;             /* print item function. */
-  size_t array_size;                 /* max number of item, it is the size of the a and p arrays. */
-  size_t heap_size;                  /* number of items in the binary heap. */
-  item_t *a;                         /* array of pointers to items. */
-  int *p;                            /* array of priorities. */
+  bihp_pq_type_t t;                    /* priority queue type. */
+  bihp_priority_f pf;                  /* priority function. */
+  bihp_print_item_f pif;               /* print item function. */
+  bihp_item_call_back_on_swap_f icbf;  /* used to update the index value in the item structure. */
+  size_t array_size;                   /* max number of item, it is the size of the a and p arrays. */
+  size_t heap_size;                    /* number of items in the binary heap. */
+  item_t *a;                           /* array of pointers to items. */
+  int *p;                              /* array of priorities. */
 };
 
 
@@ -79,9 +81,16 @@ aux_print_item (item_t a,
                 FILE *f)
 {
   const_aux_item_t x = a;
-  fprintf(f, "%p, %d", (void *) x, x->value);
+  fprintf(f, "%p, %d, %d", (void *) x, x->value, x->index);
 }
 
+void
+aux_update_index (item_t a,
+                  int index)
+{
+  aux_item_t x = a;
+  x->index = index;
+}
 
 
 /*
@@ -109,16 +118,17 @@ bihp_pq_create_t (ut_test_t *const t)
   size_t array_size = 10;
   bihp_priority_f pf = NULL;
   bihp_print_item_f pif = NULL;
+  bihp_item_call_back_on_swap_f icbf = aux_update_index;
 
-  q = bihp_pq_create(BIHP_PQ_TYPE_MAX, array_size, pf, pif);
+  q = bihp_pq_create(BIHP_PQ_TYPE_MAX, array_size, pf, pif, icbf);
   ut_assert(t, q == NULL);
 
   pf = aux_priority;
 
-  q = bihp_pq_create(BIHP_PQ_TYPE_INVALID, array_size, pf, pif);
+  q = bihp_pq_create(BIHP_PQ_TYPE_INVALID, array_size, pf, pif, icbf);
   ut_assert(t, q == NULL);
 
-  q = bihp_pq_create(BIHP_PQ_TYPE_MAX, array_size, pf, pif);
+  q = bihp_pq_create(BIHP_PQ_TYPE_MAX, array_size, pf, pif, icbf);
   ut_assert(t, q);
 
   const size_t hs = bihp_pq_heap_size(q);
@@ -143,6 +153,7 @@ bihp_pq_insert_t (ut_test_t *const t)
   size_t array_size = 10;
   bihp_priority_f pf = aux_priority;
   bihp_print_item_f pif = aux_print_item;
+  bihp_item_call_back_on_swap_f icbf = aux_update_index;
 
   struct aux_item_s xs;
   aux_item_t x = &xs;
@@ -156,7 +167,7 @@ bihp_pq_insert_t (ut_test_t *const t)
   aux_item_t z = &zs;
   z->value = 5;
 
-  q = bihp_pq_create(BIHP_PQ_TYPE_MAX, array_size, pf, pif);
+  q = bihp_pq_create(BIHP_PQ_TYPE_MAX, array_size, pf, pif, icbf);
   ut_assert(t, q);
 
   bihp_pq_insert(q, x);
@@ -195,13 +206,15 @@ bihp_pq_peek_t (ut_test_t *const t)
   size_t array_size = max_heap_size;
   bihp_priority_f pf = aux_priority;
   bihp_print_item_f pif = aux_print_item;
+  bihp_item_call_back_on_swap_f icbf = aux_update_index;
 
   struct aux_item_s xs[max_heap_size];
   for (int i = 0; i < max_heap_size; i++) {
     xs[i].value = i;
+    xs[i].index = -1;
   }
 
-  q = bihp_pq_create(BIHP_PQ_TYPE_MAX, array_size, pf, pif);
+  q = bihp_pq_create(BIHP_PQ_TYPE_MAX, array_size, pf, pif, icbf);
   ut_assert(t, q);
 
   for (int i = 0; i < max_heap_size; i++) {
@@ -244,13 +257,14 @@ bihp_pq_pull_max_t (ut_test_t *const t)
   size_t array_size = heap_size;
   bihp_priority_f pf = aux_priority;
   bihp_print_item_f pif = aux_print_item;
+  bihp_item_call_back_on_swap_f icbf = aux_update_index;
 
   struct aux_item_s xs[heap_size];
   for (int i = 0; i < heap_size; i++) {
     xs[i].value = i;
   }
 
-  q = bihp_pq_create(BIHP_PQ_TYPE_MAX, array_size, pf, pif);
+  q = bihp_pq_create(BIHP_PQ_TYPE_MAX, array_size, pf, pif, icbf);
   ut_assert(t, q);
 
   for (int i = 0; i < heap_size; i++) {
@@ -296,13 +310,14 @@ bihp_pq_pull_min_t (ut_test_t *const t)
   size_t array_size = heap_size;
   bihp_priority_f pf = aux_priority;
   bihp_print_item_f pif = aux_print_item;
+  bihp_item_call_back_on_swap_f icbf = aux_update_index;
 
   struct aux_item_s xs[heap_size];
   for (int i = 0; i < heap_size; i++) {
     xs[i].value = i;
   }
 
-  q = bihp_pq_create(BIHP_PQ_TYPE_MIN, array_size, pf, pif);
+  q = bihp_pq_create(BIHP_PQ_TYPE_MIN, array_size, pf, pif, icbf);
   ut_assert(t, q);
 
   for (int i = heap_size - 1; i >= 0; i--) {
@@ -347,6 +362,7 @@ bihp_pq_has_heap_property_max_t (ut_test_t *const t)
   bihp_priority_f pf = aux_priority;
   bihp_print_item_f pif = aux_print_item;
   long long int offending_parent_index;
+  bihp_item_call_back_on_swap_f icbf = aux_update_index;
 
   struct aux_item_s xs;
   aux_item_t x = &xs;
@@ -364,7 +380,7 @@ bihp_pq_has_heap_property_max_t (ut_test_t *const t)
   aux_item_t z = &zs;
   z->value = 1;
 
-  q = bihp_pq_create(BIHP_PQ_TYPE_MAX, array_size, pf, pif);
+  q = bihp_pq_create(BIHP_PQ_TYPE_MAX, array_size, pf, pif, icbf);
   ut_assert(t, q);
   ut_assert(t, bihp_pq_type(q) == BIHP_PQ_TYPE_MAX);
   ut_assert(t, bihp_pq_heap_size(q) == 0);
@@ -480,6 +496,7 @@ bihp_pq_has_heap_property_min_t (ut_test_t *const t)
   bihp_priority_f pf = aux_priority;
   bihp_print_item_f pif = aux_print_item;
   long long int offending_parent_index;
+  bihp_item_call_back_on_swap_f icbf = aux_update_index;
 
   struct aux_item_s xs;
   aux_item_t x = &xs;
@@ -497,7 +514,7 @@ bihp_pq_has_heap_property_min_t (ut_test_t *const t)
   aux_item_t z = &zs;
   z->value = 1;
 
-  q = bihp_pq_create(BIHP_PQ_TYPE_MIN, array_size, pf, pif);
+  q = bihp_pq_create(BIHP_PQ_TYPE_MIN, array_size, pf, pif, icbf);
   ut_assert(t, q);
   ut_assert(t, bihp_pq_type(q) == BIHP_PQ_TYPE_MIN);
   ut_assert(t, bihp_pq_heap_size(q) == 0);
@@ -541,6 +558,141 @@ bihp_pq_has_heap_property_min_t (ut_test_t *const t)
   q = NULL;
 }
 
+static void
+bihp_pq_update_priority_max_t (ut_test_t *const t)
+{
+  const bool verbose = ut_run_time_is_verbose(t);
+
+  bihp_pq_t q;
+  size_t array_size = 20;
+  bihp_priority_f pf = aux_priority;
+  bihp_print_item_f pif = aux_print_item;
+  bihp_item_call_back_on_swap_f icbf = aux_update_index;
+  int index;
+  bool has_max_heap_property;
+
+  size_t heap_size = 10;
+  struct aux_item_s xs[heap_size];
+  for (int i = 0; i < heap_size; i++) {
+    xs[i].value = 2 * i;
+  }
+
+  struct aux_item_s ys;
+  aux_item_t y = &ys;
+  y->value = 7;
+
+  struct aux_item_s zs;
+  aux_item_t z = &zs;
+  z->value = 13;
+
+  q = bihp_pq_create(BIHP_PQ_TYPE_MAX, array_size, pf, pif, icbf);
+  ut_assert(t, q);
+
+  for (int i = heap_size - 1; i >= 0; i--) {
+    bihp_pq_insert(q, &xs[i]);
+  }
+
+  bihp_pq_insert(q, y);
+  bihp_pq_insert(q, z);
+
+  has_max_heap_property = bihp_pq_has_heap_property(q, NULL);
+  ut_assert(t, has_max_heap_property);
+
+  index = bihp_pq_find_index(q, y);
+  bihp_pq_update_priority(q, index);
+
+  has_max_heap_property = bihp_pq_has_heap_property(q, NULL);
+  ut_assert(t, has_max_heap_property);
+
+  y->value = 17;
+  bihp_pq_update_priority(q, index);
+
+  has_max_heap_property = bihp_pq_has_heap_property(q, NULL);
+  ut_assert(t, has_max_heap_property);
+
+  index = bihp_pq_find_index(q, z);
+  z->value = 3;
+  bihp_pq_update_priority(q, index);
+
+  has_max_heap_property = bihp_pq_has_heap_property(q, NULL);
+  ut_assert(t, has_max_heap_property);
+
+  if (verbose) {
+    printf("\n");
+    bihp_pq_print(q, stdout);
+  }
+
+  bihp_pq_destroy(q);
+  q = NULL;
+}
+
+static void
+bihp_pq_update_priority_min_t (ut_test_t *const t)
+{
+  const bool verbose = ut_run_time_is_verbose(t);
+
+  bihp_pq_t q;
+  size_t array_size = 20;
+  bihp_priority_f pf = aux_priority;
+  bihp_print_item_f pif = aux_print_item;
+  bihp_item_call_back_on_swap_f icbf = aux_update_index;
+  int index;
+  bool has_max_heap_property;
+
+  size_t heap_size = 10;
+  struct aux_item_s xs[heap_size];
+  for (int i = 0; i < heap_size; i++) {
+    xs[i].value = 2 * i;
+  }
+
+  struct aux_item_s ys;
+  aux_item_t y = &ys;
+  y->value = 7;
+
+  struct aux_item_s zs;
+  aux_item_t z = &zs;
+  z->value = 13;
+
+  q = bihp_pq_create(BIHP_PQ_TYPE_MIN, array_size, pf, pif, icbf);
+  ut_assert(t, q);
+
+  for (int i = heap_size - 1; i >= 0; i--) {
+    bihp_pq_insert(q, &xs[i]);
+  }
+
+  bihp_pq_insert(q, y);
+  bihp_pq_insert(q, z);
+
+  has_max_heap_property = bihp_pq_has_heap_property(q, NULL);
+  ut_assert(t, has_max_heap_property);
+
+  index = bihp_pq_find_index(q, y);
+  bihp_pq_update_priority(q, index);
+
+  has_max_heap_property = bihp_pq_has_heap_property(q, NULL);
+  ut_assert(t, has_max_heap_property);
+
+  y->value = 17;
+  bihp_pq_update_priority(q, index);
+
+  has_max_heap_property = bihp_pq_has_heap_property(q, NULL);
+  ut_assert(t, has_max_heap_property);
+
+  index = bihp_pq_find_index(q, z);
+  z->value = 3;
+  bihp_pq_update_priority(q, index);
+
+  has_max_heap_property = bihp_pq_has_heap_property(q, NULL);
+  ut_assert(t, has_max_heap_property);
+
+  if (verbose) {
+    printf("\n");
+    bihp_pq_print(q, stdout);
+  }
+
+  bihp_pq_destroy(q);
+  q = NULL;
+}
 
 /**
  * @brief Runs the test suite.
@@ -564,6 +716,9 @@ main (int argc,
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bihp_pq_has_heap_property_max", bihp_pq_has_heap_property_max_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bihp_pq_has_heap_property_min", bihp_pq_has_heap_property_min_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bihp_pq_update_priority_max", bihp_pq_update_priority_max_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bihp_pq_update_priority_min", bihp_pq_update_priority_min_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);
