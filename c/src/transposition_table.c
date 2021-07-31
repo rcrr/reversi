@@ -265,13 +265,13 @@ new_item (T t)
   //if (o) printf("o->pq_index = %d\n", o->pq_index);
   if (t->n_item == t->max_n_item) {
     i = bihp_pq_pull(t->pq);
-    printf("new_item: substitution, removed item is i->hash = %zu, i->depth = %u, i->pq_index = %d\n", i->hash, i->depth, i->pq_index);
+    if (false ) printf("new_item: substitution, removed item is i->hash = %zu, i->depth = %u, i->pq_index = %d\n", i->hash, i->depth, i->pq_index);
     e = htab_remove(t->ht, i);
     assert(i == e);
     // reset item, it is not required but is clean.
     reset_item(i);
   } else {
-    printf("new_item: insertion\n");
+    if (false) printf("new_item: insertion\n");
     i = t->next_item--;
     t->n_item++;
   }
@@ -464,16 +464,32 @@ ttab_summary_to_stream (T t,
   fprintf(file, "  pq:         %20p  -  Priority queue\n", (void *) t->ht);
 }
 
-void
-ttab_header_to_stream (T t,
-                       FILE *file)
+static void
+htab_item_to_stream (const void *key,
+                     void **value,
+                     void *cl)
 {
-  ;
+  assert(key);
+  assert(value);
+  assert(*value);
+  assert(cl);
+
+  I i = (I) *value;
+  FILE *f = (FILE *) cl;
+
+  fprintf(f, "%20zu;  %4u;        %4d;        %4d;      %4d;%12d\n",
+          i->hash, i->depth, i->lower_bound, i->upper_bound, i->best_move, i->pq_index);
 }
 
+
 void
-ttab_records_to_stream (T t,
-                        FILE *file)
+ttab_table_to_stream (T t,
+                      FILE *file)
 {
-  ;
+  assert(t);
+
+  if (!file) return;
+
+  fprintf(file, "                HASH; DEPTH; LOWER_BOUND; UPPER_BOUND; BEST_MOVE;    PQ_INDEX\n");
+  htab_map(t->ht, htab_item_to_stream, file);
 }

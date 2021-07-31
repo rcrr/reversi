@@ -150,7 +150,7 @@ ttab_insert_retrieve_a_t (ut_test_t *const t)
   ttab_t table;
   ttab_item_t item;
 
-  item = (ttab_item_t) &is;
+  item = &is;
   is.hash = 1ULL;
   is.depth = 3;
   is.lower_bound = -60;
@@ -164,7 +164,7 @@ ttab_insert_retrieve_a_t (ut_test_t *const t)
   ttab_retrieve(table, &item);
   ut_assert(t, item == NULL);
 
-  item = (ttab_item_t) &is;
+  item = &is;
   ttab_insert(table, item);
 
   is.depth = 0;
@@ -184,8 +184,60 @@ ttab_insert_retrieve_a_t (ut_test_t *const t)
 }
 
 static void
+ttab_table_to_stream_t (ut_test_t *const t)
+{
+  const int log_size = 4;
+
+  bool verbose = (ut_run_time_is_verbose(t)) ? true : false;
+
+  ttab_t table;
+  FILE *f;
+
+  struct ttab_item_s is;
+  ttab_item_t item;
+
+  item = &is;
+
+  f = verbose ? stdout : NULL;
+
+  table = ttab_new(log_size);
+  ut_assert(t, table);
+
+  is.hash = 1ULL;
+  is.depth = 3;
+  is.lower_bound = -60;
+  is.upper_bound = +60;
+  is.best_move = A1;
+  is.pq_index = -1;
+  ttab_insert(table, item);
+
+  is.hash = 2ULL;
+  is.depth = 5;
+  is.lower_bound = -40;
+  is.upper_bound = +40;
+  is.best_move = H8;
+  is.pq_index = -1;
+  ttab_insert(table, item);
+
+  is.hash = 3ULL;
+  is.depth = 2;
+  is.lower_bound = -42;
+  is.upper_bound = +42;
+  is.best_move = H1;
+  is.pq_index = -1;
+  ttab_insert(table, item);
+
+  ttab_table_to_stream(table, f);
+
+  ttab_free(&table);
+  ut_assert(t, table == NULL);
+}
+
+static void
 ttab_insert_retrieve_b_t (ut_test_t *const t)
 {
+  const bool is_very_verbose = false;
+
   const int log_size = 8;
   const int n_inserts = 2048;
 
@@ -193,7 +245,7 @@ ttab_insert_retrieve_b_t (ut_test_t *const t)
   ttab_t table;
   ttab_item_t item;
 
-  item = (ttab_item_t) &is;
+  item = &is;
   is.hash = 0ULL;
   is.depth = 3;
   is.lower_bound = -60;
@@ -204,12 +256,13 @@ ttab_insert_retrieve_b_t (ut_test_t *const t)
   table = ttab_new(log_size);
   ut_assert(t, table);
 
-  printf("\n");
+  if (is_very_verbose) printf("\n");
   for (int i = 0; i < n_inserts; i++) {
     is.hash = (uint64_t) i + 1;
     is.depth = i % 8;
-    printf("---  i=%d, preparing to insert: is.hash = %zu, is.depth = %u\n", i, is.hash, is.depth);
+    if (is_very_verbose) printf("---  i=%d, preparing to insert: is.hash = %zu, is.depth = %u\n", i, is.hash, is.depth);
     ttab_insert(table, item);
+    if (is_very_verbose) ttab_table_to_stream(table, stdout);
   }
 
   ttab_free(&table);
@@ -239,7 +292,8 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "ttab_new_free", ttab_new_free_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "ttab_summary_to_stream", ttab_summary_to_stream_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_001,  "ttab_insert_retrieve_a", ttab_insert_retrieve_a_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_001,  "ttab_insert_retrieve_b", ttab_insert_retrieve_b_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "ttab_table_to_stream", ttab_table_to_stream_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "ttab_insert_retrieve_b", ttab_insert_retrieve_b_t);
 
 
   int failure_count = ut_suite_run(s);

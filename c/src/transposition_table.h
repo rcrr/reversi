@@ -111,8 +111,8 @@ tratab_item_retrieve (tratab_table_t *table,
 #define T ttab_t
 #define I ttab_item_t
 
-typedef struct ttab_s *T;
-typedef struct ttab_item_s *I;
+typedef struct ttab_s *ttab_t;
+typedef struct ttab_item_s *ttab_item_t;
 
 struct ttab_item_s {
   uint64_t hash;                 /**< @brief Item's hash. */
@@ -145,12 +145,8 @@ ttab_summary_to_stream (T t,
                         FILE *file);
 
 extern void
-ttab_header_to_stream (T t,
-                       FILE *file);
-
-extern void
-ttab_records_to_stream (T t,
-                        FILE *file);
+ttab_table_to_stream (T t,
+                      FILE *file);
 
 #undef T
 #undef I
