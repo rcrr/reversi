@@ -264,8 +264,8 @@ UTEST_BINS := $(addprefix $(TEST_BINDIR)/,$(UTEST_MAINS))
 # add -ftree-vectorize -ftree-vectorizer-verbose=2 to get from gcc the explanation for code vectorization
 # add -flto to the CFLAGS list to improve execution speed ( it takes much more to link executables )
 ARCH_FLAGS := -mpopcnt -mavx2 -mfma
-CFLAGS := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O0 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fopenmp -fno-inline
-CFLAGS_TEST := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O0 $(ARCH_FLAGS) -I$(EXT_INC)
+CFLAGS := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fopenmp -fno-inline
+CFLAGS_TEST := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS) -I$(EXT_INC)
 LDFLAGS := 
 LDFLAGS_TEST :=
 #

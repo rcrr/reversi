@@ -226,6 +226,9 @@ tratab_item_retrieve (tratab_table_t *table,
 #define T ttab_t
 #define I ttab_item_t
 
+#define TTAB_HT_SIZE_ITEM_RATIO 4
+#define TTAB_HT_MIN_SIZE 4
+
 struct ttab_s {
   size_t max_n_item;             /**< @brief Number of items that could be stored in the table. */
   I items;                       /**< @brief Array of items. */
@@ -243,15 +246,32 @@ icbf (item_t i,
   ((I) i)->pq_index = index;
 }
 
+static void
+reset_item (I i)
+{
+  i->hash = 0ULL;
+  i->depth = -1;
+  i->lower_bound = -66;
+  i->upper_bound = +66;
+  i->best_move = invalid_move;
+  i->pq_index = -1;
+}
+
 static I
 new_item (T t)
 {
   I i, e;
+  //I o = bihp_pq_peek(t->pq);
+  //if (o) printf("o->pq_index = %d\n", o->pq_index);
   if (t->n_item == t->max_n_item) {
     i = bihp_pq_pull(t->pq);
+    printf("new_item: substitution, removed item is i->hash = %zu, i->depth = %u, i->pq_index = %d\n", i->hash, i->depth, i->pq_index);
     e = htab_remove(t->ht, i);
     assert(i == e);
+    // reset item, it is not required but is clean.
+    reset_item(i);
   } else {
+    printf("new_item: insertion\n");
     i = t->next_item--;
     t->n_item++;
   }
@@ -273,7 +293,7 @@ cmp (const void *x,
 {
   I ix = (I) x;
   I iy = (I) y;
-  return ix->hash = iy->hash ? 0 : 1;
+  return ix->hash == iy->hash ? 0 : 1;
 }
 
 static unsigned
@@ -283,6 +303,9 @@ hash (const void *key)
   return item->hash;
 }
 
+/*
+ * Add the age of the record in the priority.
+ */
 static int
 priority (item_t a)
 {
@@ -319,7 +342,7 @@ ttab_new (int log_size)
     t->max_n_item = 1ULL << log_size;
   }
 
-  /* Allocating the items array, and zeroing it. */
+  /* Allocating the items array. */
   t->items = (I) malloc(t->max_n_item * sizeof(struct ttab_item_s));
   if (!t->items) {
     free(t);
@@ -327,14 +350,16 @@ ttab_new (int log_size)
   }
 
   /* Create the hew hashtable. */
-  ht_hint = t->max_n_item / 4;
-  if (ht_hint < 4 ) ht_hint = 4;
+  ht_hint = t->max_n_item / TTAB_HT_SIZE_ITEM_RATIO;
+  if (ht_hint < TTAB_HT_MIN_SIZE ) ht_hint = TTAB_HT_MIN_SIZE;
   t->ht = htab_new(ht_hint, cmp, hash);
   if (!t->ht) {
     free(t->items);
     free(t);
     return NULL;
   }
+  //printf("ht_hint = %d\n", ht_hint);
+  //printf("t->max_n_item = %zu\n", t->max_n_item);
 
   /* Crete the min priority queue. */
   t->pq = bihp_pq_create(BIHP_PQ_TYPE_MIN, t->max_n_item, priority, print_item, icbf);
@@ -395,17 +420,9 @@ ttab_insert (T t,
   assert(t);
   if (!i) return;
 
-  printf("\n");
-  printf("hash        = %zu\n", i->hash);
-  printf("depth       = %u\n", i->depth);
-  printf("lower_bound = %d\n", i->lower_bound);
-  printf("upper_bound = %d\n", i->upper_bound);
-  printf("best_move   = %d\n", i->best_move);
-  printf("pq_index    = %d\n", i->pq_index);
-  printf("\n");
-
   I e = htab_get(t->ht, i);
   if (e) {
+    printf("updating ... \n");
     bihp_pq_update_priority(t->pq, i->pq_index);
     copy(i, e);
   } else {
@@ -418,14 +435,45 @@ ttab_insert (T t,
 
 void
 ttab_retrieve (T t,
-               I i)
+               I *i)
 {
-  ;
+  assert(t);
+  assert(i);
+  if (!*i) return;
+
+  I e = htab_get(t->ht, *i);
+  if (e) {
+    copy(e, *i);
+  } else
+    *i = NULL;
+}
+
+void
+ttab_summary_to_stream (T t,
+                        FILE *file)
+{
+  if (!file) return;
+  if (!t) fprintf(file, "Transposition Table pointer is null.\n");
+
+  fprintf(file, "Transposition Table pointer: %p\n", (void *) t);
+  fprintf(file, "  max_n_item: %20zu  -  Number of items that could be stored in the table\n", t->max_n_item);
+  fprintf(file, "  items:      %20p  -  Array of items\n", (void *) t->items);
+  fprintf(file, "  next_item:  %20p  -  Next item to be used when inserting\n", (void *) t->next_item);
+  fprintf(file, "  n_item:     %20zu  -  The number of item currently held in the table\n", t->n_item);
+  fprintf(file, "  ht:         %20p  -  Hashtable containing <Key:item , Item:item>\n", (void *) t->ht);
+  fprintf(file, "  pq:         %20p  -  Priority queue\n", (void *) t->ht);
 }
 
 void
 ttab_header_to_stream (T t,
                        FILE *file)
+{
+  ;
+}
+
+void
+ttab_records_to_stream (T t,
+                        FILE *file)
 {
   ;
 }

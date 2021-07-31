@@ -160,9 +160,10 @@ htab_get (T t,
 
   /* Search table for key. */
   i = (*t->hash)(key) % t->size;
-  for (p = t->buckets[i]; p; p = p->link)
+  for (p = t->buckets[i]; p; p = p->link) {
     if ((*t->cmp)(key, p->key) == 0)
       break;
+  }
 
   return p ? p->value : NULL;
 }

@@ -50,7 +50,7 @@
 # npositions span [60..0] empty count, and doesn't take into account the offspring positions.
 # Selected positions should be {CMR,CMS}.
 # Positions to be "usable" have to be: generated -> solved -> forked by the offspring "action" -> classified.
-# After this sequence they can be the date subject to the extraction and the computation sun by this script.
+# After this sequence the positions can be the data subject to the extraction and the computation executed by this script.
 #
 
 do_work () {

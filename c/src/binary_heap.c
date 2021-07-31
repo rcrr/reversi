@@ -328,6 +328,7 @@ bihp_pq_pull (bihp_pq_t q)
   q->heap_size--;
   q->a[0] = q->a[q->heap_size];
   q->p[0] = q->p[q->heap_size];
+  if (q->icbf) q->icbf(q->a[0], 0);
   bihp_trickle_down(q, 0);
 
   // eventually resize ...

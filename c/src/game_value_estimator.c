@@ -31,6 +31,13 @@
  * </tt>
  */
 
+/*
+ * Run the solver:
+ *
+ * $ time ./build/bin/endgame_solver -s gve -f db/gpdb-ffo.txt -q ffo-29
+ *
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -162,10 +169,13 @@ gv_f2d (const double f);
  */
 
 
-
+/* Search depth iterative deepening. */
 static int search_depth_id;
 
-
+/*
+ * Set it to true tu use negascout , or false for negamax.
+ * Next step is to have a choice between the two ... or next add also mtdf ...
+ */
 static void
 (*game_tree_search_f) (node_t *n,
                        int depth,

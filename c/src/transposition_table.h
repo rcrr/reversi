@@ -138,11 +138,19 @@ ttab_insert (T t,
 
 extern void
 ttab_retrieve (T t,
-               I i);
+               I *i);
+
+extern void
+ttab_summary_to_stream (T t,
+                        FILE *file);
 
 extern void
 ttab_header_to_stream (T t,
                        FILE *file);
+
+extern void
+ttab_records_to_stream (T t,
+                        FILE *file);
 
 #undef T
 #undef I
