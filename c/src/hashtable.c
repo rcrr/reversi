@@ -112,6 +112,13 @@ htab_length (T t)
   return t->length;
 }
 
+size_t
+htab_size (T t)
+{
+  assert(t);
+  return t->size;
+}
+
 void *
 htab_put (T t,
           const void *key,
@@ -231,4 +238,27 @@ htab_to_array (T t,
     }
   array[j] = end;
   return array;
+}
+
+void
+htab_bucket_filling_stats (T t,
+                           size_t *stats,
+                           size_t stats_size)
+{
+  assert(t);
+  if (stats_size > 0) assert(stats);
+
+  for (size_t i = 0; i < stats_size; i++) stats[i] = 0;
+
+  for (size_t i = 0; i < t->size; i++) {
+    struct binding *b = t->buckets[i];
+    size_t bc = 0;
+    while (b) {
+      bc++;
+      b = b->link;
+    }
+    if (bc > stats_size - 1) bc = stats_size - 1;
+    stats[bc]++;
+  }
+
 }

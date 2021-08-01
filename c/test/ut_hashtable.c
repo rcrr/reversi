@@ -599,6 +599,89 @@ htab_to_array_t (ut_test_t *const t)
   ut_assert(t, table == NULL);
 }
 
+static void
+htab_bucket_filling_stats_t (ut_test_t *const t)
+{
+  htab_t table = NULL;
+  const size_t stats_size = 8;
+  size_t stats[stats_size];
+
+  bool verbose = (ut_run_time_is_verbose(t)) ? true : false;
+
+  struct v_k {
+    int key;
+  } keys[] =
+      {
+       {  0 },
+       {  1 },
+       {  2 },
+       {  3 },
+       {  4 },
+       {  5 },
+       {  6 },
+       {  7 },
+       {  8 },
+       {  9 },
+       { 10 },
+       { 11 },
+      };
+
+  struct v_s {
+    int value;
+  } values[] =
+      {
+       {  0 },
+       {  1 },
+       {  2 },
+       {  3 },
+       {  4 },
+       {  5 },
+       {  6 },
+       {  7 },
+       {  8 },
+       {  9 },
+       { 10 },
+       { 11 },
+      };
+
+  const size_t values_size = sizeof(values) / sizeof(values[0]);
+  const size_t keys_size = sizeof(keys) / sizeof(keys[0]);
+  ut_assert(t, keys_size == values_size);
+
+  table = htab_new(4, aux_cmp, aux_hash);
+  ut_assert(t, table);
+  ut_assert(t, 0 == htab_length(table));
+
+  for (size_t i = 0; i < keys_size; i++) {
+    htab_put(table, &keys[i], &values[i]);
+    ut_assert(t, i + 1 == htab_length(table));
+  }
+
+  for (size_t i = 0; i < keys_size; i++) {
+    struct v_s *v = htab_get(table, &keys[i]);
+    if (v->value != values[i].value) {
+      printf("i = %zu, values[i].value = %d, v->value = %d\n", i, values[i].value, v->value);
+      ut_assert(t, false);
+    }
+  }
+
+  const size_t length = htab_length(table);
+  const size_t size = htab_size(table);
+  htab_bucket_filling_stats(table, stats, stats_size);
+  if (verbose) {
+    printf("\n");
+    printf("Hashtable: [length = %zu, size = %zu]\n", length, size);
+    printf("\n");
+    printf("ITEM PER BUCKET; BUCKET COUNT\n");
+    for (size_t i = 0; i < stats_size; i++) {
+      char *label = (i != stats_size -1) ? "==" : ">=";
+      printf("  %2s       %4zu;     %8zu\n", label, i, stats[i]);
+    }
+  }
+
+  htab_free(&table);
+  ut_assert(t, table == NULL);
+}
 
 
 /**
@@ -623,6 +706,8 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "htab_remove", htab_remove_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "htab_map", htab_map_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "htab_to_array", htab_to_array_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "htab_bucket_filling_stats", htab_bucket_filling_stats_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);

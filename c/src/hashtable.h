@@ -55,6 +55,9 @@ htab_free (T *t);
 extern size_t
 htab_length (T t);
 
+extern size_t
+htab_size (T t);
+
 extern void *
 htab_put (T t,
           const void *key,
@@ -76,6 +79,11 @@ htab_map (T t,
 extern void **
 htab_to_array (T t,
                void *end);
+
+extern void
+htab_bucket_filling_stats (T t,
+                           size_t *stats,
+                           size_t stats_size);
 
 #undef T
 
