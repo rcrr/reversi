@@ -123,6 +123,10 @@ struct ttab_item_s {
   int      pq_index;             /**< @brief the index used to retrieve the priority que item. */
 };
 
+extern void
+ttab_item_clone_data (I from,
+                      I to);
+
 extern T
 ttab_new (int log_size);
 
@@ -147,6 +151,11 @@ ttab_summary_to_stream (T t,
 extern void
 ttab_table_to_stream (T t,
                       FILE *file);
+
+extern void
+ttab_bucket_filling_stats (T t,
+                           size_t *stats,
+                           size_t stats_size);
 
 #undef T
 #undef I

@@ -267,7 +267,7 @@ new_item (T t)
     i = bihp_pq_pull(t->pq);
     if (false ) printf("new_item: substitution, removed item is i->hash = %zu, i->depth = %u, i->pq_index = %d\n", i->hash, i->depth, i->pq_index);
     e = htab_remove(t->ht, i);
-    assert(i == e);
+    (void) e; assert(i == e);
     // reset item, it is not required but is clean.
     reset_item(i);
   } else {
@@ -321,7 +321,20 @@ print_item (item_t a,
   return;
 }
 
+void
+ttab_item_clone_data (I from,
+                      I to)
+{
+  assert(from);
+  assert(to);
 
+  to->hash = from->hash;
+  to->depth = from->depth;
+  to->lower_bound = from->lower_bound;
+  to->upper_bound =from->upper_bound;
+  to->best_move = from->best_move;
+  to->pq_index = from->pq_index;
+}
 
 T
 ttab_new (int log_size)
@@ -422,7 +435,7 @@ ttab_insert (T t,
 
   I e = htab_get(t->ht, i);
   if (e) {
-    printf("updating ... \n");
+    if (false) printf("updating ... i->pq_index = %d, e->pq_index = %d\n", i->pq_index, e->pq_index);
     bihp_pq_update_priority(t->pq, i->pq_index);
     copy(i, e);
   } else {
@@ -462,6 +475,8 @@ ttab_summary_to_stream (T t,
   fprintf(file, "  n_item:     %20zu  -  The number of item currently held in the table\n", t->n_item);
   fprintf(file, "  ht:         %20p  -  Hashtable containing <Key:item , Item:item>\n", (void *) t->ht);
   fprintf(file, "  pq:         %20p  -  Priority queue\n", (void *) t->ht);
+  fprintf(file, "  ht.size:    %20zu  -  Hashtable size\n", htab_size(t->ht));
+  fprintf(file, "  ht.length:  %20zu  -  Hashtable length\n", htab_length(t->ht));
 }
 
 static void
@@ -481,7 +496,6 @@ htab_item_to_stream (const void *key,
           i->hash, i->depth, i->lower_bound, i->upper_bound, i->best_move, i->pq_index);
 }
 
-
 void
 ttab_table_to_stream (T t,
                       FILE *file)
@@ -492,4 +506,14 @@ ttab_table_to_stream (T t,
 
   fprintf(file, "                HASH; DEPTH; LOWER_BOUND; UPPER_BOUND; BEST_MOVE;    PQ_INDEX\n");
   htab_map(t->ht, htab_item_to_stream, file);
+}
+
+void
+ttab_bucket_filling_stats (T t,
+                           size_t *stats,
+                           size_t stats_size)
+{
+  assert(t);
+
+  htab_bucket_filling_stats(t->ht, stats, stats_size);
 }

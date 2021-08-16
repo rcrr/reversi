@@ -1,0 +1,405 @@
+
+To do list:
+
+ (1) GVE ID (iterative deepening) deve essere revisionato nella sostanza.
+     In questo momento e' inutile perche' le info nella TT accumulate nelle iterazioni [0..N-1] non sono usate per il sorting nella iterazione N.
+     In pratica nella itrazione N per OGNI livello (e quello 1 e' il piu' importante) il sorting delle mosse deve usare la TT.
+     Il sorting nella iterazione N di un livello M che quindi e' compreso nell'intervallo [1..N-1] deve usare i dati nella TT che sono:
+       - Esatti. Valore trovato nella finestra di ricerca con profondita' (N-1) - M
+       - Incompleti. Abbiamo solo un valore di boundary.
+       - Assenti. Un cut-off non ha permesso di esplorare il nodo.
+     C'e' da pensarci sopra ....
+     In realta' quello che serve e' l'ordinamento delle mosse figlio .... quindi serve di disegnare con precisione l'oggetto NODO delle search
+       e didisegnare bene i campi registrati nella TT.
+       Poi serve di avere un approccio "tipo memoizzazione", -mi servono le mosse legali ?-, chiamo la funzione lms, se sono gia' calcolate non le ricalcolo, altrimenti le calcolo .... ad esmpio
+       la funzione is_terminal calcola le mosse lgali, che poi vanno perse e venfono ricalcolate da generate_child_nodes.
+ (2) Migliorare le due funzioni:
+     - rglm_eval_gp
+     - board_pattern_packed_to_index
+     Sono il cuore della parte NON ottimizzata sia del solver RGLM che di quello GVE
+ (3) Passare da negascout a MTDf.
+ (4) Una miriade di sistemazioni "pratiche" del codice.
+ (5) Modificare la tabella regab_prng_gp con un campo GAME_VALUE_CHECK che ci consente di fare un secondo run e validare il risultato ( potrebbe essere una data ? ).
+ (6) Rimuovere il "clutter" in GVE dato da negamax e da OLD TT.
+
+
+Appunti al 16-8-2021
+
+Added -DNDEBUG flag in the Makefaile
+
+  ES   : [ node_count = 4.324.349, leaf_count = 713.632 ] 0.277s
+  RGLM : [ node_count = 1.249.479, leaf_count = 197.091 ] 0.239s
+  GVE  : [ node_count =   908.452, leaf_count =  77.380 ] 2.164s
+
+rimunovendo -no-inline:
+
+  ES   : [ node_count = 4.324.349, leaf_count = 713.632 ] 0.246s
+  RGLM : [ node_count = 1.249.479, leaf_count = 197.091 ] 0.150s
+  GVE  : [ node_count =   908.452, leaf_count =  77.380 ] 1.884s
+
+aggiungendo -flto:
+
+  ES   : [ node_count = 4.324.349, leaf_count = 713.632 ] 0.240s
+  RGLM : [ node_count = 1.249.479, leaf_count = 197.091 ] 0.153s
+  GVE  : [ node_count =   908.452, leaf_count =  77.380 ] 1.660s
+
+
+Appunti al 11-8-2021
+
+Commentato la riga che esegue il check del DIGEST dei file da caricare con i pesi. I nuovi tempi ora sono:
+
+  RGLM : 0.266s
+  GVE  : 5.268s
+
+Cambiando la dimensione della TT i tempi migliorano per GVE, la dimensione ottimale ( compromesso tra tempo di allocazione e tempo di esecuzione ) e' 19 o 20.
+
+  GVE  : 2.361s
+
+Eseguiamo di nuovo i programmi sotto valgrind.
+
+  $ valgrind --tool=callgrind --dump-instr=yes --collect-jumps=yes ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-22
+  $ valgrind --tool=callgrind --dump-instr=yes --collect-jumps=yes ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s rglm -q ffo-22
+  $ valgrind --tool=callgrind --dump-instr=yes --collect-jumps=yes ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s gve -q ffo-22
+
+E' evidente per il caso GVE che il 92% del tempo e' speso nella funzione rglm_eval_gp.
+Solo il 18% del tempo e' invece consumato da questa funzione nella esecuzione RGLM, questo non lo capisco .... e' da verificare come si sviluppa RGLM.
+Per velocizzare rglm_eval_gp si potrebbe tentare di avere una funzione con la dimensione del LOOP fissa,
+una funzione per ogni dimensione [3:10] e vedere se il compilatore fa qualcosa di piu' furbo ....
+
+Rimuovendo da rglmdf_model_weights_table_lookup_record assertions e checks:
+
+  GVE  : 2.194s
+
+Si potrebbe anche fare qualche esperimento sul PREFETCH dei dati .... da studiare bene ...
+
+GVE fa iterative deepening ID ... ma e' inutile se i dati dalla TT non vengono usati per il move ordering ....
+Questo e' il prossimo lavoro da fare.
+
+
+Appunti vari al 9-8-2021
+
+Cosa c'e' da fare per far decollare il nuovo solver.
+
+game_value_estimator :
+
+Attualmente l'algoritmo impiegato e' negascout, bisogna passare a MTDf.
+
+Depurare nel computo del tempo il caricamento dei files dei parametri e la allocazione della TT.
+Il 99% del tempo va nel check dell'HASH del file.
+Noto che rglm_eval_gp viene chiamato solo da look_haead_and_... ma viene chiamato solo 19663 volte, come mai ???
+
+
+Caso di esempio : ffo-22
+
+  ES   : [ node_count = 4.324.349, leaf_count = 713.632 ] 0.375s
+  RGLM : [ node_count = 1.249.479, leaf_count = 197.091 ] 1.197s
+  GVE  : [ node_count =   908.452, leaf_count =  77.380 ] 7.001s
+
+
+$ time ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-22
+
+Entry id: ffo-22
+Description:  G8:+2. A6:+0. F8:-4. A7:-4. H2:-4. B2:-6. D8:-8. B7:-14. G7:-26
+Game Position:
+    a b c d e f g h 
+ 1  . . O O O O . . 
+ 2  @ . O O O O O . 
+ 3  @ @ O O @ O @ @ 
+ 4  @ O @ O @ @ @ @ 
+ 5  @ @ @ O @ @ @ @ 
+ 6  . @ @ O @ O @ @ 
+ 7  . . O @ @ @ . @ 
+ 8  . . . . @ . . . 
+Player to move: WHITE
+
+Solving game position ffo-22, from source db/gpdb-ffo.txt, using solver es (exact solver) ...
+
+    a b c d e f g h 
+ 1  . . O O O O . . 
+ 2  @ . O O O O O . 
+ 3  @ @ O O @ O @ @ 
+ 4  @ O @ O @ @ @ @ 
+ 5  @ @ @ O @ @ @ @ 
+ 6  . @ @ O @ O @ @ 
+ 7  . . O @ @ @ . @ 
+ 8  . . . . @ . . . 
+Player to move: WHITE
+
+[node_count=4324349, leaf_count=713632]
+Final outcome: best move=G8, position value=2
+
+
+real	0m0.375s
+user	0m0.371s
+sys	0m0.004s
+
+$ time ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s rglm -q ffo-22
+
+Entry id: ffo-22
+Description:  G8:+2. A6:+0. F8:-4. A7:-4. H2:-4. B2:-6. D8:-8. B7:-14. G7:-26
+Game Position:
+    a b c d e f g h 
+ 1  . . O O O O . . 
+ 2  @ . O O O O O . 
+ 3  @ @ O O @ O @ @ 
+ 4  @ O @ O @ @ @ @ 
+ 5  @ @ @ O @ @ @ @ 
+ 6  . @ @ O @ O @ @ 
+ 7  . . O @ @ @ . @ 
+ 8  . . . . @ . . . 
+Player to move: WHITE
+
+Solving game position ffo-22, from source db/gpdb-ffo.txt, using solver rglm (rglm solver) ...
+
+    a b c d e f g h 
+ 1  . . O O O O . . 
+ 2  @ . O O O O O . 
+ 3  @ @ O O @ O @ @ 
+ 4  @ O @ O @ @ @ @ 
+ 5  @ @ @ O @ @ @ @ 
+ 6  . @ @ O @ O @ @ 
+ 7  . . O @ @ @ . @ 
+ 8  . . . . @ . . . 
+Player to move: WHITE
+
+[node_count=1249479, leaf_count=197091]
+Final outcome: best move=G8, position value=2
+
+
+real	0m1.197s
+user	0m1.157s
+sys	0m0.040s
+
+$ time ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s gve -q ffo-22
+
+Entry id: ffo-22
+Description:  G8:+2. A6:+0. F8:-4. A7:-4. H2:-4. B2:-6. D8:-8. B7:-14. G7:-26
+Game Position:
+    a b c d e f g h 
+ 1  . . O O O O . . 
+ 2  @ . O O O O O . 
+ 3  @ @ O O @ O @ @ 
+ 4  @ O @ O @ @ @ @ 
+ 5  @ @ @ O @ @ @ @ 
+ 6  . @ @ O @ O @ @ 
+ 7  . . O @ @ @ . @ 
+ 8  . . . . @ . . . 
+Player to move: WHITE
+
+Solving game position ffo-22, from source db/gpdb-ffo.txt, using solver gve (game value estimator) ...
+Empty count = 17, Search depth = -1, Minimum empty count = 4
+Node Level 0: estimated game value =  1.557 [+02] (0.5119)
+id_limit = 13
+ ### ### ### id = 1
+00 - H2 (+00) [-66..+66]: (success)       f  = +00 - cumulated node count 2
+01 - B2 (-04) [+00..+66]: (failing low)   f+ = -04 - cumulated node count 3
+02 - A6 (-04) [+00..+66]: (failing low)   f+ = -04 - cumulated node count 4
+03 - D8 (-06) [+00..+66]: (failing low)   f+ = -06 - cumulated node count 5
+04 - F8 (-06) [+00..+66]: (failing low)   f+ = -06 - cumulated node count 6
+05 - A7 (-08) [+00..+66]: (failing low)   f+ = -08 - cumulated node count 7
+06 - G8 (-08) [+00..+66]: (failing low)   f+ = -08 - cumulated node count 8
+07 - B7 (-12) [+00..+66]: (failing low)   f+ = -12 - cumulated node count 9
+08 - G7 (-30) [+00..+66]: (failing low)   f+ = -30 - cumulated node count 10
+ ### ### ### id = 2
+00 - H2 (+00) [-66..+66]: (success)       f  = -06 - cumulated node count 18
+01 - B2 (-04) [-06..+66]: (failing low)   f+ = -06 - cumulated node count 20
+02 - A6 (-04) [-06..+66]: (failing low)   f+ = -06 - cumulated node count 22
+03 - D8 (-06) [-06..+66]: (failing low)   f+ = -06 - cumulated node count 24
+04 - F8 (-06) [-06..+66]: (success)       f  = -02 - cumulated node count 37
+05 - A7 (-08) [-02..+66]: (success)       f  = +02 - cumulated node count 50
+06 - G8 (-08) [+02..+66]: (failing low)   f+ = -06 - cumulated node count 52
+07 - B7 (-12) [+02..+66]: (failing low)   f+ = -16 - cumulated node count 54
+08 - G7 (-30) [+02..+66]: (failing low)   f+ = -28 - cumulated node count 56
+ ### ### ### id = 3
+00 - H2 (+00) [-66..+66]: (success)       f  = -08 - cumulated node count 78
+01 - B2 (-04) [-08..+66]: (success)       f  = -06 - cumulated node count 110
+02 - A6 (-04) [-06..+66]: (success)       f  = -04 - cumulated node count 140
+03 - D8 (-06) [-04..+66]: (failing low)   f+ = -04 - cumulated node count 149
+04 - F8 (-06) [-04..+66]: (failing low)   f+ = -04 - cumulated node count 167
+05 - A7 (-08) [-04..+66]: (success)       f  = -02 - cumulated node count 198
+06 - G8 (-08) [-02..+66]: (failing low)   f+ = -02 - cumulated node count 213
+07 - B7 (-12) [-02..+66]: (failing low)   f+ = -14 - cumulated node count 222
+08 - G7 (-30) [-02..+66]: (failing low)   f+ = -28 - cumulated node count 228
+ ### ### ### id = 4
+00 - H2 (+00) [-66..+66]: (success)       f  = -08 - cumulated node count 284
+01 - B2 (-04) [-08..+66]: (success)       f  = -04 - cumulated node count 386
+02 - A6 (-04) [-04..+66]: (failing low)   f+ = -12 - cumulated node count 402
+03 - D8 (-06) [-04..+66]: (failing low)   f+ = -08 - cumulated node count 418
+04 - F8 (-06) [-04..+66]: (success)       f  = -02 - cumulated node count 546
+05 - A7 (-08) [-02..+66]: (failing low)   f+ = -04 - cumulated node count 581
+06 - G8 (-08) [-02..+66]: (failing low)   f+ = -04 - cumulated node count 620
+07 - B7 (-12) [-02..+66]: (failing low)   f+ = -12 - cumulated node count 636
+08 - G7 (-30) [-02..+66]: (failing low)   f+ = -34 - cumulated node count 646
+ ### ### ### id = 5
+00 - H2 (+00) [-66..+66]: (success)       f  = -04 - cumulated node count 783
+01 - B2 (-04) [-04..+66]: (success)       f  = -02 - cumulated node count 1021
+02 - A6 (-04) [-02..+66]: (failing low)   f+ = -08 - cumulated node count 1075
+03 - D8 (-06) [-02..+66]: (failing low)   f+ = -08 - cumulated node count 1128
+04 - F8 (-06) [-02..+66]: (failing low)   f+ = -02 - cumulated node count 1175
+05 - A7 (-08) [-02..+66]: (success)       f  = +00 - cumulated node count 1542
+06 - G8 (-08) [+00..+66]: (failing low)   f+ = +00 - cumulated node count 1609
+07 - B7 (-12) [+00..+66]: (failing low)   f+ = -12 - cumulated node count 1660
+08 - G7 (-30) [+00..+66]: (failing low)   f+ = -26 - cumulated node count 1680
+ ### ### ### id = 6
+00 - H2 (+00) [-66..+66]: (success)       f  = -12 - cumulated node count 1905
+01 - B2 (-04) [-12..+66]: (success)       f  = -04 - cumulated node count 2520
+02 - A6 (-04) [-04..+66]: (failing low)   f+ = -04 - cumulated node count 2612
+03 - D8 (-06) [-04..+66]: (failing low)   f+ = -08 - cumulated node count 2702
+04 - F8 (-06) [-04..+66]: (failing low)   f+ = -04 - cumulated node count 3131
+05 - A7 (-08) [-04..+66]: (success)       f  = -02 - cumulated node count 4074
+06 - G8 (-08) [-02..+66]: (failing low)   f+ = -04 - cumulated node count 4346
+07 - B7 (-12) [-02..+66]: (failing low)   f+ = -10 - cumulated node count 4432
+08 - G7 (-30) [-02..+66]: (failing low)   f+ = -26 - cumulated node count 4460
+ ### ### ### id = 7
+00 - H2 (+00) [-66..+66]: (success)       f  = -10 - cumulated node count 4970
+01 - B2 (-04) [-10..+66]: (success)       f  = -08 - cumulated node count 5888
+02 - A6 (-04) [-08..+66]: (failing low)   f+ = -08 - cumulated node count 6224
+03 - D8 (-06) [-08..+66]: (failing low)   f+ = -08 - cumulated node count 6498
+04 - F8 (-06) [-08..+66]: (success)       f  = -04 - cumulated node count 9013
+05 - A7 (-08) [-04..+66]: (success)       f  = -02 - cumulated node count 11059
+06 - G8 (-08) [-02..+66]: (failing low)   f+ = -02 - cumulated node count 11335
+07 - B7 (-12) [-02..+66]: (failing low)   f+ = -10 - cumulated node count 11536
+08 - G7 (-30) [-02..+66]: (failing low)   f+ = -26 - cumulated node count 11584
+ ### ### ### id = 8
+00 - H2 (+00) [-66..+66]: (success)       f  = -12 - cumulated node count 12402
+01 - B2 (-04) [-12..+66]: (success)       f  = -06 - cumulated node count 14549
+02 - A6 (-04) [-06..+66]: (failing low)   f+ = -06 - cumulated node count 14937
+03 - D8 (-06) [-06..+66]: (failing low)   f+ = -08 - cumulated node count 15548
+04 - F8 (-06) [-06..+66]: (success)       f  = -04 - cumulated node count 22048
+05 - A7 (-08) [-04..+66]: (success)       f  = -02 - cumulated node count 26398
+06 - G8 (-08) [-02..+66]: (failing low)   f+ = -02 - cumulated node count 28803
+07 - B7 (-12) [-02..+66]: (failing low)   f+ = -04 - cumulated node count 29108
+08 - G7 (-30) [-02..+66]: (failing low)   f+ = -24 - cumulated node count 29173
+ ### ### ### id = 9
+00 - H2 (+00) [-66..+66]: (success)       f  = -10 - cumulated node count 31013
+01 - B2 (-04) [-10..+66]: (success)       f  = -04 - cumulated node count 34643
+02 - A6 (-04) [-04..+66]: (failing low)   f+ = -04 - cumulated node count 35500
+03 - D8 (-06) [-04..+66]: (failing low)   f+ = -04 - cumulated node count 36498
+04 - F8 (-06) [-04..+66]: (failing low)   f+ = -04 - cumulated node count 40314
+05 - A7 (-08) [-04..+66]: (success)       f  = -02 - cumulated node count 48521
+06 - G8 (-08) [-02..+66]: (failing low)   f+ = -02 - cumulated node count 49253
+07 - B7 (-12) [-02..+66]: (failing low)   f+ = -02 - cumulated node count 49897
+08 - G7 (-30) [-02..+66]: (failing low)   f+ = -16 - cumulated node count 49992
+ ### ### ### id = 10
+00 - H2 (+00) [-66..+66]: (success)       f  = -08 - cumulated node count 52906
+01 - B2 (-04) [-08..+66]: (success)       f  = +00 - cumulated node count 58918
+02 - A6 (-04) [+00..+66]: (failing low)   f+ = +00 - cumulated node count 60134
+03 - D8 (-06) [+00..+66]: (failing low)   f+ = -02 - cumulated node count 61323
+04 - F8 (-06) [+00..+66]: (failing low)   f+ = +00 - cumulated node count 64052
+05 - A7 (-08) [+00..+66]: (failing low)   f+ = +00 - cumulated node count 67151
+06 - G8 (-08) [+00..+66]: (failing low)   f+ = -04 - cumulated node count 68349
+07 - B7 (-12) [+00..+66]: (failing low)   f+ = +00 - cumulated node count 69311
+08 - G7 (-30) [+00..+66]: (failing low)   f+ = -16 - cumulated node count 69434
+ ### ### ### id = 11
+00 - H2 (+00) [-66..+66]: (success)       f  = -06 - cumulated node count 75214
+01 - B2 (-04) [-06..+66]: (success)       f  = -02 - cumulated node count 82947
+02 - A6 (-04) [-02..+66]: (failing low)   f+ = -02 - cumulated node count 85155
+03 - D8 (-06) [-02..+66]: (failing low)   f+ = -02 - cumulated node count 87184
+04 - F8 (-06) [-02..+66]: (failing low)   f+ = -02 - cumulated node count 93160
+05 - A7 (-08) [-02..+66]: (failing low)   f+ = -02 - cumulated node count 99030
+06 - G8 (-08) [-02..+66]: (success)       f  = +00 - cumulated node count 114071
+07 - B7 (-12) [+00..+66]: (failing low)   f+ = +00 - cumulated node count 115755
+08 - G7 (-30) [+00..+66]: (failing low)   f+ = -10 - cumulated node count 115925
+ ### ### ### id = 12
+00 - H2 (+00) [-66..+66]: (success)       f  = -08 - cumulated node count 124783
+01 - B2 (-04) [-08..+66]: (success)       f  = -06 - cumulated node count 137699
+02 - A6 (-04) [-06..+66]: (failing low)   f+ = -06 - cumulated node count 141008
+03 - D8 (-06) [-06..+66]: (failing low)   f+ = -06 - cumulated node count 145439
+04 - F8 (-06) [-06..+66]: (success)       f  = -04 - cumulated node count 195124
+05 - A7 (-08) [-04..+66]: (failing low)   f+ = -04 - cumulated node count 207239
+06 - G8 (-08) [-04..+66]: (success)       f  = +02 - cumulated node count 228637
+07 - B7 (-12) [+02..+66]: (failing low)   f+ = +02 - cumulated node count 230903
+08 - G7 (-30) [+02..+66]: (failing low)   f+ = -06 - cumulated node count 231120
+ ### ### ### id = 13
+00 - H2 (+00) [-66..+66]: (success)       f  = -06 - cumulated node count 243582
+01 - B2 (-04) [-06..+66]: (success)       f  = -04 - cumulated node count 262495
+02 - A6 (-04) [-04..+66]: (failing low)   f+ = -04 - cumulated node count 267826
+03 - D8 (-06) [-04..+66]: (failing low)   f+ = -04 - cumulated node count 273789
+04 - F8 (-06) [-04..+66]: (success)       f  = -02 - cumulated node count 364710
+05 - A7 (-08) [-02..+66]: (failing low)   f+ = -02 - cumulated node count 378105
+06 - G8 (-08) [-02..+66]: (success)       f  = +02 - cumulated node count 408835
+07 - B7 (-12) [+02..+66]: (failing low)   f+ = +02 - cumulated node count 412441
+08 - G7 (-30) [+02..+66]: (failing low)   f+ = -06 - cumulated node count 412729
+ ### ### ### LAST ### search_depth = 34
+00 - H2 (+00) [-66..+66]: (success)       f  = -04 - cumulated node count 489569
+01 - B2 (-04) [-04..+66]: (failing low)   f+ = -04 - cumulated node count 521205
+02 - A6 (-04) [-04..+66]: (success)       f  = +00 - cumulated node count 594974
+03 - D8 (-06) [+00..+66]: (failing low)   f+ = +00 - cumulated node count 608747
+04 - F8 (-06) [+00..+66]: (failing low)   f+ = +00 - cumulated node count 661696
+05 - A7 (-08) [+00..+66]: (failing low)   f+ = +00 - cumulated node count 714384
+06 - G8 (-08) [+00..+66]: (success)       f  = +02 - cumulated node count 896357
+07 - B7 (-12) [+02..+66]: (failing low)   f+ = +02 - cumulated node count 907736
+08 - G7 (-30) [+02..+66]: (failing low)   f+ = +02 - cumulated node count 908452
+Negascout evaluation CPU time: [     2.333329044][     2.333273485]
+game_position_value_estimator: search_depth = 34, estimated_value = 2
+Transposition Table pointer: 0x55c37765f1b0
+  max_n_item:            268435456  -  Number of items that could be stored in the table
+  items:            0x7fb08a1cb010  -  Array of items
+  next_item:        0x7fb189d18d60  -  Next item to be used when inserting
+  n_item:                   307754  -  The number of item currently held in the table
+  ht:               0x7fb0891cb010  -  Hashtable containing <Key:item , Item:item>
+  pq:               0x7fb0891cb010  -  Priority queue
+  ht.size:                 2097143  -  Hashtable size
+  ht.length:                307754  -  Hashtable length
+TT hashtable stats:
+     0;   1810964
+     1;    265674
+     2;     19472
+     3;       997
+     4;        35
+     5;         1
+     6;         0
+     7;         0
+     8;         0
+     9;         0
+    10;         0
+    11;         0
+    12;         0
+    13;         0
+    14;         0
+    15;         0
+    16;         0
+    17;         0
+    18;         0
+    19;         0
+    20;         0
+    21;         0
+    22;         0
+    23;         0
+    24;         0
+    25;         0
+    26;         0
+    27;         0
+    28;         0
+    29;         0
+    30;         0
+    31;         0
+    32;         0
+    33;         0
+    34;         0
+    35;         0
+    36;         0
+    37;         0
+    38;         0
+    39;         0
+    40;         0
+    41;         0
+
+    a b c d e f g h 
+ 1  . . O O O O . . 
+ 2  @ . O O O O O . 
+ 3  @ @ O O @ O @ @ 
+ 4  @ O @ O @ @ @ @ 
+ 5  @ @ @ O @ @ @ @ 
+ 6  . @ @ O @ O @ @ 
+ 7  . . O @ @ @ . @ 
+ 8  . . . . @ . . . 
+Player to move: WHITE
+
+[node_count=908452, leaf_count=77380]
+Final outcome: best move=G8, position value=2
+
+
+real	0m7.001s
+user	0m4.721s
+sys	0m2.280s

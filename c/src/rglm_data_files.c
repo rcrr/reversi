@@ -467,20 +467,22 @@ rglmdf_model_weights_table_lookup_record (const rglmdf_model_weights_t *const mw
                                           const int16_t entity_id,
                                           const int32_t index_value)
 {
+  if (false) {
 #ifndef NDEBUG
-  assert(mw);
-  assert(entity_class >= BOARD_ENTITY_CLASS_FEATURE && entity_class < BOARD_ENTITY_CLASS_INVALID);
-  assert(entity_id >= 0);
-  int16_t invalid_entity_id = 0;
-  if (entity_class == BOARD_ENTITY_CLASS_FEATURE) invalid_entity_id = BOARD_FEATURE_INVALID;
-  if (entity_class == BOARD_ENTITY_CLASS_PATTERN) invalid_entity_id = BOARD_PATTERN_INVALID;
-  assert(entity_id < invalid_entity_id);
-  assert(index_value >= 0);
-  int32_t invalid_index_value = 0;
-  if (entity_class == BOARD_ENTITY_CLASS_FEATURE) invalid_index_value = board_features[entity_id].field_cnt;
-  if (entity_class == BOARD_ENTITY_CLASS_PATTERN) invalid_index_value = board_patterns[entity_id].n_configurations;
-  assert(index_value < invalid_index_value);
+    assert(mw);
+    assert(entity_class >= BOARD_ENTITY_CLASS_FEATURE && entity_class < BOARD_ENTITY_CLASS_INVALID);
+    assert(entity_id >= 0);
+    int16_t invalid_entity_id = 0;
+    if (entity_class == BOARD_ENTITY_CLASS_FEATURE) invalid_entity_id = BOARD_FEATURE_INVALID;
+    if (entity_class == BOARD_ENTITY_CLASS_PATTERN) invalid_entity_id = BOARD_PATTERN_INVALID;
+    assert(entity_id < invalid_entity_id);
+    assert(index_value >= 0);
+    int32_t invalid_index_value = 0;
+    if (entity_class == BOARD_ENTITY_CLASS_FEATURE) invalid_index_value = board_features[entity_id].field_cnt;
+    if (entity_class == BOARD_ENTITY_CLASS_PATTERN) invalid_index_value = board_patterns[entity_id].n_configurations;
+    assert(index_value < invalid_index_value);
 #endif
+  }
 
   const rglmdf_weight_record_t *const weights = mw->weights;
   if (!weights) return NULL;
@@ -602,8 +604,11 @@ rglmdf_model_weights_read_from_binary_file (rglmdf_model_weights_t *const mw,
   char file_creation_time_as_string[64];
 
   /* Checks that the file has not been corrupted. */
-  ret = rglmdf_check_sha3_file_digest(filename, file_digest);
-  if (ret != EXIT_SUCCESS) return EXIT_FAILURE;
+  const bool check_digest = false; // should be a parameter ....
+  if (check_digest) {
+    ret = rglmdf_check_sha3_file_digest(filename, file_digest);
+    if (ret != EXIT_SUCCESS) return EXIT_FAILURE;
+  }
 
   if (verbose)
     fprintf(stdout, "Opening RGLM model weights binary file: \"%s\" - SHA3-256 file digest: %s\n", filename, file_digest);

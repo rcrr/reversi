@@ -61,8 +61,14 @@ htab_new (int hint,
 {
   T table;
   int i;
+  /*
   static const int primes[] = { 3, 3, 7, 13, 31, 61, 251, 509, 1021, 2053, 4093,
                                 8191, 16381, 32771, 65521, INT_MAX };
+  */
+  static const int primes[] = { 1, 1, 3, 7, 13, 31, 61, 113, 251, 509, 1021, 2039, 4093,
+                                8191, 16381, 32749, 65521, 131071, 262139, 524287, 1048573,
+                                2097143, INT_MAX };
+  // next one would be 4194301 , but I believe we need to move to 64 bits.
 
   assert(hint >= 0);
   assert(cmp);
@@ -213,6 +219,7 @@ htab_map (T t,
   assert(apply);
 
   stamp = t->timestamp;
+  (void) stamp;
   for (i = 0; i < t->size; i++)
     for (p = t->buckets[i]; p; p = p->link) {
       apply(p->key, &p->value, cl);

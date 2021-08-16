@@ -113,9 +113,14 @@ static tratab_table_t *tt;
 static const size_t tt_size = (size_t) 1024 * 1024 * 1024 * 32;
 //static const size_t tt_size = (size_t) 256;
 
+static ttab_t ttab;
+static const size_t ttab_log_size = 19;
+
 static int min (int a, int b);
 
-static const bool tt_active = true;
+/* Only one could be true. */
+static const bool tt_active = false;
+static const bool ttab_active = true;
 
 
 /**
@@ -240,12 +245,18 @@ game_position_value_estimator (const GamePositionX *const root,
   const int l0_estimated_game_value = gv_f2d(l0_estimated_game_value_f);
   printf("Node Level 0: estimated game value = %6.3f [%+03d] (%6.4f)\n", l0_estimated_game_value_f, l0_estimated_game_value, l0_estimated_game_value_transformed);
 
-  tt = tratab_table_create(tt_size);
-  if (!tt) {
-    printf("Error, unable to allocate space for the transposition table.\n");
-    exit(EXIT_FAILURE);
+  if (tt_active) {
+    tt = tratab_table_create(tt_size);
+    if (!tt) {
+      printf("Error, unable to allocate space for the transposition table.\n");
+      exit(EXIT_FAILURE);
+    }
+    tratab_table_init(tt);
   }
-  tratab_table_init(tt);
+  if (ttab_active) {
+    ttab = ttab_new(ttab_log_size);
+    if (!ttab) abort();
+  }
 
   node_t root_node;
   root_node.parent_move = invalid_move;
@@ -301,12 +312,24 @@ game_position_value_estimator (const GamePositionX *const root,
 
   printf("game_position_value_estimator: search_depth = %d, estimated_value = %d\n", search_depth, estimated_value);
 
-  tratab_table_header_to_stream(tt, stdout);
+  if (tt_active) {
+    tratab_table_header_to_stream(tt, stdout);
+    tratab_table_destroy(tt);
+    tt = NULL;
+  }
+  if (ttab_active) {
+    const size_t stats_size = 42;
+    size_t stats[stats_size];
+    ttab_summary_to_stream(ttab, stdout);
+    ttab_bucket_filling_stats(ttab, stats, stats_size);
+    printf("TT hashtable stats:\n");
+    for (size_t i = 0; i < stats_size; i++) {
+      printf("%6zu;%10zu\n", i, stats[i]);
+    }
+    ttab_free(&ttab);
+  }
 
   game_position_rglm_release_model_weights();
-
-  tratab_table_destroy(tt);
-  tt = NULL;
 
   return result;
 }
@@ -590,8 +613,10 @@ negascout (node_t *n,
 
   node_count++;
 
-  uint64_t hash = 0;
+  uint64_t hash = 0ULL;
   tratab_item_t *item = NULL;
+  struct ttab_item_s its;
+  ttab_item_t it = &its;
   if (tt_active) {
     hash = game_position_x_hash(&n->gpx);
     item = tratab_item_retrieve(tt, hash, &n->gpx, depth);
@@ -606,6 +631,34 @@ negascout (node_t *n,
       }
       am = max(am, item->data.lower_bound);
       bm = min(bm, item->data.upper_bound);
+    }
+  }
+  if (ttab_active) {
+    hash = game_position_x_hash(&n->gpx);
+    it->hash = hash;
+    ttab_retrieve(ttab, &it);
+    if (it) { // item found in the TT
+      ttab_item_clone_data(it, &its);
+      if (its.depth >= depth) {
+        if (its.lower_bound >= bm) {
+          n->value = its.lower_bound;
+          return;
+        }
+        if (its.upper_bound <= am) {
+          n->value = its.upper_bound;
+          return;
+        }
+        am = max(am, its.lower_bound);
+        bm = min(bm, its.upper_bound);
+      } else {
+        its.lower_bound = out_of_range_defeat_score;
+        its.upper_bound = out_of_range_win_score;
+      }
+    } else { // item not found
+      its.hash = hash;
+      its.lower_bound = out_of_range_defeat_score;
+      its.upper_bound = out_of_range_win_score;
+      its.pq_index = -1;
     }
   }
 
@@ -678,6 +731,14 @@ negascout (node_t *n,
     }
     tratab_insert_item(tt, hash, &n->gpx, depth, lower, upper, n->best_move);
   }
+  if (ttab_active) {
+    its.depth = depth;
+    its.best_move = n->best_move;
+    if (n->value < beta) its.upper_bound = n->value;
+    if (n->value > alpha) its.lower_bound = n->value;
+    ttab_insert(ttab, &its);
+  }
+
 
   return;
 }

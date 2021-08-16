@@ -238,6 +238,8 @@ ttab_insert_retrieve_b_t (ut_test_t *const t)
 {
   const bool is_very_verbose = false;
 
+  bool verbose = (ut_run_time_is_verbose(t)) ? true : false;
+
   const int log_size = 8;
   const int n_inserts = 2048;
 
@@ -263,6 +265,17 @@ ttab_insert_retrieve_b_t (ut_test_t *const t)
     if (is_very_verbose) printf("---  i=%d, preparing to insert: is.hash = %zu, is.depth = %u\n", i, is.hash, is.depth);
     ttab_insert(table, item);
     if (is_very_verbose) ttab_table_to_stream(table, stdout);
+  }
+
+  if (verbose) {
+    const size_t stats_size = 8;
+    size_t stats[stats_size];
+    ttab_bucket_filling_stats(table, stats, stats_size);
+    printf("\n");
+    printf("TT bucket filling statistics:\n");
+    for (size_t i = 0; i < stats_size; i++) {
+      printf("  %4zu -> %12zu\n", i, stats[i]);
+    }
   }
 
   ttab_free(&table);
