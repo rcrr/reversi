@@ -11,7 +11,7 @@ To do list:
      C'e' da pensarci sopra ....
      In realta' quello che serve e' l'ordinamento delle mosse figlio .... quindi serve di disegnare con precisione l'oggetto NODO delle search
        e didisegnare bene i campi registrati nella TT.
-       Poi serve di avere un approccio "tipo memoizzazione", -mi servono le mosse legali ?-, chiamo la funzione lms, se sono gia' calcolate non le ricalcolo, altrimenti le calcolo .... ad esmpio
+       Poi serve di avere un approccio "tipo memoizzazione", -mi servono le mosse legali ?-, chiamo la funzione lms, se sono gia' calcolate non le ricalcolo, altrimenti le calcolo .... ad esempio
        la funzione is_terminal calcola le mosse lgali, che poi vanno perse e venfono ricalcolate da generate_child_nodes.
  (2) Migliorare le due funzioni:
      - rglm_eval_gp
@@ -20,6 +20,19 @@ To do list:
  (3) Passare da negascout a MTDf.
  (4) Una miriade di sistemazioni "pratiche" del codice.
  (5) Modificare la tabella regab_prng_gp con un campo GAME_VALUE_CHECK che ci consente di fare un secondo run e validare il risultato ( potrebbe essere una data ? ).
+     Credo sia piu' semplice duplicare i dati da testare in una nuova tabella:
+       psql> CREATE TABLE regab_prng_gp_dupe AS (SELECT seq, cst_time, status, game_value, best_move, leaf_count, node_count, solver FROM regab_prng_gp WHERE batch_id = X AND empty_count = Y AND status = 'ZZZ');
+     poi con la stessa WHERE clouse vanno resettati i valori:
+       status = 'INS'
+       game_value = 0
+       best_move = 'UN'::game_move
+       leaf_count = 0
+       node_count = 0
+       solver = NULL::bpchar
+     nella tabella regab_prng_gp.
+     Va quindi rilanciato il comando rgab -a solve .... sullo stesso set di dati.
+     Nel caso in cui si volesse ipristinare lo status se qusto invece di CMP fosse stato CMS, va fatto.
+     Poi si puo' quindi confrontare con una JOIN che il campo game_value abbia sempre lo stesso valore.
  (6) Rimuovere il "clutter" in GVE dato da negamax e da OLD TT.
 
 

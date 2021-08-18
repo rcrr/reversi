@@ -55,174 +55,6 @@
  * https://github.com/abulmo/edax-reversi/blob/master/src/hash.c
  */
 
-tratab_table_t *
-tratab_table_create (size_t size)
-{
-  tratab_table_t *table = NULL;
-
-  const size_t item_size = sizeof(tratab_item_t);
-  const size_t max_n_item = size / item_size;
-  const size_t n_item = bitw_highest_set_bit_64(max_n_item);
-  const size_t allocated_size = n_item * item_size;
-  const uint8_t mask_size = 64 - bitw_lzcnt_64(n_item);
-  const uint64_t mask = n_item - 1;
-
-  table = (tratab_table_t *) malloc(sizeof(tratab_table_t));
-  if (!table) return NULL;
-
-  table->memory = malloc(allocated_size);
-  if (!table->memory) {
-    free(table);
-    return NULL;
-  }
-
-  table->size = size;
-  table->item_size = item_size;
-  table->max_n_item = max_n_item;
-  table->n_item = n_item;
-  table->allocated_size = allocated_size;
-  table->mask_size = mask_size;
-  table->mask = mask;
-
-  return table;
-}
-
-void
-tratab_table_destroy (tratab_table_t *table)
-{
-  if (!table) return;
-  if (table->memory) free(table->memory);
-  free(table);
-}
-
-void
-tratab_table_init (tratab_table_t *table)
-{
-  if (!table) return;
-  assert(table->memory);
-
-  tratab_item_t *items = (tratab_item_t *) table->memory;
-
-  for (size_t i = 0; i < table->n_item; i++) {
-    tratab_item_t *item = &items[i];
-    item->hash = 0;
-    item->gpx.blacks = 0;
-    item->gpx.whites = 0;
-    item->gpx.player = BLACK_PLAYER;
-    item->data.depth = -1;
-    item->data.lower_bound = -66;
-    item->data.upper_bound = +66;
-    item->data.best_move = invalid_move;
-  }
-
-  table->n_slot_touched = 0;
-  table->n_update_bound = 0;
-  table->n_update_depth = 0;
-  table->n_override = 0;
-  table->n_conflict = 0;
-  table->n_retrieve = 0;
-}
-
-void
-tratab_insert_item (tratab_table_t *table,
-                    uint64_t hash,
-                    GamePositionX *gpx,
-                    int depth,
-                    int lower_bound,
-                    int upper_bound,
-                    Square best_move)
-{
-  assert(table);
-  assert(table->memory);
-  const uint64_t hash_check = game_position_x_hash(gpx);
-  if (hash != hash_check) {
-    fprintf(stderr, "Error: hash mismatch\n");
-    abort();
-  }
-
-  tratab_item_t *const items = (tratab_item_t *) table->memory;
-
-  const size_t index = hash & table->mask;
-
-  tratab_item_t *const item = &items[index];
-
-  if (item->hash == 0) {
-    table->n_slot_touched++;
-  } else if (item->hash == hash) {
-    const int comp = game_position_x_compare(gpx, &item->gpx);
-    if (comp != 0 ) {
-      table->n_conflict++;
-    } else {
-      if (item->data.depth == depth) {
-        table->n_update_bound++;
-      } else if (item->data.depth < depth) {
-        table->n_update_depth++;
-      } else {
-        return;
-      }
-    }
-  } else {
-    table->n_override++;
-  }
-
-  /* Updates item. */
-  item->hash = hash;
-  item->gpx.blacks = gpx->blacks;
-  item->gpx.whites = gpx->whites;
-  item->gpx.player = gpx->player;
-  item->data.depth = depth;
-  item->data.lower_bound = lower_bound;
-  item->data.upper_bound = upper_bound;
-  item->data.best_move = best_move;
-}
-
-void
-tratab_table_header_to_stream (tratab_table_t *table,
-                               FILE *file)
-{
-  assert(table);
-
-  fprintf(file, "size           = %zu\n", table->size);
-  fprintf(file, "item_size      = %zu\n", table->item_size);
-  fprintf(file, "max_n_item     = %zu\n", table->max_n_item);
-  fprintf(file, "n_item         = %zu\n", table->n_item);
-  fprintf(file, "allocated_size = %zu\n", table->allocated_size);
-  fprintf(file, "mask_size      = %u\n",  table->mask_size);
-  fprintf(file, "mask           = %zu\n", table->mask);
-  fprintf(file, "n_slot_touched = %zu\n", table->n_slot_touched);
-  fprintf(file, "n_update_bound = %zu\n", table->n_update_bound);
-  fprintf(file, "n_update_depth = %zu\n", table->n_update_depth);
-  fprintf(file, "n_override     = %zu\n", table->n_override);
-  fprintf(file, "n_conflict     = %zu\n", table->n_conflict);
-  fprintf(file, "n_retrieve     = %zu\n", table->n_retrieve);
-}
-
-tratab_item_t *
-tratab_item_retrieve (tratab_table_t *table,
-                      uint64_t hash,
-                      GamePositionX *gpx,
-                      int depth)
-{
-  assert(table);
-  assert(table->memory);
-
-  tratab_item_t *item = NULL;
-
-  tratab_item_t *const items = (tratab_item_t *) table->memory;
-  const size_t index = hash & table->mask;
-  tratab_item_t *const item_with_matching_index = &items[index];
-
-  if (item_with_matching_index->hash == hash && item_with_matching_index->data.depth >= depth) {
-    item = item_with_matching_index;
-    table->n_retrieve++;
-  }
-
-  return item;
-}
-
-
-/* ### ### ### ### */
-
 #define T ttab_t
 #define I ttab_item_t
 
@@ -261,11 +93,8 @@ static I
 new_item (T t)
 {
   I i, e;
-  //I o = bihp_pq_peek(t->pq);
-  //if (o) printf("o->pq_index = %d\n", o->pq_index);
   if (t->n_item == t->max_n_item) {
     i = bihp_pq_pull(t->pq);
-    if (false ) printf("new_item: substitution, removed item is i->hash = %zu, i->depth = %u, i->pq_index = %d\n", i->hash, i->depth, i->pq_index);
     e = htab_remove(t->ht, i);
     (void) e; assert(i == e);
     // reset item, it is not required but is clean.
@@ -371,8 +200,6 @@ ttab_new (int log_size)
     free(t);
     return NULL;
   }
-  //printf("ht_hint = %d\n", ht_hint);
-  //printf("t->max_n_item = %zu\n", t->max_n_item);
 
   /* Crete the min priority queue. */
   t->pq = bihp_pq_create(BIHP_PQ_TYPE_MIN, t->max_n_item, priority, print_item, icbf);

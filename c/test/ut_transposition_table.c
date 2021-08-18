@@ -52,61 +52,6 @@
  */
 
 static void
-dummy_t (ut_test_t *const t)
-{
-  ut_assert(t, true);
-}
-
-static void
-tratab_table_create_t (ut_test_t *const t)
-{
-  tratab_table_t *table;
-  size_t size;
-
-  table = NULL;
-  size = (size_t) 1024;
-
-  table = tratab_table_create(size);
-  ut_assert(t, table);
-
-  tratab_table_init(table);
-
-  tratab_table_destroy(table);
-  table = NULL;
-}
-
-static void
-tratab_insert_item_t (ut_test_t *const t)
-{
-  tratab_table_t *table;
-  size_t size;
-
-  GamePositionX gpx_s = {
-    .blacks = 1,
-    .whites = 4,
-    .player = WHITE_PLAYER
-  };
-  GamePositionX *gpx = &gpx_s;
-
-  const uint64_t hash = game_position_x_hash(gpx);
-
-  table = NULL;
-  size = (size_t) 1024;
-
-  table = tratab_table_create(size);
-  ut_assert(t, table);
-
-  tratab_table_init(table);
-
-  tratab_insert_item(table, hash, gpx, 0, 0, 0, invalid_move);
-
-  tratab_table_destroy(table);
-  table = NULL;
-}
-
-/* ### ### ### ### */
-
-static void
 ttab_new_free_t (ut_test_t *const t)
 {
   const int log_size = 4; // 0 --> 1, 1 --> 2, 2 --> 4; 3 --> 8; 4 --> 16 .....
@@ -295,12 +240,6 @@ main (int argc,
   ut_init(&config, &argc, &argv);
 
   ut_suite_t *const s = ut_suite_new(&config, "transposition_table");
-
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "dummy", dummy_t);
-
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "tratab_table_create", tratab_table_create_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "tratab_insert_item", tratab_insert_item_t);
-
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "ttab_new_free", ttab_new_free_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "ttab_summary_to_stream", ttab_summary_to_stream_t);

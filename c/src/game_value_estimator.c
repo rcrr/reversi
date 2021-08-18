@@ -109,18 +109,13 @@ static uint64_t leaf_count;
 
 static int search_depth;
 
-static tratab_table_t *tt;
-static const size_t tt_size = (size_t) 1024 * 1024 * 1024 * 32;
-//static const size_t tt_size = (size_t) 256;
-
 static ttab_t ttab;
 static const size_t ttab_log_size = 19;
 
 static int min (int a, int b);
 
-/* Only one could be true. */
-static const bool tt_active = false;
 static const bool ttab_active = true;
+
 
 
 /**
@@ -245,14 +240,6 @@ game_position_value_estimator (const GamePositionX *const root,
   const int l0_estimated_game_value = gv_f2d(l0_estimated_game_value_f);
   printf("Node Level 0: estimated game value = %6.3f [%+03d] (%6.4f)\n", l0_estimated_game_value_f, l0_estimated_game_value, l0_estimated_game_value_transformed);
 
-  if (tt_active) {
-    tt = tratab_table_create(tt_size);
-    if (!tt) {
-      printf("Error, unable to allocate space for the transposition table.\n");
-      exit(EXIT_FAILURE);
-    }
-    tratab_table_init(tt);
-  }
   if (ttab_active) {
     ttab = ttab_new(ttab_log_size);
     if (!ttab) abort();
@@ -312,11 +299,6 @@ game_position_value_estimator (const GamePositionX *const root,
 
   printf("game_position_value_estimator: search_depth = %d, estimated_value = %d\n", search_depth, estimated_value);
 
-  if (tt_active) {
-    tratab_table_header_to_stream(tt, stdout);
-    tratab_table_destroy(tt);
-    tt = NULL;
-  }
   if (ttab_active) {
     const size_t stats_size = 42;
     size_t stats[stats_size];
@@ -614,25 +596,8 @@ negascout (node_t *n,
   node_count++;
 
   uint64_t hash = 0ULL;
-  tratab_item_t *item = NULL;
   struct ttab_item_s its;
   ttab_item_t it = &its;
-  if (tt_active) {
-    hash = game_position_x_hash(&n->gpx);
-    item = tratab_item_retrieve(tt, hash, &n->gpx, depth);
-    if (item) {
-      if (item->data.lower_bound >= bm) {
-        n->value = item->data.lower_bound;
-        return;
-      }
-      if (item->data.upper_bound <= am) {
-        n->value = item->data.upper_bound;
-        return;
-      }
-      am = max(am, item->data.lower_bound);
-      bm = min(bm, item->data.upper_bound);
-    }
-  }
   if (ttab_active) {
     hash = game_position_x_hash(&n->gpx);
     it->hash = hash;
@@ -714,23 +679,6 @@ negascout (node_t *n,
 
   } // end-of-else
 
-  if (tt_active) {
-    int lower, upper;
-    if (item) {
-      lower = item->data.lower_bound;
-      upper = item->data.upper_bound;
-    } else {
-      lower = out_of_range_defeat_score;
-      upper = out_of_range_win_score;
-    }
-    if (n->value < beta) {
-      upper = n->value;
-    }
-    if (n->value > alpha) {
-      lower = n->value;
-    }
-    tratab_insert_item(tt, hash, &n->gpx, depth, lower, upper, n->best_move);
-  }
   if (ttab_active) {
     its.depth = depth;
     its.best_move = n->best_move;
