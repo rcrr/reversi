@@ -34,6 +34,7 @@ To do list:
      Nel caso in cui si volesse ipristinare lo status se qusto invece di CMP fosse stato CMS, va fatto.
      Poi si puo' quindi confrontare con una JOIN che il campo game_value abbia sempre lo stesso valore.
  (6) Rimuovere il "clutter" in GVE dato da negamax e da OLD TT.
+ (7) Molte ottimizzazioni, tipo: calcolo HASH, ...
 
 
 Appunti al 16-8-2021
