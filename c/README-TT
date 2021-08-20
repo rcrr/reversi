@@ -10,7 +10,7 @@ To do list:
        - Assenti. Un cut-off non ha permesso di esplorare il nodo.
      C'e' da pensarci sopra ....
      In realta' quello che serve e' l'ordinamento delle mosse figlio .... quindi serve di disegnare con precisione l'oggetto NODO delle search
-       e didisegnare bene i campi registrati nella TT.
+       e di disegnare bene i campi registrati nella TT.
        Poi serve di avere un approccio "tipo memoizzazione", -mi servono le mosse legali ?-, chiamo la funzione lms, se sono gia' calcolate non le ricalcolo, altrimenti le calcolo .... ad esempio
        la funzione is_terminal calcola le mosse lgali, che poi vanno perse e venfono ricalcolate da generate_child_nodes.
  (2) Migliorare le due funzioni:
@@ -35,6 +35,13 @@ To do list:
      Poi si puo' quindi confrontare con una JOIN che il campo game_value abbia sempre lo stesso valore.
  (6) Rimuovere il "clutter" in GVE dato da negamax e da OLD TT.
  (7) Molte ottimizzazioni, tipo: calcolo HASH, ...
+
+
+Appunti al 20-8-2021
+
+Ora il sorting delle mosse usa la TT, la prima mossa e' la BEST MOVE della TT.
+Risolvendo con GVE la posizione FFO-36 passiamo da [node_count=54.108.716, leaf_count=4.878.005] a [node_count=14.394.404, leaf_count=1.228.874]
+Next step e' di avere almeno l prime 4 mosse nella TT.
 
 
 Appunti al 16-8-2021

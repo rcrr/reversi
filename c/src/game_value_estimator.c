@@ -63,6 +63,8 @@
 /* Empty Count Size - [0..60] the game stages ... */
 #define EC_SIZE 61
 
+static const SquareSet empty_move_set = 0ULL;
+
 /* Default rglm_solver_config file. */
 static const char *const rglm_solver_def_config_file = "./cfg/game_value_estimator.cfg";
 
@@ -120,7 +122,8 @@ static int min (int a, int b);
  * @cond
  */
 
-typedef struct {
+typedef struct node_s {
+  struct node_s *parent;
   SquareSet legal_move_set;
   Square parent_move;
   Square best_move;
@@ -225,7 +228,19 @@ game_position_value_estimator (const GamePositionX *const root,
   ttab = ttab_new(ttab_log_size);
   if (!ttab) abort();
 
+  node_t parent_root_node;
+  parent_root_node.parent = NULL;
+  parent_root_node.legal_move_set = empty_move_set;
+  parent_root_node.parent_move = invalid_move;
+  parent_root_node.best_move = invalid_move;
+  parent_root_node.value = out_of_range_defeat_score;
+  parent_root_node.gpx.blacks = root->blacks;
+  parent_root_node.gpx.whites = root->whites;
+  parent_root_node.gpx.player = player_opponent(root->player);
+
   node_t root_node;
+  root_node.parent = &parent_root_node;
+  root_node.legal_move_set = empty_move_set;
   root_node.parent_move = invalid_move;
   root_node.best_move = invalid_move;
   root_node.value = out_of_range_defeat_score;
@@ -416,7 +431,8 @@ game_position_rglm_release_model_weights (void)
 static bool
 is_terminal (node_t *n)
 {
-  return !game_position_x_has_any_player_any_legal_move(&n->gpx);
+  //return !game_position_x_has_any_player_any_legal_move(&n->gpx);
+  return (!n->legal_move_set && !n->parent->legal_move_set);
 }
 
 static void
@@ -448,20 +464,14 @@ generate_child_nodes (int *child_node_count,
   SquareSet lms; // legal move set
   int lmc;       // legal move count
 
-  //lms = game_position_x_legal_moves(&n->gpx);
-  //n->legal_move_set = lms;
   lms = n->legal_move_set;
-  SquareSet lms_check = game_position_x_legal_moves(&n->gpx);
-  if (lms != lms_check) {
-    printf("\n\nUGLY\n\n");
-    abort();
-  }
   if (lms) {
     lmc = bitw_bit_count_64(lms);
     for (int i = 0; i < lmc; i++) {
       const Square move = bitw_bit_scan_forward_64(lms);
       node_t *const c = child_nodes + i;
-      c->legal_move_set = 0L;
+      c->parent = n;
+      c->legal_move_set = empty_move_set;
       c->parent_move = move;
       c->best_move = unknown_move;
       c->value = out_of_range_defeat_score;
@@ -470,7 +480,13 @@ generate_child_nodes (int *child_node_count,
     }
   } else {
     lmc = 1;
-    game_position_x_pass(&n->gpx, &child_nodes->gpx);
+    node_t *const c = child_nodes + 0;
+    c->parent = n;
+    c->legal_move_set = empty_move_set;
+    c->parent_move = pass_move;
+    c->best_move = unknown_move;
+    c->value = out_of_range_defeat_score;
+    game_position_x_pass(&n->gpx, &c->gpx);
   }
 
   *child_node_count = lmc;
@@ -496,6 +512,66 @@ order_moves (int child_node_count,
       tmp = child_nodes_p[j], child_nodes_p[j] = child_nodes_p[j-1], child_nodes_p[j-1] = tmp;
       j--;
     }
+  }
+}
+
+static int print_count = 100;
+static void
+order_moves2 (int child_node_count,
+              node_t *child_nodes,
+              node_t **child_nodes_p,
+              ttab_item_t it)
+{
+  int start = 1;
+
+  for (int i = 0; i < child_node_count; i++) {
+    node_t *child = &child_nodes[i];
+    child_nodes_p[i] = child;
+    heuristic_game_value(child);
+  }
+
+  if (it && it->best_move != unknown_move) {
+    int i;
+    for (i = 0; i < child_node_count; i++) {
+      node_t *child = child_nodes_p[i];
+      //printf("i=%d, it->best_move=%d, child->parent_move=%d\n", i, it->best_move, child->parent_move);
+      if (it->best_move == child->parent_move) break;
+    }
+    if (i == child_node_count) {
+      printf("i=%d, it->best_move=%d, child_node_count=%d\n", i, it->best_move, child_node_count);
+      abort();
+    }
+    /* Change order .... */
+    if (true) {
+      node_t *tmp;
+      tmp = child_nodes_p[0], child_nodes_p[0] = child_nodes_p[i], child_nodes_p[i] = tmp;
+      start = 2;
+    }
+  }
+
+  for (int i = start; i < child_node_count; i++) {
+    int j = i;
+    for (;;) {
+      node_t *tmp;
+      if (j == start - 1) break;
+      if (child_nodes_p[j-1]->value <= child_nodes_p[j]->value) break;
+      tmp = child_nodes_p[j]; child_nodes_p[j] = child_nodes_p[j-1]; child_nodes_p[j-1] = tmp;
+      j--;
+    }
+  }
+
+  if (false) {
+    printf("\n");
+    printf("IT=%p\n", (void*) it);
+    if (it) printf("  it->hash=%lu, it->depth=%u, it->lower_bound=%d, it->upper_bound=%d, it->best_move=%2s, it->pq_index=%d, it->legal_move_set=%lu\n",
+                   it->hash, it->depth, it->lower_bound, it->upper_bound, square_as_move_to_string(it->best_move), it->pq_index, it->legal_move_set);
+    for (int i = 0; i < child_node_count; i++) {
+      node_t *child = child_nodes_p[i];
+      const char *const move = square_as_move_to_string(child->parent_move);
+      printf("  %2d - %2s : %+03d\n", i, move, -child->value);
+    }
+    print_count--;
+    if (print_count < 0) abort();
   }
 
 }
@@ -589,10 +665,9 @@ negascout (node_t *n,
 
   node_count++;
 
-  uint64_t hash = 0ULL;
+  const uint64_t hash = game_position_x_hash(&n->gpx);;
   struct ttab_item_s its;
   ttab_item_t it = &its;
-  hash = game_position_x_hash(&n->gpx);
   it->hash = hash;
   ttab_retrieve(ttab, &it);
   if (it) { // item found in the TT
@@ -617,7 +692,7 @@ negascout (node_t *n,
     its.lower_bound = out_of_range_defeat_score;
     its.upper_bound = out_of_range_win_score;
     its.pq_index = -1;
-    its.legal_move_set = 0ULL;
+    its.legal_move_set = empty_move_set;
   }
 
   generate_legal_move_set(n, it);
@@ -627,12 +702,14 @@ negascout (node_t *n,
     exact_terminal_game_value(n);
   } else if (depth == 0) {
     heuristic_game_value(n);
+    n->best_move = unknown_move;
   } else if ((empty_count = game_position_x_empty_count(&n->gpx)) < min_empty_count) {
     leaf_negamax(n, am, bm);
   } else {
 
     generate_child_nodes(&child_node_count, child_nodes, n);
-    order_moves(child_node_count, child_nodes, child_nodes_p);
+    if (false) order_moves(child_node_count, child_nodes, child_nodes_p);
+    else order_moves2(child_node_count, child_nodes, child_nodes_p, it);
 
     n->value = out_of_range_defeat_score;
     n->best_move = invalid_move;
@@ -663,6 +740,7 @@ negascout (node_t *n,
         else if (-child->value >= bm) s = "(failing high) f-";
         else s = "(success)       f ";
         printf("%s = %+03d - cumulated node count %zu\n", s, -child->value, node_count);
+        fflush(stdout);
       }
       if (child_value > n->value) {
         n->value = child_value;
