@@ -112,7 +112,7 @@ static uint64_t leaf_count;
 static int search_depth;
 
 static ttab_t ttab;
-static const size_t ttab_log_size = 22;
+static const size_t ttab_log_size = 25;
 
 static int min (int a, int b);
 

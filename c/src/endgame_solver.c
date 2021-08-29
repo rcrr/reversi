@@ -432,7 +432,7 @@ static const char *documentation =
   "  -R, --pv-rec           Collects PV info         - Available only for es solver.\n"
   "  -F, --pv-full-rec      Analyzes all PV variants - Available only for es solver.\n"
   "  -N, --pv-no-print      Does't print PV variants - Available only in conjuction with option pv-full-rec.\n"
-  "  -w, --ab-window        Alpha-beta search window - Available only for es solver"
+  "  -w, --ab-window        Alpha-beta search window - Available only for es solver.\n"
   "  -a, --all-moves        Values all moves         - Available only for es and rglm solvers.\n"
   "  -p, --search-depth     Search epth              - Available only for gve solver.\n"
   "\n"

@@ -50,6 +50,18 @@ Sorta le mosse usando le info salvate nella TT.
 Si potrebbe verificare se sia possibile usare un qualche ordinamento ulteriore per le mosse con lo stesso valore.
 Comunque ottimo.
 
+Qualche dato sul game woc18-FKvsAP-g1-22 (db/gpdb-sample-games.txt) WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 22 EC
+  Legal move count: 12 - [Index:Move:Value]: [00:F1:+00] [01:G1:-02] [02:A3:-02] [03:G7:-02] [04:D1:-04] [05:H6:-04] [06:H2:-06] [07:H3:-06] [08:H7:-12] [09:B2:-18] [10:A2:-20] [11:G2:-28] 
+
+  ES   : [ node_count = 378.034.158, leaf_count = 60.770.918 ] 34.066s
+  RGLM : [ node_count = 149.986.155, leaf_count = 21.535.119 ] 20.702s
+  GVE  : [ node_count =  33.595.347, leaf_count =  2.115.245 ] 45.399s
+
+NOTA: la hashtable della TT e' piccola, ha troppe poche entry.
+Fissato!! Aggiunti alcuni Primes nel codice di hashtable.c .... guadagnato 1 secondo.
+La TT va tunata, ma va comunque molto bene, non e' il collo di bottiglia.
+
+
 Appunti al 22-8-2021
 
 Sviluppato una forma embrionale del sorting delle mosse sulla base dei risultati di navigazione del tree.
