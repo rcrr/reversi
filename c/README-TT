@@ -33,15 +33,42 @@ To do list:
      Va quindi rilanciato il comando rgab -a solve .... sullo stesso set di dati.
      Nel caso in cui si volesse ipristinare lo status se qusto invece di CMP fosse stato CMS, va fatto.
      Poi si puo' quindi confrontare con una JOIN che il campo game_value abbia sempre lo stesso valore.
- (6) Rimuovere il "clutter" in GVE dato da negamax e da OLD TT.
  (7) Molte ottimizzazioni, tipo: calcolo HASH, ...
+ (8) Aggiungere i Model Weight per EC = 0,1
+ (9) Rimuovere limitazione che bisogna avere il MODEL-WEIGHT anche per gli EC elevati, serve un fallback su algoritmo BASICO in quel caso.
+
+
+DONE
+ (6) Rimuovere il "clutter" in GVE dato da negamax e da OLD TT.
+
+
+Appunti al 29-8-2021
+
+Sviluppata nuova funzione di ordinamento order_moves2. Funziona, consegue more pruning, e' piu' veloce.
+Sorta le mosse usando le info salvate nella TT.
+8 mosse salvate ... c'e' uno schiacciamento delle mosse diverse dalla prima a causa dei cut-off.
+Si potrebbe verificare se sia possibile usare un qualche ordinamento ulteriore per le mosse con lo stesso valore.
+Comunque ottimo.
+
+Appunti al 22-8-2021
+
+Sviluppato una forma embrionale del sorting delle mosse sulla base dei risultati di navigazione del tree.
+child_nodes_tt_ordered puo' essere sostituito da child_nodes_p ... e va calcolato per tutti i liveli.
+Cosa succede quando c'e' un CUTOFF e non tutti i nodi sono quindi esplorati ? Bisogna essere sicuri che ci siano dei valori congrui nel campo VALUE,
+  oppure si deve eseguire il sorting direttamente nel loop ( forse meglio ).
+Poi vanno salvati nella TT, va aggiunto il campo moves e values ( quante ? 2,4,8 o tutte ? )
+Infine vanno rilette ed usate per ordinare le mosse in order_moves2 ...
+Se tutto va bene sarebbe quindi il caso di porsi la domanda di come riorganizzare la lettura dei dati dalla TT, che dovrebbero essere omogenei con il NODO.
 
 
 Appunti al 20-8-2021
 
 Ora il sorting delle mosse usa la TT, la prima mossa e' la BEST MOVE della TT.
 Risolvendo con GVE la posizione FFO-36 passiamo da [node_count=54.108.716, leaf_count=4.878.005] a [node_count=14.394.404, leaf_count=1.228.874]
-Next step e' di avere almeno l prime 4 mosse nella TT.
+
+  GVE  : [ node_count =   588.325, leaf_count =  47.663 ] 1.321s
+
+Next step e' di avere almeno le prime 4 mosse nella TT, ma serve ? Bisogna provare ... .
 
 
 Appunti al 16-8-2021
@@ -424,3 +451,4 @@ Final outcome: best move=G8, position value=2
 real	0m7.001s
 user	0m4.721s
 sys	0m2.280s
+

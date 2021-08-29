@@ -567,10 +567,11 @@ game_position_x_delta_hash_t (ut_test_t *const t)
   const int flip_count = 2;
 
   const uint64_t computed = game_position_x_delta_hash(hash_a, flips, flip_count, b.player);
-  const uint64_t expected =hash_b;
+  const uint64_t expected = hash_b;
 
   ut_assert(t, expected == computed);
 }
+
 static void
 game_position_x_final_value_t (ut_test_t *const t)
 {

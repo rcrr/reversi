@@ -112,7 +112,7 @@ static uint64_t leaf_count;
 static int search_depth;
 
 static ttab_t ttab;
-static const size_t ttab_log_size = 19;
+static const size_t ttab_log_size = 22;
 
 static int min (int a, int b);
 
@@ -474,7 +474,8 @@ generate_child_nodes (int *child_node_count,
       c->legal_move_set = empty_move_set;
       c->parent_move = move;
       c->best_move = unknown_move;
-      c->value = out_of_range_defeat_score;
+      //c->value = out_of_range_defeat_score;
+      c->value = out_of_range_win_score;
       game_position_x_make_move(&n->gpx, move, &c->gpx);
       lms ^= (SquareSet) 1 << move;
     }
@@ -515,7 +516,6 @@ order_moves (int child_node_count,
   }
 }
 
-static int print_count = 100;
 static void
 order_moves2 (int child_node_count,
               node_t *child_nodes,
@@ -531,6 +531,15 @@ order_moves2 (int child_node_count,
   }
 
   if (it && it->best_move != unknown_move) {
+    if (it->best_move != it->best_moves[0]) {
+      printf("HASH = 0x%016zx\n", it->hash);
+      printf("it->legal_move_count = %d\n", it->legal_move_count);
+      printf("node_count = %zu\n", node_count);
+      printf("it->best_move     = %d\n", it->best_move);
+      printf("it->best_moves[0] = %d\n", it->best_moves[0]);
+      printf("aborting: it->best_move != it->best_moves[0]\n");
+      abort();
+    }
     int i;
     for (i = 0; i < child_node_count; i++) {
       node_t *child = child_nodes_p[i];
@@ -541,7 +550,7 @@ order_moves2 (int child_node_count,
       printf("i=%d, it->best_move=%d, child_node_count=%d\n", i, it->best_move, child_node_count);
       abort();
     }
-    /* Change order .... */
+    /* Set the first child as advertised by the TT .... */
     if (true) {
       node_t *tmp;
       tmp = child_nodes_p[0], child_nodes_p[0] = child_nodes_p[i], child_nodes_p[i] = tmp;
@@ -560,20 +569,68 @@ order_moves2 (int child_node_count,
     }
   }
 
-  if (false) {
-    printf("\n");
-    printf("IT=%p\n", (void*) it);
-    if (it) printf("  it->hash=%lu, it->depth=%u, it->lower_bound=%d, it->upper_bound=%d, it->best_move=%2s, it->pq_index=%d, it->legal_move_set=%lu\n",
-                   it->hash, it->depth, it->lower_bound, it->upper_bound, square_as_move_to_string(it->best_move), it->pq_index, it->legal_move_set);
-    for (int i = 0; i < child_node_count; i++) {
-      node_t *child = child_nodes_p[i];
-      const char *const move = square_as_move_to_string(child->parent_move);
-      printf("  %2d - %2s : %+03d\n", i, move, -child->value);
-    }
-    print_count--;
-    if (print_count < 0) abort();
-  }
+}
 
+static void
+order_moves3 (int child_node_count,
+              node_t *child_nodes,
+              node_t **child_nodes_p,
+              ttab_item_t it)
+{
+  if (it && it->best_moves[0] != unknown_move) {
+    /*
+    printf("\n\n");
+    for (int i = 0; i < TTAB_RECORDED_BEST_MOVE_COUNT; i++) {
+      printf("best_moves[%d] = %02d, it->move_values[%d] = %+03d\n", i, it->best_moves[i], i, it->move_values[i]);
+    }
+    printf("\n");
+    for (int i = 0; i < child_node_count; i++) {
+      printf("child_nodes[%d].parent_move = %02d, child_nodes[%d].value = %+03d\n", i, child_nodes[i].parent_move, i, child_nodes[i].value);
+    }
+    */
+
+    for (int i = 0; i < child_node_count; i++) {
+      node_t *child = &child_nodes[i];
+      child_nodes_p[i] = child;
+    }
+
+    for (int i = 0; i < TTAB_RECORDED_BEST_MOVE_COUNT; i++) {
+      const int8_t move = it->best_moves[i];
+      const int8_t value = it->move_values[i];
+      if (move == unknown_move) break;
+      for (int j = i; j < child_node_count; j++) {
+        if (child_nodes_p[j]->parent_move == move) {
+          node_t *tmp;
+          tmp = child_nodes_p[j]; child_nodes_p[j] = child_nodes_p[i]; child_nodes_p[i] = tmp;
+        }
+      }
+      child_nodes_p[i]->value = -value;
+    }
+
+    /*
+    printf("\n");
+    for (int i = 0; i < child_node_count; i++) {
+      printf("child_nodes_p[%d]->parent_move = %02d, child_nodes_p[%d]->value = %+03d\n", i, child_nodes_p[i]->parent_move, i, child_nodes_p[i]->value);
+    }
+    abort();
+    */
+  } else {
+    for (int i = 0; i < child_node_count; i++) {
+      node_t *child = &child_nodes[i];
+      child_nodes_p[i] = child;
+      heuristic_game_value(child);
+    }
+    for (int i = 1; i < child_node_count; i++) {
+      int j = i;
+      for (;;) {
+        node_t *tmp;
+        if (j == 0) break;
+        if (child_nodes_p[j-1]->value <= child_nodes_p[j]->value) break;
+        tmp = child_nodes_p[j]; child_nodes_p[j] = child_nodes_p[j-1]; child_nodes_p[j-1] = tmp;
+        j--;
+      }
+    }
+  }
 }
 
 static int
@@ -658,7 +715,9 @@ negascout (node_t *n,
   int child_node_count;
   node_t child_nodes[64];
   node_t *child_nodes_p[64];
+  node_t *child_nodes_tt_ordered[64];
   int empty_count;
+  int explored_child_count;
 
   int am = alpha; // alpha-mobile : local value that is adjusted during the search
   int bm = beta;  // beta-mobile  : " ...
@@ -693,10 +752,16 @@ negascout (node_t *n,
     its.upper_bound = out_of_range_win_score;
     its.pq_index = -1;
     its.legal_move_set = empty_move_set;
+    its.legal_move_count = 0;
+    for (int i = 0; i < TTAB_RECORDED_BEST_MOVE_COUNT; i++) {
+      its.best_moves[i] = unknown_move;
+      its.move_values[i] = out_of_range_defeat_score;
+    }
   }
 
   generate_legal_move_set(n, it);
 
+  explored_child_count = 0; // logic to be verified when leaf_negamax is selected ...
   if (is_terminal(n)) {
     leaf_count++;
     exact_terminal_game_value(n);
@@ -708,13 +773,15 @@ negascout (node_t *n,
   } else {
 
     generate_child_nodes(&child_node_count, child_nodes, n);
+    its.legal_move_count = child_node_count;
     if (false) order_moves(child_node_count, child_nodes, child_nodes_p);
-    else order_moves2(child_node_count, child_nodes, child_nodes_p, it);
+    if (false) order_moves2(child_node_count, child_nodes, child_nodes_p, it);
+    if (true) order_moves3(child_node_count, child_nodes, child_nodes_p, it);
 
+    if (true && search_depth_id - depth == 0) printf("HASH = 0x%016zx\n", hash);
     n->value = out_of_range_defeat_score;
     n->best_move = invalid_move;
     for (int i = 0; i < child_node_count; i++) {
-      //if (search_depth - depth == 0) am = -64;
       node_t *child = child_nodes_p[i];
       if (search_depth_id - depth == 0) {
         printf("%02d - %2s (%+03d) [%+03d..%+03d]: ", i, square_as_move_to_string(child->parent_move), -child->value, am, bm);
@@ -739,7 +806,7 @@ negascout (node_t *n,
         if (-child->value <= am) s = "(failing low)   f+";
         else if (-child->value >= bm) s = "(failing high) f-";
         else s = "(success)       f ";
-        printf("%s = %+03d - cumulated node count %zu\n", s, -child->value, node_count);
+        printf("%s = %+03d - cumulated node count %10zu\n", s, -child->value, node_count);
         fflush(stdout);
       }
       if (child_value > n->value) {
@@ -747,6 +814,9 @@ negascout (node_t *n,
         n->best_move = child->parent_move;
       }
       am = max(am, n->value);
+      /**/
+      child_nodes_tt_ordered[i] = child;
+      explored_child_count++;
       if (am >= bm) break;
     }
 
@@ -757,6 +827,24 @@ negascout (node_t *n,
   its.legal_move_set = n->legal_move_set;
   if (n->value < beta) its.upper_bound = n->value;
   if (n->value > alpha) its.lower_bound = n->value;
+
+  for (int i = 1; i < explored_child_count; i++) {
+    int j = i;
+    for (;;) {
+      node_t *tmp;
+      if (j == 0) break;
+      if (child_nodes_tt_ordered[j-1]->value <= child_nodes_tt_ordered[j]->value) break;
+      tmp = child_nodes_tt_ordered[j], child_nodes_tt_ordered[j] = child_nodes_tt_ordered[j-1], child_nodes_tt_ordered[j-1] = tmp;
+      j--;
+    }
+  }
+
+  for (int i = 0; i < min(explored_child_count, TTAB_RECORDED_BEST_MOVE_COUNT); i++) {
+    node_t *child = child_nodes_tt_ordered[i];
+    its.best_moves[i] = child->parent_move;
+    its.move_values[i] = -child->value;
+  }
+
   ttab_insert(ttab, &its);
 
   return;

@@ -41,6 +41,8 @@
 #define T ttab_t
 #define I ttab_item_t
 
+#define TTAB_RECORDED_BEST_MOVE_COUNT 8
+
 typedef struct ttab_s *ttab_t;
 typedef struct ttab_item_s *ttab_item_t;
 
@@ -53,6 +55,9 @@ struct ttab_item_s {
   int      pq_index;             /**< @brief the index used to retrieve the priority que item. */
   /* --- --- */
   uint64_t legal_move_set;
+  int8_t legal_move_count;
+  int8_t best_moves[TTAB_RECORDED_BEST_MOVE_COUNT];
+  int8_t move_values[TTAB_RECORDED_BEST_MOVE_COUNT];
 };
 
 extern void
