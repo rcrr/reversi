@@ -496,98 +496,10 @@ generate_child_nodes (int *child_node_count,
 static void
 order_moves (int child_node_count,
              node_t *child_nodes,
-             node_t **child_nodes_p)
-{
-  for (int i = 0; i < child_node_count; i++) {
-    node_t *child = &child_nodes[i];
-    child_nodes_p[i] = child;
-    heuristic_game_value(child);
-  }
-
-  for (int i = 1; i < child_node_count; i++) {
-    int j = i;
-    for (;;) {
-      node_t *tmp;
-      if (j == 0) break;
-      if (child_nodes_p[j-1]->value <= child_nodes_p[j]->value) break;
-      tmp = child_nodes_p[j], child_nodes_p[j] = child_nodes_p[j-1], child_nodes_p[j-1] = tmp;
-      j--;
-    }
-  }
-}
-
-static void
-order_moves2 (int child_node_count,
-              node_t *child_nodes,
-              node_t **child_nodes_p,
-              ttab_item_t it)
-{
-  int start = 1;
-
-  for (int i = 0; i < child_node_count; i++) {
-    node_t *child = &child_nodes[i];
-    child_nodes_p[i] = child;
-    heuristic_game_value(child);
-  }
-
-  if (it && it->best_move != unknown_move) {
-    if (it->best_move != it->best_moves[0]) {
-      printf("HASH = 0x%016zx\n", it->hash);
-      printf("it->legal_move_count = %d\n", it->legal_move_count);
-      printf("node_count = %zu\n", node_count);
-      printf("it->best_move     = %d\n", it->best_move);
-      printf("it->best_moves[0] = %d\n", it->best_moves[0]);
-      printf("aborting: it->best_move != it->best_moves[0]\n");
-      abort();
-    }
-    int i;
-    for (i = 0; i < child_node_count; i++) {
-      node_t *child = child_nodes_p[i];
-      //printf("i=%d, it->best_move=%d, child->parent_move=%d\n", i, it->best_move, child->parent_move);
-      if (it->best_move == child->parent_move) break;
-    }
-    if (i == child_node_count) {
-      printf("i=%d, it->best_move=%d, child_node_count=%d\n", i, it->best_move, child_node_count);
-      abort();
-    }
-    /* Set the first child as advertised by the TT .... */
-    if (true) {
-      node_t *tmp;
-      tmp = child_nodes_p[0], child_nodes_p[0] = child_nodes_p[i], child_nodes_p[i] = tmp;
-      start = 2;
-    }
-  }
-
-  for (int i = start; i < child_node_count; i++) {
-    int j = i;
-    for (;;) {
-      node_t *tmp;
-      if (j == start - 1) break;
-      if (child_nodes_p[j-1]->value <= child_nodes_p[j]->value) break;
-      tmp = child_nodes_p[j]; child_nodes_p[j] = child_nodes_p[j-1]; child_nodes_p[j-1] = tmp;
-      j--;
-    }
-  }
-
-}
-
-static void
-order_moves3 (int child_node_count,
-              node_t *child_nodes,
-              node_t **child_nodes_p,
-              ttab_item_t it)
+             node_t **child_nodes_p,
+             ttab_item_t it)
 {
   if (it && it->best_moves[0] != unknown_move) {
-    /*
-    printf("\n\n");
-    for (int i = 0; i < TTAB_RECORDED_BEST_MOVE_COUNT; i++) {
-      printf("best_moves[%d] = %02d, it->move_values[%d] = %+03d\n", i, it->best_moves[i], i, it->move_values[i]);
-    }
-    printf("\n");
-    for (int i = 0; i < child_node_count; i++) {
-      printf("child_nodes[%d].parent_move = %02d, child_nodes[%d].value = %+03d\n", i, child_nodes[i].parent_move, i, child_nodes[i].value);
-    }
-    */
 
     for (int i = 0; i < child_node_count; i++) {
       node_t *child = &child_nodes[i];
@@ -607,13 +519,6 @@ order_moves3 (int child_node_count,
       child_nodes_p[i]->value = -value;
     }
 
-    /*
-    printf("\n");
-    for (int i = 0; i < child_node_count; i++) {
-      printf("child_nodes_p[%d]->parent_move = %02d, child_nodes_p[%d]->value = %+03d\n", i, child_nodes_p[i]->parent_move, i, child_nodes_p[i]->value);
-    }
-    abort();
-    */
   } else {
     for (int i = 0; i < child_node_count; i++) {
       node_t *child = &child_nodes[i];
@@ -677,34 +582,6 @@ leaf_negamax (node_t *n,
 
   return;
 }
-
-/*
-
-int negascout (game_position, depth, alpha, beta)
-{
-  if (depth == 0 || game_is_over(game_position)) // evaluate leaf game position from current player's standpoint
-    return eval(game_position);
-  score = -INF; // present return value
-  n = beta;
-  moves = generate(game_position); // generate successor moves
-  for (int i = 0; i < sizeof(moves); i++) { // look over all moves
-    make(moves[i]); // execute current move
-    cur = -negascout(game_position, depth-1, -n, -alpha); // call other player, and switch sign of returned value
-    if (cur > score) {
-      if ((n == beta) || ( d <= 2))
-        score = cur;
-      else
-        score = -negascout(game_position, depth-1, -beta, -cur);
-    }
-    if (score > alpha) alpha = score;
-    undo(moves[i]);
-    if (alpha >= beta) return alpha;
-    n = alpha+1;
-  }
-  return score;
-}
-
- */
 
 static void
 negascout (node_t *n,
@@ -774,11 +651,8 @@ negascout (node_t *n,
 
     generate_child_nodes(&child_node_count, child_nodes, n);
     its.legal_move_count = child_node_count;
-    if (false) order_moves(child_node_count, child_nodes, child_nodes_p);
-    if (false) order_moves2(child_node_count, child_nodes, child_nodes_p, it);
-    if (true) order_moves3(child_node_count, child_nodes, child_nodes_p, it);
+    order_moves(child_node_count, child_nodes, child_nodes_p, it);
 
-    if (true && search_depth_id - depth == 0) printf("HASH = 0x%016zx\n", hash);
     n->value = out_of_range_defeat_score;
     n->best_move = invalid_move;
     for (int i = 0; i < child_node_count; i++) {

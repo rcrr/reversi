@@ -12,7 +12,7 @@ To do list:
      In realta' quello che serve e' l'ordinamento delle mosse figlio .... quindi serve di disegnare con precisione l'oggetto NODO delle search
        e di disegnare bene i campi registrati nella TT.
        Poi serve di avere un approccio "tipo memoizzazione", -mi servono le mosse legali ?-, chiamo la funzione lms, se sono gia' calcolate non le ricalcolo, altrimenti le calcolo .... ad esempio
-       la funzione is_terminal calcola le mosse lgali, che poi vanno perse e venfono ricalcolate da generate_child_nodes.
+       la funzione is_terminal calcola le mosse lgali, che poi vanno perse e vengono ricalcolate da generate_child_nodes.
  (2) Migliorare le due funzioni:
      - rglm_eval_gp
      - board_pattern_packed_to_index
@@ -40,6 +40,12 @@ To do list:
 
 DONE
  (6) Rimuovere il "clutter" in GVE dato da negamax e da OLD TT.
+
+
+Appunti al 26-9-2021
+
+Pulito un po' il codice in game_value_estimator.c: rimosse le funzioni order_moves e order_moves2. order_moves3 rinominata order_moves.
+
 
 
 Appunti al 29-8-2021
