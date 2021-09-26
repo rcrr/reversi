@@ -52,7 +52,7 @@ struct ttab_item_s {
   int8_t   lower_bound;          /**< @brief Minimum value in the windows of possible ones. */
   int8_t   upper_bound;          /**< @brief Maximum value in the windows of possible ones. */
   int8_t   best_move;            /**< @brief Best move found. */
-  int      pq_index;             /**< @brief the index used to retrieve the priority que item. */
+  int      pq_index;             /**< @brief the index used to retrieve the priority queue item. */
   /* --- --- */
   uint64_t legal_move_set;
   int8_t legal_move_count;

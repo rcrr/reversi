@@ -853,7 +853,7 @@ woc18-FKvsAP-g1-26;....w.....bwww...wbbwbw.wwbwbwww.wbwwbww.bbwwbb...bbw......bb
 woc18-FKvsAP-g1-25;....w.....bwww...wbbwbw.wwbwbwww.wbwwbww.bbwwbb...bbw......bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 25 EC;
 woc18-FKvsAP-g1-24;....w.....bwww...wbbwbw.wwbwbwww.wbwwwww.bbwwww...bbww.....bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 24 EC;
 woc18-FKvsAP-g1-23;....w.....bwww...wbbwbw.wwbwbwww.bbwwwwwbbbwwww...bbww.....bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 23 EC;
-woc18-FKvsAP-g1-22;....w.....bwww...wbbwbw.wwbwbwwwwwwwwwwwbbbwwww...bbww.....bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 22 EC;
+woc18-FKvsAP-g1-22;....w.....bwww...wbbwbw.wwbwbwwwwwwwwwwwbbbwwww...bbww.....bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 22 EC - Legal move count: 12 - [Index:Move:Value]: [00:F1:+00] [01:G1:-02] [02:A3:-02] [03:G7:-02] [04:D1:-04] [05:H6:-04] [06:H2:-06] [07:H3:-06] [08:H7:-12] [09:B2:-18] [10:A2:-20] [11:G2:-28];
 woc18-FKvsAP-g1-21;....w.....bwww..bbbbwbw.bbbwbwwwbwbwwwwwbbbbwww...bbbw.....bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 21 EC;
 woc18-FKvsAP-g1-20;....w.....bwww..bbbbwbw.bbbwbwwwbwbwwwwwbbbwwww...wbbw...w.bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 20 EC;
 #
