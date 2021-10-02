@@ -698,50 +698,6 @@ negascout (node_t *n,
 
   } // end-of-else
 
-  if (hash == 17372629065185580190ULL) {
-    printf("--> --> -->\n");
-    printf("move count: %d\n", child_node_count);
-    printf("moves:                ");
-    for (int i = 0; i < child_node_count; i++) {
-      node_t *node = &child_nodes[i];
-      const char *move_to_s = square_as_move_to_string(node->parent_move);
-      printf("%s  ", move_to_s);
-    }
-    printf("\n");
-    printf("sorted moves:         ");
-    for (int i = 0; i < child_node_count; i++) {
-      node_t *node = child_nodes_p[i];
-      const char *move_to_s = square_as_move_to_string(node->parent_move);
-      printf("%s  ", move_to_s);
-    }
-    printf("\n");
-    printf("game values:         ");
-    for (int i = 0; i < child_node_count; i++) {
-      node_t *node = child_nodes_p[i];
-      const int value = -node->value;
-      printf("%+03d ", value);
-    }
-    printf("\n");
-    printf("TT copy sorted moves: ");
-    for (int i = 0; i < child_node_count; i++) {
-      node_t *node = child_nodes_tt_ordered[i];
-      const char *move_to_s = square_as_move_to_string(node->parent_move);
-      printf("%s  ", move_to_s);
-    }
-    printf("\n");
-    printf("TT entry found:       %s\n", it ? "true" : "false");
-    if (it) {
-      printf("TT best moves:        ");
-      for (int i = 0; i < TTAB_RECORDED_BEST_MOVE_COUNT; i++) {
-        const int8_t m = it->best_moves[i];
-        printf("%s  ", square_as_move_to_string(m));
-      }
-      printf("\n");
-    }
-    printf("--- --- ---\n");
-  }
-
-
   its.depth = depth;
   its.best_move = n->best_move;
   its.legal_move_set = n->legal_move_set;
@@ -752,31 +708,11 @@ negascout (node_t *n,
     int j = i;
     for (;;) {
       node_t *tmp;
-      if (j == 0) goto no_swap;
-      //if (child_nodes_tt_ordered[j-1]->value <= child_nodes_tt_ordered[j]->value) break; // old-code
-
-      if (child_nodes_tt_ordered[j-1]->value < child_nodes_tt_ordered[j]->value) goto no_swap;
-      if (child_nodes_tt_ordered[j-1]->value == child_nodes_tt_ordered[j]->value) {
-        if (false) goto no_swap;
-        if (!it) goto no_swap; else {
-          //printf("--&&-- %d, %d\n", child_nodes_tt_ordered[j-1]->parent_move, child_nodes_tt_ordered[j]->parent_move);
-          for (int h = 0; h < child_node_count; h++) {
-            //printf("child_nodes[h].parent_move = %d\n", child_nodes[h].parent_move);
-          }
-          for (int k = 0; k < TTAB_RECORDED_BEST_MOVE_COUNT; k++) {
-            const int8_t m = it->best_moves[k];
-            if (m == unknown_move) goto no_swap;
-            if (m == child_nodes_tt_ordered[j-1]->parent_move) goto do_swap;
-            if (m == child_nodes_tt_ordered[j]->parent_move) goto no_swap;
-          }
-          goto no_swap;
-        }
-      }
-    do_swap:
+      if (j == 0) break;
+      if (child_nodes_tt_ordered[j-1]->value <= child_nodes_tt_ordered[j]->value) break;
       tmp = child_nodes_tt_ordered[j], child_nodes_tt_ordered[j] = child_nodes_tt_ordered[j-1], child_nodes_tt_ordered[j-1] = tmp;
       j--;
     }
-  no_swap: ;
   }
 
   for (int i = 0; i < min(explored_child_count, TTAB_RECORDED_BEST_MOVE_COUNT); i++) {
@@ -784,52 +720,6 @@ negascout (node_t *n,
     its.best_moves[i] = child->parent_move;
     its.move_values[i] = -child->value;
   }
-
-
-  if (hash == 17372629065185580190ULL) {
-    printf("TT copy reord moves:  ");
-    for (int i = 0; i < child_node_count; i++) {
-      node_t *node = child_nodes_tt_ordered[i];
-      const char *move_to_s = square_as_move_to_string(node->parent_move);
-      printf("%s  ", move_to_s);
-    }
-    printf("\n");
-    printf("--> --> -->\n");
-    if (depth == 2) abort();
-  }
-
-  /*
-    BUG! la sequenza dovrebbe essere :
-    TT copy reord moves:  F1  A3  D1  H3  H6  H2  H7  G1  G7  B2  A2  G2
-
-    Legal move count: 12 - [Index:Move:Value]: [00:F1:+00] [01:G1:-02] [02:A3:-02] [03:G7:-02] [04:D1:-04] [05:H6:-04] [06:H2:-06] [07:H3:-06] [08:H7:-12] [09:B2:-18] [10:A2:-20] [11:G2:-28]
-
-    --> --> -->
-    ### ### ### id = 2
-    00 - A3 (+02) [-66..+66]: (success)       f  = +00 - cumulated node count         23
-    01 - D1 (+00) [+00..+66]: (failing low)   f+ = +00 - cumulated node count         25
-    02 - F1 (+00) [+00..+66]: (success)       f  = +02 - cumulated node count         38
-    03 - H3 (-02) [+02..+66]: (failing low)   f+ = +00 - cumulated node count         40
-    04 - H2 (-04) [+02..+66]: (failing low)   f+ = -04 - cumulated node count         42
-    05 - H6 (-04) [+02..+66]: (failing low)   f+ = +00 - cumulated node count         44
-    06 - G1 (-06) [+02..+66]: (failing low)   f+ = -06 - cumulated node count         46
-    07 - A2 (-06) [+02..+66]: (failing low)   f+ = -14 - cumulated node count         48
-    08 - B2 (-66) [+02..+66]: (failing low)   f+ = -12 - cumulated node count         50
-    09 - G2 (-66) [+02..+66]: (failing low)   f+ = -20 - cumulated node count         52
-    10 - G7 (-66) [+02..+66]: (failing low)   f+ = -06 - cumulated node count         54
-    11 - H7 (-66) [+02..+66]: (failing low)   f+ = -04 - cumulated node count         56
-    --> --> -->
-    move count: 12
-    moves:                D1  F1  G1  A2  B2  G2  H2  A3  H3  H6  G7  H7
-    sorted moves:         A3  D1  F1  H3  H2  H6  G1  A2  B2  G2  G7  H7
-    game values:         +00 +00 +02 +00 -04 +00 -06 -14 -12 -20 -06 -04
-    TT copy sorted moves: A3  D1  F1  H3  H2  H6  G1  A2  B2  G2  G7  H7
-    TT entry found:       true
-    TT best moves:        A3  D1  F1  H3  H2  H6  G1  A2
-    --- --- ---
-    TT copy reord moves:  F1  H6  H3  D1  A3  H7  H2  G7  G1  B2  A2  G2
-    --> --> -->
-  */
 
   ttab_insert(ttab, &its);
 
