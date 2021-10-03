@@ -1,23 +1,10 @@
 
 To do list:
 
- (1) GVE ID (iterative deepening) deve essere revisionato nella sostanza.
-     In questo momento e' inutile perche' le info nella TT accumulate nelle iterazioni [0..N-1] non sono usate per il sorting nella iterazione N.
-     In pratica nella itrazione N per OGNI livello (e quello 1 e' il piu' importante) il sorting delle mosse deve usare la TT.
-     Il sorting nella iterazione N di un livello M che quindi e' compreso nell'intervallo [1..N-1] deve usare i dati nella TT che sono:
-       - Esatti. Valore trovato nella finestra di ricerca con profondita' (N-1) - M
-       - Incompleti. Abbiamo solo un valore di boundary.
-       - Assenti. Un cut-off non ha permesso di esplorare il nodo.
-     C'e' da pensarci sopra ....
-     In realta' quello che serve e' l'ordinamento delle mosse figlio .... quindi serve di disegnare con precisione l'oggetto NODO delle search
-       e di disegnare bene i campi registrati nella TT.
-       Poi serve di avere un approccio "tipo memoizzazione", -mi servono le mosse legali ?-, chiamo la funzione lms, se sono gia' calcolate non le ricalcolo, altrimenti le calcolo .... ad esempio
-       la funzione is_terminal calcola le mosse lgali, che poi vanno perse e vengono ricalcolate da generate_child_nodes.
  (2) Migliorare le due funzioni:
      - rglm_eval_gp
      - board_pattern_packed_to_index
      Sono il cuore della parte NON ottimizzata sia del solver RGLM che di quello GVE
- (3) Passare da negascout a MTDf.
  (4) Una miriade di sistemazioni "pratiche" del codice.
  (5) Modificare la tabella regab_prng_gp con un campo GAME_VALUE_CHECK che ci consente di fare un secondo run e validare il risultato ( potrebbe essere una data ? ).
      Credo sia piu' semplice duplicare i dati da testare in una nuova tabella:
@@ -31,7 +18,7 @@ To do list:
        solver = NULL::bpchar
      nella tabella regab_prng_gp.
      Va quindi rilanciato il comando rgab -a solve .... sullo stesso set di dati.
-     Nel caso in cui si volesse ipristinare lo status se qusto invece di CMP fosse stato CMS, va fatto.
+     Nel caso in cui si volesse ripristinare lo status se qusto invece di CMP fosse stato CMS, va fatto.
      Poi si puo' quindi confrontare con una JOIN che il campo game_value abbia sempre lo stesso valore.
  (7) Molte ottimizzazioni, tipo: calcolo HASH, ...
  (8) Aggiungere i Model Weight per EC = 0,1
@@ -39,7 +26,37 @@ To do list:
 
 
 DONE
+ (1) GVE ID (iterative deepening) deve essere revisionato nella sostanza.
+     In questo momento e' inutile perche' le info nella TT accumulate nelle iterazioni [0..N-1] non sono usate per il sorting nella iterazione N.
+     In pratica nella itrazione N per OGNI livello (e quello 1 e' il piu' importante) il sorting delle mosse deve usare la TT.
+     Il sorting nella iterazione N di un livello M che quindi e' compreso nell'intervallo [1..N-1] deve usare i dati nella TT che sono:
+       - Esatti. Valore trovato nella finestra di ricerca con profondita' (N-1) - M
+       - Incompleti. Abbiamo solo un valore di boundary.
+       - Assenti. Un cut-off non ha permesso di esplorare il nodo.
+     C'e' da pensarci sopra ....
+     In realta' quello che serve e' l'ordinamento delle mosse figlio .... quindi serve di disegnare con precisione l'oggetto NODO delle search
+       e di disegnare bene i campi registrati nella TT.
+       Poi serve di avere un approccio "tipo memoizzazione", -mi servono le mosse legali ?-, chiamo la funzione lms, se sono gia' calcolate non le ricalcolo, altrimenti le calcolo .... ad esempio
+       la funzione is_terminal calcola le mosse lgali, che poi vanno perse e vengono ricalcolate da generate_child_nodes.
+ (3) Passare da negascout a MTDf.
  (6) Rimuovere il "clutter" in GVE dato da negamax e da OLD TT.
+
+
+Appunti al 03-10-2021
+
+Sviluppate 3 differenti funzioni ( che sembrano funzionare tutte e tre ):
+
+  - negascout
+  - alphabeta_with_memory
+  - mtdf
+
+Tutte e 3 poi vanno sia "standard" che in modalita' iterative deepening.
+
+Le tre funzioni non sono radicalmente diverse nel numero dei nodi navigati, mtdf e' meglio di negascout che a sua volta e' meglio di alphabeta_with_memory.
+In qualche test sono molto simili, in altri test c'e' un gap di 5-8 punti percentuali.
+
+Iterative deepening, oltre che essere fondamentale in una eventuale modalita' torneo con un vincolo di tempo, ' anche migliorativa nei tempi. Non sempre, non sostanzialmente, ma migliorativa comunque.
+
 
 
 Appunti al 26-9-2021
