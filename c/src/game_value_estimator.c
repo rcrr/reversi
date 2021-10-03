@@ -143,6 +143,16 @@ negascout (node_t *n,
            int alpha,
            int beta);
 
+static void
+alphabeta_with_memory (node_t *n,
+                       int depth,
+                       int alpha,
+                       int beta);
+
+static void
+mtdf (node_t *n,
+      const int depth);
+
 static int
 game_position_rglm_load_model_weights_files (bool verbose);
 
@@ -253,6 +263,7 @@ game_position_value_estimator (const GamePositionX *const root,
   clock_gettime(CLOCK_REALTIME, &start_time);
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
 
+  bool is_mtdf = true; // if true MTD(f) , otherwise negascout
   bool id = true; // iterative-deepening
   if (id) {
     int id_limit = min(search_depth, ec - min_empty_count);
@@ -260,16 +271,28 @@ game_position_value_estimator (const GamePositionX *const root,
     for (int i = 1; i <= id_limit; i++) {
       printf(" ### ### ### id = %d\n", i);
       search_depth_id = i;
-      negascout(&root_node, i, out_of_range_defeat_score, out_of_range_win_score);
+      if (is_mtdf)
+        mtdf(&root_node, i);
+        //alphabeta_with_memory(&root_node, i, out_of_range_defeat_score, out_of_range_win_score);
+      else
+        negascout(&root_node, i, out_of_range_defeat_score, out_of_range_win_score);
     }
     if (search_depth > id_limit) {
       printf(" ### ### ### LAST ### search_depth = %d\n", search_depth);
       search_depth_id = search_depth;
-      negascout(&root_node, search_depth, out_of_range_defeat_score, out_of_range_win_score);
+      if (is_mtdf)
+        mtdf(&root_node, search_depth); // stima da rivedere
+        //alphabeta_with_memory(&root_node, search_depth, out_of_range_defeat_score, out_of_range_win_score);
+      else
+        negascout(&root_node, search_depth, out_of_range_defeat_score, out_of_range_win_score);
     }
   } else {
     search_depth_id = search_depth;
-    negascout(&root_node, search_depth, out_of_range_defeat_score, out_of_range_win_score);
+    if (is_mtdf)
+      mtdf(&root_node, search_depth); // stima da rivedere
+      //alphabeta_with_memory(&root_node, search_depth, out_of_range_defeat_score, out_of_range_win_score);
+    else
+      negascout(&root_node, search_depth, out_of_range_defeat_score, out_of_range_win_score);
   }
 
   /* Stops the stop-watch. */
@@ -662,35 +685,6 @@ negascout (node_t *n,
         fflush(stdout);
       }
 
-      /* https://www.chessprogramming.org/MTD(f)
-       * Pascal code
-
-        function MTDF(root : node_type; f : integer; d : integer) : integer;
-          g := f;
-          upperbound := +INFINITY;
-          lowerbound := -INFINITY;
-          repeat
-            if g == lowerbound then beta := g + 1 else beta := g;
-            g := AlphaBetaWithMemory(root, beta - 1, beta, d);
-            if g < beta then upperbound := g else lowerbound := g;
-          until lowerbound >= upperbound;
-          return g;
-
-       *
-       * C pseudocode
-
-       int mtdf(int f, int depth) {
-         int bound[2] = {-oo, +oo}; // lower, upper
-         do {
-           beta = f + (f == bound[0]);
-           f = alphaBetaWithMemory(beta - 1, beta, depth);
-           bound[f < beta] = f;
-         } while (bound[0] < bound[1]);
-         return f;
-       }
-
-      */
-
       if (i == 0) {
         negascout(child, depth -1, -bm, -am);
       } else {
@@ -747,6 +741,182 @@ negascout (node_t *n,
 
   return;
 }
+
+static void
+alphabeta_with_memory (node_t *n,
+                       const int depth,
+                       const int alpha,
+                       const int beta)
+{
+  int child_node_count;
+  node_t child_nodes[64];
+  node_t *child_nodes_p[64];
+  int empty_count;
+  int explored_child_count;
+
+  int am = alpha; // alpha-mobile : local value that is adjusted during the search
+  int bm = beta;  // beta-mobile  : " ...
+
+  node_count++;
+
+  const uint64_t hash = game_position_x_hash(&n->gpx);
+  struct ttab_item_s its;
+  ttab_item_t it = &its;
+  it->hash = hash;
+  ttab_retrieve(ttab, &it);
+  if (it) { // item found in the TT
+    ttab_item_clone_data(it, &its);
+    if (its.depth >= depth) {
+      if (its.lower_bound >= bm) {
+        n->value = its.lower_bound;
+        return;
+      }
+      if (its.upper_bound <= am) {
+        n->value = its.upper_bound;
+        return;
+      }
+      am = max(am, its.lower_bound);
+      bm = min(bm, its.upper_bound);
+    } else {
+      its.lower_bound = out_of_range_defeat_score;
+      its.upper_bound = out_of_range_win_score;
+    }
+  } else { // item not found
+    its.hash = hash;
+    its.lower_bound = out_of_range_defeat_score;
+    its.upper_bound = out_of_range_win_score;
+    its.pq_index = -1;
+    its.legal_move_set = empty_move_set;
+    its.legal_move_count = 0;
+    for (int i = 0; i < TTAB_RECORDED_BEST_MOVE_COUNT; i++) {
+      its.best_moves[i] = unknown_move;
+      its.move_values[i] = out_of_range_defeat_score;
+    }
+  }
+
+  generate_legal_move_set(n, it);
+
+  explored_child_count = 0; // logic to be verified when leaf_negamax is selected ...
+  if (is_terminal(n)) {
+    leaf_count++;
+    exact_terminal_game_value(n);
+  } else if (depth == 0) {
+    heuristic_game_value(n);
+    n->best_move = unknown_move;
+  } else if ((empty_count = game_position_x_empty_count(&n->gpx)) < min_empty_count) {
+    leaf_negamax(n, am, bm);
+  } else {
+
+    generate_child_nodes(&child_node_count, child_nodes, n);
+    its.legal_move_count = child_node_count;
+    order_moves(child_node_count, child_nodes, child_nodes_p, it);
+
+    n->value = out_of_range_defeat_score;
+    n->best_move = invalid_move;
+    for (int i = 0; i < child_node_count; i++) {
+      node_t *child = child_nodes_p[i];
+      if (search_depth_id - depth == 0) {
+        printf("%02d - %2s (%+03d) [%+03d..%+03d]: ", i, square_as_move_to_string(child->parent_move), -child->value, am, bm);
+        //printf("hash = %zu", hash);
+        fflush(stdout);
+      }
+
+      alphabeta_with_memory(child, depth -1, -bm, -am);
+
+      if (search_depth_id - depth == 0) {
+        char *s;
+        if (-child->value <= am) s = "(failing low)  f+";
+        else if (-child->value >= bm) s = "(failing high) f-";
+        else s = "(success)       f ";
+        printf("%s = %+03d - cumulated node count %10zu\n", s, -child->value, node_count);
+        fflush(stdout);
+      }
+      if (-child->value > n->value) {
+        n->value = -child->value;
+        n->best_move = child->parent_move;
+      }
+      am = max(am, n->value);
+      explored_child_count++;
+      if (am >= bm) break;
+    }
+
+  } // end-of-else
+  if (false && hash == 17372629065185580190ULL && depth == 5) abort();
+
+  its.depth = depth;
+  its.best_move = n->best_move;
+  its.legal_move_set = n->legal_move_set;
+  if (n->value < beta) its.upper_bound = n->value;
+  if (n->value > alpha) its.lower_bound = n->value;
+
+  for (int i = 1; i < explored_child_count; i++) {
+    int j = i;
+    for (;;) {
+      node_t *tmp;
+      if (j == 0) break;
+      if (child_nodes_p[j-1]->value <= child_nodes_p[j]->value) break;
+      tmp = child_nodes_p[j], child_nodes_p[j] = child_nodes_p[j-1], child_nodes_p[j-1] = tmp;
+      j--;
+    }
+  }
+
+  for (int i = 0; i < min(explored_child_count, TTAB_RECORDED_BEST_MOVE_COUNT); i++) {
+    node_t *child = child_nodes_p[i];
+    its.best_moves[i] = child->parent_move;
+    its.move_values[i] = -child->value;
+  }
+
+  ttab_insert(ttab, &its);
+
+  return;
+}
+
+
+
+
+
+      /* https://www.chessprogramming.org/MTD(f)
+       * Pascal code
+
+        function MTDF(root : node_type; f : integer; d : integer) : integer;
+          g := f;
+          upperbound := +INFINITY;
+          lowerbound := -INFINITY;
+          repeat
+            if g == lowerbound then beta := g + 1 else beta := g;
+            g := AlphaBetaWithMemory(root, beta - 1, beta, d);
+            if g < beta then upperbound := g else lowerbound := g;
+          until lowerbound >= upperbound;
+          return g;
+
+       *
+       * C pseudocode
+
+       int mtdf(int f, int depth) {
+         int bound[2] = {-oo, +oo}; // lower, upper
+         do {
+           beta = f + (f == bound[0]);
+           f = alphaBetaWithMemory(beta - 1, beta, depth);
+           bound[f < beta] = f;
+         } while (bound[0] < bound[1]);
+         return f;
+       }
+
+      */
+
+static void
+mtdf (node_t *n,
+      const int depth)
+{
+  int bound[2] = { out_of_range_defeat_score, out_of_range_win_score };
+  do {
+    const int beta = n->value + (n->value == bound[0]) * 2;
+    alphabeta_with_memory(n, depth, beta -2, beta);
+    bound[n->value < beta] = n->value;
+  } while (bound[0] < bound[1]);
+}
+
+
 
 /**
  * @endcond
