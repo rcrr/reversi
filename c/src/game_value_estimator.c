@@ -574,8 +574,7 @@ leaf_negamax (node_t *n,
     for (int i = 0; i < child_node_count; i++) {
       node_t *child = &child_nodes[i];
       leaf_negamax(child, -beta, -alpha);
-      const int child_value = - child->value;
-      n->value = max(n->value, child_value);
+      n->value = max(n->value, -child->value);
       alpha = max(alpha, n->value);
       if (alpha >= beta) break;
     }
@@ -593,7 +592,6 @@ negascout (node_t *n,
   int child_node_count;
   node_t child_nodes[64];
   node_t *child_nodes_p[64];
-  node_t *child_nodes_tt_ordered[64];
   int empty_count;
   int explored_child_count;
 
@@ -664,16 +662,41 @@ negascout (node_t *n,
         fflush(stdout);
       }
 
-      int child_value;
+      /* https://www.chessprogramming.org/MTD(f)
+       * Pascal code
+
+        function MTDF(root : node_type; f : integer; d : integer) : integer;
+          g := f;
+          upperbound := +INFINITY;
+          lowerbound := -INFINITY;
+          repeat
+            if g == lowerbound then beta := g + 1 else beta := g;
+            g := AlphaBetaWithMemory(root, beta - 1, beta, d);
+            if g < beta then upperbound := g else lowerbound := g;
+          until lowerbound >= upperbound;
+          return g;
+
+       *
+       * C pseudocode
+
+       int mtdf(int f, int depth) {
+         int bound[2] = {-oo, +oo}; // lower, upper
+         do {
+           beta = f + (f == bound[0]);
+           f = alphaBetaWithMemory(beta - 1, beta, depth);
+           bound[f < beta] = f;
+         } while (bound[0] < bound[1]);
+         return f;
+       }
+
+      */
+
       if (i == 0) {
         negascout(child, depth -1, -bm, -am);
-        child_value = - child->value;
       } else {
         negascout(child, depth -1, -am -2, -am);
-        child_value = - child->value;
-        if (child_value > am && child_value < bm) {
-          negascout(child, depth -1, -bm, -child_value);
-          child_value = - child->value;
+        if (-child->value > am && -child->value < bm) {
+          negascout(child, depth -1, -bm, child->value);
         }
       }
 
@@ -685,18 +708,17 @@ negascout (node_t *n,
         printf("%s = %+03d - cumulated node count %10zu\n", s, -child->value, node_count);
         fflush(stdout);
       }
-      if (child_value > n->value) {
-        n->value = child_value;
+      if (-child->value > n->value) {
+        n->value = -child->value;
         n->best_move = child->parent_move;
       }
       am = max(am, n->value);
-      /**/
-      child_nodes_tt_ordered[i] = child;
       explored_child_count++;
       if (am >= bm) break;
     }
 
   } // end-of-else
+  if (false && hash == 17372629065185580190ULL && depth == 5) abort();
 
   its.depth = depth;
   its.best_move = n->best_move;
@@ -709,14 +731,14 @@ negascout (node_t *n,
     for (;;) {
       node_t *tmp;
       if (j == 0) break;
-      if (child_nodes_tt_ordered[j-1]->value <= child_nodes_tt_ordered[j]->value) break;
-      tmp = child_nodes_tt_ordered[j], child_nodes_tt_ordered[j] = child_nodes_tt_ordered[j-1], child_nodes_tt_ordered[j-1] = tmp;
+      if (child_nodes_p[j-1]->value <= child_nodes_p[j]->value) break;
+      tmp = child_nodes_p[j], child_nodes_p[j] = child_nodes_p[j-1], child_nodes_p[j-1] = tmp;
       j--;
     }
   }
 
   for (int i = 0; i < min(explored_child_count, TTAB_RECORDED_BEST_MOVE_COUNT); i++) {
-    node_t *child = child_nodes_tt_ordered[i];
+    node_t *child = child_nodes_p[i];
     its.best_moves[i] = child->parent_move;
     its.move_values[i] = -child->value;
   }
