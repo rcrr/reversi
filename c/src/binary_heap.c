@@ -202,9 +202,12 @@ bihp_pq_create (bihp_pq_type_t t,
     return NULL;
   }
 
-  for (size_t i = 0; i < array_size; i++) {
-    a[i] = NULL;
-    p[i] = 0;
+  /* It is not required to initialize to zero. It is just useful when debugging. */
+  if (false) {
+    for (size_t i = 0; i < array_size; i++) {
+      a[i] = NULL;
+      p[i] = 0;
+    }
   }
 
   q->t = t;

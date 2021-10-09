@@ -5,7 +5,23 @@ To do list:
      - rglm_eval_gp
      - board_pattern_packed_to_index
      Sono il cuore della parte NON ottimizzata sia del solver RGLM che di quello GVE
+
+ (2.1) vettorizzare board_pattern_packed_to_index ...
+ 
+ (2.2) Una seconda idea è quella di capire quante volte di seguito è chiamata la funzione ...
+       sicuramente per un edge è chiamata 4 volte, e poi diventa più triky perchè le configurazioni dei pattern sono distinte.
+       E fare una TABLE anche parziale per entrare sull'indice ?
+       Si potrebbe poi proprio eliminare l'index ed andare sul valore del PARAMETRO direttamente.
+	 
+ (2.3) La funzione board_pattern_compute_rotated si può migliorare rimuovendo i calcoli eseguiti più volte.
+       Ad esempio board_trans_flip_diag_h1a8 e board_trans_flip_horizontal sono chiamate più volte.
+       Va seguito un preciso ordine che evita i ricalcoli.
+	 
+ (2.4) Appena un indice è calcolato, prefetch parameter values.
+       Prefetch va studiato bene , ha molta potenzialità. Mentre faccio i conti di rotazioni e PACKED2INDEX ... si fa la prefetch ...
+
  (4) Una miriade di sistemazioni "pratiche" del codice.
+ 
  (5) Modificare la tabella regab_prng_gp con un campo GAME_VALUE_CHECK che ci consente di fare un secondo run e validare il risultato ( potrebbe essere una data ? ).
      Credo sia piu' semplice duplicare i dati da testare in una nuova tabella:
        psql> CREATE TABLE regab_prng_gp_dupe AS (SELECT seq, cst_time, status, game_value, best_move, leaf_count, node_count, solver FROM regab_prng_gp WHERE batch_id = X AND empty_count = Y AND status = 'ZZZ');
@@ -20,8 +36,11 @@ To do list:
      Va quindi rilanciato il comando rgab -a solve .... sullo stesso set di dati.
      Nel caso in cui si volesse ripristinare lo status se qusto invece di CMP fosse stato CMS, va fatto.
      Poi si puo' quindi confrontare con una JOIN che il campo game_value abbia sempre lo stesso valore.
+     
  (7) Molte ottimizzazioni, tipo: calcolo HASH, ...
+ 
  (8) Aggiungere i Model Weight per EC = 0,1
+ 
  (9) Rimuovere limitazione che bisogna avere il MODEL-WEIGHT anche per gli EC elevati, serve un fallback su algoritmo BASICO in quel caso.
 
 
@@ -40,6 +59,31 @@ DONE
        la funzione is_terminal calcola le mosse lgali, che poi vanno perse e vengono ricalcolate da generate_child_nodes.
  (3) Passare da negascout a MTDf.
  (6) Rimuovere il "clutter" in GVE dato da negamax e da OLD TT.
+
+
+Appunti al 09-10-2021
+
+Si parte con le ottimizzazioni al codice.
+Creato il file optimization_mtdf.ods con il dataabase dei run VALGRIND, e' salvato in c/out e per il momento non e' salvato su git.
+Scelta la posizione ffo-29 come test, e' un buon compomesso tra velocita' e capacita' rappresentativa.
+Il primo run, ID=1337873 ci da spunti nuovi e conferma le considerazioni gia' proposte precedentemente:
+
+  - 99.99% del tempo e' speso dentro la funzione game_position_value_estimator, che e' ovvio, ma e' giusto che sia verificato.
+  - il 14.41% de tempo va nella creazione della transposition table ttab_new ... e 11.16% va in __memset_avx2_unaligned_erms , serve davvero ?
+  - la funzione mtdf non ha overhed, tutto il lavoro e' svolto da alphabeta_with_memory ... qui la prima cosa da fare in assoluto e' analizzare rglm_eval_gp
+    come del resto era gia' stato evidenziato.
+  - nella funzione rglm_eval_gp fatto 100 il suo costo, board_pattern_packed_to_index costa 60, board_patetrn_compute_rotaded 5, e rglmdf_model_weights_table_lookup_record 7
+    in totale rglm_eval_gp costa il 69.61% del tempo di esecuzione
+
+Rivista la TO DO list. Partiamo con il lavoro sul codice ...
+
+Rimosse le due inizializzazioni della TTAB a zero ( hashtable e binary-hap ) , le prestazioni sul game game woc18-FKvsAP-g1-22 diventano:
+
+  ES        : [ node_count = 378.034.158, leaf_count = 60.770.918 ] 34.066s
+  RGLM      : [ node_count = 149.986.155, leaf_count = 21.535.119 ] 20.702s
+  GVE(MTDF) : [ node_count =  32.017.443, leaf_count =  2.104.442 ] 41.469s
+
+Ora ( vedi ID=1355514 ) rglm_eval_gp costa 82.51% tel tempo di esecuzione totale.
 
 
 Appunti al 03-10-2021

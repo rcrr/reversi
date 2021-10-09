@@ -249,8 +249,11 @@ ttab_init (T t)
   /* Initialize n_item to be zero. */
   t->n_item = 0;
 
-  /* Zeroes the items array. */
-  memset(t->items, 0, t->max_n_item * sizeof(struct ttab_item_s));
+  /*
+   * Zeroes the items array. It is not required, but it is an help in case of debugging.
+   * It is turned off being a sensible time consumer.
+   */
+  if (false) memset(t->items, 0, t->max_n_item * sizeof(struct ttab_item_s));
 }
 
 void
