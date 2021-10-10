@@ -534,20 +534,11 @@ board_pattern_compute_principal_indexes (board_pattern_index_t *principals,
   }
 }
 
-/*
- * This function accounts for a relevant time slice in the new endgame RGLM solver.
- * Could be improved with the use of ABM, BMI1 and BMI2 instruction extensions ?
- * In particular is PEXT (Parallel bits extract) a possible way forward ?
- *
- * See : https://en.wikipedia.org/wiki/Bit_manipulation_instruction_set
- */
-board_pattern_index_t
-board_pattern_packed_to_index (board_t *packed,
-                               unsigned int n_squares)
-{
+  /*
+  SquareSet x, mask;
+  SquareSet m, o;
   board_pattern_index_t idx;
   int k;
-  SquareSet m, o, x, mask;
 
   m = board_get_mover_square_set(packed);
   o = board_get_opponent_square_set(packed);
@@ -562,10 +553,37 @@ board_pattern_packed_to_index (board_t *packed,
     idx += k * x * 2;
     m >>= 1;
     o >>= 1;
-    k *= 3;
+    k *= 3; // gcc compiles this line and "k = (k << 1) + k;" with the same instruction: leal (%rcx,%rcx,2), %ecx
   }
 
   return idx;
+
+  */
+
+/*
+ * This function accounts for a relevant time slice in the new endgame RGLM solver.
+ * Could be improved with the use of ABM, BMI1 and BMI2 instruction extensions ?
+ * In particular is PEXT (Parallel bits extract) a possible way forward ?
+ *
+ * See : https://en.wikipedia.org/wiki/Bit_manipulation_instruction_set
+ */
+board_pattern_index_t
+board_pattern_packed_to_index (board_t *packed,
+                               unsigned int n_squares)
+{
+
+  board_pattern_index_t idxv;
+  uint64_t kv[16] = {1,3,9,27,81,243,729,2187,6561,19683,59049,177147,531441,1594323,4782969,14348907};
+  uint64_t mv[16] = {1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768};
+
+  SquareSet *bv = (SquareSet *) packed;
+
+  idxv = 0;
+  for (int i = 0; i < 10; i++) {
+    idxv += kv[i] * (((bv[0] & mv[i]) + (bv[1] & mv[i]) * 2) >> i);
+  }
+
+  return idxv;
 }
 
 void

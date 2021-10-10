@@ -882,6 +882,38 @@ board_pattern_packed_to_index_t (ut_test_t *const t)
   expected = 6560;
   result = board_pattern_packed_to_index(&b, n_squares);
   ut_assert(t, result == expected);
+
+  /* Test edge 00000000 */
+  board_set_square_sets(&b, 0x0000000000000000, 0x0000000000000000);
+  ut_assert(t, board_pattern_packed_to_index(&b, 8) == 0);
+
+  /* Test edge 11111111 */
+  board_set_square_sets(&b, 0x00000000000000ff, 0x0000000000000000);
+  ut_assert(t, board_pattern_packed_to_index(&b, 8) == 3280);
+
+  /* Test edge 22222222 */
+  board_set_square_sets(&b, 0x0000000000000000, 0x00000000000000ff);
+  ut_assert(t, board_pattern_packed_to_index(&b, 8) == 6560);
+
+  /* Test xedge 0022212021 */
+  board_set_square_sets(&b, 0x0000000000000220, 0x000000000000015c);
+  ut_assert(t, board_pattern_packed_to_index(&b, 10) == 34740);
+
+  /* Test diag4 0122 */
+  board_set_square_sets(&b, 0x0000000000000002, 0x000000000000000c);
+  ut_assert(t, board_pattern_packed_to_index(&b, 4) == 75);
+
+  /* Test diag3 211 */
+  board_set_square_sets(&b, 0x0000000000000006, 0x0000000000000001);
+  ut_assert(t, board_pattern_packed_to_index(&b, 3) == 14);
+
+  /* Test 2x4cor 2222222220 */
+  board_set_square_sets(&b, 0x0000000000000000, 0x00000000000001ff);
+  ut_assert(t, board_pattern_packed_to_index(&b, 10) == 19682);
+
+  /* Test 2x4cor 2222222222 */
+  board_set_square_sets(&b, 0x0000000000000000, 0x00000000000003ff);
+  ut_assert(t, board_pattern_packed_to_index(&b, 10) == 59048);
 }
 
 static void

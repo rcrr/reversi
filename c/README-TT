@@ -61,6 +61,15 @@ DONE
  (6) Rimuovere il "clutter" in GVE dato da negamax e da OLD TT.
 
 
+Appunti al 10-10-2021
+
+Riscritta la funzione board_pattern_packed_to_index, non la vettorizza, ma facendo sempre 10 iterazioni completamente unrolle e' lo stesso piu' veloce.
+
+  ES        : [ node_count = 378.034.158, leaf_count = 60.770.918 ] 33.943s
+  RGLM      : [ node_count = 149.986.155, leaf_count = 21.535.119 ] 20.866s
+  GVE(MTDF) : [ node_count =  32.017.443, leaf_count =  2.104.442 ] 39.183s
+
+
 Appunti al 09-10-2021
 
 Si parte con le ottimizzazioni al codice.
