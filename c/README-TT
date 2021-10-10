@@ -69,6 +69,13 @@ Riscritta la funzione board_pattern_packed_to_index, non la vettorizza, ma facen
   RGLM      : [ node_count = 149.986.155, leaf_count = 21.535.119 ] 20.866s
   GVE(MTDF) : [ node_count =  32.017.443, leaf_count =  2.104.442 ] 39.183s
 
+Inserendo invece il check che le iterazioni non siano piu' di n_squares si isparmia mezzo secondo:
+
+  GVE(MTDF) : [ node_count =  32.017.443, leaf_count =  2.104.442 ] 38.795s
+
+ma non ci siamo, non e' una miglioria rilevante.
+Il codice comunque NON viene parallelizzato ... sarebbe da capire perche' ???
+
 
 Appunti al 09-10-2021
 
