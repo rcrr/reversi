@@ -61,6 +61,12 @@ DONE
  (6) Rimuovere il "clutter" in GVE dato da negamax e da OLD TT.
 
 
+Appunti al 17-10-2021
+
+Vettorizzata la funzione board_pattern_packed_to_index aggiungendo una versione basata su Intel Intrinsics board_pattern_packed_to_index_vec
+Le prestazioni non sono proprio chiare.
+
+
 Appunti al 10-10-2021
 
 Riscritta la funzione board_pattern_packed_to_index, non la vettorizza, ma facendo sempre 10 iterazioni completamente unrolle e' lo stesso piu' veloce.

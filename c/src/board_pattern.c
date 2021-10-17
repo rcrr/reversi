@@ -590,6 +590,165 @@ board_pattern_packed_to_index (board_t *packed,
   return idxv;
 }
 
+#include <immintrin.h>
+
+void
+fprintf_256i_epi8 (FILE *f,
+                   __m256i var)
+{
+  uint8_t val[32];
+  memcpy(val, &var, sizeof(val));
+  fprintf(f, "%u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u",
+          val[0], val[1], val[2],  val[3],  val[4],  val[5],  val[6],  val[7],
+          val[8], val[9], val[10], val[11], val[12], val[13], val[14], val[15],
+          val[16], val[17], val[18], val[19], val[20], val[21], val[22], val[23],
+          val[24], val[25], val[26], val[27], val[28], val[29], val[30], val[31]);
+}
+
+void
+fprintf_256i_epi16 (FILE *f,
+                    __m256i var)
+{
+  uint16_t val[16];
+  memcpy(val, &var, sizeof(val));
+  fprintf(f, "%u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u",
+          val[0], val[1], val[2],  val[3],  val[4],  val[5],  val[6],  val[7],
+          val[8], val[9], val[10], val[11], val[12], val[13], val[14], val[15]);
+}
+
+void
+fprintf_256i_epi32 (FILE *f,
+                    __m256i var)
+{
+  uint32_t val[8];
+  memcpy(val, &var, sizeof(val));
+  fprintf(f, "%u %u %u %u %u %u %u %u",
+          val[0], val[1], val[2], val[3], val[4], val[5], val[6], val[7]);
+}
+
+void
+fprintf_hex_256i_epi32 (FILE *f,
+                        __m256i var)
+{
+  uint32_t val[8];
+  memcpy(val, &var, sizeof(val));
+  fprintf(f, "%08x %08x %08x %08x %08x %08x %08x %08x",
+          val[0], val[1], val[2], val[3], val[4], val[5], val[6], val[7]);
+}
+
+static board_pattern_index_t
+board_pattern_packed_to_index8_vec (board_t *packed)
+{
+  const __m256i vmask32_lo = _mm256_set_epi32((uint32_t) 0x0080, (uint32_t) 0x0040, (uint32_t) 0x0020, (uint32_t) 0x0010,
+                                              (uint32_t) 0x0008, (uint32_t) 0x0004, (uint32_t) 0x0002, (uint32_t) 0x0001);
+
+  const __m256i vkm32_lo = _mm256_setr_epi32( 1, 3,  9, 27,  81, 243,  729, 2187 );
+  const __m256i vko32_lo = _mm256_setr_epi32( 2, 6, 18, 54, 162, 486, 1458, 4374 );
+
+  const __m256i zero = _mm256_set1_epi32(0x00);
+
+  SquareSet *bv = (SquareSet *) packed;
+  const SquareSet m = bv[0]; // m: mover
+  const SquareSet o = bv[1]; // o: opponent
+
+  const uint32_t m_lo8 = (uint32_t) m & 0x00000000000000ff;
+  const uint32_t o_lo8 = (uint32_t) o & 0x00000000000000ff;
+
+  const __m256i mv = _mm256_set1_epi32(m_lo8);
+  const __m256i ov = _mm256_set1_epi32(o_lo8);
+
+  const __m256i mvm_lo = _mm256_and_si256(mv, vmask32_lo);
+  const __m256i ovm_lo = _mm256_and_si256(ov, vmask32_lo);
+
+  const __m256i mvmc_lo = _mm256_cmpgt_epi32(mvm_lo, zero); // mover vectorized masked compared lower
+  const __m256i ovmc_lo = _mm256_cmpgt_epi32(ovm_lo, zero);
+
+  const __m256i vkm32m_lo = _mm256_and_si256(mvmc_lo, vkm32_lo); // masked
+  const __m256i vko32m_lo = _mm256_and_si256(ovmc_lo, vko32_lo);
+
+  __m256i z = _mm256_hadd_epi32(vkm32m_lo, vko32m_lo);
+  z = _mm256_hadd_epi32(z, z);
+  z = _mm256_hadd_epi32(z, z);
+
+  const uint32_t z0 = _mm256_extract_epi32(z, 0);
+  const uint32_t z4 = _mm256_extract_epi32(z, 4);
+  const uint32_t index = z0 + z4;
+
+  return index;
+}
+
+/*
+ * This function is appropriate for patterns having up to 16 squares.
+ * When squeres are up to 8 included, there is a more optimized version: board_pattern_packed_to_index8_vec
+ */
+static board_pattern_index_t
+board_pattern_packed_to_index16_vec (board_t *packed)
+{
+  const __m256i vmask32_hi = _mm256_set_epi32((uint32_t) 0x8000, (uint32_t) 0x4000, (uint32_t) 0x2000, (uint32_t) 0x1000,
+                                              (uint32_t) 0x0800, (uint32_t) 0x0400, (uint32_t) 0x0200, (uint32_t) 0x0100);
+  const __m256i vmask32_lo = _mm256_set_epi32((uint32_t) 0x0080, (uint32_t) 0x0040, (uint32_t) 0x0020, (uint32_t) 0x0010,
+                                              (uint32_t) 0x0008, (uint32_t) 0x0004, (uint32_t) 0x0002, (uint32_t) 0x0001);
+
+  const __m256i vkm32_lo = _mm256_setr_epi32(     1,     3,      9,     27,      81,     243,     729,     2187 );
+  const __m256i vkm32_hi = _mm256_setr_epi32(  6561, 19683,  59049, 177147,  531441, 1594323, 4782969, 14348907 );
+  const __m256i vko32_lo = _mm256_setr_epi32(     2,     6,     18,     54,     162,     486,    1458,     4374 );
+  const __m256i vko32_hi = _mm256_setr_epi32( 13122, 39366, 118098, 354294, 1062882, 3188646, 9565938, 28697814 );
+
+  const __m256i zero = _mm256_set1_epi32(0x00);
+
+  SquareSet *bv = (SquareSet *) packed;
+  const SquareSet m = bv[0]; // m: mover
+  const SquareSet o = bv[1]; // o: opponent
+
+  const uint32_t m_lo16 = (uint32_t) m & 0x000000000000ffff;
+  const uint32_t o_lo16 = (uint32_t) o & 0x000000000000ffff;
+
+  const __m256i mv = _mm256_set1_epi32(m_lo16);
+  const __m256i ov = _mm256_set1_epi32(o_lo16);
+
+  const __m256i mvm_lo = _mm256_and_si256(mv, vmask32_lo);
+  const __m256i mvm_hi = _mm256_and_si256(mv, vmask32_hi);
+
+  const __m256i ovm_lo = _mm256_and_si256(ov, vmask32_lo);
+  const __m256i ovm_hi = _mm256_and_si256(ov, vmask32_hi);
+
+  const __m256i mvmc_lo = _mm256_cmpgt_epi32(mvm_lo, zero); // mover vectorized masked compared lower
+  const __m256i mvmc_hi = _mm256_cmpgt_epi32(mvm_hi, zero);
+  const __m256i ovmc_lo = _mm256_cmpgt_epi32(ovm_lo, zero);
+  const __m256i ovmc_hi = _mm256_cmpgt_epi32(ovm_hi, zero);
+
+  const __m256i vkm32m_lo = _mm256_and_si256(mvmc_lo, vkm32_lo); // masked
+  const __m256i vkm32m_hi = _mm256_and_si256(mvmc_hi, vkm32_hi);
+  const __m256i vko32m_lo = _mm256_and_si256(ovmc_lo, vko32_lo);
+  const __m256i vko32m_hi = _mm256_and_si256(ovmc_hi, vko32_hi);
+
+  const __m256i vkm = _mm256_add_epi32(vkm32m_lo, vkm32m_hi);
+  const __m256i vko = _mm256_add_epi32(vko32m_lo, vko32m_hi);
+
+  __m256i z = _mm256_hadd_epi32(vkm, vko);
+  z = _mm256_hadd_epi32(z, z);
+  z = _mm256_hadd_epi32(z, z);
+
+  const uint32_t z0 = _mm256_extract_epi32(z, 0);
+  const uint32_t z4 = _mm256_extract_epi32(z, 4);
+  const uint32_t index = z0 + z4;
+
+  return index;
+}
+
+/*
+ * It has the same result of the function board_pattern_packed_to_index, but it
+ * requires AVX2 instructions.
+ * It is on average 3x faster.
+ */
+board_pattern_index_t
+board_pattern_packed_to_index_vec (board_t *packed,
+                                   unsigned int n_squares)
+{
+  if (n_squares > 8) return board_pattern_packed_to_index16_vec(packed);
+  return board_pattern_packed_to_index8_vec(packed);
+}
+
 void
 board_pattern_index_to_packed (board_t *packed,
                                board_pattern_index_t index)

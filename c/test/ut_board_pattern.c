@@ -856,64 +856,80 @@ board_pattern_unpack_diag3_t (ut_test_t *const t)
 }
 
 static void
-board_pattern_packed_to_index_t (ut_test_t *const t)
+board_pattern_packed_to_index_aux (ut_test_t *const t,
+                                   board_pattern_index_t (*fp) (board_t *, unsigned int))
 {
   board_t b;
-  SquareSet m, o;
-  unsigned int n_squares;
-  board_pattern_index_t result, expected;
-
-  /* Test edge.a */
-  m = 0x0000000000000000;
-  o = 0x0000000000000000;
-  n_squares = 8;
-  board_set_mover_square_set(&b, m);
-  board_set_opponent_square_set(&b, o);
-  expected = 0;
-  result = board_pattern_packed_to_index(&b, n_squares);
-  ut_assert(t, result == expected);
-
-  /* Test edge.b */
-  m = 0x0000000000000000;
-  o = 0x00000000000000ff;
-  n_squares = 8;
-  board_set_mover_square_set(&b, m);
-  board_set_opponent_square_set(&b, o);
-  expected = 6560;
-  result = board_pattern_packed_to_index(&b, n_squares);
-  ut_assert(t, result == expected);
 
   /* Test edge 00000000 */
-  board_set_square_sets(&b, 0x0000000000000000, 0x0000000000000000);
-  ut_assert(t, board_pattern_packed_to_index(&b, 8) == 0);
+  board_set_square_sets(&b, 0x0000, 0x0000);
+  ut_assert(t, fp(&b, 8) == 0);
 
   /* Test edge 11111111 */
-  board_set_square_sets(&b, 0x00000000000000ff, 0x0000000000000000);
-  ut_assert(t, board_pattern_packed_to_index(&b, 8) == 3280);
+  board_set_square_sets(&b, 0x00ff, 0x0000);
+  ut_assert(t, fp(&b, 8) == 3280);
 
   /* Test edge 22222222 */
-  board_set_square_sets(&b, 0x0000000000000000, 0x00000000000000ff);
-  ut_assert(t, board_pattern_packed_to_index(&b, 8) == 6560);
+  board_set_square_sets(&b, 0x0000, 0x00ff);
+  ut_assert(t, fp(&b, 8) == 6560);
 
   /* Test xedge 0022212021 */
-  board_set_square_sets(&b, 0x0000000000000220, 0x000000000000015c);
-  ut_assert(t, board_pattern_packed_to_index(&b, 10) == 34740);
+  board_set_square_sets(&b, 0x0220, 0x015c);
+  ut_assert(t, fp(&b, 10) == 34740);
 
-  /* Test diag4 0122 */
-  board_set_square_sets(&b, 0x0000000000000002, 0x000000000000000c);
-  ut_assert(t, board_pattern_packed_to_index(&b, 4) == 75);
+  /* Test corner 001021222 */
+  board_set_square_sets(&b, 0x0024, 0x01d0);
+  ut_assert(t, fp(&b, 9) == 19368);
+
+  /* Test R2 12222221 */
+  board_set_square_sets(&b, 0x0081, 0x007e);
+  ut_assert(t, fp(&b, 8) == 4372);
 
   /* Test diag3 211 */
-  board_set_square_sets(&b, 0x0000000000000006, 0x0000000000000001);
-  ut_assert(t, board_pattern_packed_to_index(&b, 3) == 14);
+  board_set_square_sets(&b, 0x0006, 0x0001);
+  ut_assert(t, fp(&b, 3) == 14);
+
+  /* Test diag4 0122 */
+  board_set_square_sets(&b, 0x0002, 0x000c);
+  ut_assert(t, fp(&b, 4) == 75);
+
+  /* Test diag5 21122 */
+  board_set_square_sets(&b, 0x0006, 0x0019);
+  ut_assert(t, fp(&b, 5) == 230);
+
+  /* Test diag6 111201 */
+  board_set_square_sets(&b, 0x0027, 0x0008);
+  ut_assert(t, fp(&b, 6) == 310);
+
+  /* Test diag7 0122212 */
+  board_set_square_sets(&b, 0x0022, 0x005c);
+  ut_assert(t, fp(&b, 7) == 1938);
+
+  /* Test diag8 00121111 */
+  board_set_square_sets(&b, 0x00f4, 0x0008);
+  ut_assert(t, fp(&b, 8) == 3303);
 
   /* Test 2x4cor 2222222220 */
-  board_set_square_sets(&b, 0x0000000000000000, 0x00000000000001ff);
-  ut_assert(t, board_pattern_packed_to_index(&b, 10) == 19682);
+  board_set_square_sets(&b, 0x0000, 0x01ff);
+  ut_assert(t, fp(&b, 10) == 19682);
 
   /* Test 2x4cor 2222222222 */
-  board_set_square_sets(&b, 0x0000000000000000, 0x00000000000003ff);
-  ut_assert(t, board_pattern_packed_to_index(&b, 10) == 59048);
+  board_set_square_sets(&b, 0x0000, 0x03ff);
+  ut_assert(t, fp(&b, 10) == 59048);
+}
+
+static void
+board_pattern_packed_to_index_t (ut_test_t *const t)
+{
+  for (int i = 0; i < 1; i++)
+    board_pattern_packed_to_index_aux(t, board_pattern_packed_to_index);
+}
+
+static void
+board_pattern_packed_to_index_vec_t (ut_test_t *const t)
+{
+  for (int i = 0; i < 1; i++)
+    board_pattern_packed_to_index_aux(t, board_pattern_packed_to_index_vec);
 }
 
 static void
@@ -1550,6 +1566,8 @@ main (int argc,
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_packed_to_index", board_pattern_packed_to_index_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_index_to_packed", board_pattern_index_to_packed_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_packed_to_index_vec", board_pattern_packed_to_index_vec_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_edge", board_pattern_compute_indexes_edge_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_corner", board_pattern_compute_indexes_corner_t);

@@ -896,6 +896,10 @@ extern board_pattern_index_t
 board_pattern_packed_to_index (board_t *packed,
                                unsigned int n_squares);
 
+extern board_pattern_index_t
+board_pattern_packed_to_index_vec (board_t *packed,
+                                   unsigned int n_squares);
+
 extern void
 board_pattern_index_to_packed (board_t *packed,
                                board_pattern_index_t index);
