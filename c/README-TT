@@ -64,7 +64,25 @@ DONE
 Appunti al 17-10-2021
 
 Vettorizzata la funzione board_pattern_packed_to_index aggiungendo una versione basata su Intel Intrinsics board_pattern_packed_to_index_vec
-Le prestazioni non sono proprio chiare.
+Le prestazioni della funzione sono 3x rispetto a quella originale.
+Sono quindi migliorate sia le prestazioni del solver gve che quello rglm:
+
+
+  ES        : [ node_count = 378.034.158, leaf_count = 60.770.918 ] 33.943s
+  RGLM      : [ node_count = 149.986.155, leaf_count = 21.535.119 ] 19.112s
+  GVE(MTDF) : [ node_count =  32.017.443, leaf_count =  2.104.442 ] 33.106s
+
+Eseguito un secondo change sulla funzione alphabeta_with_memory,
+
+  } else if (depth == 0) {
+    if (n->value == out_of_range_win_score) heuristic_game_value(n);
+
+Aggiunto test per calcolare heuristic_game_value solo se necessario, 2,2s di miglioramento:
+
+  ES        : [ node_count = 378.034.158, leaf_count = 60.770.918 ] 33.943s
+  RGLM      : [ node_count = 149.986.155, leaf_count = 21.535.119 ] 19.112s
+  GVE(MTDF) : [ node_count =  32.017.443, leaf_count =  2.104.442 ] 30.900s
+
 
 
 Appunti al 10-10-2021

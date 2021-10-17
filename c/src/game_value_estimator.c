@@ -455,7 +455,6 @@ game_position_rglm_release_model_weights (void)
 static bool
 is_terminal (node_t *n)
 {
-  //return !game_position_x_has_any_player_any_legal_move(&n->gpx);
   return (!n->legal_move_set && !n->parent->legal_move_set);
 }
 
@@ -801,7 +800,7 @@ alphabeta_with_memory (node_t *n,
     leaf_count++;
     exact_terminal_game_value(n);
   } else if (depth == 0) {
-    heuristic_game_value(n);
+    if (n->value == out_of_range_win_score) heuristic_game_value(n);
     n->best_move = unknown_move;
   } else if ((empty_count = game_position_x_empty_count(&n->gpx)) < min_empty_count) {
     leaf_negamax(n, am, bm);
@@ -870,39 +869,6 @@ alphabeta_with_memory (node_t *n,
 
   return;
 }
-
-
-
-
-
-      /* https://www.chessprogramming.org/MTD(f)
-       * Pascal code
-
-        function MTDF(root : node_type; f : integer; d : integer) : integer;
-          g := f;
-          upperbound := +INFINITY;
-          lowerbound := -INFINITY;
-          repeat
-            if g == lowerbound then beta := g + 1 else beta := g;
-            g := AlphaBetaWithMemory(root, beta - 1, beta, d);
-            if g < beta then upperbound := g else lowerbound := g;
-          until lowerbound >= upperbound;
-          return g;
-
-       *
-       * C pseudocode
-
-       int mtdf(int f, int depth) {
-         int bound[2] = {-oo, +oo}; // lower, upper
-         do {
-           beta = f + (f == bound[0]);
-           f = alphaBetaWithMemory(beta - 1, beta, depth);
-           bound[f < beta] = f;
-         } while (bound[0] < bound[1]);
-         return f;
-       }
-
-      */
 
 static void
 mtdf (node_t *n,
