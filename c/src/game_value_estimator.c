@@ -123,13 +123,18 @@ static int min (int a, int b);
  * @cond
  */
 
+#define GVE_MAX_FLIP_COUNT 24
+
 typedef struct node_s {
   struct node_s *parent;
   SquareSet legal_move_set;
   Square parent_move;
+  Square parent_flips[GVE_MAX_FLIP_COUNT];
+  int parent_flip_count;
   Square best_move;
   int value;
   GamePositionX gpx;
+  uint64_t hash;
 } node_t;
 
 
@@ -243,21 +248,25 @@ game_position_value_estimator (const GamePositionX *const root,
   parent_root_node.parent = NULL;
   parent_root_node.legal_move_set = empty_move_set;
   parent_root_node.parent_move = invalid_move;
+  parent_root_node.parent_flip_count = 0;
   parent_root_node.best_move = invalid_move;
   parent_root_node.value = out_of_range_defeat_score;
   parent_root_node.gpx.blacks = root->blacks;
   parent_root_node.gpx.whites = root->whites;
   parent_root_node.gpx.player = player_opponent(root->player);
+  parent_root_node.hash = game_position_x_hash(&parent_root_node.gpx);
 
   node_t root_node;
   root_node.parent = &parent_root_node;
   root_node.legal_move_set = empty_move_set;
   root_node.parent_move = invalid_move;
+  root_node.parent_flip_count = 0;
   root_node.best_move = invalid_move;
   root_node.value = out_of_range_defeat_score;
   root_node.gpx.blacks = root->blacks;
   root_node.gpx.whites = root->whites;
   root_node.gpx.player = root->player;
+  root_node.hash = game_position_x_hash(&root_node.gpx);
 
   /* Starts the stop-watch. */
   clock_gettime(CLOCK_REALTIME, &start_time);
@@ -496,8 +505,9 @@ generate_child_nodes (int *child_node_count,
       c->parent = n;
       c->legal_move_set = empty_move_set;
       c->parent_move = move;
+      //c->parent_flips = ???;
+      //c->parent_flip_count = 0;
       c->best_move = unknown_move;
-      //c->value = out_of_range_defeat_score;
       c->value = out_of_range_win_score;
       game_position_x_make_move(&n->gpx, move, &c->gpx);
       lms ^= (SquareSet) 1 << move;
@@ -758,10 +768,23 @@ alphabeta_with_memory (node_t *n,
 
   node_count++;
 
-  const uint64_t hash = game_position_x_hash(&n->gpx);
+  if (false) {
+    n->hash = game_position_x_hash(&n->gpx);
+  } else {
+    game_position_x_deltas(&n->parent->gpx, &n->gpx, n->parent_flips, &n->parent_flip_count);
+    const uint64_t delta_hash = game_position_x_delta_hash(n->parent->hash, n->parent_flips, n->parent_flip_count, n->gpx.player);
+    n->hash = delta_hash;
+  }
+  /*
+  if (n->hash != delta_hash) {
+    printf("n->hash    = %lx\n", n->hash);
+    printf("delta_hash = %lx\n", delta_hash);
+    abort();
+  }
+  */
   struct ttab_item_s its;
   ttab_item_t it = &its;
-  it->hash = hash;
+  it->hash = n->hash;
   ttab_retrieve(ttab, &it);
   if (it) { // item found in the TT
     ttab_item_clone_data(it, &its);
@@ -781,7 +804,7 @@ alphabeta_with_memory (node_t *n,
       its.upper_bound = out_of_range_win_score;
     }
   } else { // item not found
-    its.hash = hash;
+    its.hash = n->hash;
     its.lower_bound = out_of_range_defeat_score;
     its.upper_bound = out_of_range_win_score;
     its.pq_index = -1;
@@ -816,7 +839,7 @@ alphabeta_with_memory (node_t *n,
       node_t *child = child_nodes_p[i];
       if (search_depth_id - depth == 0) {
         printf("%02d - %2s (%+03d) [%+03d..%+03d]: ", i, square_as_move_to_string(child->parent_move), -child->value, am, bm);
-        //printf("hash = %zu", hash);
+        //printf("n->hash = %zu", n->hash);
         fflush(stdout);
       }
 
@@ -840,7 +863,7 @@ alphabeta_with_memory (node_t *n,
     }
 
   } // end-of-else
-  if (false && hash == 17372629065185580190ULL && depth == 5) abort();
+  if (false && n->hash == 17372629065185580190ULL && depth == 5) abort();
 
   its.depth = depth;
   its.best_move = n->best_move;

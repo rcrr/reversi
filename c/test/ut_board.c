@@ -570,6 +570,39 @@ game_position_x_delta_hash_t (ut_test_t *const t)
   const uint64_t expected = hash_b;
 
   ut_assert(t, expected == computed);
+
+  /* -- -- -- */
+
+  const GamePositionX a1 = { 0x780c0700142c0400, 0x003078ffeb523810, BLACK_PLAYER };
+  const GamePositionX b1 = { 0x781c0f05172f0400, 0x002070fae8503810, WHITE_PLAYER };
+  const uint64_t hash_a1 = game_position_x_hash(&a1);
+  const uint64_t hash_b1 = game_position_x_hash(&b1);
+
+  const Square flips1[] = { A3, B3, A4, B4, A5, C5, D6, E7 };
+  const int flip_count1 = 8;
+
+  const uint64_t computed1 = game_position_x_delta_hash(hash_a1, flips1, flip_count1, b1.player);
+  const uint64_t expected1 = hash_b1;
+
+  ut_assert(t, expected1 == computed1);
+
+}
+
+static void
+game_position_x_deltas_t (ut_test_t *const t)
+{
+  Square flips[16];
+  int flip_count;
+  Player new_p;
+  GamePositionX a, b;
+
+  a.blacks = 4ULL, a.whites = 2ULL, a.player = BLACK_PLAYER;
+  b.blacks = 7ULL, b.whites = 0ULL, b.player = WHITE_PLAYER;
+  game_position_x_deltas(&a, &b, flips, &flip_count, &new_p);
+  ut_assert(t, flip_count == 2);
+  ut_assert(t, flips[0] == A1);
+  ut_assert(t, flips[1] == B1);
+  ut_assert(t, new_p == WHITE_PLAYER);
 }
 
 static void
@@ -760,6 +793,7 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_pass", game_position_x_pass_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_hash", game_position_x_hash_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_delta_hash", game_position_x_delta_hash_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_deltas", game_position_x_deltas_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_final_value", game_position_x_final_value_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_has_any_legal_move", game_position_x_has_any_legal_move_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_has_any_player_any_legal_move", game_position_x_has_any_player_any_legal_move_t);

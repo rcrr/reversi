@@ -61,6 +61,31 @@ DONE
  (6) Rimuovere il "clutter" in GVE dato da negamax e da OLD TT.
 
 
+
+Appunti al 24-10-2021
+
+Inserendo il calcolo dell'hash della posizione come delta si passa da 29.1 a 25.4, con un risparmio di 3.7 secondi ( 13% ) !!!
+
+  ES        : [ node_count = 378.034.158, leaf_count = 60.770.918 ] 25.359s
+  RGLM      : [ node_count = 149.986.155, leaf_count = 21.535.119 ] 14.971s
+  GVE(MTDF) : [ node_count =  32.017.443, leaf_count =  2.104.442 ] 25.425s
+
+La modifica non e' completa, una review piu' spinta potrebbe essere interessante.
+
+
+Appunti al 23-10-2021
+
+Rimossi gli assert nel modulo board inserendo una linea "#define NDEBUG" prima di "#include <assert.h>".
+
+Le prestazioni nella risoluzione del game woc18-FKvsAP-g1-22 diventano:
+
+
+  ES        : [ node_count = 378.034.158, leaf_count = 60.770.918 ] 25.359s
+  RGLM      : [ node_count = 149.986.155, leaf_count = 21.535.119 ] 14.971s
+  GVE(MTDF) : [ node_count =  32.017.443, leaf_count =  2.104.442 ] 29.135s
+
+
+
 Appunti al 17-10-2021
 
 Vettorizzata la funzione board_pattern_packed_to_index aggiungendo una versione basata su Intel Intrinsics board_pattern_packed_to_index_vec
@@ -117,7 +142,7 @@ Il primo run, ID=1337873 ci da spunti nuovi e conferma le considerazioni gia' pr
 
 Rivista la TO DO list. Partiamo con il lavoro sul codice ...
 
-Rimosse le due inizializzazioni della TTAB a zero ( hashtable e binary-hap ) , le prestazioni sul game game woc18-FKvsAP-g1-22 diventano:
+Rimosse le due inizializzazioni della TTAB a zero ( hashtable e binary-hap ) , le prestazioni sul game woc18-FKvsAP-g1-22 diventano:
 
   ES        : [ node_count = 378.034.158, leaf_count = 60.770.918 ] 34.066s
   RGLM      : [ node_count = 149.986.155, leaf_count = 21.535.119 ] 20.702s

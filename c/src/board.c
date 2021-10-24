@@ -32,6 +32,12 @@
  * </tt>
  */
 
+/*
+ * Comment this line to enable assertion in the module.
+ * The line must be inserted before the inclusion of <assert.h>
+ */
+#define NDEBUG
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -39,7 +45,6 @@
 
 #include "arch.h"
 #include "board.h"
-
 
 
 /**
@@ -723,6 +728,17 @@ game_position_x_hash (const GamePositionX *const gpx)
   return hash;
 }
 
+/**
+ * @brief computes the delta hash, and returns the new one.
+ *
+ * The first entry in flips must be the move.
+ *
+ * @param [in] old_hash   the hash of the parent game position
+ * @param [in] flips      the move and the disks flipped
+ * @param [in] flip_count number of disk flipped including the move
+ * @param [in] new_p      the player of the new (child) game position
+ * @return                the hash value for the child game position
+ */
 uint64_t
 game_position_x_delta_hash (const uint64_t old_hash,
                             const Square *const flips,
@@ -732,13 +748,47 @@ game_position_x_delta_hash (const uint64_t old_hash,
   const Square move = *flips;
   if (move == pass_move) return ~old_hash;
 
-  SquareSet new_hash = old_hash ^ zobrist_bitstrings[move + 64 * (1 - new_p)];
+  const int index = move + 64 * (1 - new_p);
+
+  SquareSet new_hash = old_hash ^ zobrist_bitstrings[index];
 
   for (int i = 1; i < flip_count; i++) {
     new_hash ^= zobrist_flip_bitstrings[flips[i]];
   }
 
   return ~new_hash;
+}
+
+void
+game_position_x_deltas (const GamePositionX *const parent,
+                        const GamePositionX *const child,
+                        Square *flips,
+                        int *flip_count)
+{
+  GamePositionX updated;
+
+  if (parent->blacks == child->blacks) {
+    flips[0] = pass_move;
+    *flip_count = 1;
+  } else {
+    const SquareSet move_set = (child->blacks | child->whites) & (~(parent->blacks | parent->whites));
+    const SquareSet black_flip_set = child->blacks & (~(parent->blacks | move_set));
+    const SquareSet white_flip_set = child->whites & (~(parent->whites | move_set));
+    if (parent->player == BLACK_PLAYER) assert(white_flip_set == 0 && black_flip_set != 0);
+    if (parent->player == WHITE_PLAYER) assert(black_flip_set == 0 && white_flip_set != 0);
+    SquareSet flip_set = black_flip_set | white_flip_set;
+    int fc = bitw_bit_count_64(flip_set);
+    const Square move = bitw_bit_scan_forward_64(move_set);
+    game_position_x_make_move (parent, move, &updated);
+    flips[0] = move;
+    *flip_count = 1 + fc;
+    for (int i = 0; i < fc; i++) {
+      const Square flip = bitw_bit_scan_forward_64(flip_set);
+      flips[1 + i] = flip;
+      flip_set = bitw_reset_lowest_set_bit_64(flip_set);
+    }
+  }
+  return;
 }
 
 /**

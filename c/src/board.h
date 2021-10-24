@@ -337,6 +337,12 @@ game_position_x_delta_hash (const uint64_t old_hash,
                             const int flip_count,
                             const Player new_p);
 
+extern void
+game_position_x_deltas (const GamePositionX *const parent,
+                        const GamePositionX *const child,
+                        Square *flips,
+                        int *flip_count);
+
 inline static int
 game_position_x_final_value (const GamePositionX *const gpx)
 {
