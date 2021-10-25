@@ -329,6 +329,14 @@ game_position_x_pass (const GamePositionX *const current,
 }
 
 extern uint64_t
+game_position_x_hash_plain (const GamePositionX *const gpx);
+
+#ifdef __AVX2__
+extern uint64_t
+game_position_x_hash_vec (const GamePositionX *const gpx);
+#endif
+
+extern uint64_t
 game_position_x_hash (const GamePositionX *const gpx);
 
 extern uint64_t

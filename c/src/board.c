@@ -11,7 +11,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014, 2016, 2017 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2016, 2017, 2021 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -46,6 +46,7 @@
 #include "arch.h"
 #include "board.h"
 
+#include <immintrin.h>
 
 /**
  * @cond
@@ -139,6 +140,26 @@ static const uint64_t zobrist_bitstrings[] = {
  * Computed by the function board_initialize_zobrist_flip_bitstrings().
  */
 static uint64_t zobrist_flip_bitstrings[64];
+
+static const uint64_t zobrist_masks[] =
+  {
+   0x0000000000000001, 0x0000000000000002, 0x0000000000000004, 0x0000000000000008,
+   0x0000000000000010, 0x0000000000000020, 0x0000000000000040, 0x0000000000000080,
+   0x0000000000000100, 0x0000000000000200, 0x0000000000000400, 0x0000000000000800,
+   0x0000000000001000, 0x0000000000002000, 0x0000000000004000, 0x0000000000008000,
+   0x0000000000010000, 0x0000000000020000, 0x0000000000040000, 0x0000000000080000,
+   0x0000000000100000, 0x0000000000200000, 0x0000000000400000, 0x0000000000800000,
+   0x0000000001000000, 0x0000000002000000, 0x0000000004000000, 0x0000000008000000,
+   0x0000000010000000, 0x0000000020000000, 0x0000000040000000, 0x0000000080000000,
+   0x0000000100000000, 0x0000000200000000, 0x0000000400000000, 0x0000000800000000,
+   0x0000001000000000, 0x0000002000000000, 0x0000004000000000, 0x0000008000000000,
+   0x0000010000000000, 0x0000020000000000, 0x0000040000000000, 0x0000080000000000,
+   0x0000100000000000, 0x0000200000000000, 0x0000400000000000, 0x0000800000000000,
+   0x0001000000000000, 0x0002000000000000, 0x0004000000000000, 0x0008000000000000,
+   0x0010000000000000, 0x0020000000000000, 0x0040000000000000, 0x0080000000000000,
+   0x0100000000000000, 0x0200000000000000, 0x0400000000000000, 0x0800000000000000,
+   0x1000000000000000, 0x2000000000000000, 0x4000000000000000, 0x8000000000000000
+  };
 
 /**
  * @endcond
@@ -712,6 +733,16 @@ game_position_x_pass (const GamePositionX *const current,
 uint64_t
 game_position_x_hash (const GamePositionX *const gpx)
 {
+#ifdef __AVX2__
+  return game_position_x_hash_vec(gpx);
+#else
+  return game_position_x_hash_plain(gpx);
+#endif
+}
+
+uint64_t
+game_position_x_hash_plain (const GamePositionX *const gpx)
+{
   const SquareSet whites = gpx->whites;
   const SquareSet blacks = gpx->blacks;
   const Player p = gpx->player;
@@ -723,6 +754,61 @@ game_position_x_hash (const GamePositionX *const gpx)
     if (blacks & mask) hash ^= zobrist_bitstrings[i];
     if (whites & mask) hash ^= zobrist_bitstrings[i + 64];
   }
+  if (p) hash = ~hash; /* In this way passing doesn't require a full new hash. */
+
+  return hash;
+}
+
+uint64_t
+game_position_x_hash_vec (const GamePositionX *const gpx)
+{
+  __m256i m, zow, zob, x, x1;
+
+  const SquareSet blacks = gpx->blacks;
+  const SquareSet whites = gpx->whites;
+  const Player p = gpx->player;
+
+  __m256i const *zobi = (__m256i const *) zobrist_bitstrings;
+  __m256i const *zoma = (__m256i const *) zobrist_masks;
+
+  const __m256i b = _mm256_set1_epi64x(blacks);
+  const __m256i w = _mm256_set1_epi64x(whites);
+  const __m256i z = _mm256_set1_epi64x(0);
+  const __m256i s = _mm256_set1_epi64x(0x7FFFFFFFFFFFFFFF);
+
+  __m256i h = _mm256_set1_epi64x(0);
+
+  for (int i = 0; i < 16; i++) {
+    m    = _mm256_loadu_si256(zoma);
+    zob  = _mm256_loadu_si256(zobi);
+    zow  = _mm256_loadu_si256(zobi + 16);
+
+    x  = _mm256_and_si256(b, m);
+    x1 = _mm256_srli_epi64 (x, 1);
+    x  = _mm256_and_si256(x, s);
+    x  = _mm256_or_si256(x, x1);
+    x  = _mm256_cmpgt_epi64(x, z);
+    x  = _mm256_and_si256(x, zob);
+    h  = _mm256_xor_si256(h, x);
+
+    x  = _mm256_and_si256(w, m);
+    x1 = _mm256_srli_epi64 (x, 1);
+    x  = _mm256_and_si256(x, s);
+    x  = _mm256_or_si256(x, x1);
+    x  = _mm256_cmpgt_epi64(x, z);
+    x  = _mm256_and_si256(x, zow);
+    h  = _mm256_xor_si256(h, x);
+
+    zoma++;
+    zobi++;
+  }
+
+  const uint64_t h0 = _mm256_extract_epi64(h, 0);
+  const uint64_t h1 = _mm256_extract_epi64(h, 1);
+  const uint64_t h2 = _mm256_extract_epi64(h, 2);
+  const uint64_t h3 = _mm256_extract_epi64(h, 3);
+
+  uint64_t hash = h0 ^ h1 ^ h2 ^ h3;
   if (p) hash = ~hash; /* In this way passing doesn't require a full new hash. */
 
   return hash;

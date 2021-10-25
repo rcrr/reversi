@@ -593,16 +593,14 @@ game_position_x_deltas_t (ut_test_t *const t)
 {
   Square flips[16];
   int flip_count;
-  Player new_p;
   GamePositionX a, b;
 
   a.blacks = 4ULL, a.whites = 2ULL, a.player = BLACK_PLAYER;
   b.blacks = 7ULL, b.whites = 0ULL, b.player = WHITE_PLAYER;
-  game_position_x_deltas(&a, &b, flips, &flip_count, &new_p);
+  game_position_x_deltas(&a, &b, flips, &flip_count);
   ut_assert(t, flip_count == 2);
   ut_assert(t, flips[0] == A1);
   ut_assert(t, flips[1] == B1);
-  ut_assert(t, new_p == WHITE_PLAYER);
 }
 
 static void
