@@ -9,7 +9,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014, 2016, 2017 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2016, 2017, 2021 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -156,9 +156,20 @@ bitw_lzcnt_64_plain (const uint64_t bit_sequence)
   return 64;
 }
 
-#ifdef __ABM__
+#ifdef __LZCNT__
 extern uint8_t
 bitw_lzcnt_64_lzcnt (const uint64_t bit_sequence);
+#endif
+
+uint8_t
+bitw_tzcnt_64_plain (const uint64_t bit_sequence)
+{
+  return bitw_bit_count_64_plain((bit_sequence & -bit_sequence) - 1);
+}
+
+#ifdef __BMI__
+extern uint8_t
+bitw_tzcnt_64_tzcnt (const uint64_t bit_sequence);
 #endif
 
 /**

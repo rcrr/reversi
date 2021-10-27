@@ -768,7 +768,7 @@ alphabeta_with_memory (node_t *n,
 
   node_count++;
 
-  if (false) {
+  if (true) {
     n->hash = game_position_x_hash(&n->gpx);
   } else {
     game_position_x_deltas(&n->parent->gpx, &n->gpx, n->parent_flips, &n->parent_flip_count);

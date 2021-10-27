@@ -778,6 +778,7 @@ game_position_x_hash_vec (const GamePositionX *const gpx)
 
   __m256i h = _mm256_set1_epi64x(0);
 
+#pragma GCC unroll 1
   for (int i = 0; i < 16; i++) {
     m    = _mm256_loadu_si256(zoma);
     zob  = _mm256_loadu_si256(zobi);

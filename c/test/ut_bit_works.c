@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2017 Roberto Corradini. All rights reserved.
+ * @copyright 2017, 2019 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -185,7 +185,7 @@ bitw_lzcnt_64_plain_t (ut_test_t *const t)
   ut_assert(t,  1 == bitw_lzcnt_64_plain(0x7000000000000000ULL));
 }
 
-#ifdef __ABM__
+#ifdef __LZCNT__
 static void
 bitw_lzcnt_64_lzcnt_t (ut_test_t *const t)
 {
@@ -209,6 +209,54 @@ bitw_lzcnt_64_t (ut_test_t *const t)
   ut_assert(t,  0 == bitw_lzcnt_64(0xFFFFFFFFFFFFFFFFULL));
   ut_assert(t,  7 == bitw_lzcnt_64(0x0101010101010101ULL));
   ut_assert(t,  1 == bitw_lzcnt_64(0x7000000000000000ULL));
+}
+
+static void
+bitw_tzcnt_64_plain_t (ut_test_t *const t)
+{
+  ut_assert(t, 64 == bitw_tzcnt_64_plain(0x00ULL));
+  ut_assert(t,  0 == bitw_tzcnt_64_plain(0x01ULL));
+  ut_assert(t,  1 == bitw_tzcnt_64_plain(0x02ULL));
+  ut_assert(t,  0 == bitw_tzcnt_64_plain(0x03ULL));
+  ut_assert(t,  0 == bitw_tzcnt_64_plain(0xFFFFFFFFFFFFFFFFULL));
+  ut_assert(t,  0 == bitw_tzcnt_64_plain(0x0101010101010101ULL));
+  ut_assert(t, 63 == bitw_tzcnt_64_plain(0x8000000000000000ULL));
+  ut_assert(t,  0 == bitw_tzcnt_64_plain(0x8FFFFFFFFFFFFFFFULL));
+  ut_assert(t,  4 == bitw_tzcnt_64_plain(0x0000000000000010ULL));
+  ut_assert(t,  8 == bitw_tzcnt_64_plain(0x0000000000000100ULL));
+}
+
+
+#ifdef __BMI__
+static void
+bitw_tzcnt_64_tzcnt_t (ut_test_t *const t)
+{
+  ut_assert(t, 64 == bitw_tzcnt_64_plain(0x00ULL));
+  ut_assert(t,  0 == bitw_tzcnt_64_plain(0x01ULL));
+  ut_assert(t,  1 == bitw_tzcnt_64_plain(0x02ULL));
+  ut_assert(t,  0 == bitw_tzcnt_64_plain(0x03ULL));
+  ut_assert(t,  0 == bitw_tzcnt_64_plain(0xFFFFFFFFFFFFFFFFULL));
+  ut_assert(t,  0 == bitw_tzcnt_64_plain(0x0101010101010101ULL));
+  ut_assert(t, 63 == bitw_tzcnt_64_plain(0x8000000000000000ULL));
+  ut_assert(t,  0 == bitw_tzcnt_64_plain(0x8FFFFFFFFFFFFFFFULL));
+  ut_assert(t,  4 == bitw_tzcnt_64_plain(0x0000000000000010ULL));
+  ut_assert(t,  8 == bitw_tzcnt_64_plain(0x0000000000000100ULL));
+}
+#endif
+
+static void
+bitw_tzcnt_64_t (ut_test_t *const t)
+{
+  ut_assert(t, 64 == bitw_tzcnt_64_plain(0x00ULL));
+  ut_assert(t,  0 == bitw_tzcnt_64_plain(0x01ULL));
+  ut_assert(t,  1 == bitw_tzcnt_64_plain(0x02ULL));
+  ut_assert(t,  0 == bitw_tzcnt_64_plain(0x03ULL));
+  ut_assert(t,  0 == bitw_tzcnt_64_plain(0xFFFFFFFFFFFFFFFFULL));
+  ut_assert(t,  0 == bitw_tzcnt_64_plain(0x0101010101010101ULL));
+  ut_assert(t, 63 == bitw_tzcnt_64_plain(0x8000000000000000ULL));
+  ut_assert(t,  0 == bitw_tzcnt_64_plain(0x8FFFFFFFFFFFFFFFULL));
+  ut_assert(t,  4 == bitw_tzcnt_64_plain(0x0000000000000010ULL));
+  ut_assert(t,  8 == bitw_tzcnt_64_plain(0x0000000000000100ULL));
 }
 
 static void
@@ -498,10 +546,18 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_bit_count_64", bitw_bit_count_64_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_lzcnt_64_plain", bitw_lzcnt_64_plain_t);
-#ifdef __ABM__
+#ifdef __LZCNT__
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_lzcnt_64_lzcnt", bitw_lzcnt_64_lzcnt_t);
 #endif
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_lzcnt_64", bitw_lzcnt_64_t);
+
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_tzcnt_64_plain", bitw_tzcnt_64_plain_t);
+#ifdef __BMI__
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_tzcnt_64_tzcnt", bitw_tzcnt_64_tzcnt_t);
+#endif
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_tzcnt_64", bitw_tzcnt_64_t);
+
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_bit_scan_reverse_64_plain",  bitw_bit_scan_reverse_64_plain_t);
 #ifdef __x86_64__

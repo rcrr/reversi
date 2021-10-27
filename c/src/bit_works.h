@@ -92,7 +92,7 @@ bitw_bit_count_64 (uint64_t bit_set)
 extern uint8_t
 bitw_lzcnt_64_plain (uint64_t bit_set);
 
-#ifdef __ABM__
+#ifdef __LZCNT__
 __attribute__((always_inline))
 inline uint8_t
 bitw_lzcnt_64_lzcnt (uint64_t bit_set)
@@ -111,7 +111,7 @@ __attribute__((always_inline))
 inline uint8_t
 bitw_lzcnt_64 (uint64_t bit_set)
 {
-#ifdef __ABM__
+#ifdef __LZCNT__
   return bitw_lzcnt_64_lzcnt(bit_set);
 #else
   return bitw_lzcnt_64_plain(bit_set);
@@ -119,6 +119,43 @@ bitw_lzcnt_64 (uint64_t bit_set)
 }
 
 /* Leading zero count functions - Section end. */
+
+
+
+/*
+ * Trailing least significant zero bits zero count functions - Section begin.
+ */
+
+extern uint8_t
+bitw_tzcnt_64_plain (uint64_t bit_set);
+
+#ifdef __BMI__
+__attribute__((always_inline))
+inline uint8_t
+bitw_tzcnt_64_tzcnt (uint64_t bit_set)
+{
+  uint64_t result;
+  __asm__ __volatile__ ("tzcnt %1, %0;" : "=r" (result) : "r" (bit_set));
+  return (uint8_t) result;
+}
+#endif
+
+/**
+ * @endcond
+ */
+
+__attribute__((always_inline))
+inline uint8_t
+bitw_tzcnt_64 (uint64_t bit_set)
+{
+#ifdef __BMI__
+  return bitw_tzcnt_64_tzcnt(bit_set);
+#else
+  return bitw_tzcnt_64_plain(bit_set);
+#endif
+}
+
+/* Trailing zero count functions - Section end. */
 
 
 
