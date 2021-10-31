@@ -383,6 +383,13 @@ game_position_x_make_move (const GamePositionX *const current,
                            GamePositionX *const updated);
 
 extern void
+game_position_x_make_move_delta_hash (const GamePositionX *const current,
+                                      const Square move,
+                                      GamePositionX *const updated,
+                                      uint64_t hash,
+                                      uint64_t *updated_hash);
+
+extern void
 game_position_x_set_initial_position (GamePositionX *const gpx);
 
 extern int

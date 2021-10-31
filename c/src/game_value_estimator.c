@@ -123,14 +123,10 @@ static int min (int a, int b);
  * @cond
  */
 
-#define GVE_MAX_FLIP_COUNT 24
-
 typedef struct node_s {
   struct node_s *parent;
   SquareSet legal_move_set;
   Square parent_move;
-  Square parent_flips[GVE_MAX_FLIP_COUNT];
-  int parent_flip_count;
   Square best_move;
   int value;
   GamePositionX gpx;
@@ -141,12 +137,6 @@ typedef struct node_s {
 /*
  * Prototypes for internal functions.
  */
-
-static void
-negascout (node_t *n,
-           int depth,
-           int alpha,
-           int beta);
 
 static void
 alphabeta_with_memory (node_t *n,
@@ -248,7 +238,6 @@ game_position_value_estimator (const GamePositionX *const root,
   parent_root_node.parent = NULL;
   parent_root_node.legal_move_set = empty_move_set;
   parent_root_node.parent_move = invalid_move;
-  parent_root_node.parent_flip_count = 0;
   parent_root_node.best_move = invalid_move;
   parent_root_node.value = out_of_range_defeat_score;
   parent_root_node.gpx.blacks = root->blacks;
@@ -260,7 +249,6 @@ game_position_value_estimator (const GamePositionX *const root,
   root_node.parent = &parent_root_node;
   root_node.legal_move_set = empty_move_set;
   root_node.parent_move = invalid_move;
-  root_node.parent_flip_count = 0;
   root_node.best_move = invalid_move;
   root_node.value = out_of_range_defeat_score;
   root_node.gpx.blacks = root->blacks;
@@ -272,36 +260,17 @@ game_position_value_estimator (const GamePositionX *const root,
   clock_gettime(CLOCK_REALTIME, &start_time);
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
 
-  bool is_mtdf = true; // if true MTD(f) , otherwise negascout
-  bool id = true; // iterative-deepening
-  if (id) {
-    int id_limit = min(search_depth, ec - min_empty_count);
-    printf("id_limit = %d\n", id_limit);
-    for (int i = 1; i <= id_limit; i++) {
-      printf(" ### ### ### id = %d\n", i);
-      search_depth_id = i;
-      if (is_mtdf)
-        mtdf(&root_node, i);
-        //alphabeta_with_memory(&root_node, i, out_of_range_defeat_score, out_of_range_win_score);
-      else
-        negascout(&root_node, i, out_of_range_defeat_score, out_of_range_win_score);
-    }
-    if (search_depth > id_limit) {
-      printf(" ### ### ### LAST ### search_depth = %d\n", search_depth);
-      search_depth_id = search_depth;
-      if (is_mtdf)
-        mtdf(&root_node, search_depth); // stima da rivedere
-        //alphabeta_with_memory(&root_node, search_depth, out_of_range_defeat_score, out_of_range_win_score);
-      else
-        negascout(&root_node, search_depth, out_of_range_defeat_score, out_of_range_win_score);
-    }
-  } else {
+  int id_limit = min(search_depth, ec - min_empty_count);
+  printf("id_limit = %d\n", id_limit);
+  for (int i = 1; i <= id_limit; i++) {
+    printf(" ### ### ### id = %d\n", i);
+    search_depth_id = i;
+    mtdf(&root_node, i);
+  }
+  if (search_depth > id_limit) {
+    printf(" ### ### ### LAST ### search_depth = %d\n", search_depth);
     search_depth_id = search_depth;
-    if (is_mtdf)
-      mtdf(&root_node, search_depth); // stima da rivedere
-      //alphabeta_with_memory(&root_node, search_depth, out_of_range_defeat_score, out_of_range_win_score);
-    else
-      negascout(&root_node, search_depth, out_of_range_defeat_score, out_of_range_win_score);
+    mtdf(&root_node, search_depth); // stima da rivedere
   }
 
   /* Stops the stop-watch. */
@@ -312,7 +281,7 @@ game_position_value_estimator (const GamePositionX *const root,
   timespec_diff(&delta_time, &start_time, &end_time);
   timespec_diff(&delta_cpu_time, &time_0, &time_1);
   if (true) {
-    printf("Negascout evaluation CPU time: ");
+    printf("MTD(f) evaluation CPU time: ");
     printf("[%6lld.%9ld][%6lld.%9ld]\n",
            (long long) timespec_get_sec(&delta_cpu_time), timespec_get_nsec(&delta_cpu_time),
            (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
@@ -488,10 +457,18 @@ generate_legal_move_set (node_t *n,
   n->legal_move_set = it ? it->legal_move_set : game_position_x_legal_moves(&n->gpx);
 }
 
+/**
+ * @brief Generates child nodes
+ *
+ * @param [out] child_node_count pointer to the count of child nodes
+ * @param [out] child_nodes      array of children nodes
+ * @param [in]  n                pointer to the node structure
+ */
 static void
 generate_child_nodes (int *child_node_count,
                       node_t *child_nodes,
-                      node_t *n)
+                      node_t *n,
+                      bool compute_hash)
 {
   SquareSet lms; // legal move set
   int lmc;       // legal move count
@@ -500,17 +477,16 @@ generate_child_nodes (int *child_node_count,
   if (lms) {
     lmc = bitw_bit_count_64(lms);
     for (int i = 0; i < lmc; i++) {
-      const Square move = bitw_bit_scan_forward_64(lms);
+      const Square move = bitw_tzcnt_64(lms);
       node_t *const c = child_nodes + i;
       c->parent = n;
       c->legal_move_set = empty_move_set;
       c->parent_move = move;
-      //c->parent_flips = ???;
-      //c->parent_flip_count = 0;
       c->best_move = unknown_move;
       c->value = out_of_range_win_score;
-      game_position_x_make_move(&n->gpx, move, &c->gpx);
-      lms ^= (SquareSet) 1 << move;
+      if (compute_hash) game_position_x_make_move_delta_hash(&n->gpx, move, &c->gpx, n->hash, &c->hash);
+      else game_position_x_make_move(&n->gpx, move, &c->gpx);
+      lms = bitw_reset_lowest_set_bit_64(lms);
     }
   } else {
     lmc = 1;
@@ -519,8 +495,9 @@ generate_child_nodes (int *child_node_count,
     c->legal_move_set = empty_move_set;
     c->parent_move = pass_move;
     c->best_move = unknown_move;
-    c->value = out_of_range_defeat_score;
-    game_position_x_pass(&n->gpx, &c->gpx);
+    c->value = out_of_range_win_score;
+    if (compute_hash) game_position_x_make_move_delta_hash(&n->gpx, pass_move, &c->gpx, n->hash, &c->hash);
+    else game_position_x_make_move(&n->gpx, pass_move, &c->gpx);
   }
 
   *child_node_count = lmc;
@@ -595,13 +572,13 @@ leaf_negamax (node_t *n,
 
   node_count++;
 
-  generate_legal_move_set(n, NULL);
+  n->legal_move_set = game_position_x_legal_moves(&n->gpx);
 
   if (is_terminal(n)) {
     leaf_count++;
     exact_terminal_game_value(n);
   } else {
-    generate_child_nodes(&child_node_count, child_nodes, n);
+    generate_child_nodes(&child_node_count, child_nodes, n, false);
     n->value = out_of_range_defeat_score;
     for (int i = 0; i < child_node_count; i++) {
       node_t *child = &child_nodes[i];
@@ -611,142 +588,6 @@ leaf_negamax (node_t *n,
       if (alpha >= beta) break;
     }
   }
-
-  return;
-}
-
-static void
-negascout (node_t *n,
-           const int depth,
-           const int alpha,
-           const int beta)
-{
-  int child_node_count;
-  node_t child_nodes[64];
-  node_t *child_nodes_p[64];
-  int empty_count;
-  int explored_child_count;
-
-  int am = alpha; // alpha-mobile : local value that is adjusted during the search
-  int bm = beta;  // beta-mobile  : " ...
-
-  node_count++;
-
-  const uint64_t hash = game_position_x_hash(&n->gpx);
-  struct ttab_item_s its;
-  ttab_item_t it = &its;
-  it->hash = hash;
-  ttab_retrieve(ttab, &it);
-  if (it) { // item found in the TT
-    ttab_item_clone_data(it, &its);
-    if (its.depth >= depth) {
-      if (its.lower_bound >= bm) {
-        n->value = its.lower_bound;
-        return;
-      }
-      if (its.upper_bound <= am) {
-        n->value = its.upper_bound;
-        return;
-      }
-      am = max(am, its.lower_bound);
-      bm = min(bm, its.upper_bound);
-    } else {
-      its.lower_bound = out_of_range_defeat_score;
-      its.upper_bound = out_of_range_win_score;
-    }
-  } else { // item not found
-    its.hash = hash;
-    its.lower_bound = out_of_range_defeat_score;
-    its.upper_bound = out_of_range_win_score;
-    its.pq_index = -1;
-    its.legal_move_set = empty_move_set;
-    its.legal_move_count = 0;
-    for (int i = 0; i < TTAB_RECORDED_BEST_MOVE_COUNT; i++) {
-      its.best_moves[i] = unknown_move;
-      its.move_values[i] = out_of_range_defeat_score;
-    }
-  }
-
-  generate_legal_move_set(n, it);
-
-  explored_child_count = 0; // logic to be verified when leaf_negamax is selected ...
-  if (is_terminal(n)) {
-    leaf_count++;
-    exact_terminal_game_value(n);
-  } else if (depth == 0) {
-    heuristic_game_value(n);
-    n->best_move = unknown_move;
-  } else if ((empty_count = game_position_x_empty_count(&n->gpx)) < min_empty_count) {
-    leaf_negamax(n, am, bm);
-  } else {
-
-    generate_child_nodes(&child_node_count, child_nodes, n);
-    its.legal_move_count = child_node_count;
-    order_moves(child_node_count, child_nodes, child_nodes_p, it);
-
-    n->value = out_of_range_defeat_score;
-    n->best_move = invalid_move;
-    for (int i = 0; i < child_node_count; i++) {
-      node_t *child = child_nodes_p[i];
-      if (search_depth_id - depth == 0) {
-        printf("%02d - %2s (%+03d) [%+03d..%+03d]: ", i, square_as_move_to_string(child->parent_move), -child->value, am, bm);
-        //printf("hash = %zu", hash);
-        fflush(stdout);
-      }
-
-      if (i == 0) {
-        negascout(child, depth -1, -bm, -am);
-      } else {
-        negascout(child, depth -1, -am -2, -am);
-        if (-child->value > am && -child->value < bm) {
-          negascout(child, depth -1, -bm, child->value);
-        }
-      }
-
-      if (search_depth_id - depth == 0) {
-        char *s;
-        if (-child->value <= am) s = "(failing low)   f+";
-        else if (-child->value >= bm) s = "(failing high) f-";
-        else s = "(success)       f ";
-        printf("%s = %+03d - cumulated node count %10zu\n", s, -child->value, node_count);
-        fflush(stdout);
-      }
-      if (-child->value > n->value) {
-        n->value = -child->value;
-        n->best_move = child->parent_move;
-      }
-      am = max(am, n->value);
-      explored_child_count++;
-      if (am >= bm) break;
-    }
-
-  } // end-of-else
-  if (false && hash == 17372629065185580190ULL && depth == 5) abort();
-
-  its.depth = depth;
-  its.best_move = n->best_move;
-  its.legal_move_set = n->legal_move_set;
-  if (n->value < beta) its.upper_bound = n->value;
-  if (n->value > alpha) its.lower_bound = n->value;
-
-  for (int i = 1; i < explored_child_count; i++) {
-    int j = i;
-    for (;;) {
-      node_t *tmp;
-      if (j == 0) break;
-      if (child_nodes_p[j-1]->value <= child_nodes_p[j]->value) break;
-      tmp = child_nodes_p[j], child_nodes_p[j] = child_nodes_p[j-1], child_nodes_p[j-1] = tmp;
-      j--;
-    }
-  }
-
-  for (int i = 0; i < min(explored_child_count, TTAB_RECORDED_BEST_MOVE_COUNT); i++) {
-    node_t *child = child_nodes_p[i];
-    its.best_moves[i] = child->parent_move;
-    its.move_values[i] = -child->value;
-  }
-
-  ttab_insert(ttab, &its);
 
   return;
 }
@@ -767,21 +608,6 @@ alphabeta_with_memory (node_t *n,
   int bm = beta;  // beta-mobile  : " ...
 
   node_count++;
-
-  if (true) {
-    n->hash = game_position_x_hash(&n->gpx);
-  } else {
-    game_position_x_deltas(&n->parent->gpx, &n->gpx, n->parent_flips, &n->parent_flip_count);
-    const uint64_t delta_hash = game_position_x_delta_hash(n->parent->hash, n->parent_flips, n->parent_flip_count, n->gpx.player);
-    n->hash = delta_hash;
-  }
-  /*
-  if (n->hash != delta_hash) {
-    printf("n->hash    = %lx\n", n->hash);
-    printf("delta_hash = %lx\n", delta_hash);
-    abort();
-  }
-  */
   struct ttab_item_s its;
   ttab_item_t it = &its;
   it->hash = n->hash;
@@ -829,7 +655,7 @@ alphabeta_with_memory (node_t *n,
     leaf_negamax(n, am, bm);
   } else {
 
-    generate_child_nodes(&child_node_count, child_nodes, n);
+    generate_child_nodes(&child_node_count, child_nodes, n, true);
     its.legal_move_count = child_node_count;
     order_moves(child_node_count, child_nodes, child_nodes_p, it);
 

@@ -5,8 +5,6 @@ To do list:
      - rglm_eval_gp
      - board_pattern_packed_to_index
      Sono il cuore della parte NON ottimizzata sia del solver RGLM che di quello GVE
-
- (2.1) vettorizzare board_pattern_packed_to_index ...
  
  (2.2) Una seconda idea è quella di capire quante volte di seguito è chiamata la funzione ...
        sicuramente per un edge è chiamata 4 volte, e poi diventa più triky perchè le configurazioni dei pattern sono distinte.
@@ -20,7 +18,7 @@ To do list:
  (2.4) Appena un indice è calcolato, prefetch parameter values.
        Prefetch va studiato bene , ha molta potenzialità. Mentre faccio i conti di rotazioni e PACKED2INDEX ... si fa la prefetch ...
 
- (4) Una miriade di sistemazioni "pratiche" del codice.
+ (4) Una miriade di sistemazioni "pratiche" del codice. ( si ma andrebbero listate )
  
  (5) Modificare la tabella regab_prng_gp con un campo GAME_VALUE_CHECK che ci consente di fare un secondo run e validare il risultato ( potrebbe essere una data ? ).
      Credo sia piu' semplice duplicare i dati da testare in una nuova tabella:
@@ -37,8 +35,6 @@ To do list:
      Nel caso in cui si volesse ripristinare lo status se qusto invece di CMP fosse stato CMS, va fatto.
      Poi si puo' quindi confrontare con una JOIN che il campo game_value abbia sempre lo stesso valore.
      
- (7) Molte ottimizzazioni, tipo: calcolo HASH, ...
- 
  (8) Aggiungere i Model Weight per EC = 0,1
  
  (9) Rimuovere limitazione che bisogna avere il MODEL-WEIGHT anche per gli EC elevati, serve un fallback su algoritmo BASICO in quel caso.
@@ -57,9 +53,51 @@ DONE
        e di disegnare bene i campi registrati nella TT.
        Poi serve di avere un approccio "tipo memoizzazione", -mi servono le mosse legali ?-, chiamo la funzione lms, se sono gia' calcolate non le ricalcolo, altrimenti le calcolo .... ad esempio
        la funzione is_terminal calcola le mosse lgali, che poi vanno perse e vengono ricalcolate da generate_child_nodes.
+
+ (2.1) vettorizzare board_pattern_packed_to_index ...
+ 
  (3) Passare da negascout a MTDf.
  (6) Rimuovere il "clutter" in GVE dato da negamax e da OLD TT.
+ (7) Calcolo HASH ottimizzato, con funzione delta hash.
 
+
+Appunti al 31-10-2021
+
+Cominciamo a studiare come migliorare le trasformazioni della board ... ecco del materiale interessante ...
+
+  https://programming.sirrida.de/calcperm.php
+  https://github.com/kfrlib/fft/blob/master/include/kfr/base/digitreverse.hpp
+
+  constexpr inline u32 bit_permute_step_simple(u32 x, u32 m, u32 shift) {
+    return ((x & m) << shift) | ((x >> shift) & m);
+  }
+
+Partiamo con lo studio ...
+
+
+Appunti al 30-10-2021
+
+Queste due opzioni di codice sono performanti allo stesso modo:
+
+  if (false) {
+    n->hash = game_position_x_hash(&n->gpx);
+  } else {
+    game_position_x_deltas(&n->parent->gpx, &n->gpx, n->parent_flips, &n->parent_flip_count);
+    const uint64_t delta_hash = game_position_x_delta_hash(n->parent->hash, n->parent_flips, n->parent_flip_count, n->gpx.player);
+    n->hash = delta_hash;
+  }
+
+La seconda pero' ha un potenziale di ottimizzazione ben rilevante.
+Rimuovere completamente il calcolo game_position_x_deltas e game_position_x_delta_hash inglobando
+il delta hash nella funzione make move.
+
+Creo la funzione game_position_x_make_move_delta_hash ... non un grande miglioramento ...
+Tengo comunque la nuova formulazione che risulta un po' piu' semplice.
+
+
+  ES        : [ node_count = 378.034.158, leaf_count = 60.770.918 ] 25.096s
+  RGLM      : [ node_count = 149.986.155, leaf_count = 21.535.119 ] 15.227s
+  GVE(MTDF) : [ node_count =  32.017.443, leaf_count =  2.104.442 ] 25.349s
 
 
 Appunti al 24-10-2021

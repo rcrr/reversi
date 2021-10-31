@@ -778,7 +778,6 @@ game_position_x_hash_vec (const GamePositionX *const gpx)
 
   __m256i h = _mm256_set1_epi64x(0);
 
-#pragma GCC unroll 1
   for (int i = 0; i < 16; i++) {
     m    = _mm256_loadu_si256(zoma);
     zob  = _mm256_loadu_si256(zobi);
@@ -1258,6 +1257,63 @@ game_position_x_make_move (const GamePositionX *const current,
     updated->whites = p_set_n;
   }
   updated->player = o;
+
+  return;
+}
+
+void
+game_position_x_make_move_delta_hash (const GamePositionX *const current,
+                                      const Square move,
+                                      GamePositionX *const updated,
+                                      uint64_t hash,
+                                      uint64_t *updated_hash)
+{
+  assert(current);
+  assert(updated);
+  assert(square_is_valid_move(move));
+  assert(game_position_x_is_move_legal(current, move));
+
+  if (move == pass_move) {
+    game_position_x_pass(current, updated);
+    *updated_hash = ~hash;
+    return;
+  }
+
+  const Player p = current->player;
+  const Player o = player_opponent(p);
+
+  const SquareSet m_set = 1ULL << move;
+  const SquareSet p_set = game_position_x_get_mover(current);
+  const SquareSet o_set = game_position_x_get_opponent(current);
+
+  const SquareSet f_set = kogge_stone_gpb(m_set, o_set, p_set);
+
+  const SquareSet p_set_n = p_set |  f_set;
+  const SquareSet o_set_n = o_set & ~f_set;
+
+  if (o) {
+    updated->blacks = p_set_n;
+    updated->whites = o_set_n;
+  } else {
+    updated->blacks = o_set_n;
+    updated->whites = p_set_n;
+  }
+  updated->player = o;
+
+  register uint64_t uhash = hash;
+
+  const int index = move + 64 * (1 - o);
+  uhash ^= zobrist_bitstrings[index];
+
+  SquareSet h_set = f_set & ~(m_set | p_set);
+  while (h_set) {
+    const uint8_t flip = bitw_tzcnt_64(h_set);
+    h_set = bitw_reset_lowest_set_bit_64(h_set);
+    uhash ^= zobrist_flip_bitstrings[flip];
+  }
+  uhash = ~uhash;
+
+  *updated_hash = uhash;
 
   return;
 }
