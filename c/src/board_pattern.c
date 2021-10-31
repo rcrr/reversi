@@ -9,7 +9,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2018, 2019, 2020 Roberto Corradini. All rights reserved.
+ * @copyright 2018, 2019, 2020, 2021 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -30,10 +30,18 @@
  * </tt>
  */
 
+/*
+ * Comment this line to enable assertion in the module.
+ * The line must be inserted before the inclusion of <assert.h>
+ */
+#define NDEBUG
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+
+#include <immintrin.h>
 
 #include "board_pattern.h"
 
@@ -534,39 +542,6 @@ board_pattern_compute_principal_indexes (board_pattern_index_t *principals,
   }
 }
 
-  /*
-  SquareSet x, mask;
-  SquareSet m, o;
-  board_pattern_index_t idx;
-  int k;
-
-  m = board_get_mover_square_set(packed);
-  o = board_get_opponent_square_set(packed);
-  mask = 0x0000000000000001;
-
-  k = 1;
-  idx = 0;
-  for (int i = 0; i < n_squares; i++) {
-    x = m & mask;
-    idx += k * x;
-    x = o & mask;
-    idx += k * x * 2;
-    m >>= 1;
-    o >>= 1;
-    k *= 3; // gcc compiles this line and "k = (k << 1) + k;" with the same instruction: leal (%rcx,%rcx,2), %ecx
-  }
-
-  return idx;
-
-  */
-
-/*
- * This function accounts for a relevant time slice in the new endgame RGLM solver.
- * Could be improved with the use of ABM, BMI1 and BMI2 instruction extensions ?
- * In particular is PEXT (Parallel bits extract) a possible way forward ?
- *
- * See : https://en.wikipedia.org/wiki/Bit_manipulation_instruction_set
- */
 board_pattern_index_t
 board_pattern_packed_to_index (board_t *packed,
                                unsigned int n_squares)
@@ -589,8 +564,6 @@ board_pattern_packed_to_index (board_t *packed,
 
   return idxv;
 }
-
-#include <immintrin.h>
 
 void
 fprintf_256i_epi8 (FILE *f,
