@@ -758,40 +758,51 @@ board_pattern_compute_rotated (const board_t *board,
   assert(board);
   assert(rotated);
 
-  SquareSet *s;
+#define BOARD_PATTERN_MOVER    0
+#define BOARD_PATTERN_OPPONENT 1
 
-  const SquareSet m = board->square_sets[0];
-  const SquareSet o = board->square_sets[1];
+  const SquareSet m = board->square_sets[BOARD_PATTERN_MOVER];
+  const SquareSet o = board->square_sets[BOARD_PATTERN_OPPONENT];
 
-  s = rotated->named_boards.identity.square_sets;
-  s[0] = m;
-  s[1] = o;
+  const SquareSet xm = board_trans_flip_diag_a1h8(m);
+  const SquareSet xo = board_trans_flip_diag_a1h8(o);
 
-  s = rotated->named_boards.rot_90a.square_sets;
-  s[0] = board_trans_rotate_90a(m);
-  s[1] = board_trans_rotate_90a(o);
+  const SquareSet ym = board_trans_flip_vertical(m);
+  const SquareSet yo = board_trans_flip_vertical(o);
 
-  s = rotated->named_boards.rot_180.square_sets;
-  s[0] = board_trans_rotate_180(m);
-  s[1] = board_trans_rotate_180(o);
+  const SquareSet um = board_trans_flip_diag_h1a8(m);
+  const SquareSet uo = board_trans_flip_diag_h1a8(o);
 
-  s = rotated->named_boards.rot_90c.square_sets;
-  s[0] = board_trans_rotate_90c(m);
-  s[1] = board_trans_rotate_90c(o);
+  const SquareSet zm = board_trans_flip_horizontal(m);
+  const SquareSet zo = board_trans_flip_horizontal(o);
 
-  s = rotated->named_boards.flip_ve.square_sets;
-  s[0] = board_trans_flip_vertical(m);
-  s[1] = board_trans_flip_vertical(o);
+  rotated->named_boards.identity.square_sets[BOARD_PATTERN_MOVER]    = m;
+  rotated->named_boards.identity.square_sets[BOARD_PATTERN_OPPONENT] = o;
 
-  s = rotated->named_boards.flip_dh.square_sets;
-  s[0] = board_trans_flip_diag_h1a8(m);
-  s[1] = board_trans_flip_diag_h1a8(o);
+  /* rotate_90a = flip_diag_h1a8(flip_horizontal) */
+  rotated->named_boards.rot_90a.square_sets[BOARD_PATTERN_MOVER]    = board_trans_flip_diag_h1a8(zm);
+  rotated->named_boards.rot_90a.square_sets[BOARD_PATTERN_OPPONENT] = board_trans_flip_diag_h1a8(zo);
 
-  s = rotated->named_boards.flip_ho.square_sets;
-  s[0] = board_trans_flip_horizontal(m);
-  s[1] = board_trans_flip_horizontal(o);
+  /* rotate_180 = flip_vertical(flip_horizontal */
+  rotated->named_boards.rot_180.square_sets[BOARD_PATTERN_MOVER]    = board_trans_flip_vertical(zm);
+  rotated->named_boards.rot_180.square_sets[BOARD_PATTERN_OPPONENT] = board_trans_flip_vertical(zo);
 
-  s = rotated->named_boards.flip_da.square_sets;
-  s[0] = board_trans_flip_diag_a1h8(m);
-  s[1] = board_trans_flip_diag_a1h8(o);
+  /* rotate_90c = flip_horizontal(flip_diag_h1a8 */
+  rotated->named_boards.rot_90c.square_sets[BOARD_PATTERN_MOVER]    = board_trans_flip_horizontal(um);
+  rotated->named_boards.rot_90c.square_sets[BOARD_PATTERN_OPPONENT] = board_trans_flip_horizontal(uo);
+
+  rotated->named_boards.flip_ve.square_sets[BOARD_PATTERN_MOVER]    = ym;
+  rotated->named_boards.flip_ve.square_sets[BOARD_PATTERN_OPPONENT] = yo;
+
+  rotated->named_boards.flip_dh.square_sets[BOARD_PATTERN_MOVER]    = um;
+  rotated->named_boards.flip_dh.square_sets[BOARD_PATTERN_OPPONENT] = uo;
+
+  rotated->named_boards.flip_ho.square_sets[BOARD_PATTERN_MOVER]    = zm;
+  rotated->named_boards.flip_ho.square_sets[BOARD_PATTERN_OPPONENT] = zo;
+
+  rotated->named_boards.flip_da.square_sets[BOARD_PATTERN_MOVER]    = xm;
+  rotated->named_boards.flip_da.square_sets[BOARD_PATTERN_OPPONENT] = xo;
+
+#undef BOARD_PATTERN_MOVER
+#undef BOARD_PATTERN_OPPONENT
 }

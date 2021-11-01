@@ -61,6 +61,29 @@ DONE
  (7) Calcolo HASH ottimizzato, con funzione delta hash.
 
 
+Appunti al 1-11-2021
+
+Lo studio sulle trasformazioni non e' ancora partito, intanto ho rimosso le duplicazioni di trasformazioni presenti nella funzione
+
+  board_pattern_compute_rotated
+
+Eseguendo : "time ./build/bin/endgame_solver -s gve -f db/gpdb-sample-games.txt -q woc18-FKvsAP-g1-22" si ottiene:
+
+            OLD            NEW
+         ------         ------
+         25.443		25.126			
+         25.330		25.382			
+         25.436		25.160			
+         25.744		24.978			
+         25.315		24.969			
+					
+AVERAGE: 25.454		25.123		0.3300  1.30%
+BEST:    25.315		24.969		0.3460	1.37%
+
+Con un miglioramento di 1.3%
+
+
+
 Appunti al 31-10-2021
 
 Cominciamo a studiare come migliorare le trasformazioni della board ... ecco del materiale interessante ...
