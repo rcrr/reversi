@@ -30,12 +30,29 @@
  * </tt>
  */
 
+/*
+ * Comment this line to enable assertion in the module.
+ * The line must be inserted before the inclusion of <assert.h>
+ */
+#define NDEBUG
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
+#include <immintrin.h>
+
 #include "board_trans.h"
+
+void
+fprintf_hex_128i_epi64 (FILE *f,
+                        __m128i var)
+{
+  uint64_t val[2];
+  memcpy(val, &var, sizeof(val));
+  fprintf(f, "0x%016lx 0x%016lx", val[0], val[1]);
+}
 
 SquareSet
 board_trans_flip_horizontal (SquareSet s)
@@ -51,6 +68,25 @@ board_trans_flip_horizontal (SquareSet s)
     ((s >> 56) );
 }
 
+void
+board_trans_flip_horizontal_vec (SquareSet *b,
+                                 SquareSet *r)
+{
+  __m128i x = _mm_loadu_si128((__m128i *) b);
+
+  x =
+    _mm_slli_epi64(x, 56) |
+    _mm_and_si128(_mm_slli_epi64(x, 40), _mm_set1_epi64x(0x00ff000000000000)) |
+    _mm_and_si128(_mm_slli_epi64(x, 24), _mm_set1_epi64x(0x0000ff0000000000)) |
+    _mm_and_si128(_mm_slli_epi64(x,  8), _mm_set1_epi64x(0x000000ff00000000)) |
+    _mm_and_si128(_mm_srli_epi64(x,  8), _mm_set1_epi64x(0x00000000ff000000)) |
+    _mm_and_si128(_mm_srli_epi64(x, 24), _mm_set1_epi64x(0x0000000000ff0000)) |
+    _mm_and_si128(_mm_srli_epi64(x, 40), _mm_set1_epi64x(0x000000000000ff00)) |
+    _mm_srli_epi64(x, 56);
+
+  _mm_store_si128((__m128i *) r, x);
+}
+
 SquareSet
 board_trans_flip_vertical (SquareSet s)
 {
@@ -61,6 +97,23 @@ board_trans_flip_vertical (SquareSet s)
   s = ((s >> 2) & k2) | ((s & k2) << 2);
   s = ((s >> 4) & k4) | ((s & k4) << 4);
   return s;
+}
+
+void
+board_trans_flip_vertical_vec (SquareSet *b,
+                               SquareSet *r)
+{
+  __m128i x = _mm_loadu_si128((__m128i *) b);
+
+  const __m128i k1 = _mm_set1_epi64x(0x5555555555555555);
+  const __m128i k2 = _mm_set1_epi64x(0x3333333333333333);
+  const __m128i k4 = _mm_set1_epi64x(0x0f0f0f0f0f0f0f0f);
+
+  x = (_mm_srli_epi64(x, 1) & k1) | _mm_slli_epi64((x & k1), 1);
+  x = (_mm_srli_epi64(x, 2) & k2) | _mm_slli_epi64((x & k2), 2);
+  x = (_mm_srli_epi64(x, 4) & k4) | _mm_slli_epi64((x & k4), 4);
+
+  _mm_store_si128((__m128i *) r, x);
 }
 
 SquareSet
@@ -79,6 +132,27 @@ board_trans_flip_diag_a1h8 (SquareSet s)
   return s;
 }
 
+void
+board_trans_flip_diag_a1h8_vec (SquareSet *b,
+                                SquareSet *r)
+{
+  __m128i x = _mm_loadu_si128((__m128i *) b);
+  __m128i t;
+
+  const __m128i k1 = _mm_set1_epi64x(0x5500550055005500);
+  const __m128i k2 = _mm_set1_epi64x(0x3333000033330000);
+  const __m128i k4 = _mm_set1_epi64x(0x0f0f0f0f00000000);
+
+  t  = k4 & (x ^ _mm_slli_epi64(x, 28));
+  x ^=       t ^ _mm_srli_epi64(t, 28) ;
+  t  = k2 & (x ^ _mm_slli_epi64(x, 14));
+  x ^=       t ^ _mm_srli_epi64(t, 14) ;
+  t  = k1 & (x ^ _mm_slli_epi64(x,  7));
+  x ^=       t ^ _mm_srli_epi64(t,  7) ;
+
+  _mm_store_si128((__m128i *) r, x);
+}
+
 SquareSet
 board_trans_flip_diag_h1a8 (SquareSet s)
 {
@@ -93,6 +167,27 @@ board_trans_flip_diag_h1a8 (SquareSet s)
   t  = k1 & (s ^ (s <<  9));
   s ^=       t ^ (t >>  9) ;
   return s;
+}
+
+void
+board_trans_flip_diag_h1a8_vec (SquareSet *b,
+                                SquareSet *r)
+{
+  __m128i x = _mm_loadu_si128((__m128i *) b);
+  __m128i t;
+
+  const __m128i k1 = _mm_set1_epi64x(0xaa00aa00aa00aa00);
+  const __m128i k2 = _mm_set1_epi64x(0xcccc0000cccc0000);
+  const __m128i k4 = _mm_set1_epi64x(0xf0f0f0f00f0f0f0f);
+
+  t  =       x ^ _mm_slli_epi64(x, 36) ;
+  x ^= k4 & (t ^ _mm_srli_epi64(x, 36));
+  t  = k2 & (x ^ _mm_slli_epi64(x, 18));
+  x ^=       t ^ _mm_srli_epi64(t, 18) ;
+  t  = k1 & (x ^ _mm_slli_epi64(x,  9));
+  x ^=       t ^ _mm_srli_epi64(t,  9) ;
+
+  _mm_store_si128((__m128i *) r, x);
 }
 
 SquareSet

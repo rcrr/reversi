@@ -806,3 +806,56 @@ board_pattern_compute_rotated (const board_t *board,
 #undef BOARD_PATTERN_MOVER
 #undef BOARD_PATTERN_OPPONENT
 }
+
+void
+board_pattern_compute_rotated_vec (const board_t *board,
+                                   board_pattern_rotated_t *rotated)
+{
+  assert(board);
+  assert(rotated);
+
+#define MOV 0
+#define OPP 1
+
+  const SquareSet m = board->square_sets[MOV];
+  const SquareSet o = board->square_sets[OPP];
+
+  board_t x, y, u, z, t, s, r;
+  board_trans_flip_diag_a1h8_vec((SquareSet *) board, (SquareSet *) &x);
+  board_trans_flip_vertical_vec((SquareSet *) board, (SquareSet *) &y);
+  board_trans_flip_diag_h1a8_vec((SquareSet *) board, (SquareSet *) &u);
+  board_trans_flip_horizontal_vec((SquareSet *) board, (SquareSet *) &z);
+
+  rotated->named_boards.identity.square_sets[MOV] = m;
+  rotated->named_boards.identity.square_sets[OPP] = o;
+
+  /* rotate_90a = flip_diag_h1a8(flip_horizontal) */
+  board_trans_flip_diag_h1a8_vec((SquareSet *) &z, (SquareSet *) &r);
+  rotated->named_boards.rot_90a.square_sets[MOV] = r.square_sets[MOV];
+  rotated->named_boards.rot_90a.square_sets[OPP] = r.square_sets[OPP];
+
+  /* rotate_180 = flip_vertical(flip_horizontal */
+  board_trans_flip_vertical_vec((SquareSet *) &z, (SquareSet *) &s);
+  rotated->named_boards.rot_180.square_sets[MOV] = s.square_sets[MOV];
+  rotated->named_boards.rot_180.square_sets[OPP] = s.square_sets[OPP];
+
+  /* rotate_90c = flip_horizontal(flip_diag_h1a8 */
+  board_trans_flip_horizontal_vec((SquareSet *) &u, (SquareSet *) &t);
+  rotated->named_boards.rot_90c.square_sets[MOV] = t.square_sets[MOV];
+  rotated->named_boards.rot_90c.square_sets[OPP] = t.square_sets[OPP];
+
+  rotated->named_boards.flip_ve.square_sets[MOV] = y.square_sets[MOV];
+  rotated->named_boards.flip_ve.square_sets[OPP] = y.square_sets[OPP];
+
+  rotated->named_boards.flip_dh.square_sets[MOV] = u.square_sets[MOV];
+  rotated->named_boards.flip_dh.square_sets[OPP] = u.square_sets[OPP];
+
+  rotated->named_boards.flip_ho.square_sets[MOV] = z.square_sets[MOV];
+  rotated->named_boards.flip_ho.square_sets[OPP] = z.square_sets[OPP];
+
+  rotated->named_boards.flip_da.square_sets[MOV] = x.square_sets[MOV];
+  rotated->named_boards.flip_da.square_sets[OPP] = x.square_sets[OPP];
+
+#undef MOV
+#undef OPP
+}

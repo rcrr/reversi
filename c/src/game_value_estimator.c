@@ -358,7 +358,7 @@ rglm_eval_gp (const GamePositionX *const gpx)
   }
 
   board_pattern_rotated_t r;
-  board_pattern_compute_rotated(b, &r);
+  board_pattern_compute_rotated_vec(b, &r);
 
   for (size_t j = 0; j < mw->pattern_cnt; j++) {
     const board_pattern_id_t pid = patterns[j];

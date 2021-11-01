@@ -909,7 +909,7 @@ board_pattern_compute_rotated (const board_t *board,
                                board_pattern_rotated_t *rotated);
 
 extern void
-board_pattern_compute_rotated_b (const board_t *board,
-                                 board_pattern_rotated_t *rotated);
+board_pattern_compute_rotated_vec (const board_t *board,
+                                   board_pattern_rotated_t *rotated);
 
 #endif

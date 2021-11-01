@@ -340,6 +340,20 @@ board_trans_rotate_90a (SquareSet s);
 extern SquareSet
 board_trans_identity (SquareSet s);
 
+extern void
+board_trans_flip_horizontal_vec (SquareSet *b,
+                                 SquareSet *s);
 
+extern void
+board_trans_flip_vertical_vec (SquareSet *b,
+                               SquareSet *s);
+
+extern void
+board_trans_flip_diag_a1h8_vec (SquareSet *b,
+                                SquareSet *r);
+
+extern void
+board_trans_flip_diag_h1a8_vec (SquareSet *b,
+                                SquareSet *r);
 
 #endif

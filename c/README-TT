@@ -82,6 +82,15 @@ BEST:    25.315		24.969		0.3460	1.37%
 
 Con un miglioramento di 1.3%
 
+Sviluppando tutte le funzioni di trasformazione della board in board_trans vettorizzate a 128 bits, in pratica operando contemporaneamente su
+mover e opponent, si guadagna un altro 1.75% globalmente, arrivando ad un 3% complessivo.
+
+Siamo a questo punto:
+
+  ES        : [ node_count = 378.034.158, leaf_count = 60.770.918 ] 24.978s
+  RGLM      : [ node_count = 149.986.155, leaf_count = 21.535.119 ] 14.890s
+  GVE(MTDF) : [ node_count =  32.017.443, leaf_count =  2.104.442 ] 24.722s
+
 
 
 Appunti al 31-10-2021
