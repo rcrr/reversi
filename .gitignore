@@ -43,6 +43,7 @@ field_research/code/edax/4.3/bin
 .kdev_include_paths
 out
 callgrind.out.*
+cachegrind.out.*
 .Rhistory
 out_*
 regab_*.csv

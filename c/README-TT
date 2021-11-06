@@ -61,6 +61,16 @@ DONE
  (7) Calcolo HASH ottimizzato, con funzione delta hash.
 
 
+Appunti al 6-11-2021
+
+Aggiungendo il flag --simulate-cache=yes alla esecuzione di valgrind:
+
+  $ valgrind --tool=callgrind --dump-instr=yes --collect-jumps=yes --simulate-cache=yes ./build/bin/endgame_solver -s gve -f db/gpdb-ffo.txt -q ffo-29
+
+Si puo osservare come e dove ci siano i cache misses.
+Prima modifica fatta sul codice della hashtable, le LLd writes sono state dimezzate, ma i tempi generali sono i medesimi.
+
+
 Appunti al 1-11-2021
 
 Lo studio sulle trasformazioni non e' ancora partito, intanto ho rimosso le duplicazioni di trasformazioni presenti nella funzione

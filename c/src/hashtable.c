@@ -30,10 +30,17 @@
  * </tt>
  */
 
+/*
+ * Comment this line to enable assertion in the module.
+ * The line must be inserted before the inclusion of <assert.h>
+ */
+#define NDEBUG
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <limits.h>
+#include <string.h>
 
 #include "hashtable.h"
 
@@ -119,13 +126,22 @@ htab_new (int hint,
   for (i = 1; primes[i] < hint; i++)
     ;
 
-  table = malloc(sizeof(*table) +
-                 primes[i - 1] * sizeof(table->buckets[0]));
+  table = malloc(sizeof(*table));
   if (!table) return NULL;
   table->size = primes[i - 1];
-  table->buckets = (struct binding **)(table + 1);
-  for (i = 0; i < table->size; i++)
-    table->buckets[i] = NULL;
+  table->buckets = malloc(primes[i - 1] * sizeof(table->buckets[0]));
+  if (!table->buckets) {
+    free(table);
+    return NULL;
+  }
+  /*
+    This code has been substitueded by the call to memset.
+    The change reduced the LLd writes detected by valgrind/cachegrind.
+
+    for (i = 0; i < table->size; i++)
+      table->buckets[i] = NULL;
+  */
+  memset(table->buckets, 0, table->size * sizeof(table->buckets[0]));
   table->cmp = cmp;
   table->hash = hash;
   table->length = 0;
@@ -149,6 +165,7 @@ htab_free (T *t)
       }
     }
   }
+  free((*t)->buckets);
   free(*t);
   *t = NULL;
 }
