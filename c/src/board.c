@@ -36,7 +36,10 @@
  * Comment this line to enable assertion in the module.
  * The line must be inserted before the inclusion of <assert.h>
  */
+#if !defined NDEBUG
 #define NDEBUG
+#endif
+
 
 #include <stdio.h>
 #include <stdlib.h>

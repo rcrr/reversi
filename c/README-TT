@@ -61,6 +61,15 @@ DONE
  (7) Calcolo HASH ottimizzato, con funzione delta hash.
 
 
+
+Appunti al 14-11-2021
+
+Ogni tentativo di usare efficacemente la PREFETCH non ha dato risultati.
+Dopo aver calcolato l'indice del peso, la lookup al valore del peso per il calcolo del game value stalla la CPU, che va in cache-miss.
+Una soluzione a qusto inconveniente non la ho trovata.
+
+
+
 Appunti al 6-11-2021
 
 Aggiungendo il flag --simulate-cache=yes alla esecuzione di valgrind:
@@ -69,6 +78,15 @@ Aggiungendo il flag --simulate-cache=yes alla esecuzione di valgrind:
 
 Si puo osservare come e dove ci siano i cache misses.
 Prima modifica fatta sul codice della hashtable, le LLd writes sono state dimezzate, ma i tempi generali sono i medesimi.
+
+Compiliamo il software rimuovendo il flag -fno-inline e aggiungendo -DNDEBUG e -flto. I tempi diventano:
+
+
+  ES        : [ node_count = 378.034.158, leaf_count = 60.770.918 ] 24.978s --> 21.436s
+  RGLM      : [ node_count = 149.986.155, leaf_count = 21.535.119 ] 14.890s --> 13.244s
+  GVE(MTDF) : [ node_count =  32.017.443, leaf_count =  2.104.442 ] 24.722s --> 20.846s
+
+
 
 
 Appunti al 1-11-2021

@@ -101,7 +101,7 @@ UTEST_MAINS := ut_binary_heap ut_bit_works ut_board ut_board_pattern ut_board_tr
                ut_endgame_utils ut_es_pv ut_file_utils ut_flame ut_game_position ut_game_position_db \
                ut_game_tree_utils ut_hashtable ut_isqrt ut_linear_algebra ut_linked_list ut_main_option_parse \
                ut_memory_object_pool ut_prng ut_red_black_tree ut_rglm_data_files ut_rglm_utils \
-               ut_sha3 ut_sort_utils ut_transposition_table ut_trsm ut_utest
+               ut_sha3 ut_sort_utils ut_transposition_table ut_trsm ut_utest ut_prefetch
 
 MAINS_AND_MODULES := $(sort $(MAINS) $(MODULES))
 
@@ -264,15 +264,15 @@ UTEST_BINS := $(addprefix $(TEST_BINDIR)/,$(UTEST_MAINS))
 # add -ftree-vectorize -ftree-vectorizer-verbose=2 to get from gcc the explanation for code vectorization
 # add -flto to the CFLAGS list to improve execution speed ( it takes much more to link executables )
 ARCH_FLAGS := -mpopcnt -mavx2 -mfma -mbmi -mlzcnt
-CFLAGS := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g3 -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fopenmp -fno-inline
-CFLAGS_TEST := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g3 -O3 $(ARCH_FLAGS) -I$(EXT_INC)
+CFLAGS := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g3 -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fopenmp -DNDEBUG -flto
+CFLAGS_TEST := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g0 -O3 $(ARCH_FLAGS) -I$(EXT_INC) -fopenmp -fno-inline
 LDFLAGS := 
 LDFLAGS_TEST :=
 #
 # add -masm=intel to have the intel assembly format.
 # BE CAREFULL because assembly code inlined as __asm__ compiles but will NOT work as expected.
 #
-ASMFLAGS := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fverbose-asm -fopenmp -fno-inline
+ASMFLAGS := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g3 -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fverbose-asm -fopenmp -fno-inline
 
 ##
 ## Source and header file dependencies
@@ -890,6 +890,31 @@ LIB_FLAME := -lm $(FLAME_LIB) $(BLIS_LIB) -lgomp -lpthread
 $(UTE_FLAME): $(UTO_FLAME) $(UTE_FLAME_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel $(TMPDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
 	@$(CC) $(LDFLAGS_TEST) $< $(UTE_FLAME_OBJ_DEPENDENCIES) $(LIB_FLAME) -o $@
+
+##
+## prefetch
+##
+ASM_UT_PREFETCH := $(ASMDIR)/ut_prefetch.s
+ut_prefetch: $(UTE_PREFETCH)
+asm_ut_prefetch: $(ASM_UT_PREFETCH)
+
+$(ASM_UT_PREFETCH): $(UTS_PREFETCH) Makefile $(ASMDIR)/.dir_sentinel
+	@printf "Compiling source file $< into assembly $@\n"
+	@$(CC) $(ASMFLAGS) -S $< -o $@ $(TEST_INCLUDE)
+
+$(UTO_PREFETCH): $(UTS_PREFETCH) Makefile $(TEST_OBJDIR)/.dir_sentinel
+	@printf "Test suite: compiling $< into $@\n"
+	@$(CC) $(CFLAGS_TEST) -c $< -o $@ $(TEST_INCLUDE)
+
+UTE_PREFETCH_OBJ_DEPENDENCIES := \
+  $(OBJ_MAIN_OPTION_PARSE) $(OBJ_UNIT_TEST) $(OBJ_LINKED_LIST) $(OBJ_TIME_UTILS) \
+  $(OBJ_PRNG)
+
+LIB_PREFETCH := -lm
+
+$(UTE_PREFETCH): $(UTO_PREFETCH) $(UTE_PREFETCH_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel $(TMPDIR)/.dir_sentinel
+	@printf "Test suite: linking executable $@\n"
+	@$(CC) $(LDFLAGS_TEST) $< $(UTE_PREFETCH_OBJ_DEPENDENCIES) $(LIB_PREFETCH) -o $@
 
 ##
 ## game_position

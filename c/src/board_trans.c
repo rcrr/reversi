@@ -9,7 +9,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2018 Roberto Corradini. All rights reserved.
+ * @copyright 2018, 2021 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -34,7 +34,9 @@
  * Comment this line to enable assertion in the module.
  * The line must be inserted before the inclusion of <assert.h>
  */
+#if !defined NDEBUG
 #define NDEBUG
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>

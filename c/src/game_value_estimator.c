@@ -46,6 +46,8 @@
 #include <assert.h>
 #include <math.h>
 
+#include <immintrin.h>
+
 #include "time_utils.h"
 #include "cfg.h"
 #include "file_utils.h"
@@ -368,8 +370,9 @@ rglm_eval_gp (const GamePositionX *const gpx)
       tr.square_sets[0] = bpp->pattern_pack_f(r.board_array[k].square_sets[0]);
       tr.square_sets[1] = bpp->pattern_pack_f(r.board_array[k].square_sets[1]);
       const board_pattern_index_t index_value = board_pattern_packed_to_index_vec(&tr, bpp->n_squares);
-      const rglmdf_weight_record_t *const wrec =
+      rglmdf_weight_record_t *const wrec =
         rglmdf_model_weights_table_lookup_record(mw, BOARD_ENTITY_CLASS_PATTERN, pid, index_value);
+
       gp_eval += wrec->weight;
     }
   }
