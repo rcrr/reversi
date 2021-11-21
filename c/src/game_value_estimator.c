@@ -112,6 +112,8 @@ static const int min_empty_count = 4;
 static uint64_t node_count;
 static uint64_t leaf_count;
 
+static uint64_t rglm_eval_gp_call_count;
+
 static int search_depth;
 
 static ttab_t ttab;
@@ -202,6 +204,7 @@ game_position_value_estimator (const GamePositionX *const root,
 
   node_count = 0;
   leaf_count = 0;
+  rglm_eval_gp_call_count = 0;
 
   search_depth = env->search_depth;
 
@@ -264,7 +267,7 @@ game_position_value_estimator (const GamePositionX *const root,
 
   int id_limit = min(search_depth, ec - min_empty_count);
   printf("id_limit = %d\n", id_limit);
-  for (int i = 1; i <= id_limit; i++) {
+  for (int i = 1; i <= id_limit; i += 3) {
     printf(" ### ### ### id = %d\n", i);
     search_depth_id = i;
     mtdf(&root_node, i);
@@ -297,6 +300,8 @@ game_position_value_estimator (const GamePositionX *const root,
   result->leaf_count = leaf_count;
 
   printf("game_position_value_estimator: search_depth = %d, estimated_value = %d\n", search_depth, estimated_value);
+
+  printf("rglm_eval_gp_call_count = %zu\n", rglm_eval_gp_call_count);
 
   const size_t stats_size = 42;
   size_t stats[stats_size];
@@ -332,6 +337,8 @@ static double
 rglm_eval_gp (const GamePositionX *const gpx)
 {
   assert(gpx);
+
+  rglm_eval_gp_call_count++;
 
   const int empty_count = game_position_x_empty_count(gpx);
 

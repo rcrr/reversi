@@ -62,6 +62,34 @@ DONE
 
 
 
+Appunti al 21-11-2021
+
+Proviamo a eseguire l'algoritmo di ID (Iterative Deepening) con passo diverso da 1. Ecco i risultati: 
+
+  GVE(MTDF) ID-increment=1 : [ node_count =  32.017.443, leaf_count =  2.104.442 ] 21.039s
+  GVE(MTDF) ID-increment=2 : [ node_count =  26.092.048, leaf_count =  2.278.180 ] 20.367s
+  GVE(MTDF) ID-increment=3 : [ node_count =  21.131.468, leaf_count =  2.163.094 ] 15.764s
+  GVE(MTDF) ID-increment=4 : [ node_count =  22.639.887, leaf_count =  2.150.485 ] 17.606s
+  GVE(MTDF) ID-increment=5 : [ node_count =  20.504.601, leaf_count =  2.083.586 ] 15.745s
+  GVE(MTDF) ID-increment=6 : [ node_count =  29.466.467, leaf_count =  3.645.594 ] 21.194s
+  GVE(MTDF) ID-increment=7 : [ node_count =  26.542.457, leaf_count =  3.053.506 ] 19.719s
+
+Appare evidente the passo 3 e passo 5 diano risultati ben superiori a passo 1.
+
+Teniamo buono il passo 3, in altri agme la cosa non e' univoca, comunqu passo 3 e sempre meglio di passo 1.
+
+Comunque, nonostante il miglioramento, RGLM rimane piu' veloce del 30-50% (la posizione usata per le varie statistiche ha un 30% di gap,
+altre posizioni hanno fino ad un 50%).
+Noto che nonostante il contenuto numro di nodi navigati (1/5 - 1/10) da GVE rispetto a RGLM, il numero di call alla funzione rglm_eval_gp e'
+quattro volte piu' alto.
+
+  GVE(MTDF) : rglm_eval_gp_call_count = 21 170 391
+  RGLM      : rglm_eval_gp_call_count =  5 681 198
+
+Questo e' un tema da investigare a fondo.
+
+
+
 Appunti al 14-11-2021
 
 Ogni tentativo di usare efficacemente la PREFETCH non ha dato risultati.

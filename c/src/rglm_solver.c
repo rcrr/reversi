@@ -136,6 +136,7 @@ static const char *mws_f[EC_SIZE];
 
 static bool mw_loaded = false;
 
+static uint64_t rglm_eval_gp_call_count;
 
 /**
  * @endcond
@@ -163,6 +164,7 @@ game_position_rglm_solve (const GamePositionX *const root,
     fprintf(stderr, "Error loading RGLM solver model weights files. Aborting ...\n");
     abort();
   }
+  rglm_eval_gp_call_count = 0;
   const int ec = game_position_x_empty_count(root);
   const bool mw_available = mws[ec] != NULL;
   if (false) {
@@ -176,6 +178,7 @@ game_position_rglm_solve (const GamePositionX *const root,
   }
   result = game_position_rglm_solve_nlmw(root, env);
   game_position_rglm_release_model_weights();
+  printf("rglm_eval_gp_call_count = %zu\n", rglm_eval_gp_call_count);
   return result;
 }
 
@@ -363,6 +366,8 @@ static double
 rglm_eval_gp (const GamePositionX *const gpx)
 {
   assert(gpx);
+
+  rglm_eval_gp_call_count++;
 
   const int empty_count = game_position_x_empty_count(gpx);
 
