@@ -137,6 +137,9 @@ static const char *mws_f[EC_SIZE];
 static bool mw_loaded = false;
 
 static uint64_t rglm_eval_gp_call_count;
+static uint64_t look_ahead_a;
+static uint64_t look_ahead_b;
+static uint64_t look_ahead_c;
 
 /**
  * @endcond
@@ -165,6 +168,9 @@ game_position_rglm_solve (const GamePositionX *const root,
     abort();
   }
   rglm_eval_gp_call_count = 0;
+  look_ahead_a = 0;
+  look_ahead_b = 0;
+  look_ahead_c = 0;
   const int ec = game_position_x_empty_count(root);
   const bool mw_available = mws[ec] != NULL;
   if (false) {
@@ -179,6 +185,9 @@ game_position_rglm_solve (const GamePositionX *const root,
   result = game_position_rglm_solve_nlmw(root, env);
   game_position_rglm_release_model_weights();
   printf("rglm_eval_gp_call_count = %zu\n", rglm_eval_gp_call_count);
+  printf("look_ahead_a            = %zu\n", look_ahead_a);
+  printf("look_ahead_b            = %zu\n", look_ahead_b);
+  printf("look_ahead_c            = %zu\n", look_ahead_c);
   return result;
 }
 
@@ -453,6 +462,8 @@ look_ahead_and_sort_moves_by_mobility_count (GameTreeStack *const stack)
 
   gts_mle_t **mle = c->head_of_legal_move_list;
 
+  look_ahead_a++;
+
   if (c->move_set) {
     const bool mw_available = mws[ec-1] != NULL;
     for (int i = 0; i < legal_moves_priority_cluster_count; i++) {
@@ -464,7 +475,9 @@ look_ahead_and_sort_moves_by_mobility_count (GameTreeStack *const stack)
         (*mle)->res_move_set = game_position_x_legal_moves(&(*mle)->res_position);
         (*mle)->res_move_count = bitw_bit_count_64((*mle)->res_move_set);
         bool is_leaf = false;
+        look_ahead_b++;
         if (mw_available) {
+          look_ahead_c++;
           if ((*mle)->res_move_count == 0) {
             GamePositionX next;
             game_position_x_pass(&(*mle)->res_position, &next);

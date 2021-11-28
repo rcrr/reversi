@@ -107,17 +107,21 @@ static bool mw_loaded = false;
  */
 
 /* To be moved into the config file. */
-static const int min_empty_count = 4;
+static const int min_empty_count = 10; // 4
+static const int id_step = 3;          // 3
 
 static uint64_t node_count;
 static uint64_t leaf_count;
 
 static uint64_t rglm_eval_gp_call_count;
+static uint64_t order_moves_a;
+static uint64_t order_moves_b;
+static uint64_t order_moves_c;
 
 static int search_depth;
 
 static ttab_t ttab;
-static const size_t ttab_log_size = 25;
+static const size_t ttab_log_size = 24;
 
 static int min (int a, int b);
 
@@ -205,6 +209,9 @@ game_position_value_estimator (const GamePositionX *const root,
   node_count = 0;
   leaf_count = 0;
   rglm_eval_gp_call_count = 0;
+  order_moves_a = 0;
+  order_moves_b = 0;
+  order_moves_c = 0;
 
   search_depth = env->search_depth;
 
@@ -267,7 +274,7 @@ game_position_value_estimator (const GamePositionX *const root,
 
   int id_limit = min(search_depth, ec - min_empty_count);
   printf("id_limit = %d\n", id_limit);
-  for (int i = 1; i <= id_limit; i += 3) {
+  for (int i = 1; i <= id_limit; i += id_step) {
     printf(" ### ### ### id = %d\n", i);
     search_depth_id = i;
     mtdf(&root_node, i);
@@ -302,6 +309,9 @@ game_position_value_estimator (const GamePositionX *const root,
   printf("game_position_value_estimator: search_depth = %d, estimated_value = %d\n", search_depth, estimated_value);
 
   printf("rglm_eval_gp_call_count = %zu\n", rglm_eval_gp_call_count);
+  printf("order_moves_a = %zu\n", order_moves_a);
+  printf("order_moves_b = %zu\n", order_moves_b);
+  printf("order_moves_c = %zu\n", order_moves_c);
 
   const size_t stats_size = 42;
   size_t stats[stats_size];
@@ -520,6 +530,7 @@ order_moves (int child_node_count,
              ttab_item_t it)
 {
   if (it && it->best_moves[0] != unknown_move) {
+    order_moves_a++;
 
     for (int i = 0; i < child_node_count; i++) {
       node_t *child = &child_nodes[i];
@@ -540,7 +551,9 @@ order_moves (int child_node_count,
     }
 
   } else {
+    order_moves_b++;
     for (int i = 0; i < child_node_count; i++) {
+      order_moves_c++;
       node_t *child = &child_nodes[i];
       child_nodes_p[i] = child;
       heuristic_game_value(child);

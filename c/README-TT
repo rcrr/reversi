@@ -62,6 +62,81 @@ DONE
 
 
 
+Appunti al 28-11-2021
+
+Per una analisi precisa sul perche' le chiamate alla funzione rglm_eval_gp sono cosi' tante ...
+
+Rimuoviamo i flag: -DNDEBUG -flto
+Aggiungiaamo: -fno-inline
+
+La baseline per la posizione woc18-FKvsAP-g1-22 e' la seguente:
+
+  ES        : [ node_count = 378.034.158, leaf_count = 60.770.918 ] 25.002s
+  RGLM      : [ node_count = 149.986.155, leaf_count = 21.535.119 ] 14.693s
+  GVE(MTDF) : [ node_count =  21.131.468, leaf_count =  2.163.094 ] 19.304s
+
+Nel caso GVE rglm_eval_gp e' chiamato per due strade diverse:
+
+  (1) alphabeta_with_memory->heuristic_game_value->rglm_eval_gp
+  (2) alphabeta_with_memory->order_moves->heuristic_game_value->rglm_eval_gp
+
+La #2 copre il 99.99% dei casi.
+
+Concentriamoci quindi su order_moves, che viene chiamato 432.074 volte.
+
+Nel caso della poszione ffo-29 i numeri sono 10x e coincidono esattamente con quelli di callgrind.
+
+  GVE  : rglm_eval_gp_call_count = 1.005.287 [node_count = 1.206.578, leaf_count = 118.718 ]
+  RGLM : rglm_eval_gp_call_count =   151.774 [node_count = 4.756.528, leaf_count = 755.464 ]
+
+Calls to alphabeta_with memory :
+  650.333 - alphabeta_with memory
+       16 - mtdf
+
+Calls to order_moves:
+  432.074 - alphabeta_with memory
+
+order_moves_a =   161.432
+order_moves_b =   270.658
+                  -------
+                  432.090
+
+order_moves_c = 1.005.193
+
+Bisogna studiare order_moves ... non sono convinto di come funziona.
+ORA HO CAPITO !
+E' nel config file, l'uso del modello per fare la EVAL della posizione viene effettuato solo fino a EC=10.
+
+Invece GVE ha un min_empty_count = 4.
+Facendo un po' di prove risulta che il valore ottimale sia tra 9-10 ... e il guadagno e' ENORME !
+
+Solver GVE(MTDF), posizione woc18-FKvsAP-g1-22 (ultima colonna rglm_eval_gp_call_count):
+
+   4 : [node_count =  21.131.468, leaf_count =  2.163.094 ] 19.052s  21.170.391
+   5 : [node_count =  21.765.780, leaf_count =  2.424.051 ] 16.078s  18.391.697
+   6 : [node_count =  24.759.521, leaf_count =  3.073.491 ] 13.395s  14.485.729
+   7 : [node_count =  35.006.180, leaf_count =  5.474.127 ] 10.610s  11.458.989
+   8 : [node_count =  48.171.539, leaf_count =  8.064.984 ]  8.081s   7.743.848
+   9 : [node_count =  64.738.048, leaf_count = 11.332.997 ]  7.312s   6.175.355
+  10 : [node_count = 114.350.911, leaf_count = 21.023.310 ]  6.705s   2.923.389
+  11 : [node_count = 181.741.225, leaf_count = 34.354.733 ]  8.404s   2.037.288
+  12 : [node_count = 329.757.893, leaf_count = 63.435.427 ] 13.066s     931.295
+
+Tempi con assetto PROD:
+
+  ES        : [ node_count = 378.034.158, leaf_count = 60.770.918 ] 21.335s
+  RGLM      : [ node_count = 149.986.155, leaf_count = 21.535.119 ] 13.379s ( 5.681.198 )
+  GVE(MTDF) : [ node_count = 114.350.911, leaf_count = 21.023.310 ]  5.394s ( 2.923.389 )
+
+E con CFLAGS da sviluppo: 
+
+  ES        : [ node_count = 378.034.158, leaf_count = 60.770.918 ] 25.036s
+  RGLM      : [ node_count = 149.986.155, leaf_count = 21.535.119 ] 14.944s ( 5.681.198 )
+  GVE(MTDF) : [ node_count = 114.350.911, leaf_count = 21.023.310 ]  6.681s ( 2.923.389 )
+
+
+
+
 Appunti al 21-11-2021
 
 Proviamo a eseguire l'algoritmo di ID (Iterative Deepening) con passo diverso da 1. Ecco i risultati: 
