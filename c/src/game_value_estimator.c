@@ -105,17 +105,10 @@ static int id_step;
 static uint64_t node_count;
 static uint64_t leaf_count;
 
-static uint64_t rglm_eval_gp_call_count;
-static uint64_t order_moves_a;
-static uint64_t order_moves_b;
-static uint64_t order_moves_c;
-
 static int search_depth;
 
 static ttab_t ttab;
 static const size_t ttab_log_size = 24;
-
-static int min (int a, int b);
 
 
 
@@ -172,6 +165,10 @@ rglm_eval_gp (const GamePositionX *const gpx);
 static int
 gv_f2d (const double f);
 
+static int
+min (int a, int b);
+
+
 /*
  * Internal variables and constants.
  */
@@ -212,10 +209,6 @@ game_position_value_estimator (const GamePositionX *const root,
 
   node_count = 0;
   leaf_count = 0;
-  rglm_eval_gp_call_count = 0;
-  order_moves_a = 0;
-  order_moves_b = 0;
-  order_moves_c = 0;
 
   search_depth = env->search_depth;
 
@@ -327,11 +320,6 @@ game_position_value_estimator (const GamePositionX *const root,
 
   printf("game_position_value_estimator: search_depth = %d, estimated_value = %d\n", search_depth, estimated_value);
 
-  printf("rglm_eval_gp_call_count = %zu\n", rglm_eval_gp_call_count);
-  printf("order_moves_a = %zu\n", order_moves_a);
-  printf("order_moves_b = %zu\n", order_moves_b);
-  printf("order_moves_c = %zu\n", order_moves_c);
-
   const size_t stats_size = 42;
   size_t stats[stats_size];
   ttab_summary_to_stream(ttab, stdout);
@@ -438,8 +426,6 @@ static double
 rglm_eval_gp (const GamePositionX *const gpx)
 {
   assert(gpx);
-
-  rglm_eval_gp_call_count++;
 
   const int empty_count = game_position_x_empty_count(gpx);
 
@@ -610,7 +596,6 @@ order_moves (int child_node_count,
              ttab_item_t it)
 {
   if (it && it->best_moves[0] != unknown_move) {
-    order_moves_a++;
 
     for (int i = 0; i < child_node_count; i++) {
       node_t *child = &child_nodes[i];
@@ -631,9 +616,7 @@ order_moves (int child_node_count,
     }
 
   } else {
-    order_moves_b++;
     for (int i = 0; i < child_node_count; i++) {
-      order_moves_c++;
       node_t *child = &child_nodes[i];
       child_nodes_p[i] = child;
       heuristic_game_value(child);

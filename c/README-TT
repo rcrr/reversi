@@ -3,6 +3,7 @@ To do list:
 
  (4) Una miriade di sistemazioni "pratiche" del codice. ( si ma andrebbero listate )
      File di configurazione da riga di comando
+     Interferenze tra id_min_empty_count, id_step, search_depth ... e presenza dei files di model_weight
  
  (5) Modificare la tabella regab_prng_gp con un campo GAME_VALUE_CHECK che ci consente di fare un secondo run e validare il risultato ( potrebbe essere una data ? ).
      Credo sia piu' semplice duplicare i dati da testare in una nuova tabella:
