@@ -141,7 +141,7 @@ typedef struct {
 /**********************************************/
 
 /**
- * @brief The empty square set.
+ * @brief The count of squares on the board.
  */
 static const int square_cardinality = 64;
 

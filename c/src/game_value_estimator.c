@@ -67,8 +67,6 @@
 /* Empty Count Size - [0..60] the game stages ... */
 #define EC_SIZE 61
 
-static const SquareSet empty_move_set = 0ULL;
-
 /* The vector of model weighs structures indexed by empty_count. */
 static rglmdf_model_weights_t mws_s[EC_SIZE];
 
@@ -98,8 +96,10 @@ static const char *mws_f[EC_SIZE];
  * ###
  */
 
+/* Iterative deepening minimum empty count. */
+static int id_min_empty_count;
+
 /* To be moved into the config file. */
-static const int min_empty_count = 10; // 4
 static const int id_step = 3;          // 3
 
 static uint64_t node_count;
@@ -137,6 +137,11 @@ typedef struct node_s {
 /*
  * Prototypes for internal functions.
  */
+
+static int
+get_id_min_empty_count_from_cfg (cfg_t *cfg,
+                                 int *id_min_empty_count);
+
 
 static int
 check_config_file (cfg_t *cfg);
@@ -225,12 +230,18 @@ game_position_value_estimator (const GamePositionX *const root,
     exit(EXIT_FAILURE);
   }
 
+  ret_err = get_id_min_empty_count_from_cfg(env->cfg, &id_min_empty_count);
+  if (ret_err != EXIT_SUCCESS) {
+    fprintf(stderr, "Error loading key id_min_empty_count from section gve_solver from the config file. Exiting ...\n");
+    exit(EXIT_FAILURE);
+  }
+
   result = exact_solution_new();
   exact_solution_init(result);
   exact_solution_set_root(result, root);
 
   const int ec = game_position_x_empty_count(root);
-  printf("Empty count = %d, Search depth = %d, Minimum empty count = %d\n", ec, search_depth, min_empty_count);
+  printf("Empty count = %d, Search depth = %d, Minimum empty count = %d\n", ec, search_depth, id_min_empty_count);
   if (search_depth < 0) search_depth = ec * 2;
 
   const bool mw_available = mws[ec] != NULL;
@@ -249,7 +260,7 @@ game_position_value_estimator (const GamePositionX *const root,
 
   node_t parent_root_node;
   parent_root_node.parent = NULL;
-  parent_root_node.legal_move_set = empty_move_set;
+  parent_root_node.legal_move_set = empty_square_set;
   parent_root_node.parent_move = invalid_move;
   parent_root_node.best_move = invalid_move;
   parent_root_node.value = out_of_range_defeat_score;
@@ -260,7 +271,7 @@ game_position_value_estimator (const GamePositionX *const root,
 
   node_t root_node;
   root_node.parent = &parent_root_node;
-  root_node.legal_move_set = empty_move_set;
+  root_node.legal_move_set = empty_square_set;
   root_node.parent_move = invalid_move;
   root_node.best_move = invalid_move;
   root_node.value = out_of_range_defeat_score;
@@ -273,7 +284,7 @@ game_position_value_estimator (const GamePositionX *const root,
   clock_gettime(CLOCK_REALTIME, &start_time);
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
 
-  int id_limit = min(search_depth, ec - min_empty_count);
+  int id_limit = min(search_depth, ec - id_min_empty_count);
   printf("id_limit = %d\n", id_limit);
   for (int i = 1; i <= id_limit; i += id_step) {
     printf(" ### ### ### id = %d\n", i);
@@ -339,6 +350,30 @@ game_position_value_estimator (const GamePositionX *const root,
  */
 
 static int
+get_id_min_empty_count_from_cfg (cfg_t *cfg,
+                                 int *id_min_empty_count)
+{
+  int value;
+
+  const char *id_min_empty_count_s = cfg_get(cfg, "gve_solver", "id_min_empty_count");
+  if (!id_min_empty_count_s) {
+    fprintf(stderr, "The key id_min_empty_count is missing from section gve_solver.\n");
+    return EXIT_FAILURE;
+  }
+
+  value = atoi(id_min_empty_count_s);
+  if (value < 0 || value > 60) {
+    fprintf(stderr, "The key id_min_empty_count is out of range. It must be in [0..60].\n");
+    return EXIT_FAILURE;
+  }
+
+  *id_min_empty_count = value;
+  return EXIT_SUCCESS;
+}
+
+
+
+static int
 check_config_file (cfg_t *cfg)
 {
   if (!cfg) {
@@ -363,8 +398,6 @@ check_config_file (cfg_t *cfg)
     fprintf(stderr, "The key check_key doesn't have value equal to true.\n");
     return EXIT_FAILURE;
   }
-
-
   return EXIT_SUCCESS;
 }
 
@@ -520,7 +553,7 @@ generate_child_nodes (int *child_node_count,
       const Square move = bitw_tzcnt_64(lms);
       node_t *const c = child_nodes + i;
       c->parent = n;
-      c->legal_move_set = empty_move_set;
+      c->legal_move_set = empty_square_set;
       c->parent_move = move;
       c->best_move = unknown_move;
       c->value = out_of_range_win_score;
@@ -532,7 +565,7 @@ generate_child_nodes (int *child_node_count,
     lmc = 1;
     node_t *const c = child_nodes + 0;
     c->parent = n;
-    c->legal_move_set = empty_move_set;
+    c->legal_move_set = empty_square_set;
     c->parent_move = pass_move;
     c->best_move = unknown_move;
     c->value = out_of_range_win_score;
@@ -677,7 +710,7 @@ alphabeta_with_memory (node_t *n,
     its.lower_bound = out_of_range_defeat_score;
     its.upper_bound = out_of_range_win_score;
     its.pq_index = -1;
-    its.legal_move_set = empty_move_set;
+    its.legal_move_set = empty_square_set;
     its.legal_move_count = 0;
     for (int i = 0; i < TTAB_RECORDED_BEST_MOVE_COUNT; i++) {
       its.best_moves[i] = unknown_move;
@@ -694,7 +727,7 @@ alphabeta_with_memory (node_t *n,
   } else if (depth == 0) {
     if (n->value == out_of_range_win_score) heuristic_game_value(n);
     n->best_move = unknown_move;
-  } else if ((empty_count = game_position_x_empty_count(&n->gpx)) < min_empty_count) {
+  } else if ((empty_count = game_position_x_empty_count(&n->gpx)) < id_min_empty_count) {
     leaf_negamax(n, am, bm);
   } else {
 
