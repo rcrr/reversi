@@ -99,8 +99,8 @@ static const char *mws_f[EC_SIZE];
 /* Iterative deepening minimum empty count. */
 static int id_min_empty_count;
 
-/* To be moved into the config file. */
-static const int id_step = 3;          // 3
+/* Iterative deepening step. */
+static int id_step;
 
 static uint64_t node_count;
 static uint64_t leaf_count;
@@ -139,9 +139,12 @@ typedef struct node_s {
  */
 
 static int
+get_id_step_from_cfg (cfg_t *cfg,
+                      int *id_step);
+
+static int
 get_id_min_empty_count_from_cfg (cfg_t *cfg,
                                  int *id_min_empty_count);
-
 
 static int
 check_config_file (cfg_t *cfg);
@@ -229,10 +232,14 @@ game_position_value_estimator (const GamePositionX *const root,
     fprintf(stderr, "Error loading RGLM solver model weights files. Exiting ...\n");
     exit(EXIT_FAILURE);
   }
-
   ret_err = get_id_min_empty_count_from_cfg(env->cfg, &id_min_empty_count);
   if (ret_err != EXIT_SUCCESS) {
     fprintf(stderr, "Error loading key id_min_empty_count from section gve_solver from the config file. Exiting ...\n");
+    exit(EXIT_FAILURE);
+  }
+  ret_err = get_id_step_from_cfg(env->cfg, &id_step);
+  if (ret_err != EXIT_SUCCESS) {
+    fprintf(stderr, "Error loading key id_step from section gve_solver from the config file. Exiting ...\n");
     exit(EXIT_FAILURE);
   }
 
@@ -350,6 +357,28 @@ game_position_value_estimator (const GamePositionX *const root,
  */
 
 static int
+get_id_step_from_cfg (cfg_t *cfg,
+                      int *id_step)
+{
+  int value;
+
+  const char *id_step_s = cfg_get(cfg, "gve_solver", "id_step");
+  if (!id_step_s) {
+    fprintf(stderr, "The key id_step is missing from section gve_solver.\n");
+    return EXIT_FAILURE;
+  }
+
+  value = atoi(id_step_s);
+  if (value < 1 || value > 10) {
+    fprintf(stderr, "The key id_step is out of range. It must be in [1..10].\n");
+    return EXIT_FAILURE;
+  }
+
+  *id_step = value;
+  return EXIT_SUCCESS;
+}
+
+static int
 get_id_min_empty_count_from_cfg (cfg_t *cfg,
                                  int *id_min_empty_count)
 {
@@ -370,8 +399,6 @@ get_id_min_empty_count_from_cfg (cfg_t *cfg,
   *id_min_empty_count = value;
   return EXIT_SUCCESS;
 }
-
-
 
 static int
 check_config_file (cfg_t *cfg)
