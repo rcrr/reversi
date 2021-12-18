@@ -45,6 +45,7 @@
 #include <inttypes.h>
 #include <assert.h>
 #include <math.h>
+#include <string.h>
 
 #include <immintrin.h>
 
@@ -67,12 +68,6 @@
 #define EC_SIZE 61
 
 static const SquareSet empty_move_set = 0ULL;
-
-/* Default rglm_solver_config file. */
-static const char *const rglm_solver_def_config_file = "./cfg/game_value_estimator.cfg";
-
-/* The RGLM solver config. */
-static cfg_t *rglm_solver_config = NULL;
 
 /* The vector of model weighs structures indexed by empty_count. */
 static rglmdf_model_weights_t mws_s[EC_SIZE];
@@ -97,9 +92,6 @@ static const char *const mws_l[EC_SIZE] =
 
 /* The names of the files to be loaded. */
 static const char *mws_f[EC_SIZE];
-
-/* True when the Model Weiights have been loaded. */
-static bool mw_loaded = false;
 
 /* ###
  * ### End of section for: Model Weights static variables.
@@ -146,6 +138,9 @@ typedef struct node_s {
  * Prototypes for internal functions.
  */
 
+static int
+check_config_file (cfg_t *cfg);
+
 static void
 alphabeta_with_memory (node_t *n,
                        int depth,
@@ -157,7 +152,8 @@ mtdf (node_t *n,
       const int depth);
 
 static int
-game_position_rglm_load_model_weights_files (bool verbose);
+game_position_rglm_load_model_weights_files (bool verbose,
+                                             cfg_t *cfg);
 
 static void
 game_position_rglm_release_model_weights (void);
@@ -218,10 +214,15 @@ game_position_value_estimator (const GamePositionX *const root,
   ExactSolution *result = NULL;
   const bool verbose = false;
   int ret_err;
-  ret_err = game_position_rglm_load_model_weights_files(verbose);
+  ret_err =  check_config_file(env->cfg);
   if (ret_err != EXIT_SUCCESS) {
-    fprintf(stderr, "Error loading RGLM solver model weights files. Aborting ...\n");
-    abort();
+    fprintf(stderr, "Error in the config file. Exiting ...\n");
+    exit(EXIT_FAILURE);
+  }
+  ret_err = game_position_rglm_load_model_weights_files(verbose, env->cfg);
+  if (ret_err != EXIT_SUCCESS) {
+    fprintf(stderr, "Error loading RGLM solver model weights files. Exiting ...\n");
+    exit(EXIT_FAILURE);
   }
 
   result = exact_solution_new();
@@ -338,6 +339,36 @@ game_position_value_estimator (const GamePositionX *const root,
  */
 
 static int
+check_config_file (cfg_t *cfg)
+{
+  if (!cfg) {
+    fprintf(stderr, "The configuration file is mandatory for the gve solver.\n");
+    return EXIT_FAILURE;
+  }
+  const char *gve_solver_check_key = cfg_get(cfg, "gve_solver", "check_key");
+  if (gve_solver_check_key == NULL) {
+    fprintf(stderr, "The key check_key is missing from section gve_solver.\n");
+    return EXIT_FAILURE;
+  }
+  if (strcmp(gve_solver_check_key, "true")) {
+    fprintf(stderr, "The key check_key doesn't have value equal to true.\n");
+    return EXIT_FAILURE;
+  }
+  const char *model_weights_check_key = cfg_get(cfg, "model_weights", "check_key");
+  if (model_weights_check_key == NULL) {
+    fprintf(stderr, "The key check_key is missing from section model_weights.\n");
+    return EXIT_FAILURE;
+  }
+  if (strcmp(model_weights_check_key, "true")) {
+    fprintf(stderr, "The key check_key doesn't have value equal to true.\n");
+    return EXIT_FAILURE;
+  }
+
+
+  return EXIT_SUCCESS;
+}
+
+static int
 gv_f2d (const double f)
 {
   return round(f/2) * 2;
@@ -398,21 +429,13 @@ rglm_eval_gp (const GamePositionX *const gpx)
 }
 
 static int
-game_position_rglm_load_model_weights_files (bool verbose)
+game_position_rglm_load_model_weights_files (bool verbose,
+                                             cfg_t *cfg)
 {
   int ret_value;
 
-  if (mw_loaded) return EXIT_SUCCESS;
-
-  /* rglm_solver_config_file should be passed as an argument, and if NULL the default should be assigned. */
-  const char *rglm_solver_config_file = rglm_solver_def_config_file;
-  if (!fut_file_exists(rglm_solver_config_file))
-    return EXIT_FAILURE;
-
-  rglm_solver_config = cfg_load(rglm_solver_config_file);
-
   for (size_t i = 0; i < EC_SIZE; i++) {
-    mws_f[i] = cfg_get(rglm_solver_config, "rglm_solver", mws_l[i]);
+    mws_f[i] = cfg_get(cfg, "model_weights", mws_l[i]);
   }
 
   for (size_t i = 0; i < EC_SIZE; i++) {
@@ -435,19 +458,16 @@ game_position_rglm_load_model_weights_files (bool verbose)
       mws[i] = &mws_s[i];
     }
   }
-  mw_loaded = true;
   return EXIT_SUCCESS;
 }
 
 static void
 game_position_rglm_release_model_weights (void)
 {
-  if (!mw_loaded) return;
   for (size_t i = 0; i < EC_SIZE; i++) {
     rglmdf_model_weights_release(&mws_s[i]);
     mws[i] = NULL;
   }
-  mw_loaded = false;
 }
 
 static bool

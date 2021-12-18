@@ -1,24 +1,8 @@
 
 To do list:
 
- (2) Migliorare le due funzioni:
-     - rglm_eval_gp
-     - board_pattern_packed_to_index
-     Sono il cuore della parte NON ottimizzata sia del solver RGLM che di quello GVE
- 
- (2.2) Una seconda idea è quella di capire quante volte di seguito è chiamata la funzione ...
-       sicuramente per un edge è chiamata 4 volte, e poi diventa più triky perchè le configurazioni dei pattern sono distinte.
-       E fare una TABLE anche parziale per entrare sull'indice ?
-       Si potrebbe poi proprio eliminare l'index ed andare sul valore del PARAMETRO direttamente.
-	 
- (2.3) La funzione board_pattern_compute_rotated si può migliorare rimuovendo i calcoli eseguiti più volte.
-       Ad esempio board_trans_flip_diag_h1a8 e board_trans_flip_horizontal sono chiamate più volte.
-       Va seguito un preciso ordine che evita i ricalcoli.
-	 
- (2.4) Appena un indice è calcolato, prefetch parameter values.
-       Prefetch va studiato bene , ha molta potenzialità. Mentre faccio i conti di rotazioni e PACKED2INDEX ... si fa la prefetch ...
-
  (4) Una miriade di sistemazioni "pratiche" del codice. ( si ma andrebbero listate )
+     File di configurazione da riga di comando
  
  (5) Modificare la tabella regab_prng_gp con un campo GAME_VALUE_CHECK che ci consente di fare un secondo run e validare il risultato ( potrebbe essere una data ? ).
      Credo sia piu' semplice duplicare i dati da testare in una nuova tabella:
@@ -40,7 +24,8 @@ To do list:
  (9) Rimuovere limitazione che bisogna avere il MODEL-WEIGHT anche per gli EC elevati, serve un fallback su algoritmo BASICO in quel caso.
 
 
-DONE
+DONE or ADDRESSED:
+
  (1) GVE ID (iterative deepening) deve essere revisionato nella sostanza.
      In questo momento e' inutile perche' le info nella TT accumulate nelle iterazioni [0..N-1] non sono usate per il sorting nella iterazione N.
      In pratica nella itrazione N per OGNI livello (e quello 1 e' il piu' importante) il sorting delle mosse deve usare la TT.
@@ -54,12 +39,35 @@ DONE
        Poi serve di avere un approccio "tipo memoizzazione", -mi servono le mosse legali ?-, chiamo la funzione lms, se sono gia' calcolate non le ricalcolo, altrimenti le calcolo .... ad esempio
        la funzione is_terminal calcola le mosse lgali, che poi vanno perse e vengono ricalcolate da generate_child_nodes.
 
+ (2) Migliorare le due funzioni:
+     - rglm_eval_gp
+     - board_pattern_packed_to_index
+     Sono il cuore della parte NON ottimizzata sia del solver RGLM che di quello GVE
+ 
  (2.1) vettorizzare board_pattern_packed_to_index ...
+ 
+ (2.2) Una seconda idea è quella di capire quante volte di seguito è chiamata la funzione ...
+       sicuramente per un edge è chiamata 4 volte, e poi diventa più triky perchè le configurazioni dei pattern sono distinte.
+       E fare una TABLE anche parziale per entrare sull'indice ?
+       Si potrebbe poi proprio eliminare l'index ed andare sul valore del PARAMETRO direttamente.
+	 
+ (2.3) La funzione board_pattern_compute_rotated si può migliorare rimuovendo i calcoli eseguiti più volte.
+       Ad esempio board_trans_flip_diag_h1a8 e board_trans_flip_horizontal sono chiamate più volte.
+       Va seguito un preciso ordine che evita i ricalcoli.
+	 
+ (2.4) Appena un indice è calcolato, prefetch parameter values.
+       Prefetch va studiato bene , ha molta potenzialità. Mentre faccio i conti di rotazioni e PACKED2INDEX ... si fa la prefetch ...
+       Dopo molti tentativi, la cosa e' archiviata, nessun miglioramento ottenuto.
  
  (3) Passare da negascout a MTDf.
  (6) Rimuovere il "clutter" in GVE dato da negamax e da OLD TT.
  (7) Calcolo HASH ottimizzato, con funzione delta hash.
 
+
+
+Appunti al 18-12-2021
+
+Sto lavorando sul tema config-file.
 
 
 Appunti al 28-11-2021

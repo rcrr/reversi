@@ -240,8 +240,10 @@ fail:
 void
 cfg_free (cfg_t *cfg)
 {
-  free(cfg->data);
-  free(cfg);
+  if (cfg) {
+    free(cfg->data);
+    free(cfg);
+  }
 }
 
 const char *

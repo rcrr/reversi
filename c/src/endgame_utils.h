@@ -33,6 +33,7 @@
 #ifndef ENDGAME_UTILS_H
 #define ENDGAME_UTILS_H
 
+#include "cfg.h"
 #include "game_tree_utils.h"
 
 
@@ -57,6 +58,7 @@ typedef struct {
   int                     beta;                /**< @brief Upper bound of the search window. */
   bool                    all_moves;           /**< @brief Search the value of all moves. */
   int                     search_depth;        /**< @brief Search depth. */
+  cfg_t                  *cfg;                 /**< @brief Configuration key/value pairs. */
 } endgame_solver_env_t;
 
 /**

@@ -412,6 +412,7 @@ static const mop_options_long_t olist[] = {
   {"ab-window",         'w', MOP_REQUIRED},
   {"all-moves",         'a', MOP_NONE},
   {"search-depth",      'p', MOP_REQUIRED},
+  {"config-file",       'c', MOP_REQUIRED},
   {0, 0, 0}
 };
 
@@ -434,7 +435,8 @@ static const char *documentation =
   "  -N, --pv-no-print      Does't print PV variants - Available only in conjuction with option pv-full-rec.\n"
   "  -w, --ab-window        Alpha-beta search window - Available only for es solver.\n"
   "  -a, --all-moves        Values all moves         - Available only for es and rglm solvers.\n"
-  "  -p, --search-depth     Search epth              - Available only for gve solver.\n"
+  "  -p, --search-depth     Search depth             - Available only for gve solver.\n"
+  "  -c, --config-file      Configuration file       - Requires a filename path.\n"
   "\n"
   "Description:\n"
   "  Endgame solver is the front end for a group of algorithms aimed to analyze the final part of the game and to asses the game tree structure.\n"
@@ -537,6 +539,9 @@ static int a_flag = false;
 
 static int p_flag = false;
 static char *p_arg = NULL;
+
+static int c_flag = false;
+static char *c_arg = NULL;
 
 static char *input_file = NULL;
 static char *lookup_entry = NULL;
@@ -645,6 +650,10 @@ main (int argc,
     case 'p':
       p_flag = true;
       p_arg = options.optarg;
+      break;
+    case 'c':
+      c_flag = true;
+      c_arg = options.optarg;
       break;
     case ':':
       fprintf(stderr, "Option parsing failed: %s\n", options.errmsg);
@@ -850,6 +859,15 @@ main (int argc,
     }
   }
 
+  cfg_t *cfg = NULL;
+  if (c_flag) {
+    cfg = cfg_load(c_arg);
+    if (!cfg) {
+      fprintf(stderr, "Option -c, --config-file, file doesn't exist.\n");
+      return EXIT_FAILURE;
+    }
+  }
+
   /* Verifies that the database input file is available for reading. */
   FILE *fp = fopen(input_file, "r");
   if (!fp) {
@@ -883,6 +901,7 @@ main (int argc,
       .beta = beta,
       .all_moves = a_flag,
       .search_depth = search_depth,
+      .cfg = cfg,
     };
 
   /* Loads the game position database. */
@@ -937,6 +956,7 @@ main (int argc,
   /* Frees the resources. */
   gpdb_dictionary_free(db);
   exact_solution_free(solution);
+  cfg_free(env.cfg);
 
   return 0;
 }
