@@ -41,74 +41,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
-#include <inttypes.h>
 #include <assert.h>
 #include <math.h>
 #include <string.h>
 
-#include <immintrin.h>
-
 #include "time_utils.h"
-#include "cfg.h"
 #include "file_utils.h"
-#include "rglm_data_files.h"
 #include "rglm_utils.h"
-#include "board.h"
 #include "transposition_table.h"
 #include "game_value_estimator.h"
-
-
-/* ###
- * ### Model Weights static variables.
- * ###
- */
-
-/* Empty Count Size - [0..60] the game stages ... */
-#define EC_SIZE 61
-
-/* The vector of model weighs structures indexed by empty_count. */
-static rglmdf_model_weights_t mws_s[EC_SIZE];
-
-/* The vector of pointers to the mws_s structures.
- * It is a convenience, when NULL the model_weights structure is
- * not populated.
- */
-static rglmdf_model_weights_t *mws[EC_SIZE];
-
-/* The labels of the files to be loaded. */
-static const char *const mws_l[EC_SIZE] =
-  {
-   "ec00", "ec01", "ec02", "ec03", "ec04", "ec05", "ec06", "ec07", "ec08", "ec09",
-   "ec10", "ec11", "ec12", "ec13", "ec14", "ec15", "ec16", "ec17", "ec18", "ec19",
-   "ec20", "ec21", "ec22", "ec23", "ec24", "ec25", "ec26", "ec27", "ec28", "ec29",
-   "ec30", "ec31", "ec32", "ec33", "ec34", "ec35", "ec36", "ec37", "ec38", "ec39",
-   "ec40", "ec41", "ec42", "ec43", "ec44", "ec45", "ec46", "ec47", "ec48", "ec49",
-   "ec50", "ec51", "ec52", "ec53", "ec54", "ec55", "ec56", "ec57", "ec58", "ec59",
-   "ec60"
-  };
-
-/* The names of the files to be loaded. */
-static const char *mws_f[EC_SIZE];
-
-/* ###
- * ### End of section for: Model Weights static variables.
- * ###
- */
-
-/* Iterative deepening minimum empty count. */
-static int id_min_empty_count;
-
-/* Iterative deepening step. */
-static int id_step;
-
-static uint64_t node_count;
-static uint64_t leaf_count;
-
-static int search_depth;
-
-static ttab_t ttab;
-static const size_t ttab_log_size = 24;
 
 
 
@@ -130,6 +71,10 @@ typedef struct node_s {
 /*
  * Prototypes for internal functions.
  */
+
+static int
+get_ttab_log_size_from_cfg (cfg_t *cfg,
+                            int *ttab_log_size);
 
 static int
 get_id_step_from_cfg (cfg_t *cfg,
@@ -166,21 +111,82 @@ static int
 gv_f2d (const double f);
 
 static int
-min (int a, int b);
+max (int a,
+     int b);
+
+static int
+min (int a,
+     int b);
 
 
 /*
  * Internal variables and constants.
  */
 
+/*
+ * ###
+ * ### Model Weights static variables.
+ * ###
+ */
+
+/* Empty Count Size - [0..60] the game stages ... */
+#define EC_SIZE 61
+
+/* The vector of model weighs structures indexed by empty_count. */
+static rglmdf_model_weights_t mws_s[EC_SIZE];
+
+/* The vector of pointers to the mws_s structures.
+ * It is a convenience, when NULL the model_weights structure is
+ * not populated.
+ */
+static rglmdf_model_weights_t *mws[EC_SIZE];
+
+/* The labels of the files to be loaded. */
+static const char *const mws_l[EC_SIZE] =
+  {
+   "ec00", "ec01", "ec02", "ec03", "ec04", "ec05", "ec06", "ec07", "ec08", "ec09",
+   "ec10", "ec11", "ec12", "ec13", "ec14", "ec15", "ec16", "ec17", "ec18", "ec19",
+   "ec20", "ec21", "ec22", "ec23", "ec24", "ec25", "ec26", "ec27", "ec28", "ec29",
+   "ec30", "ec31", "ec32", "ec33", "ec34", "ec35", "ec36", "ec37", "ec38", "ec39",
+   "ec40", "ec41", "ec42", "ec43", "ec44", "ec45", "ec46", "ec47", "ec48", "ec49",
+   "ec50", "ec51", "ec52", "ec53", "ec54", "ec55", "ec56", "ec57", "ec58", "ec59",
+   "ec60"
+  };
+
+/* The names of the files to be loaded. */
+static const char *mws_f[EC_SIZE];
+
+/*
+ * ###
+ * ### End of section for: Model Weights static variables.
+ * ###
+ */
+
+/* Iterative deepening minimum empty count. */
+static int id_min_empty_count;
+
+/* Iterative deepening step. */
+static int id_step;
+
+/* Search depth iterative deepening. */
+static int id_search_depth;
+
+/* Search depth. */
+static int search_depth;
+
+/* Transposition Table. */
+static ttab_t ttab;
+
+/* Transposition Table binary logarithm of size. */
+static int ttab_log_size;
+
+/* Count of nodes and leafs touchd by the algorithm. */
+static uint64_t node_count;
+static uint64_t leaf_count;
 
 /**
  * @endcond
  */
-
-
-/* Search depth iterative deepening. */
-static int search_depth_id;
 
 
 
@@ -188,13 +194,6 @@ static int search_depth_id;
  * Public functions.
  */
 
-/**
- * @brief Gives an extimation of the game position returning a new exact solution pointer.
- *
- * @param [in] root the starting game position to be solved
- * @param [in] env  parameter envelope
- * @return          a pointer to a new exact solution structure
- */
 ExactSolution *
 game_position_value_estimator (const GamePositionX *const root,
                                const endgame_solver_env_t *const env)
@@ -235,13 +234,18 @@ game_position_value_estimator (const GamePositionX *const root,
     fprintf(stderr, "Error loading key id_step from section gve_solver from the config file. Exiting ...\n");
     exit(EXIT_FAILURE);
   }
+  ret_err = get_ttab_log_size_from_cfg(env->cfg, &ttab_log_size);
+  if (ret_err != EXIT_SUCCESS) {
+    fprintf(stderr, "Error loading key ttab_log_size from section gve_solver from the config file. Exiting ...\n");
+    exit(EXIT_FAILURE);
+  }
 
   result = exact_solution_new();
   exact_solution_init(result);
   exact_solution_set_root(result, root);
 
   const int ec = game_position_x_empty_count(root);
-  printf("Empty count = %d, Search depth = %d, Minimum empty count = %d\n", ec, search_depth, id_min_empty_count);
+  printf("Empty count = %d, Search depth = %d, ID minimum empty count = %d\n", ec, search_depth, id_min_empty_count);
   if (search_depth < 0) search_depth = ec * 2;
 
   const bool mw_available = mws[ec] != NULL;
@@ -288,12 +292,12 @@ game_position_value_estimator (const GamePositionX *const root,
   printf("id_limit = %d\n", id_limit);
   for (int i = 1; i <= id_limit; i += id_step) {
     printf(" ### ### ### id = %d\n", i);
-    search_depth_id = i;
+    id_search_depth = i;
     mtdf(&root_node, i);
   }
   if (search_depth > id_limit) {
     printf(" ### ### ### LAST ### search_depth = %d\n", search_depth);
-    search_depth_id = search_depth;
+    id_search_depth = search_depth;
     mtdf(&root_node, search_depth); // stima da rivedere
   }
 
@@ -343,6 +347,28 @@ game_position_value_estimator (const GamePositionX *const root,
 /*
  * Internal functions.
  */
+
+static int
+get_ttab_log_size_from_cfg (cfg_t *cfg,
+                            int *ttab_log_size)
+{
+  int value;
+
+  const char *ttab_log_size_s = cfg_get(cfg, "gve_solver", "ttab_log_size");
+  if (!ttab_log_size_s) {
+    fprintf(stderr, "The key ttab_log_size is missing from section gve_solver.\n");
+    return EXIT_FAILURE;
+  }
+
+  value = atoi(ttab_log_size_s);
+  if (value < 0 || value > 64) {
+    fprintf(stderr, "The key ttab_log_size is out of range. It must be in [0..64].\n");
+    return EXIT_FAILURE;
+  }
+
+  *ttab_log_size = value;
+  return EXIT_SUCCESS;
+}
 
 static int
 get_id_step_from_cfg (cfg_t *cfg,
@@ -749,15 +775,14 @@ alphabeta_with_memory (node_t *n,
     n->best_move = invalid_move;
     for (int i = 0; i < child_node_count; i++) {
       node_t *child = child_nodes_p[i];
-      if (search_depth_id - depth == 0) {
+      if (id_search_depth - depth == 0) {
         printf("%02d - %2s (%+03d) [%+03d..%+03d]: ", i, square_as_move_to_string(child->parent_move), -child->value, am, bm);
-        //printf("n->hash = %zu", n->hash);
         fflush(stdout);
       }
 
       alphabeta_with_memory(child, depth -1, -bm, -am);
 
-      if (search_depth_id - depth == 0) {
+      if (id_search_depth - depth == 0) {
         char *s;
         if (-child->value <= am) s = "(failing low)  f+";
         else if (-child->value >= bm) s = "(failing high) f-";
@@ -775,7 +800,6 @@ alphabeta_with_memory (node_t *n,
     }
 
   } // end-of-else
-  if (false && n->hash == 17372629065185580190ULL && depth == 5) abort();
 
   its.depth = depth;
   its.best_move = n->best_move;

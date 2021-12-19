@@ -38,6 +38,13 @@
 
 
 
+/**
+ * @brief Gives an extimation of the game position returning a new exact solution pointer.
+ *
+ * @param [in] root the starting game position to be solved
+ * @param [in] env  parameter envelope
+ * @return          a pointer to a new exact solution structure
+ */
 extern ExactSolution *
 game_position_value_estimator (const GamePositionX *const root,
                                const endgame_solver_env_t *const env);
