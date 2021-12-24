@@ -72,6 +72,17 @@ typedef struct node_s {
  * Prototypes for internal functions.
  */
 
+static void
+init_node (node_t *node,
+           node_t *parent,
+           SquareSet legal_move_set,
+           Square parent_move,
+           Square best_move,
+           int value,
+           SquareSet gpx_blacks,
+           SquareSet gpx_whites,
+           Player gpx_player);
+
 static int
 get_ttab_log_size_from_cfg (cfg_t *cfg,
                             int *ttab_log_size);
@@ -194,6 +205,30 @@ static uint64_t leaf_count;
  * Public functions.
  */
 
+void
+init_node (node_t *node,
+           node_t *parent,
+           SquareSet legal_move_set,
+           Square parent_move,
+           Square best_move,
+           int value,
+           SquareSet gpx_blacks,
+           SquareSet gpx_whites,
+           Player gpx_player)
+{
+  assert(node);
+
+  node->parent = parent;
+  node->legal_move_set = legal_move_set;
+  node->parent_move = parent_move;
+  node->best_move = best_move;
+  node->value = value;
+  node->gpx.blacks = gpx_blacks;
+  node->gpx.whites = gpx_whites;
+  node->gpx.player = gpx_player;
+  node->hash = game_position_x_hash(&node->gpx);
+}
+
 ExactSolution *
 game_position_value_estimator (const GamePositionX *const root,
                                const endgame_solver_env_t *const env)
@@ -263,6 +298,10 @@ game_position_value_estimator (const GamePositionX *const root,
   if (!ttab) abort();
 
   node_t parent_root_node;
+  init_node(&parent_root_node,
+            NULL, empty_square_set, invalid_move, invalid_move, out_of_range_defeat_score,
+            root->blacks, root->whites, player_opponent(root->player));
+  /*
   parent_root_node.parent = NULL;
   parent_root_node.legal_move_set = empty_square_set;
   parent_root_node.parent_move = invalid_move;
@@ -272,17 +311,23 @@ game_position_value_estimator (const GamePositionX *const root,
   parent_root_node.gpx.whites = root->whites;
   parent_root_node.gpx.player = player_opponent(root->player);
   parent_root_node.hash = game_position_x_hash(&parent_root_node.gpx);
+  */
 
   node_t root_node;
+  init_node(&root_node,
+            &parent_root_node, empty_square_set, invalid_move, invalid_move, out_of_range_defeat_score,
+            root->blacks, root->whites, root->player);
+  /*
   root_node.parent = &parent_root_node;
   root_node.legal_move_set = empty_square_set;
-  root_node.parent_move = invalid_move;
+  root_node.parent_move = invalid_movew;
   root_node.best_move = invalid_move;
   root_node.value = out_of_range_defeat_score;
   root_node.gpx.blacks = root->blacks;
   root_node.gpx.whites = root->whites;
   root_node.gpx.player = root->player;
   root_node.hash = game_position_x_hash(&root_node.gpx);
+  */
 
   /* Starts the stop-watch. */
   clock_gettime(CLOCK_REALTIME, &start_time);

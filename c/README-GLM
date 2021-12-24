@@ -209,7 +209,7 @@ tst_regab=> SELECT * FROM regab_prng_gp_h ORDER BY seq;
 
 
 #
-# RDS : Ranks and DiagonalS
+# RDS : Ranks and diagonals
 #
 
 ./build/bin/regab -v --action extract --config-file cfg/regab.cfg --env test --batch-id 3 --position-status CMS,CMR --empty-count 20 --pattern EDGE,R2,R3,R4,DIAG8,DIAG7,DIAG6,DIAG5,DIAG4,DIAG3 --out-file tmp/bid_03_p_RDS_00.dat

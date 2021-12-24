@@ -41,6 +41,8 @@
 /**
  * @brief Gives an extimation of the game position returning a new exact solution pointer.
  *
+ * @details To be completed ...
+ *
  * @param [in] root the starting game position to be solved
  * @param [in] env  parameter envelope
  * @return          a pointer to a new exact solution structure
