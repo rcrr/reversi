@@ -34,10 +34,18 @@
 /*
  * Run the solver:
  *
- * $ time ./build/bin/endgame_solver -s gve -f db/gpdb-ffo.txt -q ffo-29
- * $ time ./build/bin/endgame_solver -s gve -f db/gpdb-sample-games.txt -q woc18-FKvsAP-g1-22
+ * $ time ./build/bin/endgame_solver -s gve -c cfg/game_value_estimator.cfg -f db/gpdb-ffo.txt -q ffo-29
+ * $ time ./build/bin/endgame_solver -s gve -c cfg/game_value_estimator.cfg -f db/gpdb-sample-games.txt -q woc18-FKvsAP-g1-22
  *
  */
+
+/*
+ * Comment this line to enable assertion in the module.
+ * The line must be inserted before the inclusion of <assert.h>
+ */
+#if !defined NDEBUG
+#define NDEBUG
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,6 +65,10 @@
  * @cond
  */
 
+/*
+ * Local data structures.
+ */
+
 typedef struct node_s {
   struct node_s *parent;
   SquareSet legal_move_set;
@@ -66,6 +78,7 @@ typedef struct node_s {
   GamePositionX gpx;
   uint64_t hash;
 } node_t;
+
 
 
 /*
@@ -82,6 +95,14 @@ init_node (node_t *node,
            SquareSet gpx_blacks,
            SquareSet gpx_whites,
            Player gpx_player);
+
+static int
+get_model_weights_check_digest_from_cfg (cfg_t *cfg,
+                                         bool *model_weights_check_digest);
+
+static int
+get_model_weights_verbose_loader_from_cfg (cfg_t *cfg,
+                                           bool *model_weights_verbose_loader);
 
 static int
 get_ttab_log_size_from_cfg (cfg_t *cfg,
@@ -110,6 +131,7 @@ mtdf (node_t *n,
 
 static int
 game_position_rglm_load_model_weights_files (bool verbose,
+                                             bool check_digest,
                                              cfg_t *cfg);
 
 static void
@@ -247,14 +269,25 @@ game_position_value_estimator (const GamePositionX *const root,
   search_depth = env->search_depth;
 
   ExactSolution *result = NULL;
-  const bool verbose = false;
+  bool model_weights_verbose_loader;
+  bool model_weights_check_digest;
   int ret_err;
   ret_err =  check_config_file(env->cfg);
   if (ret_err != EXIT_SUCCESS) {
     fprintf(stderr, "Error in the config file. Exiting ...\n");
     exit(EXIT_FAILURE);
   }
-  ret_err = game_position_rglm_load_model_weights_files(verbose, env->cfg);
+  ret_err = get_model_weights_verbose_loader_from_cfg(env->cfg, &model_weights_verbose_loader);
+  if (ret_err != EXIT_SUCCESS) {
+    fprintf(stderr, "Error in the config file. Exiting ...\n");
+    exit(EXIT_FAILURE);
+  }
+  ret_err = get_model_weights_check_digest_from_cfg(env->cfg, &model_weights_check_digest);
+  if (ret_err != EXIT_SUCCESS) {
+    fprintf(stderr, "Error in the config file. Exiting ...\n");
+    exit(EXIT_FAILURE);
+  }
+  ret_err = game_position_rglm_load_model_weights_files(model_weights_verbose_loader, model_weights_check_digest, env->cfg);
   if (ret_err != EXIT_SUCCESS) {
     fprintf(stderr, "Error loading RGLM solver model weights files. Exiting ...\n");
     exit(EXIT_FAILURE);
@@ -301,33 +334,11 @@ game_position_value_estimator (const GamePositionX *const root,
   init_node(&parent_root_node,
             NULL, empty_square_set, invalid_move, invalid_move, out_of_range_defeat_score,
             root->blacks, root->whites, player_opponent(root->player));
-  /*
-  parent_root_node.parent = NULL;
-  parent_root_node.legal_move_set = empty_square_set;
-  parent_root_node.parent_move = invalid_move;
-  parent_root_node.best_move = invalid_move;
-  parent_root_node.value = out_of_range_defeat_score;
-  parent_root_node.gpx.blacks = root->blacks;
-  parent_root_node.gpx.whites = root->whites;
-  parent_root_node.gpx.player = player_opponent(root->player);
-  parent_root_node.hash = game_position_x_hash(&parent_root_node.gpx);
-  */
 
   node_t root_node;
   init_node(&root_node,
             &parent_root_node, empty_square_set, invalid_move, invalid_move, out_of_range_defeat_score,
             root->blacks, root->whites, root->player);
-  /*
-  root_node.parent = &parent_root_node;
-  root_node.legal_move_set = empty_square_set;
-  root_node.parent_move = invalid_movew;
-  root_node.best_move = invalid_move;
-  root_node.value = out_of_range_defeat_score;
-  root_node.gpx.blacks = root->blacks;
-  root_node.gpx.whites = root->whites;
-  root_node.gpx.player = root->player;
-  root_node.hash = game_position_x_hash(&root_node.gpx);
-  */
 
   /* Starts the stop-watch. */
   clock_gettime(CLOCK_REALTIME, &start_time);
@@ -392,6 +403,56 @@ game_position_value_estimator (const GamePositionX *const root,
 /*
  * Internal functions.
  */
+
+static int
+get_model_weights_check_digest_from_cfg (cfg_t *cfg,
+                                         bool *model_weights_check_digest)
+{
+  bool value;
+
+  const char *model_weights_check_digest_s = cfg_get(cfg, "model_weights", "check_digest");
+  if (!model_weights_check_digest_s) {
+    fprintf(stderr, "The key check_digest is missing from section model_weights.\n");
+    return EXIT_FAILURE;
+  }
+
+  if (strcmp(model_weights_check_digest_s, "true") == 0) {
+    value = true;
+  } else if (strcmp(model_weights_check_digest_s, "false") == 0) {
+    value = false;
+  } else {
+    fprintf(stderr, "The key check_digest in section model_weights doesn't have value in the range [true|false].\n");
+    return EXIT_FAILURE;
+  }
+
+  *model_weights_check_digest = value;
+  return EXIT_SUCCESS;
+}
+
+static int
+get_model_weights_verbose_loader_from_cfg (cfg_t *cfg,
+                                           bool *model_weights_verbose_loader)
+{
+  bool value;
+
+  const char *model_weights_verbose_loader_s = cfg_get(cfg, "model_weights", "verbose_loader");
+  if (!model_weights_verbose_loader_s) {
+    fprintf(stderr, "The key verbose_loader is missing from section model_weights.\n");
+    return EXIT_FAILURE;
+  }
+
+  if (strcmp(model_weights_verbose_loader_s, "true") == 0) {
+    value = true;
+  } else if (strcmp(model_weights_verbose_loader_s, "false") == 0) {
+    value = false;
+  } else {
+    fprintf(stderr, "The key verbose_loader in section model_weights doesn't have value in the range [true|false].\n");
+    return EXIT_FAILURE;
+  }
+
+  *model_weights_verbose_loader = value;
+  return EXIT_SUCCESS;
+}
 
 static int
 get_ttab_log_size_from_cfg (cfg_t *cfg,
@@ -471,8 +532,8 @@ check_config_file (cfg_t *cfg)
     fprintf(stderr, "The key check_key is missing from section gve_solver.\n");
     return EXIT_FAILURE;
   }
-  if (strcmp(gve_solver_check_key, "true")) {
-    fprintf(stderr, "The key check_key doesn't have value equal to true.\n");
+  if (strcmp(gve_solver_check_key, "true") != 0) {
+    fprintf(stderr, "The key check_key doesn't have value equal to true. check_key=%s\n", gve_solver_check_key);
     return EXIT_FAILURE;
   }
   const char *model_weights_check_key = cfg_get(cfg, "model_weights", "check_key");
@@ -480,7 +541,7 @@ check_config_file (cfg_t *cfg)
     fprintf(stderr, "The key check_key is missing from section model_weights.\n");
     return EXIT_FAILURE;
   }
-  if (strcmp(model_weights_check_key, "true")) {
+  if (strcmp(model_weights_check_key, "true") != 0) {
     fprintf(stderr, "The key check_key doesn't have value equal to true.\n");
     return EXIT_FAILURE;
   }
@@ -547,6 +608,7 @@ rglm_eval_gp (const GamePositionX *const gpx)
 
 static int
 game_position_rglm_load_model_weights_files (bool verbose,
+                                             bool check_digest,
                                              cfg_t *cfg)
 {
   int ret_value;
@@ -563,7 +625,7 @@ game_position_rglm_load_model_weights_files (bool verbose,
   for (size_t i = 0; i < EC_SIZE; i++) {
     const char *filename = mws_f[i];
     if (filename) {
-      ret_value = rglmdf_model_weights_read_from_binary_file(&mws_s[i], filename, verbose);
+      ret_value = rglmdf_model_weights_read_from_binary_file(&mws_s[i], filename, verbose, check_digest);
       if (ret_value != 0) {
         fprintf(stderr, "Unable to load model weight file \"%s\"\n", filename);
         return ret_value;

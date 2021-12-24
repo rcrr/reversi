@@ -334,7 +334,7 @@ game_position_rglm_load_model_weights_files (bool verbose)
   for (size_t i = 0; i < EC_SIZE; i++) {
     const char *filename = mws_f[i];
     if (filename) {
-      ret_value = rglmdf_model_weights_read_from_binary_file(&mws_s[i], filename, verbose);
+      ret_value = rglmdf_model_weights_read_from_binary_file(&mws_s[i], filename, verbose, false);
       if (ret_value != 0) {
         fprintf(stderr, "Unable to load model weight file \"%s\"\n", filename);
         return ret_value;

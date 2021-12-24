@@ -41,7 +41,12 @@
 /**
  * @brief Gives an extimation of the game position returning a new exact solution pointer.
  *
- * @details To be completed ...
+ * @details The GVE solver return an exact solution when the search_depth is -1 or greather than the real
+ *          depth of the game tree generated starting from the root game position.
+ *          Otherwise the solver returns an extimation of the game value obtained by minimaxing the value
+ *          estimated on the leaf nodes at depth equal to search_depth.
+ *
+ *          The solver
  *
  * @param [in] root the starting game position to be solved
  * @param [in] env  parameter envelope

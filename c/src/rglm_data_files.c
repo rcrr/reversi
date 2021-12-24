@@ -598,7 +598,8 @@ rglmdf_model_weights_get_file_creation_time_as_string (const rglmdf_model_weight
 int
 rglmdf_model_weights_read_from_binary_file (rglmdf_model_weights_t *const mw,
                                             const char *const filename,
-                                            const bool verbose)
+                                            const bool verbose,
+                                            const bool check_digest)
 {
   assert(mw);
   assert(filename);
@@ -612,10 +613,11 @@ rglmdf_model_weights_read_from_binary_file (rglmdf_model_weights_t *const mw,
   char file_creation_time_as_string[64];
 
   /* Checks that the file has not been corrupted. */
-  const bool check_digest = false; // should be a parameter ....
   if (check_digest) {
     ret = rglmdf_check_sha3_file_digest(filename, file_digest);
     if (ret != EXIT_SUCCESS) return EXIT_FAILURE;
+  } else {
+    strcpy(file_digest, "check_digest=false");
   }
 
   if (verbose)
@@ -805,8 +807,8 @@ rglmdf_model_weights_read_from_binary_file (rglmdf_model_weights_t *const mw,
     fclose(ifp);
     return EXIT_FAILURE;
   }
-  if (verbose) fprintf(stdout, "Weight array size: %ld\n", mw->weight_cnt);
   mw->weight_cnt = i64;
+  if (verbose) fprintf(stdout, "Weight array size: %ld\n", mw->weight_cnt);
 
   /* Reads the array weights from the binary file. */
   if (mw->weights) {

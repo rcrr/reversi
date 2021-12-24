@@ -1417,15 +1417,17 @@ rglmdf_model_weights_write_to_binary_file (const rglmdf_model_weights_t *mw,
  * @invariant Parameter `filename` must be not `NULL`.
  * The invariant is guarded by an assertion.
  *
- * @param [in,out] mw       reference to the model weights structure
- * @param [in]     filename name of the file being retrieved
- * @param [in]     verbose  when true send log output to stdout
- * @return                  `0` on succesful execution.
+ * @param [in,out] mw           reference to the model weights structure
+ * @param [in]     filename     name of the file being retrieved
+ * @param [in]     verbose      when true send log output to stdout
+ * @param [in]     check_digest when true computes and check the file digest
+ * @return                      `0` on succesful execution.
  */
 extern int
 rglmdf_model_weights_read_from_binary_file (rglmdf_model_weights_t *mw,
                                             const char *filename,
-                                            bool verbose);
+                                            bool verbose,
+                                            bool check_digest);
 
 /**
  * @brief Saves the general data structure to a binary file.

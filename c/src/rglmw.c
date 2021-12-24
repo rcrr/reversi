@@ -201,7 +201,7 @@ main (int argc,
   rglmdf_model_weights_t model_weights;
   rglmdf_model_weights_t *const mw = &model_weights;
   rglmdf_model_weights_init(mw);
-  ret_code = rglmdf_model_weights_read_from_binary_file(mw, w_arg, verbose);
+  ret_code = rglmdf_model_weights_read_from_binary_file(mw, w_arg, verbose, true);
   if (ret_code != EXIT_SUCCESS) {
     fprintf(stderr, "Error while reading the RGLM model weights binary input file.\n");
     return EXIT_FAILURE;
