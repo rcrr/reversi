@@ -72,6 +72,31 @@ DONE or ADDRESSED:
 
 
 
+Appunti al 26-12-2021
+
+Qualche lavoretto generico, ed infine una gan bella sorpresa.
+Quando l'algoritmo passa dalla fase MTDF a quella LEAF_NEGAMAX le mosse non sono piu' ordinate.
+Ordinando per legal_move_count ci sono evidenti vantaggi in termini di prestazioni.
+
+La baseline per la posizione woc18-FKvsAP-g1-22 oggi e' la seguente:
+
+  ES        : [ node_count = 378.034.158, leaf_count = 60.770.918 ] 21.586s
+  RGLM      : [ node_count = 149.986.155, leaf_count = 21.535.119 ] 14.629s
+  GVE(MTDF) : [ node_count =  33.225.425, leaf_count =  4.675.180 ]  4.251s
+
+Con i CFLAGS da codice produttivo invece:
+
+  ES        : [ node_count = 378.034.158, leaf_count = 60.770.918 ] 21.348s
+  RGLM      : [ node_count = 149.986.155, leaf_count = 21.535.119 ] 13.545s
+  GVE(MTDF) : [ node_count =  33.225.425, leaf_count =  4.675.180 ]  3.925s
+
+Avendo accelerato la parte di ricerca terminale, c'e' un ulteriore guadagno alzando il parametro id_min_empty_count dove
+il massimo delle prestazioni si ottiene con il valore settato a 12.
+
+  GVE(MTDF) : [ node_count =  33.225.425, leaf_count =  4.675.180 ]  3.176s
+
+
+
 Appunti al 18-12-2021
 
 Sto lavorando sul tema config-file.

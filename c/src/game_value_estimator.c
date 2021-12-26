@@ -72,6 +72,7 @@
 typedef struct node_s {
   struct node_s *parent;
   SquareSet legal_move_set;
+  int legal_move_count;
   Square parent_move;
   Square best_move;
   int value;
@@ -248,6 +249,7 @@ init_node (node_t *node,
 
   node->parent = parent;
   node->legal_move_set = legal_move_set;
+  node->legal_move_count = bitw_bit_count_64(legal_move_set);
   node->parent_move = parent_move;
   node->best_move = best_move;
   node->value = value;
@@ -691,6 +693,7 @@ generate_legal_move_set (node_t *n,
                          ttab_item_t it)
 {
   n->legal_move_set = it ? it->legal_move_set : game_position_x_legal_moves(&n->gpx);
+  n->legal_move_count = bitw_bit_count_64(n->legal_move_set);
 }
 
 /**
@@ -716,24 +719,30 @@ generate_child_nodes (int *child_node_count,
       const Square move = bitw_tzcnt_64(lms);
       node_t *const c = child_nodes + i;
       c->parent = n;
-      c->legal_move_set = empty_square_set;
+      //c->legal_move_set = empty_square_set;
+      //c->legal_move_count = 0;
       c->parent_move = move;
       c->best_move = unknown_move;
       c->value = out_of_range_win_score;
       if (compute_hash) game_position_x_make_move_delta_hash(&n->gpx, move, &c->gpx, n->hash, &c->hash);
       else game_position_x_make_move(&n->gpx, move, &c->gpx);
+      c->legal_move_set = game_position_x_legal_moves(&c->gpx);
+      c->legal_move_count = bitw_bit_count_64(c->legal_move_set);
       lms = bitw_reset_lowest_set_bit_64(lms);
     }
   } else {
     lmc = 1;
     node_t *const c = child_nodes + 0;
     c->parent = n;
-    c->legal_move_set = empty_square_set;
+    //c->legal_move_set = empty_square_set;
+    //c->legal_move_count = 0;
     c->parent_move = pass_move;
     c->best_move = unknown_move;
     c->value = out_of_range_win_score;
     if (compute_hash) game_position_x_make_move_delta_hash(&n->gpx, pass_move, &c->gpx, n->hash, &c->hash);
     else game_position_x_make_move(&n->gpx, pass_move, &c->gpx);
+    c->legal_move_set = game_position_x_legal_moves(&c->gpx);
+    c->legal_move_count = bitw_bit_count_64(c->legal_move_set);
   }
 
   *child_node_count = lmc;
@@ -799,12 +808,28 @@ min (int a,
 }
 
 static void
+sort_nodes_by_lmc (node_t **nodes,
+                   int count)
+{
+  for (int i = 1; i < count; i++) {
+    int j = i;
+    for (;;) {
+      node_t *tmp;
+      if (j == 0 || (*(nodes + j - 1))->legal_move_count <= (*(nodes + j))->legal_move_count) break;
+      tmp = *(nodes + j), *(nodes + j) = *(nodes + j - 1), *(nodes + j - 1) = tmp; // Swaps elements.
+      j--;
+    }
+  }
+}
+
+static void
 leaf_negamax (node_t *n,
               int alpha,
               int beta)
 {
   int child_node_count;
   node_t child_nodes[64];
+  node_t *sorted_child_nodes[64];
 
   node_count++;
 
@@ -815,9 +840,12 @@ leaf_negamax (node_t *n,
     exact_terminal_game_value(n);
   } else {
     generate_child_nodes(&child_node_count, child_nodes, n, false);
+    for (int i = 0; i < child_node_count; i++) sorted_child_nodes[i] = &child_nodes[i];
+    sort_nodes_by_lmc(sorted_child_nodes, child_node_count);
     n->value = out_of_range_defeat_score;
     for (int i = 0; i < child_node_count; i++) {
-      node_t *child = &child_nodes[i];
+      node_t *child = sorted_child_nodes[i];
+      //node_t *child = &child_nodes[i];
       leaf_negamax(child, -beta, -alpha);
       n->value = max(n->value, -child->value);
       alpha = max(alpha, n->value);
@@ -837,7 +865,6 @@ alphabeta_with_memory (node_t *n,
   int child_node_count;
   node_t child_nodes[64];
   node_t *child_nodes_p[64];
-  int empty_count;
   int explored_child_count;
 
   int am = alpha; // alpha-mobile : local value that is adjusted during the search
@@ -880,14 +907,14 @@ alphabeta_with_memory (node_t *n,
 
   generate_legal_move_set(n, it);
 
-  explored_child_count = 0; // logic to be verified when leaf_negamax is selected ...
+  explored_child_count = 0;
   if (is_terminal(n)) {
     leaf_count++;
     exact_terminal_game_value(n);
   } else if (depth == 0) {
     if (n->value == out_of_range_win_score) heuristic_game_value(n);
     n->best_move = unknown_move;
-  } else if ((empty_count = game_position_x_empty_count(&n->gpx)) < id_min_empty_count) {
+  } else if ((game_position_x_empty_count(&n->gpx)) < id_min_empty_count) {
     leaf_negamax(n, am, bm);
   } else {
 
