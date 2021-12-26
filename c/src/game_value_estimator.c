@@ -151,6 +151,9 @@ static int
 min (int a,
      int b);
 
+static void
+heuristic_game_value (node_t *n);
+
 
 /*
  * Internal variables and constants.
@@ -188,6 +191,9 @@ static const char *const mws_l[EC_SIZE] =
 
 /* The names of the files to be loaded. */
 static const char *mws_f[EC_SIZE];
+
+/* The count of game evaluations categorized by empty count. */
+static uint64_t gp_evaluations[EC_SIZE];
 
 /*
  * ###
@@ -258,6 +264,9 @@ game_position_value_estimator (const GamePositionX *const root,
   assert(root);
   assert(env);
 
+  /* Used to drive the search to be complete and touch the leafs of the game tree. */
+  const int max_search_depth = 99;
+
   /* Stopwatch variables. */
   timespec_t time_0, time_1, delta_cpu_time, start_time, end_time, delta_time;
 
@@ -265,6 +274,9 @@ game_position_value_estimator (const GamePositionX *const root,
 
   node_count = 0;
   leaf_count = 0;
+
+  for (int i = 0; i < EC_SIZE; i++)
+    gp_evaluations[i] = 0;
 
   search_depth = env->search_depth;
 
@@ -314,18 +326,13 @@ game_position_value_estimator (const GamePositionX *const root,
 
   const int ec = game_position_x_empty_count(root);
   printf("Empty count = %d, Search depth = %d, ID minimum empty count = %d\n", ec, search_depth, id_min_empty_count);
-  if (search_depth < 0) search_depth = ec * 2;
+  if (search_depth < 0) search_depth = max_search_depth;
 
   const bool mw_available = mws[ec] != NULL;
-
   if (!mw_available) {
     printf("There is no model weights available for the root node empty count!\n");
     exit(EXIT_FAILURE);
   }
-  const double l0_estimated_game_value_transformed = rglm_eval_gp(root);
-  const double l0_estimated_game_value_f = rglmut_gv_scale_back_f(l0_estimated_game_value_transformed);
-  const int l0_estimated_game_value = gv_f2d(l0_estimated_game_value_f);
-  printf("Node Level 0: estimated game value = %6.3f [%+03d] (%6.4f)\n", l0_estimated_game_value_f, l0_estimated_game_value, l0_estimated_game_value_transformed);
 
   ttab = ttab_new(ttab_log_size);
   if (!ttab) abort();
@@ -339,6 +346,9 @@ game_position_value_estimator (const GamePositionX *const root,
   init_node(&root_node,
             &parent_root_node, empty_square_set, invalid_move, invalid_move, out_of_range_defeat_score,
             root->blacks, root->whites, root->player);
+
+  heuristic_game_value(&root_node);
+  printf("Node Level 0: estimated game value = %+03d\n", root_node.value);
 
   /* Starts the stop-watch. */
   clock_gettime(CLOCK_REALTIME, &start_time);
@@ -354,7 +364,7 @@ game_position_value_estimator (const GamePositionX *const root,
   if (search_depth > id_limit) {
     printf(" ### ### ### LAST ### search_depth = %d\n", search_depth);
     id_search_depth = search_depth;
-    mtdf(&root_node, search_depth); // stima da rivedere
+    mtdf(&root_node, search_depth);
   }
 
   /* Stops the stop-watch. */
@@ -391,6 +401,11 @@ game_position_value_estimator (const GamePositionX *const root,
   ttab_free(&ttab);
 
   game_position_rglm_release_model_weights();
+
+  if (true) {
+    for (int i = 0; i < EC_SIZE; i++)
+      printf("gp_evaluations[%02d] = %zu\n", i, gp_evaluations[i]);
+  }
 
   return result;
 }
@@ -560,6 +575,8 @@ rglm_eval_gp (const GamePositionX *const gpx)
   assert(gpx);
 
   const int empty_count = game_position_x_empty_count(gpx);
+
+  gp_evaluations[empty_count]++;
 
   const rglmdf_model_weights_t *const mw = mws[empty_count];
   assert(mw);
@@ -887,7 +904,8 @@ alphabeta_with_memory (node_t *n,
         fflush(stdout);
       }
 
-      alphabeta_with_memory(child, depth -1, -bm, -am);
+      const int child_depth = (child->parent_move == pass_move) ? depth : depth -1;
+      alphabeta_with_memory(child, child_depth, -bm, -am);
 
       if (id_search_depth - depth == 0) {
         char *s;
