@@ -128,6 +128,8 @@ alphabeta_with_memory (node_t *n,
 
 static void
 mtdf (node_t *n,
+      int alpha,
+      int beta,
       const int depth);
 
 static int
@@ -223,6 +225,10 @@ static int ttab_log_size;
 /* Count of nodes and leafs touchd by the algorithm. */
 static uint64_t node_count;
 static uint64_t leaf_count;
+
+/* This is the empty count level where we start having model weight info available. */
+static int first_level_evaluation;
+
 
 /**
  * @endcond
@@ -330,11 +336,64 @@ game_position_value_estimator (const GamePositionX *const root,
   printf("Empty count = %d, Search depth = %d, ID minimum empty count = %d\n", ec, search_depth, id_min_empty_count);
   if (search_depth < 0) search_depth = max_search_depth;
 
-  const bool mw_available = mws[ec] != NULL;
-  if (!mw_available) {
-    printf("There is no model weights available for the root node empty count!\n");
+  /*
+   * 0         1         2         3         4         5         6
+   * 0123456789012345678901234567890123456789012345678901234567890
+   *             |         |
+   *             M         E
+   *             .  .  .  .
+   *             1  0  0  0
+   *             0  7  4  1
+   *
+   * M = id_min_empty_count, it must be in the range [0..60]
+   * E = root position empty_count
+   */
+  int idx;
+  int model_weight_count = 0;
+  int max_model_weight = 0;
+  int min_model_weight = 0;
+  for (idx = 0; idx <= 60; idx++) {
+    if (mws[idx] != NULL)
+      model_weight_count++;
+  }
+  for (idx = 0; idx <= 60; idx++)
+    if (mws[idx] != NULL) break;
+  min_model_weight = idx;
+  for (idx = 60; idx >= 0; idx--)
+    if (mws[idx] != NULL) break;
+  max_model_weight = idx;
+  printf("Model weights data range: [%02d..%02d]. Model weights count: %02d\n", min_model_weight, max_model_weight, model_weight_count);
+  if (model_weight_count == 0) {
+    printf("There is no model weight defnition into the configuration file. Exiting ...\n");
     exit(EXIT_FAILURE);
   }
+  for (idx = min_model_weight; idx <= max_model_weight; idx++) {
+    if (mws[idx] == NULL) {
+      printf("The range of model weight files must be complete without missing values. File for empty_count = %02d is missing\n", idx);
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  if (id_min_empty_count <= min_model_weight) {
+    printf("The minimum model weight value must be smaller than ID minimum empty count. Exiting ...\n");
+    exit(EXIT_FAILURE);
+  }
+
+  int last_level_evaluation;
+  if (ec < min_model_weight) {
+    printf("Game position empty count (%02d) cannot be lesser than min_model_weight (%02d). Exiting ...\n", ec, min_model_weight);
+    exit(EXIT_FAILURE);
+  }
+  first_level_evaluation = min(ec, max_model_weight);
+  last_level_evaluation = id_min_empty_count - 1;
+  printf("Game evaluation will happen in the range [%02d..%02d].\n", first_level_evaluation, last_level_evaluation);
+
+  if (first_level_evaluation < ec) {
+    printf("Game evaluation empty count (%02d) is larger than first available model weight (%02d).\n", ec, first_level_evaluation);
+  }
+
+  const int search_depth_initial_gap = (ec == first_level_evaluation) ? 1 : ec - first_level_evaluation;
+  printf("Search depth initial gap is equal to %02d.\n", search_depth_initial_gap);
 
   ttab = ttab_new(ttab_log_size);
   if (!ttab) abort();
@@ -349,8 +408,11 @@ game_position_value_estimator (const GamePositionX *const root,
             &parent_root_node, empty_square_set, invalid_move, invalid_move, out_of_range_defeat_score,
             root->blacks, root->whites, root->player);
 
-  heuristic_game_value(&root_node);
-  printf("Node Level 0: estimated game value = %+03d\n", root_node.value);
+  const bool mw_available = mws[ec] != NULL;
+  if (mw_available) {
+    heuristic_game_value(&root_node);
+    printf("Node Level 0: estimated game value = %+03d\n", root_node.value);
+  }
 
   /* Starts the stop-watch. */
   clock_gettime(CLOCK_REALTIME, &start_time);
@@ -358,15 +420,15 @@ game_position_value_estimator (const GamePositionX *const root,
 
   int id_limit = min(search_depth, ec - id_min_empty_count);
   printf("id_limit = %d\n", id_limit);
-  for (int i = 1; i <= id_limit; i += id_step) {
+  for (int i = search_depth_initial_gap; i <= id_limit; i += id_step) {
     printf(" ### ### ### id = %d\n", i);
     id_search_depth = i;
-    mtdf(&root_node, i);
+    mtdf(&root_node, env->alpha, env->beta, i);
   }
   if (search_depth > id_limit) {
     printf(" ### ### ### LAST ### search_depth = %d\n", search_depth);
     id_search_depth = search_depth;
-    mtdf(&root_node, search_depth);
+    mtdf(&root_node, env->alpha, env->beta, search_depth);
   }
 
   /* Stops the stop-watch. */
@@ -702,6 +764,7 @@ generate_legal_move_set (node_t *n,
  * @param [out] child_node_count pointer to the count of child nodes
  * @param [out] child_nodes      array of children nodes
  * @param [in]  n                pointer to the node structure
+ * @param [in]  compute_hash     drives the computation of the hash for child nodes
  */
 static void
 generate_child_nodes (int *child_node_count,
@@ -719,8 +782,6 @@ generate_child_nodes (int *child_node_count,
       const Square move = bitw_tzcnt_64(lms);
       node_t *const c = child_nodes + i;
       c->parent = n;
-      //c->legal_move_set = empty_square_set;
-      //c->legal_move_count = 0;
       c->parent_move = move;
       c->best_move = unknown_move;
       c->value = out_of_range_win_score;
@@ -734,8 +795,6 @@ generate_child_nodes (int *child_node_count,
     lmc = 1;
     node_t *const c = child_nodes + 0;
     c->parent = n;
-    //c->legal_move_set = empty_square_set;
-    //c->legal_move_count = 0;
     c->parent_move = pass_move;
     c->best_move = unknown_move;
     c->value = out_of_range_win_score;
@@ -752,7 +811,8 @@ static void
 order_moves (int child_node_count,
              node_t *child_nodes,
              node_t **child_nodes_p,
-             ttab_item_t it)
+             ttab_item_t it,
+             bool heuristic_sort)
 {
   if (it && it->best_moves[0] != unknown_move) {
 
@@ -778,7 +838,7 @@ order_moves (int child_node_count,
     for (int i = 0; i < child_node_count; i++) {
       node_t *child = &child_nodes[i];
       child_nodes_p[i] = child;
-      heuristic_game_value(child);
+      if (heuristic_sort) heuristic_game_value(child);
     }
     for (int i = 1; i < child_node_count; i++) {
       int j = i;
@@ -845,7 +905,6 @@ leaf_negamax (node_t *n,
     n->value = out_of_range_defeat_score;
     for (int i = 0; i < child_node_count; i++) {
       node_t *child = sorted_child_nodes[i];
-      //node_t *child = &child_nodes[i];
       leaf_negamax(child, -beta, -alpha);
       n->value = max(n->value, -child->value);
       alpha = max(alpha, n->value);
@@ -866,6 +925,8 @@ alphabeta_with_memory (node_t *n,
   node_t child_nodes[64];
   node_t *child_nodes_p[64];
   int explored_child_count;
+
+  const int ec = game_position_x_empty_count(&n->gpx);
 
   int am = alpha; // alpha-mobile : local value that is adjusted during the search
   int bm = beta;  // beta-mobile  : " ...
@@ -914,13 +975,13 @@ alphabeta_with_memory (node_t *n,
   } else if (depth == 0) {
     if (n->value == out_of_range_win_score) heuristic_game_value(n);
     n->best_move = unknown_move;
-  } else if ((game_position_x_empty_count(&n->gpx)) < id_min_empty_count) {
+  } else if (ec < id_min_empty_count) {
     leaf_negamax(n, am, bm);
   } else {
 
     generate_child_nodes(&child_node_count, child_nodes, n, true);
     its.legal_move_count = child_node_count;
-    order_moves(child_node_count, child_nodes, child_nodes_p, it);
+    order_moves(child_node_count, child_nodes, child_nodes_p, it, ec <= first_level_evaluation);
 
     n->value = out_of_range_defeat_score;
     n->best_move = invalid_move;
@@ -939,7 +1000,7 @@ alphabeta_with_memory (node_t *n,
         if (-child->value <= am) s = "(failing low)  f+";
         else if (-child->value >= bm) s = "(failing high) f-";
         else s = "(success)       f ";
-        printf("%s = %+03d - cumulated node count %10zu\n", s, -child->value, node_count);
+        printf("%s = %+03d - cumulated node count %12zu\n", s, -child->value, node_count);
         fflush(stdout);
       }
       if (-child->value > n->value) {
@@ -983,9 +1044,11 @@ alphabeta_with_memory (node_t *n,
 
 static void
 mtdf (node_t *n,
+      int alpha,
+      int beta,
       const int depth)
 {
-  int bound[2] = { out_of_range_defeat_score, out_of_range_win_score };
+  int bound[2] = { alpha, beta };
   do {
     const int beta = n->value + (n->value == bound[0]) * 2;
     alphabeta_with_memory(n, depth, beta -2, beta);
