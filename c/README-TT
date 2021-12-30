@@ -1,16 +1,6 @@
 
 To do list:
 
- (4) Una miriade di sistemazioni "pratiche" del codice. ( si ma andrebbero listate )
-     [done] File di configurazione da riga di comando
-     [done] Interferenze tra id_min_empty_count, id_step, search_depth ... e presenza dei files di model_weight
-     Documentazione funzione game_position_value_estimator nel file game_value_estimator.h
-     Inserire diversi verbose_tematici ....
-     Inserire il "planner" della search ... on i LIVELLI di ID, dove passiamo ad AB, dove ci fermiamo ...
-     [done] Inserire il check della presenza corretta dei Model-Weight che servono.
-     [tested:no gain] La funzione order_moves deve avere anche la sort "fastest-first", quando manca la valutazione euristica ...
-     [done] Aggiungere una funzione di inizializzazione di node_t
- 
  (5) Modificare la tabella regab_prng_gp con un campo GAME_VALUE_CHECK che ci consente di fare un secondo run e validare il risultato ( potrebbe essere una data ? ).
      Credo sia piu' semplice duplicare i dati da testare in una nuova tabella:
        psql> CREATE TABLE regab_prng_gp_dupe AS (SELECT seq, cst_time, status, game_value, best_move, leaf_count, node_count, solver FROM regab_prng_gp WHERE batch_id = X AND empty_count = Y AND status = 'ZZZ');
@@ -27,8 +17,6 @@ To do list:
      Poi si puo' quindi confrontare con una JOIN che il campo game_value abbia sempre lo stesso valore.
      
  (8) Aggiungere i Model Weight per EC = 0,1
- 
- (9) Rimuovere limitazione che bisogna avere il MODEL-WEIGHT anche per gli EC elevati, serve un fallback su algoritmo BASICO in quel caso.
 
 
 DONE or ADDRESSED:
@@ -67,8 +55,22 @@ DONE or ADDRESSED:
        Dopo molti tentativi, la cosa e' archiviata, nessun miglioramento ottenuto.
  
  (3) Passare da negascout a MTDf.
+ 
+ (4) Una miriade di sistemazioni "pratiche" del codice. ( si ma andrebbero listate )
+     [done] File di configurazione da riga di comando
+     [done] Interferenze tra id_min_empty_count, id_step, search_depth ... e presenza dei files di model_weight
+     [done] Documentazione funzione game_position_value_estimator nel file game_value_estimator.h
+     [done] Inserire diversi verbose_tematici ....
+     [done] Inserire il "planner" della search ... on i LIVELLI di ID, dove passiamo ad AB, dove ci fermiamo ...
+     [done] Inserire il check della presenza corretta dei Model-Weight che servono.
+     [tested:no gain] La funzione order_moves deve avere anche la sort "fastest-first", quando manca la valutazione euristica ...
+     [done] Aggiungere una funzione di inizializzazione di node_t
+ 
  (6) Rimuovere il "clutter" in GVE dato da negamax e da OLD TT.
+
  (7) Calcolo HASH ottimizzato, con funzione delta hash.
+ 
+ (9) Rimuovere limitazione che bisogna avere il MODEL-WEIGHT anche per gli EC elevati, serve un fallback su algoritmo BASICO in quel caso.
 
 
 

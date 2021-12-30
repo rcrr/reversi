@@ -98,6 +98,14 @@ init_node (node_t *node,
            Player gpx_player);
 
 static int
+get_game_position_evaluation_summary_from_cfg (cfg_t *cfg,
+                                               int *game_position_evaluation_summary);
+
+static int
+get_ttab_log_verbosity_from_cfg (cfg_t *cfg,
+                                 int *ttab_log_verbosity);
+
+static int
 get_model_weights_check_digest_from_cfg (cfg_t *cfg,
                                          bool *model_weights_check_digest);
 
@@ -131,6 +139,10 @@ mtdf (node_t *n,
       int alpha,
       int beta,
       const int depth);
+
+static int
+get_gve_solver_log_level_from_cfg (cfg_t *cfg,
+                                   int *gve_solver_log_level);
 
 static int
 game_position_rglm_load_model_weights_files (bool verbose,
@@ -222,6 +234,9 @@ static ttab_t ttab;
 /* Transposition Table binary logarithm of size. */
 static int ttab_log_size;
 
+/* Transposition Table log verbosity. */
+static int ttab_log_verbosity;
+
 /* Count of nodes and leafs touchd by the algorithm. */
 static uint64_t node_count;
 static uint64_t leaf_count;
@@ -229,6 +244,11 @@ static uint64_t leaf_count;
 /* This is the empty count level where we start having model weight info available. */
 static int first_level_evaluation;
 
+/* Game position evaluation summary. */
+static int game_position_evaluation_summary;
+
+/* Log level for the solver. */
+static int gve_solver_log_level;
 
 /**
  * @endcond
@@ -276,7 +296,9 @@ game_position_value_estimator (const GamePositionX *const root,
   const int max_search_depth = 99;
 
   /* Stopwatch variables. */
-  timespec_t time_0, time_1, delta_cpu_time, start_time, end_time, delta_time;
+  //timespec_t time_0, time_1, delta_cpu_time, start_time, end_time, delta_time;
+  timespec_t time_0_a, time_1_a, delta_cpu_time_a, start_time_a, end_time_a, delta_time_a;
+  timespec_t time_0_b, time_1_b, delta_cpu_time_b, start_time_b, end_time_b, delta_time_b;
 
   int estimated_value;
 
@@ -327,27 +349,32 @@ game_position_value_estimator (const GamePositionX *const root,
     fprintf(stderr, "Error loading key ttab_log_size from section gve_solver from the config file. Exiting ...\n");
     exit(EXIT_FAILURE);
   }
+  ret_err = get_ttab_log_verbosity_from_cfg(env->cfg, &ttab_log_verbosity);
+  if (ret_err != EXIT_SUCCESS) {
+    fprintf(stderr, "Error loading key ttab_log_verbosity from section gve_solver from the config file. Exiting ...\n");
+    exit(EXIT_FAILURE);
+  }
+  ret_err = get_game_position_evaluation_summary_from_cfg(env->cfg, &game_position_evaluation_summary);
+  if (ret_err != EXIT_SUCCESS) {
+    fprintf(stderr, "Error loading key game_position_evaluation_summary from section gve_solver from the config file. Exiting ...\n");
+    exit(EXIT_FAILURE);
+  }
+  ret_err = get_gve_solver_log_level_from_cfg(env->cfg, &gve_solver_log_level);
+  if (ret_err != EXIT_SUCCESS) {
+    fprintf(stderr, "Error loading key gve_solver_log_level from section gve_solver from the config file. Exiting ...\n");
+    exit(EXIT_FAILURE);
+  }
 
   result = exact_solution_new();
   exact_solution_init(result);
   exact_solution_set_root(result, root);
 
   const int ec = game_position_x_empty_count(root);
-  printf("Empty count = %d, Search depth = %d, ID minimum empty count = %d\n", ec, search_depth, id_min_empty_count);
   if (search_depth < 0) search_depth = max_search_depth;
 
-  /*
-   * 0         1         2         3         4         5         6
-   * 0123456789012345678901234567890123456789012345678901234567890
-   *             |         |
-   *             M         E
-   *             .  .  .  .
-   *             1  0  0  0
-   *             0  7  4  1
-   *
-   * M = id_min_empty_count, it must be in the range [0..60]
-   * E = root position empty_count
-   */
+  if (gve_solver_log_level >= 1)
+    printf("Empty count = %d, Search depth = %d, ID minimum empty count = %d\n", ec, search_depth, id_min_empty_count);
+
   int idx;
   int model_weight_count = 0;
   int max_model_weight = 0;
@@ -362,7 +389,8 @@ game_position_value_estimator (const GamePositionX *const root,
   for (idx = 60; idx >= 0; idx--)
     if (mws[idx] != NULL) break;
   max_model_weight = idx;
-  printf("Model weights data range: [%02d..%02d]. Model weights count: %02d\n", min_model_weight, max_model_weight, model_weight_count);
+  if (gve_solver_log_level >= 1)
+    printf("Model weights data range: [%02d..%02d]. Model weights count: %02d\n", min_model_weight, max_model_weight, model_weight_count);
   if (model_weight_count == 0) {
     printf("There is no model weight defnition into the configuration file. Exiting ...\n");
     exit(EXIT_FAILURE);
@@ -386,14 +414,17 @@ game_position_value_estimator (const GamePositionX *const root,
   }
   first_level_evaluation = min(ec, max_model_weight);
   last_level_evaluation = id_min_empty_count - 1;
-  printf("Game evaluation will happen in the range [%02d..%02d].\n", first_level_evaluation, last_level_evaluation);
+  if (gve_solver_log_level >= 1)
+    printf("Game evaluation will happen in the range [%02d..%02d].\n", first_level_evaluation, last_level_evaluation);
 
-  if (first_level_evaluation < ec) {
-    printf("Game evaluation empty count (%02d) is larger than first available model weight (%02d).\n", ec, first_level_evaluation);
-  }
+  if (gve_solver_log_level >= 1)
+    if (first_level_evaluation < ec) {
+      printf("Game evaluation empty count (%02d) is larger than first available model weight (%02d).\n", ec, first_level_evaluation);
+    }
 
   const int search_depth_initial_gap = (ec == first_level_evaluation) ? 1 : ec - first_level_evaluation;
-  printf("Search depth initial gap is equal to %02d.\n", search_depth_initial_gap);
+  if (gve_solver_log_level >= 1)
+    printf("Search depth initial gap is equal to %02d.\n", search_depth_initial_gap);
 
   ttab = ttab_new(ttab_log_size);
   if (!ttab) abort();
@@ -408,41 +439,65 @@ game_position_value_estimator (const GamePositionX *const root,
             &parent_root_node, empty_square_set, invalid_move, invalid_move, out_of_range_defeat_score,
             root->blacks, root->whites, root->player);
 
-  const bool mw_available = mws[ec] != NULL;
-  if (mw_available) {
-    heuristic_game_value(&root_node);
-    printf("Node Level 0: estimated game value = %+03d\n", root_node.value);
+  const int id_limit = min(search_depth, ec - id_min_empty_count);
+  if (gve_solver_log_level >= 1) {
+    printf("Iterative deepening search_depth limit (id_limit): %d\n", id_limit);
+    printf("Iterative deepening search_depth increment step (id_step): %d\n", id_step);
   }
+
+  const bool mw_available = mws[ec] != NULL;
+  if (gve_solver_log_level >= 1)
+    if (mw_available) {
+      heuristic_game_value(&root_node);
+      printf("Node Level 0: estimated game value = %+03d\n", root_node.value);
+    }
 
   /* Starts the stop-watch. */
-  clock_gettime(CLOCK_REALTIME, &start_time);
-  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+  clock_gettime(CLOCK_REALTIME, &start_time_a);
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0_a);
 
-  int id_limit = min(search_depth, ec - id_min_empty_count);
-  printf("id_limit = %d\n", id_limit);
-  for (int i = search_depth_initial_gap; i <= id_limit; i += id_step) {
-    printf(" ### ### ### id = %d\n", i);
-    id_search_depth = i;
-    mtdf(&root_node, env->alpha, env->beta, i);
-  }
-  if (search_depth > id_limit) {
-    printf(" ### ### ### LAST ### search_depth = %d\n", search_depth);
-    id_search_depth = search_depth;
-    mtdf(&root_node, env->alpha, env->beta, search_depth);
+  if (search_depth > 0) {
+    id_search_depth = search_depth_initial_gap;
+    while (true) {
+      uint64_t nc = node_count;
+      if (gve_solver_log_level >= 2) {
+        timespec_print_local_time(stdout);
+        printf(" #### start  .%02d. Iterative deepening search depth = %d\n", id_search_depth, id_search_depth);
+        clock_gettime(CLOCK_REALTIME, &start_time_b);
+        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0_b);
+      }
+      mtdf(&root_node, env->alpha, env->beta, id_search_depth);
+      if (gve_solver_log_level >= 2) {
+        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1_b);
+        clock_gettime(CLOCK_REALTIME, &end_time_b);
+        timespec_print_local_time(stdout);
+        timespec_diff(&delta_time_b, &start_time_b, &end_time_b);
+        timespec_diff(&delta_cpu_time_b, &time_0_b, &time_1_b);
+        printf(" #### finish .%02d. Best move and game value: [%2s:%+03d] - nc = %12zu - ",
+               id_search_depth, square_as_move_to_string(root_node.best_move), root_node.value, node_count - nc);
+        printf("Time [REAL][PROC]: [%6lld.%9ld][%6lld.%9ld]\n",
+               (long long) timespec_get_sec(&delta_cpu_time_b), timespec_get_nsec(&delta_cpu_time_b),
+               (long long) timespec_get_sec(&delta_time_b), timespec_get_nsec(&delta_time_b));
+      }
+      if (id_search_depth >= search_depth) break;
+      if (id_search_depth == id_limit) id_search_depth = search_depth;
+      else if (id_search_depth + id_step > id_limit) id_search_depth = id_limit;
+      else id_search_depth += id_step;
+    }
   }
 
   /* Stops the stop-watch. */
-  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
-  clock_gettime(CLOCK_REALTIME, &end_time);
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1_a);
+  clock_gettime(CLOCK_REALTIME, &end_time_a);
 
   /* Computes the time taken, and updates the test cpu_time. */
-  timespec_diff(&delta_time, &start_time, &end_time);
-  timespec_diff(&delta_cpu_time, &time_0, &time_1);
-  if (true) {
-    printf("MTD(f) evaluation CPU time: ");
+  timespec_diff(&delta_time_a, &start_time_a, &end_time_a);
+  timespec_diff(&delta_cpu_time_a, &time_0_a, &time_1_a);
+  if (gve_solver_log_level >= 1) {
+    printf("MTD(f) evaluation [REAL][PROCESS] time: ");
     printf("[%6lld.%9ld][%6lld.%9ld]\n",
-           (long long) timespec_get_sec(&delta_cpu_time), timespec_get_nsec(&delta_cpu_time),
-           (long long) timespec_get_sec(&delta_time), timespec_get_nsec(&delta_time));
+           (long long) timespec_get_sec(&delta_cpu_time_a), timespec_get_nsec(&delta_cpu_time_a),
+           (long long) timespec_get_sec(&delta_time_a), timespec_get_nsec(&delta_time_a));
   }
 
   estimated_value = root_node.value;
@@ -452,23 +507,33 @@ game_position_value_estimator (const GamePositionX *const root,
   result->node_count = node_count;
   result->leaf_count = leaf_count;
 
-  printf("game_position_value_estimator: search_depth = %d, estimated_value = %d\n", search_depth, estimated_value);
-
-  const size_t stats_size = 42;
-  size_t stats[stats_size];
-  ttab_summary_to_stream(ttab, stdout);
-  ttab_bucket_filling_stats(ttab, stats, stats_size);
-  printf("TT hashtable stats:\n");
-  for (size_t i = 0; i < stats_size; i++) {
-    printf("%6zu;%10zu\n", i, stats[i]);
+  if (ttab_log_verbosity > 0) {
+    const size_t tt_stats_max_size = 42;
+    size_t tt_stats_size;
+    size_t tt_stats[tt_stats_max_size];
+    ttab_summary_to_stream(ttab, stdout);
+    ttab_bucket_filling_stats(ttab, tt_stats, tt_stats_max_size);
+    for (tt_stats_size = tt_stats_max_size -1; tt_stats_size > 0; tt_stats_size--)
+      if (tt_stats[tt_stats_size] > 0) break;
+    printf("TT hashtable stats:\n");
+    printf(" ELEMENTS_X_BUCKET; ELEMENT_CNT\n");
+    for (size_t i = 0; i < tt_stats_size; i++) {
+      printf("%18zu;%12zu\n", i, tt_stats[i]);
+    }
   }
   ttab_free(&ttab);
 
   game_position_rglm_release_model_weights();
 
-  if (true) {
+  if (game_position_evaluation_summary > 0) {
+    uint64_t total_gp_eval_count = 0;
+    for (int i = 0; i < EC_SIZE; i++) {
+      total_gp_eval_count += gp_evaluations[i];
+    }
+    printf("Total game position evaluation count: %zu\n", total_gp_eval_count);
+    printf(" EMPTY_COUNT;  EVALUATIONS\n");
     for (int i = 0; i < EC_SIZE; i++)
-      printf("gp_evaluations[%02d] = %zu\n", i, gp_evaluations[i]);
+      if (gp_evaluations[i] > 0) printf("          %02d; %12zu\n", i, gp_evaluations[i]);
   }
 
   return result;
@@ -482,6 +547,72 @@ game_position_value_estimator (const GamePositionX *const root,
 /*
  * Internal functions.
  */
+
+static int
+get_gve_solver_log_level_from_cfg (cfg_t *cfg,
+                                   int *gve_solver_log_level)
+{
+  int value;
+
+  const char *gve_solver_log_level_s = cfg_get(cfg, "gve_solver", "gve_solver_log_level");
+  if (!gve_solver_log_level_s) {
+    fprintf(stderr, "The key gve_solver_log_level is missing from section gve_solver.\n");
+    return EXIT_FAILURE;
+  }
+
+  value = atoi(gve_solver_log_level_s);
+  if (value < 0 || value > 3) {
+    fprintf(stderr, "The key gve_solver_log_level is out of range. It must be in [0..3].\n");
+    return EXIT_FAILURE;
+  }
+
+  *gve_solver_log_level = value;
+  return EXIT_SUCCESS;
+}
+
+static int
+get_game_position_evaluation_summary_from_cfg (cfg_t *cfg,
+                                               int *game_position_evaluation_summary)
+{
+  int value;
+
+  const char *game_position_evaluation_summary_s = cfg_get(cfg, "gve_solver", "game_position_evaluation_summary");
+  if (!game_position_evaluation_summary_s) {
+    fprintf(stderr, "The key game_position_evaluation_summary is missing from section gve_solver.\n");
+    return EXIT_FAILURE;
+  }
+
+  value = atoi(game_position_evaluation_summary_s);
+  if (value < 0 || value > 1) {
+    fprintf(stderr, "The key game_position_evaluation_summary is out of range. It must be in [0..1].\n");
+    return EXIT_FAILURE;
+  }
+
+  *game_position_evaluation_summary = value;
+  return EXIT_SUCCESS;
+}
+
+static int
+get_ttab_log_verbosity_from_cfg (cfg_t *cfg,
+                                 int *ttab_log_verbosity)
+{
+  int value;
+
+  const char *ttab_log_verbosity_s = cfg_get(cfg, "gve_solver", "ttab_log_verbosity");
+  if (!ttab_log_verbosity_s) {
+    fprintf(stderr, "The key ttab_log_verbosity is missing from section gve_solver.\n");
+    return EXIT_FAILURE;
+  }
+
+  value = atoi(ttab_log_verbosity_s);
+  if (value < 0 || value > 1) {
+    fprintf(stderr, "The key ttab_log_verbosity is out of range. It must be in [0..1].\n");
+    return EXIT_FAILURE;
+  }
+
+  *ttab_log_verbosity = value;
+  return EXIT_SUCCESS;
+}
 
 static int
 get_model_weights_check_digest_from_cfg (cfg_t *cfg,
@@ -987,22 +1118,27 @@ alphabeta_with_memory (node_t *n,
     n->best_move = invalid_move;
     for (int i = 0; i < child_node_count; i++) {
       node_t *child = child_nodes_p[i];
-      if (id_search_depth - depth == 0) {
-        printf("%02d - %2s (%+03d) [%+03d..%+03d]: ", i, square_as_move_to_string(child->parent_move), -child->value, am, bm);
-        fflush(stdout);
-      }
+
+      if (id_search_depth - depth == 0)
+        if (gve_solver_log_level >= 3) {
+          timespec_print_local_time(stdout);
+          printf(" %02d - %2s (%+03d) [%+03d..%+03d]: ", i, square_as_move_to_string(child->parent_move), -child->value, am, bm);
+          fflush(stdout);
+        }
 
       const int child_depth = (child->parent_move == pass_move) ? depth : depth -1;
       alphabeta_with_memory(child, child_depth, -bm, -am);
 
-      if (id_search_depth - depth == 0) {
-        char *s;
-        if (-child->value <= am) s = "(failing low)  f+";
-        else if (-child->value >= bm) s = "(failing high) f-";
-        else s = "(success)       f ";
-        printf("%s = %+03d - cumulated node count %12zu\n", s, -child->value, node_count);
-        fflush(stdout);
-      }
+      if (id_search_depth - depth == 0)
+        if (gve_solver_log_level >= 3) {
+          char *s;
+          if (-child->value <= am) s = "(failing low)  f+";
+          else if (-child->value >= bm) s = "(failing high) f-";
+          else s = "(success)       f ";
+          printf("%s = %+03d - cumulated node count %12zu\n", s, -child->value, node_count);
+          fflush(stdout);
+        }
+
       if (-child->value > n->value) {
         n->value = -child->value;
         n->best_move = child->parent_move;

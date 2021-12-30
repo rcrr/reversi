@@ -972,3 +972,50 @@ sample-25774684;wwwwwwwwwwwwwb..wbbbwbbbwb.bwbbbwwwbwb.bwwwww...wb.w....www.w...
 sample-47320341;.bbbbbw.wwwwwww.wbwbbw..wbbbwwwbwbbwwwwbbbw.wwwb...wwww....ww...;b;REGAB database entry 47320341 - black wins +64;
 #
 #
+#
+#    seq    | empty_count | game_position_pp_mop  | best_move | game_value | legal_move_count 
+#-----------+-------------+-----------------------+-----------+------------+------------------
+# 295575197 |          23 |    a b c d e f g h   +| H8        |         54 |               18
+#           |             | 1  O . . . . O . .   +|           |            | 
+#           |             | 2  . O . O O O . .   +|           |            | 
+#           |             | 3  . O O O O O O .   +|           |            | 
+#           |             | 4  . O @ O @ O . .   +|           |            | 
+#           |             | 5  . O @ @ O O O O   +|           |            | 
+#           |             | 6  . O @ @ O O O .   +|           |            | 
+#           |             | 7  . O O O O @ O .   +|           |            | 
+#           |             | 8  . O . O O @ O .   +|           |            | 
+#           |             | Player to move: BLACK |           |            | 
+#
+# This is a very hard position. The RGLM solver had to expand 341,126,551,008 nodes to solve it.
+#
+# ES solver : [ node_count = 613,002,366,577 , leaf_count = 120,635,270,970 ]
+# Final outcome: best move=H8, position value=54
+# Time: 441m29.962s
+#
+# GVE solver : [ node_count = 100,422,523,895 , leaf_count = 19,238,774,258 ]
+# Final outcome: best move=H8, position value=54
+# Time: 75m9.849s
+#
+#               |1       2       3       4       5       6       7       8       |
+#               |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+sample-295575197;w....w...w.www...wwwwww..wbwbw...wbbwwww.wbbwww..wwwwbw..w.wwbw.;b;REGAB database entry 295575197 - black wins +54, best move H8;
+#
+#
+#
+#    seq    | empty_count | game_position_pp_mop  | best_move | game_value | legal_move_count 
+#-----------+-------------+-----------------------+-----------+------------+------------------
+# 286132585 |          23 |    a b c d e f g h   +| A8        |          0 |               12
+#           |             | 1  . . O O O @ . .   +|           |            | 
+#           |             | 2  . . @ @ @ @ O .   +|           |            | 
+#           |             | 3  . . @ @ O @ O .   +|           |            | 
+#           |             | 4  . @ . O O O O O   +|           |            | 
+#           |             | 5  . @ O O @ O @ .   +|           |            | 
+#           |             | 6  @ O @ @ O O . @   +|           |            | 
+#           |             | 7  O @ @ O . O . .   +|           |            | 
+#           |             | 8  . @ @ O . . . .   +|           |            | 
+#           |             | Player to move: WHITE |           |            | 
+#
+#
+#               |1       2       3       4       5       6       7       8       |
+#               |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+sample-286132585;..wwwb....bbbbw...bbwbw..b.wwwww.bwwbwb.bwbbww.bwbbw.w...bbw....;w;REGAB database entry 286132585 - draw, best move A8;

@@ -32,6 +32,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 
 #include "time_utils.h"
@@ -155,4 +156,22 @@ timespec_cmp (const timespec_t *const a,
   if (a->tv_sec > b->tv_sec) return +1;
   if (a->tv_sec < b->tv_sec) return -1;
   return (a->tv_nsec > b->tv_nsec) - (a->tv_nsec < b->tv_nsec);
+}
+
+/**
+ * @brief Prints the current time to `output_stream`.
+ *
+ * @details If `output_stream` is null the function does nothing.
+ *
+ * @param [in] output_stream output stream
+ */
+void
+timespec_print_local_time (FILE *output_stream)
+{
+  if (output_stream) {
+    time_t mytime = time(NULL);
+    char *time_str = ctime(&mytime);
+    time_str[strlen(time_str)-1] = '\0';
+    fprintf(output_stream, "%s", time_str);
+  }
 }

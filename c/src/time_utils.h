@@ -72,4 +72,7 @@ extern int
 timespec_cmp (const timespec_t *const a,
               const timespec_t *const b);
 
+extern void
+timespec_print_local_time (FILE *output_stream);
+
 #endif /* TIME_UTILS_H */
