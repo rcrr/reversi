@@ -179,7 +179,8 @@ order_moves (int child_node_count,
              node_t *child_nodes,
              node_t **child_nodes_p,
              ttab_item_t it,
-             bool heuristic_sort);
+             bool heuristic_sort,
+             gve_context_t *ctx);
 
 static void
 leaf_negamax (node_t *n,
@@ -194,13 +195,15 @@ static void
 alphabeta_with_memory (node_t *n,
                        int depth,
                        int alpha,
-                       int beta);
+                       int beta,
+                       gve_context_t *ctx);
 
 static void
 mtdf (node_t *n,
       int alpha,
       int beta,
-      const int depth);
+      const int depth,
+      gve_context_t *ctx);
 
 static int
 game_position_rglm_load_model_weights_files (bool verbose,
@@ -211,7 +214,8 @@ static void
 game_position_rglm_release_model_weights (void);
 
 static double
-rglm_eval_gp (const GamePositionX *const gpx);
+rglm_eval_gp (const GamePositionX *const gpx,
+              gve_context_t *ctx);
 
 static int
 gv_f2d (const double f);
@@ -225,7 +229,8 @@ min (int a,
      int b);
 
 static void
-heuristic_game_value (node_t *n);
+heuristic_game_value (node_t *n,
+                      gve_context_t *ctx);
 
 static bool
 is_terminal (node_t *n);
@@ -236,6 +241,13 @@ model_weights_data_release (model_weights_data_t *mwd);
 static int
 model_weights_data_init (model_weights_data_t *mwd,
                          cfg_t *cfg);
+
+static void
+gve_context_release (gve_context_t *ctx);
+
+static int
+gve_context_init (gve_context_t *ctx,
+                  const endgame_solver_env_t *env);
 
 /*
  * Internal variables and constants.
@@ -331,9 +343,9 @@ game_position_value_estimator (const GamePositionX *const root,
   assert(root);
   assert(env);
 
-  model_weights_data_t mwd;
+  gve_context_t ctx;
   int ret_err;
-  ret_err = model_weights_data_init(&mwd, env->cfg);
+  gve_context_init(&ctx, env);
 
   /* Used to drive the search to be complete and touch the leafs of the game tree. */
   const int max_search_depth = 99;
@@ -489,7 +501,7 @@ game_position_value_estimator (const GamePositionX *const root,
   const bool mw_available = mws[ec] != NULL;
   if (gve_solver_log_level >= 1)
     if (mw_available) {
-      heuristic_game_value(&root_node);
+      heuristic_game_value(&root_node, &ctx);
       printf("Node Level 0: estimated game value = %+03d\n", root_node.value);
     }
 
@@ -507,7 +519,7 @@ game_position_value_estimator (const GamePositionX *const root,
         clock_gettime(CLOCK_REALTIME, &start_time_b);
         clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0_b);
       }
-      mtdf(&root_node, env->alpha, env->beta, id_search_depth);
+      mtdf(&root_node, env->alpha, env->beta, id_search_depth, &ctx);
       if (gve_solver_log_level >= 2) {
         clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1_b);
         clock_gettime(CLOCK_REALTIME, &end_time_b);
@@ -565,7 +577,7 @@ game_position_value_estimator (const GamePositionX *const root,
   ttab_free(&ttab);
 
   game_position_rglm_release_model_weights();
-  model_weights_data_release(&mwd);
+  gve_context_release(&ctx);
 
   if (game_position_evaluation_summary > 0) {
     uint64_t total_gp_eval_count = 0;
@@ -589,6 +601,46 @@ game_position_value_estimator (const GamePositionX *const root,
 /*
  * Internal functions.
  */
+
+static void
+gve_context_release (gve_context_t *ctx)
+{
+  if (!ctx) return;
+
+  model_weights_data_release(&ctx->mwd);
+}
+
+static int
+gve_context_init (gve_context_t *ctx,
+                  const endgame_solver_env_t *env)
+{
+  assert(ctx);
+  assert(env);
+
+  int ret_err;
+  ret_err = model_weights_data_init(&ctx->mwd, env->cfg);
+  if (ret_err != 0) {
+    printf("Error initializing model weights data structure.\n");
+    return EXIT_FAILURE;
+  }
+
+  for (int i = 0; i < EC_SIZE; i++)
+    ctx->gp_evaluations[i] = 0;
+
+  ctx->id_min_empty_count = 0;
+  ctx->id_step = 0;
+  ctx->id_search_depth = 0;
+  ctx->search_depth = 0;
+  ctx->ttab_log_size = 0;
+  ctx->ttab_log_verbosity = 0;
+  ctx->node_count = 0;
+  ctx->leaf_count = 0;
+  ctx->first_level_evaluation = 0;
+  ctx->game_position_evaluation_summary = 0;
+  ctx->gve_solver_log_level = 0;
+
+  return EXIT_SUCCESS;
+}
 
 static void
 model_weights_data_release (model_weights_data_t *mwd)
@@ -928,7 +980,8 @@ gv_f2d (const double f)
 }
 
 static double
-rglm_eval_gp (const GamePositionX *const gpx)
+rglm_eval_gp (const GamePositionX *const gpx,
+              gve_context_t *ctx)
 {
   assert(gpx);
 
@@ -1031,9 +1084,10 @@ is_terminal (node_t *n)
 }
 
 static void
-heuristic_game_value (node_t *n)
+heuristic_game_value (node_t *n,
+                      gve_context_t *ctx)
 {
-  const double v0 = rglm_eval_gp(&n->gpx);
+  const double v0 = rglm_eval_gp(&n->gpx, ctx);
   const double v1 = rglmut_gv_scale_back_f(v0);
   n->value = gv_f2d(v1);
 }
@@ -1106,7 +1160,8 @@ order_moves (int child_node_count,
              node_t *child_nodes,
              node_t **child_nodes_p,
              ttab_item_t it,
-             bool heuristic_sort)
+             bool heuristic_sort,
+             gve_context_t *ctx)
 {
   if (it && it->best_moves[0] != unknown_move) {
 
@@ -1132,7 +1187,7 @@ order_moves (int child_node_count,
     for (int i = 0; i < child_node_count; i++) {
       node_t *child = &child_nodes[i];
       child_nodes_p[i] = child;
-      if (heuristic_sort) heuristic_game_value(child);
+      if (heuristic_sort) heuristic_game_value(child, ctx);
     }
     for (int i = 1; i < child_node_count; i++) {
       int j = i;
@@ -1213,7 +1268,8 @@ static void
 alphabeta_with_memory (node_t *n,
                        const int depth,
                        const int alpha,
-                       const int beta)
+                       const int beta,
+                       gve_context_t *ctx)
 {
   int child_node_count;
   node_t child_nodes[64];
@@ -1267,7 +1323,7 @@ alphabeta_with_memory (node_t *n,
     leaf_count++;
     exact_terminal_game_value(n);
   } else if (depth == 0) {
-    if (n->value == out_of_range_win_score) heuristic_game_value(n);
+    if (n->value == out_of_range_win_score) heuristic_game_value(n, ctx);
     n->best_move = unknown_move;
   } else if (ec < id_min_empty_count) {
     leaf_negamax(n, am, bm);
@@ -1275,7 +1331,7 @@ alphabeta_with_memory (node_t *n,
 
     generate_child_nodes(&child_node_count, child_nodes, n, true);
     its.legal_move_count = child_node_count;
-    order_moves(child_node_count, child_nodes, child_nodes_p, it, ec <= first_level_evaluation);
+    order_moves(child_node_count, child_nodes, child_nodes_p, it, ec <= first_level_evaluation, ctx);
 
     n->value = out_of_range_defeat_score;
     n->best_move = invalid_move;
@@ -1290,7 +1346,7 @@ alphabeta_with_memory (node_t *n,
         }
 
       const int child_depth = (child->parent_move == pass_move) ? depth : depth -1;
-      alphabeta_with_memory(child, child_depth, -bm, -am);
+      alphabeta_with_memory(child, child_depth, -bm, -am, ctx);
 
       if (id_search_depth - depth == 0)
         if (gve_solver_log_level >= 3) {
@@ -1345,12 +1401,13 @@ static void
 mtdf (node_t *n,
       int alpha,
       int beta,
-      const int depth)
+      const int depth,
+      gve_context_t *ctx)
 {
   int bound[2] = { alpha, beta };
   do {
     const int beta = n->value + (n->value == bound[0]) * 2;
-    alphabeta_with_memory(n, depth, beta -2, beta);
+    alphabeta_with_memory(n, depth, beta -2, beta, ctx);
     bound[n->value < beta] = n->value;
   } while (bound[0] < bound[1]);
 }
