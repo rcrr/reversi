@@ -246,17 +246,8 @@ gve_context_init (gve_context_t *ctx,
  * Internal variables and constants.
  */
 
-/* Iterative deepening minimum empty count. */
-static int id_min_empty_count;
-
-/* Iterative deepening step. */
-static int id_step;
-
 /* Search depth iterative deepening. */
-static int id_search_depth;
-
-/* Search depth. */
-static int search_depth;
+//static int id_search_depth;
 
 /* Transposition Table. */
 static ttab_t ttab;
@@ -293,6 +284,8 @@ game_position_value_estimator (const GamePositionX *const root,
   assert(root);
   assert(env);
 
+  ExactSolution *result = NULL;
+
   gve_context_t ctx;
   int ret_err;
   ret_err = gve_context_init(&ctx, env);
@@ -308,33 +301,6 @@ game_position_value_estimator (const GamePositionX *const root,
   timespec_t time_0_a, time_1_a, delta_cpu_time_a, start_time_a, end_time_a, delta_time_a;
   timespec_t time_0_b, time_1_b, delta_cpu_time_b, start_time_b, end_time_b, delta_time_b;
 
-  int estimated_value;
-
-  search_depth = env->search_depth;
-
-  ExactSolution *result = NULL;
-  bool model_weights_verbose_loader;
-  bool model_weights_check_digest;
-  ret_err = get_model_weights_verbose_loader_from_cfg(env->cfg, &model_weights_verbose_loader);
-  if (ret_err != EXIT_SUCCESS) {
-    fprintf(stderr, "Error in the config file. Exiting ...\n");
-    exit(EXIT_FAILURE);
-  }
-  ret_err = get_model_weights_check_digest_from_cfg(env->cfg, &model_weights_check_digest);
-  if (ret_err != EXIT_SUCCESS) {
-    fprintf(stderr, "Error in the config file. Exiting ...\n");
-    exit(EXIT_FAILURE);
-  }
-  ret_err = get_id_min_empty_count_from_cfg(env->cfg, &id_min_empty_count);
-  if (ret_err != EXIT_SUCCESS) {
-    fprintf(stderr, "Error loading key id_min_empty_count from section gve_solver from the config file. Exiting ...\n");
-    exit(EXIT_FAILURE);
-  }
-  ret_err = get_id_step_from_cfg(env->cfg, &id_step);
-  if (ret_err != EXIT_SUCCESS) {
-    fprintf(stderr, "Error loading key id_step from section gve_solver from the config file. Exiting ...\n");
-    exit(EXIT_FAILURE);
-  }
   ret_err = get_ttab_log_size_from_cfg(env->cfg, &ttab_log_size);
   if (ret_err != EXIT_SUCCESS) {
     fprintf(stderr, "Error loading key ttab_log_size from section gve_solver from the config file. Exiting ...\n");
@@ -361,10 +327,10 @@ game_position_value_estimator (const GamePositionX *const root,
   exact_solution_set_root(result, root);
 
   const int ec = game_position_x_empty_count(root);
-  if (search_depth < 0) search_depth = max_search_depth;
+  if (ctx.search_depth < 0) ctx.search_depth = max_search_depth;
 
   if (gve_solver_log_level >= 1)
-    printf("Empty count = %d, Search depth = %d, ID minimum empty count = %d\n", ec, search_depth, id_min_empty_count);
+    printf("Empty count = %d, Search depth = %d, ID minimum empty count = %d\n", ec, ctx.search_depth, ctx.id_min_empty_count);
 
   int idx;
   int model_weight_count = 0;
@@ -393,7 +359,7 @@ game_position_value_estimator (const GamePositionX *const root,
     }
   }
 
-  if (id_min_empty_count <= min_model_weight) {
+  if (ctx.id_min_empty_count <= min_model_weight) {
     printf("The minimum model weight value must be smaller than ID minimum empty count. Exiting ...\n");
     exit(EXIT_FAILURE);
   }
@@ -404,7 +370,7 @@ game_position_value_estimator (const GamePositionX *const root,
     exit(EXIT_FAILURE);
   }
   first_level_evaluation = min(ec, max_model_weight);
-  last_level_evaluation = id_min_empty_count - 1;
+  last_level_evaluation = ctx.id_min_empty_count - 1;
   if (gve_solver_log_level >= 1)
     printf("Game evaluation will happen in the range [%02d..%02d].\n", first_level_evaluation, last_level_evaluation);
 
@@ -430,10 +396,10 @@ game_position_value_estimator (const GamePositionX *const root,
             &parent_root_node, empty_square_set, invalid_move, invalid_move, out_of_range_defeat_score,
             root->blacks, root->whites, root->player);
 
-  const int id_limit = min(search_depth, ec - id_min_empty_count);
+  const int id_limit = min(ctx.search_depth, ec - ctx.id_min_empty_count);
   if (gve_solver_log_level >= 1) {
     printf("Iterative deepening search_depth limit (id_limit): %d\n", id_limit);
-    printf("Iterative deepening search_depth increment step (id_step): %d\n", id_step);
+    printf("Iterative deepening search_depth increment step (id_step): %d\n", ctx.id_step);
   }
 
   const bool mw_available = ctx.mwd.mws[ec] != NULL;
@@ -447,17 +413,17 @@ game_position_value_estimator (const GamePositionX *const root,
   clock_gettime(CLOCK_REALTIME, &start_time_a);
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0_a);
 
-  if (search_depth > 0) {
-    id_search_depth = search_depth_initial_gap;
+  if (ctx.search_depth > 0) {
+    ctx.id_search_depth = search_depth_initial_gap;
     while (true) {
-      uint64_t nc = ctx.node_count;
+      const uint64_t nc0 = ctx.node_count;
       if (gve_solver_log_level >= 2) {
         timespec_print_local_time(stdout);
-        printf(" #### start  .%02d. Iterative deepening search depth = %d\n", id_search_depth, id_search_depth);
+        printf(" #### start  .%02d. Iterative deepening search depth = %d\n", ctx.id_search_depth, ctx.id_search_depth);
         clock_gettime(CLOCK_REALTIME, &start_time_b);
         clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0_b);
       }
-      mtdf(&root_node, env->alpha, env->beta, id_search_depth, &ctx);
+      mtdf(&root_node, env->alpha, env->beta, ctx.id_search_depth, &ctx);
       if (gve_solver_log_level >= 2) {
         clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1_b);
         clock_gettime(CLOCK_REALTIME, &end_time_b);
@@ -465,15 +431,15 @@ game_position_value_estimator (const GamePositionX *const root,
         timespec_diff(&delta_time_b, &start_time_b, &end_time_b);
         timespec_diff(&delta_cpu_time_b, &time_0_b, &time_1_b);
         printf(" #### finish .%02d. Best move and game value: [%2s:%+03d] - nc = %12zu - ",
-               id_search_depth, square_as_move_to_string(root_node.best_move), root_node.value, ctx.node_count - nc);
+               ctx.id_search_depth, square_as_move_to_string(root_node.best_move), root_node.value, ctx.node_count - nc0);
         printf("Time [REAL][PROC]: [%6lld.%9ld][%6lld.%9ld]\n",
                (long long) timespec_get_sec(&delta_cpu_time_b), timespec_get_nsec(&delta_cpu_time_b),
                (long long) timespec_get_sec(&delta_time_b), timespec_get_nsec(&delta_time_b));
       }
-      if (id_search_depth >= search_depth) break;
-      if (id_search_depth == id_limit) id_search_depth = search_depth;
-      else if (id_search_depth + id_step > id_limit) id_search_depth = id_limit;
-      else id_search_depth += id_step;
+      if (ctx.id_search_depth >= ctx.search_depth) break;
+      if (ctx.id_search_depth == id_limit) ctx.id_search_depth = ctx.search_depth;
+      else if (ctx.id_search_depth + ctx.id_step > id_limit) ctx.id_search_depth = id_limit;
+      else ctx.id_search_depth += ctx.id_step;
     }
   }
 
@@ -491,10 +457,8 @@ game_position_value_estimator (const GamePositionX *const root,
            (long long) timespec_get_sec(&delta_time_a), timespec_get_nsec(&delta_time_a));
   }
 
-  estimated_value = root_node.value;
-
   result->best_move = root_node.best_move;
-  result->outcome = estimated_value;
+  result->outcome = root_node.value;
   result->node_count = ctx.node_count;
   result->leaf_count = ctx.leaf_count;
 
@@ -564,10 +528,20 @@ gve_context_init (gve_context_t *ctx,
   for (int i = 0; i < EC_SIZE; i++)
     ctx->gp_evaluations[i] = 0;
 
-  ctx->id_min_empty_count = 0;
-  ctx->id_step = 0;
+  ret_err = get_id_min_empty_count_from_cfg(env->cfg, &ctx->id_min_empty_count);
+  if (ret_err != EXIT_SUCCESS) {
+    fprintf(stderr, "Error loading key id_min_empty_count from section gve_solver from the config file. Exiting ...\n");
+    exit(EXIT_FAILURE);
+  }
+
+  ret_err = get_id_step_from_cfg(env->cfg, &ctx->id_step);
+  if (ret_err != EXIT_SUCCESS) {
+    fprintf(stderr, "Error loading key id_step from section gve_solver from the config file. Exiting ...\n");
+    exit(EXIT_FAILURE);
+  }
+
   ctx->id_search_depth = 0;
-  ctx->search_depth = 0;
+  ctx->search_depth = env->search_depth;
   ctx->ttab_log_size = 0;
   ctx->ttab_log_verbosity = 0;
   ctx->node_count = 0;
@@ -1217,7 +1191,7 @@ alphabeta_with_memory (node_t *n,
   } else if (depth == 0) {
     if (n->value == out_of_range_win_score) heuristic_game_value(n, ctx);
     n->best_move = unknown_move;
-  } else if (ec < id_min_empty_count) {
+  } else if (ec < ctx->id_min_empty_count) {
     leaf_negamax(n, am, bm, ctx);
   } else {
 
@@ -1230,7 +1204,7 @@ alphabeta_with_memory (node_t *n,
     for (int i = 0; i < child_node_count; i++) {
       node_t *child = child_nodes_p[i];
 
-      if (id_search_depth - depth == 0)
+      if (ctx->id_search_depth - depth == 0)
         if (gve_solver_log_level >= 3) {
           timespec_print_local_time(stdout);
           printf(" %02d - %2s (%+03d) [%+03d..%+03d]: ", i, square_as_move_to_string(child->parent_move), -child->value, am, bm);
@@ -1240,7 +1214,7 @@ alphabeta_with_memory (node_t *n,
       const int child_depth = (child->parent_move == pass_move) ? depth : depth -1;
       alphabeta_with_memory(child, child_depth, -bm, -am, ctx);
 
-      if (id_search_depth - depth == 0)
+      if (ctx->id_search_depth - depth == 0)
         if (gve_solver_log_level >= 3) {
           char *s;
           if (-child->value <= am) s = "(failing low)  f+";
