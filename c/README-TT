@@ -1,8 +1,75 @@
 
 To do list:
 
- (5) Modificare la tabella regab_prng_gp con un campo GAME_VALUE_CHECK che ci consente di fare un secondo run e validare il risultato ( potrebbe essere una data ? ).
-     Credo sia piu' semplice duplicare i dati da testare in una nuova tabella:
+ (5) Duplicare la tabella regab_prng_gp  e caricare un subset di dati duplicati da tenere come termine di paragone.
+     Eseguire quindi il programma REGAB con i diversi solver (ES, RGLM, GVE) per verificare congruita' dei risultati e tempi di esecuzione.
+
+     I data set usati sono:
+
+       - batch_id = 8 :  100 pos
+       - batch_id = 4 : 1000 pos
+       
+     BATCH_ID; EMPTY_COUNT
+            8;          20
+            4;          20
+            8;          21
+            8;          22
+            8;          23
+
+tst_regab=> SELECT * FROM regab_prng_gp_h ORDER BY ngames;
+ seq |          ins_time          | status | prng_seed | ngames  | npositions 
+-----+----------------------------+--------+-----------+---------+------------
+   1 | 2017-12-17 18:19:16.440571 | CMP    |     97531 |       1 |         61
+   7 | 2018-01-03 16:38:51.097299 | CMP    |       277 |      10 |        614
+   8 | 2018-01-03 16:39:24.466546 | CMP    |       607 |     100 |       6140
+   4 | 2018-01-03 16:25:52.05024  | CMP    |         0 |    1000 |      61356
+   5 | 2018-01-03 16:27:08.188697 | CMP    |      5577 |   10000 |     614283
+   6 | 2018-01-03 16:30:24.238143 | CMP    |       881 |  100000 |    6142003
+  10 | 2021-07-24 17:58:18.845845 | CMP    |     25487 |  200000 |   12281722
+  11 | 2021-07-25 20:51:04.829293 | CMP    |     40132 |  400000 |   24566078
+   3 | 2017-12-17 18:42:13.782953 | CMP    |     13579 | 1000000 |   61412190
+   9 | 2020-12-20 18:02:16.47252  | CMP    |     77357 | 2000000 |  122829157
+  12 | 2021-08-21 17:55:04.407724 | CMP    |     33057 | 4000000 |  245656852
+(11 rows)
+
+
+     STEPS:
+
+     (0)
+
+CREATE TABLE regab_prng_gp_dup (LIKE regab_prng_gp INCLUDING COMMENTS INCLUDING CONSTRAINTS INCLUDING DEFAULTS INCLUDING INDEXES);
+     
+     (1)
+
+INSERT INTO regab_prng_gp_dup SELECT * FROM regab_prng_gp WHERE batch_id = 8 AND empty_count = 20 AND status = 'CMS';
+INSERT INTO regab_prng_gp_dup SELECT * FROM regab_prng_gp WHERE batch_id = 4 AND empty_count = 20 AND status = 'CMS';
+INSERT INTO regab_prng_gp_dup SELECT * FROM regab_prng_gp WHERE batch_id = 8 AND empty_count = 21 AND status = 'CMS';
+INSERT INTO regab_prng_gp_dup SELECT * FROM regab_prng_gp WHERE batch_id = 8 AND empty_count = 22 AND status = 'CMS';
+INSERT INTO regab_prng_gp_dup SELECT * FROM regab_prng_gp WHERE batch_id = 8 AND empty_count = 23 AND status = 'CMS';
+
+     (2)
+     Update the fields: status, game_value, best_move, leaf_count, node_count, solver
+
+UPDATE regab_prng_gp SET status = 'INS', game_value = -66, best_move = 'UN', leaf_count = 0, node_count = 0, solver = NULL WHERE batch_id = 8 AND empty_count = 20;
+ 
+     (3)
+     Compute the new values using ES solver
+
+time ./build/bin/regab -v -a solve -c cfg/regab.cfg -e test -b 8 -n 100 -y 20 -k es
+ 
+     (4)
+     Check that the values are the same.
+
+SELECT a.seq AS gp_seq, a.game_value, b.seq AS dup_seq, b.game_value FROM regab_prng_gp AS a FULL OUTER JOIN regab_prng_gp AS b ON a.seq = b.seq WHERE a.batch_id = 8 AND a.empty_count = 20 AND a.status = 'CMP' AND a.game_value <> b.game_value;
+
+     (5)
+     Compare times:
+     
+       ES   (bi=8,ec=20): 12m00.467s
+       RGLM (bi=8,ec=20):  7m18.830s
+       GVE  (bi=8,ec=20): 
+
+
        psql> CREATE TABLE regab_prng_gp_dupe AS (SELECT seq, cst_time, status, game_value, best_move, leaf_count, node_count, solver FROM regab_prng_gp WHERE batch_id = X AND empty_count = Y AND status = 'ZZZ');
      poi con la stessa WHERE clouse vanno resettati i valori:
        status = 'INS'
@@ -73,6 +140,10 @@ DONE or ADDRESSED:
  (9) Rimuovere limitazione che bisogna avere il MODEL-WEIGHT anche per gli EC elevati, serve un fallback su algoritmo BASICO in quel caso.
 
 
+
+Appunti al 30-12-2021
+
+  Il programma GVE e' completo.
 
 Appunti al 26-12-2021
 

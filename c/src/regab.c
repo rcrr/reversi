@@ -51,6 +51,7 @@
 #include "prng.h"
 #include "exact_solver.h"
 #include "rglm_solver.h"
+#include "game_value_estimator.h"
 #include "sort_utils.h"
 #include "rglm_data_files.h"
 #include "rglm_utils.h"
@@ -89,6 +90,7 @@ typedef enum {
 typedef enum {
   REGAB_SOLVER_ES,                      // ES (Exact Solver) solver.
   REGAB_SOLVER_RGLM,                    // RGLM (Reversi Generalized Linear Model) solver.
+  REGAB_SOLVER_GVE,                     // GVE (Game Value Estimator) solver.
   REGAB_SOLVER_INVALID                  // Not a valid solver.
 } regab_solver_t;
 
@@ -160,7 +162,7 @@ static const char *documentation =
   "  -g, --game-positions   Extract just game positions                                 - Mutually exclusive with option -p when action is [extract].\n"
   "  -o, --out-file         The output file name                                        - Mandatory when action is in [extract].\n"
   "  -t, --no-time-out-file Write a 'zero time' in the output file                      - Optional when action is in [extract].\n"
-  "  -k, --solver           The endgame solver                                          - Optional when action is in [solve] - Must be in [es|rglm].\n"
+  "  -k, --solver           The endgame solver                                          - Optional when action is in [solve] - Must be in [es|rglm|gve].\n"
   "\n"
   "Description:\n"
   "  To be completed ... .\n"
@@ -2289,8 +2291,9 @@ main (int argc,
   if (k_flag) {
     if (strcmp("es", k_arg) == 0) solver = REGAB_SOLVER_ES;
     else if (strcmp("rglm", k_arg) == 0) solver = REGAB_SOLVER_RGLM;
+    else if (strcmp("gve", k_arg) == 0) solver = REGAB_SOLVER_GVE;
     else {
-      fprintf(stderr, "Argument for option -k, --solver must be in [es|rglm] domain.\n");
+      fprintf(stderr, "Argument for option -k, --solver must be in [es|rglm|gve] domain.\n");
       return EXIT_FAILURE;
     }
   } else {
@@ -2587,7 +2590,9 @@ main (int argc,
           .prng_seed = 0, // not used
           .alpha = worst_score,
           .beta = best_score,
-          .all_moves = false
+          .all_moves = false,
+          .search_depth = 99,
+          .cfg = NULL
         };
 
       ExactSolution *solution;
@@ -2597,6 +2602,12 @@ main (int argc,
       }
       else if (solver == REGAB_SOLVER_RGLM) {
         solution = game_position_rglm_solve_nlmw(&gpx, &env);
+        strcpy(record.solver, "rglm");
+      }
+      else if (solver == REGAB_SOLVER_GVE) {
+        printf("This implementation is under construction! Aborting ... \n");
+        abort();
+        solution = game_position_value_estimator(&gpx, &env);
         strcpy(record.solver, "rglm");
       }
       else if (solver == REGAB_SOLVER_INVALID) {

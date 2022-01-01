@@ -41,7 +41,7 @@
 #define T ttab_t
 #define I ttab_item_t
 
-#define TTAB_RECORDED_BEST_MOVE_COUNT 8
+#define TTAB_RECORDED_BEST_MOVE_COUNT 16
 
 typedef struct ttab_s *ttab_t;
 typedef struct ttab_item_s *ttab_item_t;

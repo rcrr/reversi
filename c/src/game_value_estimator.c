@@ -80,7 +80,33 @@ typedef struct node_s {
   uint64_t hash;
 } node_t;
 
+/* Empty Count Size - [0..60] the game stages ... */
+#define EC_SIZE 61
 
+typedef struct model_weights_data_s {
+  rglmdf_model_weights_t mws_s[EC_SIZE];
+  rglmdf_model_weights_t *mws[EC_SIZE];
+  char *file_names[EC_SIZE];
+  bool verbose_loader;
+  bool check_digest;
+} model_weights_data_t;
+
+typedef struct gve_context_s {
+  model_weights_data_t mwd;              /* Model weights data. */
+  uint64_t gp_evaluations[EC_SIZE];      /* The count of game evaluations categorized by empty count. */
+  int id_min_empty_count;                /* Iterative deepening minimum empty count. */
+  int id_step;                           /* Iterative deepening step. */
+  int id_search_depth;                   /* Search depth iterative deepening. */
+  int search_depth;                      /* Search depth. */
+  ttab_t ttab;                           /* Transposition Table. */
+  int ttab_log_size;                     /* Transposition Table binary logarithm of size. */
+  int ttab_log_verbosity;                /* Transposition Table log verbosity. */
+  uint64_t node_count;                   /* Count of nodes touchd by the algorithm. */
+  uint64_t leaf_count;                   /* Count of leafs touchd by the algorithm. */
+  int first_level_evaluation;            /* This is the empty count level where we start having model weight info available. */
+  int game_position_evaluation_summary;  /* Game position evaluation summary. */
+  int gve_solver_log_level;              /* Log level for the solver. */
+} gve_context_t;
 
 /*
  * Prototypes for internal functions.
@@ -126,7 +152,43 @@ get_id_min_empty_count_from_cfg (cfg_t *cfg,
                                  int *id_min_empty_count);
 
 static int
+get_gve_solver_log_level_from_cfg (cfg_t *cfg,
+                                   int *gve_solver_log_level);
+
+static int
 check_config_file (cfg_t *cfg);
+
+static int
+check_model_weight_config_file (cfg_t *cfg);
+
+static void
+exact_terminal_game_value (node_t *n);
+
+static void
+generate_legal_move_set (node_t *n,
+                         ttab_item_t it);
+
+static void
+generate_child_nodes (int *child_node_count,
+                      node_t *child_nodes,
+                      node_t *n,
+                      bool compute_hash);
+
+static void
+order_moves (int child_node_count,
+             node_t *child_nodes,
+             node_t **child_nodes_p,
+             ttab_item_t it,
+             bool heuristic_sort);
+
+static void
+leaf_negamax (node_t *n,
+              int alpha,
+              int beta);
+
+static void
+sort_nodes_by_lmc (node_t **nodes,
+                   int count);
 
 static void
 alphabeta_with_memory (node_t *n,
@@ -139,10 +201,6 @@ mtdf (node_t *n,
       int alpha,
       int beta,
       const int depth);
-
-static int
-get_gve_solver_log_level_from_cfg (cfg_t *cfg,
-                                   int *gve_solver_log_level);
 
 static int
 game_position_rglm_load_model_weights_files (bool verbose,
@@ -169,6 +227,15 @@ min (int a,
 static void
 heuristic_game_value (node_t *n);
 
+static bool
+is_terminal (node_t *n);
+
+static void
+model_weights_data_release (model_weights_data_t *mwd);
+
+static int
+model_weights_data_init (model_weights_data_t *mwd,
+                         cfg_t *cfg);
 
 /*
  * Internal variables and constants.
@@ -179,9 +246,6 @@ heuristic_game_value (node_t *n);
  * ### Model Weights static variables.
  * ###
  */
-
-/* Empty Count Size - [0..60] the game stages ... */
-#define EC_SIZE 61
 
 /* The vector of model weighs structures indexed by empty_count. */
 static rglmdf_model_weights_t mws_s[EC_SIZE];
@@ -260,31 +324,6 @@ static int gve_solver_log_level;
  * Public functions.
  */
 
-void
-init_node (node_t *node,
-           node_t *parent,
-           SquareSet legal_move_set,
-           Square parent_move,
-           Square best_move,
-           int value,
-           SquareSet gpx_blacks,
-           SquareSet gpx_whites,
-           Player gpx_player)
-{
-  assert(node);
-
-  node->parent = parent;
-  node->legal_move_set = legal_move_set;
-  node->legal_move_count = bitw_bit_count_64(legal_move_set);
-  node->parent_move = parent_move;
-  node->best_move = best_move;
-  node->value = value;
-  node->gpx.blacks = gpx_blacks;
-  node->gpx.whites = gpx_whites;
-  node->gpx.player = gpx_player;
-  node->hash = game_position_x_hash(&node->gpx);
-}
-
 ExactSolution *
 game_position_value_estimator (const GamePositionX *const root,
                                const endgame_solver_env_t *const env)
@@ -292,11 +331,14 @@ game_position_value_estimator (const GamePositionX *const root,
   assert(root);
   assert(env);
 
+  model_weights_data_t mwd;
+  int ret_err;
+  ret_err = model_weights_data_init(&mwd, env->cfg);
+
   /* Used to drive the search to be complete and touch the leafs of the game tree. */
   const int max_search_depth = 99;
 
   /* Stopwatch variables. */
-  //timespec_t time_0, time_1, delta_cpu_time, start_time, end_time, delta_time;
   timespec_t time_0_a, time_1_a, delta_cpu_time_a, start_time_a, end_time_a, delta_time_a;
   timespec_t time_0_b, time_1_b, delta_cpu_time_b, start_time_b, end_time_b, delta_time_b;
 
@@ -313,7 +355,6 @@ game_position_value_estimator (const GamePositionX *const root,
   ExactSolution *result = NULL;
   bool model_weights_verbose_loader;
   bool model_weights_check_digest;
-  int ret_err;
   ret_err =  check_config_file(env->cfg);
   if (ret_err != EXIT_SUCCESS) {
     fprintf(stderr, "Error in the config file. Exiting ...\n");
@@ -524,6 +565,7 @@ game_position_value_estimator (const GamePositionX *const root,
   ttab_free(&ttab);
 
   game_position_rglm_release_model_weights();
+  model_weights_data_release(&mwd);
 
   if (game_position_evaluation_summary > 0) {
     uint64_t total_gp_eval_count = 0;
@@ -547,6 +589,108 @@ game_position_value_estimator (const GamePositionX *const root,
 /*
  * Internal functions.
  */
+
+static void
+model_weights_data_release (model_weights_data_t *mwd)
+{
+  if (!mwd) return;
+  for (size_t i = 0; i < EC_SIZE; i++) {
+    rglmdf_model_weights_release(&mwd->mws_s[i]);
+    mwd->mws[i] = NULL;
+  }
+}
+
+static int
+model_weights_data_init (model_weights_data_t *mwd,
+                         cfg_t *cfg)
+{
+  assert(mwd);
+  assert(cfg);
+
+  /* The labels of the files to be loaded. */
+  const char *const labels[EC_SIZE] =
+    {
+     "ec00", "ec01", "ec02", "ec03", "ec04", "ec05", "ec06", "ec07", "ec08", "ec09",
+     "ec10", "ec11", "ec12", "ec13", "ec14", "ec15", "ec16", "ec17", "ec18", "ec19",
+     "ec20", "ec21", "ec22", "ec23", "ec24", "ec25", "ec26", "ec27", "ec28", "ec29",
+     "ec30", "ec31", "ec32", "ec33", "ec34", "ec35", "ec36", "ec37", "ec38", "ec39",
+     "ec40", "ec41", "ec42", "ec43", "ec44", "ec45", "ec46", "ec47", "ec48", "ec49",
+     "ec50", "ec51", "ec52", "ec53", "ec54", "ec55", "ec56", "ec57", "ec58", "ec59",
+     "ec60"
+    };
+
+  int ret_err;
+
+  for (size_t i = 0; i < EC_SIZE; i++) {
+    rglmdf_model_weights_init(&mwd->mws_s[i]);
+    mwd->mws[i] = NULL;
+    mwd->file_names[i] = NULL;
+  }
+  mwd->verbose_loader = false;
+  mwd->check_digest = false;
+
+  ret_err = check_model_weight_config_file(cfg);
+  if (ret_err != EXIT_SUCCESS) {
+    fprintf(stderr, "Error in the config file. Exiting ...\n");
+    exit(EXIT_FAILURE);
+  }
+  ret_err = get_model_weights_verbose_loader_from_cfg(cfg, &mwd->verbose_loader);
+  if (ret_err != EXIT_SUCCESS) {
+    fprintf(stderr, "Error in the config file. Exiting ...\n");
+    exit(EXIT_FAILURE);
+  }
+  ret_err = get_model_weights_check_digest_from_cfg(cfg, &mwd->check_digest);
+  if (ret_err != EXIT_SUCCESS) {
+    fprintf(stderr, "Error in the config file. Exiting ...\n");
+    exit(EXIT_FAILURE);
+  }
+
+  for (size_t i = 0; i < EC_SIZE; i++) {
+    mwd->file_names[i] = (char *) cfg_get(cfg, "model_weights", labels[i]);
+  }
+
+  for (size_t i = 0; i < EC_SIZE; i++) {
+    const char *filename = mwd->file_names[i];
+    if (filename) {
+      ret_err = rglmdf_model_weights_read_from_binary_file(&mwd->mws_s[i], filename, mwd->verbose_loader, mwd->check_digest);
+      if (ret_err != 0) {
+        fprintf(stderr, "Unable to load model weight file \"%s\"\n", filename);
+        return ret_err;
+      }
+      if (mwd->mws_s[i].empty_count != i) {
+        fprintf(stderr, "Empty count mismatch, expected %zu, found %u\n", i, mwd->mws_s[i].empty_count);
+        return EXIT_FAILURE;
+      }
+      mwd->mws[i] = &mwd->mws_s[i];
+    }
+  }
+  return EXIT_SUCCESS;
+}
+
+static void
+init_node (node_t *node,
+           node_t *parent,
+           SquareSet legal_move_set,
+           Square parent_move,
+           Square best_move,
+           int value,
+           SquareSet gpx_blacks,
+           SquareSet gpx_whites,
+           Player gpx_player)
+{
+  assert(node);
+
+  node->parent = parent;
+  node->legal_move_set = legal_move_set;
+  node->legal_move_count = bitw_bit_count_64(legal_move_set);
+  node->parent_move = parent_move;
+  node->best_move = best_move;
+  node->value = value;
+  node->gpx.blacks = gpx_blacks;
+  node->gpx.whites = gpx_whites;
+  node->gpx.player = gpx_player;
+  node->hash = game_position_x_hash(&node->gpx);
+}
 
 static int
 get_gve_solver_log_level_from_cfg (cfg_t *cfg,
@@ -744,6 +888,25 @@ check_config_file (cfg_t *cfg)
   }
   if (strcmp(gve_solver_check_key, "true") != 0) {
     fprintf(stderr, "The key check_key doesn't have value equal to true. check_key=%s\n", gve_solver_check_key);
+    return EXIT_FAILURE;
+  }
+  const char *model_weights_check_key = cfg_get(cfg, "model_weights", "check_key");
+  if (model_weights_check_key == NULL) {
+    fprintf(stderr, "The key check_key is missing from section model_weights.\n");
+    return EXIT_FAILURE;
+  }
+  if (strcmp(model_weights_check_key, "true") != 0) {
+    fprintf(stderr, "The key check_key doesn't have value equal to true.\n");
+    return EXIT_FAILURE;
+  }
+  return EXIT_SUCCESS;
+}
+
+static int
+check_model_weight_config_file (cfg_t *cfg)
+{
+  if (!cfg) {
+    fprintf(stderr, "The configuration file is mandatory.\n");
     return EXIT_FAILURE;
   }
   const char *model_weights_check_key = cfg_get(cfg, "model_weights", "check_key");
