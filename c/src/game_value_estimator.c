@@ -156,10 +156,10 @@ get_gve_solver_log_level_from_cfg (cfg_t *cfg,
                                    int *gve_solver_log_level);
 
 static int
-check_config_file (cfg_t *cfg);
+check_model_weight_config_file (cfg_t *cfg);
 
 static int
-check_model_weight_config_file (cfg_t *cfg);
+check_gve_solver_config_file (cfg_t *cfg);
 
 static void
 exact_terminal_game_value (node_t *n);
@@ -185,7 +185,8 @@ order_moves (int child_node_count,
 static void
 leaf_negamax (node_t *n,
               int alpha,
-              int beta);
+              int beta,
+              gve_context_t *ctx);
 
 static void
 sort_nodes_by_lmc (node_t **nodes,
@@ -245,9 +246,6 @@ gve_context_init (gve_context_t *ctx,
  * Internal variables and constants.
  */
 
-/* The count of game evaluations categorized by empty count. */
-static uint64_t gp_evaluations[EC_SIZE];
-
 /* Iterative deepening minimum empty count. */
 static int id_min_empty_count;
 
@@ -268,10 +266,6 @@ static int ttab_log_size;
 
 /* Transposition Table log verbosity. */
 static int ttab_log_verbosity;
-
-/* Count of nodes and leafs touchd by the algorithm. */
-static uint64_t node_count;
-static uint64_t leaf_count;
 
 /* This is the empty count level where we start having model weight info available. */
 static int first_level_evaluation;
@@ -301,7 +295,11 @@ game_position_value_estimator (const GamePositionX *const root,
 
   gve_context_t ctx;
   int ret_err;
-  gve_context_init(&ctx, env);
+  ret_err = gve_context_init(&ctx, env);
+  if (ret_err != EXIT_SUCCESS) {
+    fprintf(stderr, "Error during context initialization. Exiting ... \n");
+    exit(EXIT_FAILURE);
+  }
 
   /* Used to drive the search to be complete and touch the leafs of the game tree. */
   const int max_search_depth = 99;
@@ -312,22 +310,11 @@ game_position_value_estimator (const GamePositionX *const root,
 
   int estimated_value;
 
-  node_count = 0;
-  leaf_count = 0;
-
-  for (int i = 0; i < EC_SIZE; i++)
-    gp_evaluations[i] = 0;
-
   search_depth = env->search_depth;
 
   ExactSolution *result = NULL;
   bool model_weights_verbose_loader;
   bool model_weights_check_digest;
-  ret_err =  check_config_file(env->cfg);
-  if (ret_err != EXIT_SUCCESS) {
-    fprintf(stderr, "Error in the config file. Exiting ...\n");
-    exit(EXIT_FAILURE);
-  }
   ret_err = get_model_weights_verbose_loader_from_cfg(env->cfg, &model_weights_verbose_loader);
   if (ret_err != EXIT_SUCCESS) {
     fprintf(stderr, "Error in the config file. Exiting ...\n");
@@ -463,7 +450,7 @@ game_position_value_estimator (const GamePositionX *const root,
   if (search_depth > 0) {
     id_search_depth = search_depth_initial_gap;
     while (true) {
-      uint64_t nc = node_count;
+      uint64_t nc = ctx.node_count;
       if (gve_solver_log_level >= 2) {
         timespec_print_local_time(stdout);
         printf(" #### start  .%02d. Iterative deepening search depth = %d\n", id_search_depth, id_search_depth);
@@ -478,7 +465,7 @@ game_position_value_estimator (const GamePositionX *const root,
         timespec_diff(&delta_time_b, &start_time_b, &end_time_b);
         timespec_diff(&delta_cpu_time_b, &time_0_b, &time_1_b);
         printf(" #### finish .%02d. Best move and game value: [%2s:%+03d] - nc = %12zu - ",
-               id_search_depth, square_as_move_to_string(root_node.best_move), root_node.value, node_count - nc);
+               id_search_depth, square_as_move_to_string(root_node.best_move), root_node.value, ctx.node_count - nc);
         printf("Time [REAL][PROC]: [%6lld.%9ld][%6lld.%9ld]\n",
                (long long) timespec_get_sec(&delta_cpu_time_b), timespec_get_nsec(&delta_cpu_time_b),
                (long long) timespec_get_sec(&delta_time_b), timespec_get_nsec(&delta_time_b));
@@ -508,8 +495,8 @@ game_position_value_estimator (const GamePositionX *const root,
 
   result->best_move = root_node.best_move;
   result->outcome = estimated_value;
-  result->node_count = node_count;
-  result->leaf_count = leaf_count;
+  result->node_count = ctx.node_count;
+  result->leaf_count = ctx.leaf_count;
 
   if (ttab_log_verbosity > 0) {
     const size_t tt_stats_max_size = 42;
@@ -532,12 +519,12 @@ game_position_value_estimator (const GamePositionX *const root,
   if (game_position_evaluation_summary > 0) {
     uint64_t total_gp_eval_count = 0;
     for (int i = 0; i < EC_SIZE; i++) {
-      total_gp_eval_count += gp_evaluations[i];
+      total_gp_eval_count += ctx.gp_evaluations[i];
     }
     printf("Total game position evaluation count: %zu\n", total_gp_eval_count);
     printf(" EMPTY_COUNT;  EVALUATIONS\n");
     for (int i = 0; i < EC_SIZE; i++)
-      if (gp_evaluations[i] > 0) printf("          %02d; %12zu\n", i, gp_evaluations[i]);
+      if (ctx.gp_evaluations[i] > 0) printf("          %02d; %12zu\n", i, ctx.gp_evaluations[i]);
   }
 
   return result;
@@ -588,6 +575,12 @@ gve_context_init (gve_context_t *ctx,
   ctx->first_level_evaluation = 0;
   ctx->game_position_evaluation_summary = 0;
   ctx->gve_solver_log_level = 0;
+
+  ret_err = check_gve_solver_config_file(env->cfg);
+  if (ret_err != EXIT_SUCCESS) {
+    fprintf(stderr, "Error in the config file, section gve_solver. Exiting ...\n");
+    exit(EXIT_FAILURE);
+  }
 
   return EXIT_SUCCESS;
 }
@@ -877,7 +870,7 @@ get_id_min_empty_count_from_cfg (cfg_t *cfg,
 }
 
 static int
-check_config_file (cfg_t *cfg)
+check_gve_solver_config_file (cfg_t *cfg)
 {
   if (!cfg) {
     fprintf(stderr, "The configuration file is mandatory for the gve solver.\n");
@@ -890,15 +883,6 @@ check_config_file (cfg_t *cfg)
   }
   if (strcmp(gve_solver_check_key, "true") != 0) {
     fprintf(stderr, "The key check_key doesn't have value equal to true. check_key=%s\n", gve_solver_check_key);
-    return EXIT_FAILURE;
-  }
-  const char *model_weights_check_key = cfg_get(cfg, "model_weights", "check_key");
-  if (model_weights_check_key == NULL) {
-    fprintf(stderr, "The key check_key is missing from section model_weights.\n");
-    return EXIT_FAILURE;
-  }
-  if (strcmp(model_weights_check_key, "true") != 0) {
-    fprintf(stderr, "The key check_key doesn't have value equal to true.\n");
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
@@ -937,7 +921,7 @@ rglm_eval_gp (const GamePositionX *const gpx,
 
   const int empty_count = game_position_x_empty_count(gpx);
 
-  gp_evaluations[empty_count]++;
+  ctx->gp_evaluations[empty_count]++;
 
   const rglmdf_model_weights_t *const mw = ctx->mwd.mws[empty_count];
   assert(mw);
@@ -1141,18 +1125,19 @@ sort_nodes_by_lmc (node_t **nodes,
 static void
 leaf_negamax (node_t *n,
               int alpha,
-              int beta)
+              int beta,
+              gve_context_t *ctx)
 {
   int child_node_count;
   node_t child_nodes[64];
   node_t *sorted_child_nodes[64];
 
-  node_count++;
+  ctx->node_count++;
 
   n->legal_move_set = game_position_x_legal_moves(&n->gpx);
 
   if (is_terminal(n)) {
-    leaf_count++;
+    ctx->leaf_count++;
     exact_terminal_game_value(n);
   } else {
     generate_child_nodes(&child_node_count, child_nodes, n, false);
@@ -1161,7 +1146,7 @@ leaf_negamax (node_t *n,
     n->value = out_of_range_defeat_score;
     for (int i = 0; i < child_node_count; i++) {
       node_t *child = sorted_child_nodes[i];
-      leaf_negamax(child, -beta, -alpha);
+      leaf_negamax(child, -beta, -alpha, ctx);
       n->value = max(n->value, -child->value);
       alpha = max(alpha, n->value);
       if (alpha >= beta) break;
@@ -1188,7 +1173,7 @@ alphabeta_with_memory (node_t *n,
   int am = alpha; // alpha-mobile : local value that is adjusted during the search
   int bm = beta;  // beta-mobile  : " ...
 
-  node_count++;
+  ctx->node_count++;
   struct ttab_item_s its;
   ttab_item_t it = &its;
   it->hash = n->hash;
@@ -1227,13 +1212,13 @@ alphabeta_with_memory (node_t *n,
 
   explored_child_count = 0;
   if (is_terminal(n)) {
-    leaf_count++;
+    ctx->leaf_count++;
     exact_terminal_game_value(n);
   } else if (depth == 0) {
     if (n->value == out_of_range_win_score) heuristic_game_value(n, ctx);
     n->best_move = unknown_move;
   } else if (ec < id_min_empty_count) {
-    leaf_negamax(n, am, bm);
+    leaf_negamax(n, am, bm, ctx);
   } else {
 
     generate_child_nodes(&child_node_count, child_nodes, n, true);
@@ -1261,7 +1246,7 @@ alphabeta_with_memory (node_t *n,
           if (-child->value <= am) s = "(failing low)  f+";
           else if (-child->value >= bm) s = "(failing high) f-";
           else s = "(success)       f ";
-          printf("%s = %+03d - cumulated node count %12zu\n", s, -child->value, node_count);
+          printf("%s = %+03d - cumulated node count %12zu\n", s, -child->value, ctx->node_count);
           fflush(stdout);
         }
 
