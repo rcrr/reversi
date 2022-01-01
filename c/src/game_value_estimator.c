@@ -205,14 +205,6 @@ mtdf (node_t *n,
       const int depth,
       gve_context_t *ctx);
 
-static int
-game_position_rglm_load_model_weights_files (bool verbose,
-                                             bool check_digest,
-                                             cfg_t *cfg);
-
-static void
-game_position_rglm_release_model_weights (void);
-
 static double
 rglm_eval_gp (const GamePositionX *const gpx,
               gve_context_t *ctx);
@@ -253,44 +245,8 @@ gve_context_init (gve_context_t *ctx,
  * Internal variables and constants.
  */
 
-/*
- * ###
- * ### Model Weights static variables.
- * ###
- */
-
-/* The vector of model weighs structures indexed by empty_count. */
-static rglmdf_model_weights_t mws_s[EC_SIZE];
-
-/* The vector of pointers to the mws_s structures.
- * It is a convenience, when NULL the model_weights structure is
- * not populated.
- */
-static rglmdf_model_weights_t *mws[EC_SIZE];
-
-/* The labels of the files to be loaded. */
-static const char *const mws_l[EC_SIZE] =
-  {
-   "ec00", "ec01", "ec02", "ec03", "ec04", "ec05", "ec06", "ec07", "ec08", "ec09",
-   "ec10", "ec11", "ec12", "ec13", "ec14", "ec15", "ec16", "ec17", "ec18", "ec19",
-   "ec20", "ec21", "ec22", "ec23", "ec24", "ec25", "ec26", "ec27", "ec28", "ec29",
-   "ec30", "ec31", "ec32", "ec33", "ec34", "ec35", "ec36", "ec37", "ec38", "ec39",
-   "ec40", "ec41", "ec42", "ec43", "ec44", "ec45", "ec46", "ec47", "ec48", "ec49",
-   "ec50", "ec51", "ec52", "ec53", "ec54", "ec55", "ec56", "ec57", "ec58", "ec59",
-   "ec60"
-  };
-
-/* The names of the files to be loaded. */
-static const char *mws_f[EC_SIZE];
-
 /* The count of game evaluations categorized by empty count. */
 static uint64_t gp_evaluations[EC_SIZE];
-
-/*
- * ###
- * ### End of section for: Model Weights static variables.
- * ###
- */
 
 /* Iterative deepening minimum empty count. */
 static int id_min_empty_count;
@@ -382,11 +338,6 @@ game_position_value_estimator (const GamePositionX *const root,
     fprintf(stderr, "Error in the config file. Exiting ...\n");
     exit(EXIT_FAILURE);
   }
-  ret_err = game_position_rglm_load_model_weights_files(model_weights_verbose_loader, model_weights_check_digest, env->cfg);
-  if (ret_err != EXIT_SUCCESS) {
-    fprintf(stderr, "Error loading RGLM solver model weights files. Exiting ...\n");
-    exit(EXIT_FAILURE);
-  }
   ret_err = get_id_min_empty_count_from_cfg(env->cfg, &id_min_empty_count);
   if (ret_err != EXIT_SUCCESS) {
     fprintf(stderr, "Error loading key id_min_empty_count from section gve_solver from the config file. Exiting ...\n");
@@ -433,14 +384,14 @@ game_position_value_estimator (const GamePositionX *const root,
   int max_model_weight = 0;
   int min_model_weight = 0;
   for (idx = 0; idx <= 60; idx++) {
-    if (mws[idx] != NULL)
+    if (ctx.mwd.mws[idx] != NULL)
       model_weight_count++;
   }
   for (idx = 0; idx <= 60; idx++)
-    if (mws[idx] != NULL) break;
+    if (ctx.mwd.mws[idx] != NULL) break;
   min_model_weight = idx;
   for (idx = 60; idx >= 0; idx--)
-    if (mws[idx] != NULL) break;
+    if (ctx.mwd.mws[idx] != NULL) break;
   max_model_weight = idx;
   if (gve_solver_log_level >= 1)
     printf("Model weights data range: [%02d..%02d]. Model weights count: %02d\n", min_model_weight, max_model_weight, model_weight_count);
@@ -449,7 +400,7 @@ game_position_value_estimator (const GamePositionX *const root,
     exit(EXIT_FAILURE);
   }
   for (idx = min_model_weight; idx <= max_model_weight; idx++) {
-    if (mws[idx] == NULL) {
+    if (ctx.mwd.mws[idx] == NULL) {
       printf("The range of model weight files must be complete without missing values. File for empty_count = %02d is missing\n", idx);
       exit(EXIT_FAILURE);
     }
@@ -498,7 +449,7 @@ game_position_value_estimator (const GamePositionX *const root,
     printf("Iterative deepening search_depth increment step (id_step): %d\n", id_step);
   }
 
-  const bool mw_available = mws[ec] != NULL;
+  const bool mw_available = ctx.mwd.mws[ec] != NULL;
   if (gve_solver_log_level >= 1)
     if (mw_available) {
       heuristic_game_value(&root_node, &ctx);
@@ -576,7 +527,6 @@ game_position_value_estimator (const GamePositionX *const root,
   }
   ttab_free(&ttab);
 
-  game_position_rglm_release_model_weights();
   gve_context_release(&ctx);
 
   if (game_position_evaluation_summary > 0) {
@@ -989,7 +939,7 @@ rglm_eval_gp (const GamePositionX *const gpx,
 
   gp_evaluations[empty_count]++;
 
-  const rglmdf_model_weights_t *const mw = mws[empty_count];
+  const rglmdf_model_weights_t *const mw = ctx->mwd.mws[empty_count];
   assert(mw);
 
   board_t b_s;
@@ -1032,49 +982,6 @@ rglm_eval_gp (const GamePositionX *const gpx,
   }
 
   return rglmut_logistic_function(gp_eval);
-}
-
-static int
-game_position_rglm_load_model_weights_files (bool verbose,
-                                             bool check_digest,
-                                             cfg_t *cfg)
-{
-  int ret_value;
-
-  for (size_t i = 0; i < EC_SIZE; i++) {
-    mws_f[i] = cfg_get(cfg, "model_weights", mws_l[i]);
-  }
-
-  for (size_t i = 0; i < EC_SIZE; i++) {
-    rglmdf_model_weights_init(mws_s);
-    mws[i] = NULL;
-  }
-
-  for (size_t i = 0; i < EC_SIZE; i++) {
-    const char *filename = mws_f[i];
-    if (filename) {
-      ret_value = rglmdf_model_weights_read_from_binary_file(&mws_s[i], filename, verbose, check_digest);
-      if (ret_value != 0) {
-        fprintf(stderr, "Unable to load model weight file \"%s\"\n", filename);
-        return ret_value;
-      }
-      if (mws_s[i].empty_count != i) {
-        fprintf(stderr, "Empty count mismatch, expected %zu, found %u\n", i, mws_s[i].empty_count);
-        return EXIT_FAILURE;
-      }
-      mws[i] = &mws_s[i];
-    }
-  }
-  return EXIT_SUCCESS;
-}
-
-static void
-game_position_rglm_release_model_weights (void)
-{
-  for (size_t i = 0; i < EC_SIZE; i++) {
-    rglmdf_model_weights_release(&mws_s[i]);
-    mws[i] = NULL;
-  }
 }
 
 static bool
