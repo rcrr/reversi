@@ -347,3 +347,21 @@ ttab_bucket_filling_stats (T t,
 
   htab_bucket_filling_stats(t->ht, stats, stats_size);
 }
+
+void
+ttab_stats_to_stream (T t,
+                      FILE *file)
+{
+    const size_t stats_max_size = 64;
+    size_t stats_size;
+    size_t stats[stats_max_size];
+    ttab_summary_to_stream(t, file);
+    ttab_bucket_filling_stats(t, stats, stats_max_size);
+    for (stats_size = stats_max_size -1; stats_size > 0; stats_size--)
+      if (stats[stats_size] > 0) break;
+    fprintf(file, "TT hashtable stats:\n");
+    fprintf(file, " ELEMENTS_X_BUCKET; ELEMENT_CNT\n");
+    for (size_t i = 0; i < stats_size; i++) {
+      fprintf(file, "%18zu;%12zu\n", i, stats[i]);
+    }
+}

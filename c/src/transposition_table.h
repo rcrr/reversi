@@ -94,6 +94,10 @@ ttab_bucket_filling_stats (T t,
                            size_t *stats,
                            size_t stats_size);
 
+extern void
+ttab_stats_to_stream (T t,
+                      FILE *file);
+
 #undef T
 #undef I
 

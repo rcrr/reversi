@@ -84,26 +84,33 @@ typedef struct node_s {
 #define EC_SIZE 61
 
 typedef struct model_weights_data_s {
-  rglmdf_model_weights_t mws_s[EC_SIZE];
-  rglmdf_model_weights_t *mws[EC_SIZE];
-  char *file_names[EC_SIZE];
-  bool verbose_loader;
-  bool check_digest;
+  rglmdf_model_weights_t mws_s[EC_SIZE]; /* Array of model weights structures. */
+  rglmdf_model_weights_t *mws[EC_SIZE];  /* Pointers to the mw structures. A NULL value signals a missing data file. */
+  char *file_names[EC_SIZE];             /* File names for the model weights data. */
+  bool verbose_loader;                   /* When true the file loading process is verbose. */
+  bool check_digest;                     /* When true the data files are checked against the SHA hash. */
+  int model_weight_count;                /* Count of model weight instances declared in the config file. */
+  int max_model_weight;                  /* Maximum empty count value found in the model weighs array. */
+  int min_model_weight;                  /* Minimum empty count value found in the model weighs array.*/
 } model_weights_data_t;
 
 typedef struct gve_context_s {
+  int root_empty_count;                  /* Empty count at the root node. */
   model_weights_data_t mwd;              /* Model weights data. */
   uint64_t gp_evaluations[EC_SIZE];      /* The count of game evaluations categorized by empty count. */
   int id_min_empty_count;                /* Iterative deepening minimum empty count. */
   int id_step;                           /* Iterative deepening step. */
   int id_search_depth;                   /* Search depth iterative deepening. */
+  int id_limit;                          /**/
   int search_depth;                      /* Search depth. */
+  int search_depth_initial_gap;          /**/
   ttab_t ttab;                           /* Transposition Table. */
   int ttab_log_size;                     /* Transposition Table binary logarithm of size. */
   int ttab_log_verbosity;                /* Transposition Table log verbosity. */
   uint64_t node_count;                   /* Count of nodes touchd by the algorithm. */
   uint64_t leaf_count;                   /* Count of leafs touchd by the algorithm. */
   int first_level_evaluation;            /* This is the empty count level where we start having model weight info available. */
+  int last_level_evaluation;             /**/
   int game_position_evaluation_summary;  /* Game position evaluation summary. */
   int gve_solver_log_level;              /* Log level for the solver. */
 } gve_context_t;
@@ -240,7 +247,13 @@ gve_context_release (gve_context_t *ctx);
 
 static int
 gve_context_init (gve_context_t *ctx,
-                  const endgame_solver_env_t *env);
+                  const endgame_solver_env_t *env,
+                  const GamePositionX *root);
+
+static void
+game_position_eval_summary_table (FILE *stream,
+                                  gve_context_t *ctx);
+
 
 /*
  * Internal variables and constants.
@@ -263,82 +276,37 @@ game_position_value_estimator (const GamePositionX *const root,
   assert(root);
   assert(env);
 
-  ExactSolution *result = NULL;
+  /* Stopwatch variables. */
+  timespec_t time_0_a, time_1_a, delta_cpu_time_a, start_time_a, end_time_a, delta_time_a;
+  timespec_t time_0_b, time_1_b, delta_cpu_time_b, start_time_b, end_time_b, delta_time_b;
 
   gve_context_t ctx;
   int ret_err;
-  ret_err = gve_context_init(&ctx, env);
+  ret_err = gve_context_init(&ctx, env, root);
   if (ret_err != EXIT_SUCCESS) {
     fprintf(stderr, "Error during context initialization. Exiting ... \n");
     exit(EXIT_FAILURE);
   }
 
-  /* Used to drive the search to be complete and touch the leafs of the game tree. */
-  const int max_search_depth = 99;
+  if (ctx.gve_solver_log_level >= 1) {
+    printf("Empty count = %d, Search depth = %d, ID minimum empty count = %d\n",
+           ctx.root_empty_count, ctx.search_depth, ctx.id_min_empty_count);
+    printf("Model weights data range: [%02d..%02d]. Model weights count: %02d\n",
+           ctx.mwd.min_model_weight, ctx.mwd.max_model_weight, ctx.mwd.model_weight_count);
+    printf("Game evaluation will happen in the range [%02d..%02d].\n",
+           ctx.first_level_evaluation, ctx.last_level_evaluation);
+    if (ctx.first_level_evaluation < ctx.root_empty_count)
+      printf("Game evaluation empty count (%02d) is larger than first available model weight (%02d).\n",
+             ctx.root_empty_count, ctx.first_level_evaluation);
+    printf("Search depth initial gap is equal to %02d.\n", ctx.search_depth_initial_gap);
+    printf("Iterative deepening search_depth limit (id_limit): %d\n", ctx.id_limit);
+    printf("Iterative deepening search_depth increment step (id_step): %d\n", ctx.id_step);
+  }
 
-  /* Stopwatch variables. */
-  timespec_t time_0_a, time_1_a, delta_cpu_time_a, start_time_a, end_time_a, delta_time_a;
-  timespec_t time_0_b, time_1_b, delta_cpu_time_b, start_time_b, end_time_b, delta_time_b;
-
+  ExactSolution *result = NULL;
   result = exact_solution_new();
   exact_solution_init(result);
   exact_solution_set_root(result, root);
-
-  const int ec = game_position_x_empty_count(root);
-  if (ctx.search_depth < 0) ctx.search_depth = max_search_depth;
-
-  if (ctx.gve_solver_log_level >= 1)
-    printf("Empty count = %d, Search depth = %d, ID minimum empty count = %d\n", ec, ctx.search_depth, ctx.id_min_empty_count);
-
-  int idx;
-  int model_weight_count = 0;
-  int max_model_weight = 0;
-  int min_model_weight = 0;
-  for (idx = 0; idx <= 60; idx++) {
-    if (ctx.mwd.mws[idx] != NULL)
-      model_weight_count++;
-  }
-  for (idx = 0; idx <= 60; idx++)
-    if (ctx.mwd.mws[idx] != NULL) break;
-  min_model_weight = idx;
-  for (idx = 60; idx >= 0; idx--)
-    if (ctx.mwd.mws[idx] != NULL) break;
-  max_model_weight = idx;
-  if (ctx.gve_solver_log_level >= 1)
-    printf("Model weights data range: [%02d..%02d]. Model weights count: %02d\n", min_model_weight, max_model_weight, model_weight_count);
-  if (model_weight_count == 0) {
-    printf("There is no model weight defnition into the configuration file. Exiting ...\n");
-    exit(EXIT_FAILURE);
-  }
-  for (idx = min_model_weight; idx <= max_model_weight; idx++) {
-    if (ctx.mwd.mws[idx] == NULL) {
-      printf("The range of model weight files must be complete without missing values. File for empty_count = %02d is missing\n", idx);
-      exit(EXIT_FAILURE);
-    }
-  }
-
-  if (ctx.id_min_empty_count <= min_model_weight) {
-    printf("The minimum model weight value must be smaller than ID minimum empty count. Exiting ...\n");
-    exit(EXIT_FAILURE);
-  }
-
-  int last_level_evaluation;
-  if (ec < min_model_weight) {
-    printf("Game position empty count (%02d) cannot be lesser than min_model_weight (%02d). Exiting ...\n", ec, min_model_weight);
-    exit(EXIT_FAILURE);
-  }
-  ctx.first_level_evaluation = min(ec, max_model_weight);
-  last_level_evaluation = ctx.id_min_empty_count - 1;
-
-  const int search_depth_initial_gap = (ec == ctx.first_level_evaluation) ? 1 : ec - ctx.first_level_evaluation;
-
-  if (ctx.gve_solver_log_level >= 1) {
-    printf("Game evaluation will happen in the range [%02d..%02d].\n", ctx.first_level_evaluation, last_level_evaluation);
-    if (ctx.first_level_evaluation < ec) {
-      printf("Game evaluation empty count (%02d) is larger than first available model weight (%02d).\n", ec, ctx.first_level_evaluation);
-    }
-    printf("Search depth initial gap is equal to %02d.\n", search_depth_initial_gap);
-  }
 
   node_t parent_root_node;
   init_node(&parent_root_node,
@@ -350,12 +318,8 @@ game_position_value_estimator (const GamePositionX *const root,
             &parent_root_node, empty_square_set, invalid_move, invalid_move, out_of_range_defeat_score,
             root->blacks, root->whites, root->player);
 
-  const int id_limit = min(ctx.search_depth, ec - ctx.id_min_empty_count);
-
   if (ctx.gve_solver_log_level >= 1) {
-    printf("Iterative deepening search_depth limit (id_limit): %d\n", id_limit);
-    printf("Iterative deepening search_depth increment step (id_step): %d\n", ctx.id_step);
-    const bool root_mw_available = ctx.mwd.mws[ec] != NULL;
+    const bool root_mw_available = ctx.mwd.mws[ctx.root_empty_count] != NULL;
     if (root_mw_available) {
       heuristic_game_value(&root_node, &ctx);
       printf("Node Level 0: estimated game value = %+03d\n", root_node.value);
@@ -367,7 +331,7 @@ game_position_value_estimator (const GamePositionX *const root,
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0_a);
 
   if (ctx.search_depth > 0) {
-    ctx.id_search_depth = search_depth_initial_gap;
+    ctx.id_search_depth = ctx.search_depth_initial_gap;
     while (true) {
       const uint64_t nc0 = ctx.node_count;
       if (ctx.gve_solver_log_level >= 2) {
@@ -376,7 +340,9 @@ game_position_value_estimator (const GamePositionX *const root,
         clock_gettime(CLOCK_REALTIME, &start_time_b);
         clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0_b);
       }
+
       mtdf(&root_node, env->alpha, env->beta, ctx.id_search_depth, &ctx);
+
       if (ctx.gve_solver_log_level >= 2) {
         clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1_b);
         clock_gettime(CLOCK_REALTIME, &end_time_b);
@@ -390,8 +356,8 @@ game_position_value_estimator (const GamePositionX *const root,
                (long long) timespec_get_sec(&delta_time_b), timespec_get_nsec(&delta_time_b));
       }
       if (ctx.id_search_depth >= ctx.search_depth) break;
-      if (ctx.id_search_depth == id_limit) ctx.id_search_depth = ctx.search_depth;
-      else if (ctx.id_search_depth + ctx.id_step > id_limit) ctx.id_search_depth = id_limit;
+      if (ctx.id_search_depth == ctx.id_limit) ctx.id_search_depth = ctx.search_depth;
+      else if (ctx.id_search_depth + ctx.id_step > ctx.id_limit) ctx.id_search_depth = ctx.id_limit;
       else ctx.id_search_depth += ctx.id_step;
     }
   }
@@ -415,31 +381,11 @@ game_position_value_estimator (const GamePositionX *const root,
   result->node_count = ctx.node_count;
   result->leaf_count = ctx.leaf_count;
 
-  if (ctx.ttab_log_verbosity > 0) {
-    const size_t tt_stats_max_size = 42;
-    size_t tt_stats_size;
-    size_t tt_stats[tt_stats_max_size];
-    ttab_summary_to_stream(ctx.ttab, stdout);
-    ttab_bucket_filling_stats(ctx.ttab, tt_stats, tt_stats_max_size);
-    for (tt_stats_size = tt_stats_max_size -1; tt_stats_size > 0; tt_stats_size--)
-      if (tt_stats[tt_stats_size] > 0) break;
-    printf("TT hashtable stats:\n");
-    printf(" ELEMENTS_X_BUCKET; ELEMENT_CNT\n");
-    for (size_t i = 0; i < tt_stats_size; i++) {
-      printf("%18zu;%12zu\n", i, tt_stats[i]);
-    }
-  }
+  if (ctx.ttab_log_verbosity > 0)
+    ttab_stats_to_stream(ctx.ttab, stdout);
 
-  if (ctx.game_position_evaluation_summary > 0) {
-    uint64_t total_gp_eval_count = 0;
-    for (int i = 0; i < EC_SIZE; i++) {
-      total_gp_eval_count += ctx.gp_evaluations[i];
-    }
-    printf("Total game position evaluation count: %zu\n", total_gp_eval_count);
-    printf(" EMPTY_COUNT;  EVALUATIONS\n");
-    for (int i = 0; i < EC_SIZE; i++)
-      if (ctx.gp_evaluations[i] > 0) printf("          %02d; %12zu\n", i, ctx.gp_evaluations[i]);
-  }
+  if (ctx.game_position_evaluation_summary > 0)
+    game_position_eval_summary_table(stdout, &ctx);
 
   gve_context_release(&ctx);
 
@@ -466,14 +412,20 @@ gve_context_release (gve_context_t *ctx)
 
 static int
 gve_context_init (gve_context_t *ctx,
-                  const endgame_solver_env_t *env)
+                  const endgame_solver_env_t *env,
+                  const GamePositionX *root)
 {
   assert(ctx);
   assert(env);
 
+  /* Used to drive the search to be complete and touch the leafs of the game tree. */
+  const int max_search_depth = 99;
+
+  ctx->root_empty_count = game_position_x_empty_count(root);
+
   int ret_err;
   ret_err = model_weights_data_init(&ctx->mwd, env->cfg);
-  if (ret_err != 0) {
+  if (ret_err != EXIT_SUCCESS) {
     printf("Error initializing model weights data structure.\n");
     return EXIT_FAILURE;
   }
@@ -484,47 +436,46 @@ gve_context_init (gve_context_t *ctx,
   ret_err = get_id_min_empty_count_from_cfg(env->cfg, &ctx->id_min_empty_count);
   if (ret_err != EXIT_SUCCESS) {
     fprintf(stderr, "Error loading key id_min_empty_count from section gve_solver from the config file. Exiting ...\n");
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   ret_err = get_id_step_from_cfg(env->cfg, &ctx->id_step);
   if (ret_err != EXIT_SUCCESS) {
     fprintf(stderr, "Error loading key id_step from section gve_solver from the config file. Exiting ...\n");
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   ret_err = get_ttab_log_size_from_cfg(env->cfg, &ctx->ttab_log_size);
   if (ret_err != EXIT_SUCCESS) {
     fprintf(stderr, "Error loading key ttab_log_size from section gve_solver from the config file. Exiting ...\n");
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   ret_err = get_ttab_log_verbosity_from_cfg(env->cfg, &ctx->ttab_log_verbosity);
   if (ret_err != EXIT_SUCCESS) {
     fprintf(stderr, "Error loading key ttab_log_verbosity from section gve_solver from the config file. Exiting ...\n");
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   ctx->ttab = ttab_new(ctx->ttab_log_size);
   if (!ctx->ttab) {
     fprintf(stderr, "Error allocating memory for the transposition table. Exiting ...\n");
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   ret_err = get_game_position_evaluation_summary_from_cfg(env->cfg, &ctx->game_position_evaluation_summary);
   if (ret_err != EXIT_SUCCESS) {
     fprintf(stderr, "Error loading key game_position_evaluation_summary from section gve_solver from the config file. Exiting ...\n");
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   ret_err = get_gve_solver_log_level_from_cfg(env->cfg, &ctx->gve_solver_log_level);
   if (ret_err != EXIT_SUCCESS) {
     fprintf(stderr, "Error loading key gve_solver_log_level from section gve_solver from the config file. Exiting ...\n");
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   ctx->id_search_depth = 0;
-  ctx->search_depth = env->search_depth;
   ctx->node_count = 0;
   ctx->leaf_count = 0;
   ctx->first_level_evaluation = 0;
@@ -532,10 +483,46 @@ gve_context_init (gve_context_t *ctx,
   ret_err = check_gve_solver_config_file(env->cfg);
   if (ret_err != EXIT_SUCCESS) {
     fprintf(stderr, "Error in the config file, section gve_solver. Exiting ...\n");
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
+  ctx->search_depth = (env->search_depth < 0) ? max_search_depth : env->search_depth;
+
+  if (ctx->id_min_empty_count <= ctx->mwd.min_model_weight) {
+    printf("The minimum model weight value must be smaller than ID minimum empty count. Exiting ...\n");
+    return EXIT_FAILURE;
+  }
+
+  if (ctx->root_empty_count < ctx->mwd.min_model_weight) {
+    printf("Game position empty count (%02d) cannot be lesser than min_model_weight (%02d). Exiting ...\n",
+           ctx->root_empty_count, ctx->mwd.min_model_weight);
+    return EXIT_FAILURE;
+  }
+
+  ctx->first_level_evaluation = min(ctx->root_empty_count, ctx->mwd.max_model_weight);
+  ctx->last_level_evaluation = ctx->id_min_empty_count - 1;
+
+  ctx->search_depth_initial_gap = (ctx->root_empty_count == ctx->first_level_evaluation) ?
+    1 : ctx->root_empty_count - ctx->first_level_evaluation;
+
+  ctx->id_limit = min(ctx->search_depth, ctx->root_empty_count - ctx->id_min_empty_count);
+
   return EXIT_SUCCESS;
+}
+
+static void
+game_position_eval_summary_table (FILE *stream,
+                                  gve_context_t *ctx)
+{
+  uint64_t total_gp_eval_count = 0;
+  for (int i = 0; i < EC_SIZE; i++) {
+    total_gp_eval_count += ctx->gp_evaluations[i];
+  }
+  fprintf(stream, "Total game position evaluation count: %zu\n", total_gp_eval_count);
+  fprintf(stream, " EMPTY_COUNT;  EVALUATIONS\n");
+  for (int i = 0; i < EC_SIZE; i++)
+    if (ctx->gp_evaluations[i] > 0)
+      fprintf(stream, "          %02d; %12zu\n", i, ctx->gp_evaluations[i]);
 }
 
 static void
@@ -567,7 +554,11 @@ model_weights_data_init (model_weights_data_t *mwd,
      "ec60"
     };
 
+  const int min_model_weights_ec_range = 0;
+  const int max_model_weights_ec_range = 60;
+
   int ret_err;
+  int idx;
 
   for (size_t i = 0; i < EC_SIZE; i++) {
     rglmdf_model_weights_init(&mwd->mws_s[i]);
@@ -580,17 +571,17 @@ model_weights_data_init (model_weights_data_t *mwd,
   ret_err = check_model_weight_config_file(cfg);
   if (ret_err != EXIT_SUCCESS) {
     fprintf(stderr, "Error in the config file. Exiting ...\n");
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
   ret_err = get_model_weights_verbose_loader_from_cfg(cfg, &mwd->verbose_loader);
   if (ret_err != EXIT_SUCCESS) {
     fprintf(stderr, "Error in the config file. Exiting ...\n");
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
   ret_err = get_model_weights_check_digest_from_cfg(cfg, &mwd->check_digest);
   if (ret_err != EXIT_SUCCESS) {
     fprintf(stderr, "Error in the config file. Exiting ...\n");
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   for (size_t i = 0; i < EC_SIZE; i++) {
@@ -612,6 +603,28 @@ model_weights_data_init (model_weights_data_t *mwd,
       mwd->mws[i] = &mwd->mws_s[i];
     }
   }
+
+  for (idx = min_model_weights_ec_range; idx <= max_model_weights_ec_range; idx++) {
+    if (mwd->mws[idx] != NULL)
+      mwd->model_weight_count++;
+  }
+  for (idx = min_model_weights_ec_range; idx <= max_model_weights_ec_range; idx++)
+    if (mwd->mws[idx] != NULL) break;
+  mwd->min_model_weight = idx;
+  for (idx = max_model_weights_ec_range; idx >= min_model_weights_ec_range; idx--)
+    if (mwd->mws[idx] != NULL) break;
+  mwd->max_model_weight = idx;
+  if (mwd->model_weight_count == 0) {
+    printf("There is no model weight defnition into the configuration file. Exiting ...\n");
+    return EXIT_FAILURE;
+  }
+  for (idx = mwd->min_model_weight; idx <= mwd->max_model_weight; idx++) {
+    if (mwd->mws[idx] == NULL) {
+      printf("The range of model weight files must be complete without missing values. File for empty_count = %02d is missing.\n", idx);
+      return EXIT_FAILURE;
+    }
+  }
+
   return EXIT_SUCCESS;
 }
 
