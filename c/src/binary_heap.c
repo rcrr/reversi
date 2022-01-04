@@ -231,6 +231,22 @@ bihp_pq_create (bihp_pq_type_t t,
 }
 
 void
+bihp_pq_reinit (bihp_pq_t q)
+{
+  assert(q);
+
+  /* It is not required to initialize to zero. It is just useful when debugging. */
+  if (false) {
+    for (size_t i = 0; i < q->array_size; i++) {
+      q->a[i] = NULL;
+      q->p[i] = 0;
+    }
+  }
+
+  q->heap_size = 0;
+}
+
+void
 bihp_pq_destroy (bihp_pq_t q)
 {
   assert(q);

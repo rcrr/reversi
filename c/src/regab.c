@@ -12,7 +12,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2017, 2018, 2019, 2020, 2021 Roberto Corradini. All rights reserved.
+ * @copyright 2017, 2018, 2019, 2020, 2021, 2022 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -2545,6 +2545,86 @@ main (int argc,
    * Solves the selected games.
    */
  regab_action_solve:
+  if (solver == REGAB_SOLVER_GVE) {
+
+    endgame_solver_env_t env =
+      { .log_file = NULL,
+        .pve_dump_file = NULL,
+        .repeats = 0,
+        .pv_recording = false,
+        .pv_full_recording = false,
+        .pv_no_print = false,
+        .board_pattern_index = -1, // not used
+        .prng_seed_is_set = false,
+        .prng_seed = 0, // not used
+        .alpha = worst_score,
+        .beta = best_score,
+        .all_moves = false,
+        .search_depth = 99,
+        .cfg = config
+      };
+
+    gve_context_t ctx;
+    int ret_err;
+    ret_err = gve_context_init(&ctx, &env, NULL);
+    if (ret_err != EXIT_SUCCESS) {
+      fprintf(stderr, "Error during context initialization. Exiting ... \n");
+      return EXIT_FAILURE;
+    }
+
+    for (unsigned long int i = 0; i < n_games; i++) {
+      fprintf(stdout, "GVE: solving game %lu of %lu ...\n", i + 1, n_games);
+      regab_prng_gp_record_t record;
+      memset(&record, 0, sizeof(record));
+      record.batch_id = batch_id;
+      record.empty_count = empty_count;
+      do_select_position_to_solve(&result, con, &record);
+      if (result == -1) {
+        fprintf(stderr, "Error while selecting game position to solve.\n");
+        PQfinish(con);
+        return EXIT_FAILURE;
+      } else if (result == 1) {
+        printf("record(seq=%ld, batch_id=%d, game_id=%d, pos_id=%d, cst_time=%s\n",
+               record.seq, record.batch_id, record.game_id, record.pos_id, record.cst_time);
+
+        char buf[1024];
+        GamePositionX gpx;
+        gpx.blacks = (SquareSet) record.mover;
+        gpx.whites = (SquareSet) record.opponent;
+        gpx.player = BLACK_PLAYER;
+        game_position_x_print(buf, &gpx);
+        printf("%s", buf);
+
+        gve_context_set_root(&ctx, &gpx);
+
+        ExactSolution *solution;
+        solution = game_position_gve_solve(&ctx, &env, &gpx);
+        strcpy(record.solver, "gve");
+
+        printf("solution(outcome=%d, best_move=%s, leaf_count=%zu, node_count=%zu)\n\n",
+               solution->outcome, square_as_move_to_string(solution->best_move), solution->leaf_count, solution->node_count);
+
+        record.game_value = solution->outcome;
+        record.best_move = solution->best_move;
+        record.leaf_count = solution->leaf_count;
+        record.node_count = solution->node_count;
+
+        do_update_solved_position_results(&result, con, &record);
+
+      } else if (result == 0) {
+        printf("No game position to be solved has been returned by the selection.\n");
+        goto regab_program_end;
+      } else {
+        fprintf(stderr, "Error while selecting game position to solve, unknown return value result=%d.\n", result);
+        PQfinish(con);
+        return EXIT_FAILURE;
+      }
+    }
+
+    gve_context_release(&ctx);
+    goto regab_program_end;
+  }
+
   if (solver == REGAB_SOLVER_RGLM) {
     const bool verbose = false;
     int ret_err;
@@ -2592,7 +2672,7 @@ main (int argc,
           .beta = best_score,
           .all_moves = false,
           .search_depth = 99,
-          .cfg = NULL
+          .cfg = config
         };
 
       ExactSolution *solution;
@@ -2602,12 +2682,6 @@ main (int argc,
       }
       else if (solver == REGAB_SOLVER_RGLM) {
         solution = game_position_rglm_solve_nlmw(&gpx, &env);
-        strcpy(record.solver, "rglm");
-      }
-      else if (solver == REGAB_SOLVER_GVE) {
-        printf("This implementation is under construction! Aborting ... \n");
-        abort();
-        solution = game_position_value_estimator(&gpx, &env);
         strcpy(record.solver, "rglm");
       }
       else if (solver == REGAB_SOLVER_INVALID) {

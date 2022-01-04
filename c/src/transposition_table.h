@@ -71,7 +71,7 @@ extern void
 ttab_free (T *tp);
 
 extern void
-ttab_init (T t);
+ttab_reinit (T t);
 
 extern void
 ttab_insert (T t,

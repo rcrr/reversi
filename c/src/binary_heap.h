@@ -97,6 +97,9 @@ bihp_pq_create (bihp_pq_type_t t,
                 bihp_item_call_back_on_swap_f icbf);
 
 extern void
+bihp_pq_reinit (bihp_pq_t q);
+
+extern void
 bihp_pq_destroy (bihp_pq_t q);
 
 extern bihp_pq_type_t

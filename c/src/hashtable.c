@@ -153,6 +153,16 @@ htab_new (int hint,
 }
 
 void
+htab_reinit (T *t)
+{
+  assert(t && *t);
+
+  memset((*t)->buckets, 0, (*t)->size * sizeof((*t)->buckets[0]));
+  (*t)->length = 0;
+  (*t)->timestamp = 0;
+}
+
+void
 htab_free (T *t)
 {
   assert(t && *t);

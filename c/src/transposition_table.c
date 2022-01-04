@@ -210,7 +210,17 @@ ttab_new (int log_size)
     return NULL;
   }
 
-  ttab_init(t);
+  /* Initialize next_item to be the on top of the array. */
+  t->next_item = t->items + t->max_n_item - 1;
+
+  /* Initialize n_item to be zero. */
+  t->n_item = 0;
+
+  /*
+   * Zeroes the items array. It is not required, but it is an help in case of debugging.
+   * It is turned off being a sensible time consumer.
+   */
+  if (false) memset(t->items, 0, t->max_n_item * sizeof(struct ttab_item_s));
 
   return t;
 }
@@ -236,17 +246,23 @@ ttab_free (T *tp)
 }
 
 void
-ttab_init (T t)
+ttab_reinit (T t)
 {
   assert(t);
   assert(t->items);
   assert(t->ht);
   assert(t->pq);
 
-  /* Initialize next_item to be the on top of the array. */
+  /* Re-init the priority-queue. */
+  bihp_pq_reinit(t->pq);
+
+  /* Re-init the hashtable. */
+  htab_reinit(&t->ht);
+
+  /* Re-initialize next_item to be the on top of the array. */
   t->next_item = t->items + t->max_n_item - 1;
 
-  /* Initialize n_item to be zero. */
+  /* Re-initialize n_item to be zero. */
   t->n_item = 0;
 
   /*
@@ -304,7 +320,7 @@ ttab_summary_to_stream (T t,
   fprintf(file, "  next_item:  %20p  -  Next item to be used when inserting\n", (void *) t->next_item);
   fprintf(file, "  n_item:     %20zu  -  The number of item currently held in the table\n", t->n_item);
   fprintf(file, "  ht:         %20p  -  Hashtable containing <Key:item , Item:item>\n", (void *) t->ht);
-  fprintf(file, "  pq:         %20p  -  Priority queue\n", (void *) t->ht);
+  fprintf(file, "  pq:         %20p  -  Priority queue\n", (void *) t->pq);
   fprintf(file, "  ht.size:    %20zu  -  Hashtable size\n", htab_size(t->ht));
   fprintf(file, "  ht.length:  %20zu  -  Hashtable length\n", htab_length(t->ht));
 }

@@ -403,7 +403,7 @@ SRC_READ_PVE_DUMP_DEP := $(SRC_READ_PVE_DUMP) $(sort $(HDR_FILE_UTILS_DEP) $(HDR
 
 SRC_REGAB_DEP := $(SRC_REGAB) $(sort $(HDR_MAIN_OPTION_PARSE_DEP) $(HDR_FILE_UTILS_DEP) $(HDR_CFG_DEP) $(HDR_PRNG_DEP) \
                                      $(HDR_EXACT_SOLVER_DEP) $(HDR_RGLM_SOLVER_DEP) $(HDR_SORT_UTILS_DEP) \
-                                     $(HDR_RGLM_DATA_FILES_DEP) $(HDR_RGLM_UTILS_DEP))
+                                     $(HDR_RGLM_DATA_FILES_DEP) $(HDR_RGLM_UTILS_DEP)) $(HDR_GAME_VALUE_ESTIMATOR_DEP)
 
 SRC_RGLM_DEP := $(SRC_RGLM) $(sort $(HDR_TIME_UTILS_DEP) $(HDR_MAIN_OPTION_PARSE_DEP) $(HDR_RGLM_UTILS_DEP) $(HDR_LINEAR_ALGEBRA_DEP))
 
@@ -1449,6 +1449,7 @@ $(UTE_RED_BLACK_TREE): $(UTO_RED_BLACK_TREE) $(UTE_RED_BLACK_TREE_OBJ_DEPENDENCI
 ## regab
 ##
 ## regab.c : main_option_parse.h file_utils.h cfg.h prng.h exact_solver.h rglm_solver.h sort_utils.h rglm_data_files.h rglm_utils.h
+##           game_value_estimator.h
 ##
 regab: $(BIN_REGAB)
 asm_regab: $(ASM_REGAB)
@@ -1464,7 +1465,8 @@ $(OBJ_REGAB): $(SRC_REGAB_DEP) Makefile $(OBJDIR)/.dir_sentinel
 BIN_REGAB_OBJ_DEPENDENCIES := $(OBJ_LINKED_LIST) $(OBJ_MAIN_OPTION_PARSE) $(OBJ_TIME_UTILS) \
   $(OBJ_BIT_WORKS) $(OBJ_PRNG) $(OBJ_ARCH) $(OBJ_CFG) $(OBJ_SORT_UTILS) $(OBJ_RGLM_DATA_FILES) \
   $(OBJ_SHA3) $(OBJ_FILE_UTILS) $(OBJ_RGLM_SOLVER) $(OBJ_GAME_TREE_UTILS) $(OBJ_GAME_TREE_LOGGER) \
-  $(OBJ_BOARD) $(OBJ_BOARD_TRANS) $(OBJ_BOARD_PATTERN) $(OBJ_RGLM_UTILS) $(OBJ_EXACT_SOLVER)
+  $(OBJ_BOARD) $(OBJ_BOARD_TRANS) $(OBJ_BOARD_PATTERN) $(OBJ_RGLM_UTILS) $(OBJ_EXACT_SOLVER) \
+  $(OBJ_GAME_VALUE_ESTIMATOR) $(OBJ_TRANSPOSITION_TABLE) $(OBJ_HASHTABLE) $(OBJ_BINARY_HEAP)
 
 $(BIN_REGAB): $(OBJ_REGAB) $(BIN_REGAB_OBJ_DEPENDENCIES) Makefile $(BINDIR)/.dir_sentinel
 	@printf "Linking executable $@\n"

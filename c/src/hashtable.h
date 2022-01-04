@@ -50,6 +50,9 @@ htab_new (int hint,
           unsigned hash (const void *key));
 
 extern void
+htab_reinit (T *t);
+
+extern void
 htab_free (T *t);
 
 extern size_t
