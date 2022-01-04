@@ -1,0 +1,86 @@
+
+
+     Data sets:
+
+       - batch_id = 8 :  100 pos
+       - batch_id = 4 : 1000 pos
+       
+     BATCH_ID; EMPTY_COUNT
+            8;          20
+            4;          20
+            8;          21
+            8;          22
+            8;          23
+            8;          24
+
+
+     STEPS:
+
+     (0) Create the duplicate table to preserve the solutions for later comparison.
+
+         CREATE TABLE regab_prng_gp_dup (LIKE regab_prng_gp INCLUDING COMMENTS INCLUDING CONSTRAINTS INCLUDING DEFAULTS INCLUDING INDEXES);
+     
+     (1) Copy the selected data sets.
+
+         INSERT INTO regab_prng_gp_dup SELECT * FROM regab_prng_gp WHERE batch_id = 8 AND empty_count = 20 AND status = 'CMS';
+         INSERT INTO regab_prng_gp_dup SELECT * FROM regab_prng_gp WHERE batch_id = 8 AND empty_count = 21 AND status = 'CMS';
+         INSERT INTO regab_prng_gp_dup SELECT * FROM regab_prng_gp WHERE batch_id = 8 AND empty_count = 22 AND status = 'CMS';
+         INSERT INTO regab_prng_gp_dup SELECT * FROM regab_prng_gp WHERE batch_id = 8 AND empty_count = 23 AND status = 'CMS';
+         INSERT INTO regab_prng_gp_dup SELECT * FROM regab_prng_gp WHERE batch_id = 8 AND empty_count = 24 AND status = 'CMS';
+         INSERT INTO regab_prng_gp_dup SELECT * FROM regab_prng_gp WHERE batch_id = 4 AND empty_count = 20 AND status = 'CMS';
+
+     (2) Update the fields: status, game_value, best_move, leaf_count, node_count, solver.
+
+         UPDATE regab_prng_gp SET status = 'INS', game_value = -66, best_move = 'UN', leaf_count = 0, node_count = 0, solver = NULL WHERE status = 'CMS' AND batch_id = 8 AND empty_count = 20;
+         UPDATE regab_prng_gp SET status = 'INS', game_value = -66, best_move = 'UN', leaf_count = 0, node_count = 0, solver = NULL WHERE status = 'CMS' AND batch_id = 8 AND empty_count = 21;
+         ...
+
+     (3) Compute the new values using GVE solver.
+     
+         time ./build/bin/regab -v -a solve -c cfg/regab_gve.cfg -e test -b 8 -n 100 -y 20 -k gve
+         time ./build/bin/regab -v -a solve -c cfg/regab_gve.cfg -e test -b 8 -n 100 -y 21 -k gve
+         ...
+ 
+     (4) Check that the values are the same.
+
+         SELECT a.seq AS gp_seq, a.game_value, b.seq AS dup_seq, b.game_value FROM regab_prng_gp AS a FULL OUTER JOIN regab_prng_gp AS b ON a.seq = b.seq WHERE a.batch_id = 8 AND a.empty_count = 20 AND a.status = 'CMP' AND a.game_value <> b.game_value;
+         SELECT a.seq AS gp_seq, a.game_value, b.seq AS dup_seq, b.game_value FROM regab_prng_gp AS a FULL OUTER JOIN regab_prng_gp AS b ON a.seq = b.seq WHERE a.batch_id = 8 AND a.empty_count = 21 AND a.status = 'CMP' AND a.game_value <> b.game_value;
+         ...
+
+     (5) Restore the proper status value.
+
+         UPDATE regab_prng_gp SET status = 'CMS' WHERE batch_id = 8 AND empty_count = 20 AND status = 'CMP';
+         UPDATE regab_prng_gp SET status = 'CMS' WHERE batch_id = 8 AND empty_count = 21 AND status = 'CMP';
+         ...
+
+     (6) Repeat using the other two solvers.
+
+     (7) Compare times and noe_count (nc):
+     
+         ES   (bi=8,ec=20):  12m00.467s
+         RGLM (bi=8,ec=20):   7m18.830s
+         GVE  (bi=8,ec=20):   2m31.015s
+     
+         ES   (bi=8,ec=21):  32m50.710s
+         RGLM (bi=8,ec=21):  14m31.765s
+         GVE  (bi=8,ec=21):   4m59.861s
+         
+                                         count |      min_nc |         max_nc |        avg_nc        
+                                        -------+-------------+----------------+---------------
+         ES   (bi=8,ec=22): 107m07.131s    100 |  19,379,898 | 13,219,632,328 | 1,290,227,318
+         RGLM (bi=8,ec=22):  51m58.618s    100 |  12,070,690 |  3,574,479,708 |   445,115,389
+         GVE  (bi=8,ec=22):  16m01.149s    100 |   4,057,016 |  1,818,870,909 |   199,563,629
+     
+                                         count |      min_nc |         max_nc |        avg_nc        
+                                        -------+-------------+----------------+---------------
+         ES   (bi=8,ec=23): 326m14.092s    100 | 182,806,907 | 35,816,056,396 | 3,887,634,475
+         RGLM (bi=8,ec=23): 122m49.928s    100 |  22,272,528 |  8,813,050,473 | 1,032,041,894
+         GVE  (bi=8,ec=23):  36m04.378s    100 |  10,597,813 |  4,139,723,918 |   425,783,439
+     
+                                         count |      min_nc |         max_nc |        avg_nc        
+                                        -------+-------------+----------------+---------------
+         GVE  (bi=8,ec=24): 113m50.945s    100 |  12,342,036 | 19,518,820,123 | 1,394,191,111
+
+         GVE  (bi=4,ec=20):  29m38.383s
+
+     (7) Collects data into the Calf file: REGAB_perf.ods

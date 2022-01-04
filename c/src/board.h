@@ -151,6 +151,11 @@ static const int square_cardinality = 64;
 static const SquareSet empty_square_set = 0;
 
 /**
+ * @brief The full square set.
+ */
+static const SquareSet full_square_set = 0xFFFFFFFFFFFFFFFF;
+
+/**
  * @brief The pass move.
  */
 static const Square pass_move = (Square) 64;

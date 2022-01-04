@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2021 Roberto Corradini. All rights reserved.
+ * @copyright 2021, 2022 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -39,56 +39,16 @@
 #include "endgame_utils.h"
 
 /**
- * @brief Empty Count Size - [0..60] the game stages ...
- */
-#define EC_SIZE 61
-
-//typedef struct model_weights_data_s model_weights_data_t;
-
-/**
- * @brief Collects all the info related to the Model Weights used by the GVE solver.
- *
- * @details To be completed ...
- *
- */
-typedef struct model_weights_data_s {
-  rglmdf_model_weights_t mws_s[EC_SIZE]; /**< Array of model weights structures. */
-  rglmdf_model_weights_t *mws[EC_SIZE];  /**< Pointers to the mw structures. A NULL value signals a missing data file. */
-  char *file_names[EC_SIZE];             /**< File names for the model weights data. */
-  bool verbose_loader;                   /**< When true the file loading process is verbose. */
-  bool check_digest;                     /**< When true the data files are checked against the SHA hash. */
-  int model_weight_count;                /**< Count of model weight instances declared in the config file. */
-  int max_model_weight;                  /**< Maximum empty count value found in the model weighs array. */
-  int min_model_weight;                  /**< Minimum empty count value found in the model weighs array.*/
-} model_weights_data_t;
-
-/**
  * @brief Collects all the info required by the GVE solver to run.
  *
- * @details The structure is prepared by a call to gve_context_init().
- *          Multiple call to
- *
+ * @details The pointer needs to be created by a call to gve_context_new(),
+ *          and then initialized by a call to gve_context_init().
+ *          After this it can be used to call the gve solver once or multiple times,
+ *          in this second case a call to gve_context_set_root() updates the info dependent from
+ *          the game position and reset counters.
+ *          It could be finally disposed by a call to gve_context_release().
  */
-typedef struct gve_context_s {
-  int root_empty_count;                  /**< Empty count at the root node. */
-  model_weights_data_t mwd;              /**< Model weights data. */
-  uint64_t gp_evaluations[EC_SIZE];      /**< The count of game evaluations categorized by empty count. */
-  int id_min_empty_count;                /**< Iterative deepening minimum empty count. */
-  int id_step;                           /**< Iterative deepening step. */
-  int id_search_depth;                   /**< Search depth iterative deepening. */
-  int id_limit;                          /**< Limit of the iterative search depth (maximum id depth). */
-  int search_depth;                      /**< Search depth. */
-  int search_depth_initial_gap;          /**< It is the difference between root empty count and the ec at the first available model weigths. */
-  ttab_t ttab;                           /**< Transposition Table. */
-  int ttab_log_size;                     /**< Transposition Table binary logarithm of size. */
-  int ttab_log_verbosity;                /**< Transposition Table log verbosity. */
-  uint64_t node_count;                   /**< Count of nodes touchd by the algorithm. */
-  uint64_t leaf_count;                   /**< Count of leafs touchd by the algorithm. */
-  int first_level_evaluation;            /**< This is the empty count level where we start having model weight info available. */
-  int last_level_evaluation;             /**< It is the empty count value at the deepest evaluation done using the model weights heuristic. */
-  int game_position_evaluation_summary;  /**< Game position evaluation summary. */
-  int gve_solver_log_level;              /**< Log level for the solver. */
-} gve_context_t;
+typedef struct gve_context_s *gve_context_t;
 
 /**
  * @brief Gives an estimation, or exact solution, of the `root` game position returning a new exact solution pointer.
@@ -127,28 +87,27 @@ typedef struct gve_context_s {
  * @return          a pointer to a new exact solution structure
  */
 extern ExactSolution *
-game_position_value_estimator (const GamePositionX *const root,
-                               const endgame_solver_env_t *const env);
+game_position_value_estimator (const GamePositionX *root,
+                               const endgame_solver_env_t *env);
 
 /**
- * @brief To be completed.
+ * @brief Solves a game position using the gve algorithm.
  *
- * @details To be completed.
+ * @details It calls the game_position_value_estimator() function.
+ *          It requires the appropriate `ctx` object being prepared in advance.
+ *          It is a convenience prepared for calling the solver multiple times without
+ *          having to construct a new context each time.
  *
  * @param [in,out] ctx  gve solver context
  * @param [in]     env  endgame solver environment
- * @param [in]     root the game position to be evaluated or solved
  * @return              a pointer to a new exact solution structure
  */
 extern ExactSolution *
-game_position_gve_solve (gve_context_t *ctx,
-                         const endgame_solver_env_t *const env,
-                         const GamePositionX *const root);
+game_position_gve_solve (gve_context_t ctx,
+                         const endgame_solver_env_t *env);
 
 /**
- * @brief To be completed.
- *
- * @details To be completed.
+ * @brief Initialize a gve context object.
  *
  * @param [out] ctx  gve solver context
  * @param [in]  env  endgame solver environment
@@ -156,36 +115,42 @@ game_position_gve_solve (gve_context_t *ctx,
  * @return           a status value
  */
 extern int
-gve_context_init (gve_context_t *ctx,
+gve_context_init (gve_context_t ctx,
                   const endgame_solver_env_t *env,
                   const GamePositionX *root);
 
 /**
- * @brief To be completed.
+ * @brief Returns a not initialized gve solver context.
  *
- * @details To be completed.
+ * @details The pointers needs then to be initialized by a call to gve_context_init(),
+ *          and finally disposed by a call to gve_context_release().
  *
- * @param [in,out] ctx  gve solver context
+ * @return a gve solver context
  */
-extern void
-gve_context_release (gve_context_t *ctx);
+gve_context_t
+gve_context_new (void);
 
 /**
- * @brief
+ * @brief Releases a gve context object.
  *
- * @details Sets values for the following fields:
- *           - root_empty_count
- *           - first_level_evaluation
- *           - last_level_evaluation
- *           - search_depth_initial_gap
- *           - id_limit
+ * @details The `ctx` pointer cannot be used after the call.
+ *
+ * @param [in,out] ctx gve solver context
+ */
+extern void
+gve_context_release (gve_context_t ctx);
+
+/**
+ * @brief Sets the game position root and info dependent on it.
+ *
+ * @details Resets conters.
  *
  * @param [in,out] ctx  gve solver context
  * @param [in]     root the game position to be evaluated or solved
  * @return              a status value
  */
 extern int
-gve_context_set_root (gve_context_t *ctx,
+gve_context_set_root (gve_context_t ctx,
                       const GamePositionX *root);
 
 

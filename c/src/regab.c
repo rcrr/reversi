@@ -2564,9 +2564,13 @@ main (int argc,
         .cfg = config
       };
 
-    gve_context_t ctx;
     int ret_err;
-    ret_err = gve_context_init(&ctx, &env, NULL);
+    gve_context_t ctx = gve_context_new();
+    if (!ctx) {
+      fprintf(stderr, "Error during context memory allocation. Exiting ... \n");
+      return EXIT_FAILURE;
+    }
+    ret_err = gve_context_init(ctx, &env, NULL);
     if (ret_err != EXIT_SUCCESS) {
       fprintf(stderr, "Error during context initialization. Exiting ... \n");
       return EXIT_FAILURE;
@@ -2595,10 +2599,10 @@ main (int argc,
         game_position_x_print(buf, &gpx);
         printf("%s", buf);
 
-        gve_context_set_root(&ctx, &gpx);
+        gve_context_set_root(ctx, &gpx);
 
         ExactSolution *solution;
-        solution = game_position_gve_solve(&ctx, &env, &gpx);
+        solution = game_position_gve_solve(ctx, &env);
         strcpy(record.solver, "gve");
 
         printf("solution(outcome=%d, best_move=%s, leaf_count=%zu, node_count=%zu)\n\n",
@@ -2621,7 +2625,7 @@ main (int argc,
       }
     }
 
-    gve_context_release(&ctx);
+    gve_context_release(ctx);
     goto regab_program_end;
   }
 

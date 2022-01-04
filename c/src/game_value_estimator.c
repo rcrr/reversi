@@ -64,8 +64,52 @@
  */
 
 /*
+ * Empty Count Size - [0..60] the game stages ...
+ */
+#define EC_SIZE 61
+
+/*
  * Local data structures.
  */
+
+/*
+ * Collects all the info related to the Model Weights used by the GVE solver.
+ */
+typedef struct model_weights_data_s {
+  rglmdf_model_weights_t mws_s[EC_SIZE]; /* Array of model weights structures. */
+  rglmdf_model_weights_t *mws[EC_SIZE];  /* Pointers to the mw structures. A NULL value signals a missing data file. */
+  char *file_names[EC_SIZE];             /* File names for the model weights data. */
+  bool verbose_loader;                   /* When true the file loading process is verbose. */
+  bool check_digest;                     /* When true the data files are checked against the SHA hash. */
+  int model_weight_count;                /* Count of model weight instances declared in the config file. */
+  int max_model_weight;                  /* Maximum empty count value found in the model weighs array. */
+  int min_model_weight;                  /* Minimum empty count value found in the model weighs array.*/
+} model_weights_data_t;
+
+/*
+ * Collects all the info required by the GVE solver to run.
+ */
+struct gve_context_s {
+  GamePositionX root;                    /* Root game position. */
+  int root_empty_count;                  /* Empty count at the root node. */
+  model_weights_data_t mwd;              /* Model weights data. */
+  uint64_t gp_evaluations[EC_SIZE];      /* The count of game evaluations categorized by empty count. */
+  int id_min_empty_count;                /* Iterative deepening minimum empty count. */
+  int id_step;                           /* Iterative deepening step. */
+  int id_search_depth;                   /* Search depth iterative deepening. */
+  int id_limit;                          /* Limit of the iterative search depth (maximum id depth). */
+  int search_depth;                      /* Search depth. */
+  int search_depth_initial_gap;          /* It is the difference between root empty count and the ec at the first available model weigths. */
+  ttab_t ttab;                           /* Transposition Table. */
+  int ttab_log_size;                     /* Transposition Table binary logarithm of size. */
+  int ttab_log_verbosity;                /* Transposition Table log verbosity. */
+  uint64_t node_count;                   /* Count of nodes touchd by the algorithm. */
+  uint64_t leaf_count;                   /* Count of leafs touchd by the algorithm. */
+  int first_level_evaluation;            /* This is the empty count level where we start having model weight info available. */
+  int last_level_evaluation;             /* It is the empty count value at the deepest evaluation done using the model weights heuristic. */
+  int game_position_evaluation_summary;  /* Game position evaluation summary. */
+  int gve_solver_log_level;              /* Log level for the solver. */
+};
 
 typedef struct node_s {
   struct node_s *parent;
@@ -152,13 +196,13 @@ order_moves (int child_node_count,
              node_t **child_nodes_p,
              ttab_item_t it,
              bool heuristic_sort,
-             gve_context_t *ctx);
+             gve_context_t ctx);
 
 static void
 leaf_negamax (node_t *n,
               int alpha,
               int beta,
-              gve_context_t *ctx);
+              gve_context_t ctx);
 
 static void
 sort_nodes_by_lmc (node_t **nodes,
@@ -169,18 +213,18 @@ alphabeta_with_memory (node_t *n,
                        int depth,
                        int alpha,
                        int beta,
-                       gve_context_t *ctx);
+                       gve_context_t ctx);
 
 static void
 mtdf (node_t *n,
       int alpha,
       int beta,
       const int depth,
-      gve_context_t *ctx);
+      gve_context_t ctx);
 
 static double
 rglm_eval_gp (const GamePositionX *const gpx,
-              gve_context_t *ctx);
+              gve_context_t ctx);
 
 static int
 gv_f2d (const double f);
@@ -195,7 +239,7 @@ min (int a,
 
 static void
 heuristic_game_value (node_t *n,
-                      gve_context_t *ctx);
+                      gve_context_t ctx);
 
 static bool
 is_terminal (node_t *n);
@@ -209,7 +253,7 @@ model_weights_data_init (model_weights_data_t *mwd,
 
 static void
 game_position_eval_summary_table (FILE *stream,
-                                  gve_context_t *ctx);
+                                  gve_context_t ctx);
 
 
 /*
@@ -227,13 +271,14 @@ game_position_eval_summary_table (FILE *stream,
  */
 
 ExactSolution *
-game_position_gve_solve (gve_context_t *ctx,
-                         const endgame_solver_env_t *const env,
-                         const GamePositionX *const root)
+game_position_gve_solve (gve_context_t ctx,
+                         const endgame_solver_env_t *const env)
 {
   assert(ctx);
   assert(env);
   assert(root);
+
+  const GamePositionX *const root = &ctx->root;
 
   /* Stopwatch variables. */
   timespec_t time_0_a, time_1_a, delta_cpu_time_a, start_time_a, end_time_a, delta_time_a;
@@ -333,33 +378,45 @@ game_position_value_estimator (const GamePositionX *const root,
   assert(root);
   assert(env);
 
-  gve_context_t ctx;
   int ret_err;
-  ret_err = gve_context_init(&ctx, env, root);
+  gve_context_t ctx = gve_context_new();
+  if (!ctx) {
+    fprintf(stderr, "Error during context memory allocation. Exiting ... \n");
+    exit(EXIT_FAILURE);
+  }
+  ret_err = gve_context_init(ctx, env, root);
   if (ret_err != EXIT_SUCCESS) {
     fprintf(stderr, "Error during context initialization. Exiting ... \n");
     exit(EXIT_FAILURE);
   }
 
-  ExactSolution *result = game_position_gve_solve(&ctx, env, root);
+  ExactSolution *result = game_position_gve_solve(ctx, env);
 
-  gve_context_release(&ctx);
+  gve_context_release(ctx);
 
   return result;
 }
 
+gve_context_t
+gve_context_new (void)
+{
+  gve_context_t ctx;
+  ctx = malloc(sizeof(*ctx));
+  return ctx;
+}
 
 void
-gve_context_release (gve_context_t *ctx)
+gve_context_release (gve_context_t ctx)
 {
   if (!ctx) return;
 
   ttab_free(&ctx->ttab);
   model_weights_data_release(&ctx->mwd);
+  free(ctx);
 }
 
 int
-gve_context_init (gve_context_t *ctx,
+gve_context_init (gve_context_t ctx,
                   const endgame_solver_env_t *env,
                   const GamePositionX *root)
 {
@@ -369,7 +426,17 @@ gve_context_init (gve_context_t *ctx,
   /* Used to drive the search to be complete and touch the leafs of the game tree. */
   const int max_search_depth = 99;
 
-  if (root) ctx->root_empty_count = game_position_x_empty_count(root);
+  if (root) {
+    ctx->root.blacks = root->blacks;
+    ctx->root.whites = root->whites;
+    ctx->root.player = root->player;
+    ctx->root_empty_count = game_position_x_empty_count(root);
+  } else {
+    ctx->root.blacks = empty_square_set;
+    ctx->root.whites = full_square_set;
+    ctx->root.player = BLACK_PLAYER;
+    ctx->root_empty_count = 0;
+  }
 
   int ret_err;
   ret_err = model_weights_data_init(&ctx->mwd, env->cfg);
@@ -457,11 +524,15 @@ gve_context_init (gve_context_t *ctx,
 }
 
 int
-gve_context_set_root (gve_context_t *ctx,
+gve_context_set_root (gve_context_t ctx,
                       const GamePositionX *root)
 {
   assert(ctx);
   assert(root);
+
+  ctx->root.blacks = root->blacks;
+  ctx->root.whites = root->whites;
+  ctx->root.player = root->player;
 
   ctx->root_empty_count = game_position_x_empty_count(root);
 
@@ -498,7 +569,7 @@ gve_context_set_root (gve_context_t *ctx,
 
 static void
 game_position_eval_summary_table (FILE *stream,
-                                  gve_context_t *ctx)
+                                  gve_context_t ctx)
 {
   uint64_t total_gp_eval_count = 0;
   for (int i = 0; i < EC_SIZE; i++) {
@@ -867,7 +938,7 @@ gv_f2d (const double f)
 
 static double
 rglm_eval_gp (const GamePositionX *const gpx,
-              gve_context_t *ctx)
+              gve_context_t ctx)
 {
   assert(gpx);
 
@@ -928,7 +999,7 @@ is_terminal (node_t *n)
 
 static void
 heuristic_game_value (node_t *n,
-                      gve_context_t *ctx)
+                      gve_context_t ctx)
 {
   const double v0 = rglm_eval_gp(&n->gpx, ctx);
   const double v1 = rglmut_gv_scale_back_f(v0);
@@ -1004,7 +1075,7 @@ order_moves (int child_node_count,
              node_t **child_nodes_p,
              ttab_item_t it,
              bool heuristic_sort,
-             gve_context_t *ctx)
+             gve_context_t ctx)
 {
   if (it && it->best_moves[0] != unknown_move) {
 
@@ -1078,7 +1149,7 @@ static void
 leaf_negamax (node_t *n,
               int alpha,
               int beta,
-              gve_context_t *ctx)
+              gve_context_t ctx)
 {
   int child_node_count;
   node_t child_nodes[64];
@@ -1111,7 +1182,7 @@ alphabeta_with_memory (node_t *n,
                        const int depth,
                        const int alpha,
                        const int beta,
-                       gve_context_t *ctx)
+                       gve_context_t ctx)
 {
   int child_node_count;
   node_t child_nodes[64];
@@ -1244,7 +1315,7 @@ mtdf (node_t *n,
       int alpha,
       int beta,
       const int depth,
-      gve_context_t *ctx)
+      gve_context_t ctx)
 {
   int bound[2] = { alpha, beta };
   do {
