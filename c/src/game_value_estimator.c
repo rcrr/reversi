@@ -624,6 +624,7 @@ model_weights_data_init (model_weights_data_t *mwd,
   }
   mwd->verbose_loader = false;
   mwd->check_digest = false;
+  mwd->model_weight_count = 0;
 
   ret_err = check_model_weight_config_file(cfg);
   if (ret_err != EXIT_SUCCESS) {

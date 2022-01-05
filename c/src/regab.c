@@ -263,23 +263,25 @@ regab_get_db_connection (PGconn **conp,
 
   /* Sets the search path to reversi. */
   res = PQexec(*conp, "SET search_path TO reversi");
-  PQclear(res);
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
     fprintf(stderr, "SET failed, %s", PQerrorMessage(*conp));
+    PQclear(res);
     PQfinish(*conp);
     *conp = NULL;
     return;
   }
+  PQclear(res);
 
   /* Logs into the dabase log table. */
   res = PQexec(*conp, "INSERT INTO regab_connection_log (con_time) VALUES (now())");
-  PQclear(res);
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
     fprintf(stderr, "INSERT failed, %s", PQerrorMessage(*conp));
+    PQclear(res);
     PQfinish(*conp);
     *conp = NULL;
     return;
   }
+  PQclear(res);
 
   /* Prepares statement insert_regab_prng_gp_h. */
   res = PQprepare(*conp,
@@ -290,13 +292,14 @@ regab_get_db_connection (PGconn **conp,
                   5, // nParams
                   NULL // paramTypes
                   );
-  PQclear(res);
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
     fprintf(stderr, "Error while preparing statement, %s", PQerrorMessage(*conp));
+    PQclear(res);
     PQfinish(*conp);
     *conp = NULL;
     return;
   }
+  PQclear(res);
 
   /* Prepares statement insert_regab_prng_gp. */
   res = PQprepare(*conp,
@@ -317,13 +320,14 @@ regab_get_db_connection (PGconn **conp,
                   19, // nParams
                   NULL // paramTypes
                   );
-  PQclear(res);
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
     fprintf(stderr, "Error while preparing statement, %s", PQerrorMessage(*conp));
+    PQclear(res);
     PQfinish(*conp);
     *conp = NULL;
     return;
   }
+  PQclear(res);
 
 }
 
@@ -743,23 +747,25 @@ do_insert_offspring_and_update_solved_position (int *result,
 
   /* Start a transaction. */
   res = PQexec(con, "BEGIN");
-  PQclear(res);
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
     fprintf(stderr, "BEGIN command failed: %s\n", PQerrorMessage(con));
+    PQclear(res);
     *result = -1;
     return;
   }
+  PQclear(res);
 
   do_insert_regab_prng_gp_record(result, NULL, con, cmr_record);
 
   if (*result != 0) {
     res = PQexec(con, "ROLLBACK");
-    PQclear(res);
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
       fprintf(stderr, "ROLLBACK command failed: %s\n", PQerrorMessage(con));
+      PQclear(res);
       *result = -1;
       return;
     } else {
+      PQclear(res);
       fprintf(stderr, "ROLLBACK command executed succesfully.\n");
       *result = -1;
       return;
@@ -782,18 +788,20 @@ do_insert_offspring_and_update_solved_position (int *result,
     fprintf(stderr, "Update command has problems.\n");
     fprintf(stderr, "%s", PQerrorMessage(con));
     *result = -1;
+    PQclear(res);
   }
   PQclear(res);
 
   if (*result != 0) {
     res = PQexec(con, "ROLLBACK");
-    PQclear(res);
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
       fprintf(stderr, "ROLLBACK command failed: %s\n", PQerrorMessage(con));
+      PQclear(res);
       *result = -1;
       return;
     } else {
       fprintf(stderr, "ROLLBACK command executed succesfully.\n");
+      PQclear(res);
       *result = -1;
       return;
     }
@@ -823,12 +831,13 @@ regab_print_connection_log (int *result,
 
   /* Start a transaction. */
   res = PQexec(con, "BEGIN");
-  PQclear(res);
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
     fprintf(stderr, "BEGIN command failed: %s", PQerrorMessage(con));
+    PQclear(res);
     *result = -1;
     return;
   }
+  PQclear(res);
 
   /* Prepare cursor. */
   if (snprintf(statement,
@@ -839,12 +848,13 @@ regab_print_connection_log (int *result,
     abort();
   }
   res = PQexec(con, statement);
-  PQclear(res);
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
     fprintf(stderr, "DECLARE CURSOR failed: %s", PQerrorMessage(con));
+    PQclear(res);
     *result = -1;
     return;
   }
+  PQclear(res);
 
   res = PQexec(con, "FETCH ALL IN ld");
   if (PQresultStatus(res) != PGRES_TUPLES_OK) {

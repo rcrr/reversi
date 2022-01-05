@@ -67,6 +67,31 @@ DONE or ADDRESSED:
  
  (9) Rimuovere limitazione che bisogna avere il MODEL-WEIGHT anche per gli EC elevati, serve un fallback su algoritmo BASICO in quel caso.
 
+Appunti al 05-01-2022
+
+  Dopo una notte di lavoro su Vilya i jobs regab avevano consumato il 100% della ram e dello swap.
+  Sospetto un memory-leak.
+  Partiamo con valgrind ...
+  
+  valgrind -s --leak-check=full --show-leak-kinds=all --track-origins=yes ./build/bin/endgame_solver -s gve -c cfg/game_value_estimator.cfg -f db/gpdb-ffo.txt -q ffo-29
+
+  Trovato un bug nella mancata inizializzazione della variabile mwd->model_weight_count.
+  Non ci sono altri memory leak.
+
+  Verifica di regab:
+
+  valgrind -s --leak-check=full --show-leak-kinds=all --track-origins=yes ./build/bin/regab -v -a solve -c cfg/regab_gve.cfg -e test -b 8 -n 2 -y 20 -k gve
+  
+  Un sacco di errori ... sono in valutazione ...
+  Una serie di:
+  
+  res = PQexec(con, "... ...");
+  PQclear(res);
+  ... e poi una lettura di res  ...
+
+  rimossi!!! ( non sono la causa del leak, ma meglio non avee queste bombe inesplose nel codice :) )
+
+  Sono elencati 22 memory leak .... vediamoli uno alla volta ...
 
 
 Appunti al 04-01-2022

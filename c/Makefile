@@ -4,7 +4,7 @@
 #  This file is part of the reversi program
 #  http://github.com/rcrr/reversi
 #
-#  Copyright (c) 2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021 Roberto Corradini. All rights reserved.
+#  Copyright (c) 2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022 Roberto Corradini. All rights reserved.
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -264,7 +264,7 @@ UTEST_BINS := $(addprefix $(TEST_BINDIR)/,$(UTEST_MAINS))
 # add -ftree-vectorize -ftree-vectorizer-verbose=2 to get from gcc the explanation for code vectorization
 # add -flto to the CFLAGS list to improve execution speed ( it takes much more to link executables )
 ARCH_FLAGS := -mpopcnt -mavx2 -mfma -mbmi -mlzcnt
-CFLAGS := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g3 -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fopenmp -flto
+CFLAGS := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g3 -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fopenmp -fno-inline
 CFLAGS_TEST := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g0 -O3 $(ARCH_FLAGS) -I$(EXT_INC) -fopenmp
 LDFLAGS := 
 LDFLAGS_TEST :=
