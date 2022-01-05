@@ -93,6 +93,15 @@ Appunti al 05-01-2022
 
   Sono elencati 22 memory leak .... vediamoli uno alla volta ...
 
+  Il problema e' nell'oggetto binding della hashtable.
+  Soluzione:
+    Copiato tutto il codice della hashtable dentro transposition_table.
+    Rimosso il malloc/free ad ogni put/remove, creato un array fisso ed il suo inventario al momento
+    della creazione della tabella.
+    
+  Valgrind non identifica piu' il leak.
+  Mettiamo di nuovo in esercizio su Vilya il codice.
+
 
 Appunti al 04-01-2022
 

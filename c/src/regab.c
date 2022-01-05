@@ -2625,9 +2625,11 @@ main (int argc,
 
         do_update_solved_position_results(&result, con, &record);
 
+        exact_solution_free(solution);
+
       } else if (result == 0) {
         printf("No game position to be solved has been returned by the selection.\n");
-        goto regab_program_end;
+        break;
       } else {
         fprintf(stderr, "Error while selecting game position to solve, unknown return value result=%d.\n", result);
         PQfinish(con);
