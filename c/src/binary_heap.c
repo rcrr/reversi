@@ -396,7 +396,7 @@ bihp_pq_update_priority (bihp_pq_t q,
                          int index)
 {
   assert(q);
-  if (index < 0 && index >= q->heap_size) printf("index=%d\n", index);
+  //if (index < 0 && index >= q->heap_size) printf("index=%d\n", index);
   assert(index >= 0 && index < q->heap_size);
 
   enum direction_t { UP, DOWN } d;

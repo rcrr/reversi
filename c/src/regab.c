@@ -2636,7 +2636,6 @@ main (int argc,
         return EXIT_FAILURE;
       }
     }
-
     gve_context_release(ctx);
     goto regab_program_end;
   }
@@ -2717,6 +2716,8 @@ main (int argc,
       record.node_count = solution->node_count;
 
       do_update_solved_position_results(&result, con, &record);
+
+      exact_solution_free(solution);
 
     } else if (result == 0) {
       printf("No game position to be solved has been returned by the selection.\n");

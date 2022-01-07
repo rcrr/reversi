@@ -67,6 +67,15 @@ DONE or ADDRESSED:
  
  (9) Rimuovere limitazione che bisogna avere il MODEL-WEIGHT anche per gli EC elevati, serve un fallback su algoritmo BASICO in quel caso.
 
+
+
+Appunti al 06-01-2022
+
+  Rimane evidente un memory leak.
+  Dopo 20 ore di running di REGAB con 32 processi paralleli la memoria allocata e' superiore a 40GB.
+  Molto meno di ieri, ma comunque anomalo.
+
+
 Appunti al 05-01-2022
 
   Dopo una notte di lavoro su Vilya i jobs regab avevano consumato il 100% della ram e dello swap.

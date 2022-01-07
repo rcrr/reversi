@@ -107,9 +107,6 @@ static const bool pv_internals_to_stream = false;
 /* Default rglm_solver_config file. */
 static const char *const rglm_solver_def_config_file = "./cfg/rglm_solver.cfg";
 
-/* The RGLM solver config. */
-static cfg_t *rglm_solver_config = NULL;
-
 /* The vector of model weighs structures indexed by empty_count. */
 static rglmdf_model_weights_t mws_s[EC_SIZE];
 
@@ -130,9 +127,6 @@ static const char *const mws_l[EC_SIZE] =
    "ec50", "ec51", "ec52", "ec53", "ec54", "ec55", "ec56", "ec57", "ec58", "ec59",
    "ec60"
   };
-
-/* The names of the files to be loaded. */
-static const char *mws_f[EC_SIZE];
 
 static bool mw_loaded = false;
 
@@ -313,6 +307,12 @@ game_position_rglm_load_model_weights_files (bool verbose)
 {
   int ret_value;
 
+  /* The RGLM solver config. */
+  cfg_t *rglm_solver_config = NULL;
+
+  /* The names of the files to be loaded. */
+  const char *mws_f[EC_SIZE];
+
   if (mw_loaded) return EXIT_SUCCESS;
 
   /* rglm_solver_config_file should be passed as an argument, and if NULL the default should be assigned. */
@@ -347,6 +347,7 @@ game_position_rglm_load_model_weights_files (bool verbose)
     }
   }
   mw_loaded = true;
+  cfg_free(rglm_solver_config);
   return EXIT_SUCCESS;
 }
 

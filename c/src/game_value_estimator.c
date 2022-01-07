@@ -942,6 +942,7 @@ rglm_eval_gp (const GamePositionX *const gpx,
               gve_context_t ctx)
 {
   assert(gpx);
+  assert(ctx);
 
   const int empty_count = game_position_x_empty_count(gpx);
 
