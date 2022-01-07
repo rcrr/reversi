@@ -68,6 +68,26 @@ DONE or ADDRESSED:
  (9) Rimuovere limitazione che bisogna avere il MODEL-WEIGHT anche per gli EC elevati, serve un fallback su algoritmo BASICO in quel caso.
 
 
+Appunti al 06-01-2022
+
+  Sono 40 ore che 32 processi girano su Vilya. Ogni processo alloca circa 2GB.
+  Il consumo di memoria riportato da TOP per singolo processo ( colonna DATA ) e' consistente, e stabile da molte ore.
+  Il consumo complessivo di memoria della macchina sta cresendo lentamente, ora siamo a 47GB.
+  Ma 2GB x 32 processi dovrebbe fare 64GB ...
+  Inoltre Valgrind non segnala ulteriori memory leaks.
+  In sostanza credo che tutto sia coretto.
+
+  Fissati 2 memory leak in REGAB quando si usa il solver RGML. Erano stati sempre presenti.
+
+  La profilazione di REGAB GVE con Valgrind rileva che il tempo della CPU e' passato principalmente nelle funzioni
+  kogge_stone... e' chiaro che tutto dipende dal valore di id_limit ... piu' lo abbasso piu' la parte di MTD(f) si riduce
+  e prevale la ricerca a forza bruta. Comunque questo e' il compromesso piu' efficiente che pesa di piu' sulla parte a forza
+  bruta e di conseguenza sulla meccanica del gioco, e quindi legal_moves & make_move ... e quindi kogge_stone.
+  Una nuova implementazione di kogge_stone a 512bit (AVX-512) e' quindi in linea di principio promettente.
+  Serve il nuovo HW ... ci penseremo ...
+
+  In estrema sintesi, GVE e' veloce 3x rispetto a RGLM, con i Model Weights calcolati su data set di 1M posizioni.
+  Next step: calcolare i pesi sui data set piu' grandi ( 2M, 4M ) e verificare se ci sono miglioramenti.
 
 Appunti al 06-01-2022
 
