@@ -39,18 +39,21 @@ REGAB program to name the batches), the png_seed is unique, and it is the "real 
 
 $ time ./build/bin/regab -v -a generate -c cfg/regab.cfg -e test -s 77357 -n 2000000
 
-tst_regab=> SELECT * FROM regab_prng_gp_h;
+tst_regab=> SELECT * FROM regab_prng_gp_h ORDER BY ngames;
  seq |          ins_time          | status | prng_seed | ngames  | npositions 
 -----+----------------------------+--------+-----------+---------+------------
    1 | 2017-12-17 18:19:16.440571 | CMP    |     97531 |       1 |         61
-   3 | 2017-12-17 18:42:13.782953 | CMP    |     13579 | 1000000 |   61412190
+   7 | 2018-01-03 16:38:51.097299 | CMP    |       277 |      10 |        614
+   8 | 2018-01-03 16:39:24.466546 | CMP    |       607 |     100 |       6140
    4 | 2018-01-03 16:25:52.05024  | CMP    |         0 |    1000 |      61356
    5 | 2018-01-03 16:27:08.188697 | CMP    |      5577 |   10000 |     614283
    6 | 2018-01-03 16:30:24.238143 | CMP    |       881 |  100000 |    6142003
-   7 | 2018-01-03 16:38:51.097299 | CMP    |       277 |      10 |        614
-   8 | 2018-01-03 16:39:24.466546 | CMP    |       607 |     100 |       6140
-   9 | 2020-12-20 12:45:08.459759 | CMP    |     77357 | 2000000 |  122829157
-(8 rows)
+  10 | 2021-07-24 17:58:18.845845 | CMP    |     25487 |  200000 |   12281722
+  11 | 2021-07-25 20:51:04.829293 | CMP    |     40132 |  400000 |   24566078
+   3 | 2017-12-17 18:42:13.782953 | CMP    |     13579 | 1000000 |   61412190
+   9 | 2020-12-20 18:02:16.47252  | CMP    |     77357 | 2000000 |  122829157
+  12 | 2021-08-21 17:55:04.407724 | CMP    |     33057 | 4000000 |  245656852
+(11 rows)
 
 After the batch is loaded, we can start solving the game positions.
 Here we are solving 10 positions, having 10 empty_positions, from the batch_id 9.
