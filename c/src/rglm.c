@@ -754,7 +754,7 @@ main (int argc,
     int ret = 0;           // Function return value. 0 means NO ERROR.
     int enne_int = enne;   // The rank of the matrix need to be passed as a pointer to int.
     int nrhs = 1;          // Number of right hand side columns.
-    int tc = 8;            // Thread count.
+    int tc = 32;            // Thread count.
 
     /* v: transformd game value for each solved position. */
     v = lial_allocate_vector(emme);
