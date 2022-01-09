@@ -1503,6 +1503,8 @@ do_action_extract_pattern_freqs_prepare_cursor (int *result,
     return;
   }
 
+  if (false) printf("SQL command = \"%s\"\n", command);
+
   res = PQexec(con, command);
   if (PQresultStatus(res) != PGRES_TUPLES_OK) {
     fprintf(stderr, "%s", PQerrorMessage(con));

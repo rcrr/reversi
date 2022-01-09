@@ -183,7 +183,7 @@ BEGIN
   ON
     gp.seq = pc.gp_id
   WHERE
-    gp.legal_move_count_adjusted > 0 AND
+    (gp.legal_move_count_adjusted > 0 OR empty_count_arg = 0) AND
     gp.empty_count = empty_count_arg AND
     gp.status = ANY (status_array_arg) AND
     gp.batch_id = ANY (batch_id_array_arg)
@@ -340,7 +340,7 @@ BEGIN
           ON
             gp.seq = pc.gp_id
           WHERE
-            gp.legal_move_count_adjusted > 0 AND
+            (gp.legal_move_count_adjusted > 0 OR $1 = 0) AND
             gp.empty_count = $1 AND
             gp.status = ANY($2) AND
             gp.batch_id = ANY($3)
