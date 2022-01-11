@@ -1095,7 +1095,7 @@ do_action_extract_game_pos_cnt (int *result,
 
   const char *c0 =
     "SELECT count(1) FROM regab_prng_gp AS gp RIGHT JOIN regab_prng_gp_pattern_class AS pc ON gp.seq = pc.gp_id WHERE "
-    "legal_move_count_adjusted > 0 AND gp.empty_count = ";
+    "(legal_move_count_adjusted > 0 OR gp.empty_count = 0) AND gp.empty_count = ";
 
   cl = snprintf(command, command_size, "%s", c0);
   cp = command + cl;

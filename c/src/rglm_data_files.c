@@ -1493,6 +1493,7 @@ rglmdf_set_entity_freq_summary_ntuples (rglmdf_general_data_t *const gd,
     const board_feature_id_t fid = gd->features[i];
     idx[k++] = reverse_map_b_length;
     reverse_map_b_length += board_features[fid].field_cnt;
+    printf("board_features[fid].field_cnt = %d\n", board_features[fid].field_cnt);
   }
   for (size_t i = 0; i < gd->pattern_cnt; i++) {
     const board_pattern_id_t pid = gd->patterns[i];
