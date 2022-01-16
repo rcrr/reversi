@@ -3,9 +3,11 @@
 
    Created:       November 19, 1997
 
-   Modified:      January 3, 2003
-   
+   Modified:      Jan 16, 2022 (Roberto Corradini)
+                  January 3, 2003 (last change by G.A.)
+
    Author:        Gunnar Andersson (gunnar@radagast.se)
+                  Roberto Corradini
 
    Contents:      Unpacks the coefficient file, computes final-stage
                   pattern values and performs pattern evaluation.
@@ -14,9 +16,9 @@
 
 #include "porting.h"
 
-
-#define __linux__
-
+#ifndef  __linux__
+#define  __linux__
+#endif
 
 #if !defined( _WIN32_WCE ) && !defined( __linux__ )
 #include <dir.h>
@@ -207,9 +209,9 @@ terminal_patterns( void ) {
     result = 0.0;
     for ( j = 0; j < 8; j++ )
       if ( row[j] == BLACKSQ )
-	result += value[0][j];
+        result += value[0][j];
       else if ( row[j] == WHITESQ )
-	result -= value[0][j];
+        result -= value[0][j];
     if ( row[8] == BLACKSQ )
       result += value[1][1];
     else if ( row[8] == WHITESQ )
@@ -223,89 +225,89 @@ terminal_patterns( void ) {
     result = 0.0;
     for ( j = 0; j < 5; j++ )
       for ( k = 0; k < 2; k++ )
-	if ( row[5 * k + j] == BLACKSQ )
-	  result += value[j][k];
-	else if ( row[5 * k + j] == WHITESQ )
-	  result -= value[j][k];
+        if ( row[5 * k + j] == BLACKSQ )
+          result += value[j][k];
+        else if ( row[5 * k + j] == WHITESQ )
+          result -= value[j][k];
     set[60].corner52[i] = floor( result * 128.0 + 0.5 );
 
     if ( i < 19683 ) {
       result = 0.0;
       for ( j = 0; j < 3; j++ )
-	for ( k = 0; k < 3; k++ )
-	  if ( row[3 * j + k] == BLACKSQ )
-	    result += value[j][k];
-	  else if ( row[3 * j + k] == WHITESQ )
-	    result -= value[j][k];
+        for ( k = 0; k < 3; k++ )
+          if ( row[3 * j + k] == BLACKSQ )
+            result += value[j][k];
+          else if ( row[3 * j + k] == WHITESQ )
+            result -= value[j][k];
       set[60].corner33[i] = floor( result * 128.0 + 0.5 );
     }
     if ( i < 6561 ) {
       result = 0.0;
       for ( j = 0; j < 8; j++ )
-	if ( row[j] == BLACKSQ )
-	  result += value[1][j];
-	else if ( row[j] == WHITESQ )
-	  result -= value[1][j];
+        if ( row[j] == BLACKSQ )
+          result += value[1][j];
+        else if ( row[j] == WHITESQ )
+          result -= value[1][j];
       set[60].bfile[i] = floor( result * 128.0 + 0.5 );
-         
+
       result = 0.0;
       for ( j = 0; j < 8; j++ )
-	if ( row[j] == BLACKSQ )
-	  result += value[2][j];
-	else if ( row[j] == WHITESQ )
-	  result -= value[2][j];
+        if ( row[j] == BLACKSQ )
+          result += value[2][j];
+        else if ( row[j] == WHITESQ )
+          result -= value[2][j];
       set[60].cfile[i] = floor( result * 128.0 + 0.5 );
-         
+
       result = 0.0;
       for ( j = 0; j < 8; j++ )
-	if ( row[j] == BLACKSQ )
-	  result += value[3][j];
-	else if ( row[j] == WHITESQ )
-	  result -= value[3][j];
+        if ( row[j] == BLACKSQ )
+          result += value[3][j];
+        else if ( row[j] == WHITESQ )
+          result -= value[3][j];
       set[60].dfile[i] = floor( result * 128.0 + 0.5 );
-         
+
       result = 0.0;
       for ( j = 0; j < 8; j++ )
-	if ( row[j] == BLACKSQ )
-	  result += value[j][j];
-	else if ( row[j] == WHITESQ )
-	  result -= value[j][j];
+        if ( row[j] == BLACKSQ )
+          result += value[j][j];
+        else if ( row[j] == WHITESQ )
+          result -= value[j][j];
       set[60].diag8[i] = floor( result * 128.0 + 0.5 );
     }
     if ( i < 2187 ) {
       result = 0.0;
       for ( j = 0; j < 7; j++ )
-	if ( row[j] == BLACKSQ )
-	  result += value[j][j + 1];
-	else if ( row[j] == WHITESQ )
-	  result -= value[j][j + 1];
+        if ( row[j] == BLACKSQ )
+          result += value[j][j + 1];
+        else if ( row[j] == WHITESQ )
+          result -= value[j][j + 1];
       set[60].diag7[i] = floor( result * 128.0 + 0.5 );
     }
     if ( i < 729 ) {
       result = 0.0;
       for ( j = 0; j < 6; j++ )
-	if ( row[j] == BLACKSQ )
-	  result += value[j][j + 2];
-	else if ( row[j] == WHITESQ )
-	  result -= value[j][j + 2];
+        if ( row[j] == BLACKSQ )
+          result += value[j][j + 2];
+        else if ( row[j] == WHITESQ )
+          result -= value[j][j + 2];
       set[60].diag6[i] = floor( result * 128.0 + 0.5 );
     }
     if ( i < 243 ) {
       result = 0.0;
       for ( j = 0; j < 5; j++ )
-	if ( row[j] == BLACKSQ )
-	  result += value[j][j + 3];
-	else if ( row[j] == WHITESQ )
-	  result -= value[j][j + 3];
+        if ( row[j] == BLACKSQ )
+          result += value[j][j + 3];
+        else if ( row[j] == WHITESQ )
+          result -= value[j][j + 3];
       set[60].diag5[i] = floor( result * 128.0 + 0.5 );
     }
     if ( i < 81 ) {
       result = 0.0;
       for ( j = 0; j < 4; j++ )
-	if ( row[j] == BLACKSQ )
-	  result += value[j][j + 4];
-	else if ( row[j] == WHITESQ )
-	  result -= value[j][j + 4];
+        if ( row[j] == BLACKSQ )
+          result += value[j][j + 4];
+        else if ( row[j] == WHITESQ )
+          result -= value[j][j + 4];
       set[60].diag4[i] = floor( result * 128.0 + 0.5 );
     }
 
@@ -314,7 +316,7 @@ terminal_patterns( void ) {
     do {  /* The odometer principle */
       row[j]++;
       if ( row[j] == 3 )
-	row[j] = 0;
+        row[j] = 0;
       j++;
     } while ( (row[j - 1] == 0) && (j < 10) );
   }
@@ -324,7 +326,7 @@ terminal_patterns( void ) {
 /*
    GET_WORD
    Reads a 16-bit signed integer from a file.
-*/   
+*/
 
 static short
 get_word( gzFile stream ) {
@@ -368,9 +370,9 @@ static void
 unpack_batch( short *item, int *mirror, int count, gzFile stream ) {
   int i;
   short *buffer;
-  
+
   buffer = (short *) safe_malloc( count * sizeof( short ) );
-  
+
   /* Unpack the coefficient block where the score is scaled
      so that 512 units corresponds to one disk. */
 
@@ -385,10 +387,10 @@ unpack_batch( short *item, int *mirror, int count, gzFile stream ) {
   if ( mirror != NULL )
     for ( i = 0; i < count; i++ )
       if ( item[i] != item[mirror[i]] ) {
-	printf( "%s @ %d <--> %d of %d\n", MIRROR_ERROR,
-		i, mirror[i], count );
-	printf( "%d <--> %d\n", item[i], item[mirror[i]] );
-	exit( EXIT_FAILURE );
+        printf( "%s @ %d <--> %d of %d\n", MIRROR_ERROR,
+                i, mirror[i], count );
+        printf( "%d <--> %d\n", item[i], item[mirror[i]] );
+        exit( EXIT_FAILURE );
       }
 
   free( buffer );
@@ -444,7 +446,7 @@ unpack_coeffs( gzFile stream ) {
     do {  /* The odometer principle */
       row[j]++;
       if ( row[j] == 3 )
-	row[j] = 0;
+        row[j] = 0;
       j++;
     } while ( (row[j - 1] == 0) && (j < 8) );
   }
@@ -465,7 +467,7 @@ unpack_coeffs( gzFile stream ) {
     do {  /* The odometer principle */
       row[j]++;
       if ( row[j] == 3 )
-	row[j] = 0;
+        row[j] = 0;
       j++;
     } while ( (row[j - 1]) == 0 && (j < 7) );
   }
@@ -485,7 +487,7 @@ unpack_coeffs( gzFile stream ) {
     do {  /* The odometer principle */
       row[j]++;
       if ( row[j] == 3 )
-	row[j] = 0;
+        row[j] = 0;
       j++;
     } while ( (row[j - 1]) == 0 && (j < 6) );
   }
@@ -506,12 +508,12 @@ unpack_coeffs( gzFile stream ) {
     do {  /* The odometer principle */
       row[j]++;
       if ( row[j] == 3 )
-	row[j] = 0;
+        row[j] = 0;
       j++;
     } while ( (row[j - 1] == 0) && (j < 5) );
   }
 
-  /* Build the tables for 4*1-patterns */   
+  /* Build the tables for 4*1-patterns */
 
   for ( i = 0; i < 4; i++ )
     row[i] = 0;
@@ -527,12 +529,12 @@ unpack_coeffs( gzFile stream ) {
     do {  /* The odometer principle */
       row[j]++;
       if ( row[j] == 3 )
-	row[j] = 0;
+        row[j] = 0;
       j++;
     } while ( (row[j - 1]) == 0 && (j < 4) );
   }
 
-  /* Build the tables for 3*1-patterns */   
+  /* Build the tables for 3*1-patterns */
 
   for ( i = 0; i < 3; i++ )
     row[i] = 0;
@@ -548,7 +550,7 @@ unpack_coeffs( gzFile stream ) {
     do {  /* The odometer principle */
       row[j]++;
       if ( row[j] == 3 )
-	row[j] = 0;
+        row[j] = 0;
       j++;
     } while ( (row[j - 1] == 0) && (j < 3) );
   }
@@ -562,8 +564,8 @@ unpack_coeffs( gzFile stream ) {
   for ( i = 0; i < 6561; i++ )
     for ( j = 0; j < 3; j++ )
       for ( k = 0; k < 3; k++ )
-	map_mirror8x2[i + 6561 * j + 19683 * k] =
-	  MIN( flip8[i] + 6561 * k + 19683 * j, i + 6561 * j + 19683 * k );
+        map_mirror8x2[i + 6561 * j + 19683 * k] =
+          MIN( flip8[i] + 6561 * k + 19683 * j, i + 6561 * j + 19683 * k );
 
   /* Build the tables for 3*3-patterns */
 
@@ -582,7 +584,7 @@ unpack_coeffs( gzFile stream ) {
     do {  /* The odometer principle */
       row[j]++;
       if ( row[j] == 3 )
-	row[j] = 0;
+        row[j] = 0;
       j++;
     } while ( (row[j - 1] == 0) && (j < 9) );
   }
@@ -625,11 +627,11 @@ unpack_coeffs( gzFile stream ) {
 /*
    GENERATE_BATCH
    Interpolates between two stages.
-*/   
+*/
 
 static void
 generate_batch( short *target, int count, short *source1, int weight1,
-		short *source2, int weight2 ) {
+                short *source2, int weight2 ) {
   int i;
   int total_weight;
 
@@ -648,9 +650,9 @@ generate_batch( short *target, int count, short *source1, int weight1,
 
 static int
 find_memory_block( short **afile2x, short **bfile, short **cfile,
-		   short **dfile, short **diag8, short **diag7,
-		   short **diag6, short **diag5, short **diag4,
-		   short **corner33, short **corner52, int index ) {
+                   short **dfile, short **diag8, short **diag7,
+                   short **diag6, short **diag5, short **diag4,
+                   short **corner33, short **corner52, int index ) {
   int i;
   int found_free, free_block;
 
@@ -664,9 +666,9 @@ find_memory_block( short **afile2x, short **bfile, short **cfile,
   if ( !found_free ) {
     if ( block_count < MAX_BLOCKS )
       block_list[block_count] =
-	(AllocationBlock *) safe_malloc( sizeof( AllocationBlock ) );
+        (AllocationBlock *) safe_malloc( sizeof( AllocationBlock ) );
     if ( (block_count == MAX_BLOCKS) ||
-	 (block_list[block_count] == NULL) )
+         (block_list[block_count] == NULL) )
       fatal_error( "%s @ #%d\n", MEMORY_ERROR, block_count );
     free_block = block_count;
     block_count++;
@@ -724,10 +726,10 @@ static void
 allocate_set( int index ) {
   set[index].block =
     find_memory_block( &set[index].afile2x, &set[index].bfile,
-		       &set[index].cfile, &set[index].dfile,
-		       &set[index].diag8, &set[index].diag7,
-		       &set[index].diag6, &set[index].diag5, &set[index].diag4,
-		       &set[index].corner33, &set[index].corner52, index );
+                       &set[index].cfile, &set[index].dfile,
+                       &set[index].diag8, &set[index].diag7,
+                       &set[index].diag6, &set[index].diag5, &set[index].diag4,
+                       &set[index].corner33, &set[index].corner52, index );
 }
 
 
@@ -737,7 +739,7 @@ allocate_set( int index ) {
    obtain the feature values for the stage in question.
    Also calculates the offset pointers to the last elements in each block
    (used for the inverted patterns when white is to move).
-*/   
+*/
 
 static void
 load_set( int index ) {
@@ -767,38 +769,38 @@ load_set( int index ) {
       set[index].constant + set[index].parity;
     allocate_set( index );
     generate_batch( set[index].afile2x, 59049,
-		    set[prev].afile2x, weight1,
-		    set[next].afile2x, weight2 );
+                    set[prev].afile2x, weight1,
+                    set[next].afile2x, weight2 );
     generate_batch( set[index].bfile, 6561,
-		    set[prev].bfile, weight1,
-		    set[next].bfile, weight2 );
+                    set[prev].bfile, weight1,
+                    set[next].bfile, weight2 );
     generate_batch( set[index].cfile, 6561,
-		    set[prev].cfile, weight1,
-		    set[next].cfile, weight2 );
+                    set[prev].cfile, weight1,
+                    set[next].cfile, weight2 );
     generate_batch( set[index].dfile, 6561,
-		    set[prev].dfile, weight1,
-		    set[next].dfile, weight2 );
+                    set[prev].dfile, weight1,
+                    set[next].dfile, weight2 );
     generate_batch( set[index].diag8, 6561,
-		    set[prev].diag8, weight1,
-		    set[next].diag8, weight2 );
+                    set[prev].diag8, weight1,
+                    set[next].diag8, weight2 );
     generate_batch( set[index].diag7, 2187,
-		    set[prev].diag7, weight1,
-		    set[next].diag7, weight2 );
+                    set[prev].diag7, weight1,
+                    set[next].diag7, weight2 );
     generate_batch( set[index].diag6, 729,
-		    set[prev].diag6, weight1,
-		    set[next].diag6, weight2 );
+                    set[prev].diag6, weight1,
+                    set[next].diag6, weight2 );
     generate_batch( set[index].diag5, 243,
-		    set[prev].diag5, weight1,
-		    set[next].diag5, weight2 );
+                    set[prev].diag5, weight1,
+                    set[next].diag5, weight2 );
     generate_batch( set[index].diag4, 81,
-		    set[prev].diag4, weight1,
-		    set[next].diag4, weight2 );
+                    set[prev].diag4, weight1,
+                    set[next].diag4, weight2 );
     generate_batch( set[index].corner33, 19683,
-		    set[prev].corner33, weight1,
-		    set[next].corner33, weight2 );
+                    set[prev].corner33, weight1,
+                    set[next].corner33, weight2 );
     generate_batch( set[index].corner52, 59049,
-		    set[prev].corner52, weight1,
-		    set[next].corner52, weight2 );
+                    set[prev].corner52, weight1,
+                    set[next].corner52, weight2 );
   }
 
   set[index].afile2x_last = set[index].afile2x + 59048;
@@ -824,7 +826,7 @@ load_set( int index ) {
 
 static void
 eval_adjustment( double disc_adjust, double edge_adjust,
-		 double corner_adjust, double x_adjust ) {
+                 double corner_adjust, double x_adjust ) {
   int i, j, k;
   int adjust;
   int row[10];
@@ -863,44 +865,44 @@ eval_adjustment( double disc_adjust, double edge_adjust,
       /* Bonus for having edge discs */
 
       for ( k = 1; k <= 6; k++ )
-	if ( row[k] == BLACKSQ )
-	  adjust += 128.0 * edge_adjust;
-	else if ( row[k] == WHITESQ )
-	  adjust -= 128.0 * edge_adjust;
+        if ( row[k] == BLACKSQ )
+          adjust += 128.0 * edge_adjust;
+        else if ( row[k] == WHITESQ )
+          adjust -= 128.0 * edge_adjust;
 
       /* Bonus for having corners.  The "0.5 *" is because corners are part
-	 of two A-file+2X patterns. */
+         of two A-file+2X patterns. */
 
       if ( row[0] == BLACKSQ )
-	adjust += 0.5 * 128.0 * corner_adjust;
+        adjust += 0.5 * 128.0 * corner_adjust;
       else if ( row[0] == WHITESQ )
-	adjust -= 0.5 * 128.0 * corner_adjust;
+        adjust -= 0.5 * 128.0 * corner_adjust;
       if ( row[7] == BLACKSQ )
-	adjust += 0.5 * 128.0 * corner_adjust;
+        adjust += 0.5 * 128.0 * corner_adjust;
       else if ( row[7] == WHITESQ )
-	adjust -= 0.5 * 128.0 * corner_adjust;
+        adjust -= 0.5 * 128.0 * corner_adjust;
 
       /* Bonus for having X-squares when the adjacent corners are empty.
-	 Scaling by 0.5 applies here too. */
+         Scaling by 0.5 applies here too. */
 
       if ( (row[8] == BLACKSQ) && (row[0] == EMPTY) )
-	adjust += 0.5 * 128.0 * x_adjust;
+        adjust += 0.5 * 128.0 * x_adjust;
       else if ( (row[8] == WHITESQ) && (row[0] == EMPTY) )
-	adjust -= 0.5 * 128.0 * x_adjust;
+        adjust -= 0.5 * 128.0 * x_adjust;
       if ( (row[9] == BLACKSQ) && (row[7] == EMPTY) )
-	adjust += 0.5 * 128.0 * x_adjust;
+        adjust += 0.5 * 128.0 * x_adjust;
       else if ( (row[9] == WHITESQ) && (row[7] == EMPTY) )
-	adjust -= 0.5 * 128.0 * x_adjust;
+        adjust -= 0.5 * 128.0 * x_adjust;
 
       set[stage[i]].afile2x[j] += adjust;
 
       /* Next configuration */
       k = 0;
       do {  /* The odometer principle */
-	row[k]++;
-	if ( row[k] == 3 )
-	  row[k] = 0;
-	k++;
+        row[k]++;
+        if ( row[k] == 3 )
+          row[k] = 0;
+        k++;
       } while ( (row[k - 1] == 0) && (k < 10) );
     }
   }
@@ -911,7 +913,7 @@ eval_adjustment( double disc_adjust, double edge_adjust,
 /*
    INIT_COEFFS
    Manages the initialization of all relevant tables.
-*/   
+*/
 
 void
 init_coeffs( void ) {
@@ -965,18 +967,18 @@ init_coeffs( void ) {
     curr_stage = stage[i];
     if ( i == 0 )
       for ( j = 0; j < stage[0]; j++ ) {
-	set[j].prev = stage[0];
-	set[j].next = stage[0];
+        set[j].prev = stage[0];
+        set[j].next = stage[0];
       }
     else
       for ( j = stage[i - 1]; j < stage[i]; j++ ) {
-	set[j].prev = stage[i - 1];
-	set[j].next = stage[i];
+        set[j].prev = stage[i - 1];
+        set[j].next = stage[i];
       }
     set[curr_stage].permanent = 1;
     allocate_set( curr_stage );
   }
-  stage[stage_count - 1] = 60;   
+  stage[stage_count - 1] = 60;
   for ( j = stage[stage_count - 2]; j < 60; j++ ) {
     set[j].prev = stage[stage_count - 2];
     set[j].next = 60;
@@ -1008,8 +1010,8 @@ init_coeffs( void ) {
     double corner_adjust = 0.0;
     double x_adjust = 0.0;
 
-    fscanf( adjust_stream, "%lf %lf %lf %lf", &disc_adjust, &edge_adjust,
-	    &corner_adjust, &x_adjust );
+    (void) !fscanf( adjust_stream, "%lf %lf %lf %lf", &disc_adjust, &edge_adjust,
+                    &corner_adjust, &x_adjust );
     eval_adjustment( disc_adjust, edge_adjust, corner_adjust, x_adjust );
     fclose( adjust_stream );
   }
@@ -1043,6 +1045,7 @@ init_coeffs( void ) {
 
 
 
+__attribute__((unused))
 static long long int
 rdtsc( void ) {
 #if defined(__GNUC__)
@@ -1060,7 +1063,7 @@ rdtsc( void ) {
    PATTERN_EVALUATION
    Calculates the static evaluation of the position using
    the statistically optimized pattern tables.
-*/   
+*/
 
 #ifdef LOG_EVAL
 #include "display.h"
@@ -1110,7 +1113,7 @@ pattern_evaluation( int side_to_move ) {
 #ifdef LOG_EVAL
   fprintf( stream, "parity=%d\n", score );
   fprintf( stream, "disks_played=%d (%d)\n", disks_played,
-	disks_played & 1 );
+        disks_played & 1 );
 #endif
 
   /* The pattern features. */
@@ -1121,7 +1124,7 @@ pattern_evaluation( int side_to_move ) {
     int pattern1;
     int pattern2;
     int pattern3;
-    asm( 
+    asm(
          "movl _board+288,%0\n\t"
          "movl _board+308,%1\n\t"
          "movl _board+108,%2\n\t"
@@ -1203,7 +1206,7 @@ pattern_evaluation( int side_to_move ) {
     score += set[eval_phase].afile2x[pattern1];
     score += set[eval_phase].afile2x[pattern2];
     score += set[eval_phase].afile2x[pattern3];
-    asm( 
+    asm(
          "movl _board+328,%0\n\t"
          "movl _board+348,%1\n\t"
          "movl _board+112,%2\n\t"
@@ -1269,7 +1272,7 @@ pattern_evaluation( int side_to_move ) {
     score += set[eval_phase].bfile[pattern1];
     score += set[eval_phase].bfile[pattern2];
     score += set[eval_phase].bfile[pattern3];
-    asm( 
+    asm(
          "movl _board+332,%0\n\t"
          "movl _board+344,%1\n\t"
          "movl _board+152,%2\n\t"
@@ -1335,7 +1338,7 @@ pattern_evaluation( int side_to_move ) {
     score += set[eval_phase].cfile[pattern1];
     score += set[eval_phase].cfile[pattern2];
     score += set[eval_phase].cfile[pattern3];
-    asm( 
+    asm(
          "movl _board+336,%0\n\t"
          "movl _board+340,%1\n\t"
          "movl _board+192,%2\n\t"
@@ -1401,7 +1404,7 @@ pattern_evaluation( int side_to_move ) {
     score += set[eval_phase].dfile[pattern1];
     score += set[eval_phase].dfile[pattern2];
     score += set[eval_phase].dfile[pattern3];
-    asm( 
+    asm(
          "movl _board+352,%0\n\t"
          "movl _board+324,%1\n\t"
          "leal (%0,%0,2),%0\n\t"
@@ -1435,7 +1438,7 @@ pattern_evaluation( int side_to_move ) {
          : "=r" (pattern0), "=r" (pattern1) : );
     score += set[eval_phase].diag8[pattern0];
     score += set[eval_phase].diag8[pattern1];
-    asm( 
+    asm(
          "movl _board+312,%0\n\t"
          "movl _board+348,%1\n\t"
          "movl _board+284,%2\n\t"
@@ -1493,7 +1496,7 @@ pattern_evaluation( int side_to_move ) {
     score += set[eval_phase].diag7[pattern1];
     score += set[eval_phase].diag7[pattern2];
     score += set[eval_phase].diag7[pattern3];
-    asm( 
+    asm(
          "movl _board+272,%0\n\t"
          "movl _board+344,%1\n\t"
          "movl _board+244,%2\n\t"
@@ -1543,7 +1546,7 @@ pattern_evaluation( int side_to_move ) {
     score += set[eval_phase].diag6[pattern1];
     score += set[eval_phase].diag6[pattern2];
     score += set[eval_phase].diag6[pattern3];
-    asm( 
+    asm(
          "movl _board+232,%0\n\t"
          "movl _board+340,%1\n\t"
          "movl _board+204,%2\n\t"
@@ -1585,7 +1588,7 @@ pattern_evaluation( int side_to_move ) {
     score += set[eval_phase].diag5[pattern1];
     score += set[eval_phase].diag5[pattern2];
     score += set[eval_phase].diag5[pattern3];
-    asm( 
+    asm(
          "movl _board+192,%0\n\t"
          "movl _board+336,%1\n\t"
          "movl _board+164,%2\n\t"
@@ -1619,7 +1622,7 @@ pattern_evaluation( int side_to_move ) {
     score += set[eval_phase].diag4[pattern1];
     score += set[eval_phase].diag4[pattern2];
     score += set[eval_phase].diag4[pattern3];
-    asm( 
+    asm(
          "movl _board+132,%0\n\t"
          "movl _board+252,%1\n\t"
          "movl _board+144,%2\n\t"
@@ -1693,7 +1696,7 @@ pattern_evaluation( int side_to_move ) {
     score += set[eval_phase].corner33[pattern1];
     score += set[eval_phase].corner33[pattern2];
     score += set[eval_phase].corner33[pattern3];
-    asm( 
+    asm(
          "movl _board+100,%0\n\t"
          "movl _board+300,%1\n\t"
          "movl _board+96,%2\n\t"
@@ -1775,7 +1778,7 @@ pattern_evaluation( int side_to_move ) {
     score += set[eval_phase].corner52[pattern1];
     score += set[eval_phase].corner52[pattern2];
     score += set[eval_phase].corner52[pattern3];
-    asm( 
+    asm(
          "movl _board+208,%0\n\t"
          "movl _board+228,%1\n\t"
          "movl _board+168,%2\n\t"
@@ -2453,7 +2456,7 @@ pattern_evaluation( int side_to_move ) {
     int pattern1;
     int pattern2;
     int pattern3;
-    asm( 
+    asm(
          "movl _board+288,%0\n\t"
          "movl _board+308,%1\n\t"
          "movl _board+108,%2\n\t"
@@ -2535,7 +2538,7 @@ pattern_evaluation( int side_to_move ) {
     score += set[eval_phase].afile2x_last[-pattern1];
     score += set[eval_phase].afile2x_last[-pattern2];
     score += set[eval_phase].afile2x_last[-pattern3];
-    asm( 
+    asm(
          "movl _board+328,%0\n\t"
          "movl _board+348,%1\n\t"
          "movl _board+112,%2\n\t"
@@ -2601,7 +2604,7 @@ pattern_evaluation( int side_to_move ) {
     score += set[eval_phase].bfile_last[-pattern1];
     score += set[eval_phase].bfile_last[-pattern2];
     score += set[eval_phase].bfile_last[-pattern3];
-    asm( 
+    asm(
          "movl _board+332,%0\n\t"
          "movl _board+344,%1\n\t"
          "movl _board+152,%2\n\t"
@@ -2667,7 +2670,7 @@ pattern_evaluation( int side_to_move ) {
     score += set[eval_phase].cfile_last[-pattern1];
     score += set[eval_phase].cfile_last[-pattern2];
     score += set[eval_phase].cfile_last[-pattern3];
-    asm( 
+    asm(
          "movl _board+336,%0\n\t"
          "movl _board+340,%1\n\t"
          "movl _board+192,%2\n\t"
@@ -2733,7 +2736,7 @@ pattern_evaluation( int side_to_move ) {
     score += set[eval_phase].dfile_last[-pattern1];
     score += set[eval_phase].dfile_last[-pattern2];
     score += set[eval_phase].dfile_last[-pattern3];
-    asm( 
+    asm(
          "movl _board+352,%0\n\t"
          "movl _board+324,%1\n\t"
          "leal (%0,%0,2),%0\n\t"
@@ -2767,7 +2770,7 @@ pattern_evaluation( int side_to_move ) {
          : "=r" (pattern0), "=r" (pattern1) : );
     score += set[eval_phase].diag8_last[-pattern0];
     score += set[eval_phase].diag8_last[-pattern1];
-    asm( 
+    asm(
          "movl _board+312,%0\n\t"
          "movl _board+348,%1\n\t"
          "movl _board+284,%2\n\t"
@@ -2825,7 +2828,7 @@ pattern_evaluation( int side_to_move ) {
     score += set[eval_phase].diag7_last[-pattern1];
     score += set[eval_phase].diag7_last[-pattern2];
     score += set[eval_phase].diag7_last[-pattern3];
-    asm( 
+    asm(
          "movl _board+272,%0\n\t"
          "movl _board+344,%1\n\t"
          "movl _board+244,%2\n\t"
@@ -2875,7 +2878,7 @@ pattern_evaluation( int side_to_move ) {
     score += set[eval_phase].diag6_last[-pattern1];
     score += set[eval_phase].diag6_last[-pattern2];
     score += set[eval_phase].diag6_last[-pattern3];
-    asm( 
+    asm(
          "movl _board+232,%0\n\t"
          "movl _board+340,%1\n\t"
          "movl _board+204,%2\n\t"
@@ -2917,7 +2920,7 @@ pattern_evaluation( int side_to_move ) {
     score += set[eval_phase].diag5_last[-pattern1];
     score += set[eval_phase].diag5_last[-pattern2];
     score += set[eval_phase].diag5_last[-pattern3];
-    asm( 
+    asm(
          "movl _board+192,%0\n\t"
          "movl _board+336,%1\n\t"
          "movl _board+164,%2\n\t"
@@ -2951,7 +2954,7 @@ pattern_evaluation( int side_to_move ) {
     score += set[eval_phase].diag4_last[-pattern1];
     score += set[eval_phase].diag4_last[-pattern2];
     score += set[eval_phase].diag4_last[-pattern3];
-    asm( 
+    asm(
          "movl _board+132,%0\n\t"
          "movl _board+252,%1\n\t"
          "movl _board+144,%2\n\t"
@@ -3025,7 +3028,7 @@ pattern_evaluation( int side_to_move ) {
     score += set[eval_phase].corner33_last[-pattern1];
     score += set[eval_phase].corner33_last[-pattern2];
     score += set[eval_phase].corner33_last[-pattern3];
-    asm( 
+    asm(
          "movl _board+100,%0\n\t"
          "movl _board+300,%1\n\t"
          "movl _board+96,%2\n\t"
@@ -3107,7 +3110,7 @@ pattern_evaluation( int side_to_move ) {
     score += set[eval_phase].corner52_last[-pattern1];
     score += set[eval_phase].corner52_last[-pattern2];
     score += set[eval_phase].corner52_last[-pattern3];
-    asm( 
+    asm(
          "movl _board+208,%0\n\t"
          "movl _board+228,%1\n\t"
          "movl _board+168,%2\n\t"
@@ -3820,7 +3823,7 @@ remove_specific_coeffs( int phase ) {
 /*
    REMOVE_COEFFS
    Removes pattern tables which have gone out of scope from memory.
-*/   
+*/
 
 void
 remove_coeffs( int phase ) {

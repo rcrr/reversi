@@ -3,9 +3,11 @@
 
    Created:           June 30, 1997
 
-   Modified:          April 24, 2001
-   
+   Modified:          Jan 16, 2022 (Roberto Corradini)
+                      April 24, 2001 ( last change by G.A.)
+
    Author:            Gunnar Andersson (gunnar@radagast.se)
+                      Roberto Corradini
 
    Contents:          The move generator.
 */
@@ -74,13 +76,13 @@ init_moves( void ) {
     for ( j = 1; j <= 8; j++ ) {
       pos = 10 * i + j;
       for ( k = 0; k <= 8; k++ )
-	flip_direction[pos][k] = 0;
+        flip_direction[pos][k] = 0;
       feasible = 0;
       for ( k = 0; k < 8; k++ )
-	if ( dir_mask[pos] & (1 << k) ) {
-	  flip_direction[pos][feasible] = move_offset[k];
-	  feasible++;
-	}
+        if ( dir_mask[pos] & (1 << k) ) {
+          flip_direction[pos][feasible] = move_offset[k];
+          feasible++;
+        }
       first_flip_direction[pos] = &flip_direction[pos][0];
     }
 }
@@ -104,7 +106,7 @@ reset_generation( int side_to_move ) {
 INLINE int
 generate_specific( int curr_move, int side_to_move ) {
   return AnyFlips_compact( board, curr_move, side_to_move,
-			   OPP( side_to_move ) );
+                           OPP( side_to_move ) );
 }
 
 
@@ -125,7 +127,7 @@ generate_move(int side_to_move) {
   while ( move_index < MOVE_ORDER_SIZE ) {
     move = sorted_move_order[disks_played][move_index];
     if ( (board[move] == EMPTY) &&
-	 generate_specific( move, side_to_move ) ) {
+         generate_specific( move, side_to_move ) ) {
       sweep_status[disks_played] = move_index + 1;
       return move;
     }
@@ -180,10 +182,10 @@ count_all( int side_to_move, int empty ) {
     move = sorted_move_order[disks_played][move_index];
     if ( board[move] == EMPTY ) {
       if ( generate_specific( move, side_to_move ) )
-	mobility++;
+        mobility++;
       found_empty++;
       if ( found_empty == empty )
-	return mobility;
+        return mobility;
     }
   }
 
@@ -361,11 +363,11 @@ valid_move( int move, int side_to_move ) {
   for ( i = 0; i < 8; i++ )
     if ( dir_mask[move] & (1 << i) ) {
       for ( pos = move + move_offset[i], count = 0;
-	    board[pos] == OPP( side_to_move ); pos += move_offset[i], count++ )
-	;
+            board[pos] == OPP( side_to_move ); pos += move_offset[i], count++ )
+        ;
       if ( board[pos] == side_to_move ) {
-	if ( count >= 1 )
-	  return TRUE;
+        if ( count >= 1 )
+          return TRUE;
       }
     }
 
@@ -390,7 +392,7 @@ get_move( int side_to_move ) {
       printf( "%s: ", BLACK_PROMPT );
     else
       printf( "%s: ", WHITE_PROMPT );
-    scanf( "%s", buffer );
+    (void) !scanf( "%s", buffer );
     curr_move = atoi( buffer );
     ready = valid_move( curr_move, side_to_move );
     if ( !ready ) {

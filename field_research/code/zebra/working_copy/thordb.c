@@ -2,10 +2,12 @@
    File:          thordb.c
 
    Created:       March 30, 1999
-   
-   Modified:      October 6, 2002
+
+   Modified:      Jan 16, 2022 (Roberto Corradini)
+                  October 6, 2002 (last chande by G.A.)
 
    Author:        Gunnar Andersson (gunnar@radagast.se)
+                  Roberto Corradini
 
    Contents:      An interface to the Thor database designed to
                   perform fast lookup operations.
@@ -224,7 +226,7 @@ prepare_thor_board( void ) {
   for ( i = 0; i < 10; i++ )
     for ( j = 0, pos = 10 * i; j < 10; j++, pos++ )
       if ( (i == 0) || (i == 9) || (j == 0) || (j == 9) )
-	thor_board[pos] = OUTSIDE;
+        thor_board[pos] = OUTSIDE;
 }
 
 
@@ -245,27 +247,27 @@ directional_flip_count( int sq, int inc, int color, int oppcol ) {
       count++;
       pt += inc;
       if ( thor_board[pt] == oppcol ) {
-	count++;
-	pt += inc;
-	if ( thor_board[pt] == oppcol ) {
-	  count++;
-	  pt += inc;
-	  if ( thor_board[pt] == oppcol ) {
-	    count++;
-	    pt += inc;
-	    if ( thor_board[pt] == oppcol ) {
-	      count++;
-	      pt += inc;
-	    }
-	  }
-	}
+        count++;
+        pt += inc;
+        if ( thor_board[pt] == oppcol ) {
+          count++;
+          pt += inc;
+          if ( thor_board[pt] == oppcol ) {
+            count++;
+            pt += inc;
+            if ( thor_board[pt] == oppcol ) {
+              count++;
+              pt += inc;
+            }
+          }
+        }
       }
     }
     if ( thor_board[pt] == color ) {
       int g = count;
       do {
-	pt -= inc;
-	thor_board[pt] = color;
+        pt -= inc;
+        thor_board[pt] = color;
       } while( --g );
       return count;
     }
@@ -289,23 +291,23 @@ directional_flip_any( int sq, int inc, int color, int oppcol ) {
     if ( thor_board[pt] == oppcol ) {
       pt += inc;
       if ( thor_board[pt] == oppcol ) {
-	pt += inc;
-	if ( thor_board[pt] == oppcol ) {
-	  pt += inc;
-	  if ( thor_board[pt] == oppcol ) {
-	    pt += inc;
-	    if ( thor_board[pt] == oppcol ) {
-	      pt += inc;
-	    }
-	  }
-	}
+        pt += inc;
+        if ( thor_board[pt] == oppcol ) {
+          pt += inc;
+          if ( thor_board[pt] == oppcol ) {
+            pt += inc;
+            if ( thor_board[pt] == oppcol ) {
+              pt += inc;
+            }
+          }
+        }
       }
     }
     if ( thor_board[pt] == color ) {
       pt -= inc;
       do {
-	thor_board[pt] = color;
-	pt -= inc;
+        thor_board[pt] = color;
+        pt -= inc;
       } while ( pt != sq );
       return TRUE;
     }
@@ -320,7 +322,8 @@ directional_flip_any( int sq, int inc, int color, int oppcol ) {
   and flips those discs (if there are any).
 */
 
-INLINE static int
+//INLINE static int
+static int
 count_flips( int sqnum, int color, int oppcol ) {
   int count;
   int mask;
@@ -354,7 +357,8 @@ count_flips( int sqnum, int color, int oppcol ) {
   flips those discs.
 */
 
-INLINE static int
+//INLINE static int
+static int
 any_flips( int sqnum, int color, int oppcol ) {
   int count;
   int mask;
@@ -507,11 +511,11 @@ play_through_game( GameType *game, int max_moves ) {
       thor_side_to_move = OPP( thor_side_to_move );
       flipped = any_flips( move, thor_side_to_move, OPP( thor_side_to_move ) );
       if ( flipped ) {
-	thor_board[move] = thor_side_to_move;
-	thor_side_to_move = OPP( thor_side_to_move );
+        thor_board[move] = thor_side_to_move;
+        thor_side_to_move = OPP( thor_side_to_move );
       }
       else
-	return FALSE;
+        return FALSE;
     }
   }
 
@@ -564,33 +568,33 @@ prepare_game( GameType *game ) {
       disc_count[thor_side_to_move] += flipped + 1;
       disc_count[OPP( thor_side_to_move )] -= flipped;
       if ( thor_side_to_move == WHITESQ )
-	game->moves[moves_played] = -game->moves[moves_played];
+        game->moves[moves_played] = -game->moves[moves_played];
       thor_side_to_move = OPP( thor_side_to_move );
       moves_played++;
     }
     else {
       thor_side_to_move = OPP( thor_side_to_move );
       flipped = count_flips( move, thor_side_to_move,
-			     OPP( thor_side_to_move ) );
+                             OPP( thor_side_to_move ) );
       if ( flipped ) {
-	thor_board[move] = thor_side_to_move;
-	disc_count[thor_side_to_move] += flipped + 1;
-	disc_count[OPP( thor_side_to_move )] -= flipped;
-	if ( thor_side_to_move == WHITESQ )
-	  game->moves[moves_played] = -game->moves[moves_played];
-	thor_side_to_move = OPP( thor_side_to_move );
-	moves_played++;
+        thor_board[move] = thor_side_to_move;
+        disc_count[thor_side_to_move] += flipped + 1;
+        disc_count[OPP( thor_side_to_move )] -= flipped;
+        if ( thor_side_to_move == WHITESQ )
+          game->moves[moves_played] = -game->moves[moves_played];
+        thor_side_to_move = OPP( thor_side_to_move );
+        moves_played++;
       }
       else
-	done = TRUE;
+        done = TRUE;
     }
 
     /* Update the corner descriptor if necessary */
 
     if ( (move == 11) || (move == 18) || (move == 81) || (move == 88) )
       corner_descriptor |=
-	get_corner_mask( thor_board[11], thor_board[81],
-			 thor_board[18], thor_board[88] );
+        get_corner_mask( thor_board[11], thor_board[81],
+                         thor_board[18], thor_board[88] );
 
   } while ( !done && (moves_played < 60) );
 
@@ -830,7 +834,7 @@ sort_tournament_database( void ) {
   for ( i = 0; i < tournaments.count; i++ )
     tournament_buffer[i] = &tournaments.tournament_list[i];
   qsort( tournament_buffer, tournaments.count, sizeof( TournamentType * ),
-	 thor_compare_tournaments );
+         thor_compare_tournaments );
   for ( i = 0; i < tournaments.count; i++ )
     tournament_buffer[i]->lex_order = i;
   free( tournament_buffer );
@@ -870,7 +874,7 @@ read_tournament_database( const char *file_name ) {
   if ( success ) {
     tournaments.tournament_list = (TournamentType *)
       safe_realloc( tournaments.tournament_list,
-		    tournaments.count * sizeof( TournamentType ) );
+                    tournaments.count * sizeof( TournamentType ) );
     for ( i = 0; i < tournaments.count; i++ ) {
       tournaments.tournament_list[i].name = tournament_name( i );
       tournaments.tournament_list[i].selected = TRUE;
@@ -966,7 +970,7 @@ sort_player_database( void ) {
   for ( i = 0; i < players.count; i++ )
     player_buffer[i] = &players.player_list[i];
   qsort( player_buffer, players.count, sizeof( PlayerType * ),
-	 thor_compare_players );
+         thor_compare_players );
   for ( i = 0; i < players.count; i++ )
     player_buffer[i]->lex_order = i;
   free( player_buffer );
@@ -1006,16 +1010,16 @@ read_player_database( const char *file_name ) {
   if ( success ) {
     players.player_list = (PlayerType *)
       safe_realloc( players.player_list,
-		    players.count * sizeof( PlayerType ) );
+                    players.count * sizeof( PlayerType ) );
     for ( i = 0; i < players.count; i++ ) {
       players.player_list[i].name = get_player_name( i );
       /* By convention, names of computer programs always contain
-	 parenthesis within which the name of the creator of the
-	 program is given. E.g. "Zebra (andersson)", "Sethos()". */
+         parenthesis within which the name of the creator of the
+         program is given. E.g. "Zebra (andersson)", "Sethos()". */
       if ( strchr( players.player_list[i].name, '(' ) != NULL )
-	players.player_list[i].is_program = TRUE;
+        players.player_list[i].is_program = TRUE;
       else
-	players.player_list[i].is_program = FALSE;
+        players.player_list[i].is_program = FALSE;
       players.player_list[i].selected = TRUE;
     }
     sort_player_database();
@@ -1136,12 +1140,12 @@ game_database_already_loaded( const char *file_name ) {
   current_db = database_head;
   while ( current_db != NULL ) {
     if ( (current_db->prolog.creation_century == new_prolog.creation_century)
-	 && (current_db->prolog.creation_year == new_prolog.creation_year)
-	 && (current_db->prolog.creation_month == new_prolog.creation_month)
-	 && (current_db->prolog.creation_day == new_prolog.creation_day)
-	 && (current_db->prolog.game_count == new_prolog.game_count)
-	 && (current_db->prolog.item_count == new_prolog.item_count)
-	 &&(current_db->prolog.origin_year == current_db->prolog.origin_year) )
+         && (current_db->prolog.creation_year == new_prolog.creation_year)
+         && (current_db->prolog.creation_month == new_prolog.creation_month)
+         && (current_db->prolog.creation_day == new_prolog.creation_day)
+         && (current_db->prolog.game_count == new_prolog.game_count)
+         && (current_db->prolog.item_count == new_prolog.item_count) )
+         //&&(current_db->prolog.origin_year == current_db->prolog.origin_year) )
       return TRUE;
     current_db = current_db->next;
   }
@@ -1192,10 +1196,10 @@ get_database_info( DatabaseInfoType *info ) {
     change = FALSE;
     for ( i = 0; i < thor_database_count - 1; i++ )
       if ( info[i].year > info[i + 1].year ) {
-	change = TRUE;
-	temp = info[i];
-	info[i] = info[i + 1];
-	info[i + 1] = temp;
+        change = TRUE;
+        temp = info[i];
+        info[i] = info[i + 1];
+        info[i + 1] = temp;
       }
   } while ( change );
 }
@@ -1214,18 +1218,18 @@ print_game( FILE *stream, GameType *game, int display_moves ) {
   int i;
 
   fprintf( stream, "%s  %d\n", tournament_name( game->tournament_no ),
-	   game->database->prolog.origin_year );
+           game->database->prolog.origin_year );
   fprintf( stream, "%s %s %s\n", get_player_name( game->black_no ),
-	   VERSUS_TEXT, get_player_name( game->white_no ) );
+           VERSUS_TEXT, get_player_name( game->white_no ) );
   fprintf( stream, "%d - %d   ", game->actual_black_score,
-	  64 - game->actual_black_score );
+          64 - game->actual_black_score );
   fprintf( stream, "[ %d - %d %s ]\n", game->perfect_black_score,
-	  64 - game->perfect_black_score, PERFECT_TEXT );
+          64 - game->perfect_black_score, PERFECT_TEXT );
   if ( display_moves )
     for ( i = 0; i < 60; i++ ) {
       fprintf( stream, " %d", abs( game->moves[i] ) );
       if ( (i % 20) == 19 )
-	fputs( "\n", stream );
+        fputs( "\n", stream );
     }
   fputs( "\n", stream );
 }
@@ -1383,23 +1387,23 @@ thor_compare( const void *g1, const void *g2 ) {
     default:  /* Really can't happen */
     case SORT_BY_YEAR:
       result = game1->database->prolog.origin_year -
-	game2->database->prolog.origin_year;
+        game2->database->prolog.origin_year;
       break;
     case SORT_BY_YEAR_REVERSED:
       result = game2->database->prolog.origin_year -
-	game1->database->prolog.origin_year;
+        game1->database->prolog.origin_year;
       break;
     case SORT_BY_BLACK_NAME:
       result = player_lex_order( game1->black_no ) -
-	player_lex_order( game2->black_no );
+        player_lex_order( game2->black_no );
       break;
     case SORT_BY_WHITE_NAME:
       result = player_lex_order( game1->white_no ) -
-	player_lex_order( game2->white_no );
+        player_lex_order( game2->white_no );
       break;
     case SORT_BY_TOURNAMENT:
       result = tournament_lex_order( game1->tournament_no ) -
-	tournament_lex_order( game2->tournament_no );
+        tournament_lex_order( game2->tournament_no );
       break;
     case SORT_BY_BLACK_SCORE:
       result = game1->actual_black_score - game2->actual_black_score;
@@ -1439,7 +1443,7 @@ filter_database( DatabaseType *db ) {
     /* Apply the tournament filter */
 
     if ( passes_filter &&
-	 !tournaments.tournament_list[game->tournament_no].selected )
+         !tournaments.tournament_list[game->tournament_no].selected )
       passes_filter = FALSE;
 
     /* Apply the year filter */
@@ -1447,7 +1451,7 @@ filter_database( DatabaseType *db ) {
     if ( passes_filter ) {
       year = game->database->prolog.origin_year;
       if ( (year < filter.first_year) || (year > filter.last_year) )
-	passes_filter = FALSE;
+        passes_filter = FALSE;
     }
 
     /* Apply the player filter */
@@ -1455,26 +1459,26 @@ filter_database( DatabaseType *db ) {
     if ( passes_filter ) {
       switch ( filter.player_filter ) {
       case EitherSelectedFilter:
-	if ( !players.player_list[game->black_no].selected &&
-	     !players.player_list[game->white_no].selected )
-	  passes_filter = FALSE;
-	break;
+        if ( !players.player_list[game->black_no].selected &&
+             !players.player_list[game->white_no].selected )
+          passes_filter = FALSE;
+        break;
 
       case BothSelectedFilter:
-	if ( !players.player_list[game->black_no].selected ||
-	     !players.player_list[game->white_no].selected )
-	  passes_filter = FALSE;
-	break;
+        if ( !players.player_list[game->black_no].selected ||
+             !players.player_list[game->white_no].selected )
+          passes_filter = FALSE;
+        break;
 
       case BlackSelectedFilter:
-	if ( !players.player_list[game->black_no].selected )
-	  passes_filter = FALSE;
-	break;
+        if ( !players.player_list[game->black_no].selected )
+          passes_filter = FALSE;
+        break;
 
       case WhiteSelectedFilter:
-	if ( !players.player_list[game->white_no].selected )
-	  passes_filter = FALSE;
-	break;
+        if ( !players.player_list[game->white_no].selected )
+          passes_filter = FALSE;
+        break;
       }
     }
 
@@ -1482,16 +1486,16 @@ filter_database( DatabaseType *db ) {
 
     if ( passes_filter ) {
       if ( players.player_list[game->black_no].is_program ) {
-	if ( players.player_list[game->white_no].is_program )
-	  category = GAME_PROGRAM_PROGRAM;
-	else
-	  category = GAME_HUMAN_PROGRAM;
+        if ( players.player_list[game->white_no].is_program )
+          category = GAME_PROGRAM_PROGRAM;
+        else
+          category = GAME_HUMAN_PROGRAM;
       }
       else {
-	if ( players.player_list[game->white_no].is_program )
-	  category = GAME_HUMAN_PROGRAM;
-	else
-	  category = GAME_HUMAN_HUMAN;
+        if ( players.player_list[game->white_no].is_program )
+          category = GAME_HUMAN_PROGRAM;
+        else
+          category = GAME_HUMAN_HUMAN;
       }
       passes_filter = (category & filter.game_categories);
     }
@@ -1640,7 +1644,7 @@ specify_thor_sort_order( int count, int *sort_order ) {
   else
     for ( i = 0; i < count; i++ )
       if ( sort_order[i] != thor_sort_order[i] )
-	thor_games_sorted = FALSE;
+        thor_games_sorted = FALSE;
 
   thor_sort_criteria_count = count;
   for ( i = 0; i < count; i++ )
@@ -1658,9 +1662,9 @@ specify_thor_sort_order( int count, int *sort_order ) {
 */
 
 static void
-recursive_opening_scan( ThorOpeningNode *node, int depth, int moves_played, 
-			unsigned int *primary_hash,
-			unsigned int *secondary_hash ) {
+recursive_opening_scan( ThorOpeningNode *node, int depth, int moves_played,
+                        unsigned int *primary_hash,
+                        unsigned int *secondary_hash ) {
   int i;
   int match;
   int matching_symmetry;
@@ -1677,9 +1681,9 @@ recursive_opening_scan( ThorOpeningNode *node, int depth, int moves_played,
     matching_symmetry = 0;
     for ( i = 7; i >= 0; i-- )
       if ( (node->hash1 == primary_hash[i]) &&
-	   (node->hash2 == secondary_hash[i]) ) {
-	match = TRUE;
-	matching_symmetry = i;
+           (node->hash2 == secondary_hash[i]) ) {
+        match = TRUE;
+        matching_symmetry = i;
       }
     if ( match ) {
       node->matching_symmetry = matching_symmetry;
@@ -1698,7 +1702,7 @@ recursive_opening_scan( ThorOpeningNode *node, int depth, int moves_played,
   child = node->child_node;
   while ( child != NULL ) {
     recursive_opening_scan( child, depth + 1, moves_played,
-			    primary_hash, secondary_hash );
+                            primary_hash, secondary_hash );
     child = child->sibling_node;
   }
 }
@@ -1719,7 +1723,7 @@ opening_scan( int moves_played ) {
   compute_full_secondary_hash( secondary_hash );
 
   recursive_opening_scan( root_node, 0, moves_played,
-			  primary_hash, secondary_hash );
+                          primary_hash, secondary_hash );
 }
 
 
@@ -1733,9 +1737,9 @@ opening_scan( int moves_played ) {
 
 static void
 recursive_frequency_count( ThorOpeningNode *node, int *freq_count, int depth,
-			   int moves_played, int *symmetries,
-			   unsigned int *primary_hash,
-			   unsigned int *secondary_hash ) {
+                           int moves_played, int *symmetries,
+                           unsigned int *primary_hash,
+                           unsigned int *secondary_hash ) {
   int i, j;
   int child_move;
   ThorOpeningNode *child;
@@ -1744,15 +1748,15 @@ recursive_frequency_count( ThorOpeningNode *node, int *freq_count, int depth,
     for ( i = 0; i < 8; i++ ) {
       j = symmetries[i];
       if ( (node->hash1 == primary_hash[j]) &&
-	   (node->hash2 == secondary_hash[j]) ) {
-	child_move = node->child_move;
-	child = node->child_node;
-	while ( child != NULL ) {
-	  freq_count[inv_symmetry_map[j][child_move]] += child->frequency;
-	  child_move = child->sibling_move;
-	  child = child->sibling_node;
-	}
-	break;
+           (node->hash2 == secondary_hash[j]) ) {
+        child_move = node->child_move;
+        child = node->child_node;
+        while ( child != NULL ) {
+          freq_count[inv_symmetry_map[j][child_move]] += child->frequency;
+          child_move = child->sibling_move;
+          child = child->sibling_node;
+        }
+        break;
       }
     }
   }
@@ -1760,7 +1764,7 @@ recursive_frequency_count( ThorOpeningNode *node, int *freq_count, int depth,
     child = node->child_node;
     while ( child != NULL ) {
       recursive_frequency_count( child, freq_count, depth + 1, moves_played,
-				 symmetries, primary_hash, secondary_hash );
+                                 symmetries, primary_hash, secondary_hash );
       child = child->sibling_node;
     }
   }
@@ -1794,7 +1798,7 @@ choose_thor_opening_move( int *in_board, int side_to_move, int echo ) {
     for ( j = 1, pos = 10 * i + 1; j <= 8; j++, pos++ ) {
       freq_count[pos] = 0;
       if ( in_board[pos] != EMPTY )
-	disc_count++;
+        disc_count++;
     }
 
   /* Check that the parity of the board coincides with standard
@@ -1826,7 +1830,7 @@ choose_thor_opening_move( int *in_board, int side_to_move, int echo ) {
   compute_full_secondary_hash( secondary_hash );
 
   recursive_frequency_count( root_node, freq_count, 0, disc_count - 4,
-			     symmetries, primary_hash, secondary_hash );
+                             symmetries, primary_hash, secondary_hash );
 
   freq_sum = 0;
   for ( i = 1; i <= 8; i++ )
@@ -1845,36 +1849,36 @@ choose_thor_opening_move( int *in_board, int side_to_move, int echo ) {
     match_count = 0;
     for ( i = 1; i <= 8; i++ )
       for ( j = 1, pos = 10 * i + 1; j <= 8; j++, pos++ )
-	if ( freq_count[pos] > 0 ) {
-	  move_list[match_count].move = pos;
-	  move_list[match_count].frequency = freq_count[pos];
-	  match_count++;
-	  if ( (acc_freq_sum < random_value) &&
-	       (acc_freq_sum + freq_count[pos] >= random_value) )
-	    random_move = pos;
-	  acc_freq_sum += freq_count[pos];
-	}
+        if ( freq_count[pos] > 0 ) {
+          move_list[match_count].move = pos;
+          move_list[match_count].frequency = freq_count[pos];
+          match_count++;
+          if ( (acc_freq_sum < random_value) &&
+               (acc_freq_sum + freq_count[pos] >= random_value) )
+            random_move = pos;
+          acc_freq_sum += freq_count[pos];
+        }
 
     /* Optionally display the database moves sorted on frequency */
 
     if ( echo ) {
       for ( i = 0; i < match_count; i++ )
-	for ( j = 0; j < match_count - 1; j++ )
-	  if ( move_list[j].frequency < move_list[j + 1].frequency ) {
-	    temp = move_list[j];
-	    move_list[j] = move_list[j + 1];
-	    move_list[j + 1] = temp;
-	  }
+        for ( j = 0; j < match_count - 1; j++ )
+          if ( move_list[j].frequency < move_list[j + 1].frequency ) {
+            temp = move_list[j];
+            move_list[j] = move_list[j + 1];
+            move_list[j + 1] = temp;
+          }
 #ifdef TEXT_BASED
       printf( "%s:        ", THOR_TEXT );
       for ( i = 0; i < match_count; i++ ) {
-	printf( "%c%c: %4.1f%%    ", TO_SQUARE( move_list[i].move ),
-		(100.0 * move_list[i].frequency) / freq_sum );
-	if ( i % 6 == 4 )
-	  puts( "" );
+        printf( "%c%c: %4.1f%%    ", TO_SQUARE( move_list[i].move ),
+                (100.0 * move_list[i].frequency) / freq_sum );
+        if ( i % 6 == 4 )
+          puts( "" );
       }
       if ( match_count % 6 != 5 )
-	puts( "" );
+        puts( "" );
 #endif
     }
 
@@ -1894,9 +1898,9 @@ choose_thor_opening_move( int *in_board, int side_to_move, int echo ) {
 
 static int
 position_match( GameType *game, int move_count, int side_to_move,
-		unsigned int *shape_lo, unsigned int *shape_hi,
-		unsigned int corner_mask,
-		unsigned int in_hash1, unsigned int in_hash2 ) {
+                unsigned int *shape_lo, unsigned int *shape_hi,
+                unsigned int corner_mask,
+                unsigned int in_hash1, unsigned int in_hash2 ) {
   int i;
   int shape_match;
   int primary_hit_mask, secondary_hit_mask;
@@ -1912,11 +1916,11 @@ position_match( GameType *game, int move_count, int side_to_move,
   else {
     if ( side_to_move == BLACKSQ ) {  /* Black to move */
       if ( game->moves[move_count] < 0 )  /* White to move in the game */
-	return FALSE;
+        return FALSE;
     }
     else {  /* White to move */
       if ( game->moves[move_count] > 0 )  /* Black to move in the game */
-	return FALSE;
+        return FALSE;
     }
   }
 
@@ -1984,11 +1988,11 @@ position_match( GameType *game, int move_count, int side_to_move,
     if ( primary_hit_mask ) {
       secondary_hit_mask = secondary_hash_lookup( in_hash2 );
       if ( primary_hit_mask & secondary_hit_mask )
-	for ( i = 0; i < 8; i++ )
-	  if ( (primary_hit_mask & secondary_hit_mask) & (1 << i) ) {
-	    game->matching_symmetry = i;
-	    return TRUE;
-	  }
+        for ( i = 0; i < 8; i++ )
+          if ( (primary_hit_mask & secondary_hit_mask) & (1 << i) ) {
+            game->matching_symmetry = i;
+            return TRUE;
+          }
     }
   }
 
@@ -2004,7 +2008,7 @@ position_match( GameType *game, int move_count, int side_to_move,
 
 void
 database_search( int *in_board,
-		 int side_to_move ) {
+                 int side_to_move ) {
   int i, j;
   int index;
   int pos;
@@ -2055,8 +2059,8 @@ database_search( int *in_board,
     i = 0;
     while ( current_db != NULL ) {
       for ( j = 0; j < current_db->count; j++ ) {
-	thor_search.match_list[i] = &current_db->games[j];
-	i++;
+        thor_search.match_list[i] = &current_db->games[j];
+        i++;
       }
       current_db = current_db->next;
     }
@@ -2069,16 +2073,16 @@ database_search( int *in_board,
     thor_games_sorted = TRUE;
   }
 
-  /* Determine disc count, hash codes, patterns and opening 
+  /* Determine disc count, hash codes, patterns and opening
      for the position */
 
   disc_count[BLACKSQ] = disc_count[WHITESQ] = 0;
   for ( i = 1; i <= 8; i++ )
     for ( j = 1, pos = 10 * i + 1; j <= 8; j++, pos++ )
       if ( in_board[pos] == BLACKSQ )
-	disc_count[BLACKSQ]++;
+        disc_count[BLACKSQ]++;
       else if ( in_board[pos] == WHITESQ )
-	disc_count[WHITESQ]++;
+        disc_count[WHITESQ]++;
 
   move_count = disc_count[BLACKSQ] + disc_count[WHITESQ] - 4;
   compute_thor_patterns( in_board );
@@ -2094,52 +2098,52 @@ database_search( int *in_board,
   for ( i = 0; i < 8; i++ )
     for ( j = 0, pos = 10 * i + 11; j < 8; j++, pos++ )
       if ( in_board[pos] != EMPTY ) {
-	index = 8 * i + j;
-	if ( index < 32 )
-	  shape_lo[0] |= (1 << index);
-	else
-	  shape_hi[0] |= (1 << (index - 32));
-	index = 8 * i + (7 - j);
-	if ( index < 32 )
-	  shape_lo[1] |= (1 << index);
-	else
-	  shape_hi[1] |= (1 << (index - 32));
-	index = 8 * j + i;
-	if ( index < 32 )
-	  shape_lo[2] |= (1 << index);
-	else
-	  shape_hi[2] |= (1 << (index - 32));
-	index = 8 * j + (7 - i);
-	if ( index < 32 )
-	  shape_lo[3] |= (1 << index);
-	else
-	  shape_hi[3] |= (1 << (index - 32));
-	index = 8 * (7 - i) + j;
-	if ( index < 32 )
-	  shape_lo[4] |= (1 << index);
-	else
-	  shape_hi[4] |= (1 << (index - 32));
-	index = 8 * (7 - i) + (7 - j);
-	if ( index < 32 )
-	  shape_lo[5] |= (1 << index);
-	else
-	  shape_hi[5] |= (1 << (index - 32));
-	index = 8 * (7 - j) + i;
-	if ( index < 32 )
-	  shape_lo[6] |= (1 << index);
-	else
-	  shape_hi[6] |= (1 << (index - 32));
-	index = 8 * (7 - j) + (7 - i);
-	if ( index < 32 )
-	  shape_lo[7] |= (1 << index);
-	else
-	  shape_hi[7] |= (1 << (index - 32));
+        index = 8 * i + j;
+        if ( index < 32 )
+          shape_lo[0] |= (1 << index);
+        else
+          shape_hi[0] |= (1 << (index - 32));
+        index = 8 * i + (7 - j);
+        if ( index < 32 )
+          shape_lo[1] |= (1 << index);
+        else
+          shape_hi[1] |= (1 << (index - 32));
+        index = 8 * j + i;
+        if ( index < 32 )
+          shape_lo[2] |= (1 << index);
+        else
+          shape_hi[2] |= (1 << (index - 32));
+        index = 8 * j + (7 - i);
+        if ( index < 32 )
+          shape_lo[3] |= (1 << index);
+        else
+          shape_hi[3] |= (1 << (index - 32));
+        index = 8 * (7 - i) + j;
+        if ( index < 32 )
+          shape_lo[4] |= (1 << index);
+        else
+          shape_hi[4] |= (1 << (index - 32));
+        index = 8 * (7 - i) + (7 - j);
+        if ( index < 32 )
+          shape_lo[5] |= (1 << index);
+        else
+          shape_hi[5] |= (1 << (index - 32));
+        index = 8 * (7 - j) + i;
+        if ( index < 32 )
+          shape_lo[6] |= (1 << index);
+        else
+          shape_hi[6] |= (1 << (index - 32));
+        index = 8 * (7 - j) + (7 - i);
+        if ( index < 32 )
+          shape_lo[7] |= (1 << index);
+        else
+          shape_hi[7] |= (1 << (index - 32));
       }
 
   /* Get the corner mask */
 
   corner_mask = get_corner_mask( in_board[11], in_board[81],
-				 in_board[18], in_board[88] );
+                                 in_board[18], in_board[88] );
 
   /* Query the database about all positions in all databases.
      Only games which pass the currently applied filter are scanned.
@@ -2167,30 +2171,30 @@ database_search( int *in_board,
     for ( i = 0; i < current_db->count; i++ ) {
       game = &current_db->games[i];
       if ( game->passes_filter ) {
-	if ( disc_count[BLACKSQ] == game->black_disc_count[move_count] )
-	  if ( position_match( game, move_count, side_to_move, shape_lo,
-			       shape_hi, corner_mask, target_hash1,
-			       target_hash2 ) ) {
-	    thor_search.match_list[game->sort_order] = game;
-	    symmetry = game->matching_symmetry;
-	    if ( move_count < game->move_count ) {
-	      next_move =
-		symmetry_map[symmetry][abs( (int) game->moves[move_count])];
-	      thor_search.next_move_frequency[next_move]++;
-	      if ( game->actual_black_score == 32 )
-		thor_search.next_move_score[next_move] += 0.5;
-	      else if ( game->actual_black_score > 32 ) {
-		if ( side_to_move == BLACKSQ )
-		  thor_search.next_move_score[next_move] += 1.0;
-	      }
-	      else {
-		if ( side_to_move == WHITESQ )
-		  thor_search.next_move_score[next_move] += 1.0;
-	      }
-	    }
-	    frequency[game->actual_black_score]++;
-	    thor_search.match_count++;
-	  }
+        if ( disc_count[BLACKSQ] == game->black_disc_count[move_count] )
+          if ( position_match( game, move_count, side_to_move, shape_lo,
+                               shape_hi, corner_mask, target_hash1,
+                               target_hash2 ) ) {
+            thor_search.match_list[game->sort_order] = game;
+            symmetry = game->matching_symmetry;
+            if ( move_count < game->move_count ) {
+              next_move =
+                symmetry_map[symmetry][abs( (int) game->moves[move_count])];
+              thor_search.next_move_frequency[next_move]++;
+              if ( game->actual_black_score == 32 )
+                thor_search.next_move_score[next_move] += 0.5;
+              else if ( game->actual_black_score > 32 ) {
+                if ( side_to_move == BLACKSQ )
+                  thor_search.next_move_score[next_move] += 1.0;
+              }
+              else {
+                if ( side_to_move == WHITESQ )
+                  thor_search.next_move_score[next_move] += 1.0;
+              }
+            }
+            frequency[game->actual_black_score]++;
+            thor_search.match_count++;
+          }
       }
     }
     current_db = current_db->next;
@@ -2205,8 +2209,8 @@ database_search( int *in_board,
     j = 0;
     while ( i < thor_search.match_count ) {
       if ( thor_search.match_list[j] != NULL ) {
-	thor_search.match_list[i] = thor_search.match_list[j];
-	i++;
+        thor_search.match_list[i] = thor_search.match_list[j];
+        i++;
       }
       j++;
     }
@@ -2304,8 +2308,8 @@ get_thor_game( int index ) {
 
 void
 get_thor_game_moves( int index,
-		     int *move_count,
-		     int *moves ) {
+                     int *move_count,
+                     int *moves ) {
   int i;
   GameType *game;
 
@@ -2322,13 +2326,13 @@ get_thor_game_moves( int index,
     case 5:
     case 7:
       for ( i = 0; i < game->move_count; i++ )
-	moves[i] =
-	  symmetry_map[game->matching_symmetry][abs( (int) game->moves[i] )];
+        moves[i] =
+          symmetry_map[game->matching_symmetry][abs( (int) game->moves[i] )];
       break;
 
     default:  /* Symmetries that reverse the initial position. */
       for ( i = 0; i < game->move_count; i++ )
-	moves[i] = abs( (int) game->moves[i] );
+        moves[i] = abs( (int) game->moves[i] );
       break;
     }
   }
@@ -2361,7 +2365,7 @@ get_thor_game_move_count( int index ) {
 
 int
 get_thor_game_move( int index,
-		    int move_number ) {
+                    int move_number ) {
   if ( (index < 0) || (index >= thor_search.match_count) )
     return PASS;
   else {
@@ -2370,7 +2374,7 @@ get_thor_game_move( int index,
       return PASS;
     else
       return
-	symmetry_map[game->matching_symmetry][abs( (int) game->moves[move_number] )];
+        symmetry_map[game->matching_symmetry][abs( (int) game->moves[move_number] )];
   }
 }
 
@@ -2487,7 +2491,7 @@ init_thor_hash( void ) {
     do {  /* The odometer principle */
       row[j]++;
       if ( row[j] == 3 )
-	row[j] = 0;
+        row[j] = 0;
       j++;
     } while ( (row[j - 1] == 0) && (j < 8) );
   }
@@ -2497,12 +2501,12 @@ init_thor_hash( void ) {
       buffer[j] = abs( my_random() );
     for ( j = 0; j < 6561; j++ )
       primary_hash[i][j] = (buffer[j] & 0xFFFF0000) |
-	(bit_reverse_32( buffer[flip_row[j]] ) & 0x0000FFFF);
+        (bit_reverse_32( buffer[flip_row[j]] ) & 0x0000FFFF);
     for ( j = 0; j < 6561; j++ )
       buffer[j] = abs( my_random() );
     for ( j = 0; j < 6561; j++ )
       secondary_hash[i][j] = (buffer[j] & 0xFFFF0000) |
-	(bit_reverse_32( buffer[flip_row[j]] ) & 0x0000FFFF);
+        (bit_reverse_32( buffer[flip_row[j]] ) & 0x0000FFFF);
   }
 }
 
@@ -2544,7 +2548,7 @@ init_move_masks( void ) {
   symmetry group induce (and their inverses).
   Note: The order of the mappings must coincide with the order
         in which they are calculated in COMPUTE_FULL_PRIMARY_HASH()
-	and COMPUTE_FULL_SECONDARY_HASH().
+        and COMPUTE_FULL_SECONDARY_HASH().
 */
 
 static void
@@ -2580,7 +2584,7 @@ init_symmetry_maps( void ) {
   inv_symmetry_map[4] = g1_b1_map;
 
   symmetry_map[5] = g8_b1_map;
-  inv_symmetry_map[5] = g8_b1_map; 
+  inv_symmetry_map[5] = g8_b1_map;
 
   symmetry_map[6] = a7_b1_map;
   inv_symmetry_map[6] = h2_b1_map;
@@ -2591,10 +2595,10 @@ init_symmetry_maps( void ) {
   for ( i = 0; i < 8; i++ )
     for ( j = 1; j <= 8; j++ )
       for ( k = 1; k <= 8; k++ ) {
-	pos = 10 * j + k;
-	if ( inv_symmetry_map[i][symmetry_map[i][pos]] != pos )
-	  fatal_error( "Error in map %d: inv(map(%d))=%d\n",
-		       i, pos, inv_symmetry_map[i][symmetry_map[i][pos]] );
+        pos = 10 * j + k;
+        if ( inv_symmetry_map[i][symmetry_map[i][pos]] != pos )
+          fatal_error( "Error in map %d: inv(map(%d))=%d\n",
+                       i, pos, inv_symmetry_map[i][symmetry_map[i][pos]] );
       }
 }
 
@@ -2679,8 +2683,8 @@ build_thor_opening_tree( void ) {
     end_depth = branch_depth + strlen( thor_opening_list[i].move_str ) / 2;
     for ( j = 0; j < end_depth - branch_depth; j++ )
       thor_move_list[branch_depth + j] =
-	10 * (thor_opening_list[i].move_str[2 * j + 1] - '0') +
-	( thor_opening_list[i].move_str[2 * j] - 'a' + 1 );
+        10 * (thor_opening_list[i].move_str[2 * j + 1] - '0') +
+        ( thor_opening_list[i].move_str[2 * j] - 'a' + 1 );
 
     /* Play through the moves common with the previous line
        and the first deviation */
@@ -2692,22 +2696,22 @@ build_thor_opening_tree( void ) {
       move = thor_move_list[j];
       flipped = any_flips( move, thor_side_to_move, OPP( thor_side_to_move ) );
       if ( flipped ) {
-	thor_board[move] = thor_side_to_move;
-	thor_side_to_move = OPP( thor_side_to_move );
+        thor_board[move] = thor_side_to_move;
+        thor_side_to_move = OPP( thor_side_to_move );
       }
       else {
-	thor_side_to_move = OPP( thor_side_to_move );
-	flipped = any_flips( move, thor_side_to_move,
-			     OPP( thor_side_to_move ) );
-	if ( flipped ) {
-	  thor_board[move] = thor_side_to_move;
-	  thor_side_to_move = OPP( thor_side_to_move );
-	}
-	else {
+        thor_side_to_move = OPP( thor_side_to_move );
+        flipped = any_flips( move, thor_side_to_move,
+                             OPP( thor_side_to_move ) );
+        if ( flipped ) {
+          thor_board[move] = thor_side_to_move;
+          thor_side_to_move = OPP( thor_side_to_move );
+        }
+        else {
 #ifdef TEXT_BASED
-	  puts( "This COULD happen (1) in BUILD_THOR_OPENING_TREE" );
+          puts( "This COULD happen (1) in BUILD_THOR_OPENING_TREE" );
 #endif
-	}
+        }
       }
     }
 
@@ -2726,7 +2730,7 @@ build_thor_opening_tree( void ) {
     else {
       last_child = parent->child_node;
       while ( last_child->sibling_node != NULL )
-	last_child = last_child->sibling_node;
+        last_child = last_child->sibling_node;
       last_child->sibling_node = new_child;
       last_child->sibling_move = thor_move_list[branch_depth];
     }
@@ -2739,22 +2743,22 @@ build_thor_opening_tree( void ) {
       move = thor_move_list[j];
       flipped = any_flips( move, thor_side_to_move, OPP( thor_side_to_move ) );
       if ( flipped ) {
-	thor_board[move] = thor_side_to_move;
-	thor_side_to_move = OPP( thor_side_to_move );
+        thor_board[move] = thor_side_to_move;
+        thor_side_to_move = OPP( thor_side_to_move );
       }
       else {
-	thor_side_to_move = OPP( thor_side_to_move );
-	flipped = any_flips( move, thor_side_to_move,
-			     OPP( thor_side_to_move ) );
-	if ( flipped ) {
-	  thor_board[move] = thor_side_to_move;
-	  thor_side_to_move = OPP( thor_side_to_move );
-	}
-	else {
+        thor_side_to_move = OPP( thor_side_to_move );
+        flipped = any_flips( move, thor_side_to_move,
+                             OPP( thor_side_to_move ) );
+        if ( flipped ) {
+          thor_board[move] = thor_side_to_move;
+          thor_side_to_move = OPP( thor_side_to_move );
+        }
+        else {
 #ifdef TEXT_BASED
-	  puts( "This COULD happen (2) in BUILD_THOR_OPENING_TREE" );
+          puts( "This COULD happen (2) in BUILD_THOR_OPENING_TREE" );
 #endif
-	}
+        }
       }
       parent = new_child;
       new_child = new_thor_opening_node( parent );
@@ -2779,6 +2783,7 @@ build_thor_opening_tree( void ) {
   PRINT_THOR_OPENING_TREE
 */
 
+__attribute__((unused))
 static void
 print_thor_opening_tree( ThorOpeningNode *node, int depth ) {
   char move;
@@ -2789,7 +2794,7 @@ print_thor_opening_tree( ThorOpeningNode *node, int depth ) {
   while ( child != NULL ) {
 #ifdef TEXT_BASED
     printf( "%*s%c%c    %d\n", 2 * depth, "", TO_SQUARE( move ),
-	    child->frequency );
+            child->frequency );
 #endif
     print_thor_opening_tree( child, depth + 1 );
     move = child->sibling_move;
@@ -2812,7 +2817,7 @@ static int node_count = 0;
 
 static int
 recursive_frequency_search( MoveListType *list, int required, int common,
-			    int lo, int hi ) {
+                            int lo, int hi ) {
   char move;
   int i, j;
   int frequency;
@@ -2838,11 +2843,11 @@ recursive_frequency_search( MoveListType *list, int required, int common,
     first_unique = 0;
     if ( line_count != 0 )
       for ( i = 0; (i < common) && (list[lo][i] == last_line[i]);
-	    i++, first_unique++ )
-	;
+            i++, first_unique++ )
+        ;
 #ifdef TEXT_BASED
     printf( " { %2d, %6d, %*s\"", first_unique, hi - lo,
-	    2 * first_unique, "" );
+            2 * first_unique, "" );
 #endif
     for ( i = first_unique; i < common; i++ ) {
 #ifdef TEXT_BASED
@@ -2896,7 +2901,7 @@ frequency_analysis( int game_count ) {
   while ( current_db != NULL ) {
     for ( i = 0; i < current_db->count; i++ ) {
       memcpy( &list[game_index], &current_db->games[i].moves,
-	      current_db->games[i].move_count );
+              current_db->games[i].move_count );
       list[game_index][current_db->games[i].move_count] = 0;
       game_index++;
     }
@@ -2906,13 +2911,13 @@ frequency_analysis( int game_count ) {
   qsort( list, game_count, sizeof( MoveListType ), strcmp_wrapper );
 
   (void) recursive_frequency_search( list, (int) floor( 0.0005 * game_count ),
-				     1, 0, game_count - 1 );
+                                     1, 0, game_count - 1 );
 
   free( list );
 
 #ifdef TEXT_BASED
   printf( "Frequency analysis found %d nodes in %d lines.\n",
-	  node_count, line_count );
+          node_count, line_count );
 #endif
 }
 #endif

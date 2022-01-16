@@ -2,10 +2,12 @@
    File:         practice.c
 
    Created:      January 29, 1998
-   
-   Modified:     July 12, 1999
+
+   Modified:     Jan 16, 2022 (Roberto Corradini)
+                 July 12, 1999 (last change by G.A.)
 
    Author:       Gunnar Andersson (gunnar@radagast.se)
+                 Roberto Corradini
 
    Contents:     A small utility which enables the user to browse
                  an opening book file.
@@ -58,7 +60,7 @@ main( int argc, char *argv[] ) {
     printf( "Gunnar Andersson, %s\n", __DATE__ );
     exit( EXIT_FAILURE );
   }
-   
+
   init_osf( TRUE );
   read_binary_database( book_name );
 
@@ -89,47 +91,47 @@ main( int argc, char *argv[] ) {
     do {
       repeat = FALSE;
       if ( side_to_move == BLACKSQ )
-	printf( "Black move: " );
+        printf( "Black move: " );
       else
-	printf( "White move: " );
+        printf( "White move: " );
       fflush( stdout );
-      scanf( "%s", move_string );
+      (void) !scanf( "%s", move_string );
       if ( !strcmp( move_string, "quit" ) )
-	quit = TRUE;
+        quit = TRUE;
       else {
-	command = atoi( move_string );
-	if ( (command >= 1) && (command <= disks_played) ) {
-	  for ( i = 1; i <= command; i++ )
-	    unmake_move( old_stm[disks_played - 1],
-			 move_list[disks_played - 1] );
-	  side_to_move = old_stm[disks_played];
-	  score_sheet_row = row[disks_played];
-	}
-	else if ( command != 0 ) {
-	  printf( "Can't back up %d moves\n\n", command );
-	  repeat = TRUE;
-	}
-	else {
-	  generate_all( side_to_move );
-	  move = (move_string[0] - 'a' + 1) + 10 * (move_string[1] - '0');
-	  if ( (move_string[0] >= 'a') && (move_string[0] <= 'h') &&
-	       (move_string[1] >= '1') && (move_string[1] <= '8') &&
-	       valid_move( move, side_to_move ) ) {
-	    old_stm[disks_played] = side_to_move;
-	    row[disks_played] = score_sheet_row;
-	    move_list[disks_played] = move;
-	    (void) make_move( side_to_move, move, TRUE );
-	    if ( side_to_move == BLACKSQ )
-	      black_moves[++score_sheet_row] = move;
-	    else
-	      white_moves[score_sheet_row] = move;
-	    side_to_move = OPP( side_to_move );
-	  }
-	  else {
-	    puts( "Move infeasible\n" );
-	    repeat = TRUE;
-	  }
-	}
+        command = atoi( move_string );
+        if ( (command >= 1) && (command <= disks_played) ) {
+          for ( i = 1; i <= command; i++ )
+            unmake_move( old_stm[disks_played - 1],
+                         move_list[disks_played - 1] );
+          side_to_move = old_stm[disks_played];
+          score_sheet_row = row[disks_played];
+        }
+        else if ( command != 0 ) {
+          printf( "Can't back up %d moves\n\n", command );
+          repeat = TRUE;
+        }
+        else {
+          generate_all( side_to_move );
+          move = (move_string[0] - 'a' + 1) + 10 * (move_string[1] - '0');
+          if ( (move_string[0] >= 'a') && (move_string[0] <= 'h') &&
+               (move_string[1] >= '1') && (move_string[1] <= '8') &&
+               valid_move( move, side_to_move ) ) {
+            old_stm[disks_played] = side_to_move;
+            row[disks_played] = score_sheet_row;
+            move_list[disks_played] = move;
+            (void) make_move( side_to_move, move, TRUE );
+            if ( side_to_move == BLACKSQ )
+              black_moves[++score_sheet_row] = move;
+            else
+              white_moves[score_sheet_row] = move;
+            side_to_move = OPP( side_to_move );
+          }
+          else {
+            puts( "Move infeasible\n" );
+            repeat = TRUE;
+          }
+        }
       }
     } while ( repeat );
   }

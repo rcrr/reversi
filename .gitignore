@@ -36,6 +36,17 @@ field_research/code/zebra/original/zebra
 field_research/code/zebra/original/zebra.err
 field_research/code/zebra/original/zebra.log
 field_research/code/zebra/original/ffo/*.out
+field_research/code/zebra/working_copy/*.o
+field_research/code/zebra/working_copy/booktool
+field_research/code/zebra/working_copy/enddev
+field_research/code/zebra/working_copy/libzebra.a
+field_research/code/zebra/working_copy/practice
+field_research/code/zebra/working_copy/scrzebra
+field_research/code/zebra/working_copy/tune8dbs
+field_research/code/zebra/working_copy/zebra
+field_research/code/zebra/working_copy/zebra.err
+field_research/code/zebra/working_copy/zebra.log
+field_research/code/zebra/working_copy/ffo/*.out
 field_research/code/edax/4.3/doc
 field_research/code/edax/4.3/bin
 .kdev4

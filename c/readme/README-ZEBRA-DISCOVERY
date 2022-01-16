@@ -1,4 +1,18 @@
 
+List of ideas and hints collected investigating the Zebra source code:
+
+  (01) Makefile
+       Use of the makedepend tool. The tool is installed with "sudo apt install xutils-dev".
+       The tool simplifies the structure of the makefile but preserves the fine graing dependency structure od the code.
+
+  (02) ...
+
+  (xx) ...
+
+
+--- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+
+Activities log ( in Italian, I am sorry :) )
 
 
 Appunti al 16-01-2022
@@ -6,7 +20,7 @@ Appunti al 16-01-2022
 
 GIT commit e14fd239d2626f5c228863e7b1a388c33e6e6729
 
-La nuova versione del software completata qualche giorno fa, il solver GVE ( Game Value Estimator ) e' completa.
+La nuova versione del solver GVE ( Game Value Estimator ) e' completa.
 GVE e' basato su diverse tecnologie:
 
  - EV ( Evaluation Function ) costruita sui patterns preparati con le metodologie di M. Buro
@@ -24,6 +38,62 @@ Zebra e' distribuito da Gunnar con Licenza GPL v2 quindi manterro' nel repositor
 
 ScrZebra e' la abbreviazione di "SCRiptable endgame solver ZEBRA".
 E' un programma standalone che si usa da riga di comando, in sostanza equivalente a endgame_solver. Impiega lo stesso endgame solver di WZebra.
+
+Costituite le directory original e working_copy, in modo da avere sempre l'originale di Gunnar e una mia copia di lavoro.
+
+Ho visto che nel 2013 avevo gia' eseguito il gruppo di 21 posizioni di test su whitewater:
+
+  Macchina   | sec   | nps
+ ------------+-------+------------
+  whitewater | 3,225 | 12,348,808
+  acheron    | 2,113 | 18,853,033
+
+L'aspetto fondamentale pero' e' il paragone tra Zebra e GVE che devo calcolare in dettaglio ...
+
+                          || Zebra                             || GVE
+ --------------------+----++-----------------------------------++---------------------------------------
+  Posizione          | ec || sec  | nodes         | nps        || sec     | nodes          | nps        
+ --------------------+----++------+---------------+------------++---------+----------------+------------
+  ffo-50             | 26 || 99.3 | 2,062,379,691 | 20,772,951 ||  3241.4 | 44,789,355,328 | 13,818,347
+  woc18-FKvsAP-g1-22 | 22 ||  1.5 |    27,503,551 | 18,350,552 ||     3.1 |     36,061,366 | 11,632,699
+
+Ci sono diversi commenti da fare:
+
+La velocita' di navigazione del game tree e' a favore di Zebra che e' 1.5x piu' veloce. Non e' molto ma sara' interessante capire come mai.
+
+Ogni PLY porta circa un 3x di complessita', infatti 1.5 x 3^4 fa 120 che come ordine di grandezza e' consistente con i 99s impiegati per la posizione ffo-50.
+Dove il valore dell'esponente 4 nella formula 3^4 e' dato dalla differenza di ec ( 26 - 22 ) tra le due posizioni.
+
+GVE invece non e' consistente nella crescita del tempo di risoluzione che sale di 1,000 volte invece che di 100.
+
+Vengono spesi 73 secondi per tutti gli step di ID prima dell'ultimo, espandendo 27,815,363 di nodi ( 0.38M nps, quindi molto lento, ma e' cosa nota ),
+Poi si entra nella ultima fase, e si giunge velocemente ad affermare che la mossa D8 vale +10, che poi si rivelera' la mossa migliore.
+Solo altri 12 secondi, per un totale di 835,412,840 nodi navigati !!!
+Ma poi si spendono ulteriori 53 minuti e 44 MLD di nodi per verificare che tutte le altre mosse sono peggiori.
+
+  Sun Jan 16 16:37:32 2022 #### start  .99. Iterative deepening search depth = 99
+  Sun Jan 16 16:37:32 2022 00 - D8 (+08) [+06..+08]: (failing high) f- = +08 - cumulated node count    161170309
+  Sun Jan 16 16:37:41 2022 00 - D8 (+08) [+08..+10]: (failing high) f- = +10 - cumulated node count    200488376
+  Sun Jan 16 16:37:44 2022 00 - D8 (+10) [+10..+12]: (failing low)  f+ = +10 - cumulated node count    835412840
+  Sun Jan 16 16:38:30 2022 01 - G8 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count   1889879562
+  Sun Jan 16 16:39:47 2022 02 - B2 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count   3069926863
+  Sun Jan 16 16:41:17 2022 03 - G2 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count   4834391805
+  Sun Jan 16 16:43:25 2022 04 - A3 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count   5114393268
+  Sun Jan 16 16:43:51 2022 05 - H2 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count   7602693600
+  Sun Jan 16 16:46:49 2022 06 - A2 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count  11049459118
+  Sun Jan 16 16:50:44 2022 07 - H7 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count  18888427176
+  Sun Jan 16 16:59:44 2022 08 - B8 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count  33371948764
+  Sun Jan 16 17:16:25 2022 09 - A4 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count  34659109105
+  Sun Jan 16 17:18:00 2022 10 - A5 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count  36507861544
+  Sun Jan 16 17:20:17 2022 11 - A6 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count  37439610850
+  Sun Jan 16 17:21:27 2022 12 - A7 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count  41392285796
+  Sun Jan 16 17:25:52 2022 13 - B7 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count  41988427463
+  Sun Jan 16 17:26:40 2022 14 - G7 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count  44789355328
+  Sun Jan 16 17:30:04 2022 #### finish .99. Best move and game value: [D8:+10] - nc =  44761539965 - Time [REAL][PROC]: [  3152.249625594][  3152.433979436]
+
+C'e' evidentemente qualcosa che NON va.
+
+Prossimo step e' di aggiungere qualche ulteriore posizione a questa analisi comparativa per capire se si tratta di una disfunzione ricorrente o saltuaria. 
 
 
 

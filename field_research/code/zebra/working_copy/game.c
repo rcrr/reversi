@@ -3,12 +3,15 @@
 
    Created:        September 20, 1997
 
-   Modified:       December 31, 2002
+   Modified:       Jan 16, 2022 (Roberto Corradini)
+                   December 31, 2002 (last change by G.A.)
 
    Author:         Gunnar Andersson (gunnar@radagast.se)
+                   Roberto Corradini
 
    Contents:       All the routines needed to play a game.
 */
+
 
 
 
@@ -130,7 +133,7 @@ toggle_status_log( int write_log ) {
    GLOBAL_SETUP
    Initialize the different sub-systems.
 */
-   
+
 void
 global_setup( int use_random, int hash_bits ) {
   FILE *log_file;
@@ -181,7 +184,7 @@ global_setup( int use_random, int hash_bits ) {
 /*
    GLOBAL_TERMINATE
    Free all dynamically allocated memory.
-*/   
+*/
 
 void
 global_terminate( void ) {
@@ -203,14 +206,14 @@ setup_game( const char *file_name, int *side_to_move ) {
   int i, j;
   int pos, token;
   FILE *stream;
-   
+
   for ( i = 0; i < 10; i++ )
     for ( j = 0; j < 10; j++ ) {
       pos = 10 * i + j;
       if ( (i == 0) || (i == 9) || (j == 0) || (j == 9) )
-	board[pos] = OUTSIDE;
+        board[pos] = OUTSIDE;
       else
-	board[pos] = EMPTY;
+        board[pos] = EMPTY;
     }
 
   if ( file_name == NULL ) {
@@ -222,41 +225,41 @@ setup_game( const char *file_name, int *side_to_move ) {
     stream = fopen( file_name, "r" );
     if ( stream == NULL )
       fatal_error( "%s '%s'\n", GAME_LOAD_ERROR, file_name );
-    fgets( buffer, 65, stream );
+    (void) !fgets( buffer, 65, stream );
     token = 0;
     for ( i = 1; i <= 8; i++ )
       for ( j = 1; j <= 8; j++ ) {
-	pos = 10 * i + j;
-	switch ( buffer[token] ) {
-	case '*':
-	case 'X':
-	  board[pos] = BLACKSQ;
-	  break;
-	case 'O':
-	case '0':
-	  board[pos] = WHITESQ;
-	  break;
-	case '-':
-	case '.':
-	  break;
-	default:
+        pos = 10 * i + j;
+        switch ( buffer[token] ) {
+        case '*':
+        case 'X':
+          board[pos] = BLACKSQ;
+          break;
+        case 'O':
+        case '0':
+          board[pos] = WHITESQ;
+          break;
+        case '-':
+        case '.':
+          break;
+        default:
 #if TEXT_BASED
-	  printf( "%s '%c' %s\n", BAD_CHARACTER_ERROR, buffer[pos],
-		  GAME_FILE_TEXT);
+          printf( "%s '%c' %s\n", BAD_CHARACTER_ERROR, buffer[pos],
+                  GAME_FILE_TEXT);
 #endif
-	  break;
-	}
-	token++;
+          break;
+        }
+        token++;
       }
 
-    fgets( buffer, 10, stream );
+    (void) !fgets( buffer, 10, stream );
     if ( buffer[0] == 'B' )
       *side_to_move = BLACKSQ;
     else if ( buffer[0] == 'W' )
       *side_to_move = WHITESQ;
     else
       fatal_error( "%s '%c' %s\n", BAD_CHARACTER_ERROR, buffer[0],
-		   GAME_FILE_TEXT);
+                   GAME_FILE_TEXT);
   }
   disks_played = disc_count( BLACKSQ ) + disc_count( WHITESQ ) - 4;
 
@@ -401,7 +404,7 @@ ponder_move( int side_to_move, int book, int mid, int exact, int wld ) {
   stored_echo = echo;
   echo = FALSE;
   (void) compute_move( side_to_move, FALSE, 0, 0, FALSE, FALSE,
-		       MIN( PONDER_DEPTH, mid ), 0, 0, FALSE, &eval_info );
+                       MIN( PONDER_DEPTH, mid ), 0, 0, FALSE, &eval_info );
   echo = stored_echo;
 
   /* Sort the opponents on the score and push the table move (if any)
@@ -421,9 +424,9 @@ ponder_move( int side_to_move, int book, int mid, int exact, int wld ) {
     printf( "%s=%d\n", HASH_MOVE_TEXT, hash_move );
     for ( i = 0; i < expect_count; i++ ) {
       printf( "%c%c %-6.2f  ", TO_SQUARE( move_list[disks_played][i] ),
-	      evals[disks_played][move_list[disks_played][i]] / 128.0 );
+              evals[disks_played][move_list[disks_played][i]] / 128.0 );
       if ( (i % 7 == 6) || (i == expect_count - 1) )
-	puts( "" );
+        puts( "" );
     }
 #endif
   }
@@ -438,7 +441,7 @@ ponder_move( int side_to_move, int book, int mid, int exact, int wld ) {
     prefix_move = this_move;
     (void) make_move( side_to_move, this_move, TRUE );
     (void) compute_move( OPP( side_to_move ), FALSE, 0, 0, TRUE, FALSE,
-			 mid, exact, wld, FALSE, &eval_info );
+                         mid, exact, wld, FALSE, &eval_info );
     unmake_move( side_to_move, this_move );
     clear_ponder_move();
     move_stop_time =  get_real_timer();
@@ -448,7 +451,7 @@ ponder_move( int side_to_move, int book, int mid, int exact, int wld ) {
     if ( (i == 0) && !force_return ) {  /* Store the PV for the first move */
       best_pv_depth = pv_depth[0];
       for ( j = 0; j < pv_depth[0]; j++ )
-	best_pv[j] = pv[0][j];
+        best_pv[j] = pv[0][j];
     }
   }
 
@@ -504,7 +507,7 @@ compare_eval( EvaluationType e1, EvaluationType e2 ) {
 
 int
 extended_compute_move( int side_to_move, int book_only,
-		       int book, int mid, int exact, int wld ) {
+                       int book, int mid, int exact, int wld ) {
   int i, j;
   int index;
   int changed;
@@ -566,31 +569,31 @@ extended_compute_move( int side_to_move, int book_only,
       evaluated_list[i].pv_depth = 1;
       evaluated_list[i].pv[0] = book_move.move;
       evaluated_list[i].eval =
-	create_eval_info( UNDEFINED_EVAL, UNSOLVED_POSITION,
-			  book_move.score, 0.0, 0, TRUE );
+        create_eval_info( UNDEFINED_EVAL, UNSOLVED_POSITION,
+                          book_move.score, 0.0, 0, TRUE );
       child_flags = book_move.flags & book_move.parent_flags;
       if ( child_flags & (FULL_SOLVED | WLD_SOLVED) ) {
-	if ( child_flags & FULL_SOLVED )
-	  evaluated_list[i].eval.type = EXACT_EVAL;
-	else
-	  evaluated_list[i].eval.type = WLD_EVAL;
-	if ( book_move.score > 0 ) {
-	  evaluated_list[i].eval.res = WON_POSITION;
-	  /* Normalize the scores so that e.g. 33-31 becomes +256 */
-	  evaluated_list[i].eval.score -= CONFIRMED_WIN;
-	  evaluated_list[i].eval.score *= 128;
-	}
-	else if ( book_move.score == 0 )
-	  evaluated_list[i].eval.res = DRAWN_POSITION;
-	else {  /* score < 0 */
-	  evaluated_list[i].eval.res = LOST_POSITION;
-	  /* Normalize the scores so that e.g. 30-34 becomes -512 */
-	  evaluated_list[i].eval.score += CONFIRMED_WIN;
-	  evaluated_list[i].eval.score *= 128;
-	}
+        if ( child_flags & FULL_SOLVED )
+          evaluated_list[i].eval.type = EXACT_EVAL;
+        else
+          evaluated_list[i].eval.type = WLD_EVAL;
+        if ( book_move.score > 0 ) {
+          evaluated_list[i].eval.res = WON_POSITION;
+          /* Normalize the scores so that e.g. 33-31 becomes +256 */
+          evaluated_list[i].eval.score -= CONFIRMED_WIN;
+          evaluated_list[i].eval.score *= 128;
+        }
+        else if ( book_move.score == 0 )
+          evaluated_list[i].eval.res = DRAWN_POSITION;
+        else {  /* score < 0 */
+          evaluated_list[i].eval.res = LOST_POSITION;
+          /* Normalize the scores so that e.g. 30-34 becomes -512 */
+          evaluated_list[i].eval.score += CONFIRMED_WIN;
+          evaluated_list[i].eval.score *= 128;
+        }
       }
       else
-	  evaluated_list[i].eval.type = MIDGAME_EVAL;
+          evaluated_list[i].eval.type = MIDGAME_EVAL;
     }
   }
   if ( book_only ) {  /* Only book moves are to be considered */
@@ -602,7 +605,7 @@ extended_compute_move( int side_to_move, int book_only,
       pv_depth[0] = 0;
       best_move = PASS;
       book_eval_info = create_eval_info( UNDEFINED_EVAL, UNSOLVED_POSITION,
-					 0, 0.0, 0, FALSE );
+                                         0, 0.0, 0, FALSE );
       set_current_eval( book_eval_info );
     }
   }
@@ -628,7 +631,7 @@ extended_compute_move( int side_to_move, int book_only,
     else {
       int max_depth = MAX( mid, MAX( exact, wld ) );
       if ( max_depth >= 16 )
-	shallow_depth = 6;
+        shallow_depth = 6;
       else
       shallow_depth = 4;
     }
@@ -638,41 +641,41 @@ extended_compute_move( int side_to_move, int book_only,
       this_move = move_list[disks_played][i];
       unsearched = TRUE;
       for ( j = 0; j < game_evaluated_count; j++ )
-	if ( evaluated_list[j].move == this_move )
-	  unsearched = FALSE;
+        if ( evaluated_list[j].move == this_move )
+          unsearched = FALSE;
       if ( !unsearched )
-	continue;
+        continue;
       unsearched_move[unsearched_count] = this_move;
       unsearched_count++;
       (void) make_move( side_to_move, this_move, TRUE );
       if ( shallow_depth == 1 )  /* Compute move doesn't allow depth 0 */
-	shallow_eval = -static_evaluation( OPP( side_to_move ) );
+        shallow_eval = -static_evaluation( OPP( side_to_move ) );
       else {
-	EvaluationType shallow_info;
+        EvaluationType shallow_info;
 
-	(void) compute_move( OPP( side_to_move ), FALSE, 0, 0, FALSE, book,
-			     shallow_depth - 1, 0, 0, TRUE, &shallow_info );
+        (void) compute_move( OPP( side_to_move ), FALSE, 0, 0, FALSE, book,
+                             shallow_depth - 1, 0, 0, TRUE, &shallow_info );
 
-	if ( shallow_info.type == PASS_EVAL ) {
-	  /* Don't allow pass */
-	  (void) compute_move( side_to_move, FALSE, 0, 0, FALSE, book,
-			       shallow_depth - 1, 0, 0, TRUE, &shallow_info );
-	  if ( shallow_info.type == PASS_EVAL ) {  /* Game over */
-	    disc_diff =
-	      disc_count( side_to_move ) - disc_count( OPP( side_to_move ) );
-	    if ( disc_diff > 0 )
-	      corrected_diff = 64 - 2 * disc_count( OPP( side_to_move) );
-	    else if ( disc_diff == 0 )
-	      corrected_diff = 0;
-	    else
-	      corrected_diff = 2 * disc_count( side_to_move ) - 64;
-	    shallow_eval = 128 * corrected_diff;
-	  }
-	  else
-	    shallow_eval = shallow_info.score;
-	}
-	else  /* Sign-correct the score produced */
-	  shallow_eval = -shallow_info.score;
+        if ( shallow_info.type == PASS_EVAL ) {
+          /* Don't allow pass */
+          (void) compute_move( side_to_move, FALSE, 0, 0, FALSE, book,
+                               shallow_depth - 1, 0, 0, TRUE, &shallow_info );
+          if ( shallow_info.type == PASS_EVAL ) {  /* Game over */
+            disc_diff =
+              disc_count( side_to_move ) - disc_count( OPP( side_to_move ) );
+            if ( disc_diff > 0 )
+              corrected_diff = 64 - 2 * disc_count( OPP( side_to_move) );
+            else if ( disc_diff == 0 )
+              corrected_diff = 0;
+            else
+              corrected_diff = 2 * disc_count( side_to_move ) - 64;
+            shallow_eval = 128 * corrected_diff;
+          }
+          else
+            shallow_eval = shallow_info.score;
+        }
+        else  /* Sign-correct the score produced */
+          shallow_eval = -shallow_info.score;
       }
 
       unmake_move( side_to_move, this_move );
@@ -682,34 +685,34 @@ extended_compute_move( int side_to_move, int book_only,
     do {
       changed = FALSE;
       for ( i = 0; i < unsearched_count - 1; i++ )
-	if ( evals[disks_played][unsearched_move[i]] <
-	     evals[disks_played][unsearched_move[i + 1]] ) {
-	  temp_move = unsearched_move[i];
-	  unsearched_move[i] = unsearched_move[i + 1];
-	  unsearched_move[i + 1] = temp_move;
-	  changed = TRUE;
-	}
+        if ( evals[disks_played][unsearched_move[i]] <
+             evals[disks_played][unsearched_move[i + 1]] ) {
+          temp_move = unsearched_move[i];
+          unsearched_move[i] = unsearched_move[i + 1];
+          unsearched_move[i + 1] = temp_move;
+          changed = TRUE;
+        }
     } while ( changed );
 
     /* Initialize the entire list as being empty */
 
     for ( i = 0, index = game_evaluated_count; i < unsearched_count;
-	  i++, index++ ) {
+          i++, index++ ) {
       evaluated_list[index].side_to_move = side_to_move;
       evaluated_list[index].move = unsearched_move[i];
       evaluated_list[index].eval =
-	create_eval_info( UNDEFINED_EVAL, UNSOLVED_POSITION,
-			  0, 0.0, 0, FALSE );
+        create_eval_info( UNDEFINED_EVAL, UNSOLVED_POSITION,
+                          0, 0.0, 0, FALSE );
       evaluated_list[index].pv_depth = 1;
       evaluated_list[index].pv[0] = unsearched_move[i];
 
       if ( empties > MAX( wld, exact ) ) {
-	transform1[i] = abs( my_random() );
-	transform2[i] = abs( my_random() );
+        transform1[i] = abs( my_random() );
+        transform2[i] = abs( my_random() );
       }
       else {
-	transform1[i] = 0;
-	transform2[i] = 0;
+        transform1[i] = 0;
+        transform2[i] = 0;
       }
     }
 
@@ -741,7 +744,7 @@ extended_compute_move( int side_to_move, int book_only,
       current_wld = (10 + (wld % 2)) - ID_STEP;
 
     if ( ((empties == exact) || (empties == wld)) &&
-	 (empties > 16) && (mid < empties - 12) )
+         (empties > 16) && (mid < empties - 12) )
       mid = empties - 12;
     if ( mid < 10 )
       current_mid = mid;
@@ -752,188 +755,188 @@ extended_compute_move( int side_to_move, int book_only,
 
     do {
       if ( current_mid < mid ) {
-	current_mid += ID_STEP;
+        current_mid += ID_STEP;
 
-	/* Avoid performing deep midgame searches if the endgame
-	   is reached anyway. */
+        /* Avoid performing deep midgame searches if the endgame
+           is reached anyway. */
 
-	if ( (empties <= wld) && (current_mid + 7 >= empties) ) {
-	  current_wld = wld;
-	  current_mid = mid;
-	}
-	if ( (empties <= exact) && (current_mid + 7 >= empties) ) {
-	  current_exact = exact;
-	  current_mid = mid;
-	}
+        if ( (empties <= wld) && (current_mid + 7 >= empties) ) {
+          current_wld = wld;
+          current_mid = mid;
+        }
+        if ( (empties <= exact) && (current_mid + 7 >= empties) ) {
+          current_exact = exact;
+          current_mid = mid;
+        }
       }
       else if ( current_wld < wld )
-	current_wld = wld;
+        current_wld = wld;
       else
-	current_exact = exact;
+        current_exact = exact;
 
       for ( i = 0; (i < unsearched_count) && !force_return; i++ ) {
-	EvaluationType this_eval;
+        EvaluationType this_eval;
 
-	this_move = unsearched_move[i];
+        this_move = unsearched_move[i];
 
-	/* Locate the current move in the list.  This has to be done
-	   because the moves might have been reordered during the
-	   iterative deepening. */
+        /* Locate the current move in the list.  This has to be done
+           because the moves might have been reordered during the
+           iterative deepening. */
 
-	index = 0;
-	while ( evaluated_list[index].move != this_move )
-	  index++;
+        index = 0;
+        while ( evaluated_list[index].move != this_move )
+          index++;
 
-	/* To avoid strange effects when browsing back and forth through
-	   a game during the midgame, rehash the hash transformation masks
-	   for each move unless the endgame is reached */
+        /* To avoid strange effects when browsing back and forth through
+           a game during the midgame, rehash the hash transformation masks
+           for each move unless the endgame is reached */
 
-	set_hash_transformation( transform1[i], transform2[i] );
+        set_hash_transformation( transform1[i], transform2[i] );
 
-	/* Determine the score for the ith move */
+        /* Determine the score for the ith move */
 
-	prefix_move = this_move;
-	(void) make_move( side_to_move, this_move, TRUE );
-	if ( current_mid == 1 ) {
-	  /* compute_move doesn't like 0-ply searches */
-	  shallow_eval = static_evaluation( OPP( side_to_move ) );
-	  this_eval =
-	    create_eval_info( MIDGAME_EVAL, UNSOLVED_POSITION,
-			      shallow_eval, 0.0, 0, FALSE );
-	}
-	else
-	  (void) compute_move( OPP( side_to_move ), FALSE, 0, 0, FALSE, book,
-			       current_mid - 1, current_exact - 1,
-			       current_wld - 1, TRUE,
-			       &this_eval );
-	if ( force_return ) {  /* Clear eval and exit search immediately */
-	  this_eval =
-	    create_eval_info( UNDEFINED_EVAL, UNSOLVED_POSITION,
-			      0, 0.0, 0, FALSE );
-	  unmake_move( side_to_move, this_move );
-	  break;
-	}
+        prefix_move = this_move;
+        (void) make_move( side_to_move, this_move, TRUE );
+        if ( current_mid == 1 ) {
+          /* compute_move doesn't like 0-ply searches */
+          shallow_eval = static_evaluation( OPP( side_to_move ) );
+          this_eval =
+            create_eval_info( MIDGAME_EVAL, UNSOLVED_POSITION,
+                              shallow_eval, 0.0, 0, FALSE );
+        }
+        else
+          (void) compute_move( OPP( side_to_move ), FALSE, 0, 0, FALSE, book,
+                               current_mid - 1, current_exact - 1,
+                               current_wld - 1, TRUE,
+                               &this_eval );
+        if ( force_return ) {  /* Clear eval and exit search immediately */
+          this_eval =
+            create_eval_info( UNDEFINED_EVAL, UNSOLVED_POSITION,
+                              0, 0.0, 0, FALSE );
+          unmake_move( side_to_move, this_move );
+          break;
+        }
 
-	if ( this_eval.type == PASS_EVAL ) {
-	  /* Don't allow pass */
-	  if ( current_mid == 1 ) {
-	    /* compute_move doesn't like 0-ply searches */
-	    shallow_eval = static_evaluation( side_to_move );
-	    this_eval = 
-	      create_eval_info( MIDGAME_EVAL, UNSOLVED_POSITION,
-				shallow_eval, 0.0, 0, FALSE );
-	  }
-	  else
-	    (void) compute_move( side_to_move, FALSE, 0, 0, FALSE, book,
-				 current_mid - 1, current_exact - 1,
-				 current_wld - 1, TRUE,
-				 &this_eval );
-	  if ( this_eval.type == PASS_EVAL ) {  /* Game over */
-	    disc_diff =
-	      disc_count( side_to_move ) - disc_count( OPP( side_to_move ) );
-	    if ( disc_diff > 0 ) {
-	      corrected_diff = 64 - 2 * disc_count( OPP( side_to_move) );
-	      res = WON_POSITION;
-	    }
-	    else if ( disc_diff == 0 ) {
-	      corrected_diff = 0;
-	      res = DRAWN_POSITION;
-	    }
-	    else {
-	      corrected_diff = 2 * disc_count( side_to_move ) - 64;
-	      res = LOST_POSITION;
-	    }
-	    this_eval =
-	      create_eval_info( EXACT_EVAL, res, 128 * corrected_diff,
-				0.0, 60 - disks_played, FALSE );
-	  }
-	}
-	else {  /* Sign-correct the score produced */
-	  this_eval.score =
-	    -this_eval.score;
-	  if ( this_eval.res == WON_POSITION )
-	    this_eval.res = LOST_POSITION;
-	  else if ( this_eval.res == LOST_POSITION )
-	    this_eval.res = WON_POSITION;
-	}
+        if ( this_eval.type == PASS_EVAL ) {
+          /* Don't allow pass */
+          if ( current_mid == 1 ) {
+            /* compute_move doesn't like 0-ply searches */
+            shallow_eval = static_evaluation( side_to_move );
+            this_eval =
+              create_eval_info( MIDGAME_EVAL, UNSOLVED_POSITION,
+                                shallow_eval, 0.0, 0, FALSE );
+          }
+          else
+            (void) compute_move( side_to_move, FALSE, 0, 0, FALSE, book,
+                                 current_mid - 1, current_exact - 1,
+                                 current_wld - 1, TRUE,
+                                 &this_eval );
+          if ( this_eval.type == PASS_EVAL ) {  /* Game over */
+            disc_diff =
+              disc_count( side_to_move ) - disc_count( OPP( side_to_move ) );
+            if ( disc_diff > 0 ) {
+              corrected_diff = 64 - 2 * disc_count( OPP( side_to_move) );
+              res = WON_POSITION;
+            }
+            else if ( disc_diff == 0 ) {
+              corrected_diff = 0;
+              res = DRAWN_POSITION;
+            }
+            else {
+              corrected_diff = 2 * disc_count( side_to_move ) - 64;
+              res = LOST_POSITION;
+            }
+            this_eval =
+              create_eval_info( EXACT_EVAL, res, 128 * corrected_diff,
+                                0.0, 60 - disks_played, FALSE );
+          }
+        }
+        else {  /* Sign-correct the score produced */
+          this_eval.score =
+            -this_eval.score;
+          if ( this_eval.res == WON_POSITION )
+            this_eval.res = LOST_POSITION;
+          else if ( this_eval.res == LOST_POSITION )
+            this_eval.res = WON_POSITION;
+        }
 
-	if ( force_return )
-	  break;
-	else
-	  evaluated_list[index].eval = this_eval;
+        if ( force_return )
+          break;
+        else
+          evaluated_list[index].eval = this_eval;
 
-	/* Store the PV corresponding to the move */
+        /* Store the PV corresponding to the move */
 
-	evaluated_list[index].pv_depth = pv_depth[0] + 1;
-	evaluated_list[index].pv[0] = this_move;
-	for ( j = 0; j < pv_depth[0]; j++ )
-	  evaluated_list[index].pv[j + 1] = pv[0][j];
+        evaluated_list[index].pv_depth = pv_depth[0] + 1;
+        evaluated_list[index].pv[0] = this_move;
+        for ( j = 0; j < pv_depth[0]; j++ )
+          evaluated_list[index].pv[j + 1] = pv[0][j];
 
-	/* Store the PV corresponding to the best move */
+        /* Store the PV corresponding to the best move */
 
-	if ( evaluated_list[index].eval.score > best_score ) {
-	  best_score = evaluated_list[index].eval.score;
-	  best_move = this_move;
-	  best_pv_depth = pv_depth[0];
-	  for ( j = 0; j < best_pv_depth; j++ )
-	    best_pv[j] = pv[0][j];
-	}
-	unmake_move( side_to_move, this_move );
+        if ( evaluated_list[index].eval.score > best_score ) {
+          best_score = evaluated_list[index].eval.score;
+          best_move = this_move;
+          best_pv_depth = pv_depth[0];
+          for ( j = 0; j < best_pv_depth; j++ )
+            best_pv[j] = pv[0][j];
+        }
+        unmake_move( side_to_move, this_move );
 
-	/* Sort the moves evaluated */
+        /* Sort the moves evaluated */
 
-	if ( first_iteration )
-	  game_evaluated_count++;
-	if ( !force_return )
-	  do {
-	    changed = FALSE;
-	    for ( j = 0; j < game_evaluated_count - 1; j++ )
-	      if ( compare_eval( evaluated_list[j].eval,
-				 evaluated_list[j + 1].eval ) < 0 ) {
-		changed = TRUE;
-		temp = evaluated_list[j];
-		evaluated_list[j] = evaluated_list[j + 1];
-		evaluated_list[j + 1] = temp;
-	      }
-	  } while ( changed );
+        if ( first_iteration )
+          game_evaluated_count++;
+        if ( !force_return )
+          do {
+            changed = FALSE;
+            for ( j = 0; j < game_evaluated_count - 1; j++ )
+              if ( compare_eval( evaluated_list[j].eval,
+                                 evaluated_list[j + 1].eval ) < 0 ) {
+                changed = TRUE;
+                temp = evaluated_list[j];
+                evaluated_list[j] = evaluated_list[j + 1];
+                evaluated_list[j + 1] = temp;
+              }
+          } while ( changed );
       }
 
       first_iteration = FALSE;
 
       /* Reorder the moves after each iteration.  Each move is moved to
-	 the front of the list, starting with the bad moves and ending
-	 with the best move.  This ensures that unsearched_move will be
-	 sorted w.r.t. the order in evaluated_list. */
+         the front of the list, starting with the bad moves and ending
+         with the best move.  This ensures that unsearched_move will be
+         sorted w.r.t. the order in evaluated_list. */
 
       for ( i = game_evaluated_count - 1; i >= 0; i-- ) {
-	int this_move = evaluated_list[i].move;
+        int this_move = evaluated_list[i].move;
 
-	j = 0;
-	while ( (j != unsearched_count) && (unsearched_move[j] != this_move) )
-	  j++;
+        j = 0;
+        while ( (j != unsearched_count) && (unsearched_move[j] != this_move) )
+          j++;
 
-	if ( j == unsearched_count )  /* Must be book move, skip */
-	  continue;
+        if ( j == unsearched_count )  /* Must be book move, skip */
+          continue;
 
-	/* Move the move to the front of the list. */
+        /* Move the move to the front of the list. */
 
-	while ( j >= 1 ) {
-	  unsearched_move[j] = unsearched_move[j - 1];
-	  j--;
-	}
-	unsearched_move[0] = this_move;
+        while ( j >= 1 ) {
+          unsearched_move[j] = unsearched_move[j - 1];
+          j--;
+        }
+        unsearched_move[0] = this_move;
       }
 
     } while ( !force_return &&
-	      ((current_mid != mid) ||
-	       (current_exact != exact) || (current_wld != wld)) );
+              ((current_mid != mid) ||
+               (current_exact != exact) || (current_wld != wld)) );
 
     echo = stored_echo;
 
     game_evaluated_count = move_count[disks_played];
-    
+
     /* Make sure that the PV and the score correspond to the best move */
-    
+
     pv_depth[0] = best_pv_depth + 1;
     pv[0][0] = best_move;
     for ( i = 0; i < best_pv_depth; i++ )
@@ -970,7 +973,7 @@ extended_compute_move( int side_to_move, int book_only,
 
 void
 perform_extended_solve( int side_to_move, int actual_move,
-			int book, int exact_solve ) {
+                        int book, int exact_solve ) {
   int i;
   int mid, wld, exact;
   int best_move;
@@ -1007,7 +1010,7 @@ perform_extended_solve( int side_to_move, int actual_move,
   evaluated_list[0].move = actual_move;
   evaluated_list[0].eval =
     create_eval_info( UNDEFINED_EVAL, UNSOLVED_POSITION,
-		      0, 0.0, 0, FALSE );
+                      0, 0.0, 0, FALSE );
   evaluated_list[0].pv_depth = 1;
   evaluated_list[0].pv[0] = actual_move;
 
@@ -1016,31 +1019,31 @@ perform_extended_solve( int side_to_move, int actual_move,
 
   (void) make_move( side_to_move, actual_move, TRUE );
   (void) compute_move( OPP( side_to_move ), FALSE, 0, 0, FALSE, book,
-			     mid - 1, exact - 1, wld - 1, TRUE,
-			     &evaluated_list[0].eval );
+                             mid - 1, exact - 1, wld - 1, TRUE,
+                             &evaluated_list[0].eval );
 
   if ( evaluated_list[0].eval.type == PASS_EVAL ) {  /* Don't allow pass */
     (void) compute_move( side_to_move, FALSE, 0, 0, FALSE, book,
-			 mid - 1, exact - 1, wld - 1, TRUE,
-			 &evaluated_list[0].eval );
+                         mid - 1, exact - 1, wld - 1, TRUE,
+                         &evaluated_list[0].eval );
     if ( evaluated_list[0].eval.type == PASS_EVAL ) {  /* Game has ended */
       disc_diff =
-	disc_count( side_to_move ) - disc_count( OPP( side_to_move ) );
+        disc_count( side_to_move ) - disc_count( OPP( side_to_move ) );
       if ( disc_diff > 0 ) {
-	corrected_diff = 64 - 2 * disc_count( OPP( side_to_move) );
-	res = WON_POSITION;
+        corrected_diff = 64 - 2 * disc_count( OPP( side_to_move) );
+        res = WON_POSITION;
       }
       else if ( disc_diff == 0 ) {
-	corrected_diff = 0;
-	res = DRAWN_POSITION;
+        corrected_diff = 0;
+        res = DRAWN_POSITION;
       }
       else {
-	corrected_diff = 2 * disc_count( side_to_move ) - 64;
-	res = LOST_POSITION;
+        corrected_diff = 2 * disc_count( side_to_move ) - 64;
+        res = LOST_POSITION;
       }
       evaluated_list[0].eval =
-	create_eval_info( EXACT_EVAL, res, 128 * corrected_diff,
-			  0.0, 60 - disks_played, FALSE );
+        create_eval_info( EXACT_EVAL, res, 128 * corrected_diff,
+                          0.0, 60 - disks_played, FALSE );
     }
   }
   else {  /* Sign-correct the score produced */
@@ -1071,7 +1074,7 @@ perform_extended_solve( int side_to_move, int actual_move,
      if it isn't ACTUAL_MOVE */
 
   best_move = compute_move( side_to_move, FALSE, 0, 0, FALSE, book, mid,
-			    exact, wld, TRUE, &evaluated_list[1].eval );
+                            exact, wld, TRUE, &evaluated_list[1].eval );
 
   if ( !force_return && (best_move != actual_move) ) {
     /* Move list will contain best move first and then the actual move */
@@ -1129,16 +1132,16 @@ get_evaluated( int index ) {
 
 int
 compute_move( int side_to_move,
-	      int update_all,
-	      int my_time,
-	      int my_incr,
-	      int timed_depth,
-	      int book,
-	      int mid,
-	      int exact,
-	      int wld,
-	      int search_forced,
-	      EvaluationType *eval_info ) {
+              int update_all,
+              int my_time,
+              int my_incr,
+              int timed_depth,
+              int book,
+              int mid,
+              int exact,
+              int wld,
+              int search_forced,
+              EvaluationType *eval_info ) {
   FILE *log_file;
   EvaluationType book_eval_info, mid_eval_info, end_eval_info;
   char *eval_str;
@@ -1197,7 +1200,7 @@ compute_move( int side_to_move,
 
   if ( move_count[disks_played] == 0 ) {
     *eval_info = create_eval_info( PASS_EVAL, UNSOLVED_POSITION,
-				   0.0, 0.0, 0, FALSE );
+                                   0.0, 0.0, 0, FALSE );
     set_current_eval( *eval_info );
     if ( echo ) {
       eval_str = produce_eval_text( *eval_info, FALSE );
@@ -1218,12 +1221,12 @@ compute_move( int side_to_move,
   /* If there is only one move available:
      Don't waste any time, unless told so or very close to the end,
      searching the position. */
-   	
+
   if ( (empties > DISABLE_FORCED_MOVES) &&
        (move_count[disks_played] == 1) &&
        !search_forced ) {  /* Forced move */
     *eval_info = create_eval_info( FORCED_EVAL, UNSOLVED_POSITION,
-				   0.0, 0.0, 0, FALSE );
+                                   0.0, 0.0, 0, FALSE );
     set_current_eval( *eval_info );
     if ( echo ) {
       eval_str = produce_eval_text( *eval_info, FALSE );
@@ -1235,7 +1238,7 @@ compute_move( int side_to_move,
     }
     if ( log_file ) {
       fprintf( log_file, "%s: %c%c  (%s)\n", BEST_MOVE_TEXT,
-	       TO_SQUARE(move_list[disks_played][0]), FORCED_TEXT );
+               TO_SQUARE(move_list[disks_played][0]), FORCED_TEXT );
       fclose( log_file );
     }
     last_time_used = 0.0;
@@ -1259,16 +1262,16 @@ compute_move( int side_to_move,
     curr_move = check_forced_opening( side_to_move, forced_opening );
     if ( curr_move != PASS ) {
       book_eval_info = create_eval_info( UNDEFINED_EVAL, UNSOLVED_POSITION,
-					 0, 0.0, 0, TRUE );
+                                         0, 0.0, 0, TRUE );
       midgame_move = curr_move;
       book_move_found = TRUE;
       move_type = BOOK_MOVE;
       if ( echo ) {
-	send_status( "-->   Forced opening move        " );
-	if ( get_ponder_move() )
-	  send_status( "{%c%c} ", TO_SQUARE( get_ponder_move() ) );
-	send_status( "%c%c", TO_SQUARE( curr_move ) );
-	display_status( stdout, FALSE );
+        send_status( "-->   Forced opening move        " );
+        if ( get_ponder_move() )
+          send_status( "{%c%c} ", TO_SQUARE( get_ponder_move() ) );
+        send_status( "%c%c", TO_SQUARE( curr_move ) );
+        display_status( stdout, FALSE );
       }
       clear_pv();
       pv_depth[0] = 1;
@@ -1287,24 +1290,24 @@ compute_move( int side_to_move,
       curr_move = get_thor_game_move( game_index, disks_played );
 
       if ( valid_move( curr_move, side_to_move ) ) {
-	book_eval_info = create_eval_info( UNDEFINED_EVAL, UNSOLVED_POSITION,
-					   0, 0.0, 0, TRUE );
-	midgame_move = curr_move;
-	book_move_found = TRUE;
-	move_type = BOOK_MOVE;
-	if ( echo ) {
-	  send_status( "-->   %s        ", THOR_TEXT );
-	  if ( get_ponder_move() )
-	    send_status( "{%c%c} ", TO_SQUARE( get_ponder_move() ) );
-	  send_status( "%c%c", TO_SQUARE( curr_move ) );
-	  display_status( stdout, FALSE );
-	}
-	clear_pv();
-	pv_depth[0] = 1;
-	pv[0][0] = curr_move;
+        book_eval_info = create_eval_info( UNDEFINED_EVAL, UNSOLVED_POSITION,
+                                           0, 0.0, 0, TRUE );
+        midgame_move = curr_move;
+        book_move_found = TRUE;
+        move_type = BOOK_MOVE;
+        if ( echo ) {
+          send_status( "-->   %s        ", THOR_TEXT );
+          if ( get_ponder_move() )
+            send_status( "{%c%c} ", TO_SQUARE( get_ponder_move() ) );
+          send_status( "%c%c", TO_SQUARE( curr_move ) );
+          display_status( stdout, FALSE );
+        }
+        clear_pv();
+        pv_depth[0] = 1;
+        pv[0][0] = curr_move;
       }
       else
-	fatal_error( "Thor book move %d is invalid!", curr_move );
+        fatal_error( "Thor book move %d is invalid!", curr_move );
     }
   }
 
@@ -1313,16 +1316,16 @@ compute_move( int side_to_move,
     curr_move = choose_thor_opening_move( board, side_to_move, FALSE );
     if ( curr_move != PASS ) {
       book_eval_info = create_eval_info( UNDEFINED_EVAL, UNSOLVED_POSITION,
-					 0, 0.0, 0, TRUE );
+                                         0, 0.0, 0, TRUE );
       midgame_move = curr_move;
       book_move_found = TRUE;
       move_type = BOOK_MOVE;
       if ( echo ) {
-	send_status( "-->   %s        ", THOR_TEXT );
-	if ( get_ponder_move() )
-	  send_status( "{%c%c} ", TO_SQUARE( get_ponder_move() ) );
-	send_status( "%c%c", TO_SQUARE( curr_move ) );
-	display_status( stdout, FALSE );
+        send_status( "-->   %s        ", THOR_TEXT );
+        if ( get_ponder_move() )
+          send_status( "{%c%c} ", TO_SQUARE( get_ponder_move() ) );
+        send_status( "%c%c", TO_SQUARE( curr_move ) );
+        display_status( stdout, FALSE );
       }
       clear_pv();
       pv_depth[0] = 1;
@@ -1335,9 +1338,9 @@ compute_move( int side_to_move,
 
     if ( empties <= FORCE_BOOK_SOLVE ) {
       if ( empties <= wld )
-	flags = WLD_SOLVED;
+        flags = WLD_SOLVED;
       if ( empties <= exact )
-	flags = FULL_SOLVED;
+        flags = FULL_SOLVED;
     }
     fill_move_alternatives( side_to_move, flags );
     curr_move = get_book_move( side_to_move, update_all, &book_eval_info );
@@ -1377,50 +1380,50 @@ compute_move( int side_to_move,
     do {
       max_depth_reached = midgame_depth;
       midgame_move = middle_game( side_to_move, midgame_depth,
-				  update_all, &mid_eval_info );
+                                  update_all, &mid_eval_info );
       set_current_eval( mid_eval_info );
       midgame_diff = 1.3 * mid_eval_info.score / 128.0;
       if ( side_to_move == BLACKSQ )
-	midgame_diff -= komi;
+        midgame_diff -= komi;
       else
-	midgame_diff += komi;
+        midgame_diff += komi;
       if ( timed_depth ) {  /* Check if the endgame zone has been reached */
-	offset = ENDGAME_OFFSET;
+        offset = ENDGAME_OFFSET;
 
-	/* These constants were chosen rather arbitrarily but intend
-	   to make Zebra solve earlier if the position is lopsided. */
+        /* These constants were chosen rather arbitrarily but intend
+           to make Zebra solve earlier if the position is lopsided. */
 
-	if ( is_panic_abort() )
-	  offset--;
+        if ( is_panic_abort() )
+          offset--;
 
 #if ADAPTIVE_SOLVE_DEPTH
-	if ( fabs( midgame_diff ) > 4.0 )
-	  offset++;
-	if ( fabs( midgame_diff ) > 8.0 )
-	  offset++;
-	if ( fabs( midgame_diff ) > 16.0 )
-	  offset++;
-	if ( fabs( midgame_diff ) > 32.0 )
-	  offset++;
-	if ( fabs( midgame_diff ) > 48.0 )
-	  offset++;
-	if ( fabs( midgame_diff ) > 56.0 )
-	  offset++;
+        if ( fabs( midgame_diff ) > 4.0 )
+          offset++;
+        if ( fabs( midgame_diff ) > 8.0 )
+          offset++;
+        if ( fabs( midgame_diff ) > 16.0 )
+          offset++;
+        if ( fabs( midgame_diff ) > 32.0 )
+          offset++;
+        if ( fabs( midgame_diff ) > 48.0 )
+          offset++;
+        if ( fabs( midgame_diff ) > 56.0 )
+          offset++;
 #endif
 
-	if ( endgame_performed[side_to_move] )
-	  offset += 2;
-	if ( ((midgame_depth + offset + TYPICAL_SOLVE) >= 2 * empties) ||
-	     (midgame_depth + ENDGAME_OFFSET >= empties) )
-	  endgame_reached = TRUE;
+        if ( endgame_performed[side_to_move] )
+          offset += 2;
+        if ( ((midgame_depth + offset + TYPICAL_SOLVE) >= 2 * empties) ||
+             (midgame_depth + ENDGAME_OFFSET >= empties) )
+          endgame_reached = TRUE;
       }
       midgame_depth++;
     } while ( !is_panic_abort() &&
-	      !is_midgame_abort() &&
-	      !force_return &&
-	      (midgame_depth <= max_depth) &&
-	      (midgame_depth + disks_played <= 61) &&
-	      !endgame_reached );
+              !is_midgame_abort() &&
+              !force_return &&
+              (midgame_depth <= max_depth) &&
+              (midgame_depth + disks_played <= 61) &&
+              !endgame_reached );
 
     if ( echo )
       display_status( stdout, FALSE );
@@ -1438,34 +1441,34 @@ compute_move( int side_to_move,
 
   if ( !force_return )
     if ( (timed_depth && endgame_reached)  ||
-	 (timed_depth && book_move_found &&
-	  (disks_played >= 60 - FORCE_BOOK_SOLVE)) ||
-	 (!timed_depth && (empties <= MAX( exact, wld ))) ) {
+         (timed_depth && book_move_found &&
+          (disks_played >= 60 - FORCE_BOOK_SOLVE)) ||
+         (!timed_depth && (empties <= MAX( exact, wld ))) ) {
       max_depth_reached = empties;
       clear_panic_abort();
       if ( timed_depth )
-	curr_move = end_game( side_to_move, (disks_played < 60 - exact),
-			      FALSE, book, komi, &end_eval_info );
+        curr_move = end_game( side_to_move, (disks_played < 60 - exact),
+                              FALSE, book, komi, &end_eval_info );
       else
-	if ( empties <= exact )
-	  curr_move = end_game( side_to_move, FALSE, FALSE,
-				book, komi, &end_eval_info );
-	else
-	  curr_move = end_game( side_to_move, TRUE, FALSE,
-				book, komi, &end_eval_info);
+        if ( empties <= exact )
+          curr_move = end_game( side_to_move, FALSE, FALSE,
+                                book, komi, &end_eval_info );
+        else
+          curr_move = end_game( side_to_move, TRUE, FALSE,
+                                book, komi, &end_eval_info);
       set_current_eval( end_eval_info );
       if ( abs( root_eval ) == abs( SEARCH_ABORT ) )
-	move_type = INTERRUPTED_MOVE;
+        move_type = INTERRUPTED_MOVE;
       else
-	move_type = ENDGAME_MOVE;
+        move_type = ENDGAME_MOVE;
       if ( update_all )
-	endgame_performed[side_to_move] = TRUE;
+        endgame_performed[side_to_move] = TRUE;
     }
 
   switch ( move_type ) {
   case INTERRUPTED_MOVE:
     *eval_info = create_eval_info( INTERRUPTED_EVAL, UNSOLVED_POSITION,
-				   0.0, 0.0, 0, FALSE );
+                                   0.0, 0.0, 0, FALSE );
     clear_status();
     send_status( "--> *%2d", interrupted_depth );
     eval_str = produce_eval_text( *eval_info, TRUE );
@@ -1476,8 +1479,8 @@ compute_move( int side_to_move,
     send_status_time( get_elapsed_time() );
     if ( get_elapsed_time() != 0.0 )
       send_status( "%6.0f %s",
-		   counter_value( &nodes ) / (get_elapsed_time() + 0.001),
-		   NPS_ABBREV );
+                   counter_value( &nodes ) / (get_elapsed_time() + 0.001),
+                   NPS_ABBREV );
     break;
   case BOOK_MOVE:
     *eval_info = book_eval_info;
@@ -1507,7 +1510,7 @@ compute_move( int side_to_move,
     eval_str = produce_eval_text( *eval_info, FALSE );
     if ( log_file )
       fprintf( log_file, "%s: %c%c  %s\n", MOVE_CHOICE_TEXT,
-	       TO_SQUARE( curr_move ), eval_str );
+               TO_SQUARE( curr_move ), eval_str );
     free( eval_str );
   }
   else if ( log_file )
@@ -1519,7 +1522,7 @@ compute_move( int side_to_move,
   if ( !get_ponder_move() ) {
     complete_pv( side_to_move );
     if ( display_pv && echo )
-      display_optimal_line( stdout ); 
+      display_optimal_line( stdout );
     if ( log_file )
       display_optimal_line( log_file );
   }

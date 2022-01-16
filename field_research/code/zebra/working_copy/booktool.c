@@ -3,9 +3,11 @@
 
    Created:      December 31, 1997
 
-   Modified:     December 30, 2004
-   
+   Modified:     Jan 16, 2022 (Roberto Corradini)
+                 December 30, 2004 (last change by G.A.)
+
    Author:       Gunnar Andersson (gunnar@radagast.se)
+                 Roberto Corradini
 
    Contents:     The interface to the book manipulation module.
 */
@@ -35,7 +37,7 @@ main( int argc, char *argv[] ) {
   char *statistics_file_name;
   char *opening_in_file;
   char *position_file;
-  char *opening_file;
+  //char *opening_file;
   char *merge_script_file, *merge_output_file;
   char *export_file;
   char *merge_book_file;
@@ -99,7 +101,7 @@ main( int argc, char *argv[] ) {
   opening_in_file = NULL;
   dump_positions = FALSE;
   position_file = NULL;
-  opening_file = NULL;
+  //opening_file = NULL;
   merge_script_file = NULL;
   merge_output_file = NULL;
   export_file = NULL;
@@ -118,26 +120,26 @@ main( int argc, char *argv[] ) {
       build_tree( import_file_name, max_game_count, max_diff, cutoff );
     }
     else if ( !strcasecmp( argv[arg_index], "-r" ) ||
-	      !strcasecmp( argv[arg_index], "-rb" ) ) {
+              !strcasecmp( argv[arg_index], "-rb" ) ) {
       if ( input_database ) {
-	puts( "Only one database can be read." );
-	exit( EXIT_FAILURE );
+        puts( "Only one database can be read." );
+        exit( EXIT_FAILURE );
       }
       if ( import_games ) {
-	puts( "Can't load database after having imported games." );
-	exit( EXIT_FAILURE );
+        puts( "Can't load database after having imported games." );
+        exit( EXIT_FAILURE );
       }
       input_database = TRUE;
       input_binary = !strcasecmp( argv[arg_index], "-rb" );
       input_file_name = argv[++arg_index];
       if ( input_binary )
-	read_binary_database( input_file_name );
+        read_binary_database( input_file_name );
       else
-	read_text_database( input_file_name );
+        read_text_database( input_file_name );
     }
     else if ( !strcasecmp( argv[arg_index], "-w" ) ||
-	      !strcasecmp( argv[arg_index], "-wb" ) ||
-	      !strcasecmp( argv[arg_index], "-wc" ) ) {
+              !strcasecmp( argv[arg_index], "-wb" ) ||
+              !strcasecmp( argv[arg_index], "-wc" ) ) {
       output_database = TRUE;
       output_binary = !strcasecmp( argv[arg_index], "-wb" );
       output_compressed = !strcasecmp( argv[arg_index], "-wc" );
@@ -295,22 +297,22 @@ main( int argc, char *argv[] ) {
     if ( give_help ) {
       puts( "Flags:" );
       puts( "  -i        Imports the game list in <game file>. "
-	    "At most <#games> are loaded." );
+            "At most <#games> are loaded." );
       puts( "  -r/rb     Reads a database as text (-r) or binary (-rb)." );
       printf( "  -c        Import games up to <cutoff> empties. "
               "(Default: %d)\n", DEFAULT_CUTOFF );
       puts( "            Only applies to subsequent '-i' commands." );
       printf( "  -o        Only import games with result < <outcom>. "
-	      "(Default: %d)\n", DEFAULT_MAX_DIFF );
+              "(Default: %d)\n", DEFAULT_MAX_DIFF );
       puts( "            Only applies to subsequent '-i' commands." );
       puts( "  -d        Displays the optimal minimax book line." );
       puts( "  -w/wb/wc  Saves db as text (-w) / binary (-wb) "
-	    "/ compressed (wc)." );
+            "/ compressed (wc)." );
       puts( "  -uc       Uncompresses compressed db to binary db." );
       puts( "  -m        Calculate the minimax values of all nodes." );
       puts( "  -ld       Deviations before <high> disks played are given a" );
       puts( "            bonus of <bonus> per disk. "
-	    "Before <low> disks played" );
+            "Before <low> disks played" );
       puts( "            no bonus is given." );
       puts( "            punishment of <punishment> disks per move." );
       puts( "  -e        Evaluates all the nodes in the tree." );
@@ -326,21 +328,21 @@ main( int argc, char *argv[] ) {
       puts( "            <full>=0 ==> WLD, otherwise exact score." );
       puts( "  -script   With -end: Positions are written to <script file>." );
       puts( "  -private  Treats all draws as losses for both sides "
-	    "(default)." );
+            "(default)." );
       puts( "  -public   No tweaking of draw scores." );
       puts( "  -keepdraw Book draws are counted as draws." );
       puts( "  -draw2black Book draws scored as 32-31 for black." );
       puts( "  -draw2white Book draws scored as 32-31 for white." );
       puts( "  -draw2none  Book draws scored as 32-31 for the opponent." );
       puts( "  -opgen    Converts the openings in <list file> to "
-	    "source code." );
+            "source code." );
       puts( "  -clear*   Removes midgame/wld/full status from nodes." );
       puts( "  -clearbounds   Only remove from <low> to <high> moves." );
       puts( "  -dump     Save scores for positions with <lo> to <hi> moves." );
       puts( "  -h        Changes hash table size to 2^<hash bits>." );
       puts( "  -fb/fw    Force black/white's to only recurse optimal moves." );
       puts( "  -merge    Adds the scores from <output> defined in <script> "
-	    "to the book." );
+            "to the book." );
       puts( "  -mergebook  Adds the positions in <book file> to the book.");
       puts( "  -export   Saves all lines in the book to <file>." );
       puts( "" );
@@ -392,10 +394,10 @@ main( int argc, char *argv[] ) {
   if ( do_statistics ) {
     if ( statistics_type == MIDGAME_STATISTICS )
       generate_midgame_statistics( max_depth, probability, max_diff * 128,
-				   statistics_file_name );
+                                   statistics_file_name );
     else
       generate_endgame_statistics( max_depth, probability, max_diff,
-				   statistics_file_name );
+                                   statistics_file_name );
   }
 
   if ( output_database ) {

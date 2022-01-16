@@ -3,15 +3,17 @@
 
    Created:        December 31, 1997
 
-   Modified:       December 30, 2004
-   
+   Modified:       Jan 16, 2022 (Roberto Corradini)
+                   December 30, 2004 (last change by G.A.)
+
    Author:         Gunnar Andersson (gunnar@radagast.se)
+                   Roberto Corradini
 
    Contents:       A module which implements the book algorithm which
                    simply tries to maximize the first evaluation out
                    of book by means of nega-maxing. The details get
-	           a bit hairy as all transpositions are kept track of
-	           using a hash table.
+                   a bit hairy as all transpositions are kept track of
+                   using a hash table.
 */
 
 
@@ -179,7 +181,7 @@ init_maps( void ) {
   inv_symmetry_map[4] = a2_b1_map;
 
   symmetry_map[5] = a7_b1_map;
-  inv_symmetry_map[5] = h2_b1_map; 
+  inv_symmetry_map[5] = h2_b1_map;
 
   symmetry_map[6] = h7_b1_map;
   inv_symmetry_map[6] = h7_b1_map;
@@ -193,10 +195,10 @@ init_maps( void ) {
   for ( i = 0; i < 8; i++ )
     for ( j = 1; j <= 8; j++ )
       for ( k = 1; k <= 8; k++ ) {
-	pos = 10 * j + k;
-	if ( inv_symmetry_map[i][symmetry_map[i][pos]] != pos )
-	  fatal_error( "Error in map %d: inv(map(%d))=%d\n",
-		       i, pos, inv_symmetry_map[i][symmetry_map[i][pos]] );
+        pos = 10 * j + k;
+        if ( inv_symmetry_map[i][symmetry_map[i][pos]] != pos )
+          fatal_error( "Error in map %d: inv(map(%d))=%d\n",
+                       i, pos, inv_symmetry_map[i][symmetry_map[i][pos]] );
       }
 }
 
@@ -232,8 +234,8 @@ probe_hash_table( int val1, int val2 ) {
   else {
     slot = val1 % hash_table_size;
     while ( (book_hash_table[slot] != EMPTY_HASH_SLOT) &&
-	    (node[book_hash_table[slot]].hash_val2 != val2 ||
-	     node[book_hash_table[slot]].hash_val1 != val1) )
+            (node[book_hash_table[slot]].hash_val2 != val2 ||
+             node[book_hash_table[slot]].hash_val1 != val1) )
       slot = (slot + 1) % hash_table_size;
     return slot;
   }
@@ -251,7 +253,7 @@ create_hash_reference( void ) {
   int i;
 
   for ( i = 0; i < hash_table_size; i++ )
-    book_hash_table[i] = EMPTY_HASH_SLOT;      
+    book_hash_table[i] = EMPTY_HASH_SLOT;
   for ( i = 0; i < book_node_count; i++ )
     select_hash_slot( i );
 }
@@ -282,7 +284,7 @@ rebuild_hash_table( int requested_items ) {
 /*
    PREPARE_HASH
    Compute the position hash codes.
-*/   
+*/
 
 static void
 prepare_hash( void ) {
@@ -295,8 +297,8 @@ prepare_hash( void ) {
   for ( i = 0; i < 2; i++ )
     for ( j = 0; j < 8; j++ )
       for ( k = 0; k < 6561; k++ )
-	line_hash[i][j][k] = (my_random() % 2) ? my_random() :-my_random();
-  hash_table_size = 0;            
+        line_hash[i][j][k] = (my_random() % 2) ? my_random() :-my_random();
+  hash_table_size = 0;
 }
 
 
@@ -325,7 +327,7 @@ get_hash( int *val0, int *val1, int *orientation ) {
     for ( j = 0; j < 2; j++ )
       out[i][j] = 0;
   for ( i = 0; i < 8; i++ ) {
-    /* b1 -> b1 */      
+    /* b1 -> b1 */
     out[0][0] ^= line_hash[0][i][row_pattern[i]];
     out[0][1] ^= line_hash[1][i][row_pattern[i]];
     /* g1 -> b1 */
@@ -360,7 +362,7 @@ get_hash( int *val0, int *val1, int *orientation ) {
   min_hash1 = out[0][1];
   for ( i = 1; i < 8; i++)
     if ( (out[i][0] < min_hash0) ||
-	 ((out[i][0] == min_hash0) && (out[i][1] < min_hash1)) ) {
+         ((out[i][0] == min_hash0) && (out[i][1] < min_hash1)) ) {
       min_map = i;
       min_hash0 = out[i][0];
       min_hash1 = out[i][1];
@@ -385,7 +387,7 @@ set_allocation( int size ) {
     node = (BookNode *) safe_realloc( node, size * sizeof( BookNode ) );
   if ( node == NULL )
     fatal_error( "%s %d\n", BOOK_ALLOC_ERROR,
-		 size * sizeof( BookNode ), size );
+                 size * sizeof( BookNode ), size );
   node_table_size = size;
   if ( node_table_size > MAX_HASH_FILL * hash_table_size )
     rebuild_hash_table( node_table_size );
@@ -407,7 +409,7 @@ increase_allocation( void ) {
    CREATE_BOOK_NODE
    Creates a new book node without any connections whatsoever
    to the rest of the tree.
-*/   
+*/
 
 static int
 create_BookNode( int val1, int val2, unsigned short flags ) {
@@ -524,7 +526,7 @@ adjust_score( int score, int side_to_move ) {
 /*
    DO_MINIMAX
    Calculates the minimax value of node INDEX.
-*/   
+*/
 
 static void
 do_minimax( int index, int *black_score, int *white_score ) {
@@ -565,7 +567,7 @@ do_minimax( int index, int *black_score, int *white_score ) {
     node[index].flags |= WLD_SOLVED;
 
   /* Recursively minimax all children of the node */
-  
+
   if ( node[index].flags & BLACK_TO_MOVE )
     side_to_move = BLACKSQ;
   else
@@ -622,12 +624,12 @@ do_minimax( int index, int *black_score, int *white_score ) {
       worst_white_child_val = MIN( worst_white_child_val, child_white_score );
 
       if ( side_to_move == BLACKSQ ) {
-	best_black_score = MAX( child_black_score, best_black_score );
-	best_white_score = MAX( child_white_score, best_white_score );
+        best_black_score = MAX( child_black_score, best_black_score );
+        best_white_score = MAX( child_white_score, best_white_score );
       }
       else {
-	best_black_score = MIN( child_black_score, best_black_score );
-	best_white_score = MIN( child_white_score, best_white_score );
+        best_black_score = MIN( child_black_score, best_black_score );
+        best_white_score = MIN( child_white_score, best_white_score );
       }
       child_count++;
     }
@@ -648,30 +650,30 @@ do_minimax( int index, int *black_score, int *white_score ) {
        (child_count > 0) ) {
     if ( side_to_move == BLACKSQ ) {
       if ( (best_black_child_val >= CONFIRMED_WIN) &&
-	   (best_white_child_val >= CONFIRMED_WIN) ) {  /* Black win */
-	node[index].black_minimax_score = node[index].white_minimax_score =
-	  MIN( best_black_child_val, best_white_child_val );
-	node[index].flags |= WLD_SOLVED;
+           (best_white_child_val >= CONFIRMED_WIN) ) {  /* Black win */
+        node[index].black_minimax_score = node[index].white_minimax_score =
+          MIN( best_black_child_val, best_white_child_val );
+        node[index].flags |= WLD_SOLVED;
       }
       else if ( (best_black_child_val <= -CONFIRMED_WIN) &&
-	       (best_white_child_val <= -CONFIRMED_WIN)) {  /* Black loss */
-	node[index].black_minimax_score = node[index].white_minimax_score =
-	  MAX( best_black_child_val, best_white_child_val );
-	node[index].flags |= WLD_SOLVED;
+               (best_white_child_val <= -CONFIRMED_WIN)) {  /* Black loss */
+        node[index].black_minimax_score = node[index].white_minimax_score =
+          MAX( best_black_child_val, best_white_child_val );
+        node[index].flags |= WLD_SOLVED;
       }
     }
     else {
       if ((worst_black_child_val <= -CONFIRMED_WIN) &&
-	  (worst_white_child_val <= -CONFIRMED_WIN)) {  /* White win */
-	node[index].black_minimax_score = node[index].white_minimax_score =
-	  MAX( worst_black_child_val, worst_white_child_val );
-	node[index].flags |= WLD_SOLVED;
+          (worst_white_child_val <= -CONFIRMED_WIN)) {  /* White win */
+        node[index].black_minimax_score = node[index].white_minimax_score =
+          MAX( worst_black_child_val, worst_white_child_val );
+        node[index].flags |= WLD_SOLVED;
       }
       else if ((worst_black_child_val >= CONFIRMED_WIN) &&
-	       (worst_white_child_val >= CONFIRMED_WIN) ) {  /* White loss */
-	node[index].black_minimax_score = node[index].white_minimax_score =
-	  MIN( worst_black_child_val, worst_white_child_val );
-	node[index].flags |= WLD_SOLVED;
+               (worst_white_child_val >= CONFIRMED_WIN) ) {  /* White loss */
+        node[index].black_minimax_score = node[index].white_minimax_score =
+          MIN( worst_black_child_val, worst_white_child_val );
+        node[index].flags |= WLD_SOLVED;
       }
     }
   }
@@ -683,30 +685,30 @@ do_minimax( int index, int *black_score, int *white_score ) {
     *black_score = node[index].black_minimax_score;
     *white_score = node[index].white_minimax_score;
     if ( (node[index].black_minimax_score == 0) &&
-	 (node[index].white_minimax_score == 0) )
+         (node[index].white_minimax_score == 0) )
 
     /* Is it a position in which a draw should be avoided? */
 
       if ( (game_mode == PRIVATE_GAME) || !(node[index].flags & PRIVATE_NODE) )
-	switch ( draw_mode ) {
-	case NEUTRAL:
-	  break;
+        switch ( draw_mode ) {
+        case NEUTRAL:
+          break;
 
-	case BLACK_WINS:
-	  *black_score = +UNWANTED_DRAW;
-	  *white_score = +UNWANTED_DRAW;
-	  break;
+        case BLACK_WINS:
+          *black_score = +UNWANTED_DRAW;
+          *white_score = +UNWANTED_DRAW;
+          break;
 
-	case WHITE_WINS:
-	  *black_score = -UNWANTED_DRAW;
-	  *white_score = -UNWANTED_DRAW;
-	  break;
+        case WHITE_WINS:
+          *black_score = -UNWANTED_DRAW;
+          *white_score = -UNWANTED_DRAW;
+          break;
 
-	case OPPONENT_WINS:
-	  *black_score = -UNWANTED_DRAW;
-	  *white_score = +UNWANTED_DRAW;
-	  break;
-	}
+        case OPPONENT_WINS:
+          *black_score = -UNWANTED_DRAW;
+          *white_score = +UNWANTED_DRAW;
+          break;
+        }
   }
   else {
     *black_score = node[index].black_minimax_score = best_black_score;
@@ -737,7 +739,7 @@ minimax_tree( void ) {
   time( &start_time );
 
   /* Mark all nodes as not traversed */
-   
+
   for ( i = 0; i < book_node_count; i++ )
     node[i].flags |= NOT_TRAVERSED;
 
@@ -770,9 +772,9 @@ export_position( int side_to_move, int score, FILE* target_file ) {
     white_mask = 0;
     for ( j = 0, pos = 10 * i + 1; j < 8; j++, pos++ )
       if ( board[pos] == BLACKSQ )
-	black_mask |= (1 << j);
+        black_mask |= (1 << j);
       else if ( board[pos] == WHITESQ )
-	white_mask |= (1 << j);
+        white_mask |= (1 << j);
     hi_mask = black_mask >> 4;
     lo_mask = black_mask % 16;
     fprintf( target_file, "%c%c", hi_mask + ' ', lo_mask + ' ' );
@@ -794,11 +796,11 @@ export_position( int side_to_move, int score, FILE* target_file ) {
    DO_RESTRICTED_MINIMAX
    Calculates the book-only minimax value of node INDEX,
    not caring about deviations from the database.
-*/   
+*/
 
 static void
 do_restricted_minimax( int index, int low, int high, FILE *target_file,
-		       int *minimax_values ) {
+                       int *minimax_values ) {
   int i;
   int child, corrected_score;
   int side_to_move;
@@ -806,7 +808,7 @@ do_restricted_minimax( int index, int low, int high, FILE *target_file,
   int child_count;
   int slot, val1, val2, orientation;
   short best_score;
-   
+
   if ( !(node[index].flags & NOT_TRAVERSED) )
     return;
 
@@ -836,8 +838,8 @@ do_restricted_minimax( int index, int low, int high, FILE *target_file,
       do_restricted_minimax( child, low, high, target_file, minimax_values );
       corrected_score = minimax_values[child];
       if ( ((side_to_move == BLACKSQ) && (corrected_score > best_score)) ||
-	   ((side_to_move == WHITESQ) && (corrected_score < best_score)) )
-	best_score = corrected_score;
+           ((side_to_move == WHITESQ) && (corrected_score < best_score)) )
+        best_score = corrected_score;
       child_count++;
     }
     unmake_move( side_to_move, this_move );
@@ -871,7 +873,7 @@ do_restricted_minimax( int index, int low, int high, FILE *target_file,
 /*
    RESTRICTED_MINIMAX_TREE
    Calculates the minimax values of all nodes in the tree,
-   not 
+   not
 */
 
 void
@@ -889,7 +891,7 @@ restricted_minimax_tree( int low, int high, const char *pos_file_name ) {
   time( &start_time );
 
   /* Mark all nodes as not traversed */
-   
+
   for ( i = 0; i < book_node_count; i++ )
     node[i].flags |= NOT_TRAVERSED;
 
@@ -971,12 +973,12 @@ do_midgame_statistics( int index, StatisticsSpec spec ) {
 
     out_file = fopen( spec.out_file_name, "a" );
     if ( (out_file != NULL) &&
-	 (abs( eval_list[spec.max_depth] ) <= 20 * 128) ) {
+         (abs( eval_list[spec.max_depth] ) <= 20 * 128) ) {
       get_hash( &val1, &val2, &orientation );
       fprintf( out_file, "%08x%08x %2d ", val1, val2, disks_played );
       fprintf( out_file, "%2d %2d ", 1, spec.max_depth );
       for ( i = 1; i <= spec.max_depth; i++ )
-	fprintf( out_file, "%5d ", eval_list[i] );
+        fprintf( out_file, "%5d ", eval_list[i] );
       fprintf( out_file, "\n" );
       fclose( out_file );
     }
@@ -1005,7 +1007,7 @@ do_midgame_statistics( int index, StatisticsSpec spec ) {
 
 void
 generate_midgame_statistics( int max_depth, double probability,
-			     int max_diff, const char *statistics_file_name ) {
+                             int max_diff, const char *statistics_file_name ) {
   int i;
   time_t start_time, stop_time;
   StatisticsSpec spec;
@@ -1040,7 +1042,7 @@ generate_midgame_statistics( int max_depth, double probability,
 
 static void
 endgame_correlation( int side_to_move, int best_score, int best_move,
-		     int min_disks, int max_disks, StatisticsSpec spec ) {
+                     int min_disks, int max_disks, StatisticsSpec spec ) {
   EvaluationType dummy_info;
   FILE *out_file;
   int i;
@@ -1082,11 +1084,11 @@ endgame_correlation( int side_to_move, int best_score, int best_move,
 #endif
       fill_move_alternatives( side_to_move, FULL_SOLVED );
       if ( (get_candidate_count() > 0) || (disks_played >= 40) ) {
-	print_move_alternatives( side_to_move );
-	set_hash_transformation( 0, 0 );
-	(void) end_game( side_to_move, FALSE, TRUE, TRUE, 0, &dummy_info );
-	endgame_correlation( side_to_move, root_eval, pv[0][0],
-			     min_disks, max_disks, spec );
+        print_move_alternatives( side_to_move );
+        set_hash_transformation( 0, 0 );
+        (void) end_game( side_to_move, FALSE, TRUE, TRUE, 0, &dummy_info );
+        endgame_correlation( side_to_move, root_eval, pv[0][0],
+                             min_disks, max_disks, spec );
       }
     }
     unmake_move( stored_side_to_move, best_move );
@@ -1135,8 +1137,8 @@ do_endgame_statistics( int index, StatisticsSpec spec ) {
       set_hash_transformation( 0, 0 );
       (void) end_game( side_to_move, FALSE, TRUE, TRUE, 0, &dummy_info );
       if ( abs( root_eval ) <= spec.max_diff )
-	endgame_correlation( side_to_move, root_eval, pv[0][0],
-			     disks_played, 48, spec );
+        endgame_correlation( side_to_move, root_eval, pv[0][0],
+                             disks_played, 48, spec );
     }
   }
 
@@ -1163,7 +1165,7 @@ do_endgame_statistics( int index, StatisticsSpec spec ) {
 
 void
 generate_endgame_statistics( int max_depth, double probability,
-			     int max_diff, const char *statistics_file_name ) {
+                             int max_diff, const char *statistics_file_name ) {
   int i;
   time_t start_time, stop_time;
   StatisticsSpec spec;
@@ -1203,8 +1205,8 @@ generate_endgame_statistics( int max_depth, double probability,
 
 static void
 nega_scout( int depth, int allow_mpc, int side_to_move,
-	    int allowed_count, int *allowed_moves,
-	    int alpha, int beta, int *best_score, int *best_index ) {
+            int allowed_count, int *allowed_moves,
+            int alpha, int beta, int *best_score, int *best_index ) {
   int i, j;
   int curr_alpha;
   int curr_depth;
@@ -1235,29 +1237,29 @@ nega_scout( int depth, int allow_mpc, int side_to_move,
       piece_count[WHITESQ][disks_played] = disc_count( WHITESQ );
       last_panic_check = 0.0;
       if ( i == 0 ) {
-	low_score = current_score =
-	  -tree_search( 1, curr_depth, OPP( side_to_move ), -INFINITE_EVAL,
-			+INFINITE_EVAL, TRUE, allow_mpc, TRUE );
-	*best_index = i;
+        low_score = current_score =
+          -tree_search( 1, curr_depth, OPP( side_to_move ), -INFINITE_EVAL,
+                        +INFINITE_EVAL, TRUE, allow_mpc, TRUE );
+        *best_index = i;
       }
       else {
-	curr_alpha = MAX( low_score, curr_alpha );
-	current_score =
-	  -tree_search( 1, curr_depth, OPP( side_to_move ), -(curr_alpha + 1),
-			-curr_alpha, TRUE, allow_mpc, TRUE );
-	if ( current_score > curr_alpha ) {
-	  current_score =
-	    -tree_search( 1, curr_depth, OPP( side_to_move ), -INFINITE_EVAL,
-			  INFINITE_EVAL, TRUE, allow_mpc, TRUE );
-	  if ( current_score > low_score ) {
-	    low_score = current_score;
-	    *best_index = i;
-	  }
-	}
-	else if ( current_score > low_score ) {
-	  low_score = current_score;
-	  *best_index = i;
-	}
+        curr_alpha = MAX( low_score, curr_alpha );
+        current_score =
+          -tree_search( 1, curr_depth, OPP( side_to_move ), -(curr_alpha + 1),
+                        -curr_alpha, TRUE, allow_mpc, TRUE );
+        if ( current_score > curr_alpha ) {
+          current_score =
+            -tree_search( 1, curr_depth, OPP( side_to_move ), -INFINITE_EVAL,
+                          INFINITE_EVAL, TRUE, allow_mpc, TRUE );
+          if ( current_score > low_score ) {
+            low_score = current_score;
+            *best_index = i;
+          }
+        }
+        else if ( current_score > low_score ) {
+          low_score = current_score;
+          *best_index = i;
+        }
       }
       unmake_move( side_to_move, allowed_moves[i] );
     }
@@ -1279,7 +1281,7 @@ nega_scout( int depth, int allow_mpc, int side_to_move,
   piece_count[WHITESQ][disks_played] = disc_count( WHITESQ );
   last_panic_check = 0.0;
   high_score = -tree_search( 1, depth + 1, OPP( side_to_move ),
-			     -INFINITE_EVAL, INFINITE_EVAL, TRUE, allow_mpc, TRUE );
+                             -INFINITE_EVAL, INFINITE_EVAL, TRUE, allow_mpc, TRUE );
   unmake_move( side_to_move, allowed_moves[*best_index] );
 
   /* To remove the oscillations between odd and even search depths
@@ -1324,11 +1326,11 @@ evaluate_node( int index ) {
 
   if ( node[index].alternative_score != NO_SCORE ) {
     if ( (abs( node[index].alternative_score ) < min_eval_span) ||
-	 (abs( node[index].alternative_score ) > max_eval_span) )
+         (abs( node[index].alternative_score ) > max_eval_span) )
       return;
 
     if ( (abs( node[index].black_minimax_score ) < min_negamax_span) ||
-	 (abs( node[index].black_minimax_score ) > max_negamax_span) )
+         (abs( node[index].black_minimax_score ) > max_negamax_span) )
       return;
   }
 
@@ -1365,7 +1367,7 @@ evaluate_node( int index ) {
   else {  /* Find the best of those moves */
     allow_mpc = (search_depth >= MIN_MPC_DEPTH);
     nega_scout( search_depth, allow_mpc, side_to_move, alternative_move_count,
-		feasible_move, -INFINITE_EVAL, INFINITE_EVAL, &best_score, &best_index );
+                feasible_move, -INFINITE_EVAL, INFINITE_EVAL, &best_score, &best_index );
     best_move = feasible_move[best_index];
 
     evaluated_count++;
@@ -1455,12 +1457,12 @@ evaluate_tree( void ) {
   for ( i = 0; i < book_node_count; i++ ) {
     node[i].flags |= NOT_TRAVERSED;
     if ( ((node[i].alternative_score == NO_SCORE) ||
-	  (((get_node_depth(i) < search_depth) &&
-	    (abs(node[i].alternative_score) >= min_eval_span) &&
-	   (abs(node[i].alternative_score) <= max_eval_span) &&
-	    (abs(node[i].black_minimax_score) >= min_negamax_span) &&
-	    (abs(node[i].black_minimax_score) <= max_negamax_span)))) &&
-	 !(node[i].flags & (WLD_SOLVED | FULL_SOLVED)) )
+          (((get_node_depth(i) < search_depth) &&
+            (abs(node[i].alternative_score) >= min_eval_span) &&
+           (abs(node[i].alternative_score) <= max_eval_span) &&
+            (abs(node[i].black_minimax_score) >= min_negamax_span) &&
+            (abs(node[i].black_minimax_score) <= max_negamax_span)))) &&
+         !(node[i].flags & (WLD_SOLVED | FULL_SOLVED)) )
       feasible_count++;
   }
   max_eval_count = MIN( feasible_count, max_batch_size );
@@ -1468,10 +1470,10 @@ evaluate_tree( void ) {
   printf( "Evaluating to depth %d. ", search_depth );
   if ( (min_eval_span > 0) || (max_eval_span < INFINITE_SPREAD) )
     printf( "Eval interval is [%.2f,%.2f]. ",
-	    min_eval_span / 128.0, max_eval_span / 128.0 );
+            min_eval_span / 128.0, max_eval_span / 128.0 );
   if ( (min_negamax_span > 0) || (max_negamax_span < INFINITE_SPREAD) )
     printf( "Negamax interval is [%.2f,%.2f]. ",
-	    min_negamax_span / 128.0, max_negamax_span / 128.0 );
+            min_negamax_span / 128.0, max_negamax_span / 128.0 );
   if ( max_eval_count == feasible_count )
     printf( "\n%d relevant nodes.", feasible_count );
   else
@@ -1558,8 +1560,8 @@ validate_tree( void ) {
   feasible_count = 0;
   for ( i = 0; i < book_node_count; i++ )
     if ( !(node[i].flags & (WLD_SOLVED | FULL_SOLVED)) &&
-	 (node[i].alternative_score == NO_SCORE) &&
-	 (node[i].best_alternative_move != POSITION_EXHAUSTED) )
+         (node[i].alternative_score == NO_SCORE) &&
+         (node[i].best_alternative_move != POSITION_EXHAUSTED) )
       feasible_count++;
   max_eval_count = MIN( feasible_count, max_batch_size );
   if ( feasible_count > 0 ) {
@@ -1596,10 +1598,10 @@ do_clear( int index, int low, int high, int flags ) {
   if ( (disks_played >= low) && (disks_played <= high) ) {
     if ( flags & CLEAR_MIDGAME )
       clear_node_depth( index );
-    
+
     if ( (node[index].flags & WLD_SOLVED) && (flags & CLEAR_WLD) )
       node[index].flags ^= WLD_SOLVED;
-    
+
     if ( (node[index].flags & FULL_SOLVED) && (flags & CLEAR_EXACT) )
       node[index].flags ^= FULL_SOLVED;
   }
@@ -1609,9 +1611,9 @@ do_clear( int index, int low, int high, int flags ) {
       side_to_move = BLACKSQ;
     else
       side_to_move = WHITESQ;
-    
+
     generate_all( side_to_move );
-    
+
     for ( i = 0; i < move_count[disks_played]; i++ ) {
       this_move = move_list[disks_played][i];
       (void) make_move( side_to_move, this_move, TRUE );
@@ -1619,7 +1621,7 @@ do_clear( int index, int low, int high, int flags ) {
       slot = probe_hash_table(val1, val2);
       child = book_hash_table[slot];
       if ( child != EMPTY_HASH_SLOT )
-	do_clear( child, low, high, flags );
+        do_clear( child, low, high, flags );
       unmake_move( side_to_move, this_move );
     }
   }
@@ -1670,7 +1672,7 @@ clear_tree( int low, int high, int flags ) {
 
 static void
 do_correct( int index, int max_empty, int full_solve,
-	    const char *target_name, char *move_hist ) {
+            const char *target_name, char *move_hist ) {
   EvaluationType dummy_info;
   int i, j, pos;
   int child;
@@ -1715,15 +1717,15 @@ do_correct( int index, int max_empty, int full_solve,
   for ( i = 0; i < child_count; i++ ) {
     if ( side_to_move == BLACKSQ ) {
       if ( force_black &&
-	   (node[child_node[i]].black_minimax_score !=
-	    node[index].black_minimax_score) )
-	continue;
+           (node[child_node[i]].black_minimax_score !=
+            node[index].black_minimax_score) )
+        continue;
     }
     else {
       if ( force_white &&
-	   (node[child_node[i]].white_minimax_score !=
-	    node[index].white_minimax_score) )
-	continue;
+           (node[child_node[i]].white_minimax_score !=
+            node[index].white_minimax_score) )
+        continue;
     }
     this_move = child_move[i];
     sprintf( move_hist + 2 * disks_played, "%c%c", TO_SQUARE( this_move ) );
@@ -1743,67 +1745,67 @@ do_correct( int index, int max_empty, int full_solve,
     really_evaluate =
       (full_solve && !(node[index].flags & FULL_SOLVED)) ||
       (!full_solve && !(node[index].flags & (WLD_SOLVED | FULL_SOLVED)));
-      
+
     if ( (abs( node[index].alternative_score ) < min_eval_span) ||
-	 (abs( node[index].alternative_score ) > max_eval_span) )
+         (abs( node[index].alternative_score ) > max_eval_span) )
       really_evaluate = FALSE;
-    
+
     if ( (abs( node[index].black_minimax_score) < min_negamax_span) ||
-	 (abs( node[index].black_minimax_score) > max_negamax_span) )
+         (abs( node[index].black_minimax_score) > max_negamax_span) )
       really_evaluate = FALSE;
 
     if ( really_evaluate ) {
       if ( target_name == NULL ) {  /* Solve now */
-	reset_counter( &nodes );
+        reset_counter( &nodes );
 
-	(void) end_game( side_to_move, !full_solve, FALSE,
-			 TRUE, 0, &dummy_info );
+        (void) end_game( side_to_move, !full_solve, FALSE,
+                         TRUE, 0, &dummy_info );
 
-	if ( side_to_move == BLACKSQ )
-	  outcome = +root_eval;
-	else
-	  outcome = -root_eval;
+        if ( side_to_move == BLACKSQ )
+          outcome = +root_eval;
+        else
+          outcome = -root_eval;
 
-	node[index].black_minimax_score = node[index].white_minimax_score =
-	  outcome;
-	if ( outcome > 0 ) {
-	  node[index].black_minimax_score += CONFIRMED_WIN;
-	  node[index].white_minimax_score += CONFIRMED_WIN;
-	}
-	if ( outcome < 0 ) {
-	  node[index].black_minimax_score -= CONFIRMED_WIN;
-	  node[index].white_minimax_score -= CONFIRMED_WIN;
-	}
-	if ( full_solve )
-	  node[index].flags |= FULL_SOLVED;
-	else
-	  node[index].flags |= WLD_SOLVED;
+        node[index].black_minimax_score = node[index].white_minimax_score =
+          outcome;
+        if ( outcome > 0 ) {
+          node[index].black_minimax_score += CONFIRMED_WIN;
+          node[index].white_minimax_score += CONFIRMED_WIN;
+        }
+        if ( outcome < 0 ) {
+          node[index].black_minimax_score -= CONFIRMED_WIN;
+          node[index].white_minimax_score -= CONFIRMED_WIN;
+        }
+        if ( full_solve )
+          node[index].flags |= FULL_SOLVED;
+        else
+          node[index].flags |= WLD_SOLVED;
       }
       else {  /* Defer solving to a standalone scripted solver */
-	FILE *target_file = fopen( target_name, "a" );
+        FILE *target_file = fopen( target_name, "a" );
 
-	if ( target_file != NULL ) {
-	  fprintf( target_file, "%% %s\n", move_hist );
-	  get_hash( &val1, &val2, &orientation );
-	  fprintf( target_file, "%% %d %d\n", val1, val2 );
+        if ( target_file != NULL ) {
+          fprintf( target_file, "%% %s\n", move_hist );
+          get_hash( &val1, &val2, &orientation );
+          fprintf( target_file, "%% %d %d\n", val1, val2 );
 
-	  for ( i = 1; i <= 8; i++ )
-	    for ( j = 1; j <= 8; j++ ) {
-	      pos = 10 * i + j;
-	      if ( board[pos] == BLACKSQ )
-		putc( 'X', target_file );
-	      else if ( board[pos] == WHITESQ )
-		putc( 'O', target_file );
-	      else
-		putc( '-', target_file );
-	    }
-	  if ( side_to_move == BLACKSQ )
-	    fputs( " X\n", target_file );
-	  else
-	    fputs( " O\n", target_file );
-	  fputs( "%\n", target_file );
-	  fclose( target_file );
-	}
+          for ( i = 1; i <= 8; i++ )
+            for ( j = 1; j <= 8; j++ ) {
+              pos = 10 * i + j;
+              if ( board[pos] == BLACKSQ )
+                putc( 'X', target_file );
+              else if ( board[pos] == WHITESQ )
+                putc( 'O', target_file );
+              else
+                putc( '-', target_file );
+            }
+          if ( side_to_move == BLACKSQ )
+            fputs( " X\n", target_file );
+          else
+            fputs( " O\n", target_file );
+          fputs( "%\n", target_file );
+          fclose( target_file );
+        }
       }
       evaluated_count++;
     }
@@ -1861,10 +1863,10 @@ correct_tree( int max_empty, int full_solve ) {
   for ( i = 0; i < book_node_count; i++ ) {
     node[i].flags |= NOT_TRAVERSED;
     if ( (get_node_depth( i ) < max_empty) &&
-	 (abs( node[i].alternative_score ) >= min_eval_span) &&
-	 (abs( node[i].alternative_score ) <= max_eval_span) &&
-	 (abs( node[i].black_minimax_score ) >= min_negamax_span) &&
-	 (abs( node[i].black_minimax_score ) <= max_negamax_span) )
+         (abs( node[i].alternative_score ) >= min_eval_span) &&
+         (abs( node[i].alternative_score ) <= max_eval_span) &&
+         (abs( node[i].black_minimax_score ) >= min_negamax_span) &&
+         (abs( node[i].black_minimax_score ) <= max_negamax_span) )
       feasible_count++;
   }
   max_eval_count = MIN( feasible_count, max_batch_size );
@@ -1876,10 +1878,10 @@ correct_tree( int max_empty, int full_solve ) {
     printf( "(WLD solve). " );
   if ( (min_eval_span > 0) || (max_eval_span < INFINITE_SPREAD) )
     printf( "Eval interval is [%.2f,%.2f]. ",
-	    min_eval_span / 128.0, max_eval_span / 128.0 );
+            min_eval_span / 128.0, max_eval_span / 128.0 );
   if ( (min_negamax_span > 0) || (max_negamax_span < INFINITE_SPREAD) )
     printf( "Negamax interval is [%.2f,%.2f]. ",
-	    min_negamax_span / 128.0, max_negamax_span / 128.0 );
+            min_negamax_span / 128.0, max_negamax_span / 128.0 );
   if ( max_eval_count == feasible_count )
     printf( "\n%d relevant nodes.", feasible_count );
   else
@@ -1891,7 +1893,7 @@ correct_tree( int max_empty, int full_solve ) {
 
   move_buffer[0] = '\0';
   do_correct( ROOT, max_empty, full_solve,
-	      correction_script_name, move_buffer );
+              correction_script_name, move_buffer );
 
   time( &stop_time );
 #ifdef TEXT_BASED
@@ -1900,7 +1902,7 @@ correct_tree( int max_empty, int full_solve ) {
     printf( "%d nodes solved\n", evaluated_count );
   else
     printf( "%d nodes exported to %s\n", evaluated_count,
-	    correction_script_name );
+            correction_script_name );
   puts( "" );
 #endif
 }
@@ -2020,7 +2022,7 @@ fill_endgame_hash( int cutoff, int level ) {
   this_index = book_hash_table[slot];
 
   /* If the position wasn't found in the hash table, return. */
-  
+
   if ( (slot == NOT_AVAILABLE) || (book_hash_table[slot] == EMPTY_HASH_SLOT) )
     return;
 
@@ -2048,26 +2050,26 @@ fill_endgame_hash( int cutoff, int level ) {
     child_index = book_hash_table[slot];
     if ( child_index != EMPTY_HASH_SLOT ) {
       if ( disks_played < 60 - cutoff )
-	fill_endgame_hash( cutoff, level + 1 );
+        fill_endgame_hash( cutoff, level + 1 );
       if ( is_full ) {  /* Any child with matching exact score? */
-	if ( (node[child_index].flags & FULL_SOLVED) &&
-	     (node[child_index].black_minimax_score ==
-	      node[this_index].black_minimax_score) )
-	  matching_move = this_move;
+        if ( (node[child_index].flags & FULL_SOLVED) &&
+             (node[child_index].black_minimax_score ==
+              node[this_index].black_minimax_score) )
+          matching_move = this_move;
       }
       else if ( is_wld ) {  /* Any child with matching WLD results? */
-	if ( node[child_index].flags & (FULL_SOLVED | WLD_SOLVED) ) {
-	  if ( side_to_move == BLACKSQ ) {
-	    if ( node[child_index].black_minimax_score >=
-		 node[this_index].black_minimax_score )
-	      matching_move = this_move;
-	  }
-	  else {
-	    if ( node[child_index].black_minimax_score <=
-		 node[this_index].black_minimax_score )
-	      matching_move = this_move;
-	  }
-	}
+        if ( node[child_index].flags & (FULL_SOLVED | WLD_SOLVED) ) {
+          if ( side_to_move == BLACKSQ ) {
+            if ( node[child_index].black_minimax_score >=
+                 node[this_index].black_minimax_score )
+              matching_move = this_move;
+          }
+          else {
+            if ( node[child_index].black_minimax_score <=
+                 node[this_index].black_minimax_score )
+              matching_move = this_move;
+          }
+        }
       }
     }
     unmake_move( side_to_move, this_move );
@@ -2087,12 +2089,12 @@ fill_endgame_hash( int cutoff, int level ) {
       bound = EXACT_VALUE;
     else {
       if ( signed_score >= 0 )
-	bound = LOWER_BOUND;
+        bound = LOWER_BOUND;
       else
-	bound = UPPER_BOUND;
+        bound = UPPER_BOUND;
     }
     add_hash( ENDGAME_MODE, signed_score, matching_move,
-	      ENDGAME_SCORE | bound, 60 - disks_played, 0 );
+              ENDGAME_SCORE | bound, 60 - disks_played, 0 );
   }
 }
 
@@ -2102,7 +2104,7 @@ fill_endgame_hash( int cutoff, int level ) {
    Add the properties of node INDEX to the statistics being gathered
    and recursively traverse the subtree of the node, doing the same
    thing in all nodes.
-*/   
+*/
 
 static void
 do_examine( int index ) {
@@ -2113,7 +2115,7 @@ do_examine( int index ) {
   int slot, val1, val2, orientation;
   int child_count;
   int child_move[64], child_node[64];
-   
+
   if (!(node[index].flags & NOT_TRAVERSED))
     return;
 
@@ -2159,16 +2161,16 @@ do_examine( int index ) {
   else
     for ( i = 0; i < child_count; i++ ) {
       if ( side_to_move == BLACKSQ ) {
-	if ( force_black &&
-	     (node[child_node[i]].black_minimax_score !=
-	      node[index].black_minimax_score) )
-	  continue;
+        if ( force_black &&
+             (node[child_node[i]].black_minimax_score !=
+              node[index].black_minimax_score) )
+          continue;
       }
       else {
-	if ( force_white &&
-	   (node[child_node[i]].white_minimax_score !=
-	    node[index].white_minimax_score) )
-	  continue;
+        if ( force_white &&
+           (node[child_node[i]].white_minimax_score !=
+            node[index].white_minimax_score) )
+          continue;
       }
       this_move = child_move[i];
       make_move( side_to_move, this_move, TRUE );
@@ -2208,7 +2210,7 @@ examine_tree( void ) {
   bad_leaf_count = 0;
 
   /* Mark all nodes as not traversed and examine the tree */
-   
+
   for ( i = 0; i < book_node_count; i++ )
     node[i].flags |= NOT_TRAVERSED;
   do_examine( ROOT );
@@ -2247,7 +2249,7 @@ int_compare( const void *i1, const void *i2 ) {
 void
 book_statistics( int full_statistics ) {
   double strata[11] = { 0.01, 0.02, 0.03, 0.05, 0.10,
-			0.30, 0.50, 0.70, 0.90, 0.99, 1.01 };
+                        0.30, 0.50, 0.70, 0.90, 0.99, 1.01 };
   double eval_strata[10];
   double negamax_strata[10];
   int i;
@@ -2277,12 +2279,12 @@ book_statistics( int full_statistics ) {
     else {
       depth[get_node_depth( i )]++;
       if ( (node[i].alternative_score == NO_SCORE) &&
-	  (node[i].best_alternative_move == NO_MOVE) )
-	unevaluated++;
+          (node[i].best_alternative_move == NO_MOVE) )
+        unevaluated++;
       else {
-	if ( node[i].alternative_score != NO_SCORE )
-	  evals[eval_count++] = abs( node[i].alternative_score );
-	negamax[negamax_count++] = abs( node[i].black_minimax_score );
+        if ( node[i].alternative_score != NO_SCORE )
+          evals[eval_count++] = abs( node[i].alternative_score );
+        negamax[negamax_count++] = abs( node[i].black_minimax_score );
       }
     }
     if ( node[i].flags & PRIVATE_NODE )
@@ -2336,42 +2338,42 @@ book_statistics( int full_statistics ) {
     last = -1;
     for ( i = 0; i <= 60; i++ ) {
       total_count[i] = exact_count[i] + wld_count[i] +
-	exhausted_count[i] + common_count[i];
+        exhausted_count[i] + common_count[i];
       if ( total_count[i] > 0 ) {
-	first = MIN( first, i );
-	last = MAX( last, i );
+        first = MIN( first, i );
+        last = MAX( last, i );
       }
     }
 #ifdef TEXT_BASED
     printf( "%d unreachable nodes\n\n", unreachable_count );
     printf( "%d leaf nodes; %d lack exact score and %d lack WLD status\n",
-	   leaf_count, bad_leaf_count, really_bad_leaf_count );
+           leaf_count, bad_leaf_count, really_bad_leaf_count );
     for ( i = first; i <= last; i++ ) {
       printf( "%2d moves", i );
       printf( "   " );
       printf( "%5d node", total_count[i] );
       if ( total_count[i] == 1 )
-	printf( " :  " );
+        printf( " :  " );
       else
-	printf( "s:  " );
+        printf( "s:  " );
 
       if ( common_count[i] > 0 )
-	printf( "%5d midgame", common_count[i] );
+        printf( "%5d midgame", common_count[i] );
       else
-	printf( "             " );
+        printf( "             " );
       printf( "  " );
       if ( wld_count[i] > 0 )
-	printf( "%5d WLD", wld_count[i] );
+        printf( "%5d WLD", wld_count[i] );
       else
-	printf( "         " );
+        printf( "         " );
       printf( "  " );
       if ( exact_count[i] > 0 )
-	printf( "%5d exact", exact_count[i] );
+        printf( "%5d exact", exact_count[i] );
       else
-	printf( "           " );
+        printf( "           " );
       printf( "  " );
       if ( exhausted_count[i] > 0 )
-	printf( "%2d exhausted", exhausted_count[i] );
+        printf( "%2d exhausted", exhausted_count[i] );
       puts( "" );
     }
     puts( "" );
@@ -2440,41 +2442,41 @@ display_doubly_optimal_line( int original_side_to_move ) {
       slot = probe_hash_table( val1, val2 );
       child = book_hash_table[slot];
       if ( child != EMPTY_HASH_SLOT ) {
-	if ( original_side_to_move == BLACKSQ )
-	  child_score = node[child].black_minimax_score;
-	else
-	  child_score = node[child].white_minimax_score;
-	if ( child_score == root_score )
-	  next = child;
+        if ( original_side_to_move == BLACKSQ )
+          child_score = node[child].black_minimax_score;
+        else
+          child_score = node[child].white_minimax_score;
+        if ( child_score == root_score )
+          next = child;
       }
       if ( (child != EMPTY_HASH_SLOT) && (next == child) )
-	break;
+        break;
       else
-	unmake_move( side_to_move, this_move );
+        unmake_move( side_to_move, this_move );
     }
     if ( next == -1 ) {
       done = TRUE;
       if ( adjust_score(node[current].alternative_score, side_to_move) !=
-	  root_score ) {
+          root_score ) {
 #ifdef TEXT_BASED
-	puts( "(failed to find continuation)" );
+        puts( "(failed to find continuation)" );
 #endif
-	show_move = FALSE;
+        show_move = FALSE;
       }
       else {
-	this_move = node[current].best_alternative_move;
-	this_move = inv_symmetry_map[base_orientation][this_move];
+        this_move = node[current].best_alternative_move;
+        this_move = inv_symmetry_map[base_orientation][this_move];
       }
     }
 #ifdef TEXT_BASED
     if ( show_move ) {
       if ( side_to_move == BLACKSQ )
-	printf( "%2d. ", ++line );
+        printf( "%2d. ", ++line );
       printf( "%c%c  ", TO_SQUARE( this_move ) );
       if ( side_to_move == WHITESQ )
-	puts( "" );
+        puts( "" );
       if ( done )
-	puts( "(deviation)" );
+        puts( "(deviation)" );
     }
 #endif
     current = next;
@@ -2492,8 +2494,8 @@ display_doubly_optimal_line( int original_side_to_move ) {
 
 void
 add_new_game( int move_count, short *game_move_list,
-	      int min_empties, int max_full_solve, int max_wld_solve,
-	      int update_path, int private_game ) {
+              int min_empties, int max_full_solve, int max_wld_solve,
+              int update_path, int private_game ) {
   EvaluationType dummy_info;
   int i, j;
   int stored_echo;
@@ -2534,12 +2536,12 @@ add_new_game( int move_count, short *game_move_list,
     get_hash( &val1, &val2, &orientation );
     slot = probe_hash_table( val1, val2 );
     if ( (slot == NOT_AVAILABLE) ||
-	 (book_hash_table[slot] == EMPTY_HASH_SLOT) ) {
+         (book_hash_table[slot] == EMPTY_HASH_SLOT) ) {
       this_node = create_BookNode( val1, val2, flags[i] );
       if ( private_game )
-	node[this_node].flags |= PRIVATE_NODE;
+        node[this_node].flags |= PRIVATE_NODE;
       if ( i < first_new_node )
-	first_new_node = i;
+        first_new_node = i;
     }
     else
       this_node = book_hash_table[slot];
@@ -2550,20 +2552,20 @@ add_new_game( int move_count, short *game_move_list,
     if ( i < last_move_number ) {
       this_move = abs( game_move_list[i] );
       if ( game_move_list[i] > 0 )
-	side_to_move = BLACKSQ;
+        side_to_move = BLACKSQ;
       else
-	side_to_move = WHITESQ;
+        side_to_move = WHITESQ;
       if ( !generate_specific( this_move, side_to_move ) ) {
 #ifdef TEXT_BASED
-	puts( "" );
-	printf( "i=%d, side_to_move=%d, this_move=%d\n",
-		i, side_to_move, this_move );
-	printf( "last_move_number=%d, move_count=%d\n",
-		last_move_number, move_count );
-	for ( j = 0; j < move_count; j++ )
-	  printf( "%3d ", game_move_list[j] );
+        puts( "" );
+        printf( "i=%d, side_to_move=%d, this_move=%d\n",
+                i, side_to_move, this_move );
+        printf( "last_move_number=%d, move_count=%d\n",
+                last_move_number, move_count );
+        for ( j = 0; j < move_count; j++ )
+          printf( "%3d ", game_move_list[j] );
 #endif
-	fatal_error( "%s: %d\n", BOOK_INVALID_MOVE, this_move );
+        fatal_error( "%s: %d\n", BOOK_INVALID_MOVE, this_move );
       }
       (void) make_move( side_to_move, this_move, TRUE );
     }
@@ -2590,9 +2592,9 @@ add_new_game( int move_count, short *game_move_list,
     if ( echo ) {
       puts( "" );
       if ( side_to_move == BLACKSQ )
-	printf( "Full solving with %d empty (black)\n", 60 - disks_played );
+        printf( "Full solving with %d empty (black)\n", 60 - disks_played );
       else
-	printf( "Full solving with %d empty (white)\n", 60 - disks_played );
+        printf( "Full solving with %d empty (white)\n", 60 - disks_played );
     }
 #endif
     (void) end_game( side_to_move, FALSE, FALSE, TRUE, 0, &dummy_info );
@@ -2620,11 +2622,11 @@ add_new_game( int move_count, short *game_move_list,
     for ( i = 0; i < last_move_number; i++ ) {
       this_move = abs( game_move_list[i] );
       if ( game_move_list[i] > 0 )
-	side_to_move = BLACKSQ;
+        side_to_move = BLACKSQ;
       else
-	side_to_move = WHITESQ;
+        side_to_move = WHITESQ;
       if ( !generate_specific( this_move, side_to_move ) )
-	fatal_error( "%s: %d\n", BOOK_INVALID_MOVE, this_move );
+        fatal_error( "%s: %d\n", BOOK_INVALID_MOVE, this_move );
       (void) make_move( side_to_move, this_move, TRUE );
     }
 #ifdef TEXT_BASED
@@ -2635,96 +2637,96 @@ add_new_game( int move_count, short *game_move_list,
     for ( i = last_move_number - 1; i >= 0; i-- ) {
       this_move = abs( game_move_list[i] );
       if ( game_move_list[i] > 0 )
-	side_to_move = BLACKSQ;
+        side_to_move = BLACKSQ;
       else
-	side_to_move = WHITESQ;
+        side_to_move = WHITESQ;
       unmake_move( side_to_move, this_move );
 
       /* If the game was public, make sure that all nodes that
-	 previously marked as private nodes are marked as public. */
+         previously marked as private nodes are marked as public. */
 
       this_node = visited_node[i];
       if ( !private_game && (node[this_node].flags & PRIVATE_NODE) )
-	node[this_node].flags ^= PRIVATE_NODE;
+        node[this_node].flags ^= PRIVATE_NODE;
 
       if ( node[this_node].flags & BLACK_TO_MOVE )
-	side_to_move = BLACKSQ;
+        side_to_move = BLACKSQ;
       else
-	side_to_move = WHITESQ;
+        side_to_move = WHITESQ;
       generate_all( side_to_move );
       determine_hash_values( side_to_move, board );
       if ( disks_played >= 60 - max_full_solve ) {
-	/* Only solve the position if it hasn't been solved already */
-	if ( !(node[this_node].flags & FULL_SOLVED) ) {
-	  (void) end_game( side_to_move, FALSE, FALSE, TRUE, 0, &dummy_info );
-	  if ( side_to_move == BLACKSQ )
-	    outcome = +root_eval;
-	  else
-	    outcome = -root_eval;
-	  node[this_node].black_minimax_score = outcome;
-	  node[this_node].white_minimax_score = outcome;
-	  if ( outcome > 0 ) {
-	    node[this_node].black_minimax_score += CONFIRMED_WIN;
-	    node[this_node].white_minimax_score += CONFIRMED_WIN;
-	  }
-	  if (outcome < 0) {
-	    node[this_node].black_minimax_score -= CONFIRMED_WIN;
-	    node[this_node].white_minimax_score -= CONFIRMED_WIN;
-	  }
-	  node[this_node].flags |= FULL_SOLVED;
-	}
+        /* Only solve the position if it hasn't been solved already */
+        if ( !(node[this_node].flags & FULL_SOLVED) ) {
+          (void) end_game( side_to_move, FALSE, FALSE, TRUE, 0, &dummy_info );
+          if ( side_to_move == BLACKSQ )
+            outcome = +root_eval;
+          else
+            outcome = -root_eval;
+          node[this_node].black_minimax_score = outcome;
+          node[this_node].white_minimax_score = outcome;
+          if ( outcome > 0 ) {
+            node[this_node].black_minimax_score += CONFIRMED_WIN;
+            node[this_node].white_minimax_score += CONFIRMED_WIN;
+          }
+          if (outcome < 0) {
+            node[this_node].black_minimax_score -= CONFIRMED_WIN;
+            node[this_node].white_minimax_score -= CONFIRMED_WIN;
+          }
+          node[this_node].flags |= FULL_SOLVED;
+        }
       }
       else if ( disks_played >= 60 - max_wld_solve ) {
-	/* Only solve the position if its WLD status is unknown */
-	if ( !(node[this_node].flags & WLD_SOLVED) ) {
-	  (void) end_game( side_to_move, TRUE, FALSE, TRUE, 0, &dummy_info );
-	  if ( side_to_move == BLACKSQ )
-	    outcome = +root_eval;
-	  else
-	    outcome = -root_eval;
-	  node[this_node].black_minimax_score = outcome;
-	  node[this_node].white_minimax_score = outcome;
-	  if ( outcome > 0 ) {
-	    node[this_node].black_minimax_score += CONFIRMED_WIN;
-	    node[this_node].white_minimax_score += CONFIRMED_WIN;
-	  }
-	  if ( outcome < 0 ) {
-	    node[this_node].black_minimax_score -= CONFIRMED_WIN;
-	    node[this_node].white_minimax_score -= CONFIRMED_WIN;
-	  }
-	  node[this_node].flags |= WLD_SOLVED;
-	}
+        /* Only solve the position if its WLD status is unknown */
+        if ( !(node[this_node].flags & WLD_SOLVED) ) {
+          (void) end_game( side_to_move, TRUE, FALSE, TRUE, 0, &dummy_info );
+          if ( side_to_move == BLACKSQ )
+            outcome = +root_eval;
+          else
+            outcome = -root_eval;
+          node[this_node].black_minimax_score = outcome;
+          node[this_node].white_minimax_score = outcome;
+          if ( outcome > 0 ) {
+            node[this_node].black_minimax_score += CONFIRMED_WIN;
+            node[this_node].white_minimax_score += CONFIRMED_WIN;
+          }
+          if ( outcome < 0 ) {
+            node[this_node].black_minimax_score -= CONFIRMED_WIN;
+            node[this_node].white_minimax_score -= CONFIRMED_WIN;
+          }
+          node[this_node].flags |= WLD_SOLVED;
+        }
       }
       else {
-	force_eval = (i >= first_new_node - 1) ||
-	  (node[this_node].best_alternative_move == abs(game_move_list[i]));
+        force_eval = (i >= first_new_node - 1) ||
+          (node[this_node].best_alternative_move == abs(game_move_list[i]));
 #ifdef TEXT_BASED
-	if ( !midgame_eval_done ) {
-	  printf( "Evaluating: " );
-	  fflush( stdout );
-	}
+        if ( !midgame_eval_done ) {
+          printf( "Evaluating: " );
+          fflush( stdout );
+        }
 #endif
-	midgame_eval_done = TRUE;
-	if ( force_eval )
-	  clear_node_depth( this_node );
-	evaluate_node( this_node );
+        midgame_eval_done = TRUE;
+        if ( force_eval )
+          clear_node_depth( this_node );
+        evaluate_node( this_node );
 #ifdef TEXT_BASED
-	printf( "|" );
-	fflush( stdout );
+        printf( "|" );
+        fflush( stdout );
 #endif
       }
       node[this_node].flags |= NOT_TRAVERSED;
       do_minimax( this_node, &dummy_black_score, &dummy_white_score );
       if ( !(node[this_node].flags & WLD_SOLVED) &&
-	   (node[this_node].best_alternative_move == NO_MOVE) &&
-	   (node[this_node].alternative_score == NO_SCORE) ) {
-	/* Minimax discovered that the node hasn't got a deviation any
-	   longer because that move has been played. */
-	evaluate_node( this_node );
+           (node[this_node].best_alternative_move == NO_MOVE) &&
+           (node[this_node].alternative_score == NO_SCORE) ) {
+        /* Minimax discovered that the node hasn't got a deviation any
+           longer because that move has been played. */
+        evaluate_node( this_node );
 #ifdef TEXT_BASED
-	printf( "-|-" );
+        printf( "-|-" );
 #endif
-	do_minimax( this_node, &dummy_black_score, &dummy_white_score );
+        do_minimax( this_node, &dummy_black_score, &dummy_white_score );
       }
     }
 #ifdef TEXT_BASED
@@ -2746,7 +2748,7 @@ add_new_game( int move_count, short *game_move_list,
 
 void
 build_tree( const char *file_name, int max_game_count,
-	    int max_diff, int min_empties ) {
+            int max_diff, int min_empties ) {
   char move_string[200];
   char line_buffer[1000];
   char sign, column, row;
@@ -2772,7 +2774,7 @@ build_tree( const char *file_name, int max_game_count,
   games_parsed = 0;
   games_imported = 0;
   do {
-    fgets( line_buffer, 998, stream );
+    (void) !fgets( line_buffer, 998, stream );
     sscanf( line_buffer, "%s %d", move_string, &diff );
     move_count = (strlen( move_string ) - 1) / 3;
     games_parsed++;
@@ -2780,11 +2782,11 @@ build_tree( const char *file_name, int max_game_count,
       sscanf( move_string + 3 * i, "%c%c%c", &sign, &column, &row );
       game_move_list[i] = 10 * (row - '0') + (column - 'a' + 1);
       if ( sign == '-' )
-	game_move_list[i] = -game_move_list[i];
+        game_move_list[i] = -game_move_list[i];
     }
     if ( abs( diff ) <= max_diff ) {
       add_new_game( move_count, game_move_list, min_empties, 0, 0,
-		    FALSE, FALSE );
+                    FALSE, FALSE );
 #ifdef TEXT_BASED
       printf( "|" );
       if ( games_imported % 100 == 0 )
@@ -2803,7 +2805,7 @@ build_tree( const char *file_name, int max_game_count,
   printf( "\ndone (took %d s)\n", (int) (stop_time - start_time) );
   printf( "%d games read; %d games imported\n", games_parsed, games_imported );
   printf( "Games with final difference <= %d were read until %d empties.\n",
-	  max_diff, min_empties );
+          max_diff, min_empties );
   puts( "" );
 #endif
 }
@@ -2833,22 +2835,22 @@ read_text_database( const char *file_name ) {
   if ( stream == NULL )
     fatal_error( "%s '%s'\n", NO_DB_FILE_ERROR, file_name );
 
-  fscanf( stream, "%d", &magic1 );
-  fscanf( stream, "%d", &magic2 );
+  (void) !fscanf( stream, "%d", &magic1 );
+  (void) !fscanf( stream, "%d", &magic2 );
   if ( (magic1 != BOOK_MAGIC1) || (magic2 != BOOK_MAGIC2) )
     fatal_error( "%s: %s", BOOK_CHECKSUM_ERROR, file_name );
 
-  fscanf( stream, "%d", &new_book_node_count );
+  (void) !fscanf( stream, "%d", &new_book_node_count );
   set_allocation( new_book_node_count + NODE_TABLE_SLACK );
   for ( i = 0; i < new_book_node_count; i++ )
-    fscanf( stream, "%d %d %hd %hd %hd %hd %hd\n",
-	    &node[i].hash_val1, &node[i].hash_val2,
-	    &node[i].black_minimax_score,
-	    &node[i].white_minimax_score,
-	    &node[i].best_alternative_move,
-	    &node[i].alternative_score, &node[i].flags );
+    (void) !fscanf( stream, "%d %d %hd %hd %hd %hd %hd\n",
+                    &node[i].hash_val1, &node[i].hash_val2,
+                    &node[i].black_minimax_score,
+                    &node[i].white_minimax_score,
+                    &node[i].best_alternative_move,
+                    &node[i].alternative_score, &node[i].flags );
   book_node_count = new_book_node_count;
-             
+
   create_hash_reference();
 
   fclose( stream );
@@ -2886,25 +2888,25 @@ read_binary_database( const char *file_name ) {
   if ( stream == NULL )
     fatal_error( "%s '%s'\n", NO_DB_FILE_ERROR, file_name );
 
-  fread( &magic1, sizeof( short ), 1, stream );
-  fread( &magic2, sizeof( short ), 1, stream );
+  (void) !fread( &magic1, sizeof( short ), 1, stream );
+  (void) !fread( &magic2, sizeof( short ), 1, stream );
   if ( (magic1 != BOOK_MAGIC1) || (magic2 != BOOK_MAGIC2) )
-    fatal_error( "%s: %s", BOOK_CHECKSUM_ERROR, file_name ); 
+    fatal_error( "%s: %s", BOOK_CHECKSUM_ERROR, file_name );
 
-  fread( &new_book_node_count, sizeof( int ), 1, stream );
+  (void) !fread( &new_book_node_count, sizeof( int ), 1, stream );
   set_allocation( new_book_node_count + NODE_TABLE_SLACK );
 
   for ( i = 0; i < new_book_node_count; i++ ) {
-    fread( &node[i].hash_val1, sizeof( int ), 1, stream );
-    fread( &node[i].hash_val2, sizeof( int ), 1, stream );
+    (void) !fread( &node[i].hash_val1, sizeof( int ), 1, stream );
+    (void) !fread( &node[i].hash_val2, sizeof( int ), 1, stream );
 
-    fread( &node[i].black_minimax_score, sizeof( short ), 1, stream );
-    fread( &node[i].white_minimax_score, sizeof( short ), 1, stream );
+    (void) !fread( &node[i].black_minimax_score, sizeof( short ), 1, stream );
+    (void) !fread( &node[i].white_minimax_score, sizeof( short ), 1, stream );
 
-    fread( &node[i].best_alternative_move, sizeof( short ), 1, stream );
-    fread( &node[i].alternative_score, sizeof( short ), 1, stream );
+    (void) !fread( &node[i].best_alternative_move, sizeof( short ), 1, stream );
+    (void) !fread( &node[i].alternative_score, sizeof( short ), 1, stream );
 
-    fread( &node[i].flags, sizeof( unsigned short ), 1, stream );
+    (void) !fread( &node[i].flags, sizeof( unsigned short ), 1, stream );
   }
 
   fclose( stream );
@@ -2941,13 +2943,13 @@ merge_binary_database( const char *file_name ) {
     fatal_error( "%s '%s'\n", NO_DB_FILE_ERROR, file_name );
 
   short magic1, magic2;
-  fread( &magic1, sizeof( short ), 1, stream );
-  fread( &magic2, sizeof( short ), 1, stream );
+  (void) !fread( &magic1, sizeof( short ), 1, stream );
+  (void) !fread( &magic2, sizeof( short ), 1, stream );
   if ( (magic1 != BOOK_MAGIC1) || (magic2 != BOOK_MAGIC2) )
-    fatal_error( "%s: %s", BOOK_CHECKSUM_ERROR, file_name ); 
+    fatal_error( "%s: %s", BOOK_CHECKSUM_ERROR, file_name );
 
   int merge_book_node_count;
-  fread( &merge_book_node_count, sizeof( int ), 1, stream );
+  (void) !fread( &merge_book_node_count, sizeof( int ), 1, stream );
 
   int merge_use_count = 0;
 
@@ -2957,40 +2959,40 @@ merge_binary_database( const char *file_name ) {
 
     /* Read node. */
 
-    fread( &merge_node.hash_val1, sizeof( int ), 1, stream );
-    fread( &merge_node.hash_val2, sizeof( int ), 1, stream );
+    (void) !fread( &merge_node.hash_val1, sizeof( int ), 1, stream );
+    (void) !fread( &merge_node.hash_val2, sizeof( int ), 1, stream );
 
-    fread( &merge_node.black_minimax_score, sizeof( short ), 1, stream );
-    fread( &merge_node.white_minimax_score, sizeof( short ), 1, stream );
+    (void) !fread( &merge_node.black_minimax_score, sizeof( short ), 1, stream );
+    (void) !fread( &merge_node.white_minimax_score, sizeof( short ), 1, stream );
 
-    fread( &merge_node.best_alternative_move, sizeof( short ), 1, stream );
-    fread( &merge_node.alternative_score, sizeof( short ), 1, stream );
+    (void) !fread( &merge_node.best_alternative_move, sizeof( short ), 1, stream );
+    (void) !fread( &merge_node.alternative_score, sizeof( short ), 1, stream );
 
-    fread( &merge_node.flags, sizeof( unsigned short ), 1, stream );
+    (void) !fread( &merge_node.flags, sizeof( unsigned short ), 1, stream );
 
     /* Look up node in existing database. */
 
     int slot = probe_hash_table( merge_node.hash_val1, merge_node.hash_val2 );
     if ( (slot == NOT_AVAILABLE) ||
-	 (book_hash_table[slot] == EMPTY_HASH_SLOT) ) {
+         (book_hash_table[slot] == EMPTY_HASH_SLOT) ) {
       /* New position, add it without modifications. */
       int this_node = create_BookNode( merge_node.hash_val1,
-				       merge_node.hash_val2,
-				       merge_node.flags );
+                                       merge_node.hash_val2,
+                                       merge_node.flags );
       node[this_node] = merge_node;
       merge_use_count++;
     }
     else {
       /* Existing position, use the book from the merge file if it contains
-	 better endgame information. */
+         better endgame information. */
 
       int index = book_hash_table[slot];
       if ( ((merge_node.flags & FULL_SOLVED) &&
-	    !(node[index].flags & FULL_SOLVED)) ||
-	   ((merge_node.flags & WLD_SOLVED) &&
-	    !(node[index].flags & WLD_SOLVED)) ) {
-	node[index] = merge_node;
-	merge_use_count++;
+            !(node[index].flags & FULL_SOLVED)) ||
+           ((merge_node.flags & WLD_SOLVED) &&
+            !(node[index].flags & WLD_SOLVED)) ) {
+        node[index] = merge_node;
+        merge_use_count++;
       }
     }
   }
@@ -3005,7 +3007,7 @@ merge_binary_database( const char *file_name ) {
   time( &stop_time );
   printf( "done (took %d s)\n", (int) (stop_time - start_time) );
   printf( "Used %d out of %d nodes from the merge file.",
-	  merge_use_count, merge_book_node_count );
+          merge_use_count, merge_book_node_count );
 #endif
 }
 
@@ -3039,10 +3041,10 @@ write_text_database( const char *file_name ) {
 
   for ( i = 0; i < book_node_count; i++ )
     fprintf( stream, "%d %d %d %d %d %d %d\n",
-	     node[i].hash_val1, node[i].hash_val2,
-	     node[i].black_minimax_score, node[i].white_minimax_score,
-	     node[i].best_alternative_move,
-	     node[i].alternative_score, node[i].flags );
+             node[i].hash_val1, node[i].hash_val2,
+             node[i].black_minimax_score, node[i].white_minimax_score,
+             node[i].best_alternative_move,
+             node[i].alternative_score, node[i].flags );
   fclose( stream );
 
   time( &stop_time );
@@ -3116,7 +3118,7 @@ write_binary_database( const char *file_name ) {
 
 static void
 do_compress( int index, int *node_order, short *child_count,
-	     int *node_index, short *child_list, int *child_index ) {
+             int *node_index, short *child_list, int *child_index ) {
   int i, j;
   int child;
   int valid_child_count;
@@ -3148,14 +3150,14 @@ do_compress( int index, int *node_order, short *child_count,
     child = book_hash_table[slot];
     if ( (child != EMPTY_HASH_SLOT) && (node[child].flags & NOT_TRAVERSED) ) {
       for ( j = 0, found = FALSE; j < valid_child_count; j++ )
-	if ( child == local_child_list[j] )
-	  found = TRUE;
+        if ( child == local_child_list[j] )
+          found = TRUE;
       if ( !found ) {
-	local_child_list[valid_child_count] = child;
-	local_child_move[valid_child_count] = this_move;
-	valid_child_count++;
-	child_list[*child_index] = this_move;
-	(*child_index)++;
+        local_child_list[valid_child_count] = child;
+        local_child_move[valid_child_count] = this_move;
+        valid_child_count++;
+        child_list[*child_index] = this_move;
+        (*child_index)++;
       }
     }
     unmake_move( side_to_move, this_move );
@@ -3168,7 +3170,7 @@ do_compress( int index, int *node_order, short *child_count,
     this_move = local_child_move[i];
     (void) make_move( side_to_move, this_move, TRUE );
     do_compress( local_child_list[i], node_order, child_count, node_index,
-		 child_list, child_index );
+                 child_list, child_index );
     unmake_move( side_to_move, this_move );
   }
 
@@ -3216,7 +3218,7 @@ write_compressed_database( const char *file_name ) {
   child_index = 0;
 
   do_compress( ROOT, node_order, child_count, &node_index,
-	       child, &child_index );
+               child, &child_index );
 
   fwrite( &book_node_count, sizeof( int ), 1, stream );
 
@@ -3228,22 +3230,22 @@ write_compressed_database( const char *file_name ) {
 
   for ( i = 0; i < book_node_count; i++ ) {
     fwrite( &node[node_order[i]].black_minimax_score,
-	    sizeof( short ), 1, stream );
+            sizeof( short ), 1, stream );
     fwrite( &node[node_order[i]].white_minimax_score,
-	    sizeof( short ), 1, stream );
+            sizeof( short ), 1, stream );
   }
 
   for ( i = 0; i < book_node_count; i++ )
     fwrite( &node[node_order[i]].best_alternative_move,
-	    sizeof( short ), 1, stream );
+            sizeof( short ), 1, stream );
 
   for ( i = 0; i < book_node_count; i++ )
     fwrite( &node[node_order[i]].alternative_score,
-	    sizeof( short ), 1, stream );
+            sizeof( short ), 1, stream );
 
   for ( i = 0; i < book_node_count; i++ )
     fwrite( &node[node_order[i]].flags,
-	    sizeof( unsigned short ), 1, stream );
+            sizeof( unsigned short ), 1, stream );
 
   fclose( stream );
 
@@ -3269,9 +3271,9 @@ write_compressed_database( const char *file_name ) {
 
 static void
 do_uncompress( int depth, FILE *stream, int *node_index, int *child_index,
-	       short *child_count, short *child,
-	       short *black_score, short *white_score,
-	       short *alt_move, short *alt_score, unsigned short *flags ) {
+               short *child_count, short *child,
+               short *black_score, short *white_score,
+               short *alt_move, short *alt_score, unsigned short *flags ) {
   int i;
   int side_to_move;
   int saved_child_index;
@@ -3313,10 +3315,10 @@ do_uncompress( int depth, FILE *stream, int *node_index, int *child_index,
     flipped = make_move_no_hash( side_to_move, this_move );
     if ( flipped == 0 )
       printf( "%c%c flips %d discs for %d\n",
-	      TO_SQUARE( this_move ), flipped, side_to_move );
+              TO_SQUARE( this_move ), flipped, side_to_move );
     do_uncompress( depth + 1,stream, node_index, child_index,
-		   child_count, child, black_score, white_score,
-		   alt_move, alt_score, flags );
+                   child_count, child, black_score, white_score,
+                   alt_move, alt_score, flags );
     unmake_move_no_hash( side_to_move, this_move );
 
   }
@@ -3357,16 +3359,16 @@ unpack_compressed_database( const char *in_name, const char *out_name ) {
   if ( stream == NULL )
     fatal_error( "%s '%s'\n", NO_DB_FILE_ERROR, in_name );
 
-  fread( &node_count, sizeof( int ), 1, stream );
+  (void) !fread( &node_count, sizeof( int ), 1, stream );
 
-  fread( &child_list_size, sizeof( int ), 1, stream );
+  (void) !fread( &child_list_size, sizeof( int ), 1, stream );
 
   child_count = (short *) safe_malloc( node_count * sizeof( short ) );
   child = (short *) safe_malloc( child_list_size * sizeof( short ) );
 
-  fread( child_count, sizeof( short ), node_count, stream );
+  (void) !fread( child_count, sizeof( short ), node_count, stream );
 
-  fread( child, sizeof( short ), child_list_size, stream );
+  (void) !fread( child, sizeof( short ), child_list_size, stream );
 
   black_score = (short *) safe_malloc( node_count * sizeof( short ) );
   white_score = (short *) safe_malloc( node_count * sizeof( short ) );
@@ -3376,15 +3378,15 @@ unpack_compressed_database( const char *in_name, const char *out_name ) {
     (unsigned short *) safe_malloc( node_count * sizeof( unsigned short ) );
 
   for ( i = 0; i < node_count; i++ ) {
-    fread( &black_score[i], sizeof( short ), 1, stream );
-    fread( &white_score[i], sizeof( short ), 1, stream );
+    (void) !fread( &black_score[i], sizeof( short ), 1, stream );
+    (void) !fread( &white_score[i], sizeof( short ), 1, stream );
   }
 
-  fread( alt_move, sizeof( short ), node_count, stream );
+  (void) !fread( alt_move, sizeof( short ), node_count, stream );
 
-  fread( alt_score, sizeof( short ), node_count, stream );
+  (void) !fread( alt_score, sizeof( short ), node_count, stream );
 
-  fread( flags, sizeof( unsigned short ), node_count, stream );
+  (void) !fread( flags, sizeof( unsigned short ), node_count, stream );
 
   fclose( stream );
 
@@ -3410,7 +3412,7 @@ unpack_compressed_database( const char *in_name, const char *out_name ) {
   node_index = 0;
   child_index = 0;
   do_uncompress( 0, stream, &node_index, &child_index, child_count, child,
-		 black_score, white_score, alt_move, alt_score, flags );
+                 black_score, white_score, alt_move, alt_score, flags );
 
   fclose( stream );
 
@@ -3499,7 +3501,7 @@ set_deviation_value( int low_threshold, int high_threshold, double bonus ) {
 /*
    RESET_BOOK_SEARCH
    Sets the used slack count to zero.
-*/   
+*/
 
 void
 reset_book_search( void ) {
@@ -3610,8 +3612,8 @@ merge_position_list( const char *script_file, const char *output_file ) {
   already_exact_count = 0;
   new_nodes_created = 0;
 
-  fgets( script_buffer, 1024, script_stream );
-  fgets( result_buffer, 1024, result_stream );
+  (void) !fgets( script_buffer, 1024, script_stream );
+  (void) !fgets( result_buffer, 1024, result_stream );
   while ( !feof( script_stream ) && !feof( result_stream ) ) {
     char *ch;
 
@@ -3633,49 +3635,49 @@ merge_position_list( const char *script_file, const char *output_file ) {
       disks_played = 0;
       col = 0;
       for ( i = 1; i <= 8; i++ )
-	for ( j = 1; j <= 8; j++ ) {
-	  pos = 10 * i + j;
-	  switch ( script_buffer[col] ) {
-	  case '*':
-	  case 'X':
-	  case 'x':
-	    board[pos] = BLACKSQ;
-	    disks_played++;
-	    break;
-	  case 'O':
-	  case '0':
-	  case 'o':
-	    board[pos] = WHITESQ;
-	    disks_played++;
-	    break;
-	  case '-':
-	  case '.':
-	    board[pos] = EMPTY;
-	    break;
-	  default:
-	    fprintf( stderr, "\nBad character '%c' in board on line %d\n\n",
-		    script_buffer[col], line );
-	    exit( EXIT_FAILURE );
-	    break;
-	  }
-	  col++;
-	}
+        for ( j = 1; j <= 8; j++ ) {
+          pos = 10 * i + j;
+          switch ( script_buffer[col] ) {
+          case '*':
+          case 'X':
+          case 'x':
+            board[pos] = BLACKSQ;
+            disks_played++;
+            break;
+          case 'O':
+          case '0':
+          case 'o':
+            board[pos] = WHITESQ;
+            disks_played++;
+            break;
+          case '-':
+          case '.':
+            board[pos] = EMPTY;
+            break;
+          default:
+            fprintf( stderr, "\nBad character '%c' in board on line %d\n\n",
+                    script_buffer[col], line );
+            exit( EXIT_FAILURE );
+            break;
+          }
+          col++;
+        }
       switch ( script_buffer[65] ) {
       case '*':
       case 'X':
       case 'x':
-	side_to_move = BLACKSQ;
-	break;
+        side_to_move = BLACKSQ;
+        break;
       case 'O':
       case '0':
       case 'o':
-	side_to_move = WHITESQ;
-	break;
+        side_to_move = WHITESQ;
+        break;
       default:
-	fprintf( stderr, "\nBad side to move '%c' in board on line %d\n\n",
-		 script_buffer[65], line );
-	exit( EXIT_FAILURE );
-	break;
+        fprintf( stderr, "\nBad side to move '%c' in board on line %d\n\n",
+                 script_buffer[65], line );
+        exit( EXIT_FAILURE );
+        break;
       }
       disks_played -= 4;  /* The initial board contains 4 discs */
 
@@ -3683,32 +3685,32 @@ merge_position_list( const char *script_file, const char *output_file ) {
 
       wld_only = TRUE;
       if ( strstr( result_buffer, "Black win" ) == result_buffer ) {
-	score = CONFIRMED_WIN + 2;
-	tokens_read = sscanf( result_buffer, "%*s %*s %s", move_buffer );
-	moves_read = tokens_read;
+        score = CONFIRMED_WIN + 2;
+        tokens_read = sscanf( result_buffer, "%*s %*s %s", move_buffer );
+        moves_read = tokens_read;
       }
       else if ( strstr( result_buffer, "White win" ) == result_buffer ) {
-	score = -(CONFIRMED_WIN + 2);
-	tokens_read = sscanf( result_buffer, "%*s %*s %s", move_buffer );
-	moves_read = tokens_read;
+        score = -(CONFIRMED_WIN + 2);
+        tokens_read = sscanf( result_buffer, "%*s %*s %s", move_buffer );
+        moves_read = tokens_read;
       }
       else if ( strstr( result_buffer, "Draw" ) == result_buffer ) {
-	score = 0;
-	tokens_read = sscanf( result_buffer, "%*s %s", move_buffer );
-	moves_read = tokens_read;
+        score = 0;
+        tokens_read = sscanf( result_buffer, "%*s %s", move_buffer );
+        moves_read = tokens_read;
       }
       else {  /* Exact score */
-	int black_discs, white_discs;
+        int black_discs, white_discs;
 
-	wld_only = FALSE;
-	tokens_read = sscanf( result_buffer, "%d %*s %d %s", &black_discs,
-			      &white_discs, move_buffer );
-	moves_read = tokens_read - 2;
-	score = black_discs - white_discs;
-	if ( score > 0 )
-	  score += CONFIRMED_WIN;
-	else if ( score < 0 )
-	  score -= CONFIRMED_WIN;
+        wld_only = FALSE;
+        tokens_read = sscanf( result_buffer, "%d %*s %d %s", &black_discs,
+                              &white_discs, move_buffer );
+        moves_read = tokens_read - 2;
+        score = black_discs - white_discs;
+        if ( score > 0 )
+          score += CONFIRMED_WIN;
+        else if ( score < 0 )
+          score -= CONFIRMED_WIN;
       }
 
       /* Set the score for the node corresponding to the position */
@@ -3717,131 +3719,131 @@ merge_position_list( const char *script_file, const char *output_file ) {
       slot = probe_hash_table( val1, val2 );
       index = book_hash_table[slot];
       if ( index == EMPTY_HASH_SLOT ) {
-	fprintf( stderr, "Position on line %d not found in book\n", line );
-	exit( EXIT_SUCCESS );
+        fprintf( stderr, "Position on line %d not found in book\n", line );
+        exit( EXIT_SUCCESS );
       }
 
       probable_error = FALSE;
       if ( node[index].flags & WLD_SOLVED ) {
-	already_wld_count++;
-	if ( ((score > 0) && (node[index].black_minimax_score <= 0)) ||
-	     ((score == 0) && (node[index].black_minimax_score != 0)) ||
-	     ((score < 0) && (node[index].black_minimax_score > 0)) ) {
-	  probable_error = TRUE;
-	  fprintf( stderr, "Line %d: New WLD score %d conflicts with "
-		    "old score %d\n", line, 
-		   score, node[index].black_minimax_score );
-	}
+        already_wld_count++;
+        if ( ((score > 0) && (node[index].black_minimax_score <= 0)) ||
+             ((score == 0) && (node[index].black_minimax_score != 0)) ||
+             ((score < 0) && (node[index].black_minimax_score > 0)) ) {
+          probable_error = TRUE;
+          fprintf( stderr, "Line %d: New WLD score %d conflicts with "
+                    "old score %d\n", line,
+                   score, node[index].black_minimax_score );
+        }
       }
 
       if ( node[index].flags & FULL_SOLVED ) {
-	already_exact_count++;
-	if ( !wld_only && (score != node[index].black_minimax_score) ) {
-	  probable_error = TRUE;
-	  fprintf( stderr, "Line %d: New exact score %d conflicts with "
-		    "old score %d\n", line, 
-		   score, node[index].black_minimax_score );
-	}
+        already_exact_count++;
+        if ( !wld_only && (score != node[index].black_minimax_score) ) {
+          probable_error = TRUE;
+          fprintf( stderr, "Line %d: New exact score %d conflicts with "
+                    "old score %d\n", line,
+                   score, node[index].black_minimax_score );
+        }
       }
 
       if ( probable_error || !wld_only || !(node[index].flags & FULL_SOLVED) )
-	node[index].black_minimax_score = node[index].white_minimax_score =
-	  score;
+        node[index].black_minimax_score = node[index].white_minimax_score =
+          score;
 
       if ( probable_error )  /* Clear the old flags if score was wrong */
-	node[index].flags &= ~(WLD_SOLVED | FULL_SOLVED);
+        node[index].flags &= ~(WLD_SOLVED | FULL_SOLVED);
       if ( wld_only )
-	node[index].flags |= WLD_SOLVED;
+        node[index].flags |= WLD_SOLVED;
       else
-	node[index].flags |= (WLD_SOLVED | FULL_SOLVED);
+        node[index].flags |= (WLD_SOLVED | FULL_SOLVED);
 
       /* Examine the position arising from the PV move; if it exists it
-	 need only be checked for sanity, otherwise a new node is
-	 created. */
+         need only be checked for sanity, otherwise a new node is
+         created. */
 
       if ( moves_read > 0 ) {
-	/* Make sure the optimal move leads to a position in the hash table */
-	int row, col;
+        /* Make sure the optimal move leads to a position in the hash table */
+        int row, col;
 
-	row = move_buffer[1] - '0';
-	col = tolower( move_buffer[0] )- 'a' + 1;
-	move = 10 * row + col;
-	if ( (row >= 1) && (row <= 8) && (col >= 1) && (col <= 8) &&
-	     make_move_no_hash( side_to_move, move ) ) {
-	  int new_side_to_move = OPP( side_to_move );
+        row = move_buffer[1] - '0';
+        col = tolower( move_buffer[0] )- 'a' + 1;
+        move = 10 * row + col;
+        if ( (row >= 1) && (row <= 8) && (col >= 1) && (col <= 8) &&
+             make_move_no_hash( side_to_move, move ) ) {
+          int new_side_to_move = OPP( side_to_move );
 
-	  generate_all( new_side_to_move );
-	  if ( move_count[disks_played] == 0 )
-	    new_side_to_move = side_to_move;
+          generate_all( new_side_to_move );
+          if ( move_count[disks_played] == 0 )
+            new_side_to_move = side_to_move;
 
-	  get_hash( &val1, &val2, &orientation );
-	  slot = probe_hash_table( val1, val2 );
-	  index = book_hash_table[slot];
-	  if ( index == EMPTY_HASH_SLOT ) {
-	    index = create_BookNode( val1, val2, PRIVATE_NODE );
-	    node[index].black_minimax_score =
-	      node[index].white_minimax_score = score;
-	    if ( new_side_to_move == BLACKSQ )
-	      node[index].flags |= BLACK_TO_MOVE;
-	    else
-	      node[index].flags |= WHITE_TO_MOVE;
-	    if ( wld_only )
-	      node[index].flags |= WLD_SOLVED;
-	    else
-	      node[index].flags |= (WLD_SOLVED | FULL_SOLVED);
+          get_hash( &val1, &val2, &orientation );
+          slot = probe_hash_table( val1, val2 );
+          index = book_hash_table[slot];
+          if ( index == EMPTY_HASH_SLOT ) {
+            index = create_BookNode( val1, val2, PRIVATE_NODE );
+            node[index].black_minimax_score =
+              node[index].white_minimax_score = score;
+            if ( new_side_to_move == BLACKSQ )
+              node[index].flags |= BLACK_TO_MOVE;
+            else
+              node[index].flags |= WHITE_TO_MOVE;
+            if ( wld_only )
+              node[index].flags |= WLD_SOLVED;
+            else
+              node[index].flags |= (WLD_SOLVED | FULL_SOLVED);
 
-	    new_nodes_created++;
-	  }
-	  else {  /* Position already exists, sanity-check it */
-	    probable_error = FALSE;
-	    if ( node[index].flags & WLD_SOLVED ) {
-	      if ( ((score > 0) && (node[index].black_minimax_score <= 0)) ||
-		   ((score == 0) && (node[index].black_minimax_score != 0)) ||
-		   ((score < 0) && (node[index].black_minimax_score > 0)) ) {
-		probable_error = TRUE;
-		fprintf( stderr, "Line %d: New child WLD score %d "
-			 "conflicts with old score %d\n", line,
-			 score, node[index].black_minimax_score );
-	      }
-	    }
-	    if ( node[index].flags & FULL_SOLVED ) {
-	      if ( !wld_only && (score != node[index].black_minimax_score) ) {
-		probable_error = TRUE;
-		fprintf( stderr, "Line %d: New child exact score %d "
-			 "conflicts with old score %d\n", line, 
-			 score, node[index].black_minimax_score );
-	      }
-	    }
+            new_nodes_created++;
+          }
+          else {  /* Position already exists, sanity-check it */
+            probable_error = FALSE;
+            if ( node[index].flags & WLD_SOLVED ) {
+              if ( ((score > 0) && (node[index].black_minimax_score <= 0)) ||
+                   ((score == 0) && (node[index].black_minimax_score != 0)) ||
+                   ((score < 0) && (node[index].black_minimax_score > 0)) ) {
+                probable_error = TRUE;
+                fprintf( stderr, "Line %d: New child WLD score %d "
+                         "conflicts with old score %d\n", line,
+                         score, node[index].black_minimax_score );
+              }
+            }
+            if ( node[index].flags & FULL_SOLVED ) {
+              if ( !wld_only && (score != node[index].black_minimax_score) ) {
+                probable_error = TRUE;
+                fprintf( stderr, "Line %d: New child exact score %d "
+                         "conflicts with old score %d\n", line,
+                         score, node[index].black_minimax_score );
+              }
+            }
 
-	    if ( probable_error ) {  /* Correct errors encountered */
-	      node[index].black_minimax_score =
-		node[index].white_minimax_score = score;
-	      node[index].flags &= ~(WLD_SOLVED | FULL_SOLVED);
-	      if ( wld_only )
-		node[index].flags |= WLD_SOLVED;
-	      else
-		node[index].flags |= (WLD_SOLVED | FULL_SOLVED);
-	    }
-	  }
+            if ( probable_error ) {  /* Correct errors encountered */
+              node[index].black_minimax_score =
+                node[index].white_minimax_score = score;
+              node[index].flags &= ~(WLD_SOLVED | FULL_SOLVED);
+              if ( wld_only )
+                node[index].flags |= WLD_SOLVED;
+              else
+                node[index].flags |= (WLD_SOLVED | FULL_SOLVED);
+            }
+          }
 
-	  unmake_move_no_hash( side_to_move, move );
-	}
-	else {
-	  fprintf( stderr, "Line %d: The PV move '%s' is invalid\n",
-		   line, move_buffer );
-	  exit( EXIT_FAILURE );
-	}
+          unmake_move_no_hash( side_to_move, move );
+        }
+        else {
+          fprintf( stderr, "Line %d: The PV move '%s' is invalid\n",
+                   line, move_buffer );
+          exit( EXIT_FAILURE );
+        }
       }
     }
     else if ( strcmp( script_buffer, result_buffer ) ) {
       fprintf( stderr,
-	       "Script and result files differ unexpectedly on line %d\n",
-	       line );
+               "Script and result files differ unexpectedly on line %d\n",
+               line );
       exit( EXIT_FAILURE );
     }
 
-    fgets( script_buffer, 1024, script_stream );
-    fgets( result_buffer, 1024, result_stream );
+    (void) !fgets( script_buffer, 1024, script_stream );
+    (void) !fgets( result_buffer, 1024, result_stream );
     line++;
   }
   line--;
@@ -3852,10 +3854,10 @@ merge_position_list( const char *script_file, const char *output_file ) {
 
   printf( "%d positions merged with the book\n", position_count );
   printf( "%d positions were already solved for exact score\n",
-	  already_exact_count );
+          already_exact_count );
   printf( "%d positions were already solved WLD\n", already_wld_count );
   printf( "%d positions had optimal moves leading to new positions\n",
-	  new_nodes_created );
+          new_nodes_created );
   puts( "" );
 
   fclose( script_stream );
@@ -3904,15 +3906,15 @@ check_forced_opening( int side_to_move, const char *opening ) {
   for ( i = 0; i < disks_played; i++ ) {
     for ( j = 0; j < 8; j++ ) {
       for ( pos = move[i] + move_offset[j], count = 0;
-	    local_board[pos] == OPP( local_side_to_move );
-	    pos += move_offset[j], count++ )
-	;
+            local_board[pos] == OPP( local_side_to_move );
+            pos += move_offset[j], count++ )
+        ;
       if ( local_board[pos] == local_side_to_move ) {
-	pos -= move_offset[j];
-	while ( pos != move[i] ) {
-	  local_board[pos] = local_side_to_move;
-	  pos -= move_offset[j];
-	}
+        pos -= move_offset[j];
+        while ( pos != move[i] ) {
+          local_board[pos] = local_side_to_move;
+          pos -= move_offset[j];
+        }
       }
     }
     local_board[move[i]] = local_side_to_move;
@@ -3930,13 +3932,13 @@ check_forced_opening( int side_to_move, const char *opening ) {
 
   symmetry = abs( my_random() ) % 8;
   for ( symm_index = 0; symm_index < 8;
-	symm_index++, symmetry = (symmetry + 1) % 8 ) {
+        symm_index++, symmetry = (symmetry + 1) % 8 ) {
     same_position = TRUE;
     for ( i = 1; (i <= 8) && same_position; i++ )
       for ( j = 1; j <= 8; j++ ) {
-	pos = 10 * i + j;
-	if ( board[pos] != local_board[symmetry_map[symmetry][pos]] )
-	  same_position = FALSE;
+        pos = 10 * i + j;
+        if ( board[pos] != local_board[symmetry_map[symmetry][pos]] )
+          same_position = FALSE;
       }
     if ( same_position )
       return inv_symmetry_map[symmetry][move[disks_played]];
@@ -3958,7 +3960,7 @@ check_forced_opening( int side_to_move, const char *opening ) {
 
 void
 fill_move_alternatives( int side_to_move,
-			int flags ) {
+                        int flags ) {
   CandidateMove temp;
   int sign;
   int i;
@@ -3970,12 +3972,12 @@ fill_move_alternatives( int side_to_move,
   int score, alternative_score;
   int child_feasible, deviation;
   int root_flags;
-   
+
   get_hash( &val1, &val2, &orientation );
   slot = probe_hash_table( val1, val2 );
 
   /* If the position wasn't found in the hash table, return. */
-  
+
   if ( (slot == NOT_AVAILABLE) ||
        (book_hash_table[slot] == EMPTY_HASH_SLOT) ) {
     candidate_count = 0;
@@ -4017,25 +4019,25 @@ fill_move_alternatives( int side_to_move,
 
     /* Check if the move leads to a book position and, if it does,
        whether it has the solve status (WLD or FULL) specified by FLAGS. */
- 
+
     deviation = FALSE;
     if ( (slot == NOT_AVAILABLE) ||
-	 (book_hash_table[slot] == EMPTY_HASH_SLOT) ) {
+         (book_hash_table[slot] == EMPTY_HASH_SLOT) ) {
       if ( (this_move == alternative_move) && !flags ) {
-	score = alternative_score;
-	child_feasible = TRUE;
-	deviation = TRUE;
+        score = alternative_score;
+        child_feasible = TRUE;
+        deviation = TRUE;
       }
       else {
-	child_feasible = FALSE;
-	score = 0;
+        child_feasible = FALSE;
+        score = 0;
       }
     }
     else if ( (node[book_hash_table[slot]].flags & flags) || !flags ) {
       if ( side_to_move == BLACKSQ )
-	score = node[book_hash_table[slot]].black_minimax_score;
+        score = node[book_hash_table[slot]].black_minimax_score;
       else
-	score = node[book_hash_table[slot]].white_minimax_score;
+        score = node[book_hash_table[slot]].white_minimax_score;
       child_feasible = TRUE;
     }
     else {
@@ -4044,32 +4046,32 @@ fill_move_alternatives( int side_to_move,
     }
 
     if ( child_feasible && (score == 0) &&
-	 !(node[index].flags & WLD_SOLVED) &&
-	 (node[book_hash_table[slot]].flags & WLD_SOLVED) ) {
+         !(node[index].flags & WLD_SOLVED) &&
+         (node[book_hash_table[slot]].flags & WLD_SOLVED) ) {
       /* Check if this is a book draw that should be avoided, i.e., one
          where the current position is not solved but the child position
          is solved for a draw, and the draw mode dictates this draw to
          be a bad one. */
       if ( (game_mode == PRIVATE_GAME) ||
-	   !(node[book_hash_table[slot]].flags & PRIVATE_NODE) ) {
-	if ( side_to_move == BLACKSQ ) {
-	  if ( (draw_mode == WHITE_WINS) || (draw_mode == OPPONENT_WINS) ) {
+           !(node[book_hash_table[slot]].flags & PRIVATE_NODE) ) {
+        if ( side_to_move == BLACKSQ ) {
+          if ( (draw_mode == WHITE_WINS) || (draw_mode == OPPONENT_WINS) ) {
 #ifdef TEXT_BASED
-	    printf( "%c%c leads to an unwanted book draw\n",
-		    TO_SQUARE( this_move ) );
+            printf( "%c%c leads to an unwanted book draw\n",
+                    TO_SQUARE( this_move ) );
 #endif
-	    child_feasible = FALSE;
-	  }
-	}
-	else {
-	  if ( (draw_mode == BLACK_WINS) || (draw_mode == OPPONENT_WINS) ) {
+            child_feasible = FALSE;
+          }
+        }
+        else {
+          if ( (draw_mode == BLACK_WINS) || (draw_mode == OPPONENT_WINS) ) {
 #ifdef TEXT_BASED
-	    printf( "%c%c leads to an unwanted book draw\n",
-		    TO_SQUARE( this_move ) );
+            printf( "%c%c leads to an unwanted book draw\n",
+                    TO_SQUARE( this_move ) );
 #endif
-	    child_feasible = FALSE;
-	  }
-	}
+            child_feasible = FALSE;
+          }
+        }
       }
     }
 
@@ -4077,10 +4079,10 @@ fill_move_alternatives( int side_to_move,
       candidate_list[candidate_count].move = move_list[disks_played][i];
       candidate_list[candidate_count].score = sign * score;
       if ( deviation )
-	candidate_list[candidate_count].flags = DEVIATION;
+        candidate_list[candidate_count].flags = DEVIATION;
       else
-	candidate_list[candidate_count].flags =
-	  node[book_hash_table[slot]].flags;
+        candidate_list[candidate_count].flags =
+          node[book_hash_table[slot]].flags;
       candidate_list[candidate_count].parent_flags = root_flags;
       candidate_count++;
     }
@@ -4091,12 +4093,12 @@ fill_move_alternatives( int side_to_move,
     do {
       changed = FALSE;
       for ( i = 0; i < candidate_count - 1; i++ )
-	if ( candidate_list[i].score < candidate_list[i + 1].score ) {
-	  changed = TRUE;
-	  temp = candidate_list[i];
-	  candidate_list[i] = candidate_list[i + 1];
-	  candidate_list[i + 1] = temp;
-	}
+        if ( candidate_list[i].score < candidate_list[i + 1].score ) {
+          changed = TRUE;
+          temp = candidate_list[i];
+          candidate_list[i] = candidate_list[i + 1];
+          candidate_list[i + 1] = temp;
+        }
     } while ( changed );
   }
 }
@@ -4135,7 +4137,7 @@ print_move_alternatives( int side_to_move ) {
   int slot;
   int val1, val2, orientation;
   int score, output_score;
-  
+
   if ( candidate_count > 0 ) {
     if ( side_to_move == BLACKSQ )
       sign = +1;
@@ -4153,9 +4155,9 @@ print_move_alternatives( int side_to_move ) {
        remove draw avoidance and the special scores for nodes WLD. */
 
     if ( side_to_move == BLACKSQ )
-      score = node[book_hash_table[slot]].black_minimax_score; 
+      score = node[book_hash_table[slot]].black_minimax_score;
     else
-      score = node[book_hash_table[slot]].white_minimax_score; 
+      score = node[book_hash_table[slot]].white_minimax_score;
     if ( (score == +UNWANTED_DRAW) || (score == -UNWANTED_DRAW) )
       score = 0;
     if ( score > +CONFIRMED_WIN )
@@ -4182,19 +4184,19 @@ print_move_alternatives( int side_to_move ) {
 #endif
       output_score = candidate_list[i].score;
       if ( output_score >= CONFIRMED_WIN )
-	output_score -= CONFIRMED_WIN;
+        output_score -= CONFIRMED_WIN;
       else if ( output_score <= -CONFIRMED_WIN )
-	output_score += CONFIRMED_WIN;
+        output_score += CONFIRMED_WIN;
 
 #ifdef TEXT_BASED
       if ( candidate_list[i].flags & FULL_SOLVED )
-	printf( "%+-6d  (exact score)", output_score );
+        printf( "%+-6d  (exact score)", output_score );
       else if ( candidate_list[i].flags & WLD_SOLVED )
-	printf( "%+-6d  (W/L/D solved)", output_score );
+        printf( "%+-6d  (W/L/D solved)", output_score );
       else {
-	printf( "%+-6.2f", output_score / 128.0 );
-	if ( candidate_list[i].flags & DEVIATION )
-	  printf( "  (deviation)" );
+        printf( "%+-6.2f", output_score / 128.0 );
+        if ( candidate_list[i].flags & DEVIATION )
+          printf( "  (deviation)" );
       }
       puts( "" );
 #endif
@@ -4212,8 +4214,8 @@ print_move_alternatives( int side_to_move ) {
 
 int
 get_book_move( int side_to_move,
-	       int update_slack,
-	       EvaluationType *eval_info ) {
+               int update_slack,
+               EvaluationType *eval_info ) {
   int i;
   int original_side_to_move;
   int remaining_slack;
@@ -4272,7 +4274,7 @@ get_book_move( int side_to_move,
   }
   else if ( node[index].flags & WLD_SOLVED ) {
     if ( (node[index].black_minimax_score > 0) &&
-	 (candidate_list[0].score <= 0) )
+         (candidate_list[0].score <= 0) )
       return PASS;
   }
 
@@ -4286,7 +4288,7 @@ get_book_move( int side_to_move,
   feasible_count = 0;
   total_weight = 0;
   while ( (feasible_count < candidate_count) &&
-	  (candidate_list[feasible_count].score >= score - remaining_slack) ) {
+          (candidate_list[feasible_count].score >= score - remaining_slack) ) {
     weight[feasible_count] = 2 * remaining_slack + 1 -
       (score - candidate_list[feasible_count].score);
     total_weight += weight[feasible_count];
@@ -4332,7 +4334,7 @@ get_book_move( int side_to_move,
 
   flags = candidate_list[chosen_index].flags;
   *eval_info = create_eval_info( UNDEFINED_EVAL, UNSOLVED_POSITION,
-				 chosen_score, 0.0, 0, TRUE );
+                                 chosen_score, 0.0, 0, TRUE );
   if ( (base_flags & (FULL_SOLVED | WLD_SOLVED)) &&
        (flags & (FULL_SOLVED | WLD_SOLVED)) ) {
     /* Both the base position and the position after the book move
@@ -4387,65 +4389,65 @@ get_book_move( int side_to_move,
     slot = probe_hash_table( val1, val2 );
     continuation = TRUE;
     if ( (slot == NOT_AVAILABLE) ||
-	 (book_hash_table[slot] == EMPTY_HASH_SLOT) )
+         (book_hash_table[slot] == EMPTY_HASH_SLOT) )
       continuation = FALSE;
     else {
       alternative_move = node[book_hash_table[slot]].best_alternative_move;
       if ( alternative_move > 0 ) {
-	alternative_move = inv_symmetry_map[orientation][alternative_move];
-	alternative_score =
-	  adjust_score( node[book_hash_table[slot]].alternative_score,
-			side_to_move );
+        alternative_move = inv_symmetry_map[orientation][alternative_move];
+        alternative_score =
+          adjust_score( node[book_hash_table[slot]].alternative_score,
+                        side_to_move );
       }
       else
-	alternative_score = -INFINITE_EVAL;
+        alternative_score = -INFINITE_EVAL;
 
       if ( node[book_hash_table[slot]].flags & BLACK_TO_MOVE ) {
-	side_to_move = BLACKSQ;
-	sign = 1;
+        side_to_move = BLACKSQ;
+        sign = 1;
       }
       else {
-	side_to_move = WHITESQ;
-	sign = -1;
+        side_to_move = WHITESQ;
+        sign = -1;
       }
       generate_all( side_to_move );
       best_score = -INFINITE_EVAL;
       best_move = NO_MOVE;
       for ( i = 0; i < move_count[disks_played]; i++ ) {
-	this_move = move_list[disks_played][i];
-	(void) make_move( side_to_move, this_move, TRUE );
-	get_hash( &val1, &val2, &orientation );
-	slot = probe_hash_table( val1, val2 );
-	unmake_move( side_to_move, this_move );
+        this_move = move_list[disks_played][i];
+        (void) make_move( side_to_move, this_move, TRUE );
+        get_hash( &val1, &val2, &orientation );
+        slot = probe_hash_table( val1, val2 );
+        unmake_move( side_to_move, this_move );
 
-	if ( (slot == NOT_AVAILABLE) ||
-	     (book_hash_table[slot] == EMPTY_HASH_SLOT) ) {
-	  if ( this_move == alternative_move ) {
-	    score = alternative_score;
-	    is_feasible = TRUE;
-	  }
-	  else
-	    is_feasible = FALSE;
-	}
-	else {
-	  if ( original_side_to_move == BLACKSQ )
-	    score = node[book_hash_table[slot]].black_minimax_score;
-	  else
-	    score = node[book_hash_table[slot]].white_minimax_score;
-	  is_feasible = TRUE;
-	}
-	if ( is_feasible ) {
-	  score *= sign;
-	  if ( score > best_score ) {
-	    best_score = score;
-	    best_move = this_move;
-	  }
-	}
+        if ( (slot == NOT_AVAILABLE) ||
+             (book_hash_table[slot] == EMPTY_HASH_SLOT) ) {
+          if ( this_move == alternative_move ) {
+            score = alternative_score;
+            is_feasible = TRUE;
+          }
+          else
+            is_feasible = FALSE;
+        }
+        else {
+          if ( original_side_to_move == BLACKSQ )
+            score = node[book_hash_table[slot]].black_minimax_score;
+          else
+            score = node[book_hash_table[slot]].white_minimax_score;
+          is_feasible = TRUE;
+        }
+        if ( is_feasible ) {
+          score *= sign;
+          if ( score > best_score ) {
+            best_score = score;
+            best_move = this_move;
+          }
+        }
       }
       if ( best_move == NO_MOVE )
-	continuation = FALSE;
+        continuation = FALSE;
       else
-	temp_move[level] = best_move;
+        temp_move[level] = best_move;
     }
   } while ( continuation );
   pv_depth[0] = level;
@@ -4510,7 +4512,7 @@ convert_opening_list( const char *base_file ) {
 
   /* Get the number of openings */
 
-  fgets( buffer, 1023, in_stream );
+  (void) !fgets( buffer, 1023, in_stream );
   sscanf( buffer, "%d", &opening_count );
 
   /* Prepare the header file */
@@ -4529,7 +4531,7 @@ convert_opening_list( const char *base_file ) {
   fprintf( out_stream, "/*\n" );
   fprintf( out_stream, "   %s\n\n", header_file_name );
   fprintf( out_stream, "   Automatically created by BOOKTOOL on %s",
-	   ctime( &timer ) );
+           ctime( &timer ) );
   fprintf( out_stream, "*/" );
   fprintf( out_stream, "\n\n\n" );
 
@@ -4544,7 +4546,7 @@ convert_opening_list( const char *base_file ) {
   fputs( "  int level;\n", out_stream );
   fputs( "} OpeningDescriptor;\n\n\n", out_stream );
   fputs( "extern OpeningDescriptor opening_list[OPENING_COUNT];\n",
-	 out_stream);
+         out_stream);
   fputs( "\n\n#endif  /* OPNAME_H */\n", out_stream );
 
   fclose( out_stream );
@@ -4563,7 +4565,7 @@ convert_opening_list( const char *base_file ) {
   fprintf( out_stream, "/*\n" );
   fprintf( out_stream, "   %s\n\n", source_file_name );
   fprintf( out_stream, "   Automatically created by BOOKTOOL on %s",
-	   ctime( &timer ) );
+           ctime( &timer ) );
   fprintf( out_stream, "*/" );
   fprintf( out_stream, "\n\n\n" );
 
@@ -4571,14 +4573,14 @@ convert_opening_list( const char *base_file ) {
 
   fputs( "OpeningDescriptor opening_list[OPENING_COUNT] = {\n", out_stream );
 
-  /* Read the list of openings */ 
+  /* Read the list of openings */
 
   prepare_tree_traversal();
 
   level = 0;
 
   for ( i = 0; i < opening_count; i++ ) {
-    fgets( buffer, 1023, in_stream );
+    (void) !fgets( buffer, 1023, in_stream );
 
     /* Each line in the input file corresponds to one opening.
        First separate the line into opening moves and name. */
@@ -4594,9 +4596,9 @@ convert_opening_list( const char *base_file ) {
     op_move_count = strlen( move_seq ) / 2;
     for ( j = 0, move_ptr = buffer; j < op_move_count; j++ ) {
       if ( isupper( (int) (*move_ptr) ) )
-	side_to_move[j] = BLACKSQ;
+        side_to_move[j] = BLACKSQ;
       else
-	side_to_move[j] = WHITESQ;
+        side_to_move[j] = WHITESQ;
       col = toupper( *move_ptr ) - 'A' + 1;
       move_ptr++;
       row = ( *move_ptr ) - '0';
@@ -4608,7 +4610,7 @@ convert_opening_list( const char *base_file ) {
        in the hierachy created to far */
 
     while ( (level > 0) &&
-	    (strstr(move_seq, parent[level - 1]) != move_seq) ) {
+            (strstr(move_seq, parent[level - 1]) != move_seq) ) {
       level--;
       free( parent[level] );
     }
@@ -4620,9 +4622,9 @@ convert_opening_list( const char *base_file ) {
     for ( j = 0; j < op_move_count; j++ ) {
       if ( !generate_specific( op_move[j], side_to_move[j] ) ) {
 #ifdef TEXT_BASED
-	printf( "Move %d in opening #%d is illegal\n", j + 1, i );
+        printf( "Move %d in opening #%d is illegal\n", j + 1, i );
 #endif
-	exit( EXIT_FAILURE );
+        exit( EXIT_FAILURE );
       }
       (void) make_move( side_to_move[j], op_move[j], TRUE );
     }
@@ -4631,7 +4633,7 @@ convert_opening_list( const char *base_file ) {
 
     get_hash( &hash_val1, &hash_val2, &orientation );
     fprintf( out_stream, "   { \"%s\",\n     \"%s\",\n     %d, %d, %d }",
-	     name_start, move_seq, hash_val1, hash_val2, level - 1 );
+             name_start, move_seq, hash_val1, hash_val2, level - 1 );
     if ( i != opening_count - 1 )
       fputs(" ,\n", out_stream);
 
@@ -4669,7 +4671,7 @@ find_opening_name( void ) {
   get_hash( &val1, &val2, &orientation );
   for ( i = 0; i < OPENING_COUNT; i++ )
     if ( (val1 == opening_list[i].hash_val1) &&
-	 (val2 == opening_list[i].hash_val2) )
+         (val2 == opening_list[i].hash_val2) )
       return opening_list[i].name;
 
   return NULL;
