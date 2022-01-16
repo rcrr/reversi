@@ -1,0 +1,29 @@
+
+
+
+Appunti al 16-01-2022
+
+
+GIT commit e14fd239d2626f5c228863e7b1a388c33e6e6729
+
+La nuova versione del software completata qualche giorno fa, il solver GVE ( Game Value Estimator ) e' completa.
+GVE e' basato su diverse tecnologie:
+
+ - EV ( Evaluation Function ) costruita sui patterns preparati con le metodologie di M. Buro
+ - Game Tree search basato sulla tesi di Aske Plaat con metodo MTD(f)
+ - TT ( Transposition Table ) costruita con Hashtable e Binary-Heap
+
+Sostanzialmante equivalente a quanto descritto da Gunnar Andersson ( gunnar@radagast.se ) nella pagina http://www.radagast.se/othello dove
+viene descritto il software da Lui sviluppato: Zebra.
+
+E' interessante notare come Zebra e' comunque molto piu' veloge di Reversi GVE, nel range 3x - 10x.
+
+Avvio quindi una "campagna" di studio di Zebra, al fine di studiare e comprendere le tecniche ivi adottate.
+
+Zebra e' distribuito da Gunnar con Licenza GPL v2 quindi manterro' nel repository git di Reversi le piccole modifiche che introduco in Zebra.
+
+ScrZebra e' la abbreviazione di "SCRiptable endgame solver ZEBRA".
+E' un programma standalone che si usa da riga di comando, in sostanza equivalente a endgame_solver. Impiega lo stesso endgame solver di WZebra.
+
+
+
