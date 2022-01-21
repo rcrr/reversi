@@ -12,6 +12,28 @@ List of ideas and hints collected investigating the Zebra source code:
 
 --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 
+Program scrzebra, source code analysis. 
+
+  scrzebra.c defines the macro SCRZEBRA and icludes zebra.c
+
+  zebra.c defines SCIPT_ONLY TRUE when is defined SCRZEBRA
+
+  main: Interprets the command-line parameters and starts the game.
+  
+    First there is a large part dedicated to command line parameters.
+
+    Then the sequence of calls is:
+    
+      global_setup()
+      init_thor_database()
+      my_srandom()
+      run_endgame_script()
+      global_terminate()
+      
+    program exit.
+
+--- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+
 Activities log ( in Italian, I am sorry :) )
 
 

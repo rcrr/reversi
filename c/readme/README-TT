@@ -68,6 +68,14 @@ DONE or ADDRESSED:
  (9) Rimuovere limitazione che bisogna avere il MODEL-WEIGHT anche per gli EC elevati, serve un fallback su algoritmo BASICO in quel caso.
 
 
+Appunti al 21-01-2022
+
+  Calcolato tutti i pesi nominati G??50 tranne il G2250, usando gli stessi pattern/feature della seria A, ma con 7 milioni di posizioni invece che 1.
+  I valori della deviazione standard del data set di validazione sono di un 1%, massimo 2% migliori.
+  Non si riscontrano sensibili miglioramenti in GVE. In pratica uare la seria A o G da i medesimi risultati.
+  Noto che i valori dei pesi sono profondamente diversi, c'e' un rilevante shift del valore di INTERCEPT e dei gruppi di pesi appartenenti ai differenti patterns.
+  Credo proprio che sia un fenomeno di labilita' del modello che si possa sanare con la regolarizzazione di RIDGE ( o LASSO ).
+
 Appunti al 06-01-2022
 
   Sono 40 ore che 32 processi girano su Vilya. Ogni processo alloca circa 2GB.
