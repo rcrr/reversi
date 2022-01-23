@@ -9,7 +9,6 @@ List of ideas and hints collected investigating the Zebra source code:
 
   (xx) ...
 
-
 --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 
 Program scrzebra, source code analysis. 
@@ -95,16 +94,122 @@ Program scrzebra, source code analysis.
         Reads the file coeffs2.bin.
         
   (A.5) init_timer
-  (A.6) init_probcut
-  (A.7) init_stable
-  (A.8) setup_search
-        
+        Defined in timer.c.
+        Initializes the timer. This is really only needed when
+          CRON_SUPPORTED is defined; in this case the cron daemon
+          is used for timing.
 
+  (A.6) init_probcut
+        Defined in probcut.c.
+        Clears the tables with MPC information and chooses some reasonable cut pairs.
+
+  (A.7) init_stable
+        Defined in stable.c
+        Build the table containing the stability masks for all edge
+        configurations. This is done using dynamic programming.
+
+  (A.8) setup_search
+        Defined in seach.c.
+        Initialize the history of the game in the search driver.
+        Initalize the self-organizing move lists.
+
+  (B) init_thor_database
+      Defined in thordb.c.
+      Performs the basic initializations of the Thor database interface.
+
+  (C) my_srandom
+      Defined in myrandom.c.
+      Initialize the random number generator based on the given seed.
+
+  (D) run_endgame_script
+      Defined in zebra.c.
+      It is the entry to the game solver for the given list of positions.
+      
+        Opens the input file
+        Opens the output files
+        Makes a few preparation steps
+        Scans the script file (input)
+        Foreach line:
+          Parses the line
+          game_init: Prepare the relevant data structures so that a game can be played.
+          Prepares data structures used to access the book.
+          setup_hash: Determine randomized hash masks.
+          compute_move : it is the entry point of the game evaluation ...
+
+  (E) global_terminate
+      Defined in game.c.
+      Free all dynamically allocated memory.
+      it calls:
+
+        free_hash
+        clear_coeffs
+        clear_osf
+
+Going down the stack we find the following functions:
+
+   compute_moves      : game.c
+   end_game           : end.c
+   end_tree_wrapper   : end.c
+   end_tree_search    : end.c
+
+Let's get into the details:
+
+   *** 01 ***
+   compute_moves
+   Returns the best move in a position given search parameters.
+
+   int
+   compute_move( int side_to_move,              0
+                 int update_all,                1 (TRUE)
+                 int my_time,                   100000000
+                 int my_incr,                   0
+                 int timed_depth,               0
+                 int book,                      0
+                 int mid,                       60
+                 int exact,                     60
+                 int wld,                       60
+                 int search_forced,             1 (TRUE)
+                 EvaluationType *eval_info )    Not initialized, it is out info
+
+   *** 02 ***
+   end_game
+   Provides an interface to the fast endgame solver.
+
+   int
+   end_game( int side_to_move,                  0
+             int wld,                           0
+	     int force_echo,                    0
+	     int allow_book,                    0
+	     int komi,                          0
+	     EvaluationType *eval_info )
+                                                end_game: eval_info->type = 8 (UNINITIALIZED_EVAL)
+
+   *** 03 ***
+   end_tree_wrapper
+   Wrapper onto END_TREE_SEARCH which applies the knowledge that
+   the range of valid scores is [-64,+64].  Komi, if any, is accounted for.
+
+   static int
+   end_tree_wrapper( int level,
+                     int max_depth,
+                     int side_to_move,
+                     int alpha,
+                     int beta,
+                     int selectivity,
+                     int void_legal )
 
 
 --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 
 Activities log ( in Italian, I am sorry :) )
+
+
+Appunti al 23-01-2022
+
+Ho il report di valgrind/callgrind, ottenuto rimuovend il flag -s e aggiungendo -g alle opzioni di compilazione.
+
+Ho capito che il programma tune8dbs esegue il calcolo dei pesi partendo dalle posizioni risolte (REGAB/RGLM).
+
 
 
 Appunti al 16-01-2022

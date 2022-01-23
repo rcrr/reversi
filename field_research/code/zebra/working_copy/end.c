@@ -2,7 +2,7 @@
    File:          end.c
 
    Created:       1994
-   
+
    Modified:      December 19, 2005
 
    Authors:       Gunnar Andersson (gunnar@radagast.se)
@@ -138,7 +138,7 @@ static const double end_percentile[MAX_SELECTIVITY + 1] =
 #if USE_STABILITY
 #define  HIGH_STABILITY_THRESHOLD     24
 static const int stability_threshold[] = { 65, 65, 65, 65, 65, 46, 38, 30, 24,
-				           24, 24, 24, 0, 0, 0, 0, 0, 0, 0 };
+                                           24, 24, 24, 0, 0, 0, 0, 0, 0, 0 };
 #endif
 
 
@@ -182,8 +182,8 @@ static int komi_shift;
 
 INLINE static int
 TestFlips_wrapper( int sq,
-		   BitBoard my_bits,
-		   BitBoard opp_bits ) {
+                   BitBoard my_bits,
+                   BitBoard opp_bits ) {
   int flipped;
 
   if ( ((neighborhood_mask[sq].high & opp_bits.high) |
@@ -222,7 +222,7 @@ prepare_to_solve( const int *board ) {
     /*C1*/      13 , 16 , 31 , 38 , 61 , 68 , 83 , 86 ,
     /*D1*/      14 , 15 , 41 , 48 , 51 , 58 , 84 , 85 ,
     /*C3*/      33 , 36 , 63 , 66 ,
-    /*A1*/      11 , 18 , 81 , 88 , 
+    /*A1*/      11 , 18 , 81 , 88 ,
     /*D4*/      44 , 45 , 54 , 45
   };
   int i;
@@ -293,13 +293,13 @@ check_list( int empties ) {
 
 static int
 solve_two_empty( BitBoard my_bits,
-		 BitBoard opp_bits,
-		 int sq1,
-		 int sq2,
-		 int alpha,
-		 int beta,
-		 int disc_diff,
-		 int pass_legal ) {
+                 BitBoard opp_bits,
+                 int sq1,
+                 int sq2,
+                 int alpha,
+                 int beta,
+                 int disc_diff,
+                 int pass_legal ) {
   // BitBoard new_opp_bits;
   int score = -INFINITE_EVAL;
   int flipped;
@@ -324,42 +324,42 @@ solve_two_empty( BitBoard my_bits,
     FULL_ANDNOT( new_opp_bits, opp_bits, bb_flips );
     if ( ev - 2 <= alpha ) { /* Fail-low if he can play SQ2 */
       if ( ValidOneEmpty_bitboard[sq2]( new_opp_bits ) != 0 )
-	ev = alpha;
+        ev = alpha;
       else {  /* He passes, check if SQ2 is feasible for me */
-	if ( ev >= 0 ) {  /* I'm ahead, so EV will increase by at least 2 */
-	  ev += 2;
-	  if ( ev < beta )  /* Only bother if not certain fail-high */
-	    ev += 2 * CountFlips_bitboard[sq2 - 11]( bb_flips.high, bb_flips.low );
-	}
-	else {
-	  if ( ev < beta ) {  /* Only bother if not fail-high already */
-	    flipped = CountFlips_bitboard[sq2 - 11]( bb_flips.high, bb_flips.low );
-	    if ( flipped != 0 )  /* SQ2 feasible for me, game over */
-	      ev += 2 * (flipped + 1);
-	    /* ELSE: SQ2 will end up empty, game over */
-	  }
-	}
+        if ( ev >= 0 ) {  /* I'm ahead, so EV will increase by at least 2 */
+          ev += 2;
+          if ( ev < beta )  /* Only bother if not certain fail-high */
+            ev += 2 * CountFlips_bitboard[sq2 - 11]( bb_flips.high, bb_flips.low );
+        }
+        else {
+          if ( ev < beta ) {  /* Only bother if not fail-high already */
+            flipped = CountFlips_bitboard[sq2 - 11]( bb_flips.high, bb_flips.low );
+            if ( flipped != 0 )  /* SQ2 feasible for me, game over */
+              ev += 2 * (flipped + 1);
+            /* ELSE: SQ2 will end up empty, game over */
+          }
+        }
       }
     }
     else {
 #endif
       flipped = CountFlips_bitboard[sq2 - 11]( opp_bits.high & ~bb_flips.high, opp_bits.low & ~bb_flips.low );
       if ( flipped != 0 )
-	ev -= 2 * flipped;
+        ev -= 2 * flipped;
       else {  /* He passes, check if SQ2 is feasible for me */
-	if ( ev >= 0 ) {  /* I'm ahead, so EV will increase by at least 2 */
-	  ev += 2;
-	  if ( ev < beta )  /* Only bother if not certain fail-high */
-	    ev += 2 * CountFlips_bitboard[sq2 - 11]( bb_flips.high, bb_flips.low );
-	}
-	else {
-	  if ( ev < beta ) {  /* Only bother if not fail-high already */
-	    flipped = CountFlips_bitboard[sq2 - 11]( bb_flips.high, bb_flips.low );
-	    if ( flipped != 0 )  /* SQ2 feasible for me, game over */
-	      ev += 2 * (flipped + 1);
-	    /* ELSE: SQ2 will end up empty, game over */
-	  }
-	}
+        if ( ev >= 0 ) {  /* I'm ahead, so EV will increase by at least 2 */
+          ev += 2;
+          if ( ev < beta )  /* Only bother if not certain fail-high */
+            ev += 2 * CountFlips_bitboard[sq2 - 11]( bb_flips.high, bb_flips.low );
+        }
+        else {
+          if ( ev < beta ) {  /* Only bother if not fail-high already */
+            flipped = CountFlips_bitboard[sq2 - 11]( bb_flips.high, bb_flips.low );
+            if ( flipped != 0 )  /* SQ2 feasible for me, game over */
+              ev += 2 * (flipped + 1);
+            /* ELSE: SQ2 will end up empty, game over */
+          }
+        }
       }
 #if 0
     }
@@ -369,7 +369,7 @@ solve_two_empty( BitBoard my_bits,
     score = ev;
     if ( score > alpha ) {
       if ( score >= beta )
-	return score;
+        return score;
       alpha = score;
     }
   }
@@ -385,42 +385,42 @@ solve_two_empty( BitBoard my_bits,
     FULL_ANDNOT( new_opp_bits, opp_bits, bb_flips );
     if ( ev - 2 <= alpha ) {  /* Fail-low if he can play SQ1 */
       if ( ValidOneEmpty_bitboard[sq1]( new_opp_bits ) != 0 )
-	ev = alpha;
+        ev = alpha;
       else {  /* He passes, check if SQ1 is feasible for me */
-	if ( ev >= 0 ) {  /* I'm ahead, so EV will increase by at least 2 */
-	  ev += 2;
-	  if ( ev < beta )  /* Only bother if not certain fail-high */
-	    ev += 2 * CountFlips_bitboard[sq1 - 11]( bb_flips.high, bb_flips.low );
-	}
-	else {
-	  if ( ev < beta ) {  /* Only bother if not fail-high already */
-	    flipped = CountFlips_bitboard[sq1 - 11]( bb_flips.high, bb_flips.low );
-	    if ( flipped != 0 )  /* SQ1 feasible for me, game over */
-	      ev += 2 * (flipped + 1);
-	    /* ELSE: SQ1 will end up empty, game over */
-	  }
-	}
+        if ( ev >= 0 ) {  /* I'm ahead, so EV will increase by at least 2 */
+          ev += 2;
+          if ( ev < beta )  /* Only bother if not certain fail-high */
+            ev += 2 * CountFlips_bitboard[sq1 - 11]( bb_flips.high, bb_flips.low );
+        }
+        else {
+          if ( ev < beta ) {  /* Only bother if not fail-high already */
+            flipped = CountFlips_bitboard[sq1 - 11]( bb_flips.high, bb_flips.low );
+            if ( flipped != 0 )  /* SQ1 feasible for me, game over */
+              ev += 2 * (flipped + 1);
+            /* ELSE: SQ1 will end up empty, game over */
+          }
+        }
       }
     }
     else {
 #endif
       flipped = CountFlips_bitboard[sq1 - 11]( opp_bits.high & ~bb_flips.high, opp_bits.low & ~bb_flips.low );
       if ( flipped != 0 )  /* SQ1 feasible for him, game over */
-	ev -= 2 * flipped;
+        ev -= 2 * flipped;
       else {  /* He passes, check if SQ1 is feasible for me */
-	if ( ev >= 0 ) {  /* I'm ahead, so EV will increase by at least 2 */
-	  ev += 2;
-	  if ( ev < beta )  /* Only bother if not certain fail-high */
-	    ev += 2 * CountFlips_bitboard[sq1 - 11]( bb_flips.high, bb_flips.low );
-	}
-	else {
-	  if ( ev < beta ) {  /* Only bother if not fail-high already */
-	    flipped = CountFlips_bitboard[sq1 - 11]( bb_flips.high, bb_flips.low );
-	    if ( flipped != 0 )  /* SQ1 feasible for me, game over */
-	      ev += 2 * (flipped + 1);
-	    /* ELSE: SQ1 will end up empty, game over */
-	  }
-	}
+        if ( ev >= 0 ) {  /* I'm ahead, so EV will increase by at least 2 */
+          ev += 2;
+          if ( ev < beta )  /* Only bother if not certain fail-high */
+            ev += 2 * CountFlips_bitboard[sq1 - 11]( bb_flips.high, bb_flips.low );
+        }
+        else {
+          if ( ev < beta ) {  /* Only bother if not fail-high already */
+            flipped = CountFlips_bitboard[sq1 - 11]( bb_flips.high, bb_flips.low );
+            if ( flipped != 0 )  /* SQ1 feasible for me, game over */
+              ev += 2 * (flipped + 1);
+            /* ELSE: SQ1 will end up empty, game over */
+          }
+        }
       }
 #if 0
     }
@@ -438,14 +438,14 @@ solve_two_empty( BitBoard my_bits,
   if ( score == -INFINITE_EVAL ) {
     if ( !pass_legal ) {  /* Two empty squares */
       if ( disc_diff > 0 )
-	return disc_diff + 2;
+        return disc_diff + 2;
       if ( disc_diff < 0 )
-	return disc_diff - 2;
+        return disc_diff - 2;
       return 0;
     }
     else
       return -solve_two_empty( opp_bits, my_bits, sq1, sq2, -beta,
-			       -alpha, -disc_diff, FALSE );
+                               -alpha, -disc_diff, FALSE );
   }
   else
     return score;
@@ -454,14 +454,14 @@ solve_two_empty( BitBoard my_bits,
 
 static int
 solve_three_empty( BitBoard my_bits,
-		   BitBoard opp_bits,
-		   int sq1,
-		   int sq2,
-		   int sq3,
-		   int alpha,
-		   int beta,
-		   int disc_diff,
-		   int pass_legal ) {
+                   BitBoard opp_bits,
+                   int sq1,
+                   int sq2,
+                   int sq3,
+                   int alpha,
+                   int beta,
+                   int disc_diff,
+                   int pass_legal ) {
   BitBoard new_opp_bits;
   int score = -INFINITE_EVAL;
   int flipped;
@@ -475,7 +475,7 @@ solve_three_empty( BitBoard my_bits,
     FULL_ANDNOT( new_opp_bits, opp_bits, bb_flips );
     new_disc_diff = -disc_diff - 2 * flipped - 1;
     score = -solve_two_empty( new_opp_bits, bb_flips, sq2, sq3,
-			      -beta, -alpha, new_disc_diff, TRUE );
+                              -beta, -alpha, new_disc_diff, TRUE );
     if ( score >= beta )
       return score;
     else if ( score > alpha )
@@ -487,13 +487,13 @@ solve_three_empty( BitBoard my_bits,
     FULL_ANDNOT( new_opp_bits, opp_bits, bb_flips );
     new_disc_diff = -disc_diff - 2 * flipped - 1;
     ev = -solve_two_empty( new_opp_bits, bb_flips, sq1, sq3,
-			   -beta, -alpha, new_disc_diff, TRUE );
+                           -beta, -alpha, new_disc_diff, TRUE );
     if ( ev >= beta )
       return ev;
     else if ( ev > score ) {
       score = ev;
       if ( score > alpha )
-	alpha = score;
+        alpha = score;
     }
   }
 
@@ -502,7 +502,7 @@ solve_three_empty( BitBoard my_bits,
     FULL_ANDNOT( new_opp_bits, opp_bits, bb_flips );
     new_disc_diff = -disc_diff - 2 * flipped - 1;
     ev = -solve_two_empty( new_opp_bits, bb_flips, sq1, sq2,
-			   -beta, -alpha, new_disc_diff, TRUE );
+                           -beta, -alpha, new_disc_diff, TRUE );
     if ( ev >= score )
       return ev;
   }
@@ -510,14 +510,14 @@ solve_three_empty( BitBoard my_bits,
   if ( score == -INFINITE_EVAL ) {
     if ( !pass_legal ) {  /* Three empty squares */
       if ( disc_diff > 0 )
-	return disc_diff + 3;
+        return disc_diff + 3;
       if ( disc_diff < 0 )
-	return disc_diff - 3;
+        return disc_diff - 3;
       return 0;  /* Can't reach this code, only keep it for symmetry */
     }
     else
       return -solve_three_empty( opp_bits, my_bits, sq1, sq2, sq3,
-				 -beta, -alpha, -disc_diff, FALSE );
+                                 -beta, -alpha, -disc_diff, FALSE );
   }
 
   return score;
@@ -527,15 +527,15 @@ solve_three_empty( BitBoard my_bits,
 
 static int
 solve_four_empty( BitBoard my_bits,
-		  BitBoard opp_bits,
-		  int sq1,
-		  int sq2,
-		  int sq3,
-		  int sq4,
-		  int alpha,
-		  int beta,
-		  int disc_diff,
-		  int pass_legal ) {
+                  BitBoard opp_bits,
+                  int sq1,
+                  int sq2,
+                  int sq3,
+                  int sq4,
+                  int alpha,
+                  int beta,
+                  int disc_diff,
+                  int pass_legal ) {
   BitBoard new_opp_bits;
   int score = -INFINITE_EVAL;
   int flipped;
@@ -549,7 +549,7 @@ solve_four_empty( BitBoard my_bits,
     FULL_ANDNOT( new_opp_bits, opp_bits, bb_flips );
     new_disc_diff = -disc_diff - 2 * flipped - 1;
     score = -solve_three_empty( new_opp_bits, bb_flips, sq2, sq3, sq4,
-				-beta, -alpha, new_disc_diff, TRUE );
+                                -beta, -alpha, new_disc_diff, TRUE );
     if ( score >= beta )
       return score;
     else if ( score > alpha )
@@ -561,13 +561,13 @@ solve_four_empty( BitBoard my_bits,
     FULL_ANDNOT( new_opp_bits, opp_bits, bb_flips );
     new_disc_diff = -disc_diff - 2 * flipped - 1;
     ev = -solve_three_empty( new_opp_bits, bb_flips, sq1, sq3, sq4,
-			     -beta, -alpha, new_disc_diff, TRUE );
+                             -beta, -alpha, new_disc_diff, TRUE );
     if ( ev >= beta )
       return ev;
     else if ( ev > score ) {
       score = ev;
       if ( score > alpha )
-	alpha = score;
+        alpha = score;
     }
   }
 
@@ -576,13 +576,13 @@ solve_four_empty( BitBoard my_bits,
     FULL_ANDNOT( new_opp_bits, opp_bits, bb_flips );
     new_disc_diff = -disc_diff - 2 * flipped - 1;
     ev = -solve_three_empty( new_opp_bits, bb_flips, sq1, sq2, sq4,
-			     -beta, -alpha, new_disc_diff, TRUE );
+                             -beta, -alpha, new_disc_diff, TRUE );
     if ( ev >= beta )
       return ev;
     else if ( ev > score ) {
       score = ev;
       if ( score > alpha )
-	alpha = score;
+        alpha = score;
     }
   }
 
@@ -591,7 +591,7 @@ solve_four_empty( BitBoard my_bits,
     FULL_ANDNOT( new_opp_bits, opp_bits, bb_flips );
     new_disc_diff = -disc_diff - 2 * flipped - 1;
     ev = -solve_three_empty( new_opp_bits, bb_flips, sq1, sq2, sq3,
-			     -beta, -alpha, new_disc_diff, TRUE );
+                             -beta, -alpha, new_disc_diff, TRUE );
     if ( ev >= score )
       return ev;
   }
@@ -599,14 +599,14 @@ solve_four_empty( BitBoard my_bits,
   if ( score == -INFINITE_EVAL ) {
     if ( !pass_legal ) {  /* Four empty squares */
       if ( disc_diff > 0 )
-	return disc_diff + 4;
+        return disc_diff + 4;
       if ( disc_diff < 0 )
-	return disc_diff - 4;
+        return disc_diff - 4;
       return 0;
     }
     else
       return -solve_four_empty( opp_bits, my_bits, sq1, sq2, sq3, sq4,
-				-beta, -alpha, -disc_diff, FALSE );
+                                -beta, -alpha, -disc_diff, FALSE );
   }
 
   return score;
@@ -616,13 +616,13 @@ solve_four_empty( BitBoard my_bits,
 
 static int
 solve_parity( BitBoard my_bits,
-	      BitBoard opp_bits,
-	      int alpha,
-	      int beta, 
-	      int color,
-	      int empties,
-	      int disc_diff,
-	      int pass_legal ) {
+              BitBoard opp_bits,
+              int alpha,
+              int beta,
+              int color,
+              int empties,
+              int disc_diff,
+              int pass_legal ) {
   BitBoard new_opp_bits;
   int score = -INFINITE_EVAL;
   int oppcol = OPP( color );
@@ -656,44 +656,44 @@ solve_parity( BitBoard my_bits,
 
   if ( region_parity != 0 )  /* Is there any region with odd parity? */
     for ( old_sq = END_MOVE_LIST_HEAD, sq = end_move_list[old_sq].succ;
-	  sq != END_MOVE_LIST_TAIL;
-	  old_sq = sq, sq = end_move_list[sq].succ ) {
+          sq != END_MOVE_LIST_TAIL;
+          old_sq = sq, sq = end_move_list[sq].succ ) {
       unsigned int holepar = quadrant_mask[sq];
       if ( holepar & parity_mask ) {
-	flipped = TestFlips_wrapper( sq, my_bits, opp_bits );
-	if ( flipped != 0 ) {
-	  FULL_ANDNOT( new_opp_bits, opp_bits, bb_flips );
+        flipped = TestFlips_wrapper( sq, my_bits, opp_bits );
+        if ( flipped != 0 ) {
+          FULL_ANDNOT( new_opp_bits, opp_bits, bb_flips );
 
-	  end_move_list[old_sq].succ = end_move_list[sq].succ;
-	  new_disc_diff = -disc_diff - 2 * flipped - 1;
-	  if ( empties == 5 ) {
-	    int sq1 = end_move_list[END_MOVE_LIST_HEAD].succ;
-	    int sq2 = end_move_list[sq1].succ;
-	    int sq3 = end_move_list[sq2].succ;
-	    int sq4 = end_move_list[sq3].succ;
-	    ev = -solve_four_empty( new_opp_bits, bb_flips, sq1, sq2, sq3, sq4,
-				     -beta, -alpha, new_disc_diff, TRUE );
-	  }
-	  else {
-	    region_parity ^= holepar;
-	    ev = -solve_parity( new_opp_bits, bb_flips, -beta, -alpha,
-				oppcol, empties - 1, new_disc_diff, TRUE );
-	    region_parity ^= holepar;
-	  }
-	  end_move_list[old_sq].succ = sq;
+          end_move_list[old_sq].succ = end_move_list[sq].succ;
+          new_disc_diff = -disc_diff - 2 * flipped - 1;
+          if ( empties == 5 ) {
+            int sq1 = end_move_list[END_MOVE_LIST_HEAD].succ;
+            int sq2 = end_move_list[sq1].succ;
+            int sq3 = end_move_list[sq2].succ;
+            int sq4 = end_move_list[sq3].succ;
+            ev = -solve_four_empty( new_opp_bits, bb_flips, sq1, sq2, sq3, sq4,
+                                     -beta, -alpha, new_disc_diff, TRUE );
+          }
+          else {
+            region_parity ^= holepar;
+            ev = -solve_parity( new_opp_bits, bb_flips, -beta, -alpha,
+                                oppcol, empties - 1, new_disc_diff, TRUE );
+            region_parity ^= holepar;
+          }
+          end_move_list[old_sq].succ = sq;
 
-	  if ( ev > score ) {
-	    if ( ev > alpha ) {
-	      if ( ev >= beta ) {
-		best_move = sq;
-		return ev;
-	      }
-	      alpha = ev;
-	    }
-	    score = ev;
-	    best_sq = sq;
-	  }
-	}
+          if ( ev > score ) {
+            if ( ev > alpha ) {
+              if ( ev >= beta ) {
+                best_move = sq;
+                return ev;
+              }
+              alpha = ev;
+            }
+            score = ev;
+            best_sq = sq;
+          }
+        }
       }
     }
 
@@ -701,43 +701,43 @@ solve_parity( BitBoard my_bits,
 
   parity_mask = ~parity_mask;
   for ( old_sq = END_MOVE_LIST_HEAD, sq = end_move_list[old_sq].succ;
-	sq != END_MOVE_LIST_TAIL;
-	old_sq = sq, sq = end_move_list[sq].succ ) {
+        sq != END_MOVE_LIST_TAIL;
+        old_sq = sq, sq = end_move_list[sq].succ ) {
     unsigned int holepar = quadrant_mask[sq];
     if ( holepar & parity_mask ) {
       flipped = TestFlips_wrapper( sq, my_bits, opp_bits );
       if ( flipped != 0 ) {
-	FULL_ANDNOT( new_opp_bits, opp_bits, bb_flips );
+        FULL_ANDNOT( new_opp_bits, opp_bits, bb_flips );
 
-	end_move_list[old_sq].succ = end_move_list[sq].succ;
-	new_disc_diff = -disc_diff - 2 * flipped - 1;
-	if ( empties == 5 ) {
-	  int sq1 = end_move_list[END_MOVE_LIST_HEAD].succ;
-	  int sq2 = end_move_list[sq1].succ;
-	  int sq3 = end_move_list[sq2].succ;
-	  int sq4 = end_move_list[sq3].succ;
-	  ev = -solve_four_empty( new_opp_bits, bb_flips, sq1, sq2, sq3, sq4,
-				  -beta, -alpha, new_disc_diff, TRUE );
-	}
-	else {
-	  region_parity ^= holepar;
-	  ev = -solve_parity( new_opp_bits, bb_flips, -beta, -alpha,
-			      oppcol, empties - 1, new_disc_diff, TRUE );
-	  region_parity ^= holepar;
-	}
-	end_move_list[old_sq].succ = sq;
+        end_move_list[old_sq].succ = end_move_list[sq].succ;
+        new_disc_diff = -disc_diff - 2 * flipped - 1;
+        if ( empties == 5 ) {
+          int sq1 = end_move_list[END_MOVE_LIST_HEAD].succ;
+          int sq2 = end_move_list[sq1].succ;
+          int sq3 = end_move_list[sq2].succ;
+          int sq4 = end_move_list[sq3].succ;
+          ev = -solve_four_empty( new_opp_bits, bb_flips, sq1, sq2, sq3, sq4,
+                                  -beta, -alpha, new_disc_diff, TRUE );
+        }
+        else {
+          region_parity ^= holepar;
+          ev = -solve_parity( new_opp_bits, bb_flips, -beta, -alpha,
+                              oppcol, empties - 1, new_disc_diff, TRUE );
+          region_parity ^= holepar;
+        }
+        end_move_list[old_sq].succ = sq;
 
-	if ( ev > score ) {
-	  if ( ev > alpha ) {
-	    if ( ev >= beta ) {
-	      best_move = sq;
-	      return ev;
-	    }
-	    alpha = ev;
-	  }
-	  score = ev;
-	  best_sq = sq;
-	}
+        if ( ev > score ) {
+          if ( ev > alpha ) {
+            if ( ev >= beta ) {
+              best_move = sq;
+              return ev;
+            }
+            alpha = ev;
+          }
+          score = ev;
+          best_sq = sq;
+        }
       }
     }
   }
@@ -745,14 +745,14 @@ solve_parity( BitBoard my_bits,
   if ( score == -INFINITE_EVAL ) {
     if ( !pass_legal ) {
       if ( disc_diff > 0 )
-	return disc_diff + empties;
+        return disc_diff + empties;
       if ( disc_diff < 0 )
-	return disc_diff - empties;
+        return disc_diff - empties;
       return 0;
     }
     else
       return -solve_parity( opp_bits, my_bits, -beta, -alpha, oppcol,
-			    empties, -disc_diff, FALSE );
+                            empties, -disc_diff, FALSE );
   }
   best_move = best_sq;
 
@@ -763,13 +763,13 @@ solve_parity( BitBoard my_bits,
 
 static int
 solve_parity_hash( BitBoard my_bits,
-		   BitBoard opp_bits,
-		   int alpha,
-		   int beta,
-		   int color,
-		   int empties,
-		   int disc_diff,
-		   int pass_legal ) {
+                   BitBoard opp_bits,
+                   int alpha,
+                   int beta,
+                   int color,
+                   int empties,
+                   int disc_diff,
+                   int pass_legal ) {
   BitBoard new_opp_bits;
   int score = -INFINITE_EVAL;
   int oppcol = OPP( color );
@@ -789,8 +789,8 @@ solve_parity_hash( BitBoard my_bits,
        valid_move( entry.move[0], color ) &&
        (entry.flags & ENDGAME_SCORE) &&
        ((entry.flags & EXACT_VALUE) ||
-	((entry.flags & LOWER_BOUND) && entry.eval >= beta) ||
-	((entry.flags & UPPER_BOUND) && entry.eval <= alpha)) ) {
+        ((entry.flags & LOWER_BOUND) && entry.eval >= beta) ||
+        ((entry.flags & UPPER_BOUND) && entry.eval <= alpha)) ) {
     best_move = entry.move[0];
     return entry.eval;
   }
@@ -818,36 +818,36 @@ solve_parity_hash( BitBoard my_bits,
 
   if ( region_parity != 0 )  /* Is there any region with odd parity? */
     for ( old_sq = END_MOVE_LIST_HEAD, sq = end_move_list[old_sq].succ;
-	  sq != END_MOVE_LIST_TAIL;
-	  old_sq = sq, sq = end_move_list[sq].succ ) {
+          sq != END_MOVE_LIST_TAIL;
+          old_sq = sq, sq = end_move_list[sq].succ ) {
       unsigned int holepar = quadrant_mask[sq];
       if ( holepar & parity_mask ) {
-	flipped = TestFlips_wrapper( sq, my_bits, opp_bits );
-	if ( flipped != 0 ) {
-	  FULL_ANDNOT( new_opp_bits, opp_bits, bb_flips );
+        flipped = TestFlips_wrapper( sq, my_bits, opp_bits );
+        if ( flipped != 0 ) {
+          FULL_ANDNOT( new_opp_bits, opp_bits, bb_flips );
 
-	  region_parity ^= holepar;
-	  end_move_list[old_sq].succ = end_move_list[sq].succ;
-	  new_disc_diff = -disc_diff - 2 * flipped - 1;
-	  ev = -solve_parity( new_opp_bits, bb_flips, -beta, -alpha, oppcol,
-			      empties - 1, new_disc_diff, TRUE );
-	  region_parity ^= holepar;
-	  end_move_list[old_sq].succ = sq;
-	      
-	  if ( ev > score ) {
-	    score = ev;
-	    if ( ev > alpha ) {
-	      if ( ev >= beta ) { 
-		best_move = sq;
-		add_hash( ENDGAME_MODE, score, best_move,
-			  ENDGAME_SCORE | LOWER_BOUND, empties, 0 );
-		return score;
-	      }
-	      alpha = ev;
-	    }
-	    best_sq = sq;
-	  }
-	}
+          region_parity ^= holepar;
+          end_move_list[old_sq].succ = end_move_list[sq].succ;
+          new_disc_diff = -disc_diff - 2 * flipped - 1;
+          ev = -solve_parity( new_opp_bits, bb_flips, -beta, -alpha, oppcol,
+                              empties - 1, new_disc_diff, TRUE );
+          region_parity ^= holepar;
+          end_move_list[old_sq].succ = sq;
+
+          if ( ev > score ) {
+            score = ev;
+            if ( ev > alpha ) {
+              if ( ev >= beta ) {
+                best_move = sq;
+                add_hash( ENDGAME_MODE, score, best_move,
+                          ENDGAME_SCORE | LOWER_BOUND, empties, 0 );
+                return score;
+              }
+              alpha = ev;
+            }
+            best_sq = sq;
+          }
+        }
       }
     }
 
@@ -856,35 +856,35 @@ solve_parity_hash( BitBoard my_bits,
   parity_mask = ~parity_mask;
 
   for ( old_sq = END_MOVE_LIST_HEAD, sq = end_move_list[old_sq].succ;
-	sq != END_MOVE_LIST_TAIL;
-	old_sq = sq, sq = end_move_list[sq].succ ) {
+        sq != END_MOVE_LIST_TAIL;
+        old_sq = sq, sq = end_move_list[sq].succ ) {
     unsigned int holepar = quadrant_mask[sq];
     if ( holepar & parity_mask ) {
       flipped = TestFlips_wrapper( sq, my_bits, opp_bits );
       if ( flipped != 0 ) {
-	FULL_ANDNOT( new_opp_bits, opp_bits, bb_flips );
+        FULL_ANDNOT( new_opp_bits, opp_bits, bb_flips );
 
-	region_parity ^= holepar;
-	end_move_list[old_sq].succ = end_move_list[sq].succ;
-	new_disc_diff = -disc_diff - 2 * flipped - 1;
-	ev = -solve_parity( new_opp_bits, bb_flips, -beta, -alpha, oppcol,
-			    empties - 1, new_disc_diff, TRUE );
-	region_parity ^= holepar;
-	end_move_list[old_sq].succ = sq;
-	      
-	if ( ev > score ) {
-	  score = ev;
-	  if ( ev > alpha ) {
-	    if ( ev >= beta ) { 
-	      best_move = sq;
-	      add_hash( ENDGAME_MODE, score, best_move,
-			ENDGAME_SCORE | LOWER_BOUND, empties, 0 );
-	      return score;
-	    }
-	    alpha = ev;
-	  }
-	  best_sq = sq;
-	}
+        region_parity ^= holepar;
+        end_move_list[old_sq].succ = end_move_list[sq].succ;
+        new_disc_diff = -disc_diff - 2 * flipped - 1;
+        ev = -solve_parity( new_opp_bits, bb_flips, -beta, -alpha, oppcol,
+                            empties - 1, new_disc_diff, TRUE );
+        region_parity ^= holepar;
+        end_move_list[old_sq].succ = sq;
+
+        if ( ev > score ) {
+          score = ev;
+          if ( ev > alpha ) {
+            if ( ev >= beta ) {
+              best_move = sq;
+              add_hash( ENDGAME_MODE, score, best_move,
+                        ENDGAME_SCORE | LOWER_BOUND, empties, 0 );
+              return score;
+            }
+            alpha = ev;
+          }
+          best_sq = sq;
+        }
       }
     }
   }
@@ -892,16 +892,16 @@ solve_parity_hash( BitBoard my_bits,
   if ( score == -INFINITE_EVAL ) {
     if ( !pass_legal ) {
       if ( disc_diff > 0 )
-	return disc_diff + empties;
+        return disc_diff + empties;
       if ( disc_diff < 0 )
-	return disc_diff - empties;
+        return disc_diff - empties;
       return 0;
     }
     else {
       hash1 ^= hash_flip_color1;
       hash2 ^= hash_flip_color2;
       score = -solve_parity_hash( opp_bits, my_bits, -beta, -alpha, oppcol,
-				  empties, -disc_diff, FALSE );
+                                  empties, -disc_diff, FALSE );
       hash1 ^= hash_flip_color1;
       hash2 ^= hash_flip_color2;
     }
@@ -910,10 +910,10 @@ solve_parity_hash( BitBoard my_bits,
     best_move = best_sq;
     if ( score > in_alpha)
       add_hash( ENDGAME_MODE, score, best_move, ENDGAME_SCORE | EXACT_VALUE,
-		empties, 0 );
+                empties, 0 );
     else
       add_hash( ENDGAME_MODE, score, best_move, ENDGAME_SCORE | UPPER_BOUND,
-		empties, 0 );
+                empties, 0 );
   }
 
   return score;
@@ -923,39 +923,39 @@ solve_parity_hash( BitBoard my_bits,
 
 static int
 solve_parity_hash_high( BitBoard my_bits,
-			BitBoard opp_bits,
-			int alpha,
-			int beta,
-			int color,
-			int empties,
-			int disc_diff,
-			int pass_legal ) {
+                        BitBoard opp_bits,
+                        int alpha,
+                        int beta,
+                        int color,
+                        int empties,
+                        int disc_diff,
+                        int pass_legal ) {
   /* Move bonuses without and with parity for the squares.
      These are only used when sorting moves in the 9-12 empties
      range and were automatically tuned by OPTIMIZE. */
   static const unsigned char move_bonus[2][128] = {  /* 2 * 100 used */
     {   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-	0,  24,   1,   0,  25,  25,   0,   1,  24,   0,
-	0,   1,   0,   0,   0,   0,   0,   0,   1,   0,
-	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-	0,  25,   0,   0,   0,   0,   0,   0,  25,   0,
-	0,  25,   0,   0,   0,   0,   0,   0,  25,   0,
-	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-	0,   1,   0,   0,   0,   0,   0,   0,   1,   0,
-	0,  24,   1,   0,  25,  25,   0,   1,  24,   0,
-	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 },
+        0,  24,   1,   0,  25,  25,   0,   1,  24,   0,
+        0,   1,   0,   0,   0,   0,   0,   0,   1,   0,
+        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+        0,  25,   0,   0,   0,   0,   0,   0,  25,   0,
+        0,  25,   0,   0,   0,   0,   0,   0,  25,   0,
+        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+        0,   1,   0,   0,   0,   0,   0,   0,   1,   0,
+        0,  24,   1,   0,  25,  25,   0,   1,  24,   0,
+        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 },
     {   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-	0, 128,  86, 122, 125, 125, 122,  86, 128,   0,
-	0,  86, 117, 128, 128, 128, 128, 117,  86,   0,
-	0, 122, 128, 128, 128, 128, 128, 128, 122,   0,
-	0, 125, 128, 128, 128, 128, 128, 128, 125,   0,
-	0, 125, 128, 128, 128, 128, 128, 128, 125,   0,
-	0, 122, 128, 128, 128, 128, 128, 128, 122,   0,
-	0,  86, 117, 128, 128, 128, 128, 117,  86,   0,
-	0, 128,  86, 122, 125, 125, 122,  86, 128,   0,
-	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }
+        0, 128,  86, 122, 125, 125, 122,  86, 128,   0,
+        0,  86, 117, 128, 128, 128, 128, 117,  86,   0,
+        0, 122, 128, 128, 128, 128, 128, 128, 122,   0,
+        0, 125, 128, 128, 128, 128, 128, 128, 125,   0,
+        0, 125, 128, 128, 128, 128, 128, 128, 125,   0,
+        0, 122, 128, 128, 128, 128, 128, 128, 122,   0,
+        0,  86, 117, 128, 128, 128, 128, 117,  86,   0,
+        0, 128,  86, 122, 125, 125, 122,  86, 128,   0,
+        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }
   };
   BitBoard new_opp_bits;
   BitBoard best_new_my_bits, best_new_opp_bits;
@@ -983,11 +983,11 @@ solve_parity_hash_high( BitBoard my_bits,
   find_hash( &entry, ENDGAME_MODE );
   if ( entry.draft == empties ) {
     if ( (entry.selectivity == 0) &&
-	 (entry.flags & ENDGAME_SCORE) &&
-	 valid_move( entry.move[0], color ) &&
-	 ((entry.flags & EXACT_VALUE) ||
-	  ((entry.flags & LOWER_BOUND) && entry.eval >= beta) ||
-	  ((entry.flags & UPPER_BOUND) && entry.eval <= alpha)) ) {
+         (entry.flags & ENDGAME_SCORE) &&
+         valid_move( entry.move[0], color ) &&
+         ((entry.flags & EXACT_VALUE) ||
+          ((entry.flags & LOWER_BOUND) && entry.eval >= beta) ||
+          ((entry.flags & UPPER_BOUND) && entry.eval <= alpha)) ) {
       best_move = entry.move[0];
       return entry.eval;
     }
@@ -1018,8 +1018,8 @@ solve_parity_hash_high( BitBoard my_bits,
   best_flipped = 0;
 
   for ( old_sq = END_MOVE_LIST_HEAD, sq = end_move_list[old_sq].succ;
-	sq != END_MOVE_LIST_TAIL;
-	old_sq = sq, sq = end_move_list[sq].succ ) {
+        sq != END_MOVE_LIST_TAIL;
+        old_sq = sq, sq = end_move_list[sq].succ ) {
     flipped = TestFlips_wrapper( sq, my_bits, opp_bits );
     if ( flipped != 0 ) {
       INCREMENT_COUNTER( nodes );
@@ -1028,21 +1028,21 @@ solve_parity_hash_high( BitBoard my_bits,
       end_move_list[old_sq].succ = end_move_list[sq].succ;
 
       if ( quadrant_mask[sq] & region_parity )
-	parity = 1;
+        parity = 1;
       else
-	parity = 0;
+        parity = 0;
       goodness[moves] = move_bonus[parity][sq];
       if ( sq == hash_move )
-	goodness[moves] += 128;
+        goodness[moves] += 128;
 
       goodness[moves] -= weighted_mobility( new_opp_bits, bb_flips );
 
       if ( goodness[moves] > best_value ) {
-	best_value = goodness[moves];
-	best_index = moves;
-	best_new_my_bits = bb_flips;
-	best_new_opp_bits = new_opp_bits;
-	best_flipped = flipped;
+        best_value = goodness[moves];
+        best_index = moves;
+        best_new_my_bits = bb_flips;
+        best_new_opp_bits = new_opp_bits;
+        best_flipped = flipped;
       }
 
       end_move_list[old_sq].succ = sq;
@@ -1056,16 +1056,16 @@ solve_parity_hash_high( BitBoard my_bits,
   if ( moves == 0 ) {  /* I have to pass */
     if ( !pass_legal ) {  /* Last move also pass, game over */
       if ( disc_diff > 0 )
-	return disc_diff + empties;
+        return disc_diff + empties;
       if ( disc_diff < 0 )
-	return disc_diff - empties;
+        return disc_diff - empties;
       return 0;
     }
     else {  /* Opponent gets the chance to play */
       hash1 ^= hash_flip_color1;
       hash2 ^= hash_flip_color2;
       score = -solve_parity_hash_high( opp_bits, my_bits, -beta, -alpha,
-				       oppcol, empties, -disc_diff, FALSE );
+                                       oppcol, empties, -disc_diff, FALSE );
       hash1 ^= hash_flip_color1;
       hash2 ^= hash_flip_color2;
       return score;
@@ -1094,12 +1094,12 @@ solve_parity_hash_high( BitBoard my_bits,
   new_disc_diff = -disc_diff - 2 * best_flipped - 1;
   if ( empties <= LOW_LEVEL_DEPTH + 1 )
     score = -solve_parity_hash( best_new_opp_bits, best_new_my_bits,
-				-beta, -alpha, oppcol, empties - 1,
-				new_disc_diff, TRUE );
+                                -beta, -alpha, oppcol, empties - 1,
+                                new_disc_diff, TRUE );
   else
     score = -solve_parity_hash_high( best_new_opp_bits, best_new_my_bits,
-				     -beta, -alpha, oppcol, empties - 1,
-				     new_disc_diff, TRUE );
+                                     -beta, -alpha, oppcol, empties - 1,
+                                     new_disc_diff, TRUE );
 
   UndoFlips( best_flipped, oppcol );
   hash1 ^= diff1;
@@ -1113,10 +1113,10 @@ solve_parity_hash_high( BitBoard my_bits,
 
   best_sq = sq;
   if ( score > alpha ) {
-    if ( score >= beta ) { 
+    if ( score >= beta ) {
       best_move = best_sq;
       add_hash( ENDGAME_MODE, score, best_move,
-		ENDGAME_SCORE | LOWER_BOUND, empties, 0 );
+                ENDGAME_SCORE | LOWER_BOUND, empties, 0 );
       return score;
     }
     alpha = score;
@@ -1134,8 +1134,8 @@ solve_parity_hash_high( BitBoard my_bits,
     best_index = i;
     for ( j = i + 1; j < moves; j++ )
       if ( goodness[j] > best_value ) {
-	best_value = goodness[j];
-	best_index = j;
+        best_value = goodness[j];
+        best_index = j;
       }
     sq = move_order[best_index];
     move_order[best_index] = move_order[i];
@@ -1162,10 +1162,10 @@ solve_parity_hash_high( BitBoard my_bits,
 
     if ( empties <= LOW_LEVEL_DEPTH )  /* Fail-high for opp is likely. */
       ev = -solve_parity_hash( new_opp_bits, bb_flips, -beta, -alpha,
-			       oppcol, empties - 1, new_disc_diff, TRUE );
+                               oppcol, empties - 1, new_disc_diff, TRUE );
     else
       ev = -solve_parity_hash_high( new_opp_bits, bb_flips, -beta, -alpha,
-				    oppcol, empties - 1, new_disc_diff, TRUE );
+                                    oppcol, empties - 1, new_disc_diff, TRUE );
 
     region_parity ^= quadrant_mask[sq];
 
@@ -1180,13 +1180,13 @@ solve_parity_hash_high( BitBoard my_bits,
     if ( ev > score ) {
       score = ev;
       if ( ev > alpha ) {
-	if ( ev >= beta ) { 
-	  best_move = sq;
-	  add_hash( ENDGAME_MODE, score, best_move,
-		    ENDGAME_SCORE | LOWER_BOUND, empties, 0 );
-	  return score;
-	}
-	alpha = ev;
+        if ( ev >= beta ) {
+          best_move = sq;
+          add_hash( ENDGAME_MODE, score, best_move,
+                    ENDGAME_SCORE | LOWER_BOUND, empties, 0 );
+          return score;
+        }
+        alpha = ev;
       }
       best_sq = sq;
     }
@@ -1195,10 +1195,10 @@ solve_parity_hash_high( BitBoard my_bits,
   best_move = best_sq;
   if ( score > in_alpha )
     add_hash( ENDGAME_MODE, score, best_move,
-	      ENDGAME_SCORE | EXACT_VALUE, empties, 0 );
+              ENDGAME_SCORE | EXACT_VALUE, empties, 0 );
   else
     add_hash( ENDGAME_MODE, score, best_move,
-	      ENDGAME_SCORE | UPPER_BOUND, empties, 0 );
+              ENDGAME_SCORE | UPPER_BOUND, empties, 0 );
 
   return score;
 }
@@ -1214,21 +1214,21 @@ solve_parity_hash_high( BitBoard my_bits,
 
 static int
 end_solve( BitBoard my_bits,
-	   BitBoard opp_bits,
-	   int alpha,
-	   int beta, 
-	   int color,
-	   int empties,
-	   int discdiff,
-	   int prevmove ) {
+           BitBoard opp_bits,
+           int alpha,
+           int beta,
+           int color,
+           int empties,
+           int discdiff,
+           int prevmove ) {
   int result;
 
   if ( empties <= LOW_LEVEL_DEPTH )
     result = solve_parity( my_bits, opp_bits, alpha, beta, color, empties,
-			   discdiff, prevmove );
+                           discdiff, prevmove );
   else
     result = solve_parity_hash_high( my_bits, opp_bits, alpha, beta, color,
-				     empties, discdiff, prevmove );
+                                     empties, discdiff, prevmove );
 
   return result;
 }
@@ -1241,14 +1241,14 @@ end_solve( BitBoard my_bits,
 
 static void
 update_best_list( int *best_list, int move, int best_list_index,
-		  int *best_list_length, int verbose ) {
+                  int *best_list_length, int verbose ) {
   int i;
 
   verbose = FALSE;
 
   if ( verbose ) {
     printf( "move=%2d  index=%d  length=%d      ", move, best_list_index,
-	    *best_list_length );
+            *best_list_length );
     printf( "Before:  " );
     for ( i = 0; i < 4; i++ )
       printf( "%2d ", best_list[i] );
@@ -1282,15 +1282,15 @@ update_best_list( int *best_list, int move, int best_list_index,
 
 static int
 end_tree_search( int level,
-		 int max_depth,
-		 BitBoard my_bits,
-		 BitBoard opp_bits,
-		 int side_to_move,
-		 int alpha,
-		 int beta,
-		 int selectivity,
-		 int *selective_cutoff,
-		 int void_legal ) {
+                 int max_depth,
+                 BitBoard my_bits,
+                 BitBoard opp_bits,
+                 int side_to_move,
+                 int alpha,
+                 int beta,
+                 int selectivity,
+                 int *selective_cutoff,
+                 int void_legal ) {
   static char buffer[16];
   double node_val;
   int i, j;
@@ -1361,20 +1361,20 @@ end_tree_search( int level,
 
     prepare_to_solve( board );
     result = end_solve( my_bits, opp_bits, alpha, beta, side_to_move,
-			empties, disk_diff, previous_move );
+                        empties, disk_diff, previous_move );
 
     pv_depth[level] = level + 1;
     pv[level][level] = best_move;
-      
+
     if ( (level == 0) && !get_ponder_move() ) {
       send_sweep( "%-10s ", buffer );
       send_sweep( "%c%c", TO_SQUARE( best_move ) );
       if ( result <= alpha )
-	send_sweep( "<%d", result + 1 );
+        send_sweep( "<%d", result + 1 );
       else if ( result >= beta )
-	send_sweep( ">%d", result - 1 );
+        send_sweep( ">%d", result - 1 );
       else
-	send_sweep( "=%d", result );
+        send_sweep( "=%d", result );
     }
     return result;
   }
@@ -1394,30 +1394,30 @@ end_tree_search( int level,
 
     find_hash( &entry, ENDGAME_MODE );
     if ( (entry.draft == remains) &&
-	 (entry.selectivity <= selectivity) &&
-	 valid_move( entry.move[0], side_to_move ) &&
-	 (entry.flags & ENDGAME_SCORE) &&
-	 ((entry.flags & EXACT_VALUE) ||
-	  ((entry.flags & LOWER_BOUND) && entry.eval >= beta) ||
-	  ((entry.flags & UPPER_BOUND) && entry.eval <= alpha)) ) {
+         (entry.selectivity <= selectivity) &&
+         valid_move( entry.move[0], side_to_move ) &&
+         (entry.flags & ENDGAME_SCORE) &&
+         ((entry.flags & EXACT_VALUE) ||
+          ((entry.flags & LOWER_BOUND) && entry.eval >= beta) ||
+          ((entry.flags & UPPER_BOUND) && entry.eval <= alpha)) ) {
       pv[level][level] = entry.move[0];
       pv_depth[level] = level + 1;
       if ( (level == 0) && !get_ponder_move() ) {  /* Output some stats */
-	send_sweep( "%c%c", TO_SQUARE( entry.move[0] ) );
-	if ( (entry.flags & ENDGAME_SCORE) &&
-	     (entry.flags & EXACT_VALUE) )
-	  send_sweep( "=%d", entry.eval );
-	else if ( (entry.flags & ENDGAME_SCORE) &&
-		  (entry.flags & LOWER_BOUND) )
-	  send_sweep( ">%d", entry.eval - 1 );
-	else
-	  send_sweep( "<%d", entry.eval + 1 );
+        send_sweep( "%c%c", TO_SQUARE( entry.move[0] ) );
+        if ( (entry.flags & ENDGAME_SCORE) &&
+             (entry.flags & EXACT_VALUE) )
+          send_sweep( "=%d", entry.eval );
+        else if ( (entry.flags & ENDGAME_SCORE) &&
+                  (entry.flags & LOWER_BOUND) )
+          send_sweep( ">%d", entry.eval - 1 );
+        else
+          send_sweep( "<%d", entry.eval + 1 );
 #ifdef TEXT_BASED
-	fflush( stdout );
+        fflush( stdout );
 #endif
       }
       if ( entry.selectivity > 0 )
-	*selective_cutoff = TRUE;
+        *selective_cutoff = TRUE;
       return entry.eval;
     }
 
@@ -1427,17 +1427,17 @@ end_tree_search( int level,
 
     find_hash( &mid_entry, MIDGAME_MODE );
     if ( (mid_entry.draft != NO_HASH_MOVE) &&
-	 (mid_entry.flags & MIDGAME_SCORE) ) {
+         (mid_entry.flags & MIDGAME_SCORE) ) {
       if ( (level <= 4) || (mid_entry.flags & (EXACT_VALUE | LOWER_BOUND)) ) {
-	/* Give the midgame move full priority if we're are the root
-	   of the tree, no endgame hash move was found and the position
-	   isn't in the wipeout zone. */
+        /* Give the midgame move full priority if we're are the root
+           of the tree, no endgame hash move was found and the position
+           isn't in the wipeout zone. */
 
-	if ( (level == 0) && !hash_hit &&
-	     (mid_entry.eval < WIPEOUT_THRESHOLD * 128) ) {
-	  entry = mid_entry;
-	  hash_hit = TRUE;
-	}
+        if ( (level == 0) && !hash_hit &&
+             (mid_entry.eval < WIPEOUT_THRESHOLD * 128) ) {
+          entry = mid_entry;
+          hash_hit = TRUE;
+        }
       }
     }
   }
@@ -1450,25 +1450,25 @@ end_tree_search( int level,
       int shallow_remains = end_mpc_depth[disks_played][cut];
       int mpc_bias = ceil( end_mean[disks_played][shallow_remains] * 128.0 );
       int mpc_window = ceil( end_sigma[disks_played][shallow_remains] *
-			     end_percentile[selectivity] * 128.0 );
+                             end_percentile[selectivity] * 128.0 );
       int beta_bound = 128 * beta + mpc_bias + mpc_window;
       int alpha_bound = 128 * alpha + mpc_bias - mpc_window;
       int shallow_val =
-	tree_search( level, level + shallow_remains, side_to_move,
-		     alpha_bound, beta_bound, use_hash, FALSE, void_legal );
+        tree_search( level, level + shallow_remains, side_to_move,
+                     alpha_bound, beta_bound, use_hash, FALSE, void_legal );
       if ( shallow_val >= beta_bound ) {
-	if ( use_hash )
-	  add_hash( ENDGAME_MODE, alpha, pv[level][level],
-		    ENDGAME_SCORE | LOWER_BOUND, remains, selectivity );
-	*selective_cutoff = TRUE;
-	return beta;
+        if ( use_hash )
+          add_hash( ENDGAME_MODE, alpha, pv[level][level],
+                    ENDGAME_SCORE | LOWER_BOUND, remains, selectivity );
+        *selective_cutoff = TRUE;
+        return beta;
       }
       if ( shallow_val <= alpha_bound ) {
-	if ( use_hash )
-	  add_hash( ENDGAME_MODE, beta, pv[level][level],
-		    ENDGAME_SCORE | UPPER_BOUND, remains, selectivity );
-	*selective_cutoff = TRUE;
-	return alpha;
+        if ( use_hash )
+          add_hash( ENDGAME_MODE, beta, pv[level][level],
+                    ENDGAME_SCORE | UPPER_BOUND, remains, selectivity );
+        *selective_cutoff = TRUE;
+        return alpha;
       }
     }
   }
@@ -1479,13 +1479,13 @@ end_tree_search( int level,
   if ( remains >= DEPTH_TWO_SEARCH ) {
     if ( remains >= DEPTH_THREE_SEARCH )
       if ( remains >= DEPTH_FOUR_SEARCH ) {
-	if ( remains >= DEPTH_SIX_SEARCH )
-	  pre_depth = 6;
-	else
-	  pre_depth = 4;
+        if ( remains >= DEPTH_SIX_SEARCH )
+          pre_depth = 6;
+        else
+          pre_depth = 4;
       }
       else
-	pre_depth = 3;
+        pre_depth = 3;
     else
       pre_depth = 2;
   }
@@ -1496,7 +1496,7 @@ end_tree_search( int level,
     if ( (pre_depth % 2) == 1)  /* Avoid odd depths from the root */
       pre_depth++;
   }
-         
+
   /* The nega-scout search */
 
   exp_depth = remains;
@@ -1514,33 +1514,33 @@ end_tree_search( int level,
   if ( hash_hit )
     for ( i = 0; i < 4; i++ )
       if ( valid_move( entry.move[i], side_to_move ) ) {
-	best_list[best_list_length++] = entry.move[i];
+        best_list[best_list_length++] = entry.move[i];
 
-	/* Check for ETC among the hash table moves */
+        /* Check for ETC among the hash table moves */
 
-	if ( use_hash &&
-	     (make_move( side_to_move, entry.move[i], TRUE ) != 0) ) {
-	  HashEntry etc_entry;
+        if ( use_hash &&
+             (make_move( side_to_move, entry.move[i], TRUE ) != 0) ) {
+          HashEntry etc_entry;
 
           find_hash( &etc_entry, ENDGAME_MODE );
-	  if ( (etc_entry.flags & ENDGAME_SCORE) &&
-	       (etc_entry.draft == empties - 1) &&
-	       (etc_entry.selectivity <= selectivity) &&
-	       (etc_entry.flags & (UPPER_BOUND | EXACT_VALUE)) &&
-	       (etc_entry.eval <= -beta) ) {
+          if ( (etc_entry.flags & ENDGAME_SCORE) &&
+               (etc_entry.draft == empties - 1) &&
+               (etc_entry.selectivity <= selectivity) &&
+               (etc_entry.flags & (UPPER_BOUND | EXACT_VALUE)) &&
+               (etc_entry.eval <= -beta) ) {
 
-	    /* Immediate cutoff from this move, move it up front */
+            /* Immediate cutoff from this move, move it up front */
 
-	    for ( j = best_list_length - 1; j >= 1; j-- )
-	      best_list[j] = best_list[j - 1];
-	    best_list[0] = entry.move[i];
-	  }
-	  unmake_move( side_to_move, entry.move[i] );
-	}
+            for ( j = best_list_length - 1; j >= 1; j-- )
+              best_list[j] = best_list[j - 1];
+            best_list[0] = entry.move[i];
+          }
+          unmake_move( side_to_move, entry.move[i] );
+        }
       }
 
   for ( move_index = 0, best_list_index = 0; TRUE;
-	move_index++, best_list_index++ ) {
+        move_index++, best_list_index++ ) {
     int child_selective_cutoff;
     BitBoard new_my_bits;
     BitBoard new_opp_bits;
@@ -1553,90 +1553,90 @@ end_tree_search( int level,
     }
     else {
       if ( !pre_search_done ) {
-	int shallow_index;
+        int shallow_index;
 
-	pre_search_done = TRUE;
+        pre_search_done = TRUE;
 
-	threshold =
-	  MIN( WIPEOUT_THRESHOLD * 128,
-	       128 * alpha + fast_first_threshold[disks_played][pre_depth] );
+        threshold =
+          MIN( WIPEOUT_THRESHOLD * 128,
+               128 * alpha + fast_first_threshold[disks_played][pre_depth] );
 
-	for ( shallow_index = 0; shallow_index < MOVE_ORDER_SIZE;
-	      shallow_index++ ) {
-	  int already_checked;
+        for ( shallow_index = 0; shallow_index < MOVE_ORDER_SIZE;
+              shallow_index++ ) {
+          int already_checked;
 
-	  move = sorted_move_order[disks_played][shallow_index];
-	  already_checked = FALSE;
-	  for ( j = 0; j < best_list_length; j++ )
-	    if ( move == best_list[j] )
-	      already_checked = TRUE;
+          move = sorted_move_order[disks_played][shallow_index];
+          already_checked = FALSE;
+          for ( j = 0; j < best_list_length; j++ )
+            if ( move == best_list[j] )
+              already_checked = TRUE;
 
-	  if ( !already_checked && (board[move] == EMPTY) &&
-	       (TestFlips_wrapper( move, my_bits, opp_bits ) > 0) ) {
-	    FULL_ANDNOT( new_opp_bits, opp_bits, bb_flips );
+          if ( !already_checked && (board[move] == EMPTY) &&
+               (TestFlips_wrapper( move, my_bits, opp_bits ) > 0) ) {
+            FULL_ANDNOT( new_opp_bits, opp_bits, bb_flips );
 
-	    (void) make_move( side_to_move, move, TRUE );
-	    curr_val = 0;
+            (void) make_move( side_to_move, move, TRUE );
+            curr_val = 0;
 
-	    /* Enhanced Transposition Cutoff: It's a good idea to
-	       transpose back into a position in the hash table. */
+            /* Enhanced Transposition Cutoff: It's a good idea to
+               transpose back into a position in the hash table. */
 
-	    if ( use_hash ) {
-	      HashEntry etc_entry;
+            if ( use_hash ) {
+              HashEntry etc_entry;
 
               find_hash( &etc_entry, ENDGAME_MODE );
-	      if ( (etc_entry.flags & ENDGAME_SCORE) &&
-		   (etc_entry.draft == empties - 1) ) {
-		curr_val += 384;
-		if ( etc_entry.selectivity <= selectivity ) {
-		  if ( (etc_entry.flags & (UPPER_BOUND | EXACT_VALUE)) &&
-		       (etc_entry.eval <= -beta) )
-		    curr_val = GOOD_TRANSPOSITION_EVAL;
-		  if ( (etc_entry.flags & LOWER_BOUND) &&
-		       (etc_entry.eval >= -alpha) )
-		    curr_val -= 640;
-		}
-	      }
-	    }
+              if ( (etc_entry.flags & ENDGAME_SCORE) &&
+                   (etc_entry.draft == empties - 1) ) {
+                curr_val += 384;
+                if ( etc_entry.selectivity <= selectivity ) {
+                  if ( (etc_entry.flags & (UPPER_BOUND | EXACT_VALUE)) &&
+                       (etc_entry.eval <= -beta) )
+                    curr_val = GOOD_TRANSPOSITION_EVAL;
+                  if ( (etc_entry.flags & LOWER_BOUND) &&
+                       (etc_entry.eval >= -alpha) )
+                    curr_val -= 640;
+                }
+              }
+            }
 
-	    /* Determine the midgame score. If it is worse than
-	       alpha-8, a fail-high is likely so precision in that
-	       range is not worth the extra nodes required. */
+            /* Determine the midgame score. If it is worse than
+               alpha-8, a fail-high is likely so precision in that
+               range is not worth the extra nodes required. */
 
-	    if ( curr_val != GOOD_TRANSPOSITION_EVAL )
-	      curr_val -=
-		tree_search( level + 1, level + pre_depth,
-			     OPP( side_to_move ), -INFINITE_EVAL,
-			     (-alpha + 8) * 128, TRUE, TRUE, TRUE );
+            if ( curr_val != GOOD_TRANSPOSITION_EVAL )
+              curr_val -=
+                tree_search( level + 1, level + pre_depth,
+                             OPP( side_to_move ), -INFINITE_EVAL,
+                             (-alpha + 8) * 128, TRUE, TRUE, TRUE );
 
-	    /* Make the moves which are highly likely to result in
-	       fail-high in decreasing order of mobility for the
-	       opponent. */
+            /* Make the moves which are highly likely to result in
+               fail-high in decreasing order of mobility for the
+               opponent. */
 
-	    if ( (curr_val > threshold) || (move == mid_entry.move[0]) ) {
-	      if ( curr_val > WIPEOUT_THRESHOLD * 128 )
-		curr_val += 2 * VERY_HIGH_EVAL;
-	      else
-		curr_val += VERY_HIGH_EVAL;
-	      if ( curr_val < GOOD_TRANSPOSITION_EVAL ) {
-		mobility = bitboard_mobility( new_opp_bits, bb_flips );
-		if ( curr_val > 2 * VERY_HIGH_EVAL )
-		  curr_val -= 2 * ff_mob_factor[disks_played - 1] * mobility;
-		else
-		  curr_val -= ff_mob_factor[disks_played - 1] * mobility;
-	      }
-	    }
+            if ( (curr_val > threshold) || (move == mid_entry.move[0]) ) {
+              if ( curr_val > WIPEOUT_THRESHOLD * 128 )
+                curr_val += 2 * VERY_HIGH_EVAL;
+              else
+                curr_val += VERY_HIGH_EVAL;
+              if ( curr_val < GOOD_TRANSPOSITION_EVAL ) {
+                mobility = bitboard_mobility( new_opp_bits, bb_flips );
+                if ( curr_val > 2 * VERY_HIGH_EVAL )
+                  curr_val -= 2 * ff_mob_factor[disks_played - 1] * mobility;
+                else
+                  curr_val -= ff_mob_factor[disks_played - 1] * mobility;
+              }
+            }
 
-	    unmake_move( side_to_move, move );
-	    evals[disks_played][move] = curr_val;
-	    move_list[disks_played][move_count[disks_played]] = move;
-	    move_count[disks_played]++;
-	  }
-	}
+            unmake_move( side_to_move, move );
+            evals[disks_played][move] = curr_val;
+            move_list[disks_played][move_count[disks_played]] = move;
+            move_count[disks_played]++;
+          }
+        }
       }
 
       if ( move_index == move_count[disks_played] )
-	break;
+        break;
       move = select_move( move_index, move_count[disks_played] );
     }
 
@@ -1648,17 +1648,17 @@ end_tree_search( int level,
 
       /* Output status buffers if in interactive mode */
       if ( echo )
-	display_buffers();
+        display_buffers();
 
       /* Check for events */
       handle_event( TRUE, FALSE, TRUE );
       if ( is_panic_abort() || force_return )
-	return SEARCH_ABORT;
+        return SEARCH_ABORT;
     }
 
     if ( (level == 0) && !get_ponder_move() ) {
       if ( first )
-	send_sweep( "%-10s ", buffer );
+        send_sweep( "%-10s ", buffer );
       send_sweep( "%c%c", TO_SQUARE( move ) );
     }
 
@@ -1670,46 +1670,46 @@ end_tree_search( int level,
     update_pv = FALSE;
     if ( first ) {
       best = curr_val =
-	-end_tree_search( level + 1, level + exp_depth,
-			  new_opp_bits, new_my_bits, OPP( side_to_move ),
-			  -beta, -curr_alpha, selectivity,
-			  &child_selective_cutoff, TRUE );
+        -end_tree_search( level + 1, level + exp_depth,
+                          new_opp_bits, new_my_bits, OPP( side_to_move ),
+                          -beta, -curr_alpha, selectivity,
+                          &child_selective_cutoff, TRUE );
       update_pv = TRUE;
       if ( level == 0 )
-	best_end_root_move = move;
+        best_end_root_move = move;
     }
     else {
       curr_alpha = MAX( best, curr_alpha );
       curr_val =
-	-end_tree_search( level + 1, level + exp_depth,
-			  new_opp_bits, new_my_bits, OPP( side_to_move ),
-			  -(curr_alpha + 1), -curr_alpha,
-			  selectivity, &child_selective_cutoff, TRUE );
+        -end_tree_search( level + 1, level + exp_depth,
+                          new_opp_bits, new_my_bits, OPP( side_to_move ),
+                          -(curr_alpha + 1), -curr_alpha,
+                          selectivity, &child_selective_cutoff, TRUE );
       if ( (curr_val > curr_alpha) && (curr_val < beta) ) {
-	if ( selectivity > 0 )
-	  curr_val =
-	    -end_tree_search( level + 1, level + exp_depth,
-			      new_opp_bits, new_my_bits, OPP( side_to_move ),
-			      -beta, INFINITE_EVAL,
-			      selectivity, &child_selective_cutoff,  TRUE );
-	else
-	  curr_val =
-	    -end_tree_search( level + 1, level + exp_depth,
-			      new_opp_bits, new_my_bits, OPP( side_to_move ),
-			      -beta, -curr_val,
-			      selectivity, &child_selective_cutoff, TRUE );
-	if ( curr_val > best ) {
-	  best = curr_val;
-	  update_pv = TRUE;
-	  if ( (level == 0) && !is_panic_abort() && !force_return )
-	    best_end_root_move = move;
-	}
+        if ( selectivity > 0 )
+          curr_val =
+            -end_tree_search( level + 1, level + exp_depth,
+                              new_opp_bits, new_my_bits, OPP( side_to_move ),
+                              -beta, INFINITE_EVAL,
+                              selectivity, &child_selective_cutoff,  TRUE );
+        else
+          curr_val =
+            -end_tree_search( level + 1, level + exp_depth,
+                              new_opp_bits, new_my_bits, OPP( side_to_move ),
+                              -beta, -curr_val,
+                              selectivity, &child_selective_cutoff, TRUE );
+        if ( curr_val > best ) {
+          best = curr_val;
+          update_pv = TRUE;
+          if ( (level == 0) && !is_panic_abort() && !force_return )
+            best_end_root_move = move;
+        }
       }
       else if ( curr_val > best ) {
-	best = curr_val;
-	update_pv = TRUE;
-	if ( (level == 0) && !is_panic_abort() && !force_return )
-	  best_end_root_move = move;
+        best = curr_val;
+        update_pv = TRUE;
+        if ( (level == 0) && !is_panic_abort() && !force_return )
+          best_end_root_move = move;
       }
     }
 
@@ -1725,41 +1725,41 @@ end_tree_search( int level,
 
     if ( (level == 0) && !get_ponder_move() ) {  /* Output some stats */
       if ( update_pv ) {
-	if ( curr_val <= alpha )
-	  send_sweep( "<%d", curr_val + 1 );
-	else {
-	  if ( curr_val >= beta )
-	    send_sweep( ">%d", curr_val - 1 );
-	  else {
-	    send_sweep( "=%d", curr_val );
-	    true_found = TRUE;
-	    true_val = curr_val;
-	  }
-	}
+        if ( curr_val <= alpha )
+          send_sweep( "<%d", curr_val + 1 );
+        else {
+          if ( curr_val >= beta )
+            send_sweep( ">%d", curr_val - 1 );
+          else {
+            send_sweep( "=%d", curr_val );
+            true_found = TRUE;
+            true_val = curr_val;
+          }
+        }
       }
       send_sweep( " " );
       if ( update_pv && (move_index > 0) && echo)
-	display_sweep( stdout );
+        display_sweep( stdout );
     }
 
     if ( update_pv ) {
       update_best_list( best_list, move, best_list_index, &best_list_length,
-			level == 0 );
+                        level == 0 );
       pv[level][level] = move;
       pv_depth[level] = pv_depth[level + 1];
       for ( i = level + 1; i < pv_depth[level + 1]; i++ )
-	pv[level][i] = pv[level + 1][i];
+        pv[level][i] = pv[level + 1][i];
     }
     if ( best >= beta ) {  /* Fail high */
       if ( use_hash )
-	add_hash_extended( ENDGAME_MODE, best, best_list,
-			   ENDGAME_SCORE | LOWER_BOUND, remains,
-			   *selective_cutoff ? selectivity : 0 );
+        add_hash_extended( ENDGAME_MODE, best, best_list,
+                           ENDGAME_SCORE | LOWER_BOUND, remains,
+                           *selective_cutoff ? selectivity : 0 );
       return best;
     }
 
     if ( (best_list_index >= best_list_length) && !update_pv &&
-	 (best_list_length < 4) )
+         (best_list_length < 4) )
       best_list[best_list_length++] = move;
 
     first = FALSE;
@@ -1769,17 +1769,17 @@ end_tree_search( int level,
   if ( use_hash )
     if ( (h1 != hash1) || (h2 != hash2) )
       printf( "%s: %x%x    %s: %x%x", HASH_BEFORE, h1, h2,
-	      HASH_AFTER, hash1, hash2 );
+              HASH_AFTER, hash1, hash2 );
 #endif
   if ( !first ) {
     if ( use_hash ) {
       int flags = ENDGAME_SCORE;
       if ( best > alpha )
-	flags |= EXACT_VALUE;
+        flags |= EXACT_VALUE;
       else
-	flags |= UPPER_BOUND;
+        flags |= UPPER_BOUND;
       add_hash_extended( ENDGAME_MODE, best, best_list, flags, remains,
-			 *selective_cutoff ? selectivity : 0 );
+                         *selective_cutoff ? selectivity : 0 );
     }
     return best;
   }
@@ -1789,9 +1789,9 @@ end_tree_search( int level,
       hash2 ^= hash_flip_color2;
     }
     curr_val = -end_tree_search( level, max_depth,
-				 opp_bits, my_bits, OPP( side_to_move ),
-				 -beta, -alpha,
-				 selectivity, selective_cutoff, FALSE );
+                                 opp_bits, my_bits, OPP( side_to_move ),
+                                 -beta, -alpha,
+                                 selectivity, selective_cutoff, FALSE );
 
     if ( use_hash ) {
       hash1 ^= hash_flip_color1;
@@ -1823,12 +1823,12 @@ end_tree_search( int level,
 
 static int
 end_tree_wrapper( int level,
-		  int max_depth,
-		  int side_to_move,
-		  int alpha,
-		  int beta,
-		  int selectivity,
-		  int void_legal ) {
+                  int max_depth,
+                  int side_to_move,
+                  int alpha,
+                  int beta,
+                  int selectivity,
+                  int void_legal ) {
   int selective_cutoff;
   BitBoard my_bits, opp_bits;
 
@@ -1836,10 +1836,10 @@ end_tree_wrapper( int level,
   set_bitboards( board, side_to_move, &my_bits, &opp_bits );
 
   return end_tree_search( level, max_depth,
-			  my_bits, opp_bits, side_to_move,
-			  MAX( alpha - komi_shift, -64 ),
-			  MIN( beta - komi_shift, 64 ),
-			  selectivity, &selective_cutoff, void_legal ) +
+                          my_bits, opp_bits, side_to_move,
+                          MAX( alpha - komi_shift, -64 ),
+                          MIN( beta - komi_shift, 64 ),
+                          selectivity, &selective_cutoff, void_legal ) +
     komi_shift;
 }
 
@@ -1852,7 +1852,7 @@ end_tree_wrapper( int level,
 
 static void
 full_expand_pv( int side_to_move,
-		int selectivity ) {
+                int selectivity ) {
   int i;
   int pass_count;
   int new_pv_depth;
@@ -1869,7 +1869,7 @@ full_expand_pv( int side_to_move,
       int empties = 64 - disc_count( BLACKSQ ) - disc_count( WHITESQ );
 
       (void) end_tree_wrapper( new_pv_depth, empties, side_to_move,
-			       -64, 64, selectivity, TRUE );
+                               -64, 64, selectivity, TRUE );
       move = pv[new_pv_depth][new_pv_depth];
       new_pv[new_pv_depth] = move;
       new_side_to_move[new_pv_depth] = side_to_move;
@@ -1899,8 +1899,8 @@ full_expand_pv( int side_to_move,
 
 static void
 send_solve_status( int empties,
-		   int side_to_move,
-		   EvaluationType *eval_info ) {
+                   int side_to_move,
+                   EvaluationType *eval_info ) {
   char *eval_str;
   double node_val;
 
@@ -1918,7 +1918,7 @@ send_solve_status( int empties,
   send_status_time( get_elapsed_time() );
   if ( get_elapsed_time() > 0.0001 )
     send_status( "%6.0f %s  ", node_val / (get_elapsed_time() + 0.0001),
-		 NPS_ABBREV);
+                 NPS_ABBREV);
 }
 
 
@@ -1929,11 +1929,11 @@ send_solve_status( int empties,
 
 int
 end_game( int side_to_move,
-	  int wld,
-	  int force_echo,
-	  int allow_book,
-	  int komi,
-	  EvaluationType *eval_info ) {
+          int wld,
+          int force_echo,
+          int allow_book,
+          int komi,
+          EvaluationType *eval_info ) {
   double current_confidence;
   enum { WIN, LOSS, DRAW, UNKNOWN } solve_status;
   int book_move;
@@ -1947,6 +1947,20 @@ end_game( int side_to_move,
   int last_window_center;
   int old_pv[MAX_SEARCH_DEPTH];
   EvaluationType book_eval_info;
+
+  if (1) {
+    printf("end_game: side_to_move            = %d\n", side_to_move);
+    printf("end_game: wld                     = %d\n", wld);
+    printf("end_game: force_echo              = %d\n", force_echo);
+    printf("end_game: allow_book              = %d\n", allow_book);
+    printf("end_game: komi                    = %d\n", komi);
+    printf("end_game: eval_info->type         = %d\n", eval_info->type);
+    printf("end_game: eval_info->res          = %d\n", eval_info->res);
+    printf("end_game: eval_info->score        = %d\n", eval_info->score);
+    printf("end_game: eval_info->confidence   = %f\n", eval_info->confidence);
+    printf("end_game: eval_info->search_depth = %d\n", eval_info->search_depth);
+    printf("end_game: eval_info->is_book      = %d\n", eval_info->is_book);
+  }
 
   empties = 64 - disc_count( BLACKSQ ) - disc_count( WHITESQ );
 
@@ -1978,15 +1992,15 @@ end_game( int side_to_move,
     if ( komi_shift == 0 ) {
       book_move = get_book_move( side_to_move, FALSE, eval_info );
       if ( book_move != PASS ) {
-	if ( wld ) {
-	  root_eval = eval_info->score / 128;
-	  hash_expand_pv( side_to_move, ENDGAME_MODE,
-			  EXACT_VALUE | UPPER_BOUND | LOWER_BOUND, 0  );
-	  send_solve_status( empties, side_to_move, eval_info );
-	  return book_move;
-	}
-	else
-	  book_eval_info = *eval_info;
+        if ( wld ) {
+          root_eval = eval_info->score / 128;
+          hash_expand_pv( side_to_move, ENDGAME_MODE,
+                          EXACT_VALUE | UPPER_BOUND | LOWER_BOUND, 0  );
+          send_solve_status( empties, side_to_move, eval_info );
+          return book_move;
+        }
+        else
+          book_eval_info = *eval_info;
       }
     }
 
@@ -2025,99 +2039,107 @@ end_game( int side_to_move,
   if ( empties > DISABLE_SELECTIVITY ) {
     if ( wld )
       for ( selectivity = MAX_SELECTIVITY; (selectivity > 0) &&
-	      !is_panic_abort() && !force_return; selectivity-- ) {
-	unsigned int flags;
-	EvalResult res;
+              !is_panic_abort() && !force_return; selectivity-- ) {
+        unsigned int flags;
+        EvalResult res;
 
-	alpha = -1;
-	beta = +1;
-	root_eval = end_tree_wrapper( 0, empties, side_to_move,
-				      alpha, beta, selectivity, TRUE );
+        alpha = -1;
+        beta = +1;
+        root_eval = end_tree_wrapper( 0, empties, side_to_move,
+                                      alpha, beta, selectivity, TRUE );
 
-	adjust_counter( &nodes );
+        adjust_counter( &nodes );
 
-	if ( is_panic_abort() || force_return )
-	  break;
+        if ( is_panic_abort() || force_return )
+          break;
 
-	any_search_result = TRUE;
-	old_eval = root_eval;
-	store_pv( old_pv, &old_depth );
-	current_confidence = confidence[selectivity];
+        any_search_result = TRUE;
+        old_eval = root_eval;
+        store_pv( old_pv, &old_depth );
+        current_confidence = confidence[selectivity];
 
-	flags = EXACT_VALUE;
-	if ( root_eval == 0 )
-	  res = DRAWN_POSITION;
-	else {
-	  flags |= (UPPER_BOUND | LOWER_BOUND);
-	  if ( root_eval > 0 )
-	    res = WON_POSITION;
-	  else
-	    res = LOST_POSITION;
-	}
-	*eval_info =
-	  create_eval_info( SELECTIVE_EVAL, res, root_eval * 128,
-			    current_confidence, empties, FALSE );
-	if ( full_output_mode ) {
-	  hash_expand_pv( side_to_move, ENDGAME_MODE, flags, selectivity );
-	  send_solve_status( empties, side_to_move, eval_info );
-	}
+        flags = EXACT_VALUE;
+        if ( root_eval == 0 )
+          res = DRAWN_POSITION;
+        else {
+          flags |= (UPPER_BOUND | LOWER_BOUND);
+          if ( root_eval > 0 )
+            res = WON_POSITION;
+          else
+            res = LOST_POSITION;
+        }
+        *eval_info =
+          create_eval_info( SELECTIVE_EVAL, res, root_eval * 128,
+                            current_confidence, empties, FALSE );
+        if ( full_output_mode ) {
+          hash_expand_pv( side_to_move, ENDGAME_MODE, flags, selectivity );
+          send_solve_status( empties, side_to_move, eval_info );
+        }
       }
     else
       for ( selectivity = MAX_SELECTIVITY; (selectivity > 0) &&
-	      !is_panic_abort() && !force_return; selectivity-- ) {
-	alpha = last_window_center - 1;
-	beta = last_window_center + 1;
+              !is_panic_abort() && !force_return; selectivity-- ) {
+        alpha = last_window_center - 1;
+        beta = last_window_center + 1;
 
-	root_eval = end_tree_wrapper( 0, empties, side_to_move,
-				      alpha, beta, selectivity, TRUE );
+        printf("end_game: selectivity = %d, alpha = %d, beta = %d\n", selectivity, alpha, beta);
 
-	if ( root_eval <= alpha ) {
-	  do {
-	    last_window_center -= 2;
-	    alpha = last_window_center - 1;
-	    beta = last_window_center + 1;
-	    if ( is_panic_abort() || force_return )
-	      break;
-	    root_eval = end_tree_wrapper( 0, empties, side_to_move,
-					  alpha, beta, selectivity, TRUE );
-	  } while ( root_eval <= alpha );
-	  root_eval = last_window_center;
-	}
-	else if ( root_eval >= beta ) {
-	  do {
-	    last_window_center += 2;
-	    alpha = last_window_center - 1;
-	    beta = last_window_center + 1;
-	    if ( is_panic_abort() || force_return )
-	      break;
-	    root_eval = end_tree_wrapper( 0, empties, side_to_move,
-					  alpha, beta, selectivity, TRUE );
-	  } while ( root_eval >= beta );
-	  root_eval = last_window_center;
-	}
+        root_eval = end_tree_wrapper( 0, empties, side_to_move,
+                                      alpha, beta, selectivity, TRUE );
 
-	adjust_counter( &nodes );
+        printf("end_game: root_eval = %d\n", root_eval);
 
-	if ( is_panic_abort() || force_return )
-	  break;
+        if ( root_eval <= alpha ) {
+          do {
+            last_window_center -= 2;
+            alpha = last_window_center - 1;
+            beta = last_window_center + 1;
+            if ( is_panic_abort() || force_return )
+              break;
+            printf("end_game: selectivity = %d, alpha = %d, beta = %d\n", selectivity, alpha, beta);
+            root_eval = end_tree_wrapper( 0, empties, side_to_move,
+                                          alpha, beta, selectivity, TRUE );
+            printf("end_game: root_eval = %d\n", root_eval);
+          } while ( root_eval <= alpha );
+          root_eval = last_window_center;
+        }
+        else if ( root_eval >= beta ) {
+          do {
+            last_window_center += 2;
+            alpha = last_window_center - 1;
+            beta = last_window_center + 1;
+            if ( is_panic_abort() || force_return )
+              break;
+            printf("end_game: selectivity = %d, alpha = %d, beta = %d\n", selectivity, alpha, beta);
+            root_eval = end_tree_wrapper( 0, empties, side_to_move,
+                                          alpha, beta, selectivity, TRUE );
+            printf("end_game: root_eval = %d\n", root_eval);
+          } while ( root_eval >= beta );
+          root_eval = last_window_center;
+        }
 
-	last_window_center = root_eval;
+        adjust_counter( &nodes );
 
-	if ( !is_panic_abort() && !force_return ) {
-	  any_search_result = TRUE;
-	  old_eval = root_eval;
-	  store_pv( old_pv, &old_depth );
-	  current_confidence = confidence[selectivity];
+        if ( is_panic_abort() || force_return )
+          break;
 
-	  *eval_info =
-	    create_eval_info( SELECTIVE_EVAL, UNSOLVED_POSITION,
-			      root_eval * 128, current_confidence,
-			      empties, FALSE );
-	  if ( full_output_mode ) {
-	    hash_expand_pv( side_to_move, ENDGAME_MODE, EXACT_VALUE, selectivity );
-	    send_solve_status( empties, side_to_move, eval_info );
-	  }
-	}
+        last_window_center = root_eval;
+
+        if ( !is_panic_abort() && !force_return ) {
+          any_search_result = TRUE;
+          old_eval = root_eval;
+          store_pv( old_pv, &old_depth );
+          current_confidence = confidence[selectivity];
+
+          *eval_info =
+            create_eval_info( SELECTIVE_EVAL, UNSOLVED_POSITION,
+                              root_eval * 128, current_confidence,
+                              empties, FALSE );
+          if ( full_output_mode ) {
+            hash_expand_pv( side_to_move, ENDGAME_MODE, EXACT_VALUE, selectivity );
+            send_solve_status( empties, side_to_move, eval_info );
+          }
+        }
       }
   }
   else
@@ -2141,18 +2163,18 @@ end_game( int side_to_move,
     if ( any_search_result ) {
       if ( echo && (is_panic_abort() || force_return) ) {
 #ifdef TEXT_BASED
-	printf( "%s %.1f %c %s\n", SEMI_PANIC_ABORT_TEXT, get_elapsed_time(),
-		SECOND_ABBREV, SEL_SEARCH_TEXT );
+        printf( "%s %.1f %c %s\n", SEMI_PANIC_ABORT_TEXT, get_elapsed_time(),
+                SECOND_ABBREV, SEL_SEARCH_TEXT );
 #endif
-	if ( full_output_mode ) {
-	  unsigned int flags;
+        if ( full_output_mode ) {
+          unsigned int flags;
 
-	  flags = EXACT_VALUE;
-	  if ( solve_status != DRAW )
-	    flags |= (UPPER_BOUND | LOWER_BOUND);
-	  hash_expand_pv( side_to_move, ENDGAME_MODE, flags, selectivity );
-	  send_solve_status( empties, side_to_move, eval_info );
-	}
+          flags = EXACT_VALUE;
+          if ( solve_status != DRAW )
+            flags |= (UPPER_BOUND | LOWER_BOUND);
+          hash_expand_pv( side_to_move, ENDGAME_MODE, flags, selectivity );
+          send_solve_status( empties, side_to_move, eval_info );
+        }
       }
       pv[0][0] = best_end_root_move;
       pv_depth[0] = 1;
@@ -2162,20 +2184,20 @@ end_game( int side_to_move,
     else {
 #ifdef TEXT_BASED
       if ( echo )
-	printf( "%s %.1f %c %s\n", PANIC_ABORT_TEXT, get_elapsed_time(),
-		SECOND_ABBREV, SEL_SEARCH_TEXT );
+        printf( "%s %.1f %c %s\n", PANIC_ABORT_TEXT, get_elapsed_time(),
+                SECOND_ABBREV, SEL_SEARCH_TEXT );
 #endif
-      root_eval = SEARCH_ABORT;                   
+      root_eval = SEARCH_ABORT;
     }
 
     if ( echo || force_echo )
       display_status( stdout, FALSE );
 
     if ( (book_move != PASS) &&
-	 ((book_eval_info.res == WON_POSITION) ||
-	  (book_eval_info.res == DRAWN_POSITION)) ) {
+         ((book_eval_info.res == WON_POSITION) ||
+          (book_eval_info.res == DRAWN_POSITION)) ) {
       /* If there is a known win (or mismarked draw) available,
-	   always play it upon timeout. */
+           always play it upon timeout. */
       *eval_info = book_eval_info;
       root_eval = eval_info->score / 128;
       return book_move;
@@ -2196,74 +2218,74 @@ end_game( int side_to_move,
   }
 
   root_eval = end_tree_wrapper( 0, empties, side_to_move,
-				alpha, beta, 0, TRUE );
+                                alpha, beta, 0, TRUE );
 
   adjust_counter( &nodes );
 
   if ( !is_panic_abort() && !force_return ) {
     if ( !wld ) {
       if ( root_eval <= alpha ) {
-	int ceiling_value = last_window_center - 2;
-	while ( 1 ) {
-	  alpha = ceiling_value - 1;
-	  beta = ceiling_value;
-	  root_eval = end_tree_wrapper( 0, empties, side_to_move,
-					alpha, beta, 0, TRUE );
-	  if ( is_panic_abort() || force_return )
-	    break;
-	  if ( root_eval > alpha )
-	    break;
-	  else
-	    ceiling_value -= 2;
-	}
+        int ceiling_value = last_window_center - 2;
+        while ( 1 ) {
+          alpha = ceiling_value - 1;
+          beta = ceiling_value;
+          root_eval = end_tree_wrapper( 0, empties, side_to_move,
+                                        alpha, beta, 0, TRUE );
+          if ( is_panic_abort() || force_return )
+            break;
+          if ( root_eval > alpha )
+            break;
+          else
+            ceiling_value -= 2;
+        }
       }
       else if ( root_eval >= beta ) {
-	int floor_value = last_window_center + 2;
-	while ( 1 ) {
-	  alpha = floor_value - 1;
-	  beta = floor_value + 1;
-	  root_eval = end_tree_wrapper( 0, empties, side_to_move,
-					alpha, beta, 0, TRUE );
-	  if ( is_panic_abort() || force_return )
-	    break;
-	  assert( root_eval > alpha );
-	  if ( root_eval < beta )
-	    break;
-	  else
-	    floor_value += 2;
-	}
+        int floor_value = last_window_center + 2;
+        while ( 1 ) {
+          alpha = floor_value - 1;
+          beta = floor_value + 1;
+          root_eval = end_tree_wrapper( 0, empties, side_to_move,
+                                        alpha, beta, 0, TRUE );
+          if ( is_panic_abort() || force_return )
+            break;
+          assert( root_eval > alpha );
+          if ( root_eval < beta )
+            break;
+          else
+            floor_value += 2;
+        }
       }
     }
     if ( !is_panic_abort() && !force_return ) {
       EvalResult res;
       if ( root_eval < 0 )
-	res = LOST_POSITION;
+        res = LOST_POSITION;
       else if ( root_eval == 0 )
-	res = DRAWN_POSITION;
+        res = DRAWN_POSITION;
       else
-	res = WON_POSITION;
+        res = WON_POSITION;
       if ( wld ) {
-	unsigned int flags;
+        unsigned int flags;
 
-	if ( root_eval == 0 )
-	  flags = EXACT_VALUE;
-	else
-	  flags = UPPER_BOUND | LOWER_BOUND;
-	*eval_info =
-	  create_eval_info( WLD_EVAL, res, root_eval * 128, 0.0, empties, FALSE );
-	if ( full_output_mode ) {
-	  hash_expand_pv( side_to_move, ENDGAME_MODE, flags, 0 );
-	  send_solve_status( empties, side_to_move, eval_info );
-	}
+        if ( root_eval == 0 )
+          flags = EXACT_VALUE;
+        else
+          flags = UPPER_BOUND | LOWER_BOUND;
+        *eval_info =
+          create_eval_info( WLD_EVAL, res, root_eval * 128, 0.0, empties, FALSE );
+        if ( full_output_mode ) {
+          hash_expand_pv( side_to_move, ENDGAME_MODE, flags, 0 );
+          send_solve_status( empties, side_to_move, eval_info );
+        }
       }
       else {
-	*eval_info =
-	  create_eval_info( EXACT_EVAL, res, root_eval * 128, 0.0, 
-			    empties, FALSE );
-	if ( full_output_mode ) {
-	  hash_expand_pv( side_to_move, ENDGAME_MODE, EXACT_VALUE, 0 );
-	  send_solve_status( empties, side_to_move, eval_info );
-	}
+        *eval_info =
+          create_eval_info( EXACT_EVAL, res, root_eval * 128, 0.0,
+                            empties, FALSE );
+        if ( full_output_mode ) {
+          hash_expand_pv( side_to_move, ENDGAME_MODE, EXACT_VALUE, 0 );
+          send_solve_status( empties, side_to_move, eval_info );
+        }
       }
     }
   }
@@ -2276,20 +2298,20 @@ end_game( int side_to_move,
     if ( any_search_result ) {
       if ( echo ) {
 #ifdef TEXT_BASED
-	printf( "%s %.1f %c %s\n", SEMI_PANIC_ABORT_TEXT,
-		get_elapsed_time(), SECOND_ABBREV, WLD_SEARCH_TEXT );
+        printf( "%s %.1f %c %s\n", SEMI_PANIC_ABORT_TEXT,
+                get_elapsed_time(), SECOND_ABBREV, WLD_SEARCH_TEXT );
 #endif
-	if ( full_output_mode ) {
-	  unsigned int flags;
+        if ( full_output_mode ) {
+          unsigned int flags;
 
-	  flags = EXACT_VALUE;
-	  if ( root_eval != 0 )
-	    flags |= (UPPER_BOUND | LOWER_BOUND);
-	  hash_expand_pv( side_to_move, ENDGAME_MODE, flags, 0 );
-	  send_solve_status( empties, side_to_move, eval_info );
-	}
-	if ( echo || force_echo )
-	  display_status( stdout, FALSE );
+          flags = EXACT_VALUE;
+          if ( root_eval != 0 )
+            flags |= (UPPER_BOUND | LOWER_BOUND);
+          hash_expand_pv( side_to_move, ENDGAME_MODE, flags, 0 );
+          send_solve_status( empties, side_to_move, eval_info );
+        }
+        if ( echo || force_echo )
+          display_status( stdout, FALSE );
       }
       restore_pv( old_pv, old_depth );
       root_eval = old_eval;
@@ -2298,8 +2320,8 @@ end_game( int side_to_move,
     else {
 #ifdef TEXT_BASED
       if ( echo )
-	printf( "%s %.1f %c %s\n", PANIC_ABORT_TEXT,
-		get_elapsed_time(), SECOND_ABBREV, WLD_SEARCH_TEXT );
+        printf( "%s %.1f %c %s\n", PANIC_ABORT_TEXT,
+                get_elapsed_time(), SECOND_ABBREV, WLD_SEARCH_TEXT );
 #endif
       root_eval = SEARCH_ABORT;
     }
@@ -2323,14 +2345,14 @@ end_game( int side_to_move,
     if ( echo ) {
 #ifdef TEXT_BASED
       printf( "%s %.1f %c %s\n", SEMI_PANIC_ABORT_TEXT,
-	      get_elapsed_time(), SECOND_ABBREV, EXACT_SEARCH_TEXT );
+              get_elapsed_time(), SECOND_ABBREV, EXACT_SEARCH_TEXT );
 #endif
       if ( full_output_mode ) {
-	hash_expand_pv( side_to_move, ENDGAME_MODE, EXACT_VALUE, 0 );
-	send_solve_status( empties, side_to_move, eval_info );
+        hash_expand_pv( side_to_move, ENDGAME_MODE, EXACT_VALUE, 0 );
+        send_solve_status( empties, side_to_move, eval_info );
       }
       if ( echo || force_echo )
-	display_status( stdout, FALSE );
+        display_status( stdout, FALSE );
     }
     pv[0][0] = best_end_root_move;
     pv_depth[0] = 1;
@@ -2338,7 +2360,7 @@ end_game( int side_to_move,
     exact_score_failed = TRUE;
     clear_panic_abort();
   }
-      
+
   if ( abs( root_eval ) % 2 == 1 ) {
     if ( root_eval > 0 )
       root_eval++;
@@ -2377,7 +2399,7 @@ end_game( int side_to_move,
 /*
    SETUP_END
    Prepares the endgame solver for a new game.
-   This means clearing a few status fields.   
+   This means clearing a few status fields.
 */
 
 void
@@ -2406,13 +2428,13 @@ setup_end( void ) {
       neighborhood_mask[pos].high = 0;
 
       for ( k = 0; k < 8; k++ )
-	if ( dir_mask[pos] & (1 << k) ) {
-	  unsigned int neighbor = shift + dir_shift[k];
-	  if ( neighbor < 32 )
-	    neighborhood_mask[pos].low |= (1 << neighbor);
-	  else
-	    neighborhood_mask[pos].high |= (1 << (neighbor - 32));
-	}
+        if ( dir_mask[pos] & (1 << k) ) {
+          unsigned int neighbor = shift + dir_shift[k];
+          if ( neighbor < 32 )
+            neighborhood_mask[pos].low |= (1 << neighbor);
+          else
+            neighborhood_mask[pos].high |= (1 << (neighbor - 32));
+        }
     }
 
   /* Set the fastest-first mobility encouragements and thresholds */
@@ -2430,8 +2452,8 @@ setup_end( void ) {
     last_mean = 0.0;
     for ( i = 60; i >= 0; i-- ) {
       if ( end_stats_available[i][j] ) {
-	last_mean = end_mean[i][j];
-	last_sigma = ff_threshold[i] * end_sigma[i][j];
+        last_mean = end_mean[i][j];
+        last_sigma = ff_threshold[i] * end_sigma[i][j];
       }
       fast_first_mean[i][j] = last_mean;
       fast_first_sigma[i][j] = last_sigma;
@@ -2444,7 +2466,7 @@ setup_end( void ) {
   for ( i = 0; i <= 60; i++ )
     for ( j = 0; j < 64; j++ )
       fast_first_threshold[i][j] =
-	(int) ceil( prelim_threshold[i][j] * 128.0 );
+        (int) ceil( prelim_threshold[i][j] * 128.0 );
 }
 
 

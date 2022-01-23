@@ -1155,6 +1155,25 @@ compute_move( int side_to_move,
   int endgame_reached;
   int offset;
 
+  if (1) {
+    printf("compute_move: side_to_move            = %d\n", side_to_move);
+    printf("compute_move: update_all              = %d\n", update_all);
+    printf("compute_move: my_time                 = %d\n", my_time);
+    printf("compute_move: my_incr                 = %d\n", my_incr);
+    printf("compute_move: timed_depth             = %d\n", timed_depth);
+    printf("compute_move: book                    = %d\n", book);
+    printf("compute_move: mid                     = %d\n", mid);
+    printf("compute_move: exact                   = %d\n", exact);
+    printf("compute_move: wld                     = %d\n", wld);
+    printf("compute_move: search_forced           = %d\n", search_forced);
+    //printf("eval_info->type         = %d\n", eval_info->type);
+    //printf("eval_info->res          = %d\n", eval_info->res);
+    //printf("eval_info->score        = %d\n", eval_info->score);
+    //printf("eval_info->confidence   = %f\n", eval_info->confidence);
+    //printf("eval_info->search_depth = %d\n", eval_info->search_depth);
+    //printf("eval_info->is_book      = %d\n", eval_info->is_book);
+  }
+
   log_file = NULL;
   if ( use_log_file )
     log_file = fopen( log_file_path, "a" );
@@ -1446,16 +1465,20 @@ compute_move( int side_to_move,
          (!timed_depth && (empties <= MAX( exact, wld ))) ) {
       max_depth_reached = empties;
       clear_panic_abort();
-      if ( timed_depth )
+      if (0) printf("timed_deph = %d\n", timed_depth);
+      if ( timed_depth ) {
         curr_move = end_game( side_to_move, (disks_played < 60 - exact),
                               FALSE, book, komi, &end_eval_info );
-      else
-        if ( empties <= exact )
+      } else {
+        if (0) printf("empties <= exact = %d\n", empties <= exact);
+        if ( empties <= exact ) {
+          printf("... rcrr ... calling end_game ...\n");
           curr_move = end_game( side_to_move, FALSE, FALSE,
                                 book, komi, &end_eval_info );
-        else
+        } else
           curr_move = end_game( side_to_move, TRUE, FALSE,
                                 book, komi, &end_eval_info);
+      }
       set_current_eval( end_eval_info );
       if ( abs( root_eval ) == abs( SEARCH_ABORT ) )
         move_type = INTERRUPTED_MOVE;
