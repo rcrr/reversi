@@ -58,7 +58,8 @@ tune8dbs.c:1346:3: note: within this loop
 /* Define the inline directive when available */
 
 #ifdef __GNUC__
-  #define INLINE __inline__
+//#define INLINE __inline__
+  #define INLINE
 #else
   #define INLINE
 #endif

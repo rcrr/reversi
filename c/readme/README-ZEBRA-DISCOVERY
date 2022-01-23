@@ -32,6 +32,76 @@ Program scrzebra, source code analysis.
       
     program exit.
 
+  (A) global_setup
+      Initialize the different sub-systems.
+      It is defined in game.c. It calls:
+      
+        init_hash(hash_bits);
+        init_bitboard();
+        init_moves();
+        init_patterns();
+        init_coeffs();
+        init_timer();
+        init_probcut();
+        init_stable();
+        setup_search();
+
+      and returns.
+      
+  (A.0) init_hash
+        Defined in hash.c.
+        Allocate memory for the hash table.
+
+  (A.1) init_bitboard 
+        Defined in bitboard.c.
+        Assigns values to the square_mask array defined as:
+        
+          BitBoard square_mask[100];
+          
+        the struct BitBoard is defined in bitboard.h as:
+
+          typedef struct {
+            unsigned int high;
+            unsigned int low;
+          } BitBoard;
+
+  (A.2) init_moves
+        Defined in moves.c.
+        Initialize the move generation subsystem.
+
+        In particular initialize the two arrays:
+        
+          flip_direction
+          first_flip_direction
+          
+        defined global in moves.c as:
+        
+          int *first_flip_direction[100];
+          int flip_direction[100][16];   /* 100 * 9 used */
+
+  (A.3) init_patterns
+        Defined in patterns.c.
+        Pre-computes some tables needed for fast pattern access.
+
+        Calls transformation_setup that populates the flip8 array.
+
+        Populates row_no, row_index, col_no, col_index arrays.
+
+        Calls pattern_dependency that populates depend_lo and depend_hi.
+        
+  (A.4) init_coeffs
+        Defined in getcoeff.c.
+        Manages the initialization of all relevant tables.
+        Reads the file coeffs2.bin.
+        
+  (A.5) init_timer
+  (A.6) init_probcut
+  (A.7) init_stable
+  (A.8) setup_search
+        
+
+
+
 --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 
 Activities log ( in Italian, I am sorry :) )

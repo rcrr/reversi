@@ -122,11 +122,13 @@ CXX		= g++
 
 
 # --- Flags ---
+# Added -g -fno-inline to OPTS
+# Removed -s -Wcast-align -Wwrite-strings -Wstrict-prototypes -Winline
 
 DEFS =		-DINCLUDE_BOOKTOOL -DTEXT_BASED -DZLIB_STATIC
 
-WARNINGS =	-Wall -Wcast-align -Wwrite-strings -Wstrict-prototypes -Winline
-OPTS =		-O3 -s -fomit-frame-pointer
+WARNINGS =	-Wall
+OPTS =		-O3 -g -fomit-frame-pointer -fno-inline
 
 CFLAGS =	$(OPTS) $(WARNINGS) $(DEFS)
 CXXFLAGS =	$(CFLAGS)
