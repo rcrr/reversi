@@ -197,7 +197,24 @@ Let's get into the details:
                      int beta,
                      int selectivity,
                      int void_legal )
+                     
+   *** 04 ***
+   end_tree_search
+   Plain nega-scout with fastest-first move ordering.
+   
+   static int
+   end_tree_search( int level,
+                    int max_depth,
+                    BitBoard my_bits,
+                    BitBoard opp_bits,
+                    int side_to_move,
+                    int alpha,
+                    int beta,
+                    int selectivity,
+                    int *selective_cutoff,
+                    int void_legal )
 
+It is an 800 lines very sofisticated function. it is not really a "fastest-first" only function !!!
 
 --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 

@@ -41,6 +41,96 @@
 
 
 /*
+ * PEXT (Parallel Bits Extract) functions - Section begin.
+ */
+
+/**
+ * @cond
+ */
+
+extern uint64_t
+bitw_pext_64_plain (uint64_t bit_set,
+                    uint64_t mask);
+
+#ifdef __BMI2__
+__attribute__((always_inline))
+inline uint64_t
+bitw_pext_64_pext (uint64_t bit_set,
+                   uint64_t mask)
+{
+  uint64_t result;
+  __asm__ __volatile__ ("pextq %2, %1, %0;" : "=r" (result) : "r" (bit_set), "r" (mask));
+  return result;
+}
+#endif
+
+/**
+ * @endcond
+ */
+
+__attribute__((always_inline))
+inline uint64_t
+bitw_pext_64 (uint64_t bit_set,
+              uint64_t mask)
+{
+#ifdef __BMI2__
+  return bitw_pext_64_pext(bit_set, mask);
+#else
+  return bitw_pext_64_plain(bit_set, mask);
+#endif
+}
+
+/*
+ * PEXT (Parallel Bits Extract) functions - Section end.
+ */
+
+/*
+ * PDEP (Parallel Bits Deposit) functions - Section begin.
+ */
+
+/**
+ * @cond
+ */
+
+extern uint64_t
+bitw_pdep_64_plain (uint64_t bit_set,
+                    uint64_t mask);
+
+#ifdef __BMI2__
+__attribute__((always_inline))
+inline uint64_t
+bitw_pdep_64_pdep (uint64_t bit_set,
+                   uint64_t mask)
+{
+  uint64_t result;
+  __asm__ __volatile__ ("pdepq %2, %1, %0;" : "=r" (result) : "r" (bit_set), "r" (mask));
+  return result;
+}
+#endif
+
+/**
+ * @endcond
+ */
+
+__attribute__((always_inline))
+inline uint64_t
+bitw_pdep_64 (uint64_t bit_set,
+              uint64_t mask)
+{
+#ifdef __BMI2__
+  return bitw_pdep_64_pdep(bit_set, mask);
+#else
+  return bitw_pdep_64_plain(bit_set, mask);
+#endif
+}
+
+/*
+ * PDEP (Parallel Bits Deposit) functions - Section end.
+ */
+
+
+
+/*
  * Bit count functions - Section begin.
  */
 

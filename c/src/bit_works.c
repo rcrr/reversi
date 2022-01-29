@@ -85,6 +85,81 @@ static const int debruijn_64_shift_value = 58;
 
 
 /*
+ * PEXT (Parallel Bits Extract) functions.
+ */
+
+/**
+ * @cond
+ */
+
+uint64_t
+bitw_pext_64_plain (uint64_t bit_set,
+                    uint64_t mask)
+{
+  uint64_t r = 0;
+  for (uint64_t b = 1; mask; b += b) {
+    if (bit_set & mask & -mask)
+      r |= b;
+    mask &= mask - 1;
+  }
+  return r;
+}
+
+#ifdef __BMI2__
+extern uint64_t
+bitw_pext_64_pext (uint64_t bit_set,
+                   uint64_t mask);
+#endif
+
+extern uint64_t
+bitw_pext_64 (uint64_t bit_set,
+              uint64_t mask);
+
+/**
+ * @endcond
+ */
+
+/* PEXT - end. */
+
+/*
+ * PDEP (Parallel Bits Deposit) functions.
+ */
+
+/**
+ * @cond
+ */
+
+uint64_t
+bitw_pdep_64_plain (uint64_t bit_set,
+                    uint64_t mask)
+{
+  uint64_t r = 0;
+  for (uint64_t b = 1; mask; b += b) {
+    if (bit_set & b)
+      r |= mask & -mask;
+    mask &= mask - 1;
+  }
+  return r;
+}
+
+#ifdef __BMI2__
+extern uint64_t
+bitw_pdep_64_pdep (uint64_t bit_set,
+                   uint64_t mask);
+#endif
+
+extern uint64_t
+bitw_pdep_64 (uint64_t bit_set,
+              uint64_t mask);
+
+/**
+ * @endcond
+ */
+
+/* PDEP - end. */
+
+
+/*
  * Bit count functions.
  */
 

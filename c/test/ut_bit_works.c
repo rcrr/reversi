@@ -522,6 +522,133 @@ bitw_rol_64_t (ut_test_t *const t)
   ut_assert(t, 0x0F0F0F0F0F0F0F0F == result);
 }
 
+static void
+bitw_pext_64_t (ut_test_t *const t)
+{
+
+  typedef uint64_t (*pext_f) (uint64_t bit_set, uint64_t mask);
+
+  pext_f fs[] =
+    {
+     bitw_pext_64_plain,
+#ifdef __BMI2__
+     bitw_pext_64_pext,
+#endif
+     bitw_pext_64,
+    };
+
+  const size_t pext_fs_lenght = sizeof(fs) / sizeof(fs[0]);
+
+  struct record
+  {
+    uint64_t expected;
+    uint64_t value;
+    uint64_t mask;
+  };
+
+  struct record data[] =
+    {
+     { 0x0000000000000000, 0xFFFFFFFFFFFFFFFF, 0x0000000000000000 },
+     { 0x0000000000000001, 0xFFFFFFFFFFFFFFFF, 0x0000000000000001 },
+     { 0x0000000000000001, 0xFFFFFFFFFFFFFFFF, 0x0000000000000002 },
+     { 0x0000000000000000, 0xFFFFFFFFFFFFFF00, 0x0000000000000002 },
+     { 0x0000000000000003, 0xFFFFFFFFFFFFFFFF, 0x0000000000000003 },
+     { 0x0000000000000001, 0xFFFFFFFFFFFFFFFF, 0x8000000000000000 },
+     { 0x0000000000000003, 0xFFFFFFFFFFFFFFFF, 0x8000000000000001 },
+     { 0x0000000000000001, 0x00FFFFFFFFFFFFFF, 0x8000000000000001 },
+     { 0x0000000000000002, 0xFFFFFFFFFFFFFF00, 0x8000000000000001 },
+     { 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF },
+    };
+
+  const size_t data_lenght = sizeof(data) / sizeof(data[0]);
+
+  ut_assert(t, 0xFFFFFFFFFFFFFFFF == bitw_pext_64_plain(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF));
+#ifdef __BMI2__
+  ut_assert(t, 0x0000000000000000 == bitw_pext_64_pext(0xFFFFFFFFFFFFFFFF, 0x0000000000000000));
+#endif
+  ut_assert(t, 0x0000000000000000 == bitw_pext_64(0x0000000000000000, 0xFFFFFFFFFFFFFFFF));
+
+  for (size_t j = 0; j < pext_fs_lenght; j++) {
+    const pext_f pext = fs[j];
+    for (size_t i = 0; i < data_lenght; i++) {
+      const struct record r = data[i];
+      const uint64_t result = pext(r.value, r.mask);
+      if (result != r.expected) {
+        fprintf(stderr, "Test failure!\n");
+        fprintf(stderr,
+                "i = %zu, expected = 0x%016lx, result = 0x%016lx, value = 0x%016lx, mask = 0x%016lx\n",
+                i, r.expected, result, r.value, r.mask);
+        ut_assert(t, false);
+      }
+    }
+  }
+}
+
+static void
+bitw_pdep_64_t (ut_test_t *const t)
+{
+
+  typedef uint64_t (*pdep_f) (uint64_t bit_set, uint64_t mask);
+
+  pdep_f fs[] =
+    {
+     bitw_pdep_64_plain,
+#ifdef __BMI2__
+     bitw_pdep_64_pdep,
+#endif
+     bitw_pdep_64,
+    };
+
+  const size_t pdep_fs_lenght = sizeof(fs) / sizeof(fs[0]);
+
+  struct record
+  {
+    uint64_t expected;
+    uint64_t value;
+    uint64_t mask;
+  };
+
+  struct record data[] =
+    {
+     { 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF },
+     { 0x0000000000000000, 0x0000000000000000, 0xFFFFFFFFFFFFFFFF },
+     { 0x0000000000000001, 0x0000000000000001, 0xFFFFFFFFFFFFFFFF },
+     { 0x0000000000000003, 0x0000000000000003, 0xFFFFFFFFFFFFFFFF },
+     { 0x8000000000000000, 0x8000000000000000, 0xFFFFFFFFFFFFFFFF },
+     { 0xFF000000000000FF, 0xFF000000000000FF, 0xFFFFFFFFFFFFFFFF },
+     { 0x0000000000000004, 0x0000000000000001, 0x0000000000000004 },
+     { 0x0000000000000000, 0x0000000000000002, 0x0000000000000004 },
+     { 0x0000000000000004, 0x0000000000000003, 0x0000000000000004 },
+     { 0x0000000000005500, 0x0000000000000055, 0x000000000000FF00 },
+     { 0x0000000000000000, 0x0000000000005500, 0x000000000000FF00 },
+    };
+
+  const size_t data_lenght = sizeof(data) / sizeof(data[0]);
+
+  ut_assert(t, 0xFFFFFFFFFFFFFFFF == bitw_pdep_64_plain(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF));
+  ut_assert(t, 0x0000000000000000 == bitw_pdep_64_plain(0x0000000000000000, 0xFFFFFFFFFFFFFFFF));
+#ifdef __BMI2__
+  ut_assert(t, 0xFFFFFFFFFFFFFFFF == bitw_pdep_64_pdep(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF));
+  ut_assert(t, 0x0000000000000000 == bitw_pdep_64_pdep(0x0000000000000000, 0xFFFFFFFFFFFFFFFF));
+#endif
+  ut_assert(t, 0xFFFFFFFFFFFFFFFF == bitw_pdep_64(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF));
+  ut_assert(t, 0x0000000000000000 == bitw_pdep_64(0x0000000000000000, 0xFFFFFFFFFFFFFFFF));
+
+  for (size_t j = 0; j < pdep_fs_lenght; j++) {
+    const pdep_f pdep = fs[j];
+    for (size_t i = 0; i < data_lenght; i++) {
+      const struct record r = data[i];
+      const uint64_t result = pdep(r.value, r.mask);
+      if (result != r.expected) {
+        fprintf(stderr, "Test failure!\n");
+        fprintf(stderr,
+                "j = %zu, i = %zu, expected = 0x%016lx, result = 0x%016lx, value = 0x%016lx, mask = 0x%016lx\n",
+                j, i, r.expected, result, r.value, r.mask);
+        ut_assert(t, false);
+      }
+    }
+  }
+}
 
 
 /**
@@ -582,6 +709,9 @@ main (int argc,
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_ror_64_t",  bitw_ror_64_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_rol_64_t",  bitw_rol_64_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_pext_64_t",  bitw_pext_64_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_pdep_64_t",  bitw_pdep_64_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);
