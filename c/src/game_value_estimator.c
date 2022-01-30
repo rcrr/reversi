@@ -181,10 +181,6 @@ static void
 exact_terminal_game_value (node_t *n);
 
 static void
-generate_legal_move_set (node_t *n,
-                         ttab_item_t it);
-
-static void
 generate_child_nodes (int *child_node_count,
                       node_t *child_nodes,
                       node_t *n,
@@ -296,7 +292,7 @@ game_position_gve_solve (gve_context_t ctx,
 
   node_t root_node;
   init_node(&root_node,
-            &parent_root_node, empty_square_set, invalid_move, invalid_move, out_of_range_defeat_score,
+            &parent_root_node, game_position_x_legal_moves(root), invalid_move, invalid_move, out_of_range_defeat_score,
             root->blacks, root->whites, root->player);
 
   if (ctx->gve_solver_log_level >= 1) {
@@ -1014,14 +1010,6 @@ exact_terminal_game_value (node_t *n)
   n->value = game_position_x_final_value(&n->gpx);
 }
 
-static void
-generate_legal_move_set (node_t *n,
-                         ttab_item_t it)
-{
-  n->legal_move_set = it ? it->legal_move_set : game_position_x_legal_moves(&n->gpx);
-  n->legal_move_count = bitw_bit_count_64(n->legal_move_set);
-}
-
 /**
  * @brief Generates child nodes
  *
@@ -1040,8 +1028,9 @@ generate_child_nodes (int *child_node_count,
   int lmc;       // legal move count
 
   lms = n->legal_move_set;
+  lmc = n->legal_move_count;
   if (lms) {
-    lmc = bitw_bit_count_64(lms);
+    if (lmc != n->legal_move_count) abort();
     for (int i = 0; i < lmc; i++) {
       const Square move = bitw_tzcnt_64(lms);
       node_t *const c = child_nodes + i;
@@ -1052,11 +1041,11 @@ generate_child_nodes (int *child_node_count,
       if (compute_hash) game_position_x_make_move_delta_hash(&n->gpx, move, &c->gpx, n->hash, &c->hash);
       else game_position_x_make_move(&n->gpx, move, &c->gpx);
       c->legal_move_set = game_position_x_legal_moves(&c->gpx);
-      c->legal_move_count = bitw_bit_count_64(c->legal_move_set);
+      const int c_lmc = bitw_bit_count_64(c->legal_move_set);
+      c->legal_move_count = c_lmc ? c_lmc : 1;
       lms = bitw_reset_lowest_set_bit_64(lms);
     }
   } else {
-    lmc = 1;
     node_t *const c = child_nodes + 0;
     c->parent = n;
     c->parent_move = pass_move;
@@ -1230,8 +1219,6 @@ alphabeta_with_memory (node_t *n,
       its.move_values[i] = out_of_range_defeat_score;
     }
   }
-
-  generate_legal_move_set(n, it);
 
   explored_child_count = 0;
   if (is_terminal(n)) {

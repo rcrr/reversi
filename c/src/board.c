@@ -956,6 +956,7 @@ SquareSet
 game_position_x_legal_moves (const GamePositionX *const gpx)
 {
   const SquareSet e_set = game_position_x_empties(gpx);
+  if (!e_set) return empty_square_set;
   const SquareSet m_set = game_position_x_get_mover(gpx);
   const SquareSet o_set = game_position_x_get_opponent(gpx);
 
@@ -1223,7 +1224,7 @@ game_position_x_is_move_legal (const GamePositionX *const gpx,
  *
  * @param [in]  current the given game position x
  * @param [in]  move    the square where to put the new disk
- * @param [out] updated the updated game position x as a rusult of the move
+ * @param [out] updated the updated game position x as a result of the move
  */
 void
 game_position_x_make_move (const GamePositionX *const current,
