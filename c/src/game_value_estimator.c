@@ -181,8 +181,7 @@ static void
 exact_terminal_game_value (node_t *n);
 
 static void
-generate_child_nodes (int *child_node_count,
-                      node_t *child_nodes,
+generate_child_nodes (node_t *child_nodes,
                       node_t *n,
                       bool compute_hash);
 
@@ -1013,14 +1012,12 @@ exact_terminal_game_value (node_t *n)
 /**
  * @brief Generates child nodes
  *
- * @param [out] child_node_count pointer to the count of child nodes
- * @param [out] child_nodes      array of children nodes
- * @param [in]  n                pointer to the node structure
- * @param [in]  compute_hash     drives the computation of the hash for child nodes
+ * @param [out]     child_nodes  array of children nodes
+ * @param [in,out]  n            pointer to the node structure
+ * @param [in]      compute_hash drives the computation of the hash for child nodes
  */
 static void
-generate_child_nodes (int *child_node_count,
-                      node_t *child_nodes,
+generate_child_nodes (node_t *child_nodes,
                       node_t *n,
                       bool compute_hash)
 {
@@ -1056,8 +1053,6 @@ generate_child_nodes (int *child_node_count,
     c->legal_move_set = game_position_x_legal_moves(&c->gpx);
     c->legal_move_count = bitw_bit_count_64(c->legal_move_set);
   }
-
-  *child_node_count = lmc;
 }
 
 static void
@@ -1142,7 +1137,6 @@ leaf_negamax (node_t *n,
               int beta,
               gve_context_t ctx)
 {
-  int child_node_count;
   node_t child_nodes[64];
   node_t *sorted_child_nodes[64];
 
@@ -1152,11 +1146,11 @@ leaf_negamax (node_t *n,
     ctx->leaf_count++;
     exact_terminal_game_value(n);
   } else {
-    generate_child_nodes(&child_node_count, child_nodes, n, false);
-    for (int i = 0; i < child_node_count; i++) sorted_child_nodes[i] = &child_nodes[i];
-    sort_nodes_by_lmc(sorted_child_nodes, child_node_count);
+    generate_child_nodes(child_nodes, n, false);
+    for (int i = 0; i < n->legal_move_count; i++) sorted_child_nodes[i] = &child_nodes[i];
+    sort_nodes_by_lmc(sorted_child_nodes, n->legal_move_count);
     n->value = out_of_range_defeat_score;
-    for (int i = 0; i < child_node_count; i++) {
+    for (int i = 0; i < n->legal_move_count; i++) {
       node_t *child = sorted_child_nodes[i];
       leaf_negamax(child, -beta, -alpha, ctx);
       n->value = max(n->value, -child->value);
@@ -1175,7 +1169,6 @@ alphabeta_with_memory (node_t *n,
                        const int beta,
                        gve_context_t ctx)
 {
-  int child_node_count;
   node_t child_nodes[64];
   node_t *child_nodes_p[64];
   int explored_child_count;
@@ -1231,13 +1224,13 @@ alphabeta_with_memory (node_t *n,
     leaf_negamax(n, am, bm, ctx);
   } else {
 
-    generate_child_nodes(&child_node_count, child_nodes, n, true);
-    its.legal_move_count = child_node_count;
-    order_moves(child_node_count, child_nodes, child_nodes_p, it, ec <= ctx->first_level_evaluation, ctx);
+    generate_child_nodes(child_nodes, n, true);
+    its.legal_move_count = n->legal_move_count;
+    order_moves(n->legal_move_count, child_nodes, child_nodes_p, it, ec <= ctx->first_level_evaluation, ctx);
 
     n->value = out_of_range_defeat_score;
     n->best_move = invalid_move;
-    for (int i = 0; i < child_node_count; i++) {
+    for (int i = 0; i < n->legal_move_count; i++) {
       node_t *child = child_nodes_p[i];
 
       if (ctx->id_search_depth - depth == 0)
