@@ -120,6 +120,7 @@ typedef struct node_s {
   int value;
   GamePositionX gpx;
   uint64_t hash;
+  SquareSet empty_set;
 } node_t;
 
 
@@ -704,6 +705,7 @@ init_node (node_t *node,
   node->gpx.whites = gpx_whites;
   node->gpx.player = gpx_player;
   node->hash = game_position_x_hash(&node->gpx);
+  node->empty_set = game_position_x_empties(&node->gpx);
 }
 
 static int
@@ -991,7 +993,7 @@ rglm_eval_gp (const GamePositionX *const gpx,
 static bool
 is_terminal (node_t *n)
 {
-  return (!n->legal_move_set && !n->parent->legal_move_set);
+  return (!n->empty_set || (!n->legal_move_set && !n->parent->legal_move_set));
 }
 
 static void
@@ -1040,6 +1042,7 @@ generate_child_nodes (node_t *child_nodes,
       c->legal_move_set = game_position_x_legal_moves(&c->gpx);
       const int c_lmc = bitw_bit_count_64(c->legal_move_set);
       c->legal_move_count = c_lmc ? c_lmc : 1;
+      c->empty_set = game_position_x_empties(&c->gpx);
       lms = bitw_reset_lowest_set_bit_64(lms);
     }
   } else {
@@ -1052,6 +1055,7 @@ generate_child_nodes (node_t *child_nodes,
     else game_position_x_make_move(&n->gpx, pass_move, &c->gpx);
     c->legal_move_set = game_position_x_legal_moves(&c->gpx);
     c->legal_move_count = bitw_bit_count_64(c->legal_move_set);
+    c->empty_set = n->empty_set;
   }
 }
 
