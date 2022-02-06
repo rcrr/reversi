@@ -219,6 +219,56 @@ kost_lms_t (ut_test_t *const t)
   }
 }
 
+static void
+kost_make_move_t (ut_test_t *const t)
+{
+
+  struct unit {
+    uint64_t board[2];
+    uint64_t move;
+    uint64_t board_after_move[2];
+  };
+
+  struct unit data[] =
+    {
+     { { 0x0000000000000000 , 0x0000000000000000 }, 0x0000000000000000 , { 0x0000000000000000 , 0x0000000000000000 }}, // 000
+     { { 0x0000000000000001 , 0x0000000000000002 }, 0x0000000000000004 , { 0x0000000000000007 , 0x0000000000000000 }}, // 001
+     { { 0x0000000000000001 , 0x0000000000000006 }, 0x0000000000000008 , { 0x000000000000000f , 0x0000000000000000 }}, // 002
+     { { 0x0000000000000001 , 0x000000000000000e }, 0x0000000000000010 , { 0x000000000000001f , 0x0000000000000000 }}, // 003
+     { { 0x0000000000000001 , 0x000000000000001e }, 0x0000000000000020 , { 0x000000000000003f , 0x0000000000000000 }}, // 004
+     { { 0x0000000000000001 , 0x000000000000003e }, 0x0000000000000040 , { 0x000000000000007f , 0x0000000000000000 }}, // 005
+     { { 0x0000000000000001 , 0x000000000000007e }, 0x0000000000000080 , { 0x00000000000000ff , 0x0000000000000000 }}, // 006
+     { { 0x0000000000000080 , 0x000000000000007e }, 0x0000000000000001 , { 0x00000000000000ff , 0x0000000000000000 }}, // 007
+     { { 0x0000000000000001 , 0x0000000000000100 }, 0x0000000000010000 , { 0x0000000000010101 , 0x0000000000000000 }}, // 008
+     { { 0x780c0700142c0400 , 0x003078ffeb523810 }, 0x0000000000010000 , { 0x781c0f05172f0400 , 0x002070fae8503810 }}, // 009
+    };
+
+  const size_t lenght = sizeof data / sizeof data[0];
+
+  for (int i = 0; i < lenght; i++) {
+    struct unit *u = &data[i];
+    const uint64_t mover = u->board[0];
+    const uint64_t opponent = u->board[1];
+    const uint64_t move = u->move;
+    const uint64_t expected_mover_am = u->board_after_move[0];
+    const uint64_t expected_opponent_am = u->board_after_move[1];
+    const uint64_t changed_squares = kost_make_move(move, opponent, mover);
+    const uint64_t mover_am = mover | changed_squares;
+    const uint64_t opponent_am = opponent & ~changed_squares;
+
+    if ((expected_mover_am != mover_am) || (expected_opponent_am != opponent_am)) {
+      printf("\n");
+      printf("[unit test number %d]:\n", i);
+      printf("  board           = { 0x%016lx , 0x%016lx }\n", mover, opponent);
+      printf("  move            =   0x%016lx\n", move);
+      printf("  changed_squares =   0x%016lx\n", changed_squares);
+      printf("  expected        = { 0x%016lx , 0x%016lx }\n", expected_mover_am, expected_opponent_am);
+      printf("  computed        = { 0x%016lx , 0x%016lx }\n", mover_am, opponent_am);
+      ut_assert(t, false);
+    }
+  }
+}
+
 
 /**
  * @brief Runs the test suite.
@@ -234,6 +284,7 @@ main (int argc,
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "kost_max_of_three", kost_max_of_three_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "kost_lms", kost_lms_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "kost_make_move", kost_make_move_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);

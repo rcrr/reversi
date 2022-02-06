@@ -46,4 +46,15 @@ kost_lms (uint64_t mover,
           uint64_t opponent,
           uint64_t empties);
 
+/**
+ *
+ *  - generator  : move
+ *  - propagator : opponent
+ *  - blocker    : mover
+ */
+extern uint64_t
+kost_make_move (uint64_t move,
+                uint64_t opponent,
+                uint64_t mover);
+
 #endif /* KOGGE_STONE_H */

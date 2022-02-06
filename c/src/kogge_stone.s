@@ -34,7 +34,7 @@
 
         .globl  kost_max_of_three
         .globl  kost_lms
-        .globl  kost_lms1
+        .globl  kost_make_move
         
         #
         # kost_max_of_three
@@ -112,7 +112,7 @@ kost_lms:
         # rdx : empties
         #
         vmovq           %rdi, %xmm15            # MOVD/MOVQ VEX.128.66.0F.W1 6E /r VMOVQ xmm1, r64/m64
-        vpbroadcastq	%xmm15, %ymm0           # ymm10 - generator  - player
+        vpbroadcastq	%xmm15, %ymm0           # ymm0  - generator  - player
         vmovq           %rsi, %xmm15            #
         vpbroadcastq	%xmm15, %ymm2           # ymm2  - propagator - opponent
         vmovq           %rdx, %xmm15
@@ -127,7 +127,7 @@ kost_lms:
         # p: ymm12/ymm13
         # t: ymm14/ymm15 - tmp registers
         #
-        vmovdqa         %ymm0, %ymm10           #
+        vmovdqa         %ymm0, %ymm10           # g = generator
         vmovdqa         %ymm0, %ymm11           #
         vpand           %ymm2, %ymm5, %ymm12    # p = propagator & mask[i]
         vpand           %ymm2, %ymm6, %ymm13    #
@@ -262,6 +262,223 @@ kost_lms:
 	vmovq           %xmm14, %rax           # copy the first half of xmm14 into rax
         #
         # return result
+        #
+	vzeroupper
+        ret
+        #
+        
+kost_make_move:
+        # rdi : move     : generator
+        # rsi : opponent : propagator
+        # rdx : mover    : blocker
+        #
+        vmovq           %rdi, %xmm15            # MOVD/MOVQ VEX.128.66.0F.W1 6E /r VMOVQ xmm1, r64/m64
+        vpbroadcastq	%xmm15, %ymm0           # ymm0  - generator  - player
+        vmovq           %rsi, %xmm15            #
+        vpbroadcastq	%xmm15, %ymm2           # ymm2  - propagator - opponent
+        vmovq           %rdx, %xmm15
+        vpbroadcastq	%xmm15, %ymm4           # ymm4  - blocker    - empty
+        #
+        vmovdqa         .mask0(%rip), %ymm5     # ...
+        vmovdqa         .mask1(%rip), %ymm6     # ...
+        vmovdqa         .slide(%rip), %ymm1     # ...
+        vmovdqa         %ymm1, %ymm7            # ymm7 is the dynamic slide value
+        #
+        # g: ymm10/ymm11
+        # p: ymm12/ymm13
+        # t: ymm14/ymm15 - tmp registers
+        #
+        # pro_base : ymm8/ymm9
+        #
+        vmovdqa         %ymm0, %ymm10           # g = generator
+        vmovdqa         %ymm0, %ymm11           #
+        vpand           %ymm2, %ymm5, %ymm8     # p = propagator & mask[i]
+        vpand           %ymm2, %ymm6, %ymm9     #
+        #
+        # START of first forward slide.
+        #
+        # g |= p & ((g << slide_up_1[i]) >> slide_dw_1[i])
+        #
+        #   t = (g << slide_up_1[i]) >> slide_dw_1[i])
+        #   t &= p
+        #   g |= t
+        #
+        vpsllvq         %ymm7, %ymm10, %ymm14  # ymm14 = ymm10 << ymm7
+        vpsrlvq         %ymm7, %ymm11, %ymm15  # ymm15 = ymm11 >> ymm7
+        vpand           %ymm14, %ymm8, %ymm14  #
+        vpand           %ymm15, %ymm9, %ymm15  #        
+        vpor            %ymm10, %ymm14, %ymm10 #
+        vpor            %ymm11, %ymm15, %ymm11 #
+        #
+        # p &= ((p << slide_up_1[i]) >> slide_dw_1[i])
+        #
+        #   t = ((p << slide_up_1[i]) >> slide_dw_1[i])
+        #   p &= t
+        #
+        vpsllvq         %ymm7, %ymm8, %ymm14  # ymm14 = ymm10 << ymm7
+        vpsrlvq         %ymm7, %ymm9, %ymm15  # ymm15 = ymm11 >> ymm7
+        vpand           %ymm14, %ymm8, %ymm12 #
+        vpand           %ymm15, %ymm9, %ymm13 #
+        #
+        # END of first forward slide.
+        #
+        vpsllq          $1, %ymm7, %ymm7       # increment slide value: { 1, 7, 8, 9 } --> { 2, 14, 16, 18 }
+        #
+        # START of second foward slide.
+        #
+        # g |= p & ((g << slide_up_2[i]) >> slide_dw_2[i])
+        #
+        #   t = ((g << slide_up_2[i]) >> slide_dw_2[i])
+        #   t &= p
+        #   g |= t
+        #
+        vpsllvq         %ymm7, %ymm10, %ymm14  # ymm14 = ymm10 << ymm7
+        vpsrlvq         %ymm7, %ymm11, %ymm15  # ymm15 = ymm11 >> ymm7
+        vpand           %ymm14, %ymm12, %ymm14 #
+        vpand           %ymm15, %ymm13, %ymm15 #        
+        vpor            %ymm10, %ymm14, %ymm10 #
+        vpor            %ymm11, %ymm15, %ymm11 #
+        #
+        # p &= ((p << slide_up_2[i]) >> slide_dw_2[i])
+        #
+        #   t = ((p << slide_up_2[i]) >> slide_dw_2[i])
+        #   p &= t
+        #
+        vpsllvq         %ymm7, %ymm12, %ymm14  # ymm14 = ymm10 << ymm7
+        vpsrlvq         %ymm7, %ymm13, %ymm15  # ymm15 = ymm11 >> ymm7
+        vpand           %ymm14, %ymm12, %ymm12 #
+        vpand           %ymm15, %ymm13, %ymm13 #
+        #
+        # END of second forward slide.
+        #
+        vpsllq          $1, %ymm7, %ymm7       # increment slide value: { 2,  14, 16, 18 } --> { 4, 28, 32, 36 }
+        #
+        # START of third forward slide.
+        #
+        # g |= p & ((g << slide_up_4[i]) >> slide_dw_4[i])
+        #
+        #   t = ((g << slide_up_4[i]) >> slide_dw_4[i])
+        #   t &= p
+        #   g |= t
+        #
+        vpsllvq         %ymm7, %ymm10, %ymm14  # ymm14 = ymm10 << ymm7
+        vpsrlvq         %ymm7, %ymm11, %ymm15  # ymm15 = ymm11 >> ymm7
+        vpand           %ymm14, %ymm12, %ymm14 #
+        vpand           %ymm15, %ymm13, %ymm15 #        
+        vpor            %ymm10, %ymm14, %ymm10 #
+        vpor            %ymm11, %ymm15, %ymm11 #
+        #
+        # END of third forward slide.
+        #
+        #
+        # START of fourth forward slide.
+        #
+        # g &= ~generator
+        #
+        vpandn          %ymm10, %ymm0, %ymm10 #
+        vpandn          %ymm11, %ymm0, %ymm11 #
+        #
+        # g = blocker & mask[i] & ((g << slide_up_1[i]) >> slide_dw_1[i])
+        #
+        #   t = ((g << slide_up_1[i]) >> slide_dw_1[i])
+        #   t &= mask[i]
+        #   t &= blocker
+        #
+        vpsllvq         %ymm1, %ymm10, %ymm14  # ymm14 = ymm10 << ymm1
+        vpsrlvq         %ymm1, %ymm11, %ymm15  # ymm15 = ymm11 >> ymm1
+        vpand           %ymm14, %ymm5, %ymm14  #
+        vpand           %ymm15, %ymm6, %ymm15  #        
+        vpand           %ymm14, %ymm4, %ymm10  #
+        vpand           %ymm15, %ymm4, %ymm11  #        
+        #
+        # END of fourth forward slide.
+        #
+        # START of first backward slide.
+        #
+        # g |= p & ((g << slide_dw_1[i]) >> slide_up_1[i])
+        #
+        #   t = (g << slide_dw_1[i]) >> slide_up_1[i])
+        #   t &= p
+        #   g |= t
+        #
+        vpsrlvq         %ymm1, %ymm10, %ymm14  # ymm14 = ymm10 << ymm1
+        vpsllvq         %ymm1, %ymm11, %ymm15  # ymm15 = ymm11 >> ymm1
+        vpand           %ymm14, %ymm8, %ymm14  #
+        vpand           %ymm15, %ymm9, %ymm15  #        
+        vpor            %ymm10, %ymm14, %ymm10 #
+        vpor            %ymm11, %ymm15, %ymm11 #
+        #
+        # p &= ((p << slide_dw_1[i]) >> slide_up_1[i])
+        #
+        #   t = ((p << slide_dw_1[i]) >> slide_up_1[i])
+        #   p &= t
+        #
+        vpsrlvq         %ymm1, %ymm8, %ymm14  # ymm14 = ymm10 << ymm1
+        vpsllvq         %ymm1, %ymm9, %ymm15  # ymm15 = ymm11 >> ymm1
+        vpand           %ymm14, %ymm8, %ymm12 #
+        vpand           %ymm15, %ymm9, %ymm13 #
+        #
+        # END of first forward slide.
+        #
+        vpsllq          $1, %ymm1, %ymm1       # increment slide value: { 1, 7, 8, 9 } --> { 2, 14, 16, 18 }
+        #
+        # START of second backward slide.
+        #
+        # g |= p & ((g << slide_dw_2[i]) >> slide_up_2[i])
+        #
+        #   t = ((g << slide_dw_2[i]) >> slide_up_2[i])
+        #   t &= p
+        #   g |= t
+        #
+        vpsrlvq         %ymm1, %ymm10, %ymm14  # ymm14 = ymm10 << ymm1
+        vpsllvq         %ymm1, %ymm11, %ymm15  # ymm15 = ymm11 >> ymm1
+        vpand           %ymm14, %ymm12, %ymm14 #
+        vpand           %ymm15, %ymm13, %ymm15 #        
+        vpor            %ymm10, %ymm14, %ymm10 #
+        vpor            %ymm11, %ymm15, %ymm11 #
+        #
+        # p &= ((p << slide_dw_2[i]) >> slide_up_2[i])
+        #
+        #   t = ((p << slide_dw_2[i]) >> slide_up_2[i])
+        #   p &= t
+        #
+        vpsrlvq         %ymm1, %ymm12, %ymm14  # ymm14 = ymm10 << ymm1
+        vpsllvq         %ymm1, %ymm13, %ymm15  # ymm15 = ymm11 >> ymm1
+        vpand           %ymm14, %ymm12, %ymm12 #
+        vpand           %ymm15, %ymm13, %ymm13 #
+        #
+        # END of second backward slide.
+        #
+        vpsllq          $1, %ymm1, %ymm1       # increment slide value: { 2,  14, 16, 18 } --> { 4, 28, 32, 36 }
+        #
+        # START of third backward slide.
+        #
+        # g |= p & ((g << slide_dw_4[i]) >> slide_up_4[i])
+        #
+        #   t = ((g << slide_dw_4[i]) >> slide_up_4[i])
+        #   t &= p
+        #   g |= t
+        #
+        vpsrlvq         %ymm1, %ymm10, %ymm14  # ymm14 = ymm10 << ymm1
+        vpsllvq         %ymm1, %ymm11, %ymm15  # ymm15 = ymm11 >> ymm1
+        vpand           %ymm14, %ymm12, %ymm14 #
+        vpand           %ymm15, %ymm13, %ymm15 #        
+        vpor            %ymm10, %ymm14, %ymm10 #
+        vpor            %ymm11, %ymm15, %ymm11 #
+        #
+        # END of third backward slide.
+        #
+        # accumulator |= g
+        #
+	vpor	        %ymm10, %ymm11, %ymm10 # t[1:4] = t[1:4] | t[5:8] # reduce the eight values in ymm10 and ymm11 into four held by ymm14
+	vmovdqa	        %xmm10, %xmm7          # u[1:2] = t[1:2]
+	vextracti128    $0x1, %ymm10, %xmm10   # v[1:2] = t[3:4]
+	vpor            %xmm10, %xmm7, %xmm10  # v[1:2] = v[1:2] | u[1:2]
+	vpsrldq         $8, %xmm10, %xmm7      # u[2] = 0, u[1] = v[2]    # Shift xmm14 right by 8 bytes while shifting in 0s.
+	vpor            %xmm7, %xmm10, %xmm10  # v[1] = v[1] | u[1]       # reduce the last two values into the first half of xmm14
+	vmovq           %xmm10, %rax           # copy the first half of xmm10 into rax
+        #
+        orq             %rdi, %rax             # add the generator to the result
         #
 	vzeroupper
         ret
