@@ -373,6 +373,15 @@
 
 #include "game_value_estimator.h"
 
+static void
+print_position_and_lms (GamePositionX *gpx)
+{
+  const SquareSet mover = gpx->player == BLACK_PLAYER ? gpx->blacks : gpx->whites;
+  const SquareSet opponent = gpx->player == BLACK_PLAYER ? gpx->whites : gpx->blacks;
+  const SquareSet lms = game_position_x_legal_moves(gpx);
+  printf("{ {mover , opponent}, lms}: { { 0x%016lx , 0x%016lx }, 0x%016lx },\n", mover, opponent, lms);
+  exit(0);
+}
 
 
 /**
@@ -944,6 +953,7 @@ main (int argc,
 
   /* Solves the position. */
   GamePositionX *gpx = gpdb_entry_get_gpx(entry);
+  if (false) print_position_and_lms(gpx);
   ExactSolution *solution = NULL;
   fprintf(stdout, "Solving game position %s, from source %s, using solver %s (%s) ...\n", entry->id, input_file, solver->id, solver->description);
   solution = solver->fn(gpx, &env);

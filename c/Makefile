@@ -94,6 +94,8 @@ MODULES := arch binary_heap bit_works board board_pattern board_trans cfg distri
            rglm_data_files rglm_solver rglm_utils sha3 sort_utils time_utils \
            transposition_table unit_test
 
+S_MODULES := kogge_stone
+
 #
 # Add all the unit tests that will be compiled and linked.
 #
@@ -101,15 +103,18 @@ UTEST_MAINS := ut_binary_heap ut_bit_works ut_board ut_board_pattern ut_board_tr
                ut_endgame_utils ut_es_pv ut_file_utils ut_flame ut_game_position ut_game_position_db \
                ut_game_tree_utils ut_hashtable ut_isqrt ut_linear_algebra ut_linked_list ut_main_option_parse \
                ut_memory_object_pool ut_prng ut_red_black_tree ut_rglm_data_files ut_rglm_utils \
-               ut_sha3 ut_sort_utils ut_transposition_table ut_trsm ut_utest ut_prefetch
+               ut_sha3 ut_sort_utils ut_transposition_table ut_trsm ut_utest ut_prefetch ut_kogge_stone
 
 MAINS_AND_MODULES := $(sort $(MAINS) $(MODULES))
 
-SRCS = $(wildcard $(SRCDIR)/*.c)
-HDRS = $(wildcard $(SRCDIR)/*.h)
-OBJS = $(addsuffix .o,$(basename $(subst $(SRCDIR),$(OBJDIR),$(SRCS))))
-ASMS = $(addsuffix .s,$(basename $(subst $(SRCDIR),$(ASMDIR),$(SRCS))))
-BINS = $(addprefix $(BINDIR)/,$(MAINS))
+SRCS  = $(wildcard $(SRCDIR)/*.c)
+HDRS  = $(wildcard $(SRCDIR)/*.h)
+SASMS = $(wildcard $(SRCDIR)/*.s)
+OBJS  = $(addsuffix .o,$(basename $(subst $(SRCDIR),$(OBJDIR),$(SRCS))))
+ASMS  = $(addsuffix .s,$(basename $(subst $(SRCDIR),$(ASMDIR),$(SRCS))))
+BINS  = $(addprefix $(BINDIR)/,$(MAINS))
+SOBJS = $(addsuffix .o,$(basename $(subst $(SRCDIR),$(OBJDIR),$(SASMS))))
+OBJS += $(SOBJS)
 
 #
 # Executable files (main programs), it takes the list in the MAINS variable,
@@ -147,6 +152,19 @@ $(error Module files listed in the MODULES variable are missing [$(SRC_MODULES_E
 endif
 
 #
+# List of assembly source files providing a module definition.
+#
+# The code checks that these files are found in the SRCDIR location.
+# If not it raises an error and stops.
+#
+SSRC_MODULES := $(addsuffix .s,$(addprefix $(SRCDIR)/,$(S_MODULES)))
+SSRC_MODULES_ERR := $(filter-out $(SASMS),$(SSRC_MODULES))
+ifdef SSRC_MODULES_ERR
+$(error Module files listed in the S_MODULES variable are missing [$(SSRC_MODULES_ERR)])
+endif
+
+
+#
 # Source files, it takes the list from the MAINS variable and join it with MODULES,
 # and for each entry it generates a new variable and assign the fully qualified
 # source file name.
@@ -157,6 +175,7 @@ endif
 # SRC_UTEST := src/utest.c
 #
 $(foreach mm,$(MAINS_AND_MODULES),$(eval SRC_$(shell echo $(mm) | tr a-z A-Z) := $(SRCDIR)/$(mm).c))
+$(foreach mm,$(S_MODULES),$(eval SRC_$(shell echo $(mm) | tr a-z A-Z) := $(SRCDIR)/$(mm).s))
 
 #
 # Header files, it takes the list from the MODULES variable
@@ -168,6 +187,7 @@ $(foreach mm,$(MAINS_AND_MODULES),$(eval SRC_$(shell echo $(mm) | tr a-z A-Z) :=
 # HDR_UNIT_TEST := src/unit_test.h
 #
 $(foreach mod,$(MODULES),$(eval HDR_$(shell echo $(mod) | tr a-z A-Z) := $(SRCDIR)/$(mod).h))
+$(foreach mod,$(S_MODULES),$(eval HDR_$(shell echo $(mod) | tr a-z A-Z) := $(SRCDIR)/$(mod).h))
 
 #
 # List of header files providing a module definition.
@@ -202,6 +222,7 @@ $(foreach mm,$(MAINS_AND_MODULES),$(eval ASM_$(shell echo $(mm) | tr a-z A-Z) :=
 # OBJ_UTEST := build/obj/utest.o
 #
 $(foreach mm,$(MAINS_AND_MODULES),$(eval OBJ_$(shell echo $(mm) | tr a-z A-Z) := $(OBJDIR)/$(mm).o))
+$(foreach mm,$(S_MODULES),$(eval OBJ_$(shell echo $(mm) | tr a-z A-Z) := $(OBJDIR)/$(mm).o))
 
 #
 # Unit test source files, it takes the list of UTEST_MAINS variable and
@@ -264,10 +285,11 @@ UTEST_BINS := $(addprefix $(TEST_BINDIR)/,$(UTEST_MAINS))
 # add -ftree-vectorize -ftree-vectorizer-verbose=2 to get from gcc the explanation for code vectorization
 # add -flto to the CFLAGS list to improve execution speed ( it takes much more to link executables )
 ARCH_FLAGS := -mpopcnt -mavx2 -mfma -mbmi -mbmi2 -mlzcnt
-CFLAGS := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g3 -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fopenmp -fno-inline
+CFLAGS := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g3 -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fopenmp -flto
 CFLAGS_TEST := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g0 -O3 $(ARCH_FLAGS) -I$(EXT_INC) -fopenmp
 LDFLAGS := 
 LDFLAGS_TEST :=
+ASFLAGS := -c -g -O 
 #
 # add -masm=intel to have the intel assembly format.
 # BE CAREFULL because assembly code inlined as __asm__ compiles but will NOT work as expected.
@@ -295,6 +317,9 @@ SRC_HASHTABLE_DEP := $(SRC_HASHTABLE) $(sort $(HDR_HASHTABLE_DEP))
 
 HDR_PRNG_DEP := $(sort $(HDR_PRNG))
 SRC_PRNG_DEP := $(SRC_PRNG) $(sort $(HDR_PRNG_DEP) $(HDR_TIME_UTILS_DEP) $(HDR_BIT_WORKS_DEP))
+
+HDR_KOGGE_STONE_DEP := $(sort $(HDR_KOGGE_STONE))
+SRC_KOGGE_STONE_DEP := $(SRC_KOGGE_STONE) $(sort $(HDR_KOGGE_STONE_DEP))
 
 HDR_BOARD_DEP := $(sort $(HDR_BOARD) $(HDR_BIT_WORKS_DEP) $(HDR_PRNG_DEP))
 SRC_BOARD_DEP := $(SRC_BOARD) $(sort $(HDR_BOARD_DEP) $(HDR_ARCH_DEP))
@@ -574,6 +599,38 @@ $(UTE_BIT_WORKS): $(UTO_BIT_WORKS) $(UTE_BIT_WORKS_OBJ_DEPENDENCIES) Makefile $(
 	@printf "Test suite: linking executable $@\n"
 	@$(CC) $(LDFLAGS_TEST) $< $(UTE_BIT_WORKS_OBJ_DEPENDENCIES) -o $@
 
+
+##
+## kogge_stone
+##
+## kogge_stone.h    : (null)
+## kogge_stone.s    : (null)
+## ut_kogge_stone.c : unit_test.h kogge_stone.h
+##
+kogge_stone: $(OBJ_KOGGE_STONE)
+
+$(OBJ_KOGGE_STONE): $(SRC_KOGGE_STONE_DEP) Makefile $(OBJDIR)/.dir_sentinel
+	@printf "Compiling $< into $@\n"
+	@$(CC) $(ASFLAGS) $< -o $@
+
+ut_kogge_stone: $(UTE_KOGGE_STONE)
+
+$(UTO_KOGGE_STONE): $(UTS_KOGGE_STONE) $(OBJ_UNIT_TEST) $(OBJ_KOGGE_STONE) Makefile $(TEST_OBJDIR)/.dir_sentinel
+	@printf "Test suite: compiling $< into $@\n"
+	@$(CC) $(CFLAGS_TEST) -c $< -o $@ $(TEST_INCLUDE)
+
+UTE_KOGGE_STONE_OBJ_DEPENDENCIES := \
+  $(OBJ_LINKED_LIST) $(OBJ_UNIT_TEST) $(OBJ_TIME_UTILS) $(OBJ_MAIN_OPTION_PARSE) \
+  $(OBJ_KOGGE_STONE)
+
+$(UTE_KOGGE_STONE): $(UTO_KOGGE_STONE) $(UTE_KOGGE_STONE_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
+	@printf "Test suite: linking executable $@\n"
+	@$(CC) $(LDFLAGS_TEST) $< $(UTE_KOGGE_STONE_OBJ_DEPENDENCIES) -o $@
+
+
+
+
+
 ##
 ## board
 ##
@@ -599,7 +656,7 @@ $(UTO_BOARD): $(UTS_BOARD) $(OBJ_UNIT_TEST) $(TEST_OBJDIR)/.dir_sentinel
 
 UTE_BOARD_OBJ_DEPENDENCIES := \
   $(OBJ_LINKED_LIST) $(OBJ_UNIT_TEST) $(OBJ_TIME_UTILS) $(OBJ_MAIN_OPTION_PARSE) \
-  $(OBJ_PRNG) $(OBJ_ARCH) $(OBJ_BIT_WORKS) \
+  $(OBJ_PRNG) $(OBJ_ARCH) $(OBJ_BIT_WORKS) $(OBJ_KOGGE_STONE) \
   $(OBJ_BOARD)
 
 $(UTE_BOARD): $(UTO_BOARD) $(UTE_BOARD_OBJ_DEPENDENCIES) $(TEST_BINDIR)/.dir_sentinel
@@ -632,7 +689,7 @@ $(UTO_BOARD_PATTERN): $(UTS_BOARD_PATTERN) Makefile $(TEST_OBJDIR)/.dir_sentinel
 UTE_BOARD_PATTERN_OBJ_DEPENDENCIES := \
   $(OBJ_MAIN_OPTION_PARSE) $(OBJ_UNIT_TEST) $(OBJ_LINKED_LIST) $(OBJ_TIME_UTILS) \
   $(OBJ_BOARD) $(OBJ_ARCH) $(OBJ_BIT_WORKS) $(OBJ_PRNG) $(OBJ_BOARD_TRANS) \
-  $(OBJ_BOARD_PATTERN)
+  $(OBJ_BOARD_PATTERN) $(OBJ_KOGGE_STONE)
 
 $(UTE_BOARD_PATTERN): $(UTO_BOARD_PATTERN) $(UTE_BOARD_PATTERN_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
@@ -664,7 +721,7 @@ ut_board_trans: $(UTE_BOARD_TRANS)
 UTE_BOARD_TRANS_OBJ_DEPENDENCIES := \
   $(OBJ_MAIN_OPTION_PARSE) $(OBJ_UNIT_TEST) $(OBJ_LINKED_LIST) $(OBJ_TIME_UTILS) \
   $(OBJ_BOARD) $(OBJ_ARCH) $(OBJ_BIT_WORKS) $(OBJ_PRNG) \
-  $(OBJ_BOARD_TRANS)
+  $(OBJ_BOARD_TRANS) $(OBJ_KOGGE_STONE)
 
 $(UTE_BOARD_TRANS): $(UTO_BOARD_TRANS) $(UTE_BOARD_TRANS_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
@@ -758,7 +815,7 @@ BIN_ENDGAME_SOLVER_OBJ_DEPENDENCIES := \
   $(OBJ_RGLM_SOLVER) $(OBJ_BOARD_PATTERN) $(OBJ_BOARD_TRANS) $(OBJ_RGLM_DATA_FILES) $(OBJ_CFG) \
   $(OBJ_SORT_UTILS) $(OBJ_LINKED_LIST) $(OBJ_SHA3) $(OBJ_PRNG) $(OBJ_TIME_UTILS) $(OBJ_BIT_WORKS) \
   $(OBJ_RGLM_UTILS) $(OBJ_RED_BLACK_TREE) $(OBJ_ARCH) $(OBJ_MEMORY_MANAGER) $(OBJ_GAME_VALUE_ESTIMATOR) \
-  $(OBJ_TRANSPOSITION_TABLE) $(OBJ_HASHTABLE) $(OBJ_BINARY_HEAP)
+  $(OBJ_TRANSPOSITION_TABLE) $(OBJ_HASHTABLE) $(OBJ_BINARY_HEAP) $(OBJ_KOGGE_STONE)
 
 LIB_ENDGAME_SOLVER := -lm
 
@@ -794,7 +851,8 @@ UTE_ENDGAME_UTILS_OBJ_DEPENDENCIES := \
   $(OBJ_PRNG) $(OBJ_BIT_WORKS) $(OBJ_RED_BLACK_TREE) $(OBJ_FILE_UTILS) $(OBJ_SORT_UTILS) $(OBJ_ARCH) $(OBJ_MEMORY_MANAGER) \
   $(OBJ_BOARD) $(OBJ_BOARD_TRANS) $(OBJ_BOARD_PATTERN) $(OBJ_GAME_POSITION_DB) \
   $(OBJ_GAME_TREE_UTILS) $(OBJ_GAME_TREE_LOGGER) $(OBJ_CFG) $(OBJ_SHA3) $(OBJ_RGLM_UTILS) $(OBJ_RGLM_DATA_FILES) \
-  $(OBJ_EXACT_SOLVER) $(OBJ_MINIMAX_SOLVER) $(OBJ_IMPROVED_FAST_ENDGAME_SOLVER) $(OBJ_RGLM_SOLVER)
+  $(OBJ_EXACT_SOLVER) $(OBJ_MINIMAX_SOLVER) $(OBJ_IMPROVED_FAST_ENDGAME_SOLVER) $(OBJ_RGLM_SOLVER) \
+  $(OBJ_KOGGE_STONE)
 
 LIB_ENDGAME_UTILS := -lm
 
@@ -815,7 +873,7 @@ UTE_ES_PV_OBJ_DEPENDENCIES := \
   $(OBJ_MAIN_OPTION_PARSE) $(OBJ_UNIT_TEST) $(OBJ_LINKED_LIST) $(OBJ_TIME_UTILS) \
   $(OBJ_SHA3) $(OBJ_GAME_POSITION_DB) $(OBJ_RED_BLACK_TREE) $(OBJ_FILE_UTILS) $(OBJ_MEMORY_MANAGER) \
   $(OBJ_BOARD) $(OBJ_BIT_WORKS) $(OBJ_PRNG) $(OBJ_ARCH) $(OBJ_GAME_TREE_UTILS) $(OBJ_SORT_UTILS) \
-  $(OBJ_EXACT_SOLVER) $(OBJ_GAME_TREE_LOGGER)
+  $(OBJ_EXACT_SOLVER) $(OBJ_GAME_TREE_LOGGER) $(OBJ_KOGGE_STONE)
 
 LIB_ES_PV := 
 
@@ -928,7 +986,7 @@ $(UTO_GAME_POSITION): $(UTS_GAME_POSITION) Makefile $(TEST_OBJDIR)/.dir_sentinel
 UTE_GAME_POSITION_OBJ_DEPENDENCIES := \
   $(OBJ_MAIN_OPTION_PARSE) $(OBJ_UNIT_TEST) $(OBJ_LINKED_LIST) $(OBJ_TIME_UTILS) \
   $(OBJ_GAME_POSITION_DB) $(OBJ_BOARD) $(OBJ_RED_BLACK_TREE) $(OBJ_FILE_UTILS) \
-  $(OBJ_ARCH) $(OBJ_PRNG) $(OBJ_BIT_WORKS) $(OBJ_MEMORY_MANAGER)
+  $(OBJ_ARCH) $(OBJ_PRNG) $(OBJ_BIT_WORKS) $(OBJ_MEMORY_MANAGER) $(OBJ_KOGGE_STONE)
 
 LIB_GAME_POSITION := -lm
 
@@ -962,7 +1020,7 @@ $(UTO_GAME_POSITION_DB): $(UTS_GAME_POSITION_DB) Makefile $(TEST_OBJDIR)/.dir_se
 UTE_GAME_POSITION_DB_OBJ_DEPENDENCIES := \
   $(OBJ_MAIN_OPTION_PARSE) $(OBJ_UNIT_TEST) $(OBJ_LINKED_LIST) $(OBJ_TIME_UTILS) \
   $(OBJ_BOARD) $(OBJ_PRNG) $(OBJ_FILE_UTILS) $(OBJ_BIT_WORKS) $(OBJ_RED_BLACK_TREE) $(OBJ_ARCH) $(OBJ_MEMORY_MANAGER) \
-  $(OBJ_GAME_POSITION_DB)
+  $(OBJ_GAME_POSITION_DB) $(OBJ_KOGGE_STONE)
 
 $(UTE_GAME_POSITION_DB): $(UTO_GAME_POSITION_DB) $(UTE_GAME_POSITION_DB_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
@@ -1030,7 +1088,7 @@ $(UTO_GAME_TREE_UTILS): $(UTS_GAME_TREE_UTILS) Makefile $(TEST_OBJDIR)/.dir_sent
 UTE_GAME_TREE_UTILS_OBJ_DEPENDENCIES := \
   $(OBJ_MAIN_OPTION_PARSE) $(OBJ_UNIT_TEST) $(OBJ_LINKED_LIST) $(OBJ_TIME_UTILS) \
   $(OBJ_PRNG) $(OBJ_ARCH) $(OBJ_BIT_WORKS) $(OBJ_SORT_UTILS) $(OBJ_BOARD) \
-  $(OBJ_GAME_TREE_UTILS)
+  $(OBJ_GAME_TREE_UTILS) $(OBJ_KOGGE_STONE)
 
 $(UTE_GAME_TREE_UTILS): $(UTO_GAME_TREE_UTILS) $(UTE_GAME_TREE_UTILS_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel $(TMPDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
@@ -1054,7 +1112,8 @@ $(OBJ_GPDB_VERIFY): $(SRC_GPDB_VERIFY_DEP) Makefile $(OBJDIR)/.dir_sentinel
 
 BIN_GPDB_VERIFY_OBJ_DEPENDENCIES := $(OBJ_FILE_UTILS) $(OBJ_GAME_POSITION_DB) $(OBJ_MAIN_OPTION_PARSE) \
   $(OBJ_LINKED_LIST) $(OBJ_TIME_UTILS) \
-  $(OBJ_BOARD) $(OBJ_PRNG) $(OBJ_BIT_WORKS) $(OBJ_RED_BLACK_TREE) $(OBJ_ARCH) $(OBJ_MEMORY_MANAGER)
+  $(OBJ_BOARD) $(OBJ_PRNG) $(OBJ_BIT_WORKS) $(OBJ_RED_BLACK_TREE) $(OBJ_ARCH) $(OBJ_MEMORY_MANAGER) \
+  $(OBJ_KOGGE_STONE)
 
 $(BIN_GPDB_VERIFY): $(OBJ_GPDB_VERIFY) $(BIN_GPDB_VERIFY_OBJ_DEPENDENCIES) Makefile $(BINDIR)/.dir_sentinel
 	@printf "Linking executable $@\n"
@@ -1384,7 +1443,7 @@ $(OBJ_READ_GAME_TREE_LOG): $(SRC_READ_GAME_TREE_LOG_DEP) Makefile $(OBJDIR)/.dir
 	@$(CC) $(CFLAGS) -c $< -o $@
 
 BIN_READ_GAME_TREE_LOG_OBJ_DEPENDENCIES := $(OBJ_MAIN_OPTION_PARSE) $(OBJ_ARCH) $(OBJ_PRNG) $(OBJ_TIME_UTILS) $(OBJ_BIT_WORKS) \
-  $(OBJ_BOARD)
+  $(OBJ_BOARD) $(OBJ_KOGGE_STONE)
 
 $(BIN_READ_GAME_TREE_LOG): $(OBJ_READ_GAME_TREE_LOG) $(BIN_READ_GAME_TREE_LOG_OBJ_DEPENDENCIES) Makefile $(BINDIR)/.dir_sentinel
 	@printf "Linking executable $@\n"
@@ -1407,7 +1466,7 @@ $(OBJ_READ_PVE_DUMP): $(SRC_READ_PVE_DUMP_DEP) Makefile $(OBJDIR)/.dir_sentinel
 	@$(CC) $(CFLAGS) -c $< -o $@
 
 BIN_READ_PVE_DUMP_OBJ_DEPENDENCIES := $(OBJ_MAIN_OPTION_PARSE) $(OBJ_ARCH) $(OBJ_PRNG) $(OBJ_TIME_UTILS) $(OBJ_BIT_WORKS) \
-  $(OBJ_BOARD) $(OBJ_FILE_UTILS) $(OBJ_GAME_TREE_UTILS) $(OBJ_SORT_UTILS)
+  $(OBJ_BOARD) $(OBJ_FILE_UTILS) $(OBJ_GAME_TREE_UTILS) $(OBJ_SORT_UTILS) $(OBJ_KOGGE_STONE)
 
 $(BIN_READ_PVE_DUMP): $(OBJ_READ_PVE_DUMP) $(BIN_READ_PVE_DUMP_OBJ_DEPENDENCIES) Makefile $(BINDIR)/.dir_sentinel
 	@printf "Linking executable $@\n"
@@ -1466,7 +1525,8 @@ BIN_REGAB_OBJ_DEPENDENCIES := $(OBJ_LINKED_LIST) $(OBJ_MAIN_OPTION_PARSE) $(OBJ_
   $(OBJ_BIT_WORKS) $(OBJ_PRNG) $(OBJ_ARCH) $(OBJ_CFG) $(OBJ_SORT_UTILS) $(OBJ_RGLM_DATA_FILES) \
   $(OBJ_SHA3) $(OBJ_FILE_UTILS) $(OBJ_RGLM_SOLVER) $(OBJ_GAME_TREE_UTILS) $(OBJ_GAME_TREE_LOGGER) \
   $(OBJ_BOARD) $(OBJ_BOARD_TRANS) $(OBJ_BOARD_PATTERN) $(OBJ_RGLM_UTILS) $(OBJ_EXACT_SOLVER) \
-  $(OBJ_GAME_VALUE_ESTIMATOR) $(OBJ_TRANSPOSITION_TABLE) $(OBJ_HASHTABLE) $(OBJ_BINARY_HEAP)
+  $(OBJ_GAME_VALUE_ESTIMATOR) $(OBJ_TRANSPOSITION_TABLE) $(OBJ_HASHTABLE) $(OBJ_BINARY_HEAP) \
+  $(OBJ_KOGGE_STONE)
 
 $(BIN_REGAB): $(OBJ_REGAB) $(BIN_REGAB_OBJ_DEPENDENCIES) Makefile $(BINDIR)/.dir_sentinel
 	@printf "Linking executable $@\n"
@@ -1491,7 +1551,7 @@ $(OBJ_RGLM): $(SRC_RGLM_DEP) Makefile $(OBJDIR)/.dir_sentinel
 BIN_RGLM_OBJ_DEPENDENCIES := \
   $(OBJ_LINEAR_ALGEBRA) $(OBJ_TIME_UTILS) $(OBJ_RGLM_UTILS) $(OBJ_BOARD_PATTERN) $(OBJ_BOARD_TRANS) \
   $(OBJ_BOARD) $(OBJ_BIT_WORKS) $(OBJ_PRNG) $(OBJ_ARCH) $(OBJ_RGLM_DATA_FILES) $(OBJ_SHA3) $(OBJ_FILE_UTILS) \
-  $(OBJ_MAIN_OPTION_PARSE)
+  $(OBJ_MAIN_OPTION_PARSE) $(OBJ_KOGGE_STONE)
 
 $(BIN_RGLM): $(OBJ_RGLM) $(BIN_RGLM_OBJ_DEPENDENCIES) Makefile $(BINDIR)/.dir_sentinel
 	@printf "Linking executable $@\n"
@@ -1524,7 +1584,7 @@ UTE_RGLM_DATA_FILES_OBJ_DEPENDENCIES := \
   $(OBJ_MAIN_OPTION_PARSE) $(OBJ_UNIT_TEST) $(OBJ_LINKED_LIST) $(OBJ_TIME_UTILS) \
   $(OBJ_PRNG) $(OBJ_MEMORY_MANAGER) $(OBJ_SORT_UTILS) \
   $(OBJ_RGLM_DATA_FILES) $(OBJ_SHA3) $(OBJ_FILE_UTILS) $(OBJ_BOARD_PATTERN) $(OBJ_BOARD_TRANS) \
-  $(OBJ_BOARD) $(OBJ_ARCH) $(OBJ_BIT_WORKS)
+  $(OBJ_BOARD) $(OBJ_ARCH) $(OBJ_BIT_WORKS) $(OBJ_KOGGE_STONE)
 
 $(UTE_RGLM_DATA_FILES): $(UTO_RGLM_DATA_FILES) $(UTE_RGLM_DATA_FILES_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
@@ -1575,7 +1635,7 @@ UTE_RGLM_UTILS_OBJ_DEPENDENCIES := \
   $(OBJ_PRNG) $(OBJ_MEMORY_MANAGER) $(OBJ_SORT_UTILS) \
   $(OBJ_RGLM_UTILS) $(OBJ_SHA3) $(OBJ_FILE_UTILS) $(OBJ_BOARD_PATTERN) $(OBJ_BOARD_TRANS) \
   $(OBJ_BOARD) $(OBJ_ARCH) $(OBJ_BIT_WORKS) \
-  $(OBJ_RGLM_DATA_FILES)
+  $(OBJ_RGLM_DATA_FILES) $(OBJ_KOGGE_STONE)
 
 LIB_RGLM_UTILS := -lm
 
@@ -1602,7 +1662,7 @@ $(OBJ_RGLMW): $(SRC_RGLMW_DEP) Makefile $(OBJDIR)/.dir_sentinel
 BIN_RGLMW_OBJ_DEPENDENCIES := \
   $(OBJ_LINEAR_ALGEBRA) $(OBJ_TIME_UTILS) $(OBJ_RGLM_UTILS) $(OBJ_BOARD_PATTERN) $(OBJ_BOARD_TRANS) \
   $(OBJ_BOARD) $(OBJ_BIT_WORKS) $(OBJ_PRNG) $(OBJ_ARCH) $(OBJ_RGLM_DATA_FILES) $(OBJ_SHA3) $(OBJ_FILE_UTILS) \
-  $(OBJ_MAIN_OPTION_PARSE)
+  $(OBJ_MAIN_OPTION_PARSE) $(OBJ_KOGGE_STONE)
 
 $(BIN_RGLMW): $(OBJ_RGLMW) $(BIN_RGLMW_OBJ_DEPENDENCIES) Makefile $(BINDIR)/.dir_sentinel
 	@printf "Linking executable $@\n"
@@ -1714,7 +1774,7 @@ $(UTO_TRANSPOSITION_TABLE): $(UTS_TRANSPOSITION_TABLE) $(OBJ_UNIT_TEST) $(OBJ_TR
 UTE_TRANSPOSITION_TABLE_OBJ_DEPENDENCIES := \
   $(OBJ_LINKED_LIST) $(OBJ_UNIT_TEST) $(OBJ_TIME_UTILS) $(OBJ_MAIN_OPTION_PARSE) $(OBJ_BIT_WORKS) \
   $(OBJ_BOARD) $(OBJ_PRNG) $(OBJ_ARCH) $(OBJ_HASHTABLE) $(OBJ_BINARY_HEAP) \
-  $(OBJ_TRANSPOSITION_TABLE)
+  $(OBJ_TRANSPOSITION_TABLE) $(OBJ_KOGGE_STONE)
 
 $(UTE_TRANSPOSITION_TABLE): $(UTO_TRANSPOSITION_TABLE) $(UTE_TRANSPOSITION_TABLE_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
