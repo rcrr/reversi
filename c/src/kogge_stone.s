@@ -403,11 +403,6 @@ kost_make_move:
         #
         # START of fourth forward slide.
         #
-        # g &= ~generator
-        #
-        vpandn          %ymm10, %ymm0, %ymm10 #
-        vpandn          %ymm11, %ymm0, %ymm11 #
-        #
         # g = blocker & mask[i] & ((g << slide_up_1[i]) >> slide_dw_1[i])
         #
         #   t = ((g << slide_up_1[i]) >> slide_dw_1[i])
