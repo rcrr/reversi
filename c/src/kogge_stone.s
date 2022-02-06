@@ -63,20 +63,20 @@ kost_max_of_three:
         # Returns the legal move set of the board.
         # The function has signature:
         #
-        #   int64_t kost_lms (int64_t *board)
+        #   int64_t kost_lms (uint64_t mover, uint64_t opponent, uint64_t empties)
         #
         #
         # This variant of the Kogge-Stone algorithm takes three bitboard as imput:
         #
-        #  - generator  == player
+        #  - generator  == mover
         #  - propagator == opponent
-        #  - blocker    == empty
+        #  - blocker    == empties
         #
         # and returns the bitboard obtained by the blocker subset that is formed by
         # the blockers hit by the rays, in the eight directions, obtained from the generators
         # traveling along the propagators.
         #
-        # Passing as generator the player square set, as propagator the opponent square set,
+        # Passing as generator the mover square set, as propagator the opponent square set,
         # and as blocker the empty square set, the returned value is a square set of the
         # legal moves.
         #
@@ -267,6 +267,36 @@ kost_lms:
         ret
         #
         
+        #
+        # kost_make_move
+        #
+        # The function has signature:
+        #
+        #   int64_t kost_make_move (int64_t generator, int64_t propagator, int64_t blocker)
+        #
+        #
+        # This variant of the Kogge-Stone algorithm takes three bitboard as imput:
+        #
+        #  - generator   : move
+        #  - propagator  : opponent
+        #  - blocker     : mover
+        #
+        # and returns the bitboard obtained by summing up:
+        #
+        #  - the generators
+        #  - the rays, in the eight directions, obtained from the generators
+        #    traveling along the propagators, hitting a blocker
+        #  - the blockers being hit
+        #
+        # Passing as generator the bitboard having a single square, the move,
+        # as propagator the opponent square set, and as blocker the player square
+        # set, the returned value is a square set that:
+        #
+        #  - added to the player square set
+        #  - subtracted from the opponent square set
+        #
+        # enables the computation of the new game position obtained by moving.
+        #
 kost_make_move:
         # rdi : move     : generator
         # rsi : opponent : propagator
@@ -413,8 +443,8 @@ kost_make_move:
         #   t = ((p << slide_dw_1[i]) >> slide_up_1[i])
         #   p &= t
         #
-        vpsrlvq         %ymm1, %ymm8, %ymm14  # ymm14 = ymm10 << ymm1
-        vpsllvq         %ymm1, %ymm9, %ymm15  # ymm15 = ymm11 >> ymm1
+        vpsrlvq         %ymm1, %ymm8, %ymm14  # ymm14 = ymm8 << ymm1
+        vpsllvq         %ymm1, %ymm9, %ymm15  # ymm15 = ymm9 >> ymm1
         vpand           %ymm14, %ymm8, %ymm12 #
         vpand           %ymm15, %ymm9, %ymm13 #
         #
@@ -442,8 +472,8 @@ kost_make_move:
         #   t = ((p << slide_dw_2[i]) >> slide_up_2[i])
         #   p &= t
         #
-        vpsrlvq         %ymm1, %ymm12, %ymm14  # ymm14 = ymm10 << ymm1
-        vpsllvq         %ymm1, %ymm13, %ymm15  # ymm15 = ymm11 >> ymm1
+        vpsrlvq         %ymm1, %ymm12, %ymm14  # ymm14 = ymm12 << ymm1
+        vpsllvq         %ymm1, %ymm13, %ymm15  # ymm15 = ymm13 >> ymm1
         vpand           %ymm14, %ymm12, %ymm12 #
         vpand           %ymm15, %ymm13, %ymm13 #
         #
