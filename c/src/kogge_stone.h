@@ -36,25 +36,54 @@
 
 #include <stdint.h>
 
-extern int64_t
-kost_max_of_three (int64_t x,
-                   int64_t y,
-                   int64_t z);
-
+/**
+ * @brief Returns the legal move set for the game position.
+ *
+ * @details The implementation is written in x86_64 ASM using AVX2 extensions.
+ *          The three arguments and the returned value are all 64 bit unsigned integers,
+ *          representing a bit field.
+ *          The lower bit corresponds to A1 and the upper one to H8.
+ *
+ *          Arguments must fulfill two pre-conditions:
+ *           - empties must be equal to ~(mover | opponent)
+ *           - mover & opponent must be equal to 0ULL
+ *
+ * @param [in] mover    the square set belonging to the mover
+ * @param [in] opponent the square set belonging to the opponent
+ * @param [in] empties  the empty square set
+ * @return              the legal move set
+ */
 extern uint64_t
 kost_lms (uint64_t mover,
           uint64_t opponent,
           uint64_t empties);
 
 /**
+ * @brief Returns the flip square set for the given game position and move.
  *
- *  - generator  : move
- *  - propagator : opponent
- *  - blocker    : mover
+ * @details The implementation is written in x86_64 ASM using AVX2 extensions.
+ *          The three arguments and the returned value are all 64 bit unsigned integers,
+ *          representing a bit field.
+ *          The lower bit corresponds to A1 and the upper one to H8.
+ *          When the move is 0ULL the returned value is always zero.
+ *          When the move is legal the returned value is always different from zero.
+ *          When the move is not legal the returned value is zero.
+ *
+ *          Arguments must fulfill three pre-conditions:
+ *          - The move set must have zero or one bit set (not more)
+ *          - (mover | opponent) & move must be equal to 0ULL
+ *            It means that the move is on an empty square.
+ *          - mover & opponent must be equal to 0ULL
+ *            It means that there is no overlap between mover and opponent.
+ *
+ * @param [in] move     the move that mover is playing
+ * @param [in] opponent the square set belonging to the opponent
+ * @param [in] mover    the square set belonging to the mover
+ * @return              the flipping square set (flips)
  */
 extern uint64_t
-kost_make_move (uint64_t move,
-                uint64_t opponent,
-                uint64_t mover);
+kost_mm (uint64_t move,
+         uint64_t opponent,
+         uint64_t mover);
 
 #endif /* KOGGE_STONE_H */

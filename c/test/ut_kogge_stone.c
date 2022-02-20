@@ -52,17 +52,6 @@
  */
 
 static void
-kost_max_of_three_t (ut_test_t *const t)
-{
-  int64_t (*f) (int64_t a, int64_t b, int64_t c) = kost_max_of_three;
-
-  ut_assert(t,  7 == f( 1,  7,  5));
-  ut_assert(t,  7 == f( 7,  1,  5));
-  ut_assert(t,  7 == f( 1,  5,  7));
-  ut_assert(t, -1 == f(-1, -5, -7));
-}
-
-static void
 kost_lms_t (ut_test_t *const t)
 {
 
@@ -220,27 +209,59 @@ kost_lms_t (ut_test_t *const t)
 }
 
 static void
-kost_make_move_t (ut_test_t *const t)
+kost_mm_t (ut_test_t *const t)
 {
-
   struct unit {
     uint64_t board[2];
     uint64_t move;
-    uint64_t board_after_move[2];
+    uint64_t flips;
   };
 
   struct unit data[] =
     {
-     { { 0x0000000000000000 , 0x0000000000000000 }, 0x0000000000000000 , { 0x0000000000000000 , 0x0000000000000000 }}, // 000
-     { { 0x0000000000000001 , 0x0000000000000002 }, 0x0000000000000004 , { 0x0000000000000007 , 0x0000000000000000 }}, // 001
-     { { 0x0000000000000001 , 0x0000000000000006 }, 0x0000000000000008 , { 0x000000000000000f , 0x0000000000000000 }}, // 002
-     { { 0x0000000000000001 , 0x000000000000000e }, 0x0000000000000010 , { 0x000000000000001f , 0x0000000000000000 }}, // 003
-     { { 0x0000000000000001 , 0x000000000000001e }, 0x0000000000000020 , { 0x000000000000003f , 0x0000000000000000 }}, // 004
-     { { 0x0000000000000001 , 0x000000000000003e }, 0x0000000000000040 , { 0x000000000000007f , 0x0000000000000000 }}, // 005
-     { { 0x0000000000000001 , 0x000000000000007e }, 0x0000000000000080 , { 0x00000000000000ff , 0x0000000000000000 }}, // 006
-     { { 0x0000000000000080 , 0x000000000000007e }, 0x0000000000000001 , { 0x00000000000000ff , 0x0000000000000000 }}, // 007
-     { { 0x0000000000000001 , 0x0000000000000100 }, 0x0000000000010000 , { 0x0000000000010101 , 0x0000000000000000 }}, // 008
-     { { 0x780c0700142c0400 , 0x003078ffeb523810 }, 0x0000000000010000 , { 0x781c0f05172f0400 , 0x002070fae8503810 }}, // 009
+     { { 0x000428080A2C7C3C , 0x10B8D6F7F5D30100 }, 0x0000000000000000 , 0x0000000000000000 }, // 000
+     { { 0x000428080A2C7C3C , 0x10B8D6F7F5D30100 }, 0x0000000000000001 , 0x0000000000000000 }, // 001
+     { { 0x000428080A2C7C3C , 0x10B8D6F7F5D30100 }, 0x0000000000000002 , 0x0000000000000000 }, // 002
+     { { 0x000428080A2C7C3C , 0x10B8D6F7F5D30100 }, 0x0000000000000040 , 0x0000000000000000 }, // 003
+     { { 0x000428080A2C7C3C , 0x10B8D6F7F5D30100 }, 0x0000000000000080 , 0x0000000000000000 }, // 004
+     { { 0x000428080A2C7C3C , 0x10B8D6F7F5D30100 }, 0x0000000000000200 , 0x0000000000020000 }, // 005
+     { { 0x000428080A2C7C3C , 0x10B8D6F7F5D30100 }, 0x0000000000008000 , 0x0000001020400000 }, // 006
+     { { 0x000428080A2C7C3C , 0x10B8D6F7F5D30100 }, 0x0000010000000000 , 0x0000060204000000 }, // 007
+     { { 0x000428080A2C7C3C , 0x10B8D6F7F5D30100 }, 0x0001000000000000 , 0x0000020400000000 }, // 008
+     { { 0x000428080A2C7C3C , 0x10B8D6F7F5D30100 }, 0x0002000000000000 , 0x0000060200000000 }, // 009
+     { { 0x000428080A2C7C3C , 0x10B8D6F7F5D30100 }, 0x0040000000000000 , 0x0038404040400000 }, // 010
+     { { 0x000428080A2C7C3C , 0x10B8D6F7F5D30100 }, 0x0100000000000000 , 0x0000000000000000 }, // 011
+     { { 0x000428080A2C7C3C , 0x10B8D6F7F5D30100 }, 0x0200000000000000 , 0x0000000000000000 }, // 012
+     { { 0x000428080A2C7C3C , 0x10B8D6F7F5D30100 }, 0x0400000000000000 , 0x0000000000000000 }, // 013
+     { { 0x000428080A2C7C3C , 0x10B8D6F7F5D30100 }, 0x0800000000000000 , 0x0018000000000000 }, // 014
+     { { 0x000428080A2C7C3C , 0x10B8D6F7F5D30100 }, 0x2000000000000000 , 0x0030000000000000 }, // 015
+     { { 0x000428080A2C7C3C , 0x10B8D6F7F5D30100 }, 0x4000000000000000 , 0x0020100000000000 }, // 016
+     { { 0x000428080A2C7C3C , 0x10B8D6F7F5D30100 }, 0x8000000000000000 , 0x0000000000000000 }, // 017
+
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x0000000000000001 , 0x0000000000000000 }, // 018
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x0000000000000002 , 0x0000000000080400 }, // 019
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x0000000000000040 , 0x0000000000002020 }, // 020
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x0000000000000080 , 0x0000000000000000 }, // 021
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x0000000000000100 , 0x0000000000000000 }, // 022
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x0000000000000200 , 0x0000000000043C00 }, // 023
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x0000000000008000 , 0x0000000000000000 }, // 024
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x0000000000010000 , 0x0000000002000000 }, // 025
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x0000000000020000 , 0x00000002020C0400 }, // 026
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x0000000000800000 , 0x0000000000000000 }, // 027
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x0000000001000000 , 0x0000040200000000 }, // 028
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x0000000004000000 , 0x0000000000040400 }, // 029
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x0000000100000000 , 0x0000010202040800 }, // 030
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x0000008000000000 , 0x0000004000000000 }, // 031
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x0000400000000000 , 0x0000004000000000 }, // 032
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x0010000000000000 , 0x0000080000000000 }, // 033
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x0040000000000000 , 0x0000000000000000 }, // 034
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x0080000000000000 , 0x0000000000000000 }, // 035
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x0100000000000000 , 0x0602040000000000 }, // 036
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x1000000000000000 , 0x0000000000000000 }, // 037
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x2000000000000000 , 0x0000000000000000 }, // 038
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x4000000000000000 , 0x0000000000000000 }, // 039
+     { { 0x0829322CF850401C , 0x06068D52022C3C20 }, 0x8000000000000000 , 0x0000000000000000 }, // 040
+     { { 0xFF0315CBE5713900 , 0x00FC6A341A0E067F }, 0x0000800000000000 , 0x00C0600000000000 }, // 041
     };
 
   const size_t lenght = sizeof data / sizeof data[0];
@@ -250,24 +271,51 @@ kost_make_move_t (ut_test_t *const t)
     const uint64_t mover = u->board[0];
     const uint64_t opponent = u->board[1];
     const uint64_t move = u->move;
-    const uint64_t expected_mover_am = u->board_after_move[0];
-    const uint64_t expected_opponent_am = u->board_after_move[1];
-    const uint64_t changed_squares = kost_make_move(move, opponent, mover);
-    const uint64_t mover_am = mover | changed_squares;
-    const uint64_t opponent_am = opponent & ~changed_squares;
+    const uint64_t expected_flips = u->flips;
+    const uint64_t flips = kost_mm(move, opponent, mover);
 
-    if ((expected_mover_am != mover_am) || (expected_opponent_am != opponent_am)) {
+    ut_assert(t, (mover & opponent) == 0ULL);
+    ut_assert(t, ((mover | opponent) & move) == 0ULL);
+
+    if (expected_flips != flips) {
       printf("\n");
       printf("[unit test number %d]:\n", i);
       printf("  board           = { 0x%016lx , 0x%016lx }\n", mover, opponent);
       printf("  move            =   0x%016lx\n", move);
-      printf("  changed_squares =   0x%016lx\n", changed_squares);
-      printf("  expected        = { 0x%016lx , 0x%016lx }\n", expected_mover_am, expected_opponent_am);
-      printf("  computed        = { 0x%016lx , 0x%016lx }\n", mover_am, opponent_am);
+      printf("  expected_flips  =   0x%016lx\n", expected_flips);
+      printf("  computed        =   0x%016lx\n", flips);
       ut_assert(t, false);
     }
   }
 }
+
+static void
+kost_lms_perf_t (ut_test_t *const t)
+{
+  /* game position: ffo-33 */
+  const uint64_t mover        = 0x00a0cac0d8c804fe;
+  const uint64_t opponent     = 0x3c08303e26343800;
+  const uint64_t empties      = ~(mover | opponent);
+  const uint64_t expected_lms = 0x0050050101034200;
+  for (int i = 0; i < 1000000000; i++) {
+    const uint64_t lms = kost_lms(mover, opponent, empties);
+    if (lms != expected_lms) ut_assert(t, false);
+  }
+}
+
+static void
+kost_mm_perf_t (ut_test_t *const t)
+{
+  const uint64_t mover          = 0x0829322CF850401C;
+  const uint64_t opponent       = 0x06068D52022C3C20;
+  const uint64_t move           = 0x0000000100000000;
+  const uint64_t expected_flips = 0x0000010202040800;
+  for (int i = 0; i < 1000000000; i++) {
+    const uint64_t flips = kost_mm(move, opponent, mover);
+    if (flips != expected_flips) ut_assert(t, false);
+  }
+}
+
 
 
 /**
@@ -282,9 +330,11 @@ main (int argc,
 
   ut_suite_t *const s = ut_suite_new(&config, "kogge_stone");
 
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "kost_max_of_three", kost_max_of_three_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "kost_lms", kost_lms_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "kost_make_move", kost_make_move_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "kost_mm", kost_mm_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_10,   "kost_lms_perf", kost_lms_perf_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_10,   "kost_mm_perf", kost_mm_perf_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);
