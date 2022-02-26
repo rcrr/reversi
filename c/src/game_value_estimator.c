@@ -121,6 +121,7 @@ typedef struct node_s {
   GamePositionX gpx;
   uint64_t hash;
   SquareSet empty_set;
+  int empty_count;
 } node_t;
 
 
@@ -193,6 +194,12 @@ order_moves (int child_node_count,
              ttab_item_t it,
              bool heuristic_sort,
              gve_context_t ctx);
+
+static void
+leaf_end_negamax (node_t *n,
+                  int alpha,
+                  int beta,
+                  gve_context_t ctx);
 
 static void
 leaf_negamax (node_t *n,
@@ -706,6 +713,7 @@ init_node (node_t *node,
   node->gpx.player = gpx_player;
   node->hash = game_position_x_hash(&node->gpx);
   node->empty_set = game_position_x_empties(&node->gpx);
+  node->empty_count = bitw_bit_count_64(node->empty_set);
 }
 
 static int
@@ -993,7 +1001,7 @@ rglm_eval_gp (const GamePositionX *const gpx,
 static bool
 is_terminal (node_t *n)
 {
-  return (!n->empty_set || (!n->legal_move_set && !n->parent->legal_move_set));
+  return (!n->legal_move_set && !n->parent->legal_move_set);
 }
 
 static void
@@ -1029,7 +1037,6 @@ generate_child_nodes (node_t *child_nodes,
   lms = n->legal_move_set;
   lmc = n->legal_move_count;
   if (lms) {
-    if (lmc != n->legal_move_count) abort();
     for (int i = 0; i < lmc; i++) {
       const Square move = bitw_tzcnt_64(lms);
       node_t *const c = child_nodes + i;
@@ -1043,6 +1050,7 @@ generate_child_nodes (node_t *child_nodes,
       const int c_lmc = bitw_bit_count_64(c->legal_move_set);
       c->legal_move_count = c_lmc ? c_lmc : 1;
       c->empty_set = game_position_x_empties(&c->gpx);
+      c->empty_count = bitw_bit_count_64(c->empty_set);
       lms = bitw_reset_lowest_set_bit_64(lms);
     }
   } else {
@@ -1056,6 +1064,7 @@ generate_child_nodes (node_t *child_nodes,
     c->legal_move_set = game_position_x_legal_moves(&c->gpx);
     c->legal_move_count = bitw_bit_count_64(c->legal_move_set);
     c->empty_set = n->empty_set;
+    c->empty_count = bitw_bit_count_64(c->empty_set);
   }
 }
 
@@ -1136,6 +1145,86 @@ sort_nodes_by_lmc (node_t **nodes,
 }
 
 static void
+leaf_end_negamax (node_t *n,
+                  int alpha,
+                  int beta,
+                  gve_context_t ctx)
+{
+  GamePositionX next_gpx, nnext_gpx;
+  SquareSet flips;
+  flips = game_position_x_flips(&n->gpx, n->empty_set, &next_gpx);
+  if (flips) {
+    n->value = - game_position_x_final_value(&next_gpx);
+  } else {
+    game_position_x_pass(&n->gpx, &next_gpx);
+    flips = game_position_x_flips(&next_gpx, n->empty_set, &nnext_gpx);
+    if (flips) {
+      ctx->node_count++;
+      n->value = game_position_x_final_value(&nnext_gpx);
+    } else {
+      n->value = - game_position_x_final_value(&next_gpx);
+    }
+  }
+  ctx->node_count++;
+  ctx->leaf_count++;
+}
+
+
+static void
+leaf_end_2_negamax (node_t *n,
+                    int alpha,
+                    int beta,
+                    gve_context_t ctx)
+{
+  node_t child_nodes[2];
+
+  int lmc = 0;
+  SquareSet es = n->empty_set;
+  n->value = out_of_range_defeat_score;
+  for (int i = 0;; i++) {
+    node_t *child = &child_nodes[i];
+    const Square move = bitw_tzcnt_64(es);
+    const SquareSet move_set = bitw_lowest_set_bit_64(es);
+    const SquareSet flips = game_position_x_flips(&n->gpx, move_set, &child->gpx);
+    if (flips) {
+      ctx->node_count++;
+      lmc++;
+      child->parent = n;
+      child->parent_move = move;
+      child->best_move = unknown_move;
+      child->value = out_of_range_win_score;
+      child->empty_set = n->empty_set & ~move_set;
+      child->empty_count = n->empty_count - 1;
+      leaf_end_negamax(child, -beta, -alpha, ctx);
+      n->value = max(n->value, -child->value);
+      alpha = max(alpha, n->value);
+      if (alpha >= beta) break;
+    }
+    es = bitw_reset_lowest_set_bit_64(es);
+    if (!es) break;
+  }
+  if (!lmc) {
+    ctx->node_count++;
+    if (n->parent_move == pass_move) {
+      ctx->leaf_count++;
+      exact_terminal_game_value(n);
+      return;
+    }
+    node_t *child = &child_nodes[0];
+    child->parent = n;
+    child->parent_move = pass_move;
+    child->best_move = unknown_move;
+    child->value = out_of_range_win_score;
+    child->empty_set = n->empty_set;
+    child->empty_count = n->empty_count;
+    game_position_x_make_move(&n->gpx, pass_move, &child->gpx);
+    leaf_end_2_negamax(child, -beta, -alpha, ctx);
+    n->value = max(n->value, -child->value);
+  }
+}
+
+
+static void
 leaf_negamax (node_t *n,
               int alpha,
               int beta,
@@ -1149,6 +1238,8 @@ leaf_negamax (node_t *n,
   if (is_terminal(n)) {
     ctx->leaf_count++;
     exact_terminal_game_value(n);
+  } else if (n->empty_count <= 2) {
+    leaf_end_2_negamax(n, alpha, beta, ctx);
   } else {
     generate_child_nodes(child_nodes, n, false);
     for (int i = 0; i < n->legal_move_count; i++) sorted_child_nodes[i] = &child_nodes[i];

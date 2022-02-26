@@ -1,0 +1,31 @@
+
+Tests the REGAB SOLVE program on a large dataset.
+
+SET search_path TO reversi;
+CREATE TABLE regab_prng_gp_copy (LIKE regab_prng_gp INCLUDING ALL);
+INSERT INTO regab_prng_gp_copy SELECT * FROM regab_prng_gp WHERE batch_id = 4;
+
+UPDATE regab_prng_gp SET status = 'INS', game_value = 0, best_move = 'UN', leaf_count = 0, node_count = 0, solver = NULL WHERE batch_id = 4 AND status IN ('CMS', 'CMP', 'WIP') AND empty_count = 20;
+
+SELECT gp.seq AS seq, CAST(gpc.node_count AS REAL) / gp.node_count FROM regab_prng_gp AS gp LEFT JOIN regab_prng_gp_copy AS gpc ON gp.seq = gpc.seq WHERE gp.batch_id = 4 AND gp.empty_count = 20 AND gp.status = 'CMP';
+
+SELECT gp.seq AS seq, gp.game_value, gpc.game_value FROM regab_prng_gp AS gp LEFT JOIN regab_prng_gp_copy AS gpc ON gp.seq = gpc.seq WHERE gp.batch_id = 4 AND gp.empty_count = 20 AND gp.status = 'CMP' AND gp.game_value <> gpc.game_value;
+
+time ./build/bin/regab -a solve -c cfg/regab_gve.cfg -e test -b 4 -y 20 -n 1000 -k gve
+real	23m17.657s
+user	23m13.155s
+sys	0m0.324s
+
+time ./build/bin/regab -a solve -c cfg/regab.cfg -e test -b 4 -y 20 -n 1000 -k rglm
+real	75m42.000s
+user	75m31.864s
+sys	0m1.716s
+
+time ./build/bin/regab -a solve -c cfg/regab.cfg -e test -b 4 -y 20 -n 1000 -k es
+real	138m4.120s
+user	137m42.108s
+sys	0m4.535s
+
+UPDATE regab_prng_gp SET status = 'CMS' WHERE batch_id = 4 AND status = 'CMP' AND empty_count = 20;
+
+DROP TABLE regab_prng_gp_copy;

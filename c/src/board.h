@@ -382,6 +382,11 @@ extern bool
 game_position_x_is_move_legal (const GamePositionX *const gpx,
                                const Square move);
 
+extern SquareSet
+game_position_x_flips (const GamePositionX *const current,
+                       const SquareSet move,
+                       GamePositionX *const updated);
+
 extern void
 game_position_x_make_move (const GamePositionX *const current,
                            const Square move,

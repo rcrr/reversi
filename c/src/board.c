@@ -1224,6 +1224,66 @@ game_position_x_is_move_legal (const GamePositionX *const gpx,
 }
 
 /**
+ * @brief Computes the flip set.
+ *
+ * @details The moving player places a disc in the square identified by the `move` parameter.
+ *          The flipped squares are returned.
+ *          When the move is not legal the empy set is returned.
+ *          When `move` is `0ULL`, `0ULL` is returned.
+ *          The `updated` game position is overwritten by the updated game position when
+ *          the move is legal.
+ *
+ * @invariant Parameter `current` must be not `NULL`.
+ *            Parameter `updated` must be not `NULL`.
+ *            Parameter `move` must have no more than 1 bit set.
+ *            Parameter `move` must be a set within the empty square set of the board.
+ *            Invariants are guarded by assertions.
+ *
+ * @param [in]  current the given game position x
+ * @param [in]  move    the square set having the move
+ * @param [out] updated the updated game position x as a result of the move
+ * @return              the resulting flip set
+ */
+SquareSet
+game_position_x_flips (const GamePositionX *const current,
+                       const SquareSet move,
+                       GamePositionX *const updated)
+{
+  assert(current);
+  assert(updated);
+  assert(bitw_bit_count_64(move) <= 1);
+  assert((current->blacks | current->whites) & move == empty_square_set);
+
+  const SquareSet m_set = move;
+  const SquareSet p_set = game_position_x_get_mover(current);
+  const SquareSet o_set = game_position_x_get_opponent(current);
+
+#ifdef KOST
+  const SquareSet f_set = kost_mm(m_set, o_set, p_set);
+#else
+  const SquareSet f_set = kogge_stone_mm(m_set, o_set, p_set);
+#endif
+
+  if (f_set) {
+    const Player p = current->player;
+    const Player o = player_opponent(p);
+    const SquareSet p_set_n = p_set | f_set | m_set;
+    const SquareSet o_set_n = o_set & ~f_set;
+
+    if (o) {
+      updated->blacks = p_set_n;
+      updated->whites = o_set_n;
+    } else {
+      updated->blacks = o_set_n;
+      updated->whites = p_set_n;
+    }
+    updated->player = o;
+  }
+
+  return f_set;
+}
+
+/**
  * @brief Executes a game move.
  *
  * @details The moving player places a disc in the square identified by the `move` parameter.
