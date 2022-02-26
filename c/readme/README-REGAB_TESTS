@@ -12,9 +12,15 @@ SELECT gp.seq AS seq, CAST(gpc.node_count AS REAL) / gp.node_count FROM regab_pr
 SELECT gp.seq AS seq, gp.game_value, gpc.game_value FROM regab_prng_gp AS gp LEFT JOIN regab_prng_gp_copy AS gpc ON gp.seq = gpc.seq WHERE gp.batch_id = 4 AND gp.empty_count = 20 AND gp.status = 'CMP' AND gp.game_value <> gpc.game_value;
 
 time ./build/bin/regab -a solve -c cfg/regab_gve.cfg -e test -b 4 -y 20 -n 1000 -k gve
+
 real	23m17.657s
 user	23m13.155s
 sys	0m0.324s
+
+real	22m19.420s
+user	22m15.209s
+sys	0m0.304s
+
 
 time ./build/bin/regab -a solve -c cfg/regab.cfg -e test -b 4 -y 20 -n 1000 -k rglm
 real	75m42.000s

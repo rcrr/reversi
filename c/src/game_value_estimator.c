@@ -196,10 +196,14 @@ order_moves (int child_node_count,
              gve_context_t ctx);
 
 static void
-leaf_end_negamax (node_t *n,
-                  int alpha,
-                  int beta,
-                  gve_context_t ctx);
+leaf_end_2_negamax (node_t *n,
+                    int alpha,
+                    int beta,
+                    gve_context_t ctx);
+
+static void
+leaf_end_1_negamax (node_t *n,
+                    gve_context_t ctx);
 
 static void
 leaf_negamax (node_t *n,
@@ -1145,10 +1149,8 @@ sort_nodes_by_lmc (node_t **nodes,
 }
 
 static void
-leaf_end_negamax (node_t *n,
-                  int alpha,
-                  int beta,
-                  gve_context_t ctx)
+leaf_end_1_negamax (node_t *n,
+                    gve_context_t ctx)
 {
   GamePositionX next_gpx, nnext_gpx;
   SquareSet flips;
@@ -1168,7 +1170,6 @@ leaf_end_negamax (node_t *n,
   ctx->node_count++;
   ctx->leaf_count++;
 }
-
 
 static void
 leaf_end_2_negamax (node_t *n,
@@ -1195,7 +1196,7 @@ leaf_end_2_negamax (node_t *n,
       child->value = out_of_range_win_score;
       child->empty_set = n->empty_set & ~move_set;
       child->empty_count = n->empty_count - 1;
-      leaf_end_negamax(child, -beta, -alpha, ctx);
+      leaf_end_1_negamax(child, ctx);
       n->value = max(n->value, -child->value);
       alpha = max(alpha, n->value);
       if (alpha >= beta) break;
