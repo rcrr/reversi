@@ -231,6 +231,16 @@ It is an 800 lines very sofisticated function. it is not really a "fastest-first
 Activities log ( in Italian, I am sorry :) )
 
 
+Appunti al 27-02-2022
+
+Sviluppati punti (01) e (02) con rilevanti miglioramenti sui tempi di esecuzione.
+
+Comunque Zebra rimane piu' veloce:
+
+ - time ./scrzebra -script ./ffo/woc18-FKvsAP-g1-24.src out/tmp.tmp
+ - time ./build/bin/endgame_solver -s gve -c cfg/game_value_estimator.cfg -f db/gpdb-sample-games.txt -q woc18-FKvsAP-g1-24
+
+
 Appunti al 23-01-2022
 
 Ho il report di valgrind/callgrind, ottenuto rimuovend il flag -s e aggiungendo -g alle opzioni di compilazione.
@@ -240,7 +250,6 @@ Ho capito che il programma tune8dbs esegue il calcolo dei pesi partendo dalle po
 
 
 Appunti al 16-01-2022
-
 
 GIT commit e14fd239d2626f5c228863e7b1a388c33e6e6729
 

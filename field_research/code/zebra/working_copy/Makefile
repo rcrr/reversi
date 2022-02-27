@@ -128,7 +128,8 @@ CXX		= g++
 DEFS =		-DINCLUDE_BOOKTOOL -DTEXT_BASED -DZLIB_STATIC
 
 WARNINGS =	-Wall
-OPTS =		-O3 -g -fomit-frame-pointer -fno-inline
+#OPTS =		-O3 -g -fomit-frame-pointer -fno-inline
+OPTS =		-O3 -g -fomit-frame-pointer -flto
 
 CFLAGS =	$(OPTS) $(WARNINGS) $(DEFS)
 CXXFLAGS =	$(CFLAGS)
