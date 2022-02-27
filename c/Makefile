@@ -287,9 +287,9 @@ UTEST_BINS := $(addprefix $(TEST_BINDIR)/,$(UTEST_MAINS))
 ARCH_FLAGS := -mpopcnt -mavx2 -mfma -mbmi -mbmi2 -mlzcnt
 CFLAGS := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g3 -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fopenmp -flto
 CFLAGS_TEST := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g0 -O3 $(ARCH_FLAGS) -I$(EXT_INC) -fopenmp
-LDFLAGS := 
+LDFLAGS :=
 LDFLAGS_TEST :=
-ASFLAGS := -c -g -O 
+ASFLAGS := -c -g -O
 #
 # add -masm=intel to have the intel assembly format.
 # BE CAREFULL because assembly code inlined as __asm__ compiles but will NOT work as expected.

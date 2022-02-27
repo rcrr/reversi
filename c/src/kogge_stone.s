@@ -1,4 +1,5 @@
-
+        .file   "kogge_stone.s"
+        
         /**
         *
         * Kogge Stone module implementation.
@@ -30,36 +31,9 @@
 	* 
 	*/
 
-        .file   "kogge_stone.s"
-
-        .globl  kost_lms
         .globl  kost_mm
-        
-        #
-        # kost_lms
-        #
-        # Returns the legal move set of the board.
-        # The function has signature:
-        #
-        #   int64_t kost_lms (uint64_t mover, uint64_t opponent, uint64_t empties)
-        #
-        #
-        # This variant of the Kogge-Stone algorithm takes three bitboard as imput:
-        #
-        #  rdi : generator  : mover
-        #  rsi : propagator : opponent
-        #  rdx : blocker    : empties
-        #
-        # and returns the bitboard obtained by the blocker subset that is formed by
-        # the blockers hit by the rays, in the eight directions, obtained from the generators
-        # traveling along the propagators.
-        #
-        # Passing as generator the mover square set, as propagator the opponent square set,
-        # and as blocker the empty square set, the returned value is a square set of the
-        # legal moves.
-        #
+        .globl  kost_lms
 
-        #
         .section .rodata.mask,"aM",@progbits,32
         #
         .align 32
@@ -84,11 +58,31 @@
         .quad   9                               # Slide one square NW (shr) - SE (shl)
 
         .section .text
-kost_lms:
-        # rdi : mover
-        # rsi : opponent
-        # rdx : empties
+        
         #
+        # kost_lms
+        #
+        # Returns the legal move set of the board.
+        # The function has signature:
+        #
+        #   int64_t kost_lms (uint64_t mover, uint64_t opponent, uint64_t empties)
+        #
+        #
+        # This variant of the Kogge-Stone algorithm takes three bitboard as imput:
+        #
+        #  rdi : generator  : mover
+        #  rsi : propagator : opponent
+        #  rdx : blocker    : empties
+        #
+        # and returns the bitboard obtained by the blocker subset that is formed by
+        # the blockers hit by the rays, in the eight directions, obtained from the generators
+        # traveling along the propagators.
+        #
+        # Passing as generator the mover square set, as propagator the opponent square set,
+        # and as blocker the empty square set, the returned value is a square set of the
+        # legal moves.
+        #
+kost_lms:
         vmovq           %rdi, %xmm15            # MOVD/MOVQ VEX.128.66.0F.W1 6E /r VMOVQ xmm1, r64/m64
         vpbroadcastq	%xmm15, %ymm0           # ymm0  - generator  - player
         vmovq           %rsi, %xmm15            #
@@ -264,7 +258,7 @@ kost_lms:
         #
 
         #
-        # kost_m_m
+        # kost_mm
         #
         # The function has signature:
         #

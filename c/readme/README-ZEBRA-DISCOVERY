@@ -1,11 +1,21 @@
 
 List of ideas and hints collected investigating the Zebra source code:
 
-  (01) Makefile
+  (01) [todo]
+       Makefile
        Use of the makedepend tool. The tool is installed with "sudo apt install xutils-dev".
        The tool simplifies the structure of the makefile but preserves the fine graing dependency structure od the code.
 
-  (02) ...
+  (02) [done]
+       New make_move procedure (kost_mm) is now much more efficient.
+       This is a by-product of activity (03).
+
+  (03) [done]
+       When one or two empty count is reached, the game expansion takes a different algorithm:
+       instead of running legal_moves (kost_lms), we try directly to execute make_move (kost_mm) on the
+       empty count square set.
+       Usually, the moves are legal, and we save a call to legal_moves.
+       Furthermore we stop to order moves.
 
   (xx) ...
 
