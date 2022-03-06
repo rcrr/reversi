@@ -298,12 +298,13 @@ game_position_gve_solve (gve_context_t ctx,
 
   node_t parent_root_node;
   init_node(&parent_root_node,
-            NULL, empty_square_set, invalid_move, invalid_move, out_of_range_defeat_score,
+            NULL, 1ULL, invalid_move, invalid_move, out_of_range_defeat_score,
             root->blacks, root->whites, player_opponent(root->player));
 
   node_t root_node;
+  const SquareSet root_legal_moves = game_position_x_legal_moves(root);
   init_node(&root_node,
-            &parent_root_node, game_position_x_legal_moves(root), invalid_move, invalid_move, out_of_range_defeat_score,
+            &parent_root_node, root_legal_moves, invalid_move, invalid_move, out_of_range_defeat_score,
             root->blacks, root->whites, root->player);
 
   if (ctx->gve_solver_log_level >= 1) {
@@ -706,9 +707,11 @@ init_node (node_t *node,
 {
   assert(node);
 
+  int lmc = bitw_bit_count_64(legal_move_set);
+
   node->parent = parent;
   node->legal_move_set = legal_move_set;
-  node->legal_move_count = bitw_bit_count_64(legal_move_set);
+  node->legal_move_count = lmc ? lmc : 1;
   node->parent_move = parent_move;
   node->best_move = best_move;
   node->value = value;
@@ -1359,6 +1362,8 @@ alphabeta_with_memory (node_t *n,
     }
 
   } // end-of-else
+
+  if (n->best_move == invalid_move) n->best_move = pass_move;
 
   its.depth = depth;
   its.best_move = n->best_move;
