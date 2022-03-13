@@ -32,6 +32,27 @@ the librieries:
 from which some parts of the REVERSI program depends.
 
 
+Updated blis library on 2022-03-12:
+
+It was:
+
+  lrwxrwxrwx 1 rcrr rcrr        74 Jul  6  2020 libblis.a -> libblis.a.7a0f5bbdb04885454aea577d8dc7351cd0402da89a63b9aa730502d173a33cb8
+  -rw-rw-r-- 1 rcrr rcrr   5212600 Jul  6  2020 libblis.a.7a0f5bbdb04885454aea577d8dc7351cd0402da89a63b9aa730502d173a33cb8
+  lrwxrwxrwx 1 rcrr rcrr        75 Jul  6  2020 libflame.a -> libflame.a.fb207ea0b7cb525a1afea0bb190d4d612d6fd6383dccd85ab94b50234ce0a244
+  -rw-rw-r-- 1 rcrr rcrr 104209272 Jul  6  2020 libflame.a.fb207ea0b7cb525a1afea0bb190d4d612d6fd6383dccd85ab94b50234ce0a244
+
+  lrwxrwxrwx 1 rcrr rcrr      71 Jul  6  2020 blis.h -> blis.h.4f416c9cbf2d77dd0b8b267661dec7ecffd8a4389a2ee2463b0ddc2a08380ab6
+  -rw-rw-r-- 1 rcrr rcrr 1265795 Jul  6  2020 blis.h.4f416c9cbf2d77dd0b8b267661dec7ecffd8a4389a2ee2463b0ddc2a08380ab6
+  lrwxrwxrwx 1 rcrr rcrr      72 Jul  6  2020 FLAME.h -> FLAME.h.7b76c8eb802a91b7070bc618f99817e16564c5ef9dec76777a40a0fcc4d1ca37
+  -rw-rw-r-- 1 rcrr rcrr 1004775 Jul  6  2020 FLAME.h.7b76c8eb802a91b7070bc618f99817e16564c5ef9dec76777a40a0fcc4d1ca37
+
+New version:
+$ rhash --sha3-256 lib/haswell/libblis.a
+96826cc89fe679162eb52e5e7cb1f87defa53e31fb01d3541d19fd2bd40b884f  lib/haswell/libblis.a
+$ rhash --sha3-256 include/haswell/blis.h 
+906ccff5b95629892a75388f0f7543797031ecf483bc2d3e1718c88613f86b1a  include/haswell/blis.h
+
+
 
 BLIS
 _________

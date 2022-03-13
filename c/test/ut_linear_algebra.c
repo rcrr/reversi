@@ -3760,7 +3760,7 @@ lial_dpotrf_bp_t (ut_test_t *const t)
 
     for (tc = tc_min; tc <= tc_max; tc++) {
 
-      for (bs = 0; bs <= n + 1; bs++) {
+      for (bs = 1; bs <= n + 1; bs++) {
 
         for (int i = 0; i < n * n; i++)
           b[i] = a[i];
@@ -3768,7 +3768,10 @@ lial_dpotrf_bp_t (ut_test_t *const t)
         lial_dpotrf_bp(&uplo, &n0, &b[n+1], &n, &ret, bs, tc);
         ut_assert(t, ret == 0);
 
-        if (verbose) aux_print_matrix("B", b, n, n, n);
+        if (verbose) {
+          printf("tc = %d, bs = %d, n = %d, n0 = %d\n", tc, bs, n, n0);
+          aux_print_matrix("B", b, n, n, n);
+        }
 
         for (int i = 0; i < n * n; i++) {
           double delta = fabs(b[i] - u[i]);

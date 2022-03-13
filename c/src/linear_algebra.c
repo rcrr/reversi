@@ -1650,7 +1650,7 @@ lial_dpotrf_bp (const char *uplo,
   nr = nx % bsx;
   nb1 = nb + ((nr) ? 1 : 0);
 
-#pragma omp parallel num_threads(thread_count) default(none)            \
+#pragma omp parallel num_threads(thread_count) default(none) \
   shared(sym_N, sym_T, pone, mone, uplox, is_uplo_l, sidex, transx, transax, transbx, ldax, bsx, tile_x_incr, tile_y_incr, nb, nr, nb1) \
   shared(a, info, i, j, k, h, tsax, tsbx, tile_d, tile_j, tile_k, tile_h, tile_a, tile_b)
   {
@@ -1667,7 +1667,7 @@ lial_dpotrf_bp (const char *uplo,
           tile_j = tile_d + tile_x_incr * (j - i);
           tsax = tsbx = bsx;
           if (j == nb) { if (is_uplo_l) tsax = nr; else tsbx = nr; }
-#pragma omp task default(none) shared(sym_T, sym_N, pone, uplox, sidex, ldax, tile_d) firstprivate(tsax ,tsbx, tile_j) depend(in:tile_d[:1], tile_j[:1]) depend(out:tile_j[:1])
+#pragma omp task default(none) shared(sym_T, sym_N, pone, uplox, sidex, ldax) firstprivate(tsax ,tsbx, tile_d, tile_j) depend(in:tile_d[:1], tile_j[:1]) depend(out:tile_j[:1])
           lial_dtrsm(&sidex, &uplox, &sym_T, &sym_N, &tsax, &tsbx, &pone, tile_d, &ldax, tile_j, &ldax);
         }
 

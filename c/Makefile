@@ -54,6 +54,9 @@ EXT_HDR_FLAME := $(EXT_INC)/FLAME.h
 #
 TEST_INCLUDE = -I./src
 
+# gcc 9.3 was working fine, 9.4 broke the function lial_dpotrf
+# It sems that OMP task dependencies are no longer working properly. 
+# Could be my bug or a compiler issue, not sure about it.
 CC = gcc
 
 # SRCDIR : source and header files for modules and main programs.

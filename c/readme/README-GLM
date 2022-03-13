@@ -89,7 +89,8 @@ Here a brief explanation of the different status that a game position can take:
 The first step is to move our game position from status CMP to status CMQ running the following database procedure:
 
 => SELECT empty_count, status, count(1) FROM regab_prng_gp WHERE batch_id = 9 AND empty_count < 20 GROUP BY empty_count, status ORDER BY empty_count, status;
-=> UPDATE regab_prng_gp SET status = 'CMQ', cst_time = now() WHERE status = 'CMP' AND batch_id = 9;
+=> UPDATE regab_prng_gp SET status = 'CMQ', cst_time = now() WHERE status = 'CMP' AND batch_id = 9
+
 
 Then run the REGAB program with the action "offspring" to generate from the CMQ the CMR record, and update status from CMQ to CMS.
 

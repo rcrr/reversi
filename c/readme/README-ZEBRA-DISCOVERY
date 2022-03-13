@@ -25,7 +25,7 @@ Program scrzebra, source code analysis.
 
   scrzebra.c defines the macro SCRZEBRA and icludes zebra.c
 
-  zebra.c defines SCIPT_ONLY TRUE when is defined SCRZEBRA
+  zebra.c defines SCRIPT_ONLY TRUE when is defined SCRZEBRA
 
   main: Interprets the command-line parameters and starts the game.
   
@@ -226,6 +226,27 @@ Let's get into the details:
 
 It is an 800 lines very sofisticated function. it is not really a "fastest-first" only function !!!
 
+There are many endgame function:
+
+  SOLVE_TWO_EMPTY
+  SOLVE_THREE_EMPTY
+  SOLVE_FOUR_EMPTY
+  SOLVE_PARITY
+  SOLVE_PARITY_HASH
+  SOLVE_PARITY_HASH_HIGH
+  These are the core routines of the low level endgame code.
+  They all perform the same task: Return the score for the side to move.
+  Structural differences:
+  * SOLVE_TWO_EMPTY may only be called for *exactly* two empty
+  * SOLVE_THREE_EMPTY may only be called for *exactly* three empty
+  * SOLVE_FOUR_EMPTY may only be called for *exactly* four empty
+  * SOLVE_PARITY uses stability, parity and fixed move ordering
+  * SOLVE_PARITY_HASH uses stability, hash table and fixed move ordering
+  * SOLVE_PARITY_HASH_HIGH uses stability, hash table and (non-thresholded)
+    fastest first
+
+
+
 --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 
 Activities log ( in Italian, I am sorry :) )
@@ -239,6 +260,18 @@ Comunque Zebra rimane piu' veloce:
 
  - time ./scrzebra -script ./ffo/woc18-FKvsAP-g1-24.src out/tmp.tmp
  - time ./build/bin/endgame_solver -s gve -c cfg/game_value_estimator.cfg -f db/gpdb-sample-games.txt -q woc18-FKvsAP-g1-24
+
+                          || Zebra                             || GVE
+ --------------------+----++-----------------------------------++---------------------------------------
+  Posizione          | ec || sec  | nodes         | nps        || sec     | nodes          | nps        
+ --------------------+----++------+---------------+------------++---------+----------------+------------
+  woc18-FKvsAP-g1-24 | 24 ||  9.1 |   163,194,220 | 18,019,984 ||    15.3 |    216,761,916 | 14,167,445
+
+Bisogna verificare che i nodi siano misurati nello stesso modo, ma anche se fosse che Reversi ne conta troppi, l'NPS di Zebra sarebbe
+ulteriormente migliore.
+
+La speed gezza di Zebra e' superiore, va approfondita bene la bitboard-machinery di Zebra e comparata con quella di Reversi.
+
 
 
 Appunti al 23-01-2022
