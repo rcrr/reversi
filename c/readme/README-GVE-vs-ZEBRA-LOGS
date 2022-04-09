@@ -1,0 +1,2176 @@
+
+# 2022-04-08
+
+Comparing Zebra and Reversi on the solution of position taken from game woc18-FKvsAP-g1
+
+EC  Reversi GVE   scrzebra
+
+22    0m02.400s  0m01.596s
+23    0m03.050s  0m01.835s
+24    0m17.639s  0m09.228s
+25    0m27.971s  0m11.960s
+26    1m20.300s  0m20.456s
+27    2m57.194s  0m40.326s
+28    7m00.441s  1m41.409s
+29   23m56.141s  2m28.506s
+30   88m04.798s  9m53.991s
+31 8178m50.227s 17m44.421s
+
+Zebra is faster, there is plenty of evidence. And consumes almost no memory.
+Moreover the parameter ttab_log_size have to be adjusted based on the EC value to have the best time possible for Reversi GVE (small value for EC=22, large value for larger EC).
+Over EC=30 Reversi if filling the TT, losing any chance to perform consistently.
+
+######################################################################################################################################################
+
+$ time ./build/bin/endgame_solver -s gve -c cfg/game_value_estimator.cfg -f db/gpdb-sample-games.txt -q woc18-FKvsAP-g1-24
+Entry id: woc18-FKvsAP-g1-24
+Description: WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 24 EC
+Game Position:
+    a b c d e f g h 
+ 1  . . . . O . . . 
+ 2  . . @ O O O . . 
+ 3  . O @ @ O @ O . 
+ 4  O O @ O @ O O O 
+ 5  . O @ O O O O O 
+ 6  . @ @ O O O O . 
+ 7  . . @ @ O O . . 
+ 8  . . . @ @ @ @ . 
+Player to move: BLACK
+
+Solving game position woc18-FKvsAP-g1-24, from source db/gpdb-sample-games.txt, using solver gve (game value estimator) ...
+Sat Apr  2 18:10:17 2022 #### start  .02. Iterative deepening search depth = 2
+Sat Apr  2 18:10:17 2022 00 - D1 (-66) [-68..-66]: (failing high) f- = +02 - cumulated node count           12
+Sat Apr  2 18:10:17 2022 00 - D1 (+02) [+02..+04]: (failing low)  f+ = +02 - cumulated node count           15
+Sat Apr  2 18:10:17 2022 01 - F1 (-66) [+02..+04]: (failing low)  f+ = +02 - cumulated node count           26
+Sat Apr  2 18:10:17 2022 02 - G1 (-66) [+02..+04]: (failing low)  f+ = +02 - cumulated node count           29
+Sat Apr  2 18:10:17 2022 03 - A2 (-66) [+02..+04]: (failing low)  f+ = +00 - cumulated node count           35
+Sat Apr  2 18:10:17 2022 04 - B2 (-66) [+02..+04]: (failing low)  f+ = -12 - cumulated node count           37
+Sat Apr  2 18:10:17 2022 05 - G2 (-66) [+02..+04]: (failing low)  f+ = -04 - cumulated node count           39
+Sat Apr  2 18:10:17 2022 06 - H2 (-66) [+02..+04]: (failing low)  f+ = +02 - cumulated node count           42
+Sat Apr  2 18:10:17 2022 07 - A3 (-66) [+02..+04]: (failing high) f- = +04 - cumulated node count           54
+Sat Apr  2 18:10:17 2022 00 - A3 (+04) [+04..+06]: (failing low)  f+ = +04 - cumulated node count           57
+Sat Apr  2 18:10:17 2022 01 - D1 (+02) [+04..+06]: (failing low)  f+ = +02 - cumulated node count           58
+Sat Apr  2 18:10:17 2022 02 - F1 (+02) [+04..+06]: (failing low)  f+ = +02 - cumulated node count           59
+Sat Apr  2 18:10:17 2022 03 - G1 (+02) [+04..+06]: (failing low)  f+ = +02 - cumulated node count           60
+Sat Apr  2 18:10:17 2022 04 - H2 (+02) [+04..+06]: (failing low)  f+ = +02 - cumulated node count           61
+Sat Apr  2 18:10:17 2022 05 - A2 (+00) [+04..+06]: (failing low)  f+ = +00 - cumulated node count           62
+Sat Apr  2 18:10:17 2022 06 - G2 (-04) [+04..+06]: (failing low)  f+ = -04 - cumulated node count           63
+Sat Apr  2 18:10:17 2022 07 - B2 (-12) [+04..+06]: (failing low)  f+ = -12 - cumulated node count           64
+Sat Apr  2 18:10:17 2022 08 - H3 (-66) [+04..+06]: (failing high) f- = +06 - cumulated node count           74
+Sat Apr  2 18:10:17 2022 00 - H3 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count           77
+Sat Apr  2 18:10:17 2022 01 - A3 (+04) [+06..+08]: (failing low)  f+ = +04 - cumulated node count           78
+Sat Apr  2 18:10:17 2022 02 - D1 (+02) [+06..+08]: (failing low)  f+ = +02 - cumulated node count           79
+Sat Apr  2 18:10:17 2022 03 - F1 (+02) [+06..+08]: (failing low)  f+ = +02 - cumulated node count           80
+Sat Apr  2 18:10:17 2022 04 - G1 (+02) [+06..+08]: (failing low)  f+ = +02 - cumulated node count           81
+Sat Apr  2 18:10:17 2022 05 - H2 (+02) [+06..+08]: (failing low)  f+ = +02 - cumulated node count           82
+Sat Apr  2 18:10:17 2022 06 - A2 (+00) [+06..+08]: (failing low)  f+ = +00 - cumulated node count           83
+Sat Apr  2 18:10:17 2022 07 - G2 (-04) [+06..+08]: (failing low)  f+ = -04 - cumulated node count           84
+Sat Apr  2 18:10:17 2022 08 - B2 (-12) [+06..+08]: (failing low)  f+ = -12 - cumulated node count           85
+Sat Apr  2 18:10:17 2022 09 - A5 (-66) [+06..+08]: (failing low)  f+ = +02 - cumulated node count           91
+Sat Apr  2 18:10:17 2022 10 - A6 (-66) [+06..+08]: (failing low)  f+ = +06 - cumulated node count           97
+Sat Apr  2 18:10:17 2022 11 - H6 (-66) [+06..+08]: (failing low)  f+ = +04 - cumulated node count          100
+Sat Apr  2 18:10:17 2022 12 - G7 (-66) [+06..+08]: (failing low)  f+ = +04 - cumulated node count          102
+Sat Apr  2 18:10:17 2022 13 - H7 (-66) [+06..+08]: (failing low)  f+ = +00 - cumulated node count          104
+Sat Apr  2 18:10:17 2022 #### finish .02. Best move and game value: [H3:+06] - nc =          104 - Time [REAL][PROC]: [     0.   282431][     0.   283456]
+Sat Apr  2 18:10:17 2022 #### start  .06. Iterative deepening search depth = 6
+Sat Apr  2 18:10:17 2022 00 - H3 (+06) [+04..+06]: (failing low)  f+ = +04 - cumulated node count          381
+Sat Apr  2 18:10:17 2022 01 - A6 (+06) [+04..+06]: (failing high) f- = +06 - cumulated node count          957
+Sat Apr  2 18:10:17 2022 00 - A6 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count         1188
+Sat Apr  2 18:10:17 2022 01 - H3 (+04) [+06..+08]: (failing low)  f+ = +04 - cumulated node count         1189
+Sat Apr  2 18:10:17 2022 02 - A3 (+04) [+06..+08]: (failing low)  f+ = +06 - cumulated node count         1377
+Sat Apr  2 18:10:17 2022 03 - H6 (+04) [+06..+08]: (failing low)  f+ = +06 - cumulated node count         1663
+Sat Apr  2 18:10:17 2022 04 - G7 (+04) [+06..+08]: (failing low)  f+ = +02 - cumulated node count         1964
+Sat Apr  2 18:10:17 2022 05 - D1 (+02) [+06..+08]: (failing low)  f+ = +00 - cumulated node count         2229
+Sat Apr  2 18:10:17 2022 06 - F1 (+02) [+06..+08]: (failing low)  f+ = +06 - cumulated node count         2639
+Sat Apr  2 18:10:17 2022 07 - G1 (+02) [+06..+08]: (failing low)  f+ = +06 - cumulated node count         2920
+Sat Apr  2 18:10:17 2022 08 - H2 (+02) [+06..+08]: (failing low)  f+ = +04 - cumulated node count         3220
+Sat Apr  2 18:10:17 2022 09 - A5 (+02) [+06..+08]: (failing low)  f+ = +04 - cumulated node count         3438
+Sat Apr  2 18:10:17 2022 10 - A2 (+00) [+06..+08]: (failing low)  f+ = +04 - cumulated node count         3681
+Sat Apr  2 18:10:17 2022 11 - H7 (+00) [+06..+08]: (failing low)  f+ = +00 - cumulated node count         3910
+Sat Apr  2 18:10:17 2022 12 - G2 (-04) [+06..+08]: (failing low)  f+ = +00 - cumulated node count         4098
+Sat Apr  2 18:10:17 2022 13 - B2 (-12) [+06..+08]: (failing low)  f+ = -08 - cumulated node count         4298
+Sat Apr  2 18:10:17 2022 #### finish .06. Best move and game value: [A6:+06] - nc =         4194 - Time [REAL][PROC]: [     0. 14157638][     0. 14278689]
+Sat Apr  2 18:10:17 2022 #### start  .10. Iterative deepening search depth = 10
+Sat Apr  2 18:10:17 2022 00 - A6 (+06) [+04..+06]: (failing low)  f+ = +04 - cumulated node count        19170
+Sat Apr  2 18:10:17 2022 01 - A3 (+06) [+04..+06]: (failing low)  f+ = +04 - cumulated node count        30127
+Sat Apr  2 18:10:17 2022 02 - H6 (+06) [+04..+06]: (failing low)  f+ = +04 - cumulated node count        49824
+Sat Apr  2 18:10:17 2022 03 - F1 (+06) [+04..+06]: (failing high) f- = +06 - cumulated node count        67602
+Sat Apr  2 18:10:18 2022 00 - F1 (+06) [+06..+08]: (failing high) f- = +08 - cumulated node count        79377
+Sat Apr  2 18:10:18 2022 00 - F1 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count        98461
+Sat Apr  2 18:10:18 2022 01 - A6 (+04) [+08..+10]: (failing low)  f+ = +04 - cumulated node count        98462
+Sat Apr  2 18:10:18 2022 02 - A3 (+04) [+08..+10]: (failing low)  f+ = +04 - cumulated node count        98463
+Sat Apr  2 18:10:18 2022 03 - H6 (+04) [+08..+10]: (failing low)  f+ = +04 - cumulated node count        98464
+Sat Apr  2 18:10:18 2022 04 - G1 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       115383
+Sat Apr  2 18:10:18 2022 05 - H3 (+04) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       124657
+Sat Apr  2 18:10:18 2022 06 - H2 (+04) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       139255
+Sat Apr  2 18:10:18 2022 07 - A5 (+04) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       149827
+Sat Apr  2 18:10:18 2022 08 - A2 (+04) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       160075
+Sat Apr  2 18:10:18 2022 09 - G7 (+02) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       173141
+Sat Apr  2 18:10:18 2022 10 - D1 (+00) [+08..+10]: (failing low)  f+ = +06 - cumulated node count       182060
+Sat Apr  2 18:10:18 2022 11 - H7 (+00) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       190948
+Sat Apr  2 18:10:18 2022 12 - G2 (+00) [+08..+10]: (failing low)  f+ = +04 - cumulated node count       197800
+Sat Apr  2 18:10:18 2022 13 - B2 (-08) [+08..+10]: (failing low)  f+ = +04 - cumulated node count       204839
+Sat Apr  2 18:10:18 2022 #### finish .10. Best move and game value: [F1:+08] - nc =       200541 - Time [REAL][PROC]: [     0.614320469][     0.615119263]
+Sat Apr  2 18:10:18 2022 #### start  .12. Iterative deepening search depth = 12
+Sat Apr  2 18:10:18 2022 00 - F1 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       303559
+Sat Apr  2 18:10:18 2022 01 - G1 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       380198
+Sat Apr  2 18:10:18 2022 02 - H3 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       435149
+Sat Apr  2 18:10:19 2022 03 - H2 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       521713
+Sat Apr  2 18:10:19 2022 04 - A5 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       580168
+Sat Apr  2 18:10:19 2022 05 - A2 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       632633
+Sat Apr  2 18:10:19 2022 06 - G7 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       713584
+Sat Apr  2 18:10:19 2022 07 - H7 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       757012
+Sat Apr  2 18:10:19 2022 08 - D1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       797571
+Sat Apr  2 18:10:20 2022 09 - A6 (+04) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       857062
+Sat Apr  2 18:10:20 2022 10 - A3 (+04) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       902067
+Sat Apr  2 18:10:20 2022 11 - H6 (+04) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       972499
+Sat Apr  2 18:10:20 2022 12 - G2 (+04) [+06..+08]: (failing low)  f+ = +06 - cumulated node count      1000765
+Sat Apr  2 18:10:20 2022 13 - B2 (+04) [+06..+08]: (failing low)  f+ = +04 - cumulated node count      1027941
+Sat Apr  2 18:10:20 2022 00 - F1 (+06) [+04..+06]: (failing high) f- = +06 - cumulated node count      1061983
+Sat Apr  2 18:10:20 2022 #### finish .12. Best move and game value: [F1:+06] - nc =       857144 - Time [REAL][PROC]: [     2.247685698][     2.248887254]
+Sat Apr  2 18:10:20 2022 #### start  .99. Iterative deepening search depth = 99
+Sat Apr  2 18:10:20 2022 00 - F1 (+06) [+04..+06]: (failing low)  f+ = +04 - cumulated node count     27437388
+Sat Apr  2 18:10:22 2022 01 - G1 (+06) [+04..+06]: (failing low)  f+ = +04 - cumulated node count     35871224
+Sat Apr  2 18:10:23 2022 02 - H3 (+06) [+04..+06]: (failing low)  f+ = +04 - cumulated node count     53022446
+Sat Apr  2 18:10:24 2022 03 - H2 (+06) [+04..+06]: (failing low)  f+ = +04 - cumulated node count     83868265
+Sat Apr  2 18:10:26 2022 04 - A5 (+06) [+04..+06]: (failing high) f- = +06 - cumulated node count    131503633
+Sat Apr  2 18:10:29 2022 00 - A5 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    145217326
+Sat Apr  2 18:10:30 2022 01 - F1 (+04) [+06..+08]: (failing low)  f+ = +04 - cumulated node count    145217327
+Sat Apr  2 18:10:30 2022 02 - G1 (+04) [+06..+08]: (failing low)  f+ = +04 - cumulated node count    145217328
+Sat Apr  2 18:10:30 2022 03 - H3 (+04) [+06..+08]: (failing low)  f+ = +04 - cumulated node count    145217329
+Sat Apr  2 18:10:30 2022 04 - H2 (+04) [+06..+08]: (failing low)  f+ = +04 - cumulated node count    145217330
+Sat Apr  2 18:10:30 2022 05 - A2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    150799852
+Sat Apr  2 18:10:30 2022 06 - G7 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    171554519
+Sat Apr  2 18:10:32 2022 07 - H7 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    175146014
+Sat Apr  2 18:10:32 2022 08 - D1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    180552481
+Sat Apr  2 18:10:32 2022 09 - A6 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    189914723
+Sat Apr  2 18:10:33 2022 10 - A3 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    200765121
+Sat Apr  2 18:10:34 2022 11 - H6 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    210494877
+Sat Apr  2 18:10:34 2022 12 - G2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    215324771
+Sat Apr  2 18:10:35 2022 13 - B2 (+04) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    216761916
+Sat Apr  2 18:10:35 2022 #### finish .99. Best move and game value: [A5:+06] - nc =    215699933 - Time [REAL][PROC]: [    14.566970150][    14.568804638]
+MTD(f) evaluation [REAL][PROCESS] time: [    17.443545652][    17.447499788]
+Transposition Table pointer: 0x55f02bb7b8c0
+  max_n_item:             16777216  -  Number of items that could be stored in the table
+  items:            0x7f7e80e43010  -  Array of items
+  next_item:        0x7f7eb85cb8d0  -  Next item to be used when inserting
+  n_item:                  2235868  -  The number of item currently held in the table
+  ht:               0x55f02bb7b940  -  Hashtable containing <Key:item , Item:item>
+  pq:               0x55f02bb7b990  -  Priority queue
+  ht.size:                 4194301  -  Hashtable size
+  ht.length:               2235868  -  Hashtable length
+TT hashtable stats:
+ ELEMENTS_X_BUCKET; ELEMENT_CNT
+                 0;     2460817
+                 1;     1312618
+                 2;      349722
+                 3;       61851
+                 4;        8318
+                 5;         877
+                 6;          91
+                 7;           6
+
+    a b c d e f g h 
+ 1  . . . . O . . . 
+ 2  . . @ O O O . . 
+ 3  . O @ @ O @ O . 
+ 4  O O @ O @ O O O 
+ 5  . O @ O O O O O 
+ 6  . @ @ O O O O . 
+ 7  . . @ @ O O . . 
+ 8  . . . @ @ @ @ . 
+Player to move: BLACK
+
+[node_count=216761916, leaf_count=37751549]
+Final outcome: best move=A5, position value=6
+
+
+real	0m17.639s
+user	0m17.479s
+sys	0m0.156s
+
+$ time ./build/bin/endgame_solver -s gve -c cfg/game_value_estimator.cfg -f db/gpdb-sample-games.txt -q woc18-FKvsAP-g1-25
+Entry id: woc18-FKvsAP-g1-25
+Description: WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 25 EC
+Game Position:
+    a b c d e f g h 
+ 1  . . . . O . . . 
+ 2  . . @ O O O . . 
+ 3  . O @ @ O @ O . 
+ 4  O O @ O @ O O O 
+ 5  . O @ O O @ O O 
+ 6  . @ @ O O @ @ . 
+ 7  . . @ @ O . . . 
+ 8  . . . @ @ @ @ . 
+Player to move: WHITE
+
+Solving game position woc18-FKvsAP-g1-25, from source db/gpdb-sample-games.txt, using solver gve (game value estimator) ...
+Sat Apr  2 18:14:13 2022 #### start  .03. Iterative deepening search depth = 3
+Sat Apr  2 18:14:13 2022 00 - D1 (-66) [-68..-66]: (failing high) f- = -28 - cumulated node count           28
+Sat Apr  2 18:14:13 2022 00 - D1 (-28) [-28..-26]: (failing high) f- = -26 - cumulated node count           45
+Sat Apr  2 18:14:13 2022 00 - D1 (-26) [-26..-24]: (failing high) f- = -20 - cumulated node count           62
+Sat Apr  2 18:14:13 2022 00 - D1 (-20) [-20..-18]: (failing high) f- = -16 - cumulated node count           79
+Sat Apr  2 18:14:13 2022 00 - D1 (-16) [-16..-14]: (failing high) f- = -14 - cumulated node count           97
+Sat Apr  2 18:14:13 2022 00 - D1 (-14) [-14..-12]: (failing low)  f+ = -14 - cumulated node count          109
+Sat Apr  2 18:14:13 2022 01 - B2 (-66) [-14..-12]: (failing low)  f+ = -24 - cumulated node count          123
+Sat Apr  2 18:14:13 2022 02 - G2 (-66) [-14..-12]: (failing low)  f+ = -14 - cumulated node count          162
+Sat Apr  2 18:14:13 2022 03 - A6 (-66) [-14..-12]: (failing low)  f+ = -14 - cumulated node count          197
+Sat Apr  2 18:14:13 2022 04 - H6 (-66) [-14..-12]: (failing high) f- = -12 - cumulated node count          231
+Sat Apr  2 18:14:13 2022 00 - H6 (-12) [-12..-10]: (failing high) f- = -10 - cumulated node count          260
+Sat Apr  2 18:14:13 2022 00 - H6 (-10) [-10..-08]: (failing high) f- = -08 - cumulated node count          302
+Sat Apr  2 18:14:13 2022 00 - H6 (-08) [-08..-06]: (failing high) f- = -06 - cumulated node count          339
+Sat Apr  2 18:14:13 2022 00 - H6 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count          351
+Sat Apr  2 18:14:13 2022 01 - D1 (-14) [-06..-04]: (failing low)  f+ = -14 - cumulated node count          352
+Sat Apr  2 18:14:13 2022 02 - G2 (-14) [-06..-04]: (failing low)  f+ = -14 - cumulated node count          353
+Sat Apr  2 18:14:13 2022 03 - A6 (-14) [-06..-04]: (failing low)  f+ = -14 - cumulated node count          354
+Sat Apr  2 18:14:13 2022 04 - B2 (-24) [-06..-04]: (failing low)  f+ = -24 - cumulated node count          355
+Sat Apr  2 18:14:13 2022 05 - A7 (-66) [-06..-04]: (failing low)  f+ = -06 - cumulated node count          367
+Sat Apr  2 18:14:13 2022 06 - B7 (-66) [-06..-04]: (failing low)  f+ = -20 - cumulated node count          376
+Sat Apr  2 18:14:13 2022 07 - F7 (-66) [-06..-04]: (failing low)  f+ = -06 - cumulated node count          424
+Sat Apr  2 18:14:13 2022 08 - G7 (-66) [-06..-04]: (failing low)  f+ = -22 - cumulated node count          436
+Sat Apr  2 18:14:13 2022 09 - B8 (-66) [-06..-04]: (failing low)  f+ = -10 - cumulated node count          454
+Sat Apr  2 18:14:13 2022 10 - C8 (-66) [-06..-04]: (failing low)  f+ = -14 - cumulated node count          514
+Sat Apr  2 18:14:13 2022 #### finish .03. Best move and game value: [H6:-06] - nc =          514 - Time [REAL][PROC]: [     0.   548934][     0.   550096]
+Sat Apr  2 18:14:13 2022 #### start  .07. Iterative deepening search depth = 7
+Sat Apr  2 18:14:13 2022 00 - H6 (-06) [-08..-06]: (failing low)  f+ = -08 - cumulated node count         3905
+Sat Apr  2 18:14:13 2022 01 - A7 (-06) [-08..-06]: (failing low)  f+ = -10 - cumulated node count         4651
+Sat Apr  2 18:14:13 2022 02 - F7 (-06) [-08..-06]: (failing high) f- = -06 - cumulated node count         9082
+Sat Apr  2 18:14:13 2022 00 - F7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count         9980
+Sat Apr  2 18:14:13 2022 01 - H6 (-08) [-06..-04]: (failing low)  f+ = -08 - cumulated node count         9981
+Sat Apr  2 18:14:13 2022 02 - A7 (-10) [-06..-04]: (failing low)  f+ = -10 - cumulated node count         9982
+Sat Apr  2 18:14:13 2022 03 - B8 (-10) [-06..-04]: (failing low)  f+ = -06 - cumulated node count        11264
+Sat Apr  2 18:14:13 2022 04 - D1 (-14) [-06..-04]: (failing low)  f+ = -06 - cumulated node count        11792
+Sat Apr  2 18:14:13 2022 05 - G2 (-14) [-06..-04]: (failing low)  f+ = -16 - cumulated node count        12878
+Sat Apr  2 18:14:13 2022 06 - A6 (-14) [-06..-04]: (failing low)  f+ = -06 - cumulated node count        13246
+Sat Apr  2 18:14:13 2022 07 - C8 (-14) [-06..-04]: (failing low)  f+ = -10 - cumulated node count        13525
+Sat Apr  2 18:14:13 2022 08 - B7 (-20) [-06..-04]: (failing low)  f+ = -16 - cumulated node count        13829
+Sat Apr  2 18:14:13 2022 09 - G7 (-22) [-06..-04]: (failing low)  f+ = -20 - cumulated node count        14361
+Sat Apr  2 18:14:13 2022 10 - B2 (-24) [-06..-04]: (failing low)  f+ = -18 - cumulated node count        15399
+Sat Apr  2 18:14:13 2022 #### finish .07. Best move and game value: [F7:-06] - nc =        14885 - Time [REAL][PROC]: [     0. 36793526][     0. 36794596]
+Sat Apr  2 18:14:13 2022 #### start  .11. Iterative deepening search depth = 11
+Sat Apr  2 18:14:13 2022 00 - F7 (-06) [-08..-06]: (failing low)  f+ = -08 - cumulated node count        60340
+Sat Apr  2 18:14:13 2022 01 - B8 (-06) [-08..-06]: (failing low)  f+ = -08 - cumulated node count        92477
+Sat Apr  2 18:14:13 2022 02 - D1 (-06) [-08..-06]: (failing low)  f+ = -08 - cumulated node count       108988
+Sat Apr  2 18:14:13 2022 03 - A6 (-06) [-08..-06]: (failing low)  f+ = -08 - cumulated node count       114651
+Sat Apr  2 18:14:13 2022 04 - H6 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count       223408
+Sat Apr  2 18:14:13 2022 05 - A7 (-10) [-08..-06]: (failing low)  f+ = -08 - cumulated node count       235906
+Sat Apr  2 18:14:13 2022 06 - C8 (-10) [-08..-06]: (failing low)  f+ = -08 - cumulated node count       242525
+Sat Apr  2 18:14:13 2022 07 - G2 (-16) [-08..-06]: (failing low)  f+ = -08 - cumulated node count       262081
+Sat Apr  2 18:14:14 2022 08 - B7 (-16) [-08..-06]: (failing low)  f+ = -10 - cumulated node count       265782
+Sat Apr  2 18:14:14 2022 09 - B2 (-18) [-08..-06]: (failing low)  f+ = -10 - cumulated node count       290252
+Sat Apr  2 18:14:14 2022 10 - G7 (-20) [-08..-06]: (failing low)  f+ = -14 - cumulated node count       298200
+Sat Apr  2 18:14:14 2022 00 - F7 (-08) [-10..-08]: (failing high) f- = -08 - cumulated node count       439164
+Sat Apr  2 18:14:14 2022 #### finish .11. Best move and game value: [F7:-08] - nc =       423765 - Time [REAL][PROC]: [     1.174240333][     1.174291860]
+Sat Apr  2 18:14:14 2022 #### start  .13. Iterative deepening search depth = 13
+Sat Apr  2 18:14:14 2022 00 - F7 (-08) [-10..-08]: (failing high) f- = -08 - cumulated node count      1216673
+Sat Apr  2 18:14:16 2022 00 - F7 (-08) [-08..-06]: (failing high) f- = -06 - cumulated node count      1506003
+Sat Apr  2 18:14:17 2022 00 - F7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      1535271
+Sat Apr  2 18:14:17 2022 01 - B8 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      1646618
+Sat Apr  2 18:14:17 2022 02 - D1 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      1685884
+Sat Apr  2 18:14:17 2022 03 - A6 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      1701843
+Sat Apr  2 18:14:17 2022 04 - H6 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      1736365
+Sat Apr  2 18:14:17 2022 05 - A7 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      1779378
+Sat Apr  2 18:14:17 2022 06 - C8 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      1796887
+Sat Apr  2 18:14:17 2022 07 - G2 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      1859215
+Sat Apr  2 18:14:18 2022 08 - B7 (-10) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      1869154
+Sat Apr  2 18:14:18 2022 09 - B2 (-10) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      1952307
+Sat Apr  2 18:14:18 2022 10 - G7 (-14) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      1974253
+Sat Apr  2 18:14:18 2022 #### finish .13. Best move and game value: [F7:-06] - nc =      1535089 - Time [REAL][PROC]: [     3.667515062][     3.667864352]
+Sat Apr  2 18:14:18 2022 #### start  .99. Iterative deepening search depth = 99
+Sat Apr  2 18:14:18 2022 00 - F7 (-06) [-08..-06]: (failing high) f- = -06 - cumulated node count    164309371
+Sat Apr  2 18:14:29 2022 00 - F7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count    264793195
+Sat Apr  2 18:14:35 2022 01 - B8 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count    287042481
+Sat Apr  2 18:14:37 2022 02 - D1 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count    293761004
+Sat Apr  2 18:14:37 2022 03 - A6 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count    298449850
+Sat Apr  2 18:14:38 2022 04 - H6 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count    302650841
+Sat Apr  2 18:14:38 2022 05 - A7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count    315364272
+Sat Apr  2 18:14:39 2022 06 - C8 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count    316879219
+Sat Apr  2 18:14:39 2022 07 - G2 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count    321816690
+Sat Apr  2 18:14:40 2022 08 - B7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count    322691492
+Sat Apr  2 18:14:40 2022 09 - B2 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count    328683995
+Sat Apr  2 18:14:40 2022 10 - G7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count    329436459
+Sat Apr  2 18:14:41 2022 #### finish .99. Best move and game value: [F7:-06] - nc =    327462206 - Time [REAL][PROC]: [    22.871605615][    22.873249759]
+MTD(f) evaluation [REAL][PROCESS] time: [    27.750816214][    27.752859279]
+Transposition Table pointer: 0x56450ca2c900
+  max_n_item:             16777216  -  Number of items that could be stored in the table
+  items:            0x7ff6f13db010  -  Array of items
+  next_item:        0x7ff72476a810  -  Next item to be used when inserting
+  n_item:                  3349535  -  The number of item currently held in the table
+  ht:               0x56450ca2c980  -  Hashtable containing <Key:item , Item:item>
+  pq:               0x56450ca2c9d0  -  Priority queue
+  ht.size:                 4194301  -  Hashtable size
+  ht.length:               3349535  -  Hashtable length
+TT hashtable stats:
+ ELEMENTS_X_BUCKET; ELEMENT_CNT
+                 0;     1887006
+                 1;     1507479
+                 2;      601804
+                 3;      160327
+                 4;       31835
+                 5;        5068
+                 6;         700
+                 7;          69
+
+    a b c d e f g h 
+ 1  . . . . O . . . 
+ 2  . . @ O O O . . 
+ 3  . O @ @ O @ O . 
+ 4  O O @ O @ O O O 
+ 5  . O @ O O @ O O 
+ 6  . @ @ O O @ @ . 
+ 7  . . @ @ O . . . 
+ 8  . . . @ @ @ @ . 
+Player to move: WHITE
+
+[node_count=329436459, leaf_count=58139891]
+Final outcome: best move=F7, position value=-6
+
+
+real	0m27.971s
+user	0m27.777s
+sys	0m0.192s
+
+$ time ./build/bin/endgame_solver -s gve -c cfg/game_value_estimator.cfg -f db/gpdb-sample-games.txt -q woc18-FKvsAP-g1-26
+Entry id: woc18-FKvsAP-g1-26
+Description: WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 26 EC
+Game Position:
+    a b c d e f g h 
+ 1  . . . . O . . . 
+ 2  . . @ O O O . . 
+ 3  . O @ @ O @ O . 
+ 4  O O @ O @ O O O 
+ 5  . O @ O O @ O O 
+ 6  . @ @ O O @ @ . 
+ 7  . . @ @ O . . . 
+ 8  . . . @ @ O . . 
+Player to move: BLACK
+
+Solving game position woc18-FKvsAP-g1-26, from source db/gpdb-sample-games.txt, using solver gve (game value estimator) ...
+Sat Apr  2 18:15:57 2022 #### start  .04. Iterative deepening search depth = 4
+Sat Apr  2 18:15:57 2022 00 - D1 (-66) [-68..-66]: (failing high) f- = -02 - cumulated node count          157
+Sat Apr  2 18:15:57 2022 00 - D1 (-02) [-02..+00]: (failing high) f- = +00 - cumulated node count          217
+Sat Apr  2 18:15:57 2022 00 - D1 (+00) [+00..+02]: (failing low)  f+ = +00 - cumulated node count          306
+Sat Apr  2 18:15:57 2022 01 - F1 (-66) [+00..+02]: (failing low)  f+ = +00 - cumulated node count          530
+Sat Apr  2 18:15:57 2022 02 - G1 (-66) [+00..+02]: (failing low)  f+ = +00 - cumulated node count          566
+Sat Apr  2 18:15:57 2022 03 - A2 (-66) [+00..+02]: (failing low)  f+ = -02 - cumulated node count          701
+Sat Apr  2 18:15:57 2022 04 - B2 (-66) [+00..+02]: (failing low)  f+ = -04 - cumulated node count          723
+Sat Apr  2 18:15:57 2022 05 - G2 (-66) [+00..+02]: (failing low)  f+ = -14 - cumulated node count          741
+Sat Apr  2 18:15:57 2022 06 - H2 (-66) [+00..+02]: (failing low)  f+ = +00 - cumulated node count          788
+Sat Apr  2 18:15:57 2022 07 - A3 (-66) [+00..+02]: (failing low)  f+ = +00 - cumulated node count         1213
+Sat Apr  2 18:15:57 2022 08 - H3 (-66) [+00..+02]: (failing low)  f+ = +00 - cumulated node count         1533
+Sat Apr  2 18:15:57 2022 09 - A5 (-66) [+00..+02]: (failing low)  f+ = +00 - cumulated node count         1641
+Sat Apr  2 18:15:57 2022 10 - A6 (-66) [+00..+02]: (failing high) f- = +02 - cumulated node count         1904
+Sat Apr  2 18:15:57 2022 00 - A6 (+02) [+02..+04]: (failing low)  f+ = +02 - cumulated node count         2026
+Sat Apr  2 18:15:57 2022 01 - D1 (+00) [+02..+04]: (failing low)  f+ = +00 - cumulated node count         2027
+Sat Apr  2 18:15:57 2022 02 - F1 (+00) [+02..+04]: (failing low)  f+ = +00 - cumulated node count         2028
+Sat Apr  2 18:15:57 2022 03 - G1 (+00) [+02..+04]: (failing low)  f+ = +00 - cumulated node count         2029
+Sat Apr  2 18:15:57 2022 04 - H2 (+00) [+02..+04]: (failing low)  f+ = +00 - cumulated node count         2030
+Sat Apr  2 18:15:57 2022 05 - A3 (+00) [+02..+04]: (failing low)  f+ = +00 - cumulated node count         2031
+Sat Apr  2 18:15:57 2022 06 - H3 (+00) [+02..+04]: (failing low)  f+ = +00 - cumulated node count         2032
+Sat Apr  2 18:15:57 2022 07 - A5 (+00) [+02..+04]: (failing low)  f+ = +00 - cumulated node count         2033
+Sat Apr  2 18:15:57 2022 08 - A2 (-02) [+02..+04]: (failing low)  f+ = -02 - cumulated node count         2034
+Sat Apr  2 18:15:57 2022 09 - B2 (-04) [+02..+04]: (failing low)  f+ = -04 - cumulated node count         2035
+Sat Apr  2 18:15:57 2022 10 - G2 (-14) [+02..+04]: (failing low)  f+ = -14 - cumulated node count         2036
+Sat Apr  2 18:15:57 2022 11 - F7 (-66) [+02..+04]: (failing low)  f+ = +02 - cumulated node count         2314
+Sat Apr  2 18:15:57 2022 12 - G8 (-66) [+02..+04]: (failing high) f- = +04 - cumulated node count         2570
+Sat Apr  2 18:15:57 2022 00 - G8 (+04) [+04..+06]: (failing high) f- = +06 - cumulated node count         2645
+Sat Apr  2 18:15:57 2022 00 - G8 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count         2675
+Sat Apr  2 18:15:57 2022 01 - A6 (+02) [+06..+08]: (failing low)  f+ = +02 - cumulated node count         2676
+Sat Apr  2 18:15:57 2022 02 - F7 (+02) [+06..+08]: (failing low)  f+ = +02 - cumulated node count         2677
+Sat Apr  2 18:15:57 2022 03 - D1 (+00) [+06..+08]: (failing low)  f+ = +00 - cumulated node count         2678
+Sat Apr  2 18:15:57 2022 04 - F1 (+00) [+06..+08]: (failing low)  f+ = +00 - cumulated node count         2679
+Sat Apr  2 18:15:57 2022 05 - G1 (+00) [+06..+08]: (failing low)  f+ = +00 - cumulated node count         2680
+Sat Apr  2 18:15:57 2022 06 - H2 (+00) [+06..+08]: (failing low)  f+ = +00 - cumulated node count         2681
+Sat Apr  2 18:15:57 2022 07 - A3 (+00) [+06..+08]: (failing low)  f+ = +00 - cumulated node count         2682
+Sat Apr  2 18:15:57 2022 08 - H3 (+00) [+06..+08]: (failing low)  f+ = +00 - cumulated node count         2683
+Sat Apr  2 18:15:57 2022 09 - A5 (+00) [+06..+08]: (failing low)  f+ = +00 - cumulated node count         2684
+Sat Apr  2 18:15:57 2022 10 - A2 (-02) [+06..+08]: (failing low)  f+ = -02 - cumulated node count         2685
+Sat Apr  2 18:15:57 2022 11 - B2 (-04) [+06..+08]: (failing low)  f+ = -04 - cumulated node count         2686
+Sat Apr  2 18:15:57 2022 12 - G2 (-14) [+06..+08]: (failing low)  f+ = -14 - cumulated node count         2687
+Sat Apr  2 18:15:57 2022 #### finish .04. Best move and game value: [G8:+06] - nc =         2687 - Time [REAL][PROC]: [     0.  2313084][     0.  2362266]
+Sat Apr  2 18:15:57 2022 #### start  .08. Iterative deepening search depth = 8
+Sat Apr  2 18:15:57 2022 00 - G8 (+06) [+04..+06]: (failing high) f- = +06 - cumulated node count        14491
+Sat Apr  2 18:15:57 2022 00 - G8 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        20457
+Sat Apr  2 18:15:57 2022 01 - A6 (+02) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        22414
+Sat Apr  2 18:15:57 2022 02 - F7 (+02) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        24183
+Sat Apr  2 18:15:57 2022 03 - D1 (+00) [+06..+08]: (failing low)  f+ = +02 - cumulated node count        25478
+Sat Apr  2 18:15:57 2022 04 - F1 (+00) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        26739
+Sat Apr  2 18:15:57 2022 05 - G1 (+00) [+06..+08]: (failing low)  f+ = +04 - cumulated node count        29032
+Sat Apr  2 18:15:57 2022 06 - H2 (+00) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        31622
+Sat Apr  2 18:15:57 2022 07 - A3 (+00) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        32594
+Sat Apr  2 18:15:57 2022 08 - H3 (+00) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        35348
+Sat Apr  2 18:15:57 2022 09 - A5 (+00) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        36879
+Sat Apr  2 18:15:57 2022 10 - A2 (-02) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        39492
+Sat Apr  2 18:15:57 2022 11 - B2 (-04) [+06..+08]: (failing low)  f+ = +00 - cumulated node count        40581
+Sat Apr  2 18:15:57 2022 12 - G2 (-14) [+06..+08]: (failing low)  f+ = -12 - cumulated node count        41526
+Sat Apr  2 18:15:57 2022 #### finish .08. Best move and game value: [G8:+06] - nc =        38839 - Time [REAL][PROC]: [     0.123368285][     0.123593248]
+Sat Apr  2 18:15:57 2022 #### start  .12. Iterative deepening search depth = 12
+Sat Apr  2 18:15:57 2022 00 - G8 (+06) [+04..+06]: (failing high) f- = +06 - cumulated node count       423715
+Sat Apr  2 18:15:58 2022 00 - G8 (+06) [+06..+08]: (failing high) f- = +08 - cumulated node count       463961
+Sat Apr  2 18:15:58 2022 00 - G8 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       602418
+Sat Apr  2 18:15:58 2022 01 - A6 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       664768
+Sat Apr  2 18:15:59 2022 02 - F7 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       716445
+Sat Apr  2 18:15:59 2022 03 - F1 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       749543
+Sat Apr  2 18:15:59 2022 04 - H2 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       819568
+Sat Apr  2 18:15:59 2022 05 - A3 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       848885
+Sat Apr  2 18:15:59 2022 06 - H3 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       935877
+Sat Apr  2 18:15:59 2022 07 - A5 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       980561
+Sat Apr  2 18:16:00 2022 08 - A2 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count      1094087
+Sat Apr  2 18:16:00 2022 09 - G1 (+04) [+08..+10]: (failing low)  f+ = +08 - cumulated node count      1146409
+Sat Apr  2 18:16:00 2022 10 - D1 (+02) [+08..+10]: (failing low)  f+ = +06 - cumulated node count      1169065
+Sat Apr  2 18:16:00 2022 11 - B2 (+00) [+08..+10]: (failing low)  f+ = +08 - cumulated node count      1195121
+Sat Apr  2 18:16:00 2022 12 - G2 (-12) [+08..+10]: (failing low)  f+ = +04 - cumulated node count      1213733
+Sat Apr  2 18:16:00 2022 #### finish .12. Best move and game value: [G8:+08] - nc =      1172207 - Time [REAL][PROC]: [     3.616743483][     3.617867056]
+Sat Apr  2 18:16:00 2022 #### start  .14. Iterative deepening search depth = 14
+Sat Apr  2 18:16:00 2022 00 - G8 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count      2044945
+Sat Apr  2 18:16:03 2022 01 - A6 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count      2297122
+Sat Apr  2 18:16:03 2022 02 - F7 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count      2508117
+Sat Apr  2 18:16:04 2022 03 - F1 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count      2629588
+Sat Apr  2 18:16:04 2022 04 - H2 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count      3015336
+Sat Apr  2 18:16:05 2022 05 - A3 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count      3125441
+Sat Apr  2 18:16:05 2022 06 - H3 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count      3472869
+Sat Apr  2 18:16:06 2022 07 - A5 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count      3738962
+Sat Apr  2 18:16:07 2022 08 - A2 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count      4311504
+Sat Apr  2 18:16:08 2022 09 - G1 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count      4553337
+Sat Apr  2 18:16:09 2022 10 - B2 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count      4648380
+Sat Apr  2 18:16:09 2022 11 - D1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count      4727257
+Sat Apr  2 18:16:10 2022 12 - G2 (+04) [+06..+08]: (failing low)  f+ = +06 - cumulated node count      4784383
+Sat Apr  2 18:16:10 2022 00 - G8 (+06) [+04..+06]: (failing high) f- = +06 - cumulated node count      5290344
+Sat Apr  2 18:16:11 2022 #### finish .14. Best move and game value: [G8:+06] - nc =      4076611 - Time [REAL][PROC]: [    10.186170136][    10.187597911]
+Sat Apr  2 18:16:11 2022 #### start  .99. Iterative deepening search depth = 99
+Sat Apr  2 18:16:11 2022 00 - G8 (+06) [+04..+06]: (failing high) f- = +06 - cumulated node count    239278256
+Sat Apr  2 18:16:28 2022 00 - G8 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    317113811
+Sat Apr  2 18:16:33 2022 01 - A6 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    365346875
+Sat Apr  2 18:16:37 2022 02 - F7 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    415661288
+Sat Apr  2 18:16:40 2022 03 - F1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    433315280
+Sat Apr  2 18:16:41 2022 04 - H2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    509901502
+Sat Apr  2 18:16:46 2022 05 - A3 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    525860690
+Sat Apr  2 18:16:48 2022 06 - H3 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    582935484
+Sat Apr  2 18:16:52 2022 07 - A5 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    666193370
+Sat Apr  2 18:16:57 2022 08 - A2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    885477659
+Sat Apr  2 18:17:11 2022 09 - G1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    927197584
+Sat Apr  2 18:17:14 2022 10 - B2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    947655722
+Sat Apr  2 18:17:15 2022 11 - D1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    957303825
+Sat Apr  2 18:17:16 2022 12 - G2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count    962200189
+Sat Apr  2 18:17:17 2022 #### finish .99. Best move and game value: [G8:+06] - nc =    956909845 - Time [REAL][PROC]: [    65.956678564][    65.963327945]
+MTD(f) evaluation [REAL][PROCESS] time: [    79.885406052][    79.894876791]
+Transposition Table pointer: 0x55b8fb531940
+  max_n_item:             16777216  -  Number of items that could be stored in the table
+  items:            0x7ff0d4b43010  -  Array of items
+  next_item:        0x7ff0f15dd490  -  Next item to be used when inserting
+  n_item:                  9263469  -  The number of item currently held in the table
+  ht:               0x55b8fb5319c0  -  Hashtable containing <Key:item , Item:item>
+  pq:               0x55b8fb531a10  -  Priority queue
+  ht.size:                 4194301  -  Hashtable size
+  ht.length:               9263469  -  Hashtable length
+TT hashtable stats:
+ ELEMENTS_X_BUCKET; ELEMENT_CNT
+                 0;      461026
+                 1;     1018353
+                 2;     1122863
+                 3;      826598
+                 4;      457401
+                 5;      201578
+                 6;       74353
+                 7;       23612
+                 8;        6470
+                 9;        1626
+                10;         338
+                11;          70
+
+    a b c d e f g h 
+ 1  . . . . O . . . 
+ 2  . . @ O O O . . 
+ 3  . O @ @ O @ O . 
+ 4  O O @ O @ O O O 
+ 5  . O @ O O @ O O 
+ 6  . @ @ O O @ @ . 
+ 7  . . @ @ O . . . 
+ 8  . . . @ @ O . . 
+Player to move: BLACK
+
+[node_count=962200189, leaf_count=170398140]
+Final outcome: best move=G8, position value=6
+
+
+real	1m20.300s
+user	1m19.865s
+sys	0m0.425s
+
+$ time ./build/bin/endgame_solver -s gve -c cfg/game_value_estimator.cfg -f db/gpdb-sample-games.txt -q woc18-FKvsAP-g1-27
+Entry id: woc18-FKvsAP-g1-27
+Description: WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 27 EC - Legal move count: 12 - best move = F8, position value = -6
+Game Position:
+    a b c d e f g h 
+ 1  . . . . O . . . 
+ 2  . . @ O O O . . 
+ 3  . O @ @ O @ O . 
+ 4  O O @ O @ O O O 
+ 5  . O @ O O @ O O 
+ 6  . @ @ O O @ @ . 
+ 7  . . @ @ @ . . . 
+ 8  . . . @ @ . . . 
+Player to move: WHITE
+
+Solving game position woc18-FKvsAP-g1-27, from source db/gpdb-sample-games.txt, using solver gve (game value estimator) ...
+Sat Apr  2 18:22:24 2022 #### start  .05. Iterative deepening search depth = 5
+Sat Apr  2 18:22:24 2022 00 - D1 (-66) [-68..-66]: (failing high) f- = -44 - cumulated node count          309
+Sat Apr  2 18:22:24 2022 00 - D1 (-44) [-44..-42]: (failing high) f- = -40 - cumulated node count          339
+Sat Apr  2 18:22:24 2022 00 - D1 (-40) [-40..-38]: (failing high) f- = -38 - cumulated node count          369
+Sat Apr  2 18:22:24 2022 00 - D1 (-38) [-38..-36]: (failing high) f- = -36 - cumulated node count          399
+Sat Apr  2 18:22:24 2022 00 - D1 (-36) [-36..-34]: (failing high) f- = -34 - cumulated node count          429
+Sat Apr  2 18:22:24 2022 00 - D1 (-34) [-34..-32]: (failing high) f- = -32 - cumulated node count          474
+Sat Apr  2 18:22:24 2022 00 - D1 (-32) [-32..-30]: (failing high) f- = -30 - cumulated node count          551
+Sat Apr  2 18:22:24 2022 00 - D1 (-30) [-30..-28]: (failing high) f- = -28 - cumulated node count          644
+Sat Apr  2 18:22:24 2022 00 - D1 (-28) [-28..-26]: (failing high) f- = -26 - cumulated node count          754
+Sat Apr  2 18:22:24 2022 00 - D1 (-26) [-26..-24]: (failing high) f- = -24 - cumulated node count          880
+Sat Apr  2 18:22:24 2022 00 - D1 (-24) [-24..-22]: (failing high) f- = -22 - cumulated node count          956
+Sat Apr  2 18:22:24 2022 00 - D1 (-22) [-22..-20]: (failing high) f- = -20 - cumulated node count          991
+Sat Apr  2 18:22:24 2022 00 - D1 (-20) [-20..-18]: (failing high) f- = -18 - cumulated node count         1113
+Sat Apr  2 18:22:24 2022 00 - D1 (-18) [-18..-16]: (failing high) f- = -16 - cumulated node count         1213
+Sat Apr  2 18:22:24 2022 00 - D1 (-16) [-16..-14]: (failing high) f- = -14 - cumulated node count         1372
+Sat Apr  2 18:22:24 2022 00 - D1 (-14) [-14..-12]: (failing high) f- = -12 - cumulated node count         1670
+Sat Apr  2 18:22:24 2022 00 - D1 (-12) [-12..-10]: (failing high) f- = -10 - cumulated node count         1904
+Sat Apr  2 18:22:24 2022 00 - D1 (-10) [-10..-08]: (failing low)  f+ = -10 - cumulated node count         2023
+Sat Apr  2 18:22:24 2022 01 - B2 (-66) [-10..-08]: (failing low)  f+ = -12 - cumulated node count         2193
+Sat Apr  2 18:22:24 2022 02 - G2 (-66) [-10..-08]: (failing low)  f+ = -10 - cumulated node count         2398
+Sat Apr  2 18:22:24 2022 03 - A6 (-66) [-10..-08]: (failing low)  f+ = -12 - cumulated node count         2566
+Sat Apr  2 18:22:24 2022 04 - H6 (-66) [-10..-08]: (failing high) f- = -08 - cumulated node count         3602
+Sat Apr  2 18:22:24 2022 00 - H6 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count         4101
+Sat Apr  2 18:22:24 2022 01 - D1 (-10) [-08..-06]: (failing low)  f+ = -10 - cumulated node count         4102
+Sat Apr  2 18:22:24 2022 02 - G2 (-10) [-08..-06]: (failing low)  f+ = -10 - cumulated node count         4103
+Sat Apr  2 18:22:24 2022 03 - B2 (-12) [-08..-06]: (failing low)  f+ = -12 - cumulated node count         4104
+Sat Apr  2 18:22:24 2022 04 - A6 (-12) [-08..-06]: (failing low)  f+ = -12 - cumulated node count         4105
+Sat Apr  2 18:22:24 2022 05 - A7 (-66) [-08..-06]: (failing low)  f+ = -10 - cumulated node count         4288
+Sat Apr  2 18:22:24 2022 06 - B7 (-66) [-08..-06]: (failing low)  f+ = -10 - cumulated node count         4383
+Sat Apr  2 18:22:24 2022 07 - F7 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count         5832
+Sat Apr  2 18:22:24 2022 08 - G7 (-66) [-08..-06]: (failing low)  f+ = -12 - cumulated node count         5926
+Sat Apr  2 18:22:24 2022 09 - B8 (-66) [-08..-06]: (failing low)  f+ = -10 - cumulated node count         6218
+Sat Apr  2 18:22:24 2022 10 - C8 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count         7505
+Sat Apr  2 18:22:24 2022 11 - F8 (-66) [-08..-06]: (failing high) f- = -06 - cumulated node count         8895
+Sat Apr  2 18:22:24 2022 00 - F8 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count         9694
+Sat Apr  2 18:22:24 2022 01 - H6 (-08) [-06..-04]: (failing low)  f+ = -08 - cumulated node count         9695
+Sat Apr  2 18:22:24 2022 02 - F7 (-08) [-06..-04]: (failing low)  f+ = -08 - cumulated node count         9696
+Sat Apr  2 18:22:24 2022 03 - C8 (-08) [-06..-04]: (failing low)  f+ = -08 - cumulated node count         9697
+Sat Apr  2 18:22:24 2022 04 - D1 (-10) [-06..-04]: (failing low)  f+ = -10 - cumulated node count         9698
+Sat Apr  2 18:22:24 2022 05 - G2 (-10) [-06..-04]: (failing low)  f+ = -10 - cumulated node count         9699
+Sat Apr  2 18:22:24 2022 06 - A7 (-10) [-06..-04]: (failing low)  f+ = -10 - cumulated node count         9700
+Sat Apr  2 18:22:24 2022 07 - B7 (-10) [-06..-04]: (failing low)  f+ = -10 - cumulated node count         9701
+Sat Apr  2 18:22:24 2022 08 - B8 (-10) [-06..-04]: (failing low)  f+ = -10 - cumulated node count         9702
+Sat Apr  2 18:22:24 2022 09 - B2 (-12) [-06..-04]: (failing low)  f+ = -12 - cumulated node count         9703
+Sat Apr  2 18:22:24 2022 10 - A6 (-12) [-06..-04]: (failing low)  f+ = -12 - cumulated node count         9704
+Sat Apr  2 18:22:24 2022 11 - G7 (-12) [-06..-04]: (failing low)  f+ = -12 - cumulated node count         9705
+Sat Apr  2 18:22:24 2022 #### finish .05. Best move and game value: [F8:-06] - nc =         9705 - Time [REAL][PROC]: [     0.  7204588][     0.  7205829]
+Sat Apr  2 18:22:24 2022 #### start  .09. Iterative deepening search depth = 9
+Sat Apr  2 18:22:24 2022 00 - F8 (-06) [-08..-06]: (failing high) f- = -06 - cumulated node count        51242
+Sat Apr  2 18:22:24 2022 00 - F8 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count        57626
+Sat Apr  2 18:22:24 2022 01 - H6 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count        68427
+Sat Apr  2 18:22:24 2022 02 - F7 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count        73160
+Sat Apr  2 18:22:24 2022 03 - C8 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count        80175
+Sat Apr  2 18:22:24 2022 04 - D1 (-10) [-06..-04]: (failing low)  f+ = -06 - cumulated node count        88313
+Sat Apr  2 18:22:24 2022 05 - G2 (-10) [-06..-04]: (failing low)  f+ = -06 - cumulated node count       100053
+Sat Apr  2 18:22:24 2022 06 - A7 (-10) [-06..-04]: (failing low)  f+ = -06 - cumulated node count       106252
+Sat Apr  2 18:22:24 2022 07 - B7 (-10) [-06..-04]: (failing low)  f+ = -10 - cumulated node count       109983
+Sat Apr  2 18:22:24 2022 08 - B8 (-10) [-06..-04]: (failing low)  f+ = -06 - cumulated node count       116052
+Sat Apr  2 18:22:24 2022 09 - B2 (-12) [-06..-04]: (failing low)  f+ = -14 - cumulated node count       124506
+Sat Apr  2 18:22:24 2022 10 - A6 (-12) [-06..-04]: (failing low)  f+ = -06 - cumulated node count       128181
+Sat Apr  2 18:22:24 2022 11 - G7 (-12) [-06..-04]: (failing low)  f+ = -14 - cumulated node count       131179
+Sat Apr  2 18:22:24 2022 #### finish .09. Best move and game value: [F8:-06] - nc =       121474 - Time [REAL][PROC]: [     0.270960019][     0.271064238]
+Sat Apr  2 18:22:24 2022 #### start  .13. Iterative deepening search depth = 13
+Sat Apr  2 18:22:24 2022 00 - F8 (-06) [-08..-06]: (failing low)  f+ = -08 - cumulated node count       431738
+Sat Apr  2 18:22:25 2022 01 - H6 (-06) [-08..-06]: (failing low)  f+ = -08 - cumulated node count      1045362
+Sat Apr  2 18:22:27 2022 02 - F7 (-06) [-08..-06]: (failing low)  f+ = -08 - cumulated node count      4457989
+Sat Apr  2 18:22:37 2022 03 - C8 (-06) [-08..-06]: (failing high) f- = -06 - cumulated node count      6575602
+Sat Apr  2 18:22:42 2022 00 - C8 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      6644969
+Sat Apr  2 18:22:43 2022 01 - F8 (-08) [-06..-04]: (failing low)  f+ = -08 - cumulated node count      6644970
+Sat Apr  2 18:22:43 2022 02 - H6 (-08) [-06..-04]: (failing low)  f+ = -08 - cumulated node count      6644971
+Sat Apr  2 18:22:43 2022 03 - F7 (-08) [-06..-04]: (failing low)  f+ = -08 - cumulated node count      6644972
+Sat Apr  2 18:22:43 2022 04 - D1 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      6842257
+Sat Apr  2 18:22:43 2022 05 - G2 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      7135286
+Sat Apr  2 18:22:44 2022 06 - A7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      7272683
+Sat Apr  2 18:22:44 2022 07 - B8 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      7423679
+Sat Apr  2 18:22:44 2022 08 - A6 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      7501151
+Sat Apr  2 18:22:44 2022 09 - B7 (-10) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      7542685
+Sat Apr  2 18:22:44 2022 10 - B2 (-14) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      7707146
+Sat Apr  2 18:22:45 2022 11 - G7 (-14) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      7745016
+Sat Apr  2 18:22:45 2022 #### finish .13. Best move and game value: [C8:-06] - nc =      7613837 - Time [REAL][PROC]: [    20.441985591][    20.444027795]
+Sat Apr  2 18:22:45 2022 #### start  .15. Iterative deepening search depth = 15
+Sat Apr  2 18:22:45 2022 00 - C8 (-06) [-08..-06]: (failing low)  f+ = -08 - cumulated node count      8322934
+Sat Apr  2 18:22:46 2022 01 - D1 (-06) [-08..-06]: (failing low)  f+ = -08 - cumulated node count      9125402
+Sat Apr  2 18:22:48 2022 02 - G2 (-06) [-08..-06]: (failing low)  f+ = -08 - cumulated node count     10205957
+Sat Apr  2 18:22:49 2022 03 - A7 (-06) [-08..-06]: (failing low)  f+ = -08 - cumulated node count     10803997
+Sat Apr  2 18:22:50 2022 04 - B8 (-06) [-08..-06]: (failing low)  f+ = -08 - cumulated node count     12316238
+Sat Apr  2 18:22:54 2022 05 - A6 (-06) [-08..-06]: (failing low)  f+ = -08 - cumulated node count     12604216
+Sat Apr  2 18:22:54 2022 06 - B7 (-06) [-08..-06]: (failing low)  f+ = -08 - cumulated node count     12851157
+Sat Apr  2 18:22:55 2022 07 - B2 (-06) [-08..-06]: (failing low)  f+ = -08 - cumulated node count     13436729
+Sat Apr  2 18:22:56 2022 08 - G7 (-06) [-08..-06]: (failing low)  f+ = -08 - cumulated node count     13610499
+Sat Apr  2 18:22:56 2022 09 - F8 (-08) [-08..-06]: (failing high) f- = -06 - cumulated node count     17538363
+Sat Apr  2 18:23:08 2022 00 - F8 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     18002644
+Sat Apr  2 18:23:09 2022 01 - C8 (-08) [-06..-04]: (failing low)  f+ = -08 - cumulated node count     18002645
+Sat Apr  2 18:23:09 2022 02 - D1 (-08) [-06..-04]: (failing low)  f+ = -08 - cumulated node count     18002646
+Sat Apr  2 18:23:09 2022 03 - G2 (-08) [-06..-04]: (failing low)  f+ = -08 - cumulated node count     18002647
+Sat Apr  2 18:23:09 2022 04 - A7 (-08) [-06..-04]: (failing low)  f+ = -08 - cumulated node count     18002648
+Sat Apr  2 18:23:09 2022 05 - B8 (-08) [-06..-04]: (failing low)  f+ = -08 - cumulated node count     18002649
+Sat Apr  2 18:23:09 2022 06 - A6 (-08) [-06..-04]: (failing low)  f+ = -08 - cumulated node count     18002650
+Sat Apr  2 18:23:09 2022 07 - B7 (-08) [-06..-04]: (failing low)  f+ = -08 - cumulated node count     18002651
+Sat Apr  2 18:23:09 2022 08 - B2 (-08) [-06..-04]: (failing low)  f+ = -08 - cumulated node count     18002652
+Sat Apr  2 18:23:09 2022 09 - G7 (-08) [-06..-04]: (failing low)  f+ = -08 - cumulated node count     18002653
+Sat Apr  2 18:23:09 2022 10 - H6 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     18345858
+Sat Apr  2 18:23:10 2022 11 - F7 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     18685633
+Sat Apr  2 18:23:10 2022 #### finish .15. Best move and game value: [F8:-06] - nc =     10940617 - Time [REAL][PROC]: [    25.528276534][    25.530722484]
+Sat Apr  2 18:23:10 2022 #### start  .99. Iterative deepening search depth = 99
+Sat Apr  2 18:23:10 2022 00 - F8 (-06) [-08..-06]: (failing high) f- = -06 - cumulated node count    893785577
+Sat Apr  2 18:24:09 2022 00 - F8 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count   1070755751
+Sat Apr  2 18:24:22 2022 01 - H6 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count   1127512033
+Sat Apr  2 18:24:26 2022 02 - F7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count   1171976652
+Sat Apr  2 18:24:30 2022 03 - C8 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count   1268254324
+Sat Apr  2 18:24:38 2022 04 - D1 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count   1368718775
+Sat Apr  2 18:24:46 2022 05 - G2 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count   1506164470
+Sat Apr  2 18:24:58 2022 06 - A7 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count   1566519493
+Sat Apr  2 18:25:04 2022 07 - B8 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count   1605133416
+Sat Apr  2 18:25:08 2022 08 - A6 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count   1643259272
+Sat Apr  2 18:25:11 2022 09 - B7 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count   1671689066
+Sat Apr  2 18:25:14 2022 10 - B2 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count   1712758116
+Sat Apr  2 18:25:18 2022 11 - G7 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count   1724789179
+Sat Apr  2 18:25:19 2022 #### finish .99. Best move and game value: [F8:-06] - nc =   1706103546 - Time [REAL][PROC]: [   129. 64964631][   129. 75424697]
+MTD(f) evaluation [REAL][PROCESS] time: [   175.313536580][   175.328587026]
+Transposition Table pointer: 0x558b5d8779c0
+  max_n_item:            268435456  -  Number of items that could be stored in the table
+  items:            0x7f9f30ec9010  -  Array of items
+  next_item:        0x7fa2d2417ad0  -  Next item to be used when inserting
+  n_item:                 24816724  -  The number of item currently held in the table
+  ht:               0x558b5d877a40  -  Hashtable containing <Key:item , Item:item>
+  pq:               0x558b5d877a90  -  Priority queue
+  ht.size:                67108859  -  Hashtable size
+  ht.length:              24816724  -  Hashtable length
+TT hashtable stats:
+ ELEMENTS_X_BUCKET; ELEMENT_CNT
+                 0;    46365662
+                 1;    17142018
+                 2;     3170567
+                 3;      391841
+                 4;       35962
+                 5;        2661
+                 6;         141
+                 7;           6
+
+    a b c d e f g h 
+ 1  . . . . O . . . 
+ 2  . . @ O O O . . 
+ 3  . O @ @ O @ O . 
+ 4  O O @ O @ O O O 
+ 5  . O @ O O @ O O 
+ 6  . @ @ O O @ @ . 
+ 7  . . @ @ @ . . . 
+ 8  . . . @ @ . . . 
+Player to move: WHITE
+
+[node_count=1724789179, leaf_count=303767333]
+Final outcome: best move=F8, position value=-6
+
+
+real	2m57.194s
+user	2m55.687s
+sys	0m1.493s
+
+$ time ./build/bin/endgame_solver -s gve -c cfg/game_value_estimator.cfg -f db/gpdb-sample-games.txt -q woc18-FKvsAP-g1-28
+Entry id: woc18-FKvsAP-g1-28
+Description: WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 28 EC
+Game Position:
+    a b c d e f g h 
+ 1  . . . . O . . . 
+ 2  . . . O O O . . 
+ 3  . O O O O @ O . 
+ 4  O O O O O O O O 
+ 5  . O O O O O O O 
+ 6  . @ @ O O @ @ . 
+ 7  . . @ @ @ . . . 
+ 8  . . . @ @ . . . 
+Player to move: BLACK
+
+Solving game position woc18-FKvsAP-g1-28, from source db/gpdb-sample-games.txt, using solver gve (game value estimator) ...
+Sat Apr  2 18:25:42 2022 #### start  .06. Iterative deepening search depth = 6
+Sat Apr  2 18:25:42 2022 00 - D1 (-66) [-68..-66]: (failing high) f- = -30 - cumulated node count         1768
+Sat Apr  2 18:25:42 2022 00 - D1 (-30) [-30..-28]: (failing high) f- = -26 - cumulated node count         1813
+Sat Apr  2 18:25:42 2022 00 - D1 (-26) [-26..-24]: (failing high) f- = -24 - cumulated node count         1887
+Sat Apr  2 18:25:42 2022 00 - D1 (-24) [-24..-22]: (failing high) f- = -22 - cumulated node count         2001
+Sat Apr  2 18:25:42 2022 00 - D1 (-22) [-22..-20]: (failing high) f- = -20 - cumulated node count         2069
+Sat Apr  2 18:25:42 2022 00 - D1 (-20) [-20..-18]: (failing high) f- = -18 - cumulated node count         2113
+Sat Apr  2 18:25:42 2022 00 - D1 (-18) [-18..-16]: (failing high) f- = -16 - cumulated node count         2190
+Sat Apr  2 18:25:42 2022 00 - D1 (-16) [-16..-14]: (failing high) f- = -14 - cumulated node count         2346
+Sat Apr  2 18:25:42 2022 00 - D1 (-14) [-14..-12]: (failing high) f- = -12 - cumulated node count         2451
+Sat Apr  2 18:25:42 2022 00 - D1 (-12) [-12..-10]: (failing high) f- = -10 - cumulated node count         2692
+Sat Apr  2 18:25:42 2022 00 - D1 (-10) [-10..-08]: (failing high) f- = -08 - cumulated node count         2801
+Sat Apr  2 18:25:42 2022 00 - D1 (-08) [-08..-06]: (failing high) f- = -06 - cumulated node count         3072
+Sat Apr  2 18:25:42 2022 00 - D1 (-06) [-06..-04]: (failing high) f- = -04 - cumulated node count         3739
+Sat Apr  2 18:25:42 2022 00 - D1 (-04) [-04..-02]: (failing high) f- = -02 - cumulated node count         4170
+Sat Apr  2 18:25:42 2022 00 - D1 (-02) [-02..+00]: (failing high) f- = +00 - cumulated node count         4769
+Sat Apr  2 18:25:42 2022 00 - D1 (+00) [+00..+02]: (failing low)  f+ = +00 - cumulated node count         4800
+Sat Apr  2 18:25:42 2022 01 - F1 (-66) [+00..+02]: (failing high) f- = +02 - cumulated node count         6390
+Sat Apr  2 18:25:42 2022 00 - F1 (+02) [+02..+04]: (failing high) f- = +04 - cumulated node count         8141
+Sat Apr  2 18:25:42 2022 00 - F1 (+04) [+04..+06]: (failing high) f- = +06 - cumulated node count        10381
+Sat Apr  2 18:25:42 2022 00 - F1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        11279
+Sat Apr  2 18:25:42 2022 01 - D1 (+00) [+06..+08]: (failing low)  f+ = +00 - cumulated node count        11280
+Sat Apr  2 18:25:42 2022 02 - G1 (-66) [+06..+08]: (failing low)  f+ = +04 - cumulated node count        11479
+Sat Apr  2 18:25:42 2022 03 - B2 (-66) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        12213
+Sat Apr  2 18:25:42 2022 04 - C2 (-66) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        19691
+Sat Apr  2 18:25:42 2022 05 - G2 (-66) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        19829
+Sat Apr  2 18:25:42 2022 06 - H2 (-66) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        20744
+Sat Apr  2 18:25:42 2022 07 - A3 (-66) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        22479
+Sat Apr  2 18:25:42 2022 08 - H3 (-66) [+06..+08]: (failing high) f- = +08 - cumulated node count        25683
+Sat Apr  2 18:25:42 2022 00 - H3 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count        25749
+Sat Apr  2 18:25:42 2022 01 - F1 (+06) [+08..+10]: (failing low)  f+ = +06 - cumulated node count        25750
+Sat Apr  2 18:25:42 2022 02 - B2 (+06) [+08..+10]: (failing low)  f+ = +06 - cumulated node count        25751
+Sat Apr  2 18:25:42 2022 03 - C2 (+06) [+08..+10]: (failing low)  f+ = +06 - cumulated node count        25752
+Sat Apr  2 18:25:42 2022 04 - G2 (+06) [+08..+10]: (failing low)  f+ = +06 - cumulated node count        25753
+Sat Apr  2 18:25:42 2022 05 - H2 (+06) [+08..+10]: (failing low)  f+ = +06 - cumulated node count        25754
+Sat Apr  2 18:25:42 2022 06 - A3 (+06) [+08..+10]: (failing low)  f+ = +06 - cumulated node count        25755
+Sat Apr  2 18:25:42 2022 07 - G1 (+04) [+08..+10]: (failing low)  f+ = +04 - cumulated node count        25756
+Sat Apr  2 18:25:42 2022 08 - D1 (+00) [+08..+10]: (failing low)  f+ = +00 - cumulated node count        25757
+Sat Apr  2 18:25:42 2022 #### finish .06. Best move and game value: [H3:+08] - nc =        25757 - Time [REAL][PROC]: [     0. 19019759][     0. 19020990]
+Sat Apr  2 18:25:42 2022 #### start  .10. Iterative deepening search depth = 10
+Sat Apr  2 18:25:42 2022 00 - H3 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       189152
+Sat Apr  2 18:25:43 2022 01 - F1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       203783
+Sat Apr  2 18:25:43 2022 02 - B2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       210720
+Sat Apr  2 18:25:43 2022 03 - C2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       267660
+Sat Apr  2 18:25:43 2022 04 - G2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       273235
+Sat Apr  2 18:25:43 2022 05 - H2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       297473
+Sat Apr  2 18:25:43 2022 06 - A3 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       316339
+Sat Apr  2 18:25:43 2022 07 - G1 (+04) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       323504
+Sat Apr  2 18:25:43 2022 08 - D1 (+00) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       332795
+Sat Apr  2 18:25:43 2022 00 - H3 (+06) [+04..+06]: (failing low)  f+ = +04 - cumulated node count       379200
+Sat Apr  2 18:25:43 2022 01 - F1 (+06) [+04..+06]: (failing low)  f+ = +04 - cumulated node count       385995
+Sat Apr  2 18:25:43 2022 02 - B2 (+06) [+04..+06]: (failing low)  f+ = +04 - cumulated node count       387240
+Sat Apr  2 18:25:43 2022 03 - C2 (+06) [+04..+06]: (failing high) f- = +06 - cumulated node count       522695
+Sat Apr  2 18:25:44 2022 #### finish .10. Best move and game value: [C2:+06] - nc =       496938 - Time [REAL][PROC]: [     1.282362554][     1.282434960]
+Sat Apr  2 18:25:44 2022 #### start  .14. Iterative deepening search depth = 14
+Sat Apr  2 18:25:44 2022 00 - C2 (+06) [+04..+06]: (failing high) f- = +06 - cumulated node count      2656989
+Sat Apr  2 18:25:48 2022 00 - C2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count     10038673
+Sat Apr  2 18:26:09 2022 01 - H3 (+04) [+06..+08]: (failing low)  f+ = +06 - cumulated node count     10371210
+Sat Apr  2 18:26:10 2022 02 - F1 (+04) [+06..+08]: (failing low)  f+ = +06 - cumulated node count     10847720
+Sat Apr  2 18:26:12 2022 03 - B2 (+04) [+06..+08]: (failing low)  f+ = +06 - cumulated node count     10938533
+Sat Apr  2 18:26:12 2022 04 - G2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count     11042508
+Sat Apr  2 18:26:13 2022 05 - H2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count     11668891
+Sat Apr  2 18:26:15 2022 06 - A3 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count     12275464
+Sat Apr  2 18:26:16 2022 07 - G1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count     12364960
+Sat Apr  2 18:26:17 2022 08 - D1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count     12545867
+Sat Apr  2 18:26:17 2022 #### finish .14. Best move and game value: [C2:+06] - nc =     12023172 - Time [REAL][PROC]: [    33.755726895][    33.758793592]
+Sat Apr  2 18:26:17 2022 #### start  .16. Iterative deepening search depth = 16
+Sat Apr  2 18:26:17 2022 00 - C2 (+06) [+04..+06]: (failing high) f- = +06 - cumulated node count     18772872
+Sat Apr  2 18:26:29 2022 00 - C2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count     22493188
+Sat Apr  2 18:26:40 2022 01 - H3 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count     23673716
+Sat Apr  2 18:26:43 2022 02 - F1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count     25395317
+Sat Apr  2 18:26:48 2022 03 - B2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count     25690099
+Sat Apr  2 18:26:49 2022 04 - G2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count     26052026
+Sat Apr  2 18:26:50 2022 05 - H2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count     29064096
+Sat Apr  2 18:26:58 2022 06 - A3 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count     31250561
+Sat Apr  2 18:27:03 2022 07 - G1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count     31644845
+Sat Apr  2 18:27:04 2022 08 - D1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count     32262968
+Sat Apr  2 18:27:06 2022 #### finish .16. Best move and game value: [C2:+06] - nc =     19717101 - Time [REAL][PROC]: [    48.194950037][    48.200305718]
+Sat Apr  2 18:27:06 2022 #### start  .99. Iterative deepening search depth = 99
+Sat Apr  2 18:27:06 2022 00 - C2 (+06) [+04..+06]: (failing high) f- = +06 - cumulated node count   1107945216
+Sat Apr  2 18:28:37 2022 00 - C2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count   1791176107
+Sat Apr  2 18:29:24 2022 01 - H3 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count   1988295743
+Sat Apr  2 18:29:38 2022 02 - F1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count   2398190239
+Sat Apr  2 18:30:11 2022 03 - B2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count   2451548785
+Sat Apr  2 18:30:14 2022 04 - G2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count   2522983001
+Sat Apr  2 18:30:18 2022 05 - H2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count   3853341376
+Sat Apr  2 18:32:00 2022 06 - A3 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count   4272477058
+Sat Apr  2 18:32:32 2022 07 - G1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count   4320703157
+Sat Apr  2 18:32:35 2022 08 - D1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count   4384865470
+Sat Apr  2 18:32:40 2022 #### finish .99. Best move and game value: [C2:+06] - nc =   4352602502 - Time [REAL][PROC]: [   334.484329271][   334.514460654]
+MTD(f) evaluation [REAL][PROCESS] time: [   417.736537294][   417.775160914]
+Transposition Table pointer: 0x5585774229c0
+  max_n_item:            268435456  -  Number of items that could be stored in the table
+  items:            0x7f639438f010  -  Array of items
+  next_item:        0x7f66c2f6ac10  -  Next item to be used when inserting
+  n_item:                 54855951  -  The number of item currently held in the table
+  ht:               0x558577422a40  -  Hashtable containing <Key:item , Item:item>
+  pq:               0x558577422a90  -  Priority queue
+  ht.size:                67108859  -  Hashtable size
+  ht.length:              54855951  -  Hashtable length
+TT hashtable stats:
+ ELEMENTS_X_BUCKET; ELEMENT_CNT
+                 0;    29635133
+                 1;    24220503
+                 2;     9900043
+                 3;     2697154
+                 4;      551883
+                 5;       90269
+                 6;       12276
+                 7;        1433
+                 8;         151
+                 9;          12
+
+    a b c d e f g h 
+ 1  . . . . O . . . 
+ 2  . . . O O O . . 
+ 3  . O O O O @ O . 
+ 4  O O O O O O O O 
+ 5  . O O O O O O O 
+ 6  . @ @ O O @ @ . 
+ 7  . . @ @ @ . . . 
+ 8  . . . @ @ . . . 
+Player to move: BLACK
+
+[node_count=4384865470, leaf_count=767980272]
+Final outcome: best move=C2, position value=6
+
+
+real	7m0.441s
+user	6m57.970s
+sys	0m2.432s
+
+$ time ./build/bin/endgame_solver -s gve -c cfg/game_value_estimator.cfg -f db/gpdb-sample-games.txt -q woc18-FKvsAP-g1-29
+Entry id: woc18-FKvsAP-g1-29
+Description: WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 29 EC
+Game Position:
+    a b c d e f g h 
+ 1  . . . . O . . . 
+ 2  . . . O O O . . 
+ 3  . O O O O @ O . 
+ 4  O O O O O O O O 
+ 5  . . @ O O O O O 
+ 6  . @ @ O O @ @ . 
+ 7  . . @ @ @ . . . 
+ 8  . . . @ @ . . . 
+Player to move: WHITE
+
+Solving game position woc18-FKvsAP-g1-29, from source db/gpdb-sample-games.txt, using solver gve (game value estimator) ...
+Sat Apr  2 18:33:01 2022 #### start  .07. Iterative deepening search depth = 7
+Sat Apr  2 18:33:01 2022 00 - G2 (-66) [-68..-66]: (failing high) f- = -38 - cumulated node count         1430
+Sat Apr  2 18:33:01 2022 00 - G2 (-38) [-38..-36]: (failing high) f- = -36 - cumulated node count         1626
+Sat Apr  2 18:33:01 2022 00 - G2 (-36) [-36..-34]: (failing high) f- = -34 - cumulated node count         1789
+Sat Apr  2 18:33:01 2022 00 - G2 (-34) [-34..-32]: (failing high) f- = -32 - cumulated node count         1948
+Sat Apr  2 18:33:01 2022 00 - G2 (-32) [-32..-30]: (failing high) f- = -30 - cumulated node count         2120
+Sat Apr  2 18:33:01 2022 00 - G2 (-30) [-30..-28]: (failing high) f- = -28 - cumulated node count         2767
+Sat Apr  2 18:33:01 2022 00 - G2 (-28) [-28..-26]: (failing high) f- = -26 - cumulated node count         3199
+Sat Apr  2 18:33:01 2022 00 - G2 (-26) [-26..-24]: (failing high) f- = -24 - cumulated node count         4357
+Sat Apr  2 18:33:01 2022 00 - G2 (-24) [-24..-22]: (failing high) f- = -22 - cumulated node count         5482
+Sat Apr  2 18:33:01 2022 00 - G2 (-22) [-22..-20]: (failing high) f- = -20 - cumulated node count         6100
+Sat Apr  2 18:33:01 2022 00 - G2 (-20) [-20..-18]: (failing low)  f+ = -20 - cumulated node count         8329
+Sat Apr  2 18:33:01 2022 01 - B5 (-66) [-20..-18]: (failing high) f- = -18 - cumulated node count        11123
+Sat Apr  2 18:33:01 2022 00 - B5 (-18) [-18..-16]: (failing high) f- = -16 - cumulated node count        11594
+Sat Apr  2 18:33:01 2022 00 - B5 (-16) [-16..-14]: (failing high) f- = -14 - cumulated node count        12042
+Sat Apr  2 18:33:01 2022 00 - B5 (-14) [-14..-12]: (failing high) f- = -12 - cumulated node count        12682
+Sat Apr  2 18:33:01 2022 00 - B5 (-12) [-12..-10]: (failing high) f- = -10 - cumulated node count        13321
+Sat Apr  2 18:33:01 2022 00 - B5 (-10) [-10..-08]: (failing high) f- = -08 - cumulated node count        17100
+Sat Apr  2 18:33:01 2022 00 - B5 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count        27104
+Sat Apr  2 18:33:01 2022 01 - G2 (-20) [-08..-06]: (failing low)  f+ = -20 - cumulated node count        27105
+Sat Apr  2 18:33:01 2022 02 - A6 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count        29370
+Sat Apr  2 18:33:01 2022 03 - H6 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count        36354
+Sat Apr  2 18:33:01 2022 04 - A7 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count        38098
+Sat Apr  2 18:33:01 2022 05 - B7 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count        40262
+Sat Apr  2 18:33:01 2022 06 - F7 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count        42886
+Sat Apr  2 18:33:01 2022 07 - G7 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count        43924
+Sat Apr  2 18:33:01 2022 08 - H7 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count        45904
+Sat Apr  2 18:33:01 2022 09 - B8 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count        49667
+Sat Apr  2 18:33:01 2022 10 - C8 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count        51343
+Sat Apr  2 18:33:01 2022 11 - F8 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count        58198
+Sat Apr  2 18:33:01 2022 #### finish .07. Best move and game value: [B5:-08] - nc =        58198 - Time [REAL][PROC]: [     0. 40992551][     0. 41016975]
+Sat Apr  2 18:33:01 2022 #### start  .11. Iterative deepening search depth = 11
+Sat Apr  2 18:33:01 2022 00 - B5 (-08) [-10..-08]: (failing high) f- = -08 - cumulated node count       187322
+Sat Apr  2 18:33:01 2022 00 - B5 (-08) [-08..-06]: (failing high) f- = -06 - cumulated node count       426994
+Sat Apr  2 18:33:02 2022 00 - B5 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count       587498
+Sat Apr  2 18:33:02 2022 01 - A6 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count       689115
+Sat Apr  2 18:33:03 2022 02 - H6 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count       723312
+Sat Apr  2 18:33:03 2022 03 - A7 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count       777887
+Sat Apr  2 18:33:03 2022 04 - B7 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count       875888
+Sat Apr  2 18:33:03 2022 05 - F7 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count       901197
+Sat Apr  2 18:33:03 2022 06 - G7 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count       944796
+Sat Apr  2 18:33:03 2022 07 - H7 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      1030397
+Sat Apr  2 18:33:03 2022 08 - B8 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      1120005
+Sat Apr  2 18:33:03 2022 09 - C8 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      1159972
+Sat Apr  2 18:33:03 2022 10 - F8 (-08) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      1256703
+Sat Apr  2 18:33:04 2022 11 - G2 (-20) [-06..-04]: (failing low)  f+ = -06 - cumulated node count      1303604
+Sat Apr  2 18:33:04 2022 #### finish .11. Best move and game value: [B5:-06] - nc =      1245406 - Time [REAL][PROC]: [     2.752076316][     2.752308645]
+Sat Apr  2 18:33:04 2022 #### start  .15. Iterative deepening search depth = 15
+Sat Apr  2 18:33:04 2022 00 - B5 (-06) [-08..-06]: (failing high) f- = -06 - cumulated node count     10249843
+Sat Apr  2 18:33:30 2022 00 - B5 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     11419757
+Sat Apr  2 18:33:32 2022 01 - A6 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     12936941
+Sat Apr  2 18:33:36 2022 02 - H6 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     13580954
+Sat Apr  2 18:33:37 2022 03 - A7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     15093317
+Sat Apr  2 18:33:40 2022 04 - B7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     17811389
+Sat Apr  2 18:33:46 2022 05 - F7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     18280088
+Sat Apr  2 18:33:48 2022 06 - G7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     19175840
+Sat Apr  2 18:33:50 2022 07 - H7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     21679395
+Sat Apr  2 18:33:54 2022 08 - B8 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     36623948
+Sat Apr  2 18:34:30 2022 09 - C8 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     37347298
+Sat Apr  2 18:34:32 2022 10 - F8 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     38843528
+Sat Apr  2 18:34:36 2022 11 - G2 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     39687857
+Sat Apr  2 18:34:37 2022 #### finish .15. Best move and game value: [B5:-06] - nc =     38384253 - Time [REAL][PROC]: [    93.715755424][    93.723807618]
+Sat Apr  2 18:34:37 2022 #### start  .17. Iterative deepening search depth = 17
+Sat Apr  2 18:34:37 2022 00 - B5 (-06) [-08..-06]: (failing high) f- = -06 - cumulated node count     59047781
+Sat Apr  2 18:35:28 2022 00 - B5 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     60186372
+Sat Apr  2 18:35:30 2022 01 - A6 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     65947555
+Sat Apr  2 18:35:43 2022 02 - H6 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     68208332
+Sat Apr  2 18:35:48 2022 03 - A7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     72675774
+Sat Apr  2 18:35:57 2022 04 - B7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     82410058
+Sat Apr  2 18:36:16 2022 05 - F7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     84157524
+Sat Apr  2 18:36:21 2022 06 - G7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     87305474
+Sat Apr  2 18:36:27 2022 07 - H7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count     96772853
+Sat Apr  2 18:36:45 2022 08 - B8 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count    104680635
+Sat Apr  2 18:37:02 2022 09 - C8 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count    106623258
+Sat Apr  2 18:37:06 2022 10 - F8 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count    111391408
+Sat Apr  2 18:37:16 2022 11 - G2 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count    114126029
+Sat Apr  2 18:37:21 2022 #### finish .17. Best move and game value: [B5:-06] - nc =     74438172 - Time [REAL][PROC]: [   163.906551850][   163.920932571]
+Sat Apr  2 18:37:21 2022 #### start  .99. Iterative deepening search depth = 99
+Sat Apr  2 18:37:21 2022 00 - B5 (-06) [-08..-06]: (failing high) f- = -06 - cumulated node count   3650163106
+Sat Apr  2 18:41:52 2022 00 - B5 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count   4463200458
+Sat Apr  2 18:43:07 2022 01 - A6 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count   5579513614
+Sat Apr  2 18:44:30 2022 02 - H6 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count   5903789163
+Sat Apr  2 18:44:58 2022 03 - A7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count   6619878243
+Sat Apr  2 18:46:00 2022 04 - B7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count   8426690891
+Sat Apr  2 18:48:31 2022 05 - F7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count   8764574693
+Sat Apr  2 18:48:55 2022 06 - G7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count   9665875115
+Sat Apr  2 18:50:03 2022 07 - H7 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count  11629843468
+Sat Apr  2 18:52:48 2022 08 - B8 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count  12724127226
+Sat Apr  2 18:54:26 2022 09 - C8 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count  13385668514
+Sat Apr  2 18:55:12 2022 10 - F8 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count  14183459942
+Sat Apr  2 18:56:24 2022 11 - G2 (-06) [-06..-04]: (failing low)  f+ = -06 - cumulated node count  14398353613
+Sat Apr  2 18:56:49 2022 #### finish .99. Best move and game value: [B5:-06] - nc =  14284227584 - Time [REAL][PROC]: [  1167.574016573][  1167.718402467]
+MTD(f) evaluation [REAL][PROCESS] time: [  1427.989545702][  1428.156617827]
+Transposition Table pointer: 0x5568bb7af9c0
+  max_n_item:            268435456  -  Number of items that could be stored in the table
+  items:            0x7fbaa0bac010  -  Array of items
+  next_item:        0x7fbc3ecbecd0  -  Next item to be used when inserting
+  n_item:                159890252  -  The number of item currently held in the table
+  ht:               0x5568bb7afa40  -  Hashtable containing <Key:item , Item:item>
+  pq:               0x5568bb7afa90  -  Priority queue
+  ht.size:                67108859  -  Hashtable size
+  ht.length:             159890252  -  Hashtable length
+TT hashtable stats:
+ ELEMENTS_X_BUCKET; ELEMENT_CNT
+                 0;     6195723
+                 1;    14761886
+                 2;    17581387
+                 3;    13963188
+                 4;     8320136
+                 5;     3961145
+                 6;     1574323
+                 7;      536235
+                 8;      159534
+                 9;       42502
+                10;       10064
+                11;        2202
+                12;         437
+                13;          81
+                14;          13
+
+    a b c d e f g h 
+ 1  . . . . O . . . 
+ 2  . . . O O O . . 
+ 3  . O O O O @ O . 
+ 4  O O O O O O O O 
+ 5  . . @ O O O O O 
+ 6  . @ @ O O @ @ . 
+ 7  . . @ @ @ . . . 
+ 8  . . . @ @ . . . 
+Player to move: WHITE
+
+[node_count=14398353613, leaf_count=2564564302]
+Final outcome: best move=B5, position value=-6
+
+
+real	23m56.141s
+user	23m49.862s
+sys	0m6.108s
+
+$ time ./build/bin/endgame_solver -s gve -c cfg/game_value_estimator.cfg -f db/gpdb-sample-games.txt -q woc18-FKvsAP-g1-30
+Entry id: woc18-FKvsAP-g1-30
+Description: WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 30 EC
+Game Position:
+    a b c d e f g h 
+ 1  . . . . O . . . 
+ 2  . . . O O O . . 
+ 3  . O O O O @ O . 
+ 4  O O O O O O O O 
+ 5  . . @ O O O O O 
+ 6  . @ @ O O @ @ . 
+ 7  . . @ @ O . . . 
+ 8  . . . . @ . . . 
+Player to move: BLACK
+
+Solving game position woc18-FKvsAP-g1-30, from source db/gpdb-sample-games.txt, using solver gve (game value estimator) ...
+Sat Apr  2 19:35:04 2022 #### start  .08. Iterative deepening search depth = 8
+Sat Apr  2 19:35:04 2022 00 - D1 (-66) [-68..-66]: (failing high) f- = -50 - cumulated node count        16856
+Sat Apr  2 19:35:04 2022 00 - D1 (-50) [-50..-48]: (failing high) f- = -48 - cumulated node count        16969
+Sat Apr  2 19:35:04 2022 00 - D1 (-48) [-48..-46]: (failing high) f- = -44 - cumulated node count        17122
+Sat Apr  2 19:35:04 2022 00 - D1 (-44) [-44..-42]: (failing high) f- = -42 - cumulated node count        17289
+Sat Apr  2 19:35:04 2022 00 - D1 (-42) [-42..-40]: (failing high) f- = -40 - cumulated node count        17441
+Sat Apr  2 19:35:04 2022 00 - D1 (-40) [-40..-38]: (failing high) f- = -38 - cumulated node count        17827
+Sat Apr  2 19:35:04 2022 00 - D1 (-38) [-38..-36]: (failing high) f- = -36 - cumulated node count        18154
+Sat Apr  2 19:35:04 2022 00 - D1 (-36) [-36..-34]: (failing high) f- = -34 - cumulated node count        18702
+Sat Apr  2 19:35:04 2022 00 - D1 (-34) [-34..-32]: (failing high) f- = -32 - cumulated node count        19428
+Sat Apr  2 19:35:04 2022 00 - D1 (-32) [-32..-30]: (failing high) f- = -30 - cumulated node count        20147
+Sat Apr  2 19:35:04 2022 00 - D1 (-30) [-30..-28]: (failing high) f- = -28 - cumulated node count        21634
+Sat Apr  2 19:35:04 2022 00 - D1 (-28) [-28..-26]: (failing high) f- = -26 - cumulated node count        23211
+Sat Apr  2 19:35:04 2022 00 - D1 (-26) [-26..-24]: (failing high) f- = -24 - cumulated node count        24350
+Sat Apr  2 19:35:04 2022 00 - D1 (-24) [-24..-22]: (failing high) f- = -22 - cumulated node count        26165
+Sat Apr  2 19:35:04 2022 00 - D1 (-22) [-22..-20]: (failing high) f- = -20 - cumulated node count        28391
+Sat Apr  2 19:35:04 2022 00 - D1 (-20) [-20..-18]: (failing high) f- = -18 - cumulated node count        30033
+Sat Apr  2 19:35:04 2022 00 - D1 (-18) [-18..-16]: (failing high) f- = -16 - cumulated node count        32657
+Sat Apr  2 19:35:04 2022 00 - D1 (-16) [-16..-14]: (failing high) f- = -14 - cumulated node count        34938
+Sat Apr  2 19:35:04 2022 00 - D1 (-14) [-14..-12]: (failing high) f- = -12 - cumulated node count        37526
+Sat Apr  2 19:35:04 2022 00 - D1 (-12) [-12..-10]: (failing high) f- = -10 - cumulated node count        39051
+Sat Apr  2 19:35:04 2022 00 - D1 (-10) [-10..-08]: (failing high) f- = -08 - cumulated node count        42384
+Sat Apr  2 19:35:04 2022 00 - D1 (-08) [-08..-06]: (failing high) f- = -06 - cumulated node count        47351
+Sat Apr  2 19:35:04 2022 00 - D1 (-06) [-06..-04]: (failing high) f- = -04 - cumulated node count        52618
+Sat Apr  2 19:35:04 2022 00 - D1 (-04) [-04..-02]: (failing high) f- = -02 - cumulated node count        60360
+Sat Apr  2 19:35:04 2022 00 - D1 (-02) [-02..+00]: (failing low)  f+ = -02 - cumulated node count        68224
+Sat Apr  2 19:35:04 2022 01 - F1 (-66) [-02..+00]: (failing high) f- = +00 - cumulated node count        84932
+Sat Apr  2 19:35:04 2022 00 - F1 (+00) [+00..+02]: (failing high) f- = +02 - cumulated node count        91544
+Sat Apr  2 19:35:04 2022 00 - F1 (+02) [+02..+04]: (failing high) f- = +04 - cumulated node count       110721
+Sat Apr  2 19:35:04 2022 00 - F1 (+04) [+04..+06]: (failing high) f- = +06 - cumulated node count       126296
+Sat Apr  2 19:35:04 2022 00 - F1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       132546
+Sat Apr  2 19:35:04 2022 01 - D1 (-02) [+06..+08]: (failing low)  f+ = -02 - cumulated node count       132547
+Sat Apr  2 19:35:04 2022 02 - G1 (-66) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       135353
+Sat Apr  2 19:35:04 2022 03 - B2 (-66) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       140881
+Sat Apr  2 19:35:04 2022 04 - C2 (-66) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       169714
+Sat Apr  2 19:35:04 2022 05 - G2 (-66) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       171356
+Sat Apr  2 19:35:04 2022 06 - H2 (-66) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       185329
+Sat Apr  2 19:35:04 2022 07 - A3 (-66) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       192670
+Sat Apr  2 19:35:04 2022 08 - H3 (-66) [+06..+08]: (failing high) f- = +08 - cumulated node count       304388
+Sat Apr  2 19:35:04 2022 00 - H3 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       305210
+Sat Apr  2 19:35:04 2022 01 - F1 (+06) [+08..+10]: (failing low)  f+ = +06 - cumulated node count       305211
+Sat Apr  2 19:35:04 2022 02 - G1 (+06) [+08..+10]: (failing low)  f+ = +06 - cumulated node count       305212
+Sat Apr  2 19:35:04 2022 03 - B2 (+06) [+08..+10]: (failing low)  f+ = +06 - cumulated node count       305213
+Sat Apr  2 19:35:04 2022 04 - C2 (+06) [+08..+10]: (failing low)  f+ = +06 - cumulated node count       305214
+Sat Apr  2 19:35:04 2022 05 - G2 (+06) [+08..+10]: (failing low)  f+ = +06 - cumulated node count       305215
+Sat Apr  2 19:35:04 2022 06 - H2 (+06) [+08..+10]: (failing low)  f+ = +06 - cumulated node count       305216
+Sat Apr  2 19:35:04 2022 07 - A3 (+06) [+08..+10]: (failing low)  f+ = +06 - cumulated node count       305217
+Sat Apr  2 19:35:04 2022 08 - D1 (-02) [+08..+10]: (failing low)  f+ = -02 - cumulated node count       305218
+Sat Apr  2 19:35:04 2022 09 - F7 (-66) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       312088
+Sat Apr  2 19:35:04 2022 10 - D8 (-66) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       319772
+Sat Apr  2 19:35:04 2022 11 - F8 (-66) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       329329
+Sat Apr  2 19:35:04 2022 #### finish .08. Best move and game value: [H3:+08] - nc =       329329 - Time [REAL][PROC]: [     0.239971929][     0.240068258]
+Sat Apr  2 19:35:04 2022 #### start  .12. Iterative deepening search depth = 12
+Sat Apr  2 19:35:04 2022 00 - H3 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count      1102565
+Sat Apr  2 19:35:07 2022 01 - F7 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count      1223062
+Sat Apr  2 19:35:07 2022 02 - D8 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count      1704221
+Sat Apr  2 19:35:08 2022 03 - F8 (+08) [+06..+08]: (failing high) f- = +08 - cumulated node count      3234512
+Sat Apr  2 19:35:12 2022 00 - F8 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count      3336391
+Sat Apr  2 19:35:12 2022 01 - H3 (+06) [+08..+10]: (failing low)  f+ = +06 - cumulated node count      3336392
+Sat Apr  2 19:35:12 2022 02 - F7 (+06) [+08..+10]: (failing low)  f+ = +06 - cumulated node count      3336393
+Sat Apr  2 19:35:12 2022 03 - D8 (+06) [+08..+10]: (failing low)  f+ = +06 - cumulated node count      3336394
+Sat Apr  2 19:35:12 2022 04 - F1 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count      3402425
+Sat Apr  2 19:35:13 2022 05 - G1 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count      3464818
+Sat Apr  2 19:35:13 2022 06 - B2 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count      3583728
+Sat Apr  2 19:35:13 2022 07 - C2 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count      3702438
+Sat Apr  2 19:35:14 2022 08 - G2 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count      3747863
+Sat Apr  2 19:35:14 2022 09 - H2 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count      3901919
+Sat Apr  2 19:35:14 2022 10 - A3 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count      4006338
+Sat Apr  2 19:35:15 2022 11 - D1 (-02) [+08..+10]: (failing low)  f+ = +08 - cumulated node count      4079522
+Sat Apr  2 19:35:15 2022 #### finish .12. Best move and game value: [F8:+08] - nc =      3750193 - Time [REAL][PROC]: [    10.705364515][    10.706459950]
+Sat Apr  2 19:35:15 2022 #### start  .16. Iterative deepening search depth = 16
+Sat Apr  2 19:35:15 2022 00 - F8 (+08) [+06..+08]: (failing high) f- = +08 - cumulated node count     28936130
+Sat Apr  2 19:36:12 2022 00 - F8 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count     32303783
+Sat Apr  2 19:36:22 2022 01 - F1 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count     34884451
+Sat Apr  2 19:36:31 2022 02 - G1 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count     35994693
+Sat Apr  2 19:36:35 2022 03 - B2 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count     38627219
+Sat Apr  2 19:36:43 2022 04 - C2 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count     41884722
+Sat Apr  2 19:36:53 2022 05 - G2 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count     42607104
+Sat Apr  2 19:36:55 2022 06 - H2 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count     47100183
+Sat Apr  2 19:37:10 2022 07 - A3 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count     48899359
+Sat Apr  2 19:37:16 2022 08 - D1 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count     50081551
+Sat Apr  2 19:37:20 2022 09 - H3 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count     53968579
+Sat Apr  2 19:37:33 2022 10 - F7 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count     55066830
+Sat Apr  2 19:37:36 2022 11 - D8 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count     56846820
+Sat Apr  2 19:37:42 2022 #### finish .16. Best move and game value: [F8:+08] - nc =     52767298 - Time [REAL][PROC]: [   146.767945427][   146.783199645]
+Sat Apr  2 19:37:42 2022 #### start  .18. Iterative deepening search depth = 18
+Sat Apr  2 19:37:42 2022 00 - F8 (+08) [+06..+08]: (failing high) f- = +08 - cumulated node count    151265499
+Sat Apr  2 19:41:08 2022 00 - F8 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count    166622192
+Sat Apr  2 19:41:51 2022 01 - F1 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count    176940207
+Sat Apr  2 19:42:18 2022 02 - G1 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count    180490473
+Sat Apr  2 19:42:27 2022 03 - B2 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count    188076917
+Sat Apr  2 19:42:46 2022 04 - C2 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count    202861390
+Sat Apr  2 19:43:25 2022 05 - G2 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count    204984870
+Sat Apr  2 19:43:30 2022 06 - H2 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count    221451493
+Sat Apr  2 19:44:14 2022 07 - A3 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count    228298817
+Sat Apr  2 19:44:32 2022 08 - D1 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count    231960574
+Sat Apr  2 19:44:41 2022 09 - H3 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count    246869442
+Sat Apr  2 19:45:23 2022 10 - F7 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count    249294688
+Sat Apr  2 19:45:29 2022 11 - D8 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count    255169262
+Sat Apr  2 19:45:44 2022 #### finish .18. Best move and game value: [F8:+08] - nc =    198322442 - Time [REAL][PROC]: [   482.392864091][   482.446984683]
+Sat Apr  2 19:45:44 2022 #### start  .99. Iterative deepening search depth = 99
+Sat Apr  2 19:45:44 2022 00 - F8 (+08) [+06..+08]: (failing high) f- = +08 - cumulated node count  18236384766
+Sat Apr  2 20:08:26 2022 00 - F8 (+08) [+08..+10]: (failing high) f- = +10 - cumulated node count  38906004559
+Sat Apr  2 20:30:58 2022 00 - F8 (+10) [+10..+12]: (failing low)  f+ = +10 - cumulated node count  41365808396
+Sat Apr  2 20:33:58 2022 01 - F1 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count  42998115855
+Sat Apr  2 20:35:58 2022 02 - G1 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count  43520130165
+Sat Apr  2 20:36:35 2022 03 - B2 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count  44867802737
+Sat Apr  2 20:38:04 2022 04 - C2 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count  47245637072
+Sat Apr  2 20:40:50 2022 05 - G2 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count  47596716334
+Sat Apr  2 20:41:12 2022 06 - H2 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count  50532803978
+Sat Apr  2 20:44:42 2022 07 - A3 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count  51513665206
+Sat Apr  2 20:45:51 2022 08 - D1 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count  51982562330
+Sat Apr  2 20:46:26 2022 09 - H3 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count  62953568712
+Sat Apr  2 21:00:48 2022 10 - F7 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count  63224853338
+Sat Apr  2 21:01:09 2022 11 - D8 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count  64452387671
+Sat Apr  2 21:02:39 2022 #### finish .99. Best move and game value: [F8:+10] - nc =  64197218409 - Time [REAL][PROC]: [  4613.630081917][  4614.298497207]
+MTD(f) evaluation [REAL][PROCESS] time: [  5253.736386602][  5254.475364411]
+Transposition Table pointer: 0x5648e7f7aa40
+  max_n_item:           1073741824  -  Number of items that could be stored in the table
+  items:            0x7f8981811010  -  Array of items
+  next_item:        0x7f91c2d966d0  -  Next item to be used when inserting
+  n_item:                519741092  -  The number of item currently held in the table
+  ht:               0x5648e7f7aac0  -  Hashtable containing <Key:item , Item:item>
+  pq:               0x5648e7f7ab10  -  Priority queue
+  ht.size:               268435399  -  Hashtable size
+  ht.length:             519741092  -  Hashtable length
+TT hashtable stats:
+ ELEMENTS_X_BUCKET; ELEMENT_CNT
+                 0;    38725186
+                 1;    74976379
+                 2;    72574367
+                 3;    46849160
+                 4;    22669703
+                 5;     8781449
+                 6;     2834333
+                 7;      784356
+                 8;      189913
+                 9;       40968
+                10;        7852
+                11;        1441
+                12;         239
+                13;          47
+                14;           4
+
+    a b c d e f g h 
+ 1  . . . . O . . . 
+ 2  . . . O O O . . 
+ 3  . O O O O @ O . 
+ 4  O O O O O O O O 
+ 5  . . @ O O O O O 
+ 6  . @ @ O O @ @ . 
+ 7  . . @ @ O . . . 
+ 8  . . . . @ . . . 
+Player to move: BLACK
+
+[node_count= 64 452 387 671, leaf_count=12148178049]
+Final outcome: best move=F8, position value=10
+
+
+real	88m4.798s
+user	87m44.524s
+sys	0m19.522s
+
+$ time ./build/bin/endgame_solver -s gve -c cfg/game_value_estimator.cfg -f db/gpdb-sample-games.txt -q woc18-FKvsAP-g1-31
+Entry id: woc18-FKvsAP-g1-31
+Description: WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 31 EC
+Game Position:
+    a b c d e f g h 
+ 1  . . . . O . . . 
+ 2  . . . O O O . . 
+ 3  . O O O O @ O . 
+ 4  . @ @ @ O O O O 
+ 5  . . @ O O O O O 
+ 6  . @ @ O O @ @ . 
+ 7  . . @ @ O . . . 
+ 8  . . . . @ . . . 
+Player to move: WHITE
+
+Solving game position woc18-FKvsAP-g1-31, from source db/gpdb-sample-games.txt, using solver gve (game value estimator) ...
+Sun Apr  3 07:36:09 2022 #### start  .09. Iterative deepening search depth = 9
+Sun Apr  3 07:36:09 2022 00 - G2 (-66) [-68..-66]: (failing high) f- = -54 - cumulated node count        23122
+Sun Apr  3 07:36:09 2022 00 - G2 (-54) [-54..-52]: (failing high) f- = -46 - cumulated node count        23202
+Sun Apr  3 07:36:09 2022 00 - G2 (-46) [-46..-44]: (failing high) f- = -44 - cumulated node count        23368
+Sun Apr  3 07:36:09 2022 00 - G2 (-44) [-44..-42]: (failing high) f- = -42 - cumulated node count        23776
+Sun Apr  3 07:36:09 2022 00 - G2 (-42) [-42..-40]: (failing high) f- = -40 - cumulated node count        24597
+Sun Apr  3 07:36:09 2022 00 - G2 (-40) [-40..-38]: (failing high) f- = -38 - cumulated node count        25659
+Sun Apr  3 07:36:09 2022 00 - G2 (-38) [-38..-36]: (failing high) f- = -36 - cumulated node count        27284
+Sun Apr  3 07:36:09 2022 00 - G2 (-36) [-36..-34]: (failing high) f- = -34 - cumulated node count        29636
+Sun Apr  3 07:36:09 2022 00 - G2 (-34) [-34..-32]: (failing high) f- = -32 - cumulated node count        34218
+Sun Apr  3 07:36:09 2022 00 - G2 (-32) [-32..-30]: (failing high) f- = -30 - cumulated node count        38418
+Sun Apr  3 07:36:09 2022 00 - G2 (-30) [-30..-28]: (failing high) f- = -28 - cumulated node count        47485
+Sun Apr  3 07:36:09 2022 00 - G2 (-28) [-28..-26]: (failing high) f- = -26 - cumulated node count        68971
+Sun Apr  3 07:36:09 2022 00 - G2 (-26) [-26..-24]: (failing high) f- = -24 - cumulated node count        92689
+Sun Apr  3 07:36:09 2022 00 - G2 (-24) [-24..-22]: (failing high) f- = -22 - cumulated node count       145821
+Sun Apr  3 07:36:09 2022 00 - G2 (-22) [-22..-20]: (failing low)  f+ = -22 - cumulated node count       259007
+Sun Apr  3 07:36:09 2022 01 - A3 (-66) [-22..-20]: (failing high) f- = -20 - cumulated node count       341069
+Sun Apr  3 07:36:09 2022 00 - A3 (-20) [-20..-18]: (failing high) f- = -18 - cumulated node count       354730
+Sun Apr  3 07:36:09 2022 00 - A3 (-18) [-18..-16]: (failing high) f- = -16 - cumulated node count       361220
+Sun Apr  3 07:36:09 2022 00 - A3 (-16) [-16..-14]: (failing high) f- = -14 - cumulated node count       371295
+Sun Apr  3 07:36:09 2022 00 - A3 (-14) [-14..-12]: (failing high) f- = -12 - cumulated node count       441971
+Sun Apr  3 07:36:09 2022 00 - A3 (-12) [-12..-10]: (failing high) f- = -10 - cumulated node count       461570
+Sun Apr  3 07:36:09 2022 00 - A3 (-10) [-10..-08]: (failing low)  f+ = -10 - cumulated node count       520080
+Sun Apr  3 07:36:09 2022 01 - G2 (-22) [-10..-08]: (failing low)  f+ = -22 - cumulated node count       520081
+Sun Apr  3 07:36:09 2022 02 - A4 (-66) [-10..-08]: (failing high) f- = -08 - cumulated node count       622124
+Sun Apr  3 07:36:09 2022 00 - A4 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count       740693
+Sun Apr  3 07:36:09 2022 01 - A3 (-10) [-08..-06]: (failing low)  f+ = -10 - cumulated node count       740694
+Sun Apr  3 07:36:09 2022 02 - G2 (-22) [-08..-06]: (failing low)  f+ = -22 - cumulated node count       740695
+Sun Apr  3 07:36:09 2022 03 - A5 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count       823812
+Sun Apr  3 07:36:09 2022 04 - B5 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count       870430
+Sun Apr  3 07:36:09 2022 05 - A6 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count       944163
+Sun Apr  3 07:36:09 2022 06 - H6 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count      1033438
+Sun Apr  3 07:36:09 2022 07 - A7 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count      1056289
+Sun Apr  3 07:36:09 2022 08 - B7 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count      1065829
+Sun Apr  3 07:36:09 2022 09 - F7 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count      1156402
+Sun Apr  3 07:36:10 2022 10 - G7 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count      1168661
+Sun Apr  3 07:36:10 2022 11 - H7 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count      1193659
+Sun Apr  3 07:36:10 2022 12 - B8 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count      1222268
+Sun Apr  3 07:36:10 2022 13 - C8 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count      1236423
+Sun Apr  3 07:36:10 2022 14 - D8 (-66) [-08..-06]: (failing low)  f+ = -08 - cumulated node count      2113890
+Sun Apr  3 07:36:10 2022 #### finish .09. Best move and game value: [A4:-08] - nc =      2113890 - Time [REAL][PROC]: [     1.694004153][     1.694071478]
+Sun Apr  3 07:36:10 2022 #### start  .13. Iterative deepening search depth = 13
+Sun Apr  3 07:36:10 2022 00 - A4 (-08) [-10..-08]: (failing high) f- = -08 - cumulated node count      3371346
+Sun Apr  3 07:36:15 2022 00 - A4 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count      6428634
+Sun Apr  3 07:36:22 2022 01 - A5 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count      8856900
+Sun Apr  3 07:36:28 2022 02 - B5 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count      9254907
+Sun Apr  3 07:36:29 2022 03 - A6 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count     14255609
+Sun Apr  3 07:36:44 2022 04 - H6 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count     14785850
+Sun Apr  3 07:36:45 2022 05 - A7 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count     15767097
+Sun Apr  3 07:36:47 2022 06 - B7 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count     16133305
+Sun Apr  3 07:36:48 2022 07 - F7 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count     16838434
+Sun Apr  3 07:36:50 2022 08 - G7 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count     17418846
+Sun Apr  3 07:36:51 2022 09 - H7 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count     18859017
+Sun Apr  3 07:36:54 2022 10 - B8 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count     20264051
+Sun Apr  3 07:36:57 2022 11 - C8 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count     20695148
+Sun Apr  3 07:36:58 2022 12 - D8 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count     21286759
+Sun Apr  3 07:36:59 2022 13 - A3 (-10) [-08..-06]: (failing low)  f+ = -08 - cumulated node count     27274839
+Sun Apr  3 07:37:15 2022 14 - G2 (-22) [-08..-06]: (failing low)  f+ = -08 - cumulated node count     28318508
+Sun Apr  3 07:37:17 2022 #### finish .13. Best move and game value: [A4:-08] - nc =     26204618 - Time [REAL][PROC]: [    66.533951272][    66.542114865]
+Sun Apr  3 07:37:17 2022 #### start  .17. Iterative deepening search depth = 17
+Sun Apr  3 07:37:17 2022 00 - A4 (-08) [-10..-08]: (failing high) f- = -08 - cumulated node count     56547793
+Sun Apr  3 07:38:59 2022 00 - A4 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count     80726474
+Sun Apr  3 07:40:01 2022 01 - A5 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count     94801362
+Sun Apr  3 07:40:36 2022 02 - B5 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count    204382279
+Sun Apr  3 07:46:16 2022 03 - A6 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count    215838952
+Sun Apr  3 07:46:51 2022 04 - H6 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count    225897119
+Sun Apr  3 07:47:21 2022 05 - A7 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count    249898960
+Sun Apr  3 07:48:30 2022 06 - B7 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count    257979324
+Sun Apr  3 07:48:57 2022 07 - F7 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count    265749943
+Sun Apr  3 07:49:22 2022 08 - G7 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count    276107664
+Sun Apr  3 07:49:52 2022 09 - H7 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count    307434704
+Sun Apr  3 07:51:14 2022 10 - B8 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count    336486212
+Sun Apr  3 07:52:37 2022 11 - C8 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count    344097078
+Sun Apr  3 07:53:04 2022 12 - D8 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count    361248573
+Sun Apr  3 07:53:57 2022 13 - A3 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count    426282324
+Sun Apr  3 07:57:42 2022 14 - G2 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count    446091026
+Sun Apr  3 07:58:38 2022 #### finish .17. Best move and game value: [A4:-08] - nc =    417772518 - Time [REAL][PROC]: [  1281.196859153][  1281.370481210]
+Sun Apr  3 07:58:38 2022 #### start  .19. Iterative deepening search depth = 19
+Sun Apr  3 07:58:38 2022 00 - A4 (-08) [-10..-08]: (failing high) f- = -08 - cumulated node count    552155392
+Sun Apr  3 08:04:18 2022 00 - A4 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count    644336929
+Sun Apr  3 08:08:47 2022 01 - A5 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count    703178302
+Sun Apr  3 08:11:55 2022 02 - B5 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count    767519545
+Sun Apr  3 08:15:36 2022 03 - A6 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count    811132218
+Sun Apr  3 08:18:13 2022 04 - H6 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count    833448594
+Sun Apr  3 08:19:20 2022 05 - A7 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count    917592589
+Sun Apr  3 08:23:42 2022 06 - B7 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count    941328332
+Sun Apr  3 08:25:06 2022 07 - F7 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count    979516059
+Sun Apr  3 08:27:34 2022 08 - G7 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count   1015289555
+Sun Apr  3 08:29:32 2022 09 - H7 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count   1139235238
+Sun Apr  3 08:35:56 2022 10 - B8 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count   1239295192
+Sun Apr  3 08:40:46 2022 11 - C8 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count   1262127083
+Sun Apr  3 08:42:13 2022 12 - D8 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count   1334177395
+Sun Apr  3 08:46:34 2022 13 - A3 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count   1503353127
+Sun Apr  3 08:56:52 2022 14 - G2 (-08) [-08..-06]: (failing low)  f+ = -08 - cumulated node count   1568364210
+Sun Apr  3 09:00:14 2022 #### finish .19. Best move and game value: [A4:-08] - nc =   1122273184 - Time [REAL][PROC]: [  3695.321396544][  3695.741733228]
+Sun Apr  3 09:00:14 2022 #### start  .99. Iterative deepening search depth = 99
+Sun Apr  3 09:00:14 2022 00 - A4 (-08) [-10..-08]: (failing low)  f+ = -10 - cumulated node count  30051498523
+Sun Apr  3 09:40:36 2022 01 - A5 (-08) [-10..-08]: (failing low)  f+ = -10 - cumulated node count  46506155357
+Sun Apr  3 10:04:53 2022 02 - B5 (-08) [-10..-08]: (failing low)  f+ = -10 - cumulated node count  81511176708
+Sun Apr  3 10:55:11 2022 03 - A6 (-08) [-10..-08]: (failing low)  f+ = -10 - cumulated node count 130095540199
+Sun Apr  3 12:00:10 2022 04 - H6 (-08) [-10..-08]: (failing low)  f+ = -10 - cumulated node count 383564156467
+Sun Apr  3 17:42:36 2022 05 - A7 (-08) [-10..-08]: (failing low)  f+ = -10 - cumulated node count 521810468408
+Sun Apr  3 20:29:40 2022 06 - B7 (-08) [-10..-08]: (failing low)  f+ = -10 - cumulated node count 580203478136
+Sun Apr  3 21:34:05 2022 07 - F7 (-08) [-10..-08]: (failing low)  f+ = -10 - cumulated node count 877558723867
+Mon Apr  4 04:15:59 2022 08 - G7 (-08) [-10..-08]: (failing low)  f+ = -10 - cumulated node count 962545598432
+Mon Apr  4 05:59:38 2022 09 - H7 (-08) [-10..-08]: (failing low)  f+ = -10 - cumulated node count 1404734844731
+Mon Apr  4 15:01:27 2022 10 - B8 (-08) [-10..-08]: (failing low)  f+ = -10 - cumulated node count 1615538593839
+Mon Apr  4 19:22:40 2022 11 - C8 (-08) [-10..-08]: (failing low)  f+ = -10 - cumulated node count 1671921005390
+Mon Apr  4 20:31:16 2022 12 - D8 (-08) [-10..-08]: (failing low)  f+ = -10 - cumulated node count 5614848727980
+Fri Apr  8 09:51:12 2022 13 - A3 (-08) [-10..-08]: (failing low)  f+ = -10 - cumulated node count 5768033429205
+Fri Apr  8 13:04:45 2022 14 - G2 (-08) [-10..-08]: (failing low)  f+ = -10 - cumulated node count 6001631133229
+Fri Apr  8 18:00:26 2022 00 - A4 (-10) [-12..-10]: (failing high) f- = -10 - cumulated node count 6260361294754
+Fri Apr  8 23:54:31 2022 #### finish .99. Best move and game value: [A4:-10] - nc = 6258792930544 - Time [REAL][PROC]: [485607.526520258][485656.573577825]
+MTD(f) evaluation [REAL][PROCESS] time: [490652.272899472][490701.922142561]
+Transposition Table pointer: 0x564b04942a80
+  max_n_item:            536870912  -  Number of items that could be stored in the table
+  items:            0x7f9912d13010  -  Array of items
+  next_item:        0x7f9912d12fd0  -  Next item to be used when inserting
+  n_item:                536870912  -  The number of item currently held in the table
+  ht:               0x564b04942b00  -  Hashtable containing <Key:item , Item:item>
+  pq:               0x564b04942b50  -  Priority queue
+  ht.size:               134217689  -  Hashtable size
+  ht.length:             536870912  -  Hashtable length
+TT hashtable stats:
+ ELEMENTS_X_BUCKET; ELEMENT_CNT
+                 0;     2457838
+                 1;     9837568
+                 2;    19657180
+                 3;    26220056
+                 4;    26233500
+                 5;    20972953
+                 6;    13986671
+                 7;     7989986
+                 8;     3995348
+                 9;     1774200
+                10;      710955
+                11;      258467
+                12;       85885
+                13;       26586
+                14;        7717
+                15;        2099
+                16;         510
+                17;         137
+                18;          26
+                19;           6
+
+    a b c d e f g h 
+ 1  . . . . O . . . 
+ 2  . . . O O O . . 
+ 3  . O O O O @ O . 
+ 4  . @ @ @ O O O O 
+ 5  . . @ O O O O O 
+ 6  . @ @ O O @ @ . 
+ 7  . . @ @ O . . . 
+ 8  . . . . @ . . . 
+Player to move: WHITE
+
+[node_count=6260361294754, leaf_count=1172963544543]
+Final outcome: best move=A4, position value=-10
+
+
+real	8178m50.227s
+user	8177m40.471s
+sys	0m20.024s
+
+#########################################################
+
+$ time ./scrzebra -script ./ffo/woc18-FKvsAP-g1-24.src out/tmp.tmp
+
+scrZebra (c) 1997-2005 Gunnar Andersson, compile date Mar 22 2022 at 08:10:58
+
+
+         a b c d e f g h
+
+      1          O            Black                 
+      2      * O O O                                
+      3    O * * O * O         (*)     15 discs     
+      4  O O * O * O O O                            
+      5    O * O O O O O      White                 
+      6    * * O O O O                              
+      7      * * O O                   25 discs     
+      8        * * * *                              
+
+compute_move: side_to_move            = 0
+compute_move: update_all              = 1
+compute_move: my_time                 = 100000000
+compute_move: my_incr                 = 0
+compute_move: timed_depth             = 0
+compute_move: book                    = 0
+compute_move: mid                     = 60
+compute_move: exact                   = 60
+compute_move: wld                     = 60
+compute_move: search_forced           = 1
+-->  12  +2.36         471193  f1 g1 a2 b1 a6     0.1 s  6467279 nps
+... rcrr ... calling end_game ...
+end_game: side_to_move            = 0
+end_game: wld                     = 0
+end_game: force_echo              = 0
+end_game: allow_book              = 0
+end_game: komi                    = 0
+end_game: eval_info->type         = 8
+end_game: eval_info->res          = 0
+end_game: eval_info->score        = 5568128
+end_game: eval_info->confidence   = 0.000000
+end_game: eval_info->search_depth = 4241803
+end_game: eval_info->is_book      = 0
+end_game: selectivity = 9, alpha = -1, beta = 1
+end_game: root_eval = 1
+end_game: selectivity = 9, alpha = 1, beta = 3
+end_game: root_eval = 1
+end_game: selectivity = 8, alpha = 1, beta = 3
+end_game: root_eval = 3
+end_game: selectivity = 8, alpha = 3, beta = 5
+end_game: root_eval = 3
+end_game: selectivity = 7, alpha = 3, beta = 5
+end_game: root_eval = 3
+end_game: selectivity = 7, alpha = 1, beta = 3
+end_game: root_eval = 2
+end_game: selectivity = 6, alpha = 1, beta = 3
+end_game: root_eval = 2
+end_game: selectivity = 5, alpha = 1, beta = 3
+end_game: root_eval = 2
+end_game: selectivity = 4, alpha = 1, beta = 3
+end_game: root_eval = 2
+end_game: selectivity = 3, alpha = 1, beta = 3
+end_game: root_eval = 3
+end_game: selectivity = 3, alpha = 3, beta = 5
+end_game: root_eval = 3
+end_game: selectivity = 2, alpha = 3, beta = 5
+-->  24  +4 @ 95%    15948756  f1                 0.9 s  17930084 nps  
+[3,5]:     f1
+[3,5]:     f1=4 g1 a6 h3 h6 a3 a5>4 
+end_game: root_eval = 5
+end_game: selectivity = 2, alpha = 5, beta = 7
+[5,7]:     a5
+end_game: root_eval = 6
+end_game: selectivity = 1, alpha = 5, beta = 7
+end_game: root_eval = 6
+-->  24  +6 @ 99%    54515637  a5 a3 d1 a6 h6     2.8 s  19313514 nps  
+[5,7]:     a5=6 f1 g1
+[5,7]:     a5=6 f1 g1 a6 h6 h3 a3 g7 d1 a2
+-->  24  +6           163194k  a5 a3 d1 a6 h6     9.2 s  17757423 nps  
+PV: a5 a3 d1 a6 h6 b8 h3 f1 h7 g2 g7
+
+
+
+
+Total positions solved:   1
+Total time:               9.2 s
+Total nodes:              163194220
+
+Average time for solve:   9.2 s
+Maximum time for solve:   9.2 s
+
+Average speed:            17751333 nps
+
+
+real	0m9.228s
+user	0m9.214s
+sys	0m0.009s
+
+$ time ./scrzebra -script ./ffo/woc18-FKvsAP-g1-25.src out/tmp.tmp
+
+scrZebra (c) 1997-2005 Gunnar Andersson, compile date Mar 22 2022 at 08:10:58
+
+
+         a b c d e f g h
+
+      1          O            Black                 
+      2      * O O O                                
+      3    O * * O * O                 18 discs     
+      4  O O * O * O O O                            
+      5    O * O O * O O      White                 
+      6    * * O O * *                              
+      7      * * O             (O)     21 discs     
+      8        * * * *                              
+
+compute_move: side_to_move            = 2
+compute_move: update_all              = 1
+compute_move: my_time                 = 100000000
+compute_move: my_incr                 = 0
+compute_move: timed_depth             = 0
+compute_move: book                    = 0
+compute_move: mid                     = 60
+compute_move: exact                   = 60
+compute_move: wld                     = 60
+compute_move: search_forced           = 1
+-->  13  -2.36         639836  f7 f1 g1 a2 b1     0.1 s  6567675 nps
+... rcrr ... calling end_game ...
+end_game: side_to_move            = 2
+end_game: wld                     = 0
+end_game: force_echo              = 0
+end_game: allow_book              = 0
+end_game: komi                    = 0
+end_game: eval_info->type         = 8
+end_game: eval_info->res          = 0
+end_game: eval_info->score        = 5568128
+end_game: eval_info->confidence   = 0.000000
+end_game: eval_info->search_depth = 4241803
+end_game: eval_info->is_book      = 0
+end_game: selectivity = 9, alpha = -1, beta = 1
+end_game: root_eval = -1
+end_game: selectivity = 9, alpha = -3, beta = -1
+end_game: root_eval = -3
+end_game: selectivity = 9, alpha = -5, beta = -3
+end_game: root_eval = -3
+end_game: selectivity = 8, alpha = -5, beta = -3
+end_game: root_eval = -3
+end_game: selectivity = 8, alpha = -3, beta = -1
+end_game: root_eval = -3
+end_game: selectivity = 7, alpha = -3, beta = -1
+end_game: root_eval = -2
+end_game: selectivity = 6, alpha = -3, beta = -1
+end_game: root_eval = -2
+end_game: selectivity = 5, alpha = -3, beta = -1
+end_game: root_eval = -2
+end_game: selectivity = 4, alpha = -3, beta = -1
+end_game: root_eval = -2
+end_game: selectivity = 3, alpha = -3, beta = -1
+end_game: root_eval = -3
+end_game: selectivity = 3, alpha = -5, beta = -3
+-->  25  -2 @ 91%    12797997  f7 f1 g1 a2 a3     0.7 s  17357005 nps  
+[-5,-3]:   f7
+end_game: root_eval = -3
+end_game: selectivity = 2, alpha = -5, beta = -3
+-->  25  -4 @ 95%    21387285  f7                 1.2 s  18375361 nps  
+[-5,-3]:   f7
+end_game: root_eval = -5
+end_game: selectivity = 2, alpha = -7, beta = -5
+end_game: root_eval = -6
+end_game: selectivity = 1, alpha = -7, beta = -5
+-->  25  -6 @ 98%    62514231  f7 a5 a3 d1 a6     3.1 s  19991535 nps  
+[-7,-5]:   f7=-6 h6 a7 b8 d1
+end_game: root_eval = -6
+-->  25  -6 @ 99%    82999383  f7 a5 a3 d1 a6     4.2 s  19632181 nps  
+[-7,-5]:   f7
+-->  25  -6           213429k  f7 a5 a3 d1 a6    11.9 s  17900387 nps  
+PV: f7 a5 a3 d1 a6 h6 b8 h3 f1
+
+
+
+
+Total positions solved:   1
+Total time:               11.9 s
+Total nodes:              213429479
+
+Average time for solve:   11.9 s
+Maximum time for solve:   11.9 s
+
+Average speed:            17895396 nps
+
+
+real	0m11.960s
+user	0m11.947s
+sys	0m0.013s
+
+$ time ./scrzebra -script ./ffo/woc18-FKvsAP-g1-26.src out/tmp.tmp
+
+scrZebra (c) 1997-2005 Gunnar Andersson, compile date Mar 22 2022 at 08:10:58
+
+
+         a b c d e f g h
+
+      1          O            Black                 
+      2      * O O O                                
+      3    O * * O * O         (*)     16 discs     
+      4  O O * O * O O O                            
+      5    O * O O * O O      White                 
+      6    * * O O * *                              
+      7      * * O                     22 discs     
+      8        * * O                                
+
+compute_move: side_to_move            = 0
+compute_move: update_all              = 1
+compute_move: my_time                 = 100000000
+compute_move: my_incr                 = 0
+compute_move: timed_depth             = 0
+compute_move: book                    = 0
+compute_move: mid                     = 60
+compute_move: exact                   = 60
+compute_move: wld                     = 60
+compute_move: search_forced           = 1
+-->  14  +2.36         552453  g8 f7 f1 g1 a2     0.1 s  6505647 nps
+... rcrr ... calling end_game ...
+end_game: side_to_move            = 0
+end_game: wld                     = 0
+end_game: force_echo              = 0
+end_game: allow_book              = 0
+end_game: komi                    = 0
+end_game: eval_info->type         = 8
+end_game: eval_info->res          = 0
+end_game: eval_info->score        = 5568128
+end_game: eval_info->confidence   = 0.000000
+end_game: eval_info->search_depth = 4241803
+end_game: eval_info->is_book      = 0
+end_game: selectivity = 9, alpha = -1, beta = 1
+end_game: root_eval = 1
+end_game: selectivity = 9, alpha = 1, beta = 3
+end_game: root_eval = 3
+end_game: selectivity = 9, alpha = 3, beta = 5
+end_game: root_eval = 3
+end_game: selectivity = 8, alpha = 3, beta = 5
+end_game: root_eval = 3
+end_game: selectivity = 8, alpha = 1, beta = 3
+end_game: root_eval = 3
+end_game: selectivity = 7, alpha = 1, beta = 3
+end_game: root_eval = 1
+end_game: selectivity = 7, alpha = -1, beta = 1
+end_game: root_eval = 1
+end_game: selectivity = 6, alpha = -1, beta = 1
+end_game: root_eval = 1
+end_game: selectivity = 6, alpha = 1, beta = 3
+end_game: root_eval = 2
+end_game: selectivity = 5, alpha = 1, beta = 3
+end_game: root_eval = 2
+end_game: selectivity = 4, alpha = 1, beta = 3
+end_game: root_eval = 2
+end_game: selectivity = 3, alpha = 1, beta = 3
+-->  26  +2 @ 91%    16436321  g8 f7 f1 g1 a2     0.9 s  17671202 nps  
+[1,3]:     g8
+end_game: root_eval = 3
+end_game: selectivity = 3, alpha = 3, beta = 5
+end_game: root_eval = 3
+end_game: selectivity = 2, alpha = 3, beta = 5
+-->  26  +4 @ 95%    24427342  g8                 1.3 s  18320401 nps  
+[3,5]:     g8
+end_game: root_eval = 5
+end_game: selectivity = 2, alpha = 5, beta = 7
+end_game: root_eval = 6
+end_game: selectivity = 1, alpha = 5, beta = 7
+-->  26  +6 @ 98%    76498834  g8 f7 a5 a3 d1     3.8 s  20026685 nps  
+[5,7]:     g8
+end_game: root_eval = 6
+-->  26  +6 @ 99%     111197k  g8 f7 a5 a3 d1     5.7 s  19501438 nps  
+[5,7]:     g8
+[5,7]:     g8=6 f7 a6 h3 d1 f1 g1 h2 a5 a3 a2
+-->  26  +6           344977k  g8 f7 a5 a3 d1    20.4 s  16893885 nps  
+PV: g8 f7 a5 a3 d1 a6 h6 b8 h3 f1
+
+
+
+
+Total positions solved:   1
+Total time:               20.4 s
+Total nodes:              344977193
+
+Average time for solve:   20.4 s
+Maximum time for solve:   20.4 s
+
+Average speed:            16891287 nps
+
+
+real	0m20.456s
+user	0m20.440s
+sys	0m0.012s
+
+$ time ./scrzebra -script ./ffo/woc18-FKvsAP-g1-27.src out/tmp.tmp
+
+scrZebra (c) 1997-2005 Gunnar Andersson, compile date Mar 22 2022 at 08:10:58
+
+
+         a b c d e f g h
+
+      1          O            Black                 
+      2      * O O O                                
+      3    O * * O * O                 17 discs     
+      4  O O * O * O O O                            
+      5    O * O O * O O      White                 
+      6    * * O O * *                              
+      7      * * *             (O)     20 discs     
+      8        * *                                  
+
+compute_move: side_to_move            = 2
+compute_move: update_all              = 1
+compute_move: my_time                 = 100000000
+compute_move: my_incr                 = 0
+compute_move: timed_depth             = 0
+compute_move: book                    = 0
+compute_move: mid                     = 60
+compute_move: exact                   = 60
+compute_move: wld                     = 60
+compute_move: search_forced           = 1
+-->  15  -2.36         786131  f8 g8 f7 f1 g1     0.1 s  6653219 nps
+... rcrr ... calling end_game ...
+end_game: side_to_move            = 2
+end_game: wld                     = 0
+end_game: force_echo              = 0
+end_game: allow_book              = 0
+end_game: komi                    = 0
+end_game: eval_info->type         = 8
+end_game: eval_info->res          = 0
+end_game: eval_info->score        = 5568128
+end_game: eval_info->confidence   = 0.000000
+end_game: eval_info->search_depth = 4241803
+end_game: eval_info->is_book      = 0
+end_game: selectivity = 9, alpha = -1, beta = 1
+end_game: root_eval = -1
+end_game: selectivity = 9, alpha = -3, beta = -1
+end_game: root_eval = -3
+end_game: selectivity = 9, alpha = -5, beta = -3
+end_game: root_eval = -3
+end_game: selectivity = 8, alpha = -5, beta = -3
+end_game: root_eval = -3
+end_game: selectivity = 8, alpha = -3, beta = -1
+end_game: root_eval = -3
+end_game: selectivity = 7, alpha = -3, beta = -1
+end_game: root_eval = -1
+end_game: selectivity = 7, alpha = -1, beta = 1
+end_game: root_eval = -1
+end_game: selectivity = 6, alpha = -1, beta = 1
+end_game: root_eval = -1
+end_game: selectivity = 6, alpha = -3, beta = -1
+end_game: root_eval = -2
+end_game: selectivity = 5, alpha = -3, beta = -1
+end_game: root_eval = -2
+end_game: selectivity = 4, alpha = -3, beta = -1
+end_game: root_eval = -2
+end_game: selectivity = 3, alpha = -3, beta = -1
+-->  27  -2 @ 91%    15993654  f8 g8 f7 f1 g1     1.0 s  16699125 nps  
+[-3,-1]:   f8
+end_game: root_eval = -3
+end_game: selectivity = 3, alpha = -5, beta = -3
+end_game: root_eval = -3
+end_game: selectivity = 2, alpha = -5, beta = -3
+-->  27  -4 @ 95%    34134016  f8                 1.9 s  18353023 nps  
+[-5,-3]:   f8
+[-5,-3]:   f8<-4 h6
+end_game: root_eval = -5
+end_game: selectivity = 2, alpha = -7, beta = -5
+[-7,-5]:   f8
+end_game: root_eval = -6
+end_game: selectivity = 1, alpha = -7, beta = -5
+-->  27  -6 @ 98%     158558k  f8 g8 f7 a5 a3     7.7 s  20521480 nps  
+[-7,-5]:   f8=-6 h6 d1 f7 a7 c8 a6 g2
+end_game: root_eval = -6
+-->  27  -6 @ 99%     253360k  f8 g8 f7 a5 a3    12.5 s  20333091 nps  
+[-7,-5]:   f8
+[-7,-5]:   f8=-6 h6 d1 f7 a7 c8
+-->  27  -6           698586k  f8 g8 f7 a5 a3    40.3 s  17337528 nps  
+PV: f8 g8 f7 a5 a3 d1
+
+
+
+
+Total positions solved:   1
+Total time:               40.3 s
+Total nodes:              698586039
+
+Average time for solve:   40.3 s
+Maximum time for solve:   40.3 s
+
+Average speed:            17336125 nps
+
+
+real	0m40.326s
+user	0m40.317s
+sys	0m0.008s
+
+$ time ./scrzebra -script ./ffo/woc18-FKvsAP-g1-28.src out/tmp.tmp
+
+scrZebra (c) 1997-2005 Gunnar Andersson, compile date Mar 22 2022 at 08:10:58
+
+
+         a b c d e f g h
+
+      1          O            Black                 
+      2        O O O                                
+      3    O O O O * O         (*)     10 discs     
+      4  O O O O O O O O                            
+      5    O O O O O O O      White                 
+      6    * * O O * *                              
+      7      * * *                     26 discs     
+      8        * *                                  
+
+compute_move: side_to_move            = 0
+compute_move: update_all              = 1
+compute_move: my_time                 = 100000000
+compute_move: my_incr                 = 0
+compute_move: timed_depth             = 0
+compute_move: book                    = 0
+compute_move: mid                     = 60
+compute_move: exact                   = 60
+compute_move: wld                     = 60
+compute_move: search_forced           = 1
+[-inf,inf]:    f1=0.66 c2=2.79 
+[-inf,inf]:    c2=4.84 f1=5.28 
+-->  16  +3.52        1161538  f1 h6 f7 a7 h3     0.2 s  6578045 nps
+... rcrr ... calling end_game ...
+end_game: side_to_move            = 0
+end_game: wld                     = 0
+end_game: force_echo              = 0
+end_game: allow_book              = 0
+end_game: komi                    = 0
+end_game: eval_info->type         = 8
+end_game: eval_info->res          = 0
+end_game: eval_info->score        = 5568128
+end_game: eval_info->confidence   = 0.000000
+end_game: eval_info->search_depth = 4241803
+end_game: eval_info->is_book      = 0
+end_game: selectivity = 9, alpha = -1, beta = 1
+end_game: root_eval = 1
+end_game: selectivity = 9, alpha = 1, beta = 3
+end_game: root_eval = 3
+end_game: selectivity = 9, alpha = 3, beta = 5
+end_game: root_eval = 3
+end_game: selectivity = 8, alpha = 3, beta = 5
+end_game: root_eval = 3
+end_game: selectivity = 8, alpha = 1, beta = 3
+end_game: root_eval = 3
+end_game: selectivity = 7, alpha = 1, beta = 3
+end_game: root_eval = 3
+end_game: selectivity = 7, alpha = 3, beta = 5
+-->  28  +2 @ 38%    19645193  f1                 1.0 s  20553278 nps  
+[3,5]:     f1<4 c2 h2
+end_game: root_eval = 3
+end_game: selectivity = 6, alpha = 3, beta = 5
+end_game: root_eval = 3
+end_game: selectivity = 6, alpha = 1, beta = 3
+[1,3]:     f1=2 c2 h2>2 
+end_game: root_eval = 3
+end_game: selectivity = 5, alpha = 1, beta = 3
+-->  28  +2 @ 72%     165372k  h2                 6.6 s  24900101 nps  
+[1,3]:     h2
+end_game: root_eval = 3
+end_game: selectivity = 5, alpha = 3, beta = 5
+end_game: root_eval = 4
+end_game: selectivity = 4, alpha = 3, beta = 5
+end_game: root_eval = 4
+end_game: selectivity = 3, alpha = 3, beta = 5
+end_game: root_eval = 4
+end_game: selectivity = 2, alpha = 3, beta = 5
+-->  28  +4 @ 95%     270112k  h2 a7 c2 c8 b8    11.5 s  23548757 nps  
+[3,5]:     h2
+[3,5]:     h2=4 f1 c2
+[3,5]:     h2=4 f1 c2>4 
+end_game: root_eval = 5
+end_game: selectivity = 2, alpha = 5, beta = 7
+end_game: root_eval = 6
+end_game: selectivity = 1, alpha = 5, beta = 7
+-->  28  +6 @ 98%     588949k  c2 f8 g8 f7 a5    26.1 s  22556257 nps  
+[5,7]:     c2=6 h2
+end_game: root_eval = 6
+-->  28  +6 @ 99%     777035k  c2 f8 g8 f7 a5    35.2 s  22056982 nps  
+[5,7]:     c2
+[5,7]:     c2=6 h2 f1 a3
+-->  28  +6          1800618k  c2 f8 g8 f7 a5   101.4 s  17761619 nps  
+PV: c2 f8 g8 f7 a5 a3 d1
+
+
+
+
+Total positions solved:   1
+Total time:               101.4 s
+Total nodes:              1800618013
+
+Average time for solve:   101.4 s
+Maximum time for solve:   101.4 s
+
+Average speed:            17761067 nps
+
+
+real	1m41.409s
+user	1m41.398s
+sys	0m0.008s
+
+$ time ./scrzebra -script ./ffo/woc18-FKvsAP-g1-29.src out/tmp.tmp
+
+scrZebra (c) 1997-2005 Gunnar Andersson, compile date Mar 22 2022 at 08:10:58
+
+
+         a b c d e f g h
+
+      1          O            Black                 
+      2        O O O                                
+      3    O O O O * O                 11 discs     
+      4  O O O O O O O O                            
+      5      * O O O O O      White                 
+      6    * * O O * *                              
+      7      * * *             (O)     24 discs     
+      8        * *                                  
+
+compute_move: side_to_move            = 2
+compute_move: update_all              = 1
+compute_move: my_time                 = 100000000
+compute_move: my_incr                 = 0
+compute_move: timed_depth             = 0
+compute_move: book                    = 0
+compute_move: mid                     = 60
+compute_move: exact                   = 60
+compute_move: wld                     = 60
+compute_move: search_forced           = 1
+-->  17  -3.52        1056672  b5 f1 h6 f7 a7     0.2 s  6577438 nps
+... rcrr ... calling end_game ...
+end_game: side_to_move            = 2
+end_game: wld                     = 0
+end_game: force_echo              = 0
+end_game: allow_book              = 0
+end_game: komi                    = 0
+end_game: eval_info->type         = 8
+end_game: eval_info->res          = 0
+end_game: eval_info->score        = 5568128
+end_game: eval_info->confidence   = 0.000000
+end_game: eval_info->search_depth = 4241803
+end_game: eval_info->is_book      = 0
+end_game: selectivity = 9, alpha = -1, beta = 1
+end_game: root_eval = -1
+end_game: selectivity = 9, alpha = -3, beta = -1
+end_game: root_eval = -3
+end_game: selectivity = 9, alpha = -5, beta = -3
+end_game: root_eval = -4
+end_game: selectivity = 8, alpha = -5, beta = -3
+end_game: root_eval = -3
+end_game: selectivity = 8, alpha = -3, beta = -1
+end_game: root_eval = -3
+end_game: selectivity = 7, alpha = -3, beta = -1
+end_game: root_eval = -3
+end_game: selectivity = 7, alpha = -5, beta = -3
+-->  29  -2 @ 38%    14666880  b5                 0.8 s  19411085 nps  
+[-5,-3]:   b5
+end_game: root_eval = -4
+end_game: selectivity = 6, alpha = -5, beta = -3
+end_game: root_eval = -3
+end_game: selectivity = 6, alpha = -3, beta = -1
+end_game: root_eval = -3
+end_game: selectivity = 5, alpha = -3, beta = -1
+end_game: root_eval = -3
+end_game: selectivity = 5, alpha = -5, beta = -3
+-->  29  -2 @ 72%    82438065  b5                 3.5 s  23498464 nps  
+[-5,-3]:   b5
+end_game: root_eval = -4
+end_game: selectivity = 4, alpha = -5, beta = -3
+end_game: root_eval = -4
+end_game: selectivity = 3, alpha = -5, beta = -3
+-->  29  -4 @ 91%     140482k  b5 h2 a7 c2 c8     6.2 s  22610087 nps  
+[-5,-3]:   b5
+end_game: root_eval = -4
+end_game: selectivity = 2, alpha = -5, beta = -3
+-->  29  -4 @ 95%     186709k  b5 h2 a7 c2 c8     8.3 s  22460623 nps  
+[-5,-3]:   b5
+[-5,-3]:   b5<-4 b7 h7 b8 f8
+end_game: root_eval = -5
+end_game: selectivity = 2, alpha = -7, beta = -5
+end_game: root_eval = -6
+end_game: selectivity = 1, alpha = -7, beta = -5
+-->  29  -6 @ 98%     655047k  b5 c2 f8 g8 f7    29.0 s  22580456 nps  
+[-7,-5]:   b5
+end_game: root_eval = -6
+-->  29  -6 @ 99%     963815k  b5 c2 f8 g8 f7    43.2 s  22312740 nps  
+[-7,-5]:   b5
+[-7,-5]:   b5=-6 b7 h7 b8 f8 a6 g2 h6 a7
+-->  29  -6          2632785k  b5 c2 f8 g8 f7   148.5 s  17732630 nps  
+PV: b5 c2 f8 g8 f7 a5 a3 d1
+
+
+
+
+Total positions solved:   1
+Total time:               148.5 s
+Total nodes:              2632785458
+
+Average time for solve:   148.5 s
+Maximum time for solve:   148.5 s
+
+Average speed:            17732254 nps
+
+
+real	2m28.506s
+user	2m28.479s
+sys	0m0.012s
+
+$ time ./scrzebra -script ./ffo/woc18-FKvsAP-g1-30.src out/tmp.tmp
+
+scrZebra (c) 1997-2005 Gunnar Andersson, compile date Mar 22 2022 at 08:10:58
+
+
+         a b c d e f g h
+
+      1          O            Black                 
+      2        O O O                                
+      3    O O O O * O         (*)     9 discs      
+      4  O O O O O O O O                            
+      5      * O O O O O      White                 
+      6    * * O O * *                              
+      7      * * O                     25 discs     
+      8          *                                  
+
+compute_move: side_to_move            = 0
+compute_move: update_all              = 1
+compute_move: my_time                 = 100000000
+compute_move: my_incr                 = 0
+compute_move: timed_depth             = 0
+compute_move: book                    = 0
+compute_move: mid                     = 60
+compute_move: exact                   = 60
+compute_move: wld                     = 60
+compute_move: search_forced           = 1
+-->  18  +6.88        1718862  f8 b5 c2 h6 f7     0.3 s  6739287 nps
+... rcrr ... calling end_game ...
+end_game: side_to_move            = 0
+end_game: wld                     = 0
+end_game: force_echo              = 0
+end_game: allow_book              = 0
+end_game: komi                    = 0
+end_game: eval_info->type         = 8
+end_game: eval_info->res          = 0
+end_game: eval_info->score        = 5568128
+end_game: eval_info->confidence   = 0.000000
+end_game: eval_info->search_depth = 4241803
+end_game: eval_info->is_book      = 0
+end_game: selectivity = 9, alpha = -1, beta = 1
+end_game: root_eval = 1
+end_game: selectivity = 9, alpha = 1, beta = 3
+[1,3]:     f8
+end_game: root_eval = 3
+end_game: selectivity = 9, alpha = 3, beta = 5
+end_game: root_eval = 5
+end_game: selectivity = 9, alpha = 5, beta = 7
+end_game: root_eval = 7
+end_game: selectivity = 9, alpha = 7, beta = 9
+[7,9]:     f8<8 c2
+[7,9]:     f8<8 c2 d8 
+end_game: root_eval = 7
+end_game: selectivity = 8, alpha = 7, beta = 9
+end_game: root_eval = 9
+end_game: selectivity = 8, alpha = 9, beta = 11
+end_game: root_eval = 9
+end_game: selectivity = 7, alpha = 9, beta = 11
+end_game: root_eval = 9
+end_game: selectivity = 7, alpha = 7, beta = 9
+end_game: root_eval = 7
+end_game: selectivity = 7, alpha = 5, beta = 7
+end_game: root_eval = 7
+end_game: selectivity = 6, alpha = 5, beta = 7
+end_game: root_eval = 7
+end_game: selectivity = 6, alpha = 7, beta = 9
+end_game: root_eval = 7
+end_game: selectivity = 5, alpha = 7, beta = 9
+end_game: root_eval = 7
+end_game: selectivity = 5, alpha = 5, beta = 7
+end_game: root_eval = 6
+end_game: selectivity = 4, alpha = 5, beta = 7
+end_game: root_eval = 7
+end_game: selectivity = 4, alpha = 7, beta = 9
+-->  30  +6 @ 83%     262224k  f8 b5 c2 h6 f7    11.1 s  23531113 nps  
+[7,9]:     f8<8 c2 d8 a3
+end_game: root_eval = 7
+end_game: selectivity = 3, alpha = 7, beta = 9
+end_game: root_eval = 8
+end_game: selectivity = 2, alpha = 7, beta = 9
+-->  30  +8 @ 95%     357204k  f8 b5 c2 h6 f7    15.6 s  22961292 nps  
+[7,9]:     f8
+end_game: root_eval = 9
+end_game: selectivity = 2, alpha = 9, beta = 11
+end_game: root_eval = 10
+end_game: selectivity = 1, alpha = 9, beta = 11
+-->  30  +10 @ 98%    752584k  f8 b5 c2 h6 f7    33.2 s  22691888 nps  
+[9,11]:    f8
+[9,11]:    f8=10 c2
+end_game: root_eval = 10
+-->  30  +10 @ 99%   1652041k  f8 b5 c2 h6 f7    75.3 s  21950644 nps  
+[9,11]:    f8
+[9,11]:    f8=10 c2 d8
+[9,11]:    f8=10 c2 d8 a3 f1 g1
+-->  30  +10         8859086k  f8 b5 c2 h6 f7   594.0 s  14915364 nps  
+PV: f8 b5 c2 h6 f7 d1 a5
+
+
+
+
+Total positions solved:   1
+Total time:               594.0 s
+Total nodes:              8859085633
+
+Average time for solve:   594.0 s
+Maximum time for solve:   594.0 s
+
+Average speed:            14915285 nps
+
+
+real	9m53.991s
+user	9m53.905s
+sys	0m0.033s
+
+$ time ./scrzebra -script ./ffo/woc18-FKvsAP-g1-31.src out/tmp.tmp
+
+scrZebra (c) 1997-2005 Gunnar Andersson, compile date Mar 22 2022 at 08:10:58
+
+
+         a b c d e f g h
+
+      1          O            Black                 
+      2        O O O                                
+      3    O O O O * O                 12 discs     
+      4    * * * O O O O                            
+      5      * O O O O O      White                 
+      6    * * O O * *                              
+      7      * * O             (O)     21 discs     
+      8          *                                  
+
+compute_move: side_to_move            = 2
+compute_move: update_all              = 1
+compute_move: my_time                 = 100000000
+compute_move: my_incr                 = 0
+compute_move: timed_depth             = 0
+compute_move: book                    = 0
+compute_move: mid                     = 60
+compute_move: exact                   = 60
+compute_move: wld                     = 60
+compute_move: search_forced           = 1
+[-inf,inf]:    a3=-10.17 a4=-7.63 
+[-inf,inf]:    a4=-9.91 a3 h6 d8 a5 f7=-9.20 
+[-inf,inf]:    f7=-9.15 a4=-7.38 
+[-inf,inf]:    a4=-6.84 f7=-6.14 
+[-inf,inf]:    f7=-8.77 a4=-8.21 
+-->  18  -7.17        4685543  a4 f8 b5 c2 h6     0.7 s  6729859 nps
+... rcrr ... calling end_game ...
+end_game: side_to_move            = 2
+end_game: wld                     = 0
+end_game: force_echo              = 0
+end_game: allow_book              = 0
+end_game: komi                    = 0
+end_game: eval_info->type         = 8
+end_game: eval_info->res          = 0
+end_game: eval_info->score        = 5568128
+end_game: eval_info->confidence   = 0.000000
+end_game: eval_info->search_depth = 4241803
+end_game: eval_info->is_book      = 0
+end_game: selectivity = 9, alpha = -1, beta = 1
+end_game: root_eval = -1
+end_game: selectivity = 9, alpha = -3, beta = -1
+end_game: root_eval = -3
+end_game: selectivity = 9, alpha = -5, beta = -3
+end_game: root_eval = -5
+end_game: selectivity = 9, alpha = -7, beta = -5
+end_game: root_eval = -7
+end_game: selectivity = 9, alpha = -9, beta = -7
+[-9,-7]:   a4
+end_game: root_eval = -7
+end_game: selectivity = 8, alpha = -9, beta = -7
+-->  31  -8 @ 19%    56711234  a4                 3.0 s  19115667 nps  
+[-9,-7]:   a4<-8 f7
+[-9,-7]:   a4<-8 f7>-8 
+end_game: root_eval = -7
+end_game: selectivity = 8, alpha = -7, beta = -5
+end_game: root_eval = -7
+end_game: selectivity = 7, alpha = -7, beta = -5
+end_game: root_eval = -7
+end_game: selectivity = 7, alpha = -9, beta = -7
+end_game: root_eval = -7
+end_game: selectivity = 6, alpha = -9, beta = -7
+-->  31  -8 @ 57%     164572k  f7                 7.5 s  22026873 nps  
+[-9,-7]:   f7
+[-9,-7]:   f7=-8 a4>-8 
+end_game: root_eval = -7
+end_game: selectivity = 6, alpha = -7, beta = -5
+end_game: root_eval = -7
+end_game: selectivity = 5, alpha = -7, beta = -5
+end_game: root_eval = -6
+end_game: selectivity = 4, alpha = -7, beta = -5
+-->  31  -6 @ 83%     251398k  a4 f8 b5 c2 h6    11.7 s  21576287 nps  
+[-7,-5]:   a4<-6 f7 a3 h6 a5
+end_game: root_eval = -7
+end_game: selectivity = 4, alpha = -9, beta = -7
+end_game: root_eval = -7
+end_game: selectivity = 3, alpha = -9, beta = -7
+-->  31  -8 @ 91%     365481k  a4                16.7 s  21853644 nps  
+[-9,-7]:   a4=-8 f7 a3 h6 a5
+end_game: root_eval = -8
+end_game: selectivity = 2, alpha = -9, beta = -7
+-->  31  -8 @ 95%     730715k  a4 f8 b5 c2 h6    32.4 s  22555802 nps  
+[-9,-7]:   a4
+[-9,-7]:   a4<-8 f7
+[-9,-7]:   a4<-8 f7 a3 h6 a5 d8 b5 a6 h7 g2 c8
+end_game: root_eval = -9
+end_game: selectivity = 2, alpha = -11, beta = -9
+end_game: root_eval = -10
+end_game: selectivity = 1, alpha = -11, beta = -9
+-->  31  -10 @ 98%   2908359k  a4 f8 b5 c2 h6   124.7 s  23330455 nps  
+[-11,-9]:  a4
+end_game: root_eval = -10
+-->  31  -10 @ 99%   5239929k  a4 f8 b5 c2 h6   226.0 s  23185306 nps  
+[-11,-9]:  a4
+[-11,-9]:  a4=-10 f7 a3 h6 a5 d8 b5 g7 g2
+-->  31  -10           18223M  a4 f8 b5 c2 h6  1064.4 s  17120828 nps  
+PV: a4 f8 b5 c2 h6 f7 d1 a5 b8 d8
+
+
+
+
+Total positions solved:   1
+Total time:               1064.4 s
+Total nodes:              18223179409
+
+Average time for solve:   1064.4 s
+Maximum time for solve:   1064.4 s
+
+Average speed:            17120778 nps
+
+
+real	17m44.421s
+user	17m44.146s
+sys	0m0.084s
+ 

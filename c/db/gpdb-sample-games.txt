@@ -841,18 +841,18 @@ woc18-FKvsAP-g1-35;...........wbb...wwwbbw...wbbwww..bwwbww.bbbbbb...b.w........
 woc18-FKvsAP-g1-34;...........wbb...wwwbbw...wbbwww..bwwwww.bbwwbb...bww...........;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 34 EC;
 woc18-FKvsAP-g1-33;...........wbb...wwwbbw..bbbbwww..bwwwww.bbwwbb...bww...........;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 33 EC;
 woc18-FKvsAP-g1-32;....w......www...wwwwbw..bbbwwww..bwwwww.bbwwbb...bww...........;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 32 EC;
-woc18-FKvsAP-g1-31;....w......www...wwwwbw..bbbwwww..bwwwww.bbwwbb...bbw.......b...;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 31 EC;
-woc18-FKvsAP-g1-30;....w......www...wwwwbw.wwwwwwww..bwwwww.bbwwbb...bbw.......b...;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 30 EC;
+woc18-FKvsAP-g1-31;....w......www...wwwwbw..bbbwwww..bwwwww.bbwwbb...bbw.......b...;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 31 EC - Legal move count: 15 - best move = A4, position value = -10;
+woc18-FKvsAP-g1-30;....w......www...wwwwbw.wwwwwwww..bwwwww.bbwwbb...bbw.......b...;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 30 EC - Legal move count: 12 - best move = F8, position value =  10;
 #
 #                 |1       2       3       4       5       6       7       8       |
 #                 |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
-woc18-FKvsAP-g1-29;....w......www...wwwwbw.wwwwwwww..bwwwww.bbwwbb...bbb......bb...;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 29 EC;
-woc18-FKvsAP-g1-28;....w......www...wwwwbw.wwwwwwww.wwwwwww.bbwwbb...bbb......bb...;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 28 EC;
-woc18-FKvsAP-g1-27;....w.....bwww...wbbwbw.wwbwbwww.wbwwbww.bbwwbb...bbb......bb...;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 27 EC;
-woc18-FKvsAP-g1-26;....w.....bwww...wbbwbw.wwbwbwww.wbwwbww.bbwwbb...bbw......bbw..;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 26 EC;
-woc18-FKvsAP-g1-25;....w.....bwww...wbbwbw.wwbwbwww.wbwwbww.bbwwbb...bbw......bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 25 EC;
-woc18-FKvsAP-g1-24;....w.....bwww...wbbwbw.wwbwbwww.wbwwwww.bbwwww...bbww.....bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 24 EC;
-woc18-FKvsAP-g1-23;....w.....bwww...wbbwbw.wwbwbwww.bbwwwwwbbbwwww...bbww.....bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 23 EC;
+woc18-FKvsAP-g1-29;....w......www...wwwwbw.wwwwwwww..bwwwww.bbwwbb...bbb......bb...;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 29 EC - Legal move count: 12 - best move = B5, position value =  -6;
+woc18-FKvsAP-g1-28;....w......www...wwwwbw.wwwwwwww.wwwwwww.bbwwbb...bbb......bb...;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 28 EC - Legal move count:  9 - best move = C2, position value =   6;
+woc18-FKvsAP-g1-27;....w.....bwww...wbbwbw.wwbwbwww.wbwwbww.bbwwbb...bbb......bb...;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 27 EC - Legal move count: 12 - best move = F8, position value =  -6;
+woc18-FKvsAP-g1-26;....w.....bwww...wbbwbw.wwbwbwww.wbwwbww.bbwwbb...bbw......bbw..;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 26 EC - Legal move count: 13 - best move = G8, position value =   6;
+woc18-FKvsAP-g1-25;....w.....bwww...wbbwbw.wwbwbwww.wbwwbww.bbwwbb...bbw......bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 25 EC - Legal move count: 11 - best move = F7, position value =  -6;
+woc18-FKvsAP-g1-24;....w.....bwww...wbbwbw.wwbwbwww.wbwwwww.bbwwww...bbww.....bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 24 EC - Legal move count: 14 - best move = A5, position value =   6;
+woc18-FKvsAP-g1-23;....w.....bwww...wbbwbw.wwbwbwww.bbwwwwwbbbwwww...bbww.....bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 23 EC - Legal move count:  9 - best move = A5, position value =   0;
 woc18-FKvsAP-g1-22;....w.....bwww...wbbwbw.wwbwbwwwwwwwwwwwbbbwwww...bbww.....bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 22 EC - Legal move count: 12 - [Index:Move:Value]: [00:F1:+00] [01:G1:-02] [02:A3:-02] [03:G7:-02] [04:D1:-04] [05:H6:-04] [06:H2:-06] [07:H3:-06] [08:H7:-12] [09:B2:-18] [10:A2:-20] [11:G2:-28];
 woc18-FKvsAP-g1-21;....w.....bwww..bbbbwbw.bbbwbwwwbwbwwwwwbbbbwww...bbbw.....bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 21 EC;
 woc18-FKvsAP-g1-20;....w.....bwww..bbbbwbw.bbbwbwwwbwbwwwwwbbbwwww...wbbw...w.bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 20 EC;
@@ -1024,3 +1024,8 @@ sample-286132585;..wwwb....bbbbw...bbwbw..b.wwwww.bwwbwb.bwbbww.bwbbw.w...bbw...
 #                       |1       2       3       4       5       6       7       8       |
 #                       |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
 game_end_must-pass-24-ec;wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwb........................;b;Used to test for a bug in GVE when first move is a PASS must give -64;
+#
+#
+#             |1       2       3       4       5       6       7       8       |
+#             |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+todays-problem;..wb..bwb.bbbbbwbwwwwwbwbwwwwwbwbwwbbbww.wwwwbbw..wwwwbw..wwwwwb;b;Today's Problem 2022-04-03 - Plack to play and win;

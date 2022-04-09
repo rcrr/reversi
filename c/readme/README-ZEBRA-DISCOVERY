@@ -251,6 +251,16 @@ There are many endgame function:
 
 Activities log ( in Italian, I am sorry :) )
 
+Appunti al 21-03-2022
+
+Diverso lavoro fatto sistemazione sulle libreria Linear Algebra e soprattutto adeguamento del programma regab.
+
+I KPI rimangono quelli descritti al 27-02-2022: Zebra fa meno nodi ed e' leggermente piu' veloce per nodo.
+
+*** Perche' ? ***
+
+
+
 
 Appunti al 27-02-2022
 
@@ -270,7 +280,7 @@ Comunque Zebra rimane piu' veloce:
 Bisogna verificare che i nodi siano misurati nello stesso modo, ma anche se fosse che Reversi ne conta troppi, l'NPS di Zebra sarebbe
 ulteriormente migliore.
 
-La speed gezza di Zebra e' superiore, va approfondita bene la bitboard-machinery di Zebra e comparata con quella di Reversi.
+La speed grezza di Zebra e' superiore, va approfondita bene la bitboard-machinery di Zebra e comparata con quella di Reversi.
 
 
 
