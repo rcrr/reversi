@@ -723,7 +723,13 @@ sample-67394859;...bb...w.bbbbb.wbwwwbb.wwwwwbbww.bwwbb..bbbwwbw....wwww...wwww.
 # See the transcripts at: https://woc2018.worldothello.org/live/woc2018_round14.htm
 #
 # Firt game, Keisuke plays the black.
-# F5 D6 C3 D3 C4 F4 F6 F3 G4 G3 E6 B3 F2 E3 E2 C5 C6 E7 C7 H4 G5 H5 G6 D2 B6 D7 B4 E1 E8 A4 D8 B5 C2 F8 G8 F7 A6 A5 A3 B8 G7 A7 H3 B1 D1 A2 G2 B2 A1 C1 H7 F1 G1 H8 A8 H6 B7 C8 H1 H2
+# Empty count:  60  59  58  57  56  55  54  53  52  51  50  49  48  47  46  45  44  43  42  41  40  39  38  37  36  35  34  33  32  31  30  29  28  27  26  25  24  23  22  21  20  19  18  17  16  15  14  13  12  11  10  09  08  07  06  05  04  03  02  01
+# Player:        B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   W   B   
+# Game value:  ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... -04 +06 -04 +08 +04 -04 +04 +04 +02 -02 +02 -02 +02 -02 -02 +06
+# Best move:    ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  C1  F1  F1  H1  A1  C1  F1  H6  G1  H8  A8  H6  B7  C8  H2  H2
+# Played move:  F5  D6  C3  D3  C4  F4  F6  F3  G4  G3  E6  B3  F2  E3  E2  C5  C6  E7  C7  H4  G5  H5  G6  D2  B6  D7  B4  E1  E8  A4  D8  B5  C2  F8  G8  F7  A6  A5  A3  B8  G7  A7  H3  B1  D1  A2  G2  B2  A1  C1  H7  F1  G1  H8  A8  H6  B7  C8--H1  H2
+# Comment:      ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..   !   !   !  !!  __  __  !!  !!  __  __  __  __  __  __   !  __  
+#
 # The board represented is the final configuration.
 #
 #    a b c d e f g h
@@ -835,12 +841,12 @@ woc18-FKvsAP-g1-40;............bb...wwbbbw...wwwwww..wbbb....bbbb....b.w........
 #                 |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
 woc18-FKvsAP-g1-39;............bb...wwbbbw...wwwbww..wbbbb...bbbb....b.w...........;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 39 EC;
 woc18-FKvsAP-g1-38;............bb...wwbbbw...wwwbww..wwwwww..bbbb....b.w...........;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 38 EC;
-woc18-FKvsAP-g1-37;............bb...wwbbbw...wwbbww..wwwbww..bbbbb...b.w...........;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 37 EC;
-woc18-FKvsAP-g1-36;...........wbb...wwwwbw...wwbwww..wwwbww..bbbbb...b.w...........;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 36 EC;
-woc18-FKvsAP-g1-35;...........wbb...wwwbbw...wbbwww..bwwbww.bbbbbb...b.w...........;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 35 EC;
-woc18-FKvsAP-g1-34;...........wbb...wwwbbw...wbbwww..bwwwww.bbwwbb...bww...........;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 34 EC;
-woc18-FKvsAP-g1-33;...........wbb...wwwbbw..bbbbwww..bwwwww.bbwwbb...bww...........;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 33 EC;
-woc18-FKvsAP-g1-32;....w......www...wwwwbw..bbbwwww..bwwwww.bbwwbb...bww...........;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 32 EC;
+woc18-FKvsAP-g1-37;............bb...wwbbbw...wwbbww..wwwbww..bbbbb...b.w...........;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 37 EC - d7  -6;
+woc18-FKvsAP-g1-36;...........wbb...wwwwbw...wwbwww..wwwbww..bbbbb...b.w...........;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 36 EC - b6  +6;
+woc18-FKvsAP-g1-35;...........wbb...wwwbbw...wbbwww..bwwbww.bbbbbb...b.w...........;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 35 EC - d7  -6;
+woc18-FKvsAP-g1-34;...........wbb...wwwbbw...wbbwww..bwwwww.bbwwbb...bww...........;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 34 EC - b4  +6;
+woc18-FKvsAP-g1-33;...........wbb...wwwbbw..bbbbwww..bwwwww.bbwwbb...bww...........;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 33 EC - h6  -6;
+woc18-FKvsAP-g1-32;....w......www...wwwwbw..bbbwwww..bwwwww.bbwwbb...bww...........;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 32 EC - c2 +12;
 woc18-FKvsAP-g1-31;....w......www...wwwwbw..bbbwwww..bwwwww.bbwwbb...bbw.......b...;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 31 EC - Legal move count: 15 - best move = A4, position value = -10;
 woc18-FKvsAP-g1-30;....w......www...wwwwbw.wwwwwwww..bwwwww.bbwwbb...bbw.......b...;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 30 EC - Legal move count: 12 - best move = F8, position value =  10;
 #

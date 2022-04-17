@@ -3,18 +3,23 @@
 
 Comparing Zebra and Reversi on the solution of position taken from game woc18-FKvsAP-g1
 
-EC  Reversi GVE   scrzebra
+EC  Reversi GVE    scrzebra
 
-22    0m02.400s  0m01.596s
-23    0m03.050s  0m01.835s
-24    0m17.639s  0m09.228s
-25    0m27.971s  0m11.960s
-26    1m20.300s  0m20.456s
-27    2m57.194s  0m40.326s
-28    7m00.441s  1m41.409s
-29   23m56.141s  2m28.506s
-30   88m04.798s  9m53.991s
-31 8178m50.227s 17m44.421s
+22    0m02.400s    0m01.596s
+23    0m03.050s    0m01.835s
+24    0m17.639s    0m09.228s
+25    0m27.971s    0m11.960s
+26    1m20.300s    0m20.456s
+27    2m57.194s    0m40.326s
+28    7m00.441s    1m41.409s
+29   23m56.141s    2m28.506s
+30   88m04.798s    9m53.991s
+31 8178m50.227s   17m44.421s
+32          ---  119m57.541s
+33          ---  192m07.377s
+34          ---  424m58.242s
+35          ---  754m33.469s
+36          --- 1954m28.094s
 
 Zebra is faster, there is plenty of evidence. And consumes almost no memory.
 Moreover the parameter ttab_log_size have to be adjusted based on the EC value to have the best time possible for Reversi GVE (small value for EC=22, large value for larger EC).
@@ -2173,4 +2178,568 @@ Average speed:            17120778 nps
 real	17m44.421s
 user	17m44.146s
 sys	0m0.084s
- 
+
+$ time ./scrzebra -script ./ffo/woc18-FKvsAP-g1-32.src out/tmp.tmp
+
+scrZebra (c) 1997-2005 Gunnar Andersson, compile date Mar 22 2022 at 08:10:58
+
+
+         a b c d e f g h
+
+      1          O            Black                 
+      2        O O O                                
+      3    O O O O * O         (*)     10 discs     
+      4    * * * O O O O                            
+      5      * O O O O O      White                 
+      6    * * O O * *                              
+      7      * O O                     22 discs     
+      8                                             
+
+compute_move: side_to_move            = 0
+compute_move: update_all              = 1
+compute_move: my_time                 = 100000000
+compute_move: my_incr                 = 0
+compute_move: timed_depth             = 0
+compute_move: book                    = 0
+compute_move: mid                     = 60
+compute_move: exact                   = 60
+compute_move: wld                     = 60
+compute_move: search_forced           = 1
+[-inf,inf]:    e8=6.69 c2=8.20 
+[-inf,inf]:    c2=8.45 e8=9.55 
+-->  17  +7.87        5523798  e8 f7 c2 d1 a3     0.8 s  6801593 nps
+[-inf,inf]:    e8=6.08 c2
+[-inf,inf]:    e8=6.08 c2=6.27 
+-->  18  +7.71        7559666  c2 d1 a3 b5 e8     1.1 s  6828954 nps
+... rcrr ... calling end_game ...
+end_game: side_to_move            = 0
+end_game: wld                     = 0
+end_game: force_echo              = 0
+end_game: allow_book              = 0
+end_game: komi                    = 0
+end_game: eval_info->type         = 8
+end_game: eval_info->res          = 0
+end_game: eval_info->score        = 5568128
+end_game: eval_info->confidence   = 0.000000
+end_game: eval_info->search_depth = 4241803
+end_game: eval_info->is_book      = 0
+end_game: selectivity = 9, alpha = -1, beta = 1
+end_game: root_eval = 1
+end_game: selectivity = 9, alpha = 1, beta = 3
+end_game: root_eval = 3
+end_game: selectivity = 9, alpha = 3, beta = 5
+[3,5]:     c2
+end_game: root_eval = 5
+end_game: selectivity = 9, alpha = 5, beta = 7
+end_game: root_eval = 7
+end_game: selectivity = 9, alpha = 7, beta = 9
+[7,9]:     c2<8 e8
+end_game: root_eval = 7
+end_game: selectivity = 8, alpha = 7, beta = 9
+-->  32  +8 @ 19%     316822k  c2                13.8 s  23002658 nps  
+[7,9]:     c2<8 e8
+[7,9]:     c2<8 e8=8 
+end_game: root_eval = 8
+end_game: selectivity = 7, alpha = 7, beta = 9
+end_game: root_eval = 8
+end_game: selectivity = 6, alpha = 7, beta = 9
+-->  32  +8 @ 57%     666655k  e8 f7 c2 d1 a3    26.9 s  24787306 nps  
+[7,9]:     e8<8 c2
+[7,9]:     e8<8 c2>8 
+end_game: root_eval = 9
+end_game: selectivity = 6, alpha = 9, beta = 11
+end_game: root_eval = 9
+end_game: selectivity = 5, alpha = 9, beta = 11
+end_game: root_eval = 9
+end_game: selectivity = 5, alpha = 7, beta = 9
+end_game: root_eval = 9
+end_game: selectivity = 4, alpha = 7, beta = 9
+end_game: root_eval = 9
+end_game: selectivity = 4, alpha = 9, beta = 11
+end_game: root_eval = 10
+end_game: selectivity = 3, alpha = 9, beta = 11
+-->  32  +10 @ 91%   1085853k  c2 a5 c8 b5 a3    46.0 s  23628770 nps  
+[9,11]:    c2
+end_game: root_eval = 10
+end_game: selectivity = 2, alpha = 9, beta = 11
+-->  32  +10 @ 95%   1471645k  c2 a5 c8 b5 a3    62.5 s  23554616 nps  
+[9,11]:    c2
+end_game: root_eval = 11
+end_game: selectivity = 2, alpha = 11, beta = 13
+[11,13]:   c2
+end_game: root_eval = 12
+end_game: selectivity = 1, alpha = 11, beta = 13
+-->  32  +12 @ 98%     12748M  c2 a5 c8 b5 a3   518.6 s  24582728 nps  
+[11,13]:   c2
+end_game: root_eval = 12
+-->  32  +12 @ 99%     23323M  c2 a5 c8 b5 a3   955.0 s  24421090 nps  
+[11,13]:   c2
+[11,13]:   c2=12 e8 f8
+[11,13]:   c2=12 e8 f8 h3 a2 d1 a3 f7 g1 d8 h2 f1
+-->  32  +12          129286M  c2 a5 c8 b5 a3  7197.5 s  17962601 nps  
+PV: c2 a5 c8 b5 a3 a6 d8 h6 f1
+
+
+
+
+Total positions solved:   1
+Total time:               7197.5 s
+Total nodes:              129285985468
+
+Average time for solve:   7197.5 s
+Maximum time for solve:   7197.5 s
+
+Average speed:            17962593 nps
+
+
+real	119m57.541s
+user	119m56.969s
+sys	0m0.292s
+
+$ time ./scrzebra -script ./ffo/woc18-FKvsAP-g1-33.src out/tmp.tmp
+
+scrZebra (c) 1997-2005 Gunnar Andersson, compile date Mar 22 2022 at 08:10:58
+
+
+         a b c d e f g h
+
+      1                       Black                 
+      2        O * *                                
+      3    O O O * * O                 14 discs     
+      4    * * * * O O O                            
+      5      * O O O O O      White                 
+      6    * * O O * *                              
+      7      * O O             (O)     17 discs     
+      8                                             
+
+compute_move: side_to_move            = 2
+compute_move: update_all              = 1
+compute_move: my_time                 = 100000000
+compute_move: my_incr                 = 0
+compute_move: timed_depth             = 0
+compute_move: book                    = 0
+compute_move: mid                     = 60
+compute_move: exact                   = 60
+compute_move: wld                     = 60
+compute_move: search_forced           = 1
+[-inf,inf]:    a5=-6.02 a4=-5.48 
+[-inf,inf]:    a4=-3.48 a5=-3.35 
+[-inf,inf]:    a5=-7.78 a4=-7.16 
+[-inf,inf]:    a5=-7.78 a4=-7.16 h6=-5.69 
+[-inf,inf]:    h6=-3.82 a4 a5=-2.59 
+[-inf,inf]:    a5=-3.78 h6=-3.41 
+-->  18  -4.55        6082156  h6 d8 a5 c1 b5     0.9 s  6815367 nps
+... rcrr ... calling end_game ...
+end_game: side_to_move            = 2
+end_game: wld                     = 0
+end_game: force_echo              = 0
+end_game: allow_book              = 0
+end_game: komi                    = 0
+end_game: eval_info->type         = 8
+end_game: eval_info->res          = 0
+end_game: eval_info->score        = 5568128
+end_game: eval_info->confidence   = 0.000000
+end_game: eval_info->search_depth = 4241803
+end_game: eval_info->is_book      = 0
+end_game: selectivity = 9, alpha = -1, beta = 1
+[-1,1]:    h6<0 a5 a4 d1 a6 f1
+[-1,1]:    h6<0 a5 a4 d1 a6 f1 e1 b8 g7 f7 h7
+end_game: root_eval = -1
+end_game: selectivity = 9, alpha = -3, beta = -1
+[-3,-1]:   h6<-2 a5 a4 d1 a6 a3 f7 e1 c8 b5 f1
+end_game: root_eval = -3
+end_game: selectivity = 9, alpha = -5, beta = -3
+[-5,-3]:   h6
+end_game: root_eval = -5
+end_game: selectivity = 9, alpha = -7, beta = -5
+end_game: root_eval = -5
+end_game: selectivity = 8, alpha = -7, beta = -5
+end_game: root_eval = -5
+end_game: selectivity = 8, alpha = -5, beta = -3
+end_game: root_eval = -5
+end_game: selectivity = 7, alpha = -5, beta = -3
+[-5,-3]:   h6<-4 a5 a4=-4 
+end_game: root_eval = -4
+end_game: selectivity = 6, alpha = -5, beta = -3
+-->  33  -4 @ 57%     191456k  a4 h6 h7 b5 c2    12.1 s  15807154 nps  
+[-5,-3]:   a4
+[-5,-3]:   a4<-4 h6=-4 
+end_game: root_eval = -4
+end_game: selectivity = 5, alpha = -5, beta = -3
+-->  33  -4 @ 72%     297065k  h6 d8 d1 c1 c2    17.2 s  17294269 nps  
+[-5,-3]:   h6=-4 a4 a5 d1
+end_game: root_eval = -4
+end_game: selectivity = 4, alpha = -5, beta = -3
+-->  33  -4 @ 83%     417229k  h6 d8 d1 c1 c2    23.0 s  18169908 nps  
+[-5,-3]:   h6
+[-5,-3]:   h6<-4 a4 a5
+end_game: root_eval = -5
+end_game: selectivity = 4, alpha = -7, beta = -5
+end_game: root_eval = -5
+end_game: selectivity = 3, alpha = -7, beta = -5
+-->  33  -6 @ 91%    1610399k  h6                74.9 s  21508736 nps  
+[-7,-5]:   h6=-6 a4
+[-7,-5]:   h6=-6 a4 a5 d1 a3 a6 f7
+end_game: root_eval = -6
+end_game: selectivity = 2, alpha = -7, beta = -5
+-->  33  -6 @ 95%    3488291k  h6 c1 a5 d8 b5   154.2 s  22628955 nps  
+[-7,-5]:   h6=-6 a4
+[-7,-5]:   h6=-6 a4 a5 d1
+end_game: root_eval = -6
+end_game: selectivity = 1, alpha = -7, beta = -5
+-->  33  -6 @ 98%      12889M  h6 c1 a5 d8 b5   544.8 s  23656049 nps  
+[-7,-5]:   h6
+[-7,-5]:   h6=-6 a4 a5 d1
+end_game: root_eval = -6
+-->  33  -6 @ 99%      34055M  h6 c1 a5 d8 b5  1457.0 s  23372737 nps  
+[-7,-5]:   h6
+[-7,-5]:   h6=-6 a4 a5 d1
+[-7,-5]:   h6=-6 a4 a5 d1 a3 a6 f7 e1 b8 c8 g7 f1 b5 h7
+-->  33  -6           198532M  h6 c1 a5 d8 b5   11528 s  17222704 nps  
+PV: h6 c1 a5 d8 b5 a6 c8 f8 a4 c2
+
+
+
+
+Total positions solved:   1
+Total time:               11527.3 s
+Total nodes:              198531933457
+
+Average time for solve:   11527.3 s
+Maximum time for solve:   11527.3 s
+
+Average speed:            17222700 nps
+
+
+real	192m7.377s
+user	192m6.426s
+sys	0m0.777s
+
+$ time ./scrzebra -script ./ffo/woc18-FKvsAP-g1-34.src out/tmp.tmp
+
+scrZebra (c) 1997-2005 Gunnar Andersson, compile date Mar 22 2022 at 08:10:58
+
+
+         a b c d e f g h
+
+      1                       Black                 
+      2        O * *                                
+      3    O O O * * O         (*)     12 discs     
+      4      O * * O O O                            
+      5      * O O O O O      White                 
+      6    * * O O * *                              
+      7      * O O                     18 discs     
+      8                                             
+
+compute_move: side_to_move            = 0
+compute_move: update_all              = 1
+compute_move: my_time                 = 100000000
+compute_move: my_incr                 = 0
+compute_move: timed_depth             = 0
+compute_move: book                    = 0
+compute_move: mid                     = 60
+compute_move: exact                   = 60
+compute_move: wld                     = 60
+compute_move: search_forced           = 1
+-->  18  +4.52        5125860  b4 h6 d8 d1 c1     0.8 s  6746284 nps
+... rcrr ... calling end_game ...
+end_game: side_to_move            = 0
+end_game: wld                     = 0
+end_game: force_echo              = 0
+end_game: allow_book              = 0
+end_game: komi                    = 0
+end_game: eval_info->type         = 8
+end_game: eval_info->res          = 0
+end_game: eval_info->score        = 5568128
+end_game: eval_info->confidence   = 0.000000
+end_game: eval_info->search_depth = 4241803
+end_game: eval_info->is_book      = 0
+end_game: selectivity = 9, alpha = -1, beta = 1
+[-1,1]:    b4
+end_game: root_eval = 1
+end_game: selectivity = 9, alpha = 1, beta = 3
+end_game: root_eval = 3
+end_game: selectivity = 9, alpha = 3, beta = 5
+end_game: root_eval = 5
+end_game: selectivity = 9, alpha = 5, beta = 7
+[5,7]:     b4
+[5,7]:     b4<6 f8 h6 c1 d1 b2 d8 a3 e8 f7 c2 b5 g2
+end_game: root_eval = 5
+end_game: selectivity = 8, alpha = 5, beta = 7
+end_game: root_eval = 5
+end_game: selectivity = 8, alpha = 3, beta = 5
+end_game: root_eval = 5
+end_game: selectivity = 7, alpha = 3, beta = 5
+-->  34  +4 @ 38%    90493997  b4                 9.1 s  9993252 nps  
+[3,5]:     b4=4 f8 h6 c1 d1 b5 d8 h3 a3 h2 f7 e8 b2
+end_game: root_eval = 4
+end_game: selectivity = 6, alpha = 3, beta = 5
+-->  34  +4 @ 57%     154021k  b4 a4 h6 h7 b5    12.9 s  11983266 nps  
+[3,5]:     b4=4 f8
+end_game: root_eval = 4
+end_game: selectivity = 5, alpha = 3, beta = 5
+-->  34  +4 @ 72%     422190k  b4 h6 d8 d1 c1    26.4 s  15984149 nps  
+[3,5]:     b4=4 f8
+end_game: root_eval = 4
+end_game: selectivity = 4, alpha = 3, beta = 5
+-->  34  +4 @ 83%     692224k  b4 h6 d8 d1 c1    39.5 s  17521162 nps  
+[3,5]:     b4
+end_game: root_eval = 5
+end_game: selectivity = 4, alpha = 5, beta = 7
+end_game: root_eval = 5
+end_game: selectivity = 3, alpha = 5, beta = 7
+-->  34  +6 @ 91%    1941036k  b4                95.3 s  20365862 nps  
+[5,7]:     b4
+end_game: root_eval = 6
+end_game: selectivity = 2, alpha = 5, beta = 7
+-->  34  +6 @ 95%    4047623k  b4 h6 c1 a5 d8   186.4 s  21719851 nps  
+[5,7]:     b4
+[5,7]:     b4=6 f8
+end_game: root_eval = 6
+end_game: selectivity = 1, alpha = 5, beta = 7
+-->  34  +6 @ 98%      17470M  b4 h6 c1 a5 d8   762.8 s  22903357 nps  
+[5,7]:     b4
+end_game: root_eval = 6
+-->  34  +6 @ 99%      48062M  b4 h6 c1 a5 d8  2108.1 s  22798993 nps  
+[5,7]:     b4
+[5,7]:     b4=6 f8 h6 c1 d1
+-->  34  +6           388520M  b4 h6 c1 a5 d8   25499 s  15237164 nps  
+PV: b4 h6 c1 a5 d8 b5 a6 c8 f8
+
+
+
+
+Total positions solved:   1
+Total time:               25498.2 s
+Total nodes:              388520402743
+
+Average time for solve:   25498.2 s
+Maximum time for solve:   25498.2 s
+
+Average speed:            15237162 nps
+
+
+real	424m58.242s
+user	424m55.434s
+sys	0m1.732s
+
+$ time ./scrzebra -script ./ffo/woc18-FKvsAP-g1-35.src out/tmp.tmp
+
+scrZebra (c) 1997-2005 Gunnar Andersson, compile date Mar 22 2022 at 08:10:58
+
+
+         a b c d e f g h
+
+      1                       Black                 
+      2        O * *                                
+      3    O O O * * O                 15 discs     
+      4      O * * O O O                            
+      5      * O O * O O      White                 
+      6    * * * * * *                              
+      7      *   O             (O)     14 discs     
+      8                                             
+
+compute_move: side_to_move            = 2
+compute_move: update_all              = 1
+compute_move: my_time                 = 100000000
+compute_move: my_incr                 = 0
+compute_move: timed_depth             = 0
+compute_move: book                    = 0
+compute_move: mid                     = 60
+compute_move: exact                   = 60
+compute_move: wld                     = 60
+compute_move: search_forced           = 1
+[-inf,inf]:    d7=-6.08 b5=-5.55 
+[-inf,inf]:    b5=-3.51 d7=-2.52 
+[-inf,inf]:    d7=-6.02 b5=-5.20 
+[-inf,inf]:    b5=-4.72 d7=-3.35 
+-->  18  -4.12        5510873  d7 b4 a5 h6 b5     0.8 s  6831175 nps
+... rcrr ... calling end_game ...
+end_game: side_to_move            = 2
+end_game: wld                     = 0
+end_game: force_echo              = 0
+end_game: allow_book              = 0
+end_game: komi                    = 0
+end_game: eval_info->type         = 8
+end_game: eval_info->res          = 0
+end_game: eval_info->score        = 5568128
+end_game: eval_info->confidence   = 0.000000
+end_game: eval_info->search_depth = 4241803
+end_game: eval_info->is_book      = 0
+end_game: selectivity = 9, alpha = -1, beta = 1
+[-1,1]:    d7
+[-1,1]:    d7<0 b5 d1 e1 f1 c8 b4 b7 f7
+end_game: root_eval = -1
+end_game: selectivity = 9, alpha = -3, beta = -1
+end_game: root_eval = -3
+end_game: selectivity = 9, alpha = -5, beta = -3
+end_game: root_eval = -5
+end_game: selectivity = 9, alpha = -7, beta = -5
+end_game: root_eval = -5
+end_game: selectivity = 8, alpha = -7, beta = -5
+end_game: root_eval = -5
+end_game: selectivity = 8, alpha = -5, beta = -3
+-->  35  -6 @ 19%     420839k  d7                32.4 s  12994644 nps  
+[-5,-3]:   d7<-4 b5 d1
+end_game: root_eval = -5
+end_game: selectivity = 7, alpha = -5, beta = -3
+end_game: root_eval = -4
+end_game: selectivity = 6, alpha = -5, beta = -3
+-->  35  -4 @ 57%     593799k  d7 b4 a4 h6 h7    43.2 s  13753541 nps  
+[-5,-3]:   d7
+end_game: root_eval = -4
+end_game: selectivity = 5, alpha = -5, beta = -3
+end_game: root_eval = -4
+end_game: selectivity = 4, alpha = -5, beta = -3
+-->  35  -4 @ 83%    1492199k  d7 b4 h6 d8 d1    87.1 s  17131597 nps  
+[-5,-3]:   d7
+[-5,-3]:   d7<-4 b5 d1
+end_game: root_eval = -5
+end_game: selectivity = 4, alpha = -7, beta = -5
+end_game: root_eval = -5
+end_game: selectivity = 3, alpha = -7, beta = -5
+-->  35  -6 @ 91%    6686810k  d7               317.8 s  21039728 nps  
+[-7,-5]:   d7
+end_game: root_eval = -6
+end_game: selectivity = 2, alpha = -7, beta = -5
+-->  35  -6 @ 95%      13151M  d7 b4 h6 c1 a5   596.5 s  22048415 nps  
+[-7,-5]:   d7
+[-7,-5]:   d7=-6 b5 d1 e1 f7
+end_game: root_eval = -6
+end_game: selectivity = 1, alpha = -7, beta = -5
+-->  35  -6 @ 98%      47532M  d7 b4 h6 c1 a5  2052.9 s  23154166 nps  
+[-7,-5]:   d7
+[-7,-5]:   d7=-6 b5 d1
+end_game: root_eval = -6
+-->  35  -6 @ 99%     129307M  d7 b4 h6 c1 a5  5603.2 s  23077494 nps  
+[-7,-5]:   d7
+-->  35  -6           743834M  d7 b4 h6 c1 a5   45274 s  16429809 nps  
+PV: d7 b4 h6 c1 a5 d8 b5 a6 c8 f8
+
+
+
+
+Total positions solved:   1
+Total time:               45273.4 s
+Total nodes:              743833868549
+
+Average time for solve:   45273.4 s
+Maximum time for solve:   45273.4 s
+
+Average speed:            16429808 nps
+
+
+real	754m33.469s
+user	754m27.311s
+sys	0m5.076s
+
+$ time ./scrzebra -script ./ffo/woc18-FKvsAP-g1-36.src out/tmp.tmp
+
+scrZebra (c) 1997-2005 Gunnar Andersson, compile date Mar 22 2022 at 08:10:58
+
+
+         a b c d e f g h
+
+      1                       Black                 
+      2        O * *                                
+      3    O O O O * O         (*)     11 discs     
+      4      O O * O O O                            
+      5      O O O * O O      White                 
+      6      * * * * *                              
+      7      *   O                     17 discs     
+      8                                             
+
+compute_move: side_to_move            = 0
+compute_move: update_all              = 1
+compute_move: my_time                 = 100000000
+compute_move: my_incr                 = 0
+compute_move: timed_depth             = 0
+compute_move: book                    = 0
+compute_move: mid                     = 60
+compute_move: exact                   = 60
+compute_move: wld                     = 60
+compute_move: search_forced           = 1
+-->  18  +4.33        5208693  b6 b5 e8 c8 c1     0.8 s  6657540 nps
+... rcrr ... calling end_game ...
+end_game: side_to_move            = 0
+end_game: wld                     = 0
+end_game: force_echo              = 0
+end_game: allow_book              = 0
+end_game: komi                    = 0
+end_game: eval_info->type         = 8
+end_game: eval_info->res          = 0
+end_game: eval_info->score        = 5568128
+end_game: eval_info->confidence   = 0.000000
+end_game: eval_info->search_depth = 4241803
+end_game: eval_info->is_book      = 0
+end_game: selectivity = 9, alpha = -1, beta = 1
+[-1,1]:    b6
+end_game: root_eval = 1
+end_game: selectivity = 9, alpha = 1, beta = 3
+end_game: root_eval = 3
+end_game: selectivity = 9, alpha = 3, beta = 5
+[3,5]:     b6
+end_game: root_eval = 5
+end_game: selectivity = 9, alpha = 5, beta = 7
+[5,7]:     b6<6 f8 d8 e8 h3 b5 d1 b4 a3 h2
+end_game: root_eval = 5
+end_game: selectivity = 8, alpha = 5, beta = 7
+end_game: root_eval = 5
+end_game: selectivity = 8, alpha = 3, beta = 5
+end_game: root_eval = 5
+end_game: selectivity = 7, alpha = 3, beta = 5
+-->  36  +4 @ 38%     425905k  b6                46.6 s  9141852 nps  
+[3,5]:     b6=4 f8 d8 e8
+end_game: root_eval = 4
+end_game: selectivity = 6, alpha = 3, beta = 5
+-->  36  +4 @ 57%     643004k  b6 d7 b4 a4 h6    62.9 s  10215044 nps  
+[3,5]:     b6=4 f8
+end_game: root_eval = 4
+end_game: selectivity = 5, alpha = 3, beta = 5
+-->  36  +4 @ 72%    1663787k  b6 d7 b4 h6 d8   114.5 s  14529395 nps  
+[3,5]:     b6
+[3,5]:     b6=4 f8 d8 e8 h3
+end_game: root_eval = 4
+end_game: selectivity = 4, alpha = 3, beta = 5
+-->  36  +4 @ 83%    4810754k  b6 d7 b4 h6 d8   261.9 s  18370974 nps  
+[3,5]:     b6
+end_game: root_eval = 5
+end_game: selectivity = 4, alpha = 5, beta = 7
+end_game: root_eval = 5
+end_game: selectivity = 3, alpha = 5, beta = 7
+-->  36  +6 @ 91%      12539M  b6               605.9 s  20694164 nps  
+[5,7]:     b6
+[5,7]:     b6=6 f8 d8
+end_game: root_eval = 6
+end_game: selectivity = 2, alpha = 5, beta = 7
+-->  36  +6 @ 95%      23659M  b6 d7 b4 h6 c1  1084.9 s  21807076 nps  
+[5,7]:     b6
+[5,7]:     b6=6 f8 d8 e8 h3 b5 d1
+end_game: root_eval = 6
+end_game: selectivity = 1, alpha = 5, beta = 7
+-->  36  +6 @ 98%      99332M  b6 d7 b4 h6 c1  4350.7 s  22831555 nps  
+[5,7]:     b6
+[5,7]:     b6=6 f8 d8 e8 h3
+end_game: root_eval = 6
+-->  36  +6 @ 99%     276681M  b6 d7 b4 h6 c1   12223 s  22636844 nps  
+[5,7]:     b6
+[5,7]:     b6=6 f8 d8
+-->  36  +6          1814767M  b6 d7 b4 h6 c1  117269 s  15475370 nps  
+PV: b6 d7 b4 h6 c1 a5 d8 b5 a6 c8
+
+
+
+
+Total positions solved:   1
+Total time:               117268.1 s
+Total nodes:              1814766615050
+
+Average time for solve:   117268.1 s
+Maximum time for solve:   117268.1 s
+
+Average speed:            15475370 nps
+
+
+real	1954m28.094s
+user	1954m13.908s
+sys	0m10.524s
