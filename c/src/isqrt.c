@@ -167,7 +167,8 @@ isqrt_double_halley2 (const double x,
   return y;
 }
 
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuninitialized"
 double
 isqrt_double_quake (const double x)
 {
@@ -192,3 +193,4 @@ isqrt_double_quake (const double x)
 
   return y;
 }
+#pragma GCC diagnostic pop
