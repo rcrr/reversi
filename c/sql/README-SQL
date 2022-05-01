@@ -87,11 +87,12 @@ When connected as postgres user (superuser):
 
 Edit file .pgpass in your home directory and add a line like this:
 localhost:5432:*:es:es
+127.0.0.1:5432:*:es:es
  
 We can connect to the new db by:
  $ psql -U es -d es -h localhost
 
-In order to run the complete suite on db 'es' as user 'es':
+In order to run the complete suite on db 'es' as user 'es'
  $ time psql -U es -d es -h localhost -c "\i reload_everything.sql"
  $ time psql -U es -d es -h localhost -c "\i 0100_up_regab_create_schema.sql"
  $ time psql -U es -d es -h localhost -c "\i 0101_up_migrations.sql"
@@ -100,6 +101,7 @@ In order to run the complete suite on db 'es' as user 'es':
  $ time psql -U es -d es -h localhost -c "\i 0104_up_pattern_functions.sql"
  $ time psql -U es -d es -h localhost -c "\i 0107_up_pattern_data.sql"
  $ time psql -U es -d es -h localhost -c "\i 0109_up_action_extract.sql"
+ $ time psql -U es -d es -h localhost -c "\i 0110_up_gp_solver.sql"
 
  --
  -- Backup and restore procedure.
