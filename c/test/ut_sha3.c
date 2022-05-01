@@ -77,7 +77,7 @@ sha3_256_t (ut_test_t *const t)
     "3a985da74fe225b2" "045c172d6bd390bd" "855f086e3e9d525b" "46bfe24511431532";
 
   char msg_digest[sha3_256_digest_lenght];
-  char msg_digest_as_string[sha3_224_digest_lenght * 2 + 1]; // Two hex digit per byte plus string termination.
+  char msg_digest_as_string[sha3_256_digest_lenght * 2 + 1]; // Two hex digit per byte plus string termination.
   size_t msg_len = strlen(msg);
 
   sha3_256(msg_digest, msg, msg_len);
@@ -156,7 +156,7 @@ sha3_512_abc_t (ut_test_t *const t)
     "10e116e9192af3c9" "1a7ec57647e39340" "57340b4cf408d5a5" "6592f8274eec53f0";
 
   char msg_digest[sha3_512_digest_lenght];
-  char msg_digest_as_string[sha3_256_digest_lenght * 2 + 1]; // Two hex digit per byte plus string termination.
+  char msg_digest_as_string[sha3_512_digest_lenght * 2 + 1]; // Two hex digit per byte plus string termination.
   size_t msg_len = strlen(msg);
 
   sha3_ctx_t ctx;
@@ -201,7 +201,7 @@ sha3_512_empty_string_t (ut_test_t *const t)
     "15b2123af1f5f94c" "11e3e9402c3ac558" "f500199d95b6d3e3" "01758586281dcd26";
 
   char msg_digest[sha3_512_digest_lenght];
-  char msg_digest_as_string[sha3_256_digest_lenght * 2 + 1]; // Two hex digit per byte plus string termination.
+  char msg_digest_as_string[sha3_512_digest_lenght * 2 + 1]; // Two hex digit per byte plus string termination.
   size_t msg_len = strlen(msg);
 
   sha3_ctx_t ctx;
