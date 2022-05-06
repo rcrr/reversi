@@ -57,7 +57,7 @@
 #
 # -1- Extracts from the REGAB database the GENERAL DATA file and save it as ${OUT_DIR}/${RUNCODE}_00.dat
 #     Using our conventions and the example arguments we will get a new ./rglmdata/A000_00.dat data file,
-#     together with its has file (./rglmdata/A000_00.dat.SHA3-256) and a log file (./rglmdata/A000_00.log).
+#     together with its hash file (./rglmdata/A000_00.dat.SHA3-256) and a log file (./rglmdata/A000_00.log).
 #
 # -2- Extracts from the REGAB database the POSITIONS DATA file and save it as ${OUT_DIR}/${RUNCODE}_positions_check.dat
 #     As well the files generated are ./rglmdata/A000_positions_check.dat data file,
