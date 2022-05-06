@@ -2600,7 +2600,7 @@ main (int argc,
         PQfinish(con);
         return EXIT_FAILURE;
       } else if (result == 1) {
-        printf("record(seq=%ld, batch_id=%d, game_id=%d, pos_id=%d, cst_time=%s\n",
+        printf("record (seq=%ld, batch_id=%d, game_id=%d, pos_id=%d, cst_time=\'%s\')\n",
                record.seq, record.batch_id, record.game_id, record.pos_id, record.cst_time);
 
         char buf[1024];
