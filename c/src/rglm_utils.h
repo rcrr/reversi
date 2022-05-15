@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2019, 2020 Roberto Corradini. All rights reserved.
+ * @copyright 2019, 2020, 2022 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -35,6 +35,28 @@
 #define RGLM_UTILS_H
 
 #include "rglm_data_files.h"
+
+/**
+ * @brief Computes the game evaluation at given depth for the given board.
+ *
+ * @details Returns the game value of the board `b` given the
+ *          RGLM model weights `mw`.
+ *          The depth o the alpha-beta search is given by the empty_count
+ *          difference between the board and the model_weights.
+ *
+ * @invariant Parameter `mw` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `b` must be not `NULL`.
+ * The invariant is guardegd by an assertion.
+ *
+ * @param  [in] mw the model weights data structure
+ * @param  [in] b  the game board
+ * @return         the game value of the board
+ */
+extern double
+rglmut_eval_gp_negascout (const board_t *const b,
+                          const rglmdf_model_weights_t *const mw);
 
 /**
  * @brief Computes the game evaluation for the given board.

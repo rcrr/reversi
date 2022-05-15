@@ -15,7 +15,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2019, 2020, 2021 Roberto Corradini. All rights reserved.
+ * @copyright 2019, 2020, 2021, 2022 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -122,7 +122,7 @@ main (int argc,
     "Author:\n"
     "Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
     "\n"
-    "Copyright (c) 2019, 2020, 2021 Roberto Corradini. All rights reserved.\n"
+    "Copyright (c) 2019, 2020, 2021, 2022 Roberto Corradini. All rights reserved.\n"
     "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
     "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n"
     ;
@@ -253,6 +253,7 @@ main (int argc,
       board_t b;
       board_set_square_sets(&b, gp_record->mover, gp_record->opponent);
 
+      /* Evaluate the position at PLY = 0. */
       gp_record->evaluation_function = rglmut_eval_gp_using_model_weights(mw, &b);
       gp_record->residual = gp_record->game_value_transformed - gp_record->evaluation_function; // resiual := observed - predicted
     }

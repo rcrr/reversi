@@ -167,3 +167,55 @@ A2050_01.w.P_check.csv
 ### Mi pare lucido ... sviluppiamo l'analisi ...
 ###
 
+
+
+2022-05-07
+
+Vediamo come funziona RGLMW, lo lancio con questo comando:
+
+$ ./build/bin/rglmw -v -w /lake/rcrr/rglmdata/A2050_01.w.dat -p /lake/rcrr/rglmdata/A2050_positions_check.dat -P tmp/A2050_01.w.P_check.csv
+Opening RGLM model weights binary file: "/lake/rcrr/rglmdata/A2050_01.w.dat" - SHA3-256 file digest: 854ca67341584311471dd312da73aeea79cf62684b282b8dcefcfb1bcc0ef345
+Input file started to be written on (UTC) Sat Jan  2 11:32:08 2021
+General data checksum (SHA3-256 file digest): 21ffbfbbc811d5391c247665bbf9fdf5295311f86af5ef8771ae1ef8a9c0cfe1
+Game position sample size: 1999175
+Empty count: 20
+Feature count: 2
+Features: INTERCEPT, MOBILITY3
+Pattern count: 11
+Patterns: CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR
+Weight array size: 167269
+Read 167269 weight records.
+File: "/lake/rcrr/rglmdata/A2050_01.w.dat" read and closed succesfully.
+Reverse map computed succesfully.
+RGLM model weights data structure loaded and ready.
+Opening RGLM general data binary file: "/lake/rcrr/rglmdata/A2050_positions_check.dat" - SHA3-256 file digest: 0e05db61e5eafcb8466c8ecd906309af2d3e5158c6f977197712b706f4322270
+Input file started to be written on (UTC) Mon Jan  4 11:17:43 2021
+The format of the binary data file is: POSITIONS
+Selected batch_id values: 6
+Selected empty_count value: 20
+Selected position_statuses values: CMS, CMR
+Selected feature values: --
+Selected pattern values: --
+Position Summary Table: number of tuples = 2; game position count = 199932
+Feature and Pattern Frequency Summary Table: number of tuples = 0
+The reverse map "(entity_class, entity_id, principal_index_value) --> glm_variable_id" has been computed.
+All 199932 solved and classified game positions has been read succesfully.
+Game positions dumped to CSV file: "tmp/A2050_01.w.P_check.csv".
+
+
+2022-05-08
+
+La funzione che calcola il GV e': src/rglm_utils.c:rglmut_eval_gp_using_model_weights
+
+La funzione ha come parametri il model weights e la board.
+
+Serve una nuova funzione ...
+
+Potremmo usare GVE, oppure sviluppare un alpha-beta minimale, senza fronzoli che ha solo la
+valutazione delle leaf.
+
+Mi piacciono entrambe le idee, certo che la seconda, piu' semplice va tutta verificata, e c'e'
+il problema che le leafs non sono tutte allo stesso livello di empty count a causa dei pass.
+Quindi o passo tutti i model weights oppure il PASS non e' considerato una move.
+
+Partirei con questa seconda idea ...

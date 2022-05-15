@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2020 Roberto Corradini. All rights reserved.
+ * @copyright 2020, 2022 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -274,6 +274,46 @@ rglmdf_read_general_data_from_binary_file_t (ut_test_t *const t)
   rglmdf_general_data_release(gd);
 }
 
+static void
+rglmdf_model_weights_read_from_binary_file_t (ut_test_t *const t)
+{
+  const char *dirname = "test/data/ut_rglm_data_files";
+  const char *modelname = "A2050_01.w";
+  const char *extension = "dat";
+  const char *hashext = "SHA3-256";
+
+  char filename[1024];
+  char hashname[1024];
+
+  bool verbose;
+
+  int ccount, ret;
+
+  rglmdf_model_weights_t mws;
+  rglmdf_model_weights_t *mw;
+
+  mw = &mws;
+
+  verbose = (ut_run_time_is_verbose(t)) ? true : false;
+
+  ccount = snprintf(filename, sizeof filename, "%s/%s.%s", dirname, modelname, extension);
+  ut_assert(t, ccount < sizeof filename);
+  ut_assert(t, fut_file_exists(filename));
+
+  ccount = snprintf(hashname, sizeof hashname, "%s.%s", filename, hashext);
+  ut_assert(t, ccount < sizeof hashname);
+  ut_assert(t, fut_file_exists(hashname));
+
+  rglmdf_model_weights_init(mw);
+
+  ret = rglmdf_model_weights_read_from_binary_file(mw, filename, verbose, true);
+  ut_assert(t, ret == 0);
+
+  if (verbose) rglmdf_model_weights_summary_to_stream(mw, stdout);
+
+  rglmdf_model_weights_release(mw);
+}
+
 
 
 /**
@@ -295,7 +335,9 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmdf_general_data_init", rglmdf_general_data_init_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmdf_check_sha3_file_digest", rglmdf_check_sha3_file_digest_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmdf_read_general_data_from_binary_file", rglmdf_read_general_data_from_binary_file_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_01,   "rglmdf_read_general_data_from_binary_file", rglmdf_read_general_data_from_binary_file_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_01,   "rglmdf_model_weights_read_from_binary_file_t", rglmdf_model_weights_read_from_binary_file_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);

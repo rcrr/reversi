@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2019 Roberto Corradini. All rights reserved.
+ * @copyright 2019, 2022 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -39,6 +39,8 @@
 
 #include "unit_test.h"
 #include "rglm_utils.h"
+#include "file_utils.h"
+#include "rglm_data_files.h"
 
 
 
@@ -112,6 +114,74 @@ rglmut_gv_scale_t (ut_test_t *const t)
   }
 }
 
+static void
+rglmut_eval_gp_using_model_weights_t (ut_test_t *const t)
+{
+  const char *dirname = "test/data/ut_rglm_data_files";
+  const char *modelname = "A2050_01.w";
+  const char *extension = "dat";
+  const char *hashext = "SHA3-256";
+
+  char filename[1024];
+  char hashname[1024];
+
+  bool verbose;
+
+  int ccount, ret;
+
+  rglmdf_model_weights_t mws;
+  rglmdf_model_weights_t *mw;
+
+  mw = &mws;
+
+  /*
+   * Sample board.
+   *
+   * ROW_N    GP_ID                MOVER             OPPONENT GAME_VALUE GAME_VALUE_TRANSFORMED EVALUATION_FUNCTION      RESIDUAL EGV
+   *    28 62089772      600540516071168     2336253951166719          0              0.5000000           0.4689332  0.0310667753  -4
+   */
+  board_t bs;
+  board_t *b = &bs;
+  board_set_square_sets(b, 600540516071168ULL, 2336253951166719ULL);
+
+  const double expected_ef = 0.4689332;
+  const int expected_egv = -4;
+
+  double ef;
+  int egv;
+
+  verbose = (ut_run_time_is_verbose(t)) ? true : false;
+
+  ccount = snprintf(filename, sizeof filename, "%s/%s.%s", dirname, modelname, extension);
+  ut_assert(t, ccount < sizeof filename);
+  ut_assert(t, fut_file_exists(filename));
+
+  ccount = snprintf(hashname, sizeof hashname, "%s.%s", filename, hashext);
+  ut_assert(t, ccount < sizeof hashname);
+  ut_assert(t, fut_file_exists(hashname));
+
+  rglmdf_model_weights_init(mw);
+
+  ret = rglmdf_model_weights_read_from_binary_file(mw, filename, verbose, true);
+  ut_assert(t, ret == 0);
+
+  if (verbose) rglmdf_model_weights_summary_to_stream(mw, stdout);
+
+  ef = rglmut_eval_gp_using_model_weights(mw, b);
+  egv = rglmut_gv_scale_back_i(ef);
+
+  ut_assert(t, egv == expected_egv);
+  ut_assert(t, fabs(ef - expected_ef) < 0.0001);
+
+  rglmdf_model_weights_release(mw);
+}
+
+static void
+rglmut_eval_gp_negascout_t (ut_test_t *const t)
+{
+  ut_assert(t, true);
+}
+
 /**
  * @brief Runs the test suite.
  */
@@ -127,6 +197,8 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "dummy_test", dummy_test_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmut_logistic_function", rglmut_logistic_function_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmut_gv_scale", rglmut_gv_scale_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_01,   "rglmut_eval_gp_using_model_weights", rglmut_eval_gp_using_model_weights_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_01,   "rglmut_eval_gp_negascout", rglmut_eval_gp_negascout_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);

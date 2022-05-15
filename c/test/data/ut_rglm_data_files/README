@@ -1,7 +1,7 @@
 
   README
 
-  Copyright (c) 2020 Roberto Corradini. All rights reserved.
+  Copyright (c) 2020, 2022 Roberto Corradini. All rights reserved.
 
   This file is part of the reversi program
   http://github.com/rcrr/reversi
@@ -81,3 +81,18 @@ $ cat test/data/ut_rglm_data_files/b7_y20_ucms_fintercept-mobility_pdiag3.dat.SH
 
 $ rhash --sha3-256 test/data/ut_rglm_data_files/b7_y20_ucms_fintercept-mobility_pdiag3.dat
 4e35817617e8c5d38bddbebc5aeedb68cf7b5cf5570c6010a05a8767111e51a7  test/data/ut_rglm_data_files/b7_y20_ucms_fintercept-mobility_pdiag3.dat
+
+### ### ###
+
+2022-05-15
+
+Adding tests for function:
+
+  rglmut_eval_gp_using_model_weights
+
+It requires to add binary files with weights data for the evaluation function.
+
+Selected data files (size, filename):
+
+  8029092 A2050_01.w.dat
+       92 A2050_01.w.dat.SHA3-256

@@ -9,7 +9,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2019, 2020 Roberto Corradini. All rights reserved.
+ * @copyright 2019, 2020, 2022 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -36,6 +36,46 @@
 #include <assert.h>
 
 #include "rglm_utils.h"
+
+double
+rglmut_eval_gp_negascout (const board_t *const b,
+                          const rglmdf_model_weights_t *const mw)
+{
+  assert(b);
+  assert(mw);
+
+  double value;
+
+  value = 0.0;
+
+  const int ec = bitw_bit_count_64_popcnt(~(b->square_sets[0] | b->square_sets[1]));
+  const int depth = ec - mw->empty_count;
+
+  if (depth < 0) {
+    fprintf(stderr, "Error, depth cannot be negative (depth = %d).\n", depth);
+    fprintf(stderr, "Board's empty count is %d.\n", ec);
+    fprintf(stderr, "Model Weights empty count is %d.\n", mw->empty_count);
+    fprintf(stderr, "Aborting.\n");
+  }
+
+  /*
+    function negamax(node, depth, alpha, beta, color) is
+      if depth = 0 or node is a terminal node then
+          return color × the heuristic value of node
+
+      childNodes := generateMoves(node)
+      childNodes := orderMoves(childNodes)
+      value := -66
+      foreach child in childNodes do
+        value := max(value, −negamax(child, depth − 1, −beta, −alpha, −color))
+        alpha := max(alpha, value)
+        if alpha >= beta then
+            break (* cut-off *)
+      return value
+   */
+
+  return value;
+}
 
 double
 rglmut_eval_gp_using_model_weights (const rglmdf_model_weights_t *const mw,
