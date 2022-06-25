@@ -37,31 +37,11 @@
 
 #include "rglm_utils.h"
 
-double
-rglmut_eval_gp_negascout (const board_t *const b,
-                          const rglmdf_model_weights_t *const mw)
-{
-  assert(b);
-  assert(mw);
-
-  double value;
-
-  value = 0.0;
-
-  const int ec = bitw_bit_count_64_popcnt(~(b->square_sets[0] | b->square_sets[1]));
-  const int depth = ec - mw->empty_count;
-
-  if (depth < 0) {
-    fprintf(stderr, "Error, depth cannot be negative (depth = %d).\n", depth);
-    fprintf(stderr, "Board's empty count is %d.\n", ec);
-    fprintf(stderr, "Model Weights empty count is %d.\n", mw->empty_count);
-    fprintf(stderr, "Aborting.\n");
-  }
 
   /*
     function negamax(node, depth, alpha, beta, color) is
       if depth = 0 or node is a terminal node then
-          return color × the heuristic value of node
+          return color x the heuristic value of node
 
       childNodes := generateMoves(node)
       childNodes := orderMoves(childNodes)
@@ -74,7 +54,179 @@ rglmut_eval_gp_negascout (const board_t *const b,
       return value
    */
 
-  return value;
+static uint64_t nid_sec = 0;
+
+typedef struct node_s {
+  uint64_t nid;
+  int depth;
+  struct node_s *parent;
+  Square parent_move;
+  GamePositionX gpx;
+  int empty_count;
+  double value;
+  SquareSet legal_moves_set;
+  int legal_moves_count;
+} node_t;
+
+static double
+max (double a,
+     double b)
+{
+  return a > b ? a : b;
+}
+
+static void
+board_to_gpx (const board_t *const board,
+              GamePositionX *gpx)
+{
+  gpx->blacks = board->square_sets[0];
+  gpx->whites = board->square_sets[1];
+  gpx->player = BLACK_PLAYER;
+}
+
+static void
+gpx_to_board (const GamePositionX *const gpx,
+              board_t *b)
+{
+  b->square_sets[gpx->player] = gpx->blacks;
+  b->square_sets[1 - gpx->player] = gpx->whites;
+}
+
+static void
+generate_child_nodes (node_t *child_nodes,
+                      node_t *n)
+{
+  node_t *c = child_nodes;
+  SquareSet lms = n->legal_moves_set;
+  if (lms) {
+    int i = 0;
+    while (lms) {
+      const Square move = bitw_tzcnt_64(lms);
+      c->nid = nid_sec++;
+      c->depth = n->depth - 1;
+      c->parent = n;
+      c->parent_move = move;
+      game_position_x_make_move(&n->gpx, move, &c->gpx);
+      c->empty_count = game_position_x_empty_count(&c->gpx);
+      c->value = 0.0;
+      c->legal_moves_set = game_position_x_legal_moves(&c->gpx);
+      c->legal_moves_count = bitw_bit_count_64(c->legal_moves_set);
+      lms = bitw_reset_lowest_set_bit_64(lms);
+      c++;
+      i++;
+    }
+    if (i != n->legal_moves_count) abort();
+  } else {
+    const Square move = pass_move;
+    c->nid = nid_sec++;
+    c->depth = n->depth;
+    c->parent = n;
+    c->parent_move = move;
+    game_position_x_make_move(&n->gpx, move, &c->gpx);
+    c->empty_count = game_position_x_empty_count(&c->gpx);
+    c->value = 0.0;
+    c->legal_moves_set = game_position_x_legal_moves(&c->gpx);
+    c->legal_moves_count = 1;
+  }
+}
+
+static bool
+is_terminal (node_t *n) {
+  if (n->empty_count == 0) return true;
+  if (n->legal_moves_set == empty_square_set && n->parent_move == pass_move) return true;
+  return false;
+}
+
+static void
+exact_terminal_game_value (node_t *n)
+{
+  n->value = rglmut_gv_scale(game_position_x_final_value(&n->gpx));
+}
+
+static void
+negamax (node_t *n,
+         double alpha,
+         double beta,
+         const rglmdf_model_weights_t *const mw)
+{
+  node_t child_nodes[32];
+
+  if (is_terminal(n)) {
+    exact_terminal_game_value(n);
+  } else if (n->depth == 0) {
+    board_t b;
+    gpx_to_board(&n->gpx, &b);
+    n->value = rglmut_eval_gp_using_model_weights(mw, &b);
+  } else {
+    generate_child_nodes(child_nodes, n);
+    for (int i = 0; i < n->legal_moves_count; i++) {
+      node_t *c = &child_nodes[i];
+      if (false) {
+        printf("[pnid=%08zu, nid=%08zu, cnid=%08zu] %02d %2s ec=%02d value=%f lms=%016lx lmc=%02d depth=%02d alpha=%f beta=%f\n",
+               n->parent->nid, n->nid, c->nid, i, square_as_move_to_string(c->parent_move), c->empty_count, c->value,
+               c->legal_moves_set, c->legal_moves_count, c->depth, alpha, beta);
+        char buf[256];
+        game_position_x_print(buf, &c->gpx);
+        printf("%s\n", buf);
+      }
+      negamax(c, 1 - beta, 1 - alpha, mw);
+      n->value = max(n->value, 1 - c->value);
+      if (false) printf("[pnid=%08zu, nid=%08zu, cnid=%08zu] c->value = %f, n->value = %f\n", n->parent->nid, n->nid, c->nid, c->value, n->value);
+      alpha = max(alpha, n->value);
+      if (alpha >= beta) return;
+    }
+  }
+}
+
+double
+rglmut_eval_gp_negascout (const board_t *const b,
+                          const rglmdf_model_weights_t *const mw)
+{
+  assert(b);
+  assert(mw);
+
+  double alpha, beta;
+  node_t root;
+
+  alpha = 0.0;
+  beta = 1.0;
+
+  /* Inits the root node. */
+  root.nid = nid_sec++;
+  root.parent = &root;
+  root.parent_move = unknown_move;
+  board_to_gpx(b, &root.gpx);
+  root.empty_count = game_position_x_empty_count(&root.gpx);
+  root.value = 0.0;
+  root.legal_moves_set = game_position_x_legal_moves(&root.gpx);
+  root.legal_moves_count = bitw_bit_count_64(root.legal_moves_set);
+  root.depth = root.empty_count - mw->empty_count;
+
+  /**/
+  if (false) {
+    char buf[256];
+    game_position_x_print(buf, &root.gpx);
+    printf("\n");
+    printf("root game position:\n");
+    printf("%s\n", buf);
+    printf("root.empty_count       = %d\n", root.empty_count);
+    printf("root.legal_moves_count = %d\n", root.legal_moves_count);
+  }
+  /**/
+
+  if (root.depth < 0) {
+    fprintf(stderr, "Error, depth cannot be negative (depth = %d).\n", root.depth);
+    fprintf(stderr, "Board's empty count is %d.\n", root.empty_count);
+    fprintf(stderr, "Model Weights empty count is %d.\n", mw->empty_count);
+    fprintf(stderr, "Aborting.\n");
+  }
+
+  //printf("mw->empty_count = %d\n", mw->empty_count);
+  //printf("root.depth      = %d\n", root.depth);
+
+  negamax(&root, alpha, beta, mw);
+
+  return root.value;
 }
 
 double

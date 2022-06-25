@@ -137,15 +137,20 @@ rglmut_eval_gp_using_model_weights_t (ut_test_t *const t)
   /*
    * Sample board.
    *
-   * ROW_N    GP_ID                MOVER             OPPONENT GAME_VALUE GAME_VALUE_TRANSFORMED EVALUATION_FUNCTION      RESIDUAL EGV
-   *    28 62089772      600540516071168     2336253951166719          0              0.5000000           0.4689332  0.0310667753  -4
+   * ROW_N    GP_ID                MOVER             OPPONENT GAME_VALUE GAME_VALUE_TRANSFORMED EVALUATION_FUNCTION       RESIDUAL EGV
+   *    28 62089772      600540516071168     2336253951166719          0              0.5000000           0.4689332   0.0310667753  -4
+   *    59 62091678    36107996742225664  6645118932134928511          8          0.56124997139      0.492535740137 0.068714231253   0
    */
   board_t bs;
   board_t *b = &bs;
-  board_set_square_sets(b, 600540516071168ULL, 2336253951166719ULL);
 
+  board_set_square_sets(b, 600540516071168ULL, 2336253951166719ULL);
   const double expected_ef = 0.4689332;
   const int expected_egv = -4;
+
+  //board_set_square_sets(b, 36107996742225664ULL, 6645118932134928511ULL);
+  //const double expected_ef = 0.492535740137;
+  //const int expected_egv = 0;
 
   double ef;
   int egv;
@@ -170,6 +175,10 @@ rglmut_eval_gp_using_model_weights_t (ut_test_t *const t)
   ef = rglmut_eval_gp_using_model_weights(mw, b);
   egv = rglmut_gv_scale_back_i(ef);
 
+  //printf("\n");
+  //printf("ef = %10.8f\n", ef);
+  //printf("egv = %d\n", egv);
+
   ut_assert(t, egv == expected_egv);
   ut_assert(t, fabs(ef - expected_ef) < 0.0001);
 
@@ -179,7 +188,72 @@ rglmut_eval_gp_using_model_weights_t (ut_test_t *const t)
 static void
 rglmut_eval_gp_negascout_t (ut_test_t *const t)
 {
-  ut_assert(t, true);
+  const char *dirname = "test/data/ut_rglm_data_files";
+  const char *modelname = "A1850_01.w";
+  const char *extension = "dat";
+  const char *hashext = "SHA3-256";
+
+  char filename[1024];
+  char hashname[1024];
+
+  bool verbose;
+
+  int ccount, ret;
+
+  rglmdf_model_weights_t mws;
+  rglmdf_model_weights_t *mw;
+
+  mw = &mws;
+
+  /*
+   * Sample board.
+   *
+   * ROW_N    GP_ID                MOVER             OPPONENT GAME_VALUE GAME_VALUE_TRANSFORMED EVALUATION_FUNCTION       RESIDUAL EGV
+   *    28 62089772      600540516071168     2336253951166719          0              0.5000000           0.4689332   0.0310667753  -4
+   *    59 62091678    36107996742225664  6645118932134928511          8          0.56124997139      0.492535740137 0.068714231253   0
+   *
+   */
+  board_t bs;
+  board_t *b = &bs;
+  //board_set_square_sets(b, 600540516071168ULL, 2336253951166719ULL);
+  //const double expected_ef = 0.4689332;
+  //const int expected_egv = -4;
+
+  board_set_square_sets(b, 36107996742225664ULL, 6645118932134928511ULL);
+  const double expected_ef = 0.559602;
+  const int expected_egv = +8;
+
+  double ef;
+  int egv;
+
+  verbose = (ut_run_time_is_verbose(t)) ? true : false;
+  //printf("\n");
+
+  ccount = snprintf(filename, sizeof filename, "%s/%s.%s", dirname, modelname, extension);
+  ut_assert(t, ccount < sizeof filename);
+  ut_assert(t, fut_file_exists(filename));
+
+  ccount = snprintf(hashname, sizeof hashname, "%s.%s", filename, hashext);
+  ut_assert(t, ccount < sizeof hashname);
+  ut_assert(t, fut_file_exists(hashname));
+
+  rglmdf_model_weights_init(mw);
+
+  ret = rglmdf_model_weights_read_from_binary_file(mw, filename, verbose, true);
+  ut_assert(t, ret == 0);
+
+  if (verbose) rglmdf_model_weights_summary_to_stream(mw, stdout);
+
+  ef = rglmut_eval_gp_negascout(b, mw);
+  egv = rglmut_gv_scale_back_i(ef);
+
+  //printf("ef  = %f\n", ef);
+  //printf("egv = %d\n", egv);
+
+  ut_assert(t, egv == expected_egv);
+  ut_assert(t, fabs(ef - expected_ef) < 0.0001);
+
+  rglmdf_model_weights_release(mw);
 }
 
 /**
