@@ -69,7 +69,7 @@
 
 
 /**
- * @brief Main entry for the RGLM ( Reversi Generalized Linear Model ) fit utility program.
+ * @brief Main entry for the RGLMW ( Reversi Generalized Linear Model Weights ) utility program.
  */
 int
 main (int argc,
@@ -87,6 +87,8 @@ main (int argc,
   int p_flag = false;
   char *p_arg = NULL;
 
+  int f_flag = false;
+
   int W_flag = false;
   char *W_arg = NULL;
 
@@ -99,6 +101,7 @@ main (int argc,
      {"verbose",             'v', MOP_NONE},
      {"weights-file",        'w', MOP_REQUIRED},
      {"positions-file",      'p', MOP_REQUIRED},
+     {"force-eval",          'f', MOP_NONE},
      {"extract-weights",     'W', MOP_REQUIRED},
      {"extract-positions",   'P', MOP_REQUIRED},
      {0, 0, 0}
@@ -113,11 +116,15 @@ main (int argc,
     "  -v, --verbose             Verbose output\n"
     "  -w, --weights-file        RGLM model weights input file name - Mandatory\n"
     "  -p, --positions-file      RGLM general data input file name\n"
+    "  -f, --force-eval          Force the evaluation regardless the different empty_count values\n"
     "  -W, --extract-weights     Extract the model weights table in a CSV format\n"
     "  -P, --extract-positions   Extract the game positions table in a CSV format\n"
     "\n"
     "Description:\n"
     "The Reversi Generalized Linear Model Weights program computes the gaps between the true value of game positions and the outcome of the evaluation function.\n"
+    "When the weights file and the positions one have the same empty_count value (depth = 0) the evaluation happens directly.\n"
+    "When the depth is negative the program terminates. When it is positive, a minimax algorithm is applied with PLY = depth.\n"
+    "If the -f, --force-eval, option is active, the evaluation happens anyway without search, notwithstanding the empty_count mismatch.\n"
     "\n"
     "Author:\n"
     "Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
@@ -148,6 +155,9 @@ main (int argc,
     case 'p':
       p_flag = true;
       p_arg = options.optarg;
+      break;
+    case 'f':
+      f_flag = true;
       break;
     case 'W':
       W_flag = true;
@@ -240,6 +250,29 @@ main (int argc,
       if (verbose) fprintf(stdout, "RGLM general data format transformed from GENERAL to POSITIONS.\n");
     }
 
+    /* empty_count_w */
+    const int empty_count_w = model_weights.empty_count;
+    const int empty_count_p = rglmdf_get_empty_count(gd);
+    const int eval_depth = empty_count_p - empty_count_w;
+    printf("empty_count_w = %d\n", empty_count_w);
+    printf("empty_count_p = %d\n", empty_count_p);
+    printf("eval_depth    = %d\n", eval_depth);
+    printf("f_flag        = %d\n", f_flag);
+    double (*eval_gp_f) (const rglmdf_model_weights_t *, const board_t *);
+
+    if (f_flag) {
+      eval_gp_f = rglmut_eval_gp_using_model_weights;
+    } else {
+      if (eval_depth == 0) {
+        eval_gp_f = rglmut_eval_gp_using_model_weights;
+      } else if (eval_depth > 0) {
+        eval_gp_f = rglmut_eval_gp_negascout;
+      } else {
+        fprintf(stderr, "Error, negative eval_depth value. eval_depth = : %d\n", eval_depth);
+        return EXIT_FAILURE;
+      }
+    }
+
     /* npos is the count of game position that we have in the general data structure. */
     const size_t npos = rglmdf_get_positions_ntuples(gd);
 
@@ -253,8 +286,8 @@ main (int argc,
       board_t b;
       board_set_square_sets(&b, gp_record->mover, gp_record->opponent);
 
-      /* Evaluate the position at PLY = 0. */
-      gp_record->evaluation_function = rglmut_eval_gp_using_model_weights(mw, &b);
+      /* Evaluate the position. */
+      gp_record->evaluation_function = eval_gp_f(mw, &b);
       gp_record->residual = gp_record->game_value_transformed - gp_record->evaluation_function; // resiual := observed - predicted
     }
 

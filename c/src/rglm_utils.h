@@ -55,8 +55,8 @@
  * @return         the game value of the board
  */
 extern double
-rglmut_eval_gp_negascout (const board_t *const b,
-                          const rglmdf_model_weights_t *const mw);
+rglmut_eval_gp_negascout (const rglmdf_model_weights_t *const mw,
+                          const board_t *const b);
 
 /**
  * @brief Computes the game evaluation for the given board.

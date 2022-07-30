@@ -179,8 +179,8 @@ negamax (node_t *n,
 }
 
 double
-rglmut_eval_gp_negascout (const board_t *const b,
-                          const rglmdf_model_weights_t *const mw)
+rglmut_eval_gp_negascout (const rglmdf_model_weights_t *const mw,
+                          const board_t *const b)
 {
   assert(b);
   assert(mw);

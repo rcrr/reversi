@@ -244,7 +244,7 @@ rglmut_eval_gp_negascout_t (ut_test_t *const t)
 
   if (verbose) rglmdf_model_weights_summary_to_stream(mw, stdout);
 
-  ef = rglmut_eval_gp_negascout(b, mw);
+  ef = rglmut_eval_gp_negascout(mw, b);
   egv = rglmut_gv_scale_back_i(ef);
 
   //printf("ef  = %f\n", ef);
