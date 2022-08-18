@@ -763,8 +763,8 @@ blis_basic_t (ut_test_t *const t)
   bli_obj_create(dt, k, n, rs, cs, &b);
 
   // Set the scalars to use.
-  alpha = &BLIS_ONE;
-  beta  = &BLIS_ONE;
+  alpha = (obj_t *) &BLIS_ONE;
+  beta  = (obj_t *) &BLIS_ONE;
 
   // Initialize the matrix operands.
   bli_randm(&a);

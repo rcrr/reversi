@@ -1,0 +1,188 @@
+rcrr@acheron:~/base/prj/ml$ source my_env/bin/activate
+(my_env) rcrr@acheron:~/base/prj/ml$ 
+(my_env) rcrr@acheron:~/base/prj/ml$ 
+(my_env) rcrr@acheron:~/base/prj/ml$ 
+(my_env) rcrr@acheron:~/base/prj/ml$ 
+(my_env) rcrr@acheron:~/base/prj/ml$ 
+(my_env) rcrr@acheron:~/base/prj/ml$ 
+(my_env) rcrr@acheron:~/base/prj/ml$ python
+python              python3             python3.10          python3.10-config   python3.8           python3-config      python3-futurize    python3-pasteurize
+(my_env) rcrr@acheron:~/base/prj/ml$ python
+Python 3.10.4 (main, Jun 29 2022, 12:14:53) [GCC 11.2.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> 
+>>> 
+>>> 
+>>> import plaatform
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ModuleNotFoundError: No module named 'plaatform'
+>>> import platform
+>>> platform.system()
+'Linux'
+>>> from ctypes import *
+>>> libc = cdll.LoadLibrary('libc.so.6')
+>>> libc.printf(b'Hello ctypes!\n')
+Hello ctypes!
+14
+>>> int_arr = ctypes.c_int*5
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+NameError: name 'ctypes' is not defined. Did you mean: 'type'?
+>>> int_arr = c_int*5
+>>> my_arr = int_arr(1, 3, 5, 7, 9)
+>>> print(my_arr)
+<__main__.c_int_Array_5 object at 0x7f24733f22c0>
+>>> reversi = cdll.LoadLibrary('/home/rcrr/base/prj/reversi/c/build/lib/reversi.so')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/usr/lib/python3.10/ctypes/__init__.py", line 452, in LoadLibrary
+    return self._dlltype(name)
+  File "/usr/lib/python3.10/ctypes/__init__.py", line 374, in __init__
+    self._handle = _dlopen(self._name, mode)
+OSError: /home/rcrr/base/prj/reversi/c/build/lib/reversi.so: undefined symbol: FLA_ONE
+>>> reversi = cdll.LoadLibrary('/home/rcrr/base/prj/reversi/c/build/lib/reversi.so')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/usr/lib/python3.10/ctypes/__init__.py", line 452, in LoadLibrary
+    return self._dlltype(name)
+  File "/usr/lib/python3.10/ctypes/__init__.py", line 374, in __init__
+    self._handle = _dlopen(self._name, mode)
+OSError: /home/rcrr/base/prj/reversi/c/build/lib/reversi.so: undefined symbol: FLA_ONE
+>>> 
+>>> 
+>>> 
+>>> reversi = cdll.LoadLibrary('/home/rcrr/base/prj/reversi/c/build/lib/reversi.so')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/usr/lib/python3.10/ctypes/__init__.py", line 452, in LoadLibrary
+    return self._dlltype(name)
+  File "/usr/lib/python3.10/ctypes/__init__.py", line 374, in __init__
+    self._handle = _dlopen(self._name, mode)
+OSError: /home/rcrr/base/prj/reversi/c/build/lib/reversi.so: undefined symbol: omp_set_lock
+>>> reversi = cdll.LoadLibrary('/home/rcrr/base/prj/reversi/c/build/lib/reversi.so')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/usr/lib/python3.10/ctypes/__init__.py", line 452, in LoadLibrary
+    return self._dlltype(name)
+  File "/usr/lib/python3.10/ctypes/__init__.py", line 374, in __init__
+    self._handle = _dlopen(self._name, mode)
+OSError: /home/rcrr/base/prj/reversi/c/build/lib/reversi.so: undefined symbol: cgemv_
+>>> 
+>>> 
+>>> 
+>>> 
+>>> reversi = cdll.LoadLibrary('/home/rcrr/base/prj/reversi/c/build/lib/reversi.so')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/usr/lib/python3.10/ctypes/__init__.py", line 452, in LoadLibrary
+    return self._dlltype(name)
+  File "/usr/lib/python3.10/ctypes/__init__.py", line 374, in __init__
+    self._handle = _dlopen(self._name, mode)
+OSError: /home/rcrr/base/prj/reversi/c/build/lib/reversi.so: undefined symbol: cgemv_
+>>> reversi = cdll.LoadLibrary('/home/rcrr/base/prj/reversi/c/build/lib/reversi.so')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/usr/lib/python3.10/ctypes/__init__.py", line 452, in LoadLibrary
+    return self._dlltype(name)
+  File "/usr/lib/python3.10/ctypes/__init__.py", line 374, in __init__
+    self._handle = _dlopen(self._name, mode)
+OSError: /home/rcrr/base/prj/reversi/c/build/lib/reversi.so: undefined symbol: kost_mm
+>>> 
+>>> 
+>>> 
+>>> 
+>>> reversi = cdll.LoadLibrary('/home/rcrr/base/prj/reversi/c/build/lib/reversi.so')
+>>> reversi._
+reversi._FuncPtr(        reversi._func_flags_     reversi._func_restype_(  reversi._handle          reversi._name            
+>>> reversi_board_init = reversi.board_module_init()
+>>> reversi_board_init
+1
+>>> pass_move = reversi.pass_move
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/usr/lib/python3.10/ctypes/__init__.py", line 387, in __getattr__
+    func = self.__getitem__(name)
+  File "/usr/lib/python3.10/ctypes/__init__.py", line 392, in __getitem__
+    func = self._FuncPtr((name_or_ordinal, self))
+AttributeError: /home/rcrr/base/prj/reversi/c/build/lib/reversi.so: undefined symbol: pass_move
+>>> reversi.game_position_x_pass
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/usr/lib/python3.10/ctypes/__init__.py", line 387, in __getattr__
+    func = self.__getitem__(name)
+  File "/usr/lib/python3.10/ctypes/__init__.py", line 392, in __getitem__
+    func = self._FuncPtr((name_or_ordinal, self))
+AttributeError: /home/rcrr/base/prj/reversi/c/build/lib/reversi.so: undefined symbol: game_position_x_pass
+>>> reversi.game_position_x_legal_moves
+<_FuncPtr object at 0x7f2473622500>
+>>> 
+>>> 
+>>> 
+>>> reversi.board_trans_flip_horizontal
+<_FuncPtr object at 0x7f2473622800>
+>>> board_trans_flip_horizontal = reversi.board_trans_flip_horizontal
+>>> board_trans_flip_horizontal.
+board_trans_flip_horizontal.argtypes  board_trans_flip_horizontal.errcheck  board_trans_flip_horizontal.restype(  
+>>> board_trans_flip_horizontal.restype
+<class 'ctypes.c_int'>
+>>> board_trans_flip_horizontal.argtypes
+>>> 
+>>> board_trans_flip_horizontal.argtypes
+>>> board_trans_flip_horizontal.argtypes
+board_trans_flip_horizontal.argtypes
+>>> board_trans_flip_horizontal.argtypes
+>>> board_trans_flip_horizontal(0)
+0
+>>> board_trans_flip_horizontal(1)
+0
+>>> x = board_trans_flip_horizontal(1)
+>>> x
+0
+>>> 
+>>> 
+>>> x = board_trans_flip_horizontal(123)
+>>> x
+0
+>>> board_trans_flip_horizontal.restype = c_longlong
+>>> board_trans_flip_horizontal.argtypes = [c_long_long]
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+NameError: name 'c_long_long' is not defined. Did you mean: 'c_longlong'?
+>>> board_trans_flip_horizontal.argtypes = [c_longlong]
+>>> x = board_trans_flip_horizontal(1)
+>>> x
+72057594037927936
+>>> hex('FF')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: 'str' object cannot be interpreted as an integer
+>>> hex('FF', 0)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: hex() takes exactly one argument (2 given)
+>>> hex(x)
+'0x100000000000000'
+>>> x = board_trans_flip_horizontal(int('FF'))
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ValueError: invalid literal for int() with base 10: 'FF'
+>>> x = board_trans_flip_horizontal(int('FF', 0))
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ValueError: invalid literal for int() with base 0: 'FF'
+>>> x = board_trans_flip_horizontal(int('FF', 16))
+>>> x
+-72057594037927936
+>>> board_trans_flip_horizontal.argtypes = [c_ulonglong]
+>>> board_trans_flip_horizontal.restype = c_ulonglong
+>>> x = board_trans_flip_horizontal(int('FF', 16))
+>>> x
+18374686479671623680
+>>> hex(x)
+'0xff00000000000000'
+>>> x = board_trans_flip_horizontal(int('ff00000000000000', 16))
+>>> hex(x)
+'0xff'
+>>> 
+

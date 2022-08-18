@@ -1,7 +1,7 @@
 
   README-BLIS-FLAME
 
-  Copyright (c) 2020 Roberto Corradini. All rights reserved.
+  Copyright (c) 2020, 2022 Roberto Corradini. All rights reserved.
 
   This file is part of the reversi program
   http://github.com/rcrr/reversi
@@ -51,6 +51,20 @@ $ rhash --sha3-256 lib/haswell/libblis.a
 96826cc89fe679162eb52e5e7cb1f87defa53e31fb01d3541d19fd2bd40b884f  lib/haswell/libblis.a
 $ rhash --sha3-256 include/haswell/blis.h 
 906ccff5b95629892a75388f0f7543797031ecf483bc2d3e1718c88613f86b1a  include/haswell/blis.h
+
+
+New version on 2022-08-18
+
+Added CFLAGS=-fpic to the configure commands in order to be able to create the shared library reversi.so
+
+$ rhash --sha3-256 lib/haswell/libblis.a
+eb49f7f3b1b7ee6770f03e6383d1708e1ae04224d76752cb6d98bb3b470d7234  lib/haswell/libblis.a
+$ rhash --sha3-256 include/haswell/blis.h 
+0fa64fa91474835ba7730316f94075a8de9c884f8b2a68ad126cf0c0701d0966  include/haswell/blis.h
+$ rhash --sha3-256 lib/x86_64-unknown-linux-gnu/libflame.a
+458d92d1f0f7b1faa00c3a88ea84109fa001d515d315a736b36aa1cfa8157131  lib/x86_64-unknown-linux-gnu/libflame.a
+$ rhash --sha3-256 include/x86_64-unknown-linux-gnu/FLAME.h 
+72e747961de28e26dff1bd5002448a01354e22d592f58433fb22a71f80961d13  include/x86_64-unknown-linux-gnu/FLAME.h
 
 
 
@@ -144,7 +158,7 @@ $ cd blis
 
 $ ./configure --help
 
-$ ./configure --enable-cblas --enable-threading=openmp haswell
+$ CFLAGS=-fpic ./configure --enable-cblas --enable-threading=openmp haswell
 $ make
 $ make check
 
@@ -263,7 +277,7 @@ $ cd libflame
 
 $ ./configure --help
 
-$ ./configure --enable-max-arg-list-hack --enable-lapack2flame --enable-debug --enable-multithreading=openmp --enable-supermatrix
+$ CFLAGS=-fpic ./configure --enable-max-arg-list-hack --enable-lapack2flame --enable-debug --enable-multithreading=openmp --enable-supermatrix
 
 $ make
 

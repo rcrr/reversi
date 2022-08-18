@@ -76,6 +76,7 @@ OBJDIR          := $(BUILDDIR)/obj
 ENDGAME_LOG_DIR := $(BUILDDIR)/out
 BTESTDIR        := $(BUILDDIR)/test
 TMPDIR          := $(BUILDDIR)/tmp
+LIBDIR          := $(BUILDDIR)/lib
 # build/test
 TEST_OBJDIR     := $(BTESTDIR)/obj
 TEST_BINDIR     := $(BTESTDIR)/bin
@@ -118,6 +119,7 @@ ASMS  = $(addsuffix .s,$(basename $(subst $(SRCDIR),$(ASMDIR),$(SRCS))))
 BINS  = $(addprefix $(BINDIR)/,$(MAINS))
 SOBJS = $(addsuffix .o,$(basename $(subst $(SRCDIR),$(OBJDIR),$(SASMS))))
 OBJS += $(SOBJS)
+LIBOBJS = $(addprefix $(OBJDIR)/,$(addsuffix .o,$(MODULES) $(S_MODULES)))
 
 #
 # Executable files (main programs), it takes the list in the MAINS variable,
@@ -288,8 +290,8 @@ UTEST_BINS := $(addprefix $(TEST_BINDIR)/,$(UTEST_MAINS))
 # add -ftree-vectorize -ftree-vectorizer-verbose=2 to get from gcc the explanation for code vectorization
 # add -flto to the CFLAGS list to improve execution speed ( it takes much more to link executables )
 ARCH_FLAGS := -mpopcnt -mavx2 -mfma -mbmi -mbmi2 -mlzcnt
-CFLAGS := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g3 -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fopenmp
-CFLAGS_TEST := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g0 -O3 $(ARCH_FLAGS) -I$(EXT_INC) -fopenmp
+CFLAGS := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g3 -O3 $(ARCH_FLAGS) -I$(PG_INCLUDE_DIR) -I$(EXT_INC) -fopenmp -fpic
+CFLAGS_TEST := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g0 -O3 $(ARCH_FLAGS) -I$(EXT_INC) -fopenmp -fpic
 LDFLAGS :=
 LDFLAGS_TEST :=
 ASFLAGS := -c -g -O
@@ -464,7 +466,7 @@ test: $(UTEST_MAINS) $(BIN_UTEST)
 
 asm: $(ASMS)
 
-build_dirs: $(BUILDDIR) $(OBJDIR) $(BINDIR) $(DOCDIR) $(BTESTDIR) $(ASMDIR) $(TMPDIR) \
+build_dirs: $(BUILDDIR) $(OBJDIR) $(BINDIR) $(DOCDIR) $(BTESTDIR) $(ASMDIR) $(TMPDIR) $(LIBDIR) \
             $(ENDGAME_LOG_DIR) $(TEST_OBJDIR) $(TEST_BINDIR)
 
 $(BUILDDIR): $(BUILDDIR)/.dir_sentinel
@@ -514,6 +516,12 @@ $(TMPDIR): $(TMPDIR)/.dir_sentinel $(BUILDDIR)/.dir_sentinel
 $(TMPDIR)/.dir_sentinel:
 	mkdir -p $(TMPDIR)
 	touch $(TMPDIR)/.dir_sentinel
+
+$(LIBDIR): $(LIBDIR)/.dir_sentinel $(BUILDDIR)/.dir_sentinel
+
+$(LIBDIR)/.dir_sentinel:
+	mkdir -p $(LIBDIR)
+	touch $(LIBDIR)/.dir_sentinel
 
 $(BTESTDIR): $(BTESTDIR)/.dir_sentinel $(BUILDDIR)/.dir_sentinel
 
@@ -1880,6 +1888,7 @@ info:
 	@echo "TEST_INCLUDE = "$(TEST_INCLUDE)
 	@echo "CFLAGS = "$(CFLAGS)
 	@echo "PG_INCLUDE_DIR = "$(PG_INCLUDE_DIR)
+	@echo "LIBOBJS = "$(LIBOBJS)
 
 
 $(ENDGAME_LOG_DIR): $(ENDGAME_LOG_DIR)/.dir_sentinel $(BUILDDIR)/.dir_sentinel
@@ -1925,3 +1934,6 @@ dat2csv: read_game_tree_log $(ENDGAME_LOG_DIR)/.dir_sentinel
 	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/minimax_log-ffo-01-simplified-4.dat >       $(ENDGAME_LOG_DIR)/minimax_log-ffo-01-simplified-4.csv
 	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/rab_solver_log-ffo-01-simplified-4_n3.dat > $(ENDGAME_LOG_DIR)/rab_solver_log-ffo-01-simplified-4_n3.csv
 	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/random_game_sampler_log-t100.dat >          $(ENDGAME_LOG_DIR)/random_game_sampler_log-t100.csv
+
+lib: $(LIBOBJS) $(BLIS_LIB) $(FLAME_LIB) $(LIBDIR)/.dir_sentinel
+	gcc -shared -o $(LIBDIR)/reversi.so $(LIBOBJS) $(BLIS_LIB) $(FLAME_LIB) -fopenmp -lpq -lblas
