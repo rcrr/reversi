@@ -459,7 +459,7 @@ UTS_BIT_WORKS_DEP := $(UTS_BIT_WORKS) $(HDR_BIT_WORKS_DEP) $(HDR_UNIT_TEST_DEP)
 # Targets
 #
 
-all: build_dirs $(MAINS) $(MODULES) $(UTEST_MAINS)
+all: build_dirs $(MAINS) $(MODULES) $(UTEST_MAINS) lib
 
 test: $(UTEST_MAINS) $(BIN_UTEST)
 	./build/bin/utest -s=/utest/fail -s=/utest/abort -s=/utest/exit -s=/utest/assert_false $(UTEST_BINS)
