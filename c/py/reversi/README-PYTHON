@@ -1,0 +1,25 @@
+
+Documentation on Python Packages and Modules
+
+  https://realpython.com/python-modules-packages/
+
+### ### ###
+
+Run python from the $(HOME_REVESI)/c folder.
+
+>>> import sys
+>>> sys.path
+>>> sys.path.append("./py")
+
+>>> import reversi
+
+>>> from importlib import reload
+>>> reload(reversi)
+
+>>> from reversi.board import *
+
+
+### ### ###
+
+# Removes all objects/modules from the REPL env
+>>> sys.modules[__name__].__dict__.clear()
