@@ -31,8 +31,10 @@ import ctypes as ct
 import numpy as np
 import re
 
-from enum import Enum
+import operator, functools
 
+from enum import Enum
+    
 # Defines SquareSet as an alias for numpy.uint64
 # SquareSet = np.uint64
 # Or better as a sub-class of numpy.uint64
@@ -85,7 +87,30 @@ class SquareSet(np.uint64):
         if not isinstance(i, np.int64):
             raise TypeError('Argument i is not an instance of numpy.int64')
         return SquareSet(np.uint64(i))
+    
+    @classmethod
+    def new_from_list(cls, l: list) -> 'SquareSet':
+        """
+        Returns a new SquareSet object from a list of Square given as argument.
 
+        Example:
+          l = [Square.G3, Square.A1, Square.F2]
+          s = SquareSet.new_from_list(l)
+        """
+        if not isinstance(l, list):
+            raise TypeError('Argument l is not an instance of list')
+        if not all([isinstance(e, Square) for e in l]):
+            raise TypeError('Argument l must have all elements belonging to Square type')
+        lu = np.uint64([square.value for square in l])
+        return SquareSet(functools.reduce(lambda a, b: a | (np.uint(1) << b), lu, np.uint64(0)))
+
+    def add_bit(self, pos: int) -> 'SquareSet':
+        return SquareSet(self | np.uint64(1) << np.uint64(pos))
+
+    def list(self):
+        is_filled = [bool(int(element)) for element in '{:064b}'.format(self)[::-1]]
+        return [square for (square, included) in list(zip(list(Square), is_filled)) if included]
+    
     def print(self):
         one = SquareSet(1)
         sq = SquareSet(1)
@@ -197,6 +222,11 @@ Square = Enum("Square",
                'A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8',
               ], start = 0)
 
+def move(self):
+    return Move[self.name]
+
+Square.move = move
+
 
 Move = Enum("Move",
             [
@@ -254,14 +284,16 @@ class Board:
         return SquareSet(~(self.mover | self.opponent))
 
     def legal_moves(self) -> SquareSet:
-        f = libreversi.game_position_x_legal_moves
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_void_p]
-        gph = GamePositionHelper(self.mover, self.opponent, Player.BLACK.value)
-        gph_p = ct.pointer(gph)
-        lms = SquareSet(f(gph_p))
-        return lms
+        return GamePosition(self.mover, self.opponent, Player.BLACK).legal_moves()
 
+    # TODO: missing board methods:
+    #
+    # - All the board transformations defined on SquareSet
+    # - Methods equivalent to GamePosition when applicable
+    #
+    # - Pattern index computation ... see board_trans.h and board_patterns.h
+    #
+    
     def print(self):
         one = SquareSet(1)
         sq = SquareSet(1)
@@ -334,8 +366,8 @@ class GamePosition:
             raise ValueError('Argument s must have charater ; at position 64')
         if not s[65] in ['b', 'w']:
             raise ValueError('Argument s must have charater b or w at position 66')
-        b = s[0:64].replace('b', '1').replace('w', '0').replace('.','0')
-        w = s[0:64].replace('b', '0').replace('w', '1').replace('.','0')
+        b = s[-3::-1].replace('b', '1').replace('w', '0').replace('.','0')
+        w = s[-3::-1].replace('b', '0').replace('w', '1').replace('.','0')
         return GamePosition(SquareSet.new_from_bin(b), SquareSet.new_from_bin(w), Player.BLACK  if s[65] == 'b' else Player.WHITE)
 
     @classmethod
@@ -363,6 +395,39 @@ class GamePosition:
                     verboseprint("Line {:04d}: {}".format(count, line))
 
         return game_positions
+
+    def legal_moves(self) -> SquareSet:
+        f = libreversi.game_position_x_legal_moves
+        f.restype = ct.c_ulonglong
+        f.argtypes = [ct.c_void_p]
+        gph = GamePositionHelper(self.blacks, self.whites, self.player.value)
+        gph_p = ct.pointer(gph)
+        lms = SquareSet(f(gph_p))
+        return lms
+
+    # WORKS ... we need to insert checks ....
+    def make_move(self, m: Move) -> 'GamePosition':
+        f = libreversi.game_position_x_make_move
+        f.argtypes = [ct.c_void_p, ct.c_int, ct.c_void_p]
+        current = GamePositionHelper(self.blacks, self.whites, self.player.value)
+        move = m.value
+        updated = GamePositionHelper(self.blacks, self.whites, self.player.value)
+        current_p = ct.pointer(current)
+        updated_p = ct.pointer(updated)
+        f(current_p, move, updated_p)
+        return GamePosition(SquareSet(updated.blacks), SquareSet(updated.whites), Player(updated.player))
+
+    # To DO GamePosition methods:
+    #  - hash()
+    #  - count_difference()
+    #  - final_value()
+    #  - has_any_legal_move()
+    #  - has_any_player_any_legal_move()
+    #  - is_move_legal()
+    #  - flips()
+    #
+    #  - Solvers ?
+    #
     
     def print(self):
         one = SquareSet(1)
@@ -382,32 +447,3 @@ class GamePosition:
             print()
         print('  To move:', self.player)
         return
-    
-
-    
-ffo_positions = {
-    'ffo-01': GamePosition.new_from_string('..bbbbb..wwwbb.w.wwwbbwb.wbwbwbbwbbbwbbb..bwbwbb.bbbwww..wwwww..;b')
-}
-
-#
-# FFO positions from 1 to 19.
-#
-#ffo-01;..bbbbb..wwwbb.w.wwwbbwb.wbwbwbbwbbbwbbb..bwbwbb.bbbwww..wwwww..;b; G8:+18. H1:+12. H7:+6. A2:+6. A3:+4. B1:-4. A4:-22. G2:-24.;
-#ffo-02;.bbbbbb...bwwww..bwbbwwb.wwwwwwwwwwwbbwwwwwbbwwb..bbww....bbbbb.;b; A4:+10. B2:+0. A3:-6. G7:-8. A7:-12. H7:-14. B7:-14. H2:-24.;
-#ffo-03;....wb....wwbb...wwwbb.bwwbbwwwwwbbwbbwwwbbbwwwwwbbbbwbw..wwwwwb;b; D1:+2. G3:+0. B8:-2. B1:-4. C1:-4. A2:-4. A3:-6. B2:-12.;
-#ffo-04;.bbbbbb.b.bbbww.bwbbbwwbbbwbwwwb.wbwwbbb..wwwbbb..wwbb....bwbbw.;b; H8:+0. A5:+0. B6:-4. B7:-4. A6:-8. B2:-12. H2:-26.;
-#ffo-05;.wwwww....wbbw.bbbwbwbb.bbwbwbbwbbwwbwwwbbbbww.wb.bwww...bbbbb..;b; G8:+32. G2:+12. B2:-20. G6:-26. G1:-32. G7:-34.;
-#ffo-06;..wbbb..wwwbbb..wwwbwbw.wwbwwwb.wwbbbbbbbwwbbwb..wwwwb...bbbbbb.;b; A1:+14. H3:+14. A8:+12. H2:+8. G2:+8. H4:+4. G7:+4. A7:-22. B1:-24.;
-#ffo-07;..wbbw..bwbbbb..bwwwbbbbbwwbbbbbbwwwwbbb.bbbbbbb..bbwww....bbww.;b; A6:+8. G1:+0. A1:-2. H8:-6. H7:-14. B1:-30.;
-#ffo-08;...b.b..b.bbbb..bbbbwbbbbbbwwwwwbbwbbbw.bwbbbbw.bwwbbb..bwwbbw..;w; E1:+8. H2:+4. G2:+4. B2:+4. G7:+4. B1:+2. G1:-6. C1:-8.;
-#ffo-09;..bwbb..w.wwbbbb.wwwbbbb.bwbbbwbbbwbwwwbwbbwbwbb..wbww....wwww..;w; G7:-8. A4:-8. B1:-16. A7:-16. B7:-26. A3:-30. G1:-38. H7:-40.;
-#ffo-10;.bbbb.....wbbb..bwbwbwbbwbwbbwbbwbbwbwwwbbbwbwwb..wbbw...wwwww..;w; B2:+10. B7:+4. F1:+0. A7:-4. A2:-6. G2:-12. H2:-16. H7:-20.;
-#ffo-11;...w.bwb....bbwb...bbwwbw.bbwbwbbbbwwbwb.bwwbbbbbwwwbb.bwwwwwww.;w; B3:+30. C2:+26. A6:+24. G7:+20. C3:+18. D2:+16. B4:+10. E1:+6.;
-#ffo-12;..w..w..b.wwwwb.bbwwwbwwbbwbwbwwbbwbbwwwbbbbwwww..wbbb...bbbbb..;w; B7:-8. A7:-10. G7:-14. G8:-14. H2:-16. G1:-16. H1:-20.;
-#ffo-13;..bbbbb..wwwbb...wwwbbbb.wbwbwbbwbbbwbbb..bwbwbb..wbwww..wwwww..;b; B7:+14. A4:+0. A3:-8. B1:-18. G8:-20. H7:-20. A2:-24.;
-#ffo-14;..bbbbb...wwwb...bwwbbbb.wwwwwwwwwwbbbwwwwwbbwwb..bbww....bbbbb.;b; A3:+18. A4:+12. B1:+8. G7:-4. H7:-14. A7:-24. B7:-24. B2:-28.;
-#ffo-15;....w......wwb...wwwbb.bwwwbwwwwwbbwbbwwwbbbwwwwwbbbwwbw..wwwwwb;b; G3:+4. B8:+4. F1:+0. C1:+0. C2:-2. D1:-4. B2:-8. A3:-8.;
-#ffo-16;.bbbbbb.b.bbbww.bwbbbwwbbwwbbbwb.wwwbbbb..wwbbbb...www....bwb.w.;b; F8:+24. C7:+20. A5:+6. H1:+6. B6:+0. B7:-2. A6:-6. H2:-26.;
-#ffo-17;.wwwww....wbbw.bbbwwwbb.bbwbwbbwbbwwbwwwbbbbww.wb.bww....bbbb...;b; F8:+8. G2:+6. G6:-24. G1:-32. F7:-32. G7:-34. B2:-38.;
-#ffo-18;.bbb......wwwb..bwwwwwbbwbwbwwbbwbbwwwwwbbbwbwwb..wbbw...wwwww..;b; G2:-2. B7:-6. F1:-8. E1:-10. H7:-12. G8:-14. G7:-14. A2:-18. B2:-18.;
-#ffo-19;..wbbw..bwbbbb..bwwwwbbbbwwwbbbbb.wwwbbb..wwwwbb..bbwww....bbww.;b; B6:+8. H8:+4. B7:+0. G1:-6. B5:-16. H7:-16. B1:-24.;
