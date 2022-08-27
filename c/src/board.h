@@ -218,6 +218,9 @@ square_is_valid_move (const Square move);
 /* Function prototypes for the SquareSet entity. */
 /*************************************************/
 
+extern uint8_t
+square_set_count (SquareSet set);
+
 extern size_t
 square_set_to_string (char *const to_string,
                       const SquareSet squares);

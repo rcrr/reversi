@@ -21,5 +21,6 @@ Run python from the $(HOME_REVESI)/c folder.
 
 ### ### ###
 
-# Removes all objects/modules from the REPL env
->>> sys.modules[__name__].__dict__.clear()
+# running unit tests ( run from the $(REVERSI_HOME)/c folder )
+
+$ python -m unittest discover -s ./py

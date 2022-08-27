@@ -366,6 +366,12 @@ square_is_valid_move (const Square move)
 /* Function implementations for the SquareSet entity. */
 /******************************************************/
 
+uint8_t
+square_set_count (SquareSet set)
+{
+  return bitw_bit_count_64(set);
+}
+
 /**
  * @brief Prepares a string representation for the square set.
  *

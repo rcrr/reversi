@@ -104,8 +104,17 @@ class SquareSet(np.uint64):
         lu = np.uint64([square.value for square in l])
         return SquareSet(functools.reduce(lambda a, b: a | (np.uint(1) << b), lu, np.uint64(0)))
 
-    def add_bit(self, pos: int) -> 'SquareSet':
+    def fill_square_at_position(self, pos: int) -> 'SquareSet':
         return SquareSet(self | np.uint64(1) << np.uint64(pos))
+
+    def remove_square_at_position(self, pos: int) -> 'SquareSet':
+        return SquareSet(self & ~(np.uint64(1) << np.uint64(pos)))
+
+    def count(self) -> int:
+        f = libreversi.square_set_count
+        f.restype = ct.c_ubyte
+        f.argtypes = [ct.c_ulonglong]
+        return f(self)
 
     def list(self):
         is_filled = [bool(int(element)) for element in '{:064b}'.format(self)[::-1]]
@@ -242,12 +251,12 @@ Move = Enum("Move",
             ], start = 0)
 
 
-class BoardHelper(ct.Structure):
+class BoardCTHelper(ct.Structure):
     _fields_ = [("m", ct.c_ulonglong),
                 ("o", ct.c_ulonglong)]
 
 
-class GamePositionHelper(ct.Structure):
+class GamePositionCTHelper(ct.Structure):
     _fields_ = [("blacks", ct.c_ulonglong),
                 ("whites", ct.c_ulonglong),
                 ("player", ct.c_ushort)]
@@ -263,6 +272,7 @@ class Board:
             raise ValueError('Arguments mover and opponent have overlapping squares')
         self.mover = mover
         self.opponent = opponent
+        self.lms = None
 
     @classmethod
     def new_from_hexes(cls, mover: str, opponent: str) -> 'Board':
@@ -279,13 +289,34 @@ class Board:
         m = SquareSet.new_from_hex(mover)
         o = SquareSet.new_from_hex(opponent)
         return Board(m, o)
+
+    def game_position(self) -> 'GamePosition':
+        gp = GamePosition(self.mover, self.opponent, Player.BLACK)
+        if self.lms:
+            gp.lms = self.lms
+        return gp
         
     def empties(self) -> SquareSet:
         return SquareSet(~(self.mover | self.opponent))
 
     def legal_moves(self) -> SquareSet:
-        return GamePosition(self.mover, self.opponent, Player.BLACK).legal_moves()
+        if not self.lms:
+            self.lms = self.game_position().legal_moves()
+        return self.lms
 
+    def count_difference(self) -> int:
+        return self.mover.count() - self.opponent.count()
+
+    def final_value(self) -> int:
+        mc = self.mover.count()
+        oc = self.opponent.count()
+        diff = mc - oc
+        empties = 64 - (mc + oc)
+        return diff + empties if diff > 0 else diff - empties
+
+    def has_any_legal_move(self) -> bool:
+        return True if self.legal_moves() else False
+    
     # TODO: missing board methods:
     #
     # - All the board transformations defined on SquareSet
@@ -326,6 +357,7 @@ class GamePosition:
         self.blacks = blacks
         self.whites = whites
         self.player = player
+        self.lms = None
 
     @classmethod
     def new_from_hexes(cls, blacks: str, whites: str, player: Player) -> 'GamePosition':
@@ -396,34 +428,67 @@ class GamePosition:
 
         return game_positions
 
+    def board(self) -> Board:
+        if self.player is Player.BLACK:
+            m = self.blacks
+            o = self.whites
+        else:
+            m = self.whites
+            o = self.blacks
+        b = Board(m, o)
+        if self.lms:
+            b.lms = self.lms
+        return b
+    
     def legal_moves(self) -> SquareSet:
-        f = libreversi.game_position_x_legal_moves
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_void_p]
-        gph = GamePositionHelper(self.blacks, self.whites, self.player.value)
-        gph_p = ct.pointer(gph)
-        lms = SquareSet(f(gph_p))
-        return lms
+        if not self.lms:
+            f = libreversi.game_position_x_legal_moves
+            f.restype = ct.c_ulonglong
+            f.argtypes = [ct.c_void_p]
+            gph = GamePositionCTHelper(self.blacks, self.whites, self.player.value)
+            gph_p = ct.pointer(gph)
+            lms = SquareSet(f(gph_p))
+            self.lms = lms
+        return self.lms
 
-    # WORKS ... we need to insert checks ....
+    def is_move_legal(self, m: Move) -> bool:
+        if not isinstance(m, Move):
+            raise TypeError('Argument m is not an instance of Move')
+        if m.value > Move.PA.value:
+            return False
+        if not self.lms:
+            self.legal_moves()
+        if m == Move.PA:
+            return self.lms == 0
+        return Square(m.value) in self.lms.list()
+    
     def make_move(self, m: Move) -> 'GamePosition':
+        if not isinstance(m, Move):
+            raise TypeError('Argument m is not an instance of Move')
+        if not self.is_move_legal(m):
+            raise ValueError('Argument m is not legal')
         f = libreversi.game_position_x_make_move
         f.argtypes = [ct.c_void_p, ct.c_int, ct.c_void_p]
-        current = GamePositionHelper(self.blacks, self.whites, self.player.value)
+        current = GamePositionCTHelper(self.blacks, self.whites, self.player.value)
         move = m.value
-        updated = GamePositionHelper(self.blacks, self.whites, self.player.value)
+        updated = GamePositionCTHelper(self.blacks, self.whites, self.player.value)
         current_p = ct.pointer(current)
         updated_p = ct.pointer(updated)
         f(current_p, move, updated_p)
         return GamePosition(SquareSet(updated.blacks), SquareSet(updated.whites), Player(updated.player))
 
-    # To DO GamePosition methods:
+    def count_difference(self) -> int:
+        return self.board().count_difference()
+
+    def final_value(self) -> int:
+        return self.board().final_value()
+    
+    def has_any_legal_move(self) -> bool:
+        return True if self.legal_moves() else False
+
+    # TO DO GamePosition methods:
     #  - hash()
-    #  - count_difference()
-    #  - final_value()
-    #  - has_any_legal_move()
     #  - has_any_player_any_legal_move()
-    #  - is_move_legal()
     #  - flips()
     #
     #  - Solvers ?
