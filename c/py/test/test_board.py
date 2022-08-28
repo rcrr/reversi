@@ -34,6 +34,42 @@ from reversi.board import *
 
 import numpy as np
 
+import io
+from contextlib import redirect_stdout
+
+
+class TestPlayer(unittest.TestCase):
+
+    def test_basics(self):
+        self.assertEqual(Player(0), Player.BLACK)
+
+    def test_opponent(self):
+        p = Player.BLACK
+        o = p.opponent()
+        self.assertEqual(Player.WHITE, o)
+        
+        p = Player.WHITE
+        o = p.opponent()
+        self.assertEqual(Player.BLACK, o)
+
+
+class TestColor(unittest.TestCase):
+
+    def test_sanity_check(self):
+        self.assertEqual(1, 1)
+
+
+class TestSquare(unittest.TestCase):
+
+    def test_sanity_check(self):
+        self.assertEqual(1, 1)
+
+
+class TestMove(unittest.TestCase):
+
+    def test_sanity_check(self):
+        self.assertEqual(1, 1)
+
 
 class TestSquareSet(unittest.TestCase):
 
@@ -98,7 +134,27 @@ class TestSquareSet(unittest.TestCase):
         self.assertIsInstance(context.exception, TypeError)
 
     def test_fill_square_at_position(self):
-        pass
+        with self.assertRaises(TypeError) as context:
+            s = SquareSet(1)
+            s.fill_square_at_position(None)
+        self.assertIsInstance(context.exception, TypeError)
+
+        sb = SquareSet(1)
+        sa = s.fill_square_at_position(0)
+        self.assertEqual(sb, sa)
+
+        sb = SquareSet(1)
+        sa = s.fill_square_at_position(1)
+        se = SquareSet(3)
+        self.assertEqual(se, sa)
+
+        sb = SquareSet(1)
+        sa = s.fill_square_at_position(-1)
+        self.assertEqual(sb, sa)
+
+        sb = SquareSet(1)
+        sa = s.fill_square_at_position(64)
+        self.assertEqual(sb, sa)
 
     def test_remove_square_at_position(self):
         pass
@@ -108,11 +164,25 @@ class TestSquareSet(unittest.TestCase):
 
     def test_list(self):
         pass
-
-    # see: https://realpython.com/lessons/mocking-print-unit-tests/
+    
     def test_print(self):
-        pass
 
+        with io.StringIO() as buf, redirect_stdout(buf):
+            SquareSet(4).print()
+            output = buf.getvalue()
+        
+        expected = ("  a b c d e f g h\n"
+                    "1 . . x . . . . .\n"
+                    "2 . . . . . . . .\n"
+                    "3 . . . . . . . .\n"
+                    "4 . . . . . . . .\n"
+                    "5 . . . . . . . .\n"
+                    "6 . . . . . . . .\n"
+                    "7 . . . . . . . .\n"
+                    "8 . . . . . . . .\n")
+
+        self.assertEqual(output, expected)
+    
     def test_to_hex(self):
         pass
 
@@ -145,3 +215,17 @@ class TestSquareSet(unittest.TestCase):
 
     def test_trans_identity(self):
         pass
+
+
+class TestBoard(unittest.TestCase):
+
+    def test_sanity_check(self):
+        self.assertEqual(1, 1)
+
+
+class TestGamePosition(unittest.TestCase):
+
+    def test_sanity_check(self):
+        self.assertEqual(1, 1)
+
+

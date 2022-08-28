@@ -34,10 +34,84 @@ import re
 import operator, functools
 
 from enum import Enum
+
+
+class Player(Enum):
+    """
+    Reversi game player.
+
+    It could be either BLACK or WHITE.
+
+    Methods
+    -------
+    opponent()
+        Returns the other player.
+    """
+    BLACK = 0
+    WHITE = 1
     
-# Defines SquareSet as an alias for numpy.uint64
-# SquareSet = np.uint64
-# Or better as a sub-class of numpy.uint64
+    def opponent(self):
+        """
+        Returns the WHITE player if player is BLACK, vice-versa otherwise.
+        """
+        return Player.WHITE if self == Player.BLACK else Player.BLACK
+
+
+class Color(Enum):
+    BLACK = 0
+    WHITE = 1
+    EMPTY = 2
+    
+    def symbol(self):
+        match self:
+            case Color.BLACK:
+                return '@'
+            case Color.WHITE:
+                return 'O'
+            case Color.EMPTY:
+                return '.'
+            case _:
+                return 'X'
+
+
+Square = Enum("Square",
+              [
+               'A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1',
+               'A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2',
+               'A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3',
+               'A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4',
+               'A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5',
+               'A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6', 'H6',
+               'A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7', 'H7',
+               'A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8',
+              ], start = 0)
+
+def move(self):
+    return Move[self.name]
+
+Square.move = move
+
+
+Move = Enum("Move",
+            [
+             'A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1',
+             'A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2',
+             'A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3',
+             'A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4',
+             'A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5',
+             'A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6', 'H6',
+             'A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7', 'H7',
+             'A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8',
+             'PA', 'NA', 'UN'
+            ], start = 0)
+
+
+class GamePositionCTHelper(ct.Structure):
+    _fields_ = [("blacks", ct.c_ulonglong),
+                ("whites", ct.c_ulonglong),
+                ("player", ct.c_ushort)]
+
+
 class SquareSet(np.uint64):
 
     @classmethod
@@ -105,6 +179,16 @@ class SquareSet(np.uint64):
         return SquareSet(functools.reduce(lambda a, b: a | (np.uint(1) << b), lu, np.uint64(0)))
 
     def fill_square_at_position(self, pos: int) -> 'SquareSet':
+        """
+        Returns a new SquareSet object having the the same configuration of the object plus the
+        square at position being filled.
+        When position is out of range [0..63] no fill occurs.
+        When the position is already filled the returned configuration is unchanged.
+
+        Example:
+          sb = SquareSet(1)                 # sa is '0000000000000001'
+          sa = s.fill_square_at_position(1) # sb is '0000000000000003'
+        """
         return SquareSet(self | np.uint64(1) << np.uint64(pos))
 
     def remove_square_at_position(self, pos: int) -> 'SquareSet':
@@ -189,77 +273,6 @@ class SquareSet(np.uint64):
 
     def trans_identity(self) -> 'SquareSet':
         return SquareSet(self)
-
-
-class Player(Enum):
-    BLACK = 0
-    WHITE = 1
-    
-    def opponent(self):
-        if self == Player.BLACK:
-            return Player.WHITE
-        else:
-            return Player.BLACK
-
-
-class Color(Enum):
-    BLACK = 0
-    WHITE = 1
-    EMPTY = 2
-    
-    def symbol(self):
-        match self:
-            case Color.BLACK:
-                return '@'
-            case Color.WHITE:
-                return 'O'
-            case Color.EMPTY:
-                return '.'
-            case _:
-                return 'X'
-
-
-Square = Enum("Square",
-              [
-               'A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1',
-               'A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2',
-               'A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3',
-               'A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4',
-               'A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5',
-               'A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6', 'H6',
-               'A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7', 'H7',
-               'A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8',
-              ], start = 0)
-
-def move(self):
-    return Move[self.name]
-
-Square.move = move
-
-
-Move = Enum("Move",
-            [
-             'A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1',
-             'A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2',
-             'A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3',
-             'A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4',
-             'A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5',
-             'A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6', 'H6',
-             'A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7', 'H7',
-             'A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8',
-             'PA', 'NA', 'UN'
-            ], start = 0)
-
-
-class BoardCTHelper(ct.Structure):
-    _fields_ = [("m", ct.c_ulonglong),
-                ("o", ct.c_ulonglong)]
-
-
-class GamePositionCTHelper(ct.Structure):
-    _fields_ = [("blacks", ct.c_ulonglong),
-                ("whites", ct.c_ulonglong),
-                ("player", ct.c_ushort)]
 
 
 class Board:
