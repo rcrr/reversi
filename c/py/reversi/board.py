@@ -58,11 +58,24 @@ class Player(Enum):
 
 
 class Color(Enum):
+    """
+    Reversi color of a square.
+
+    It could be either BLACK, WHITE or EMPTY.
+
+    Methods
+    -------
+    symbol()
+        Returns the one char printable symble.
+    """
     BLACK = 0
     WHITE = 1
     EMPTY = 2
     
     def symbol(self):
+        """
+        Returns '@' for BLABK, 'O' for WHITE, and '.' for Empty.
+        """
         match self:
             case Color.BLACK:
                 return '@'
@@ -73,7 +86,7 @@ class Color(Enum):
             case _:
                 return 'X'
 
-
+""" The 64, 8x8, squares on the board. """
 Square = Enum("Square",
               [
                'A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1',
@@ -86,12 +99,22 @@ Square = Enum("Square",
                'A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8',
               ], start = 0)
 
-def move(self):
+def _move(self):
+    """ Converts a square object into a move. """
     return Move[self.name]
 
-Square.move = move
+""" Assigns the implementation to the Enum definition. """
+Square.move = _move
 
 
+"""
+Moves are the actions during the game.
+On top of the 64 moves corresponding to fill a corresponding square with a disk,
+a few more are defined:
+ - PA : Pass - It is still a well defined by the game rule action
+ - NA : Not available - Used as a flag status by the program
+ - UN : Unknown - Used when for instance it is unknown the parent move of a given game position
+"""
 Move = Enum("Move",
             [
              'A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1',
@@ -106,13 +129,18 @@ Move = Enum("Move",
             ], start = 0)
 
 
-class GamePositionCTHelper(ct.Structure):
+class _GamePositionCTHelper(ct.Structure):
     _fields_ = [("blacks", ct.c_ulonglong),
                 ("whites", ct.c_ulonglong),
                 ("player", ct.c_ushort)]
 
 
 class SquareSet(np.uint64):
+    """
+    A set of squares.
+
+    It is implemented as a bit-board of 64 bit using numpy.uint64 as parent type.
+    """
 
     @classmethod
     def new_from_hex(cls, h: str) -> 'SquareSet':
@@ -186,25 +214,44 @@ class SquareSet(np.uint64):
         When the position is already filled the returned configuration is unchanged.
 
         Example:
-          sb = SquareSet(1)                 # sa is '0000000000000001'
-          sa = s.fill_square_at_position(1) # sb is '0000000000000003'
+          sb = SquareSet(1)                  # sa is '0000000000000001'
+          sa = sb.fill_square_at_position(1) # sb is '0000000000000003'
         """
         return SquareSet(self | np.uint64(1) << np.uint64(pos))
 
     def remove_square_at_position(self, pos: int) -> 'SquareSet':
+        """
+        Returns a new SquareSet object having the the same configuration of the object minus the
+        square at position being removed.
+        When position is out of range [0..63] no fill occurs.
+        When the position is already empty the returned configuration is unchanged.
+
+        Example:
+          sb = SquareSet(3)                  # sa is '0000000000000003'
+          sa = sb.fill_square_at_position(0) # sb is '0000000000000002'
+        """
         return SquareSet(self & ~(np.uint64(1) << np.uint64(pos)))
 
     def count(self) -> int:
+        """
+        Returns the number of squares in the set.
+        """
         f = libreversi.square_set_count
         f.restype = ct.c_ubyte
         f.argtypes = [ct.c_ulonglong]
         return f(self)
 
-    def list(self):
+    def list(self) -> list:
+        """
+        Returns the square set as a list having as elements the corresponding Square objects.
+        """
         is_filled = [bool(int(element)) for element in '{:064b}'.format(self)[::-1]]
         return [square for (square, included) in list(zip(list(Square), is_filled)) if included]
     
     def print(self):
+        """
+        Prints on stdout a 2D representation of the square set.
+        """
         one = SquareSet(1)
         sq = SquareSet(1)
         print('  a b c d e f g h')
@@ -221,12 +268,22 @@ class SquareSet(np.uint64):
         return
 
     def to_hex(self) -> str:
+        """
+        Returns the hexadecimal string representation of the square set.
+        """
         return format(self, '016x')
 
     def to_bin(self) -> str:
+        """
+        Returns the binary string representation of the square set.
+        """
         return format(self, '064b')
 
     def to_signed_int(self) -> np.int64:
+        """
+        Returns the signed int 64 bit long representation of the square set.
+        It is useful to store and retrieve the value from PostgreSQL databases.
+        """
         return np.int64(self)
 
     def trans_flip_horizontal(self) -> 'SquareSet':
@@ -458,7 +515,7 @@ class GamePosition:
             f = libreversi.game_position_x_legal_moves
             f.restype = ct.c_ulonglong
             f.argtypes = [ct.c_void_p]
-            gph = GamePositionCTHelper(self.blacks, self.whites, self.player.value)
+            gph = _GamePositionCTHelper(self.blacks, self.whites, self.player.value)
             gph_p = ct.pointer(gph)
             lms = SquareSet(f(gph_p))
             self.lms = lms
@@ -482,9 +539,9 @@ class GamePosition:
             raise ValueError('Argument m is not legal')
         f = libreversi.game_position_x_make_move
         f.argtypes = [ct.c_void_p, ct.c_int, ct.c_void_p]
-        current = GamePositionCTHelper(self.blacks, self.whites, self.player.value)
+        current = _GamePositionCTHelper(self.blacks, self.whites, self.player.value)
         move = m.value
-        updated = GamePositionCTHelper(self.blacks, self.whites, self.player.value)
+        updated = _GamePositionCTHelper(self.blacks, self.whites, self.player.value)
         current_p = ct.pointer(current)
         updated_p = ct.pointer(updated)
         f(current_p, move, updated_p)
