@@ -111,6 +111,8 @@ UTEST_MAINS := ut_binary_heap ut_bit_works ut_board ut_board_pattern ut_board_tr
 
 MAINS_AND_MODULES := $(sort $(MAINS) $(MODULES))
 
+SHARED_LIB := $(LIBDIR)/reversi.so
+
 SRCS  = $(wildcard $(SRCDIR)/*.c)
 HDRS  = $(wildcard $(SRCDIR)/*.h)
 SASMS = $(wildcard $(SRCDIR)/*.s)
@@ -459,7 +461,7 @@ UTS_BIT_WORKS_DEP := $(UTS_BIT_WORKS) $(HDR_BIT_WORKS_DEP) $(HDR_UNIT_TEST_DEP)
 # Targets
 #
 
-all: build_dirs $(MAINS) $(MODULES) $(UTEST_MAINS) lib
+all: build_dirs $(MAINS) $(MODULES) $(UTEST_MAINS) $(SHARED_LIB)
 
 test: $(UTEST_MAINS) $(BIN_UTEST)
 	./build/bin/utest -s=/utest/fail -s=/utest/abort -s=/utest/exit -s=/utest/assert_false $(UTEST_BINS)
@@ -1935,5 +1937,5 @@ dat2csv: read_game_tree_log $(ENDGAME_LOG_DIR)/.dir_sentinel
 	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/rab_solver_log-ffo-01-simplified-4_n3.dat > $(ENDGAME_LOG_DIR)/rab_solver_log-ffo-01-simplified-4_n3.csv
 	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/random_game_sampler_log-t100.dat >          $(ENDGAME_LOG_DIR)/random_game_sampler_log-t100.csv
 
-lib: $(LIBOBJS) $(BLIS_LIB) $(FLAME_LIB) $(LIBDIR)/.dir_sentinel
-	gcc -shared -o $(LIBDIR)/reversi.so $(LIBOBJS) $(BLIS_LIB) $(FLAME_LIB) -fopenmp -lpq -lblas
+$(SHARED_LIB): $(LIBOBJS) $(BLIS_LIB) $(FLAME_LIB) $(LIBDIR)/.dir_sentinel
+	gcc -shared -o $(SHARED_LIB) $(LIBOBJS) $(BLIS_LIB) $(FLAME_LIB) -fopenmp -lpq -lblas

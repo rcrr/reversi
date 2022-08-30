@@ -287,53 +287,96 @@ class SquareSet(np.uint64):
         return np.int64(self)
 
     def trans_flip_horizontal(self) -> 'SquareSet':
+        """
+        Returns a bit-board flipped along the horizontal axis.
+        """
         f = libreversi.board_trans_flip_horizontal
         f.restype = ct.c_ulonglong
         f.argtypes = [ct.c_ulonglong]
         return SquareSet(f(self))
 
     def trans_flip_vertical(self) -> 'SquareSet':
+        """
+        Returns a bit-board flipped along the vertical axis.
+        """
         f = libreversi.board_trans_flip_vertical
         f.restype = ct.c_ulonglong
         f.argtypes = [ct.c_ulonglong]
         return SquareSet(f(self))
 
     def trans_flip_diag_h1a8(self) -> 'SquareSet':
+        """
+        Returns a bit-board flipped along the H1-A8 diagonal.
+        """
         f = libreversi.board_trans_flip_diag_h1a8
         f.restype = ct.c_ulonglong
         f.argtypes = [ct.c_ulonglong]
         return SquareSet(f(self))
 
     def trans_flip_diag_a1h8(self) -> 'SquareSet':
+        """
+        Returns a bit-board flipped along the A1-H8 diagonal.
+        """
         f = libreversi.board_trans_flip_diag_a1h8
         f.restype = ct.c_ulonglong
         f.argtypes = [ct.c_ulonglong]
         return SquareSet(f(self))
 
     def trans_rotate_180(self) -> 'SquareSet':
+        """
+        """
         f = libreversi.board_trans_rotate_180
         f.restype = ct.c_ulonglong
         f.argtypes = [ct.c_ulonglong]
         return SquareSet(f(self))
 
     def trans_rotate_90c(self) -> 'SquareSet':
+        """
+        Returns a bit-board rotated clockwise by 90 degrees.
+        """
         f = libreversi.board_trans_rotate_90c
         f.restype = ct.c_ulonglong
         f.argtypes = [ct.c_ulonglong]
         return SquareSet(f(self))
 
     def trans_rotate_90a(self) -> 'SquareSet':
+        """
+        Returns a bit-board rotated anti-clockwise by 90 degrees.
+        """
         f = libreversi.board_trans_rotate_90a
         f.restype = ct.c_ulonglong
         f.argtypes = [ct.c_ulonglong]
         return SquareSet(f(self))
 
     def trans_identity(self) -> 'SquareSet':
+        """
+        Returns an unchanged bit-board.
+        """
         return SquareSet(self)
 
 
 class Board:
+    """
+    A board is an object mantaining the state of the board configuration for the mover and the opponent.
+    The mover is the player having to move next, opponent is the other one.
+    The state is mantained as two SquareSet object assigned to mover and opponent.
+
+    Attributes
+    ----------
+    mover : SquareSet
+      Square set of the player next to move
+    opponent : SquareSet
+      Square set of the player not moving next
+    lms : SquareSet
+      Legal moves as a square set
+      This field memoize the value returned by the legal_moves() method.
+      Never access it by referencing the attribute, it could be valued None.
+      The first time the set of legal moves is required, the value is computed and savad in the attribute.
+    """
     def __init__(self, mover: SquareSet, opponent: SquareSet):
+        """
+        Mover is the square set belonging to the player next to move, opponent is the one belonging to the other player.
+        """
         if not isinstance(mover, SquareSet):
             raise TypeError('Argument mover is not an instance of SquareSet')
         if not isinstance(opponent, SquareSet):
@@ -361,23 +404,44 @@ class Board:
         return Board(m, o)
 
     def game_position(self) -> 'GamePosition':
+        """
+        Returns a new game position object having as attributes:
+          - blacks : mover
+          - whites : opponent
+          - player : Player.BLACK
+        """
         gp = GamePosition(self.mover, self.opponent, Player.BLACK)
         if self.lms:
             gp.lms = self.lms
         return gp
         
     def empties(self) -> SquareSet:
+        """
+        Returns the set of empty squares on the board.
+        """
         return SquareSet(~(self.mover | self.opponent))
 
     def legal_moves(self) -> SquareSet:
+        """
+        Returns a square set having the legal moves of the board.
+        """
         if not self.lms:
             self.lms = self.game_position().legal_moves()
         return self.lms
 
     def count_difference(self) -> int:
+        """
+        Returns the difference of disc count between mover and opponent.
+        """
         return self.mover.count() - self.opponent.count()
 
     def final_value(self) -> int:
+        """
+        Returns the game value of ended games.
+        If the game is not ended the value returned is meaningless.
+        The final value returned differs from count_difference(), according to international
+        game rules, when there are empty squares left.
+        """
         mc = self.mover.count()
         oc = self.opponent.count()
         diff = mc - oc
@@ -385,6 +449,9 @@ class Board:
         return diff + empties if diff > 0 else diff - empties
 
     def has_any_legal_move(self) -> bool:
+        """
+        Returns true when the mover can place a disk on the board, false otherwise.
+        """
         return True if self.legal_moves() else False
     
     # TODO: missing board methods:

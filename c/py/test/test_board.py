@@ -151,9 +151,6 @@ class TestMove(unittest.TestCase):
 
 class TestSquareSet(unittest.TestCase):
 
-    def test_sanity_check(self):
-        self.assertEqual(1, 1)
-
     def test_constructor(self):
         self.assertIsInstance(SquareSet(0), SquareSet)
 
@@ -313,39 +310,203 @@ class TestSquareSet(unittest.TestCase):
         self.assertEqual(i, SquareSet.new_from_signed_int(i).to_signed_int())
 
     def test_trans_flip_horizontal(self):
-        pass
+        ar = SquareSet.new_from_hex('22120a0e1222221e')
+        ar_transformed = ar.trans_flip_horizontal()
+        ar_flipped_v = SquareSet.new_from_hex('1e2222120e0a1222')
+        self.assertEqual(ar_flipped_v, ar_transformed)
 
     def test_trans_flip_vertical(self):
-        pass
+        ar = SquareSet.new_from_hex('22120a0e1222221e')
+        ar_transformed = ar.trans_flip_vertical()
+        ar_mirror_h = SquareSet.new_from_hex('4448507048444478')
+        self.assertEqual(ar_mirror_h, ar_transformed)
 
     def test_trans_flip_diag_h1a8(self):
-        pass
+        ar = SquareSet.new_from_hex('22120a0e1222221e')
+        ar_transformed = ar.trans_flip_diag_h1a8()
+        ar_flip_h1a8 = SquareSet.new_from_hex('00ff888c92610000')
+        self.assertEqual(ar_flip_h1a8, ar_transformed)
 
     def test_trans_flip_diag_a1h8(self):
-        pass
+        ar = SquareSet.new_from_hex('22120a0e1222221e')
+        ar_transformed = ar.trans_flip_diag_a1h8()
+        ar_flip_a1h8 = SquareSet.new_from_hex('000086493111ff00')
+        self.assertEqual(ar_flip_a1h8, ar_transformed)
 
     def test_trans_rotate_180(self):
-        pass
+        ar = SquareSet.new_from_hex('22120a0e1222221e')
+        ar_transformed = ar.trans_rotate_180()
+        ar_rotate_180 = SquareSet.new_from_hex('7844444870504844')
+        self.assertEqual(ar_rotate_180, ar_transformed)
 
     def test_trans_rotate_90c(self):
-        pass
+        ar = SquareSet.new_from_hex('22120a0e1222221e')
+        ar_transformed = ar.trans_rotate_90c()
+        ar_rotate_90c = SquareSet.new_from_hex('000061928c88ff00')
+        self.assertEqual(ar_rotate_90c, ar_transformed)
 
     def test_trans_rotate_90a(self):
-        pass
+        ar = SquareSet.new_from_hex('22120a0e1222221e')
+        ar_transformed = ar.trans_rotate_90a()
+        ar_rotate_90a = SquareSet.new_from_hex('00ff113149860000')
+        self.assertEqual(ar_rotate_90a, ar_transformed)
 
     def test_trans_identity(self):
-        pass
+        ar = SquareSet.new_from_hex('22120a0e1222221e')
+        self.assertEqual(ar, ar.trans_identity())
 
 
 class TestBoard(unittest.TestCase):
 
-    def test_sanity_check(self):
-        self.assertEqual(1, 1)
+    def test_constructor(self):
+        b = Board(SquareSet(1), SquareSet(2))
+        self.assertIsNotNone(b)
+        self.assertEqual(1, b.mover)
+        self.assertEqual(2, b.opponent)
+        self.assertEqual(None, b.lms)
+        
+        with self.assertRaises(TypeError) as context:
+            Board(SquareSet(0), None)
+        self.assertIsInstance(context.exception, TypeError)
+        with self.assertRaises(TypeError) as context:
+            Board(None, SquareSet(0))
+        self.assertIsInstance(context.exception, TypeError)
 
+        with self.assertRaises(ValueError) as context:
+            Board(SquareSet(1), SquareSet(1))
+        self.assertIsInstance(context.exception, ValueError)
 
+    def test_new_from_hexes(self):
+        b = Board.new_from_hexes('ffffffffffffffff', '0000000000000000')
+        self.assertIsNotNone(b)
+
+        with self.assertRaises(TypeError) as context:
+            Board.new_from_hexes(None, '0000000000000000')
+        self.assertIsInstance(context.exception, TypeError)
+        with self.assertRaises(TypeError) as context:
+            Board.new_from_hexes('0000000000000000', None)
+        self.assertIsInstance(context.exception, TypeError)
+
+        with self.assertRaises(ValueError) as context:
+            Board.new_from_hexes('000000000000000g', '0000000000000000')
+        self.assertIsInstance(context.exception, ValueError)
+        with self.assertRaises(ValueError) as context:
+            Board.new_from_hexes('0000000000000000', '000000000000000g')
+        self.assertIsInstance(context.exception, ValueError)
+
+        with self.assertRaises(ValueError) as context:
+            Board.new_from_hexes('0000000000000001', '0000000000000001')
+        self.assertIsInstance(context.exception, ValueError)
+
+    def test_game_position(self):
+        mover = SquareSet(1)
+        opponent = SquareSet(2)
+        b = Board(mover, opponent)
+        gp = b.game_position()
+        self.assertEqual(mover, gp.blacks)
+        self.assertEqual(opponent, gp.whites)
+        self.assertEqual(Player.BLACK, gp.player)
+
+    def test_empties(self):
+        b = Board.new_from_hexes('0000000000000001', '0000000000000002')
+        empties = b.empties()
+        expected = SquareSet.new_from_hex('fffffffffffffffc')
+        self.assertEqual(expected, empties)
+
+    def test_legal_moves(self):
+        b = Board.new_from_hexes('0000000000000001', '0000000000000002')
+        lms = b.legal_moves()
+        expected = SquareSet.new_from_hex('0000000000000004')
+        self.assertEqual(expected, lms)
+
+    def test_count_difference(self):
+        b = Board.new_from_hexes('0000000000000001', '0000000000000002')
+        diff = b.count_difference()
+        expected = 0
+        self.assertEqual(expected, diff)
+
+        b = Board.new_from_hexes('0000000000000001', '0000000000000000')
+        diff = b.count_difference()
+        expected = 1
+        self.assertEqual(expected, diff)
+
+        b = Board.new_from_hexes('0000000000000000', '0000000000000002')
+        diff = b.count_difference()
+        expected = -1
+        self.assertEqual(expected, diff)
+
+    def test_final_value(self):
+        #
+        #     seq    | mover |      opponent       | player | game_value
+        # -----------+-------+---------------------+--------+------------
+        #  158303776 |    62 | 4611633241869241472 |      0 |        -54
+        #
+        mover = SquareSet.new_from_signed_int(np.int64(62))
+        opponent = SquareSet.new_from_signed_int(np.int64(4611633241869241472))
+        b = Board(mover, opponent)
+        expected = -54
+        fv = b.final_value()
+        self.assertEqual(expected, fv)
+
+    def test_has_any_legal_move(self):
+        b = Board(SquareSet(1), SquareSet(2))
+        can_move = b.has_any_legal_move()
+        expected = True
+        self.assertEqual(expected, can_move)
+
+        b = Board(SquareSet(2), SquareSet(1))
+        can_move = b.has_any_legal_move()
+        expected = False
+        self.assertEqual(expected, can_move)
+
+        b = Board.new_from_hexes('ffffffffffffffff', '0000000000000000')
+        can_move = b.has_any_legal_move()
+        expected = False
+        self.assertEqual(expected, can_move)
+
+        b = Board.new_from_hexes('0000000000000000', 'ffffffffffffffff')
+        can_move = b.has_any_legal_move()
+        expected = False
+        self.assertEqual(expected, can_move)
+        
+    def test_print(self):
+        pass
+        
 class TestGamePosition(unittest.TestCase):
 
-    def test_sanity_check(self):
-        self.assertEqual(1, 1)
+    def test_constructor(self):
+        pass
 
+    def test_new_from_hexes(self):
+        pass
+
+    def test_new_from_string(self):
+        pass
+
+    def test_read_database_file(self):
+        pass
+
+    def test_board(self):
+        pass
+
+    def test_legal_moves(self):
+        pass
+
+    def test_is_move_legal(self):
+        pass
+
+    def test_make_move(self):
+        pass
+
+    def test_count_difference(self):
+        pass
+
+    def test_final_value(self):
+        pass
+
+    def test_has_any_legal_move(self):
+        pass
+
+    def test_print(self):
+        pass
 
