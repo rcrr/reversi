@@ -468,6 +468,24 @@ class TestBoard(unittest.TestCase):
         can_move = b.has_any_legal_move()
         expected = False
         self.assertEqual(expected, can_move)
+
+    def test_has_any_player_any_legal_move(self):
+        b = Board.new_from_hexes('0000000000000001', '0000000000000002')
+        is_game_over = not b.has_any_player_any_legal_move()
+        self.assertEqual(False, is_game_over)
+        
+        b = Board.new_from_hexes('0000000000000002', '0000000000000001')
+        is_game_over = not b.has_any_player_any_legal_move()
+        self.assertEqual(False, is_game_over)
+        
+        b = Board.new_from_hexes('0000000000000000', '0000000000000007')
+        is_game_over = not b.has_any_player_any_legal_move()
+        self.assertEqual(True, is_game_over)
+
+    def test_hash(self):
+        b = Board.new_from_hexes('0000000000000002', '0000000000000004')
+        expected = np.uint64(int('0x4689879C5E2B6C8D', 16)) ^ np.uint64(int('0x1C10E0B05C7B3C49', 16))
+        self.assertEqual(expected, b.hash())
         
     def test_print(self):
         with io.StringIO() as buf, redirect_stdout(buf):
@@ -634,14 +652,64 @@ class TestGamePosition(unittest.TestCase):
         self.assertIsInstance(context.exception, ValueError)
         
     def test_count_difference(self):
-        pass
+        gp = GamePosition.new_from_hexes('0000000000000001', '0000000000000000', Player.BLACK)
+        diff = gp.count_difference()
+        expected = +1
+        self.assertEqual(expected, diff)
+        
+        gp = GamePosition.new_from_hexes('0000000000000001', '0000000000000000', Player.WHITE)
+        diff = gp.count_difference()
+        expected = -1
+        self.assertEqual(expected, diff)
 
     def test_final_value(self):
-        pass
+        blacks = SquareSet.new_from_signed_int(np.int64(62))
+        whites = SquareSet.new_from_signed_int(np.int64(4611633241869241472))
+        gp = GamePosition(blacks, whites, Player.WHITE)
+        expected = +54
+        fv = gp.final_value()
+        self.assertEqual(expected, fv)
 
     def test_has_any_legal_move(self):
-        pass
+        gp = GamePosition(SquareSet(1), SquareSet(2), Player.BLACK)
+        can_move = gp.has_any_legal_move()
+        expected = True
+        self.assertEqual(expected, can_move)
+
+    def test_has_any_player_any_legal_move(self):
+        gp = GamePosition.new_from_hexes('0000000000000001', '0000000000000002', Player.BLACK)
+        is_game_over = not gp.has_any_player_any_legal_move()
+        self.assertEqual(False, is_game_over)
+        
+        gp = GamePosition.new_from_hexes('0000000000000001', '0000000000000002', Player.WHITE)
+        is_game_over = not gp.has_any_player_any_legal_move()
+        self.assertEqual(False, is_game_over)
+        
+        gp = GamePosition.new_from_hexes('0000000000000007', '0000000000000000', Player.WHITE)
+        is_game_over = not gp.has_any_player_any_legal_move()
+        self.assertEqual(True, is_game_over)
+        
+    def test_hash(self):
+        gp = GamePosition.new_from_hexes('0000000000000002', '0000000000000004', Player.BLACK)
+        expected = np.uint64(int('0x4689879C5E2B6C8D', 16)) ^ np.uint64(int('0x1C10E0B05C7B3C49', 16))
+        self.assertEqual(expected, gp.hash())
 
     def test_print(self):
-        pass
+        with io.StringIO() as buf, redirect_stdout(buf):
+            gp = GamePosition(SquareSet(1), SquareSet(2), Player.BLACK)
+            gp.print()
+            output = buf.getvalue()
+        
+        expected = ("  a b c d e f g h\n"
+                    "1 @ O . . . . . .\n"
+                    "2 . . . . . . . .\n"
+                    "3 . . . . . . . .\n"
+                    "4 . . . . . . . .\n"
+                    "5 . . . . . . . .\n"
+                    "6 . . . . . . . .\n"
+                    "7 . . . . . . . .\n"
+                    "8 . . . . . . . .\n"
+                    "  To move: Player.BLACK\n")
+
+        self.assertEqual(output, expected)
 
