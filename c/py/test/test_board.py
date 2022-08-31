@@ -470,34 +470,169 @@ class TestBoard(unittest.TestCase):
         self.assertEqual(expected, can_move)
         
     def test_print(self):
-        pass
+        with io.StringIO() as buf, redirect_stdout(buf):
+            b = Board(SquareSet(1), SquareSet(2))
+            b.print()
+            output = buf.getvalue()
+        
+        expected = ("  a b c d e f g h\n"
+                    "1 @ O . . . . . .\n"
+                    "2 . . . . . . . .\n"
+                    "3 . . . . . . . .\n"
+                    "4 . . . . . . . .\n"
+                    "5 . . . . . . . .\n"
+                    "6 . . . . . . . .\n"
+                    "7 . . . . . . . .\n"
+                    "8 . . . . . . . .\n")
+
+        self.assertEqual(output, expected)
         
 class TestGamePosition(unittest.TestCase):
 
     def test_constructor(self):
-        pass
+        blacks = SquareSet(1)
+        whites = SquareSet(2)
+        player = Player.BLACK
+        gp = GamePosition(blacks, whites, player)
+        self.assertIsNotNone(gp)
+        self.assertEqual(blacks, gp.blacks)
+        self.assertEqual(whites, gp.whites)
+        self.assertEqual(player, gp.player)
+
+        with self.assertRaises(TypeError) as context:
+            GamePosition(None, SquareSet(0), Player.BLACK)
+        self.assertIsInstance(context.exception, TypeError)
+        with self.assertRaises(TypeError) as context:
+            GamePosition(SquareSet(0), None, Player.BLACK)
+        self.assertIsInstance(context.exception, TypeError)
+        with self.assertRaises(TypeError) as context:
+            GamePosition(SquareSet(0), SquareSet(1), None)
+        self.assertIsInstance(context.exception, TypeError)
+        with self.assertRaises(ValueError) as context:
+            GamePosition(SquareSet(1), SquareSet(1), Player.BLACK)
+        self.assertIsInstance(context.exception, ValueError)
 
     def test_new_from_hexes(self):
-        pass
+        gp = GamePosition.new_from_hexes('0000000000000001', '0000000000000002', Player.BLACK)
+        self.assertIsNotNone(gp)
+        self.assertEqual(SquareSet(1), gp.blacks)
+        self.assertEqual(SquareSet(2), gp.whites)
+        self.assertEqual(Player.BLACK, gp.player)
 
     def test_new_from_string(self):
-        pass
+        gp = GamePosition.new_from_string('..bbbbb..wwwbb.w.wwwbbwb.wbwbwbbwbbbwbbb..bwbwbb.bbbwww..wwwww..;b')
+        self.assertIsNotNone(gp)
+        self.assertEqual(SquareSet.new_from_hex('000ed4eed4b0307c'), gp.blacks)
+        self.assertEqual(SquareSet.new_from_hex('3e7028112a4e8e00'), gp.whites)
+        self.assertEqual(Player.BLACK, gp.player)
+        
+        with self.assertRaises(TypeError) as context:
+            GamePosition.new_from_string(None)
+        self.assertIsInstance(context.exception, TypeError)
+
+        with self.assertRaises(ValueError) as context:
+            GamePosition.new_from_string('..bbbbb..wwwbb.w.wwwbbwb.wbwbwbbwbbbwbbb..bwbwbb.bbbwww..wwwww;b')
+        self.assertIsInstance(context.exception, ValueError)
+
+        with self.assertRaises(ValueError) as context:
+            GamePosition.new_from_string('..bbbbb..wwwbb.w.wwwbbwb.wbwbwbbwbbbwbbb..bwbwbb.bbbwwwq.wwwww..;b')
+        self.assertIsInstance(context.exception, ValueError)
+
+        with self.assertRaises(ValueError) as context:
+            GamePosition.new_from_string('..bbbbb..wwwbb.w.wwwbbwb.wbwbwbbwbbbwbbb..bwbwbb.bbbwww..wwwww..;.')
+        self.assertIsInstance(context.exception, ValueError)
 
     def test_read_database_file(self):
-        pass
+        
+        from os.path import exists
+        filepath = 'db/gpdb-ffo.txt'
+        file_exists = exists(filepath)
+        if not file_exists:
+            print('\nFile = \'{:s}\', does not exist.'.format(filepath))
+        self.assertTrue(file_exists)
 
+        gpdb = GamePosition.read_database_file(filepath)
+
+        self.assertIsNotNone(gpdb)
+        self.assertIsInstance(gpdb, dict)
+
+        # ffo-22;..wwww..b.wwwww.bbwwbwbbbwbwbbbbbbbwbbbb.bbwbwbb..wbbb.b....b...;w; G8:+2. A6:+0. F8:-4. A7:-4. H2:-4. B2:-6. D8:-8. B7:-14. G7:-26;
+        (name, gp, desc) = gpdb['ffo-22']
+
+        self.assertIsNotNone(name)
+        self.assertIsInstance(name, str)
+
+        self.assertIsNotNone(gp)
+        self.assertIsInstance(gp, GamePosition)
+        self.assertEqual('10b8d6f7f5d30100', gp.blacks.to_hex())
+        self.assertEqual('000428080a2c7c3c', gp.whites.to_hex())
+        self.assertEqual(Player.WHITE, gp.player)
+
+        self.assertIsNotNone(desc)
+        self.assertIsInstance(desc, str)
+        
     def test_board(self):
-        pass
+        blacks = SquareSet(1)
+        whites = SquareSet(2)
+        player = Player.BLACK
+        gp = GamePosition(blacks, whites, player)
+        b = gp.board()
+        self.assertEqual(blacks, b.mover)
+        self.assertEqual(whites, b.opponent)
+
+        blacks = SquareSet(1)
+        whites = SquareSet(2)
+        player = Player.WHITE
+        gp = GamePosition(blacks, whites, player)
+        b = gp.board()
+        self.assertEqual(whites, b.mover)
+        self.assertEqual(blacks, b.opponent)
 
     def test_legal_moves(self):
-        pass
+        gp = GamePosition.new_from_hexes('0000000000000001', '0000000000000002', Player.BLACK)
+        lms = gp.legal_moves()
+        expected = SquareSet(4)
+        self.assertEqual(expected, lms)
 
     def test_is_move_legal(self):
-        pass
+        gp = GamePosition.new_from_hexes('0000000000000001', '0000000000000002', Player.BLACK)
+        self.assertEqual(True, gp.is_move_legal(Move.C1))
+        self.assertEqual(False, gp.is_move_legal(Move.A2))
+        self.assertEqual(False, gp.is_move_legal(Move.A1))
+        self.assertEqual(False, gp.is_move_legal(Move.B1))
+        
+        with self.assertRaises(TypeError) as context:
+            gp.is_move_legal(None)
+        self.assertIsInstance(context.exception, TypeError)
+        
+        gp = GamePosition.new_from_hexes('ffffffffffffffff', '0000000000000000', Player.BLACK)
+        self.assertEqual(False, gp.is_move_legal(Move.C1))
+        self.assertEqual(True, gp.is_move_legal(Move.PA))
+        self.assertEqual(False, gp.is_move_legal(Move.NA))
+        self.assertEqual(False, gp.is_move_legal(Move.UN))
 
     def test_make_move(self):
-        pass
+        gp = GamePosition.new_from_hexes('0000000000000001', '0000000000000100', Player.BLACK)
+        gp_next = gp.make_move(Move.A3)
+        self.assertEqual('0000000000010101', gp_next.blacks.to_hex())
+        self.assertEqual('0000000000000000', gp_next.whites.to_hex())
+        self.assertEqual(Player.WHITE, gp_next.player)
+        
+        gp = GamePosition.new_from_hexes('ffffffffffffffff', '0000000000000000', Player.BLACK)
+        gp_next = gp.make_move(Move.PA)
+        self.assertEqual('ffffffffffffffff', gp_next.blacks.to_hex())
+        self.assertEqual('0000000000000000', gp_next.whites.to_hex())
+        self.assertEqual(Player.WHITE, gp_next.player)
 
+        gp = GamePosition.new_from_hexes('0000000000000001', '0000000000000002', Player.BLACK)
+        with self.assertRaises(TypeError) as context:
+            gp.make_move(None)
+        self.assertIsInstance(context.exception, TypeError)
+        gp = GamePosition.new_from_hexes('0000000000000001', '0000000000000002', Player.BLACK)
+        with self.assertRaises(ValueError) as context:
+            gp.make_move(Move.H8)
+        self.assertIsInstance(context.exception, ValueError)
+        
     def test_count_difference(self):
         pass
 
