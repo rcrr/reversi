@@ -508,6 +508,85 @@ class TestBoard(unittest.TestCase):
         self.assertEqual(expected_mover, updated_b.mover)
         self.assertEqual(expected_opponent, updated_b.opponent)
 
+    def test_trans_flip_horizontal(self):
+        mover = SquareSet.new_from_hex('00000000000000ff')
+        opponent = SquareSet.new_from_hex('000000000000ff00')
+        b = Board(mover, opponent)
+        t = b.trans_flip_horizontal()
+        expected_mover = SquareSet.new_from_hex('ff00000000000000')
+        expected_opponent = SquareSet.new_from_hex('00ff000000000000')
+        self.assertEqual(expected_mover, t.mover)
+        self.assertEqual(expected_opponent, t.opponent)
+
+    def test_trans_flip_vertical(self):
+        mover = SquareSet.new_from_hex('0101010101010101')
+        opponent = SquareSet.new_from_hex('0202020202020202')
+        b = Board(mover, opponent)
+        t = b.trans_flip_vertical()
+        expected_mover = SquareSet.new_from_hex('8080808080808080')
+        expected_opponent = SquareSet.new_from_hex('4040404040404040')
+        self.assertEqual(expected_mover, t.mover)
+        self.assertEqual(expected_opponent, t.opponent)
+
+    def test_trans_flip_diag_h1a8(self):
+        mover = SquareSet.new_from_hex('00000000000000ff')
+        opponent = SquareSet.new_from_hex('000000000000ff00')
+        b = Board(mover, opponent)
+        t = b.trans_flip_diag_h1a8()
+        expected_mover = SquareSet.new_from_hex('8080808080808080')
+        expected_opponent = SquareSet.new_from_hex('4040404040404040')
+        self.assertEqual(expected_mover, t.mover)
+        self.assertEqual(expected_opponent, t.opponent)
+
+    def test_trans_flip_diag_a1h8(self):
+        mover = SquareSet.new_from_hex('00000000000000ff')
+        opponent = SquareSet.new_from_hex('000000000000ff00')
+        b = Board(mover, opponent)
+        t = b.trans_flip_diag_a1h8()
+        expected_mover = SquareSet.new_from_hex('0101010101010101')
+        expected_opponent = SquareSet.new_from_hex('0202020202020202')
+        self.assertEqual(expected_mover, t.mover)
+        self.assertEqual(expected_opponent, t.opponent)
+
+    def test_trans_rotate_180(self):
+        mover = SquareSet.new_from_hex('00000000000000ef')
+        opponent = SquareSet.new_from_hex('000000000000ef00')
+        b = Board(mover, opponent)
+        t = b.trans_rotate_180()
+        expected_mover = SquareSet.new_from_hex('f700000000000000')
+        expected_opponent = SquareSet.new_from_hex('00f7000000000000')
+        self.assertEqual(expected_mover, t.mover)
+        self.assertEqual(expected_opponent, t.opponent)
+
+    def test_trans_rotate_90c(self):
+        mover = SquareSet.new_from_hex('000000000000007f')
+        opponent = SquareSet.new_from_hex('0000000000007f00')
+        b = Board(mover, opponent)
+        t = b.trans_rotate_90c()
+        expected_mover = SquareSet.new_from_hex('0080808080808080')
+        expected_opponent = SquareSet.new_from_hex('0040404040404040')
+        self.assertEqual(expected_mover, t.mover)
+        self.assertEqual(expected_opponent, t.opponent)
+
+    def test_trans_rotate_90a(self):
+        mover = SquareSet.new_from_hex('000000000000007f')
+        opponent = SquareSet.new_from_hex('0000000000007f00')
+        b = Board(mover, opponent)
+        t = b.trans_rotate_90a()
+        expected_mover = SquareSet.new_from_hex('0101010101010100')
+        expected_opponent = SquareSet.new_from_hex('0202020202020200')
+        self.assertEqual(expected_mover, t.mover)
+        self.assertEqual(expected_opponent, t.opponent)
+
+    def test_trans_identity(self):
+        mover = SquareSet.new_from_hex('00000000000000ef')
+        opponent = SquareSet.new_from_hex('000000000000ef00')
+        b = Board(mover, opponent)
+        t = b.trans_identity()
+        expected_mover = SquareSet.new_from_hex('00000000000000ef')
+        expected_opponent = SquareSet.new_from_hex('000000000000ef00')
+        self.assertEqual(expected_mover, t.mover)
+        self.assertEqual(expected_opponent, t.opponent)
         
     def test_print(self):
         with io.StringIO() as buf, redirect_stdout(buf):

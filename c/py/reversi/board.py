@@ -497,7 +497,55 @@ class Board:
     #
     # - Pattern index computation ... see board_trans.h and board_patterns.h
     #
-    
+
+    def trans_flip_horizontal(self) -> 'Board':
+        """
+        Returns a baord flipped along the horizontal axis.
+        """
+        return Board(self.mover.trans_flip_horizontal(), self.opponent.trans_flip_horizontal())
+
+    def trans_flip_vertical(self) -> 'Board':
+        """
+        Returns a board flipped along the vertical axis.
+        """
+        return Board(self.mover.trans_flip_vertical(), self.opponent.trans_flip_vertical())
+
+    def trans_flip_diag_h1a8(self) -> 'Board':
+        """
+        Returns a board flipped along the H1-A8 diagonal.
+        """
+        return Board(self.mover.trans_flip_diag_h1a8(), self.opponent.trans_flip_diag_h1a8())
+
+    def trans_flip_diag_a1h8(self) -> 'Board':
+        """
+        Returns a board flipped along the A1-H8 diagonal.
+        """
+        return Board(self.mover.trans_flip_diag_a1h8(), self.opponent.trans_flip_diag_a1h8())
+
+    def trans_rotate_180(self) -> 'Board':
+        """
+        Returns a board rotated by 180 degrees.
+        """
+        return Board(self.mover.trans_rotate_180(), self.opponent.trans_rotate_180())
+
+    def trans_rotate_90c(self) -> 'Board':
+        """
+        Returns a board rotated clockwise by 90 degrees.
+        """
+        return Board(self.mover.trans_rotate_90c(), self.opponent.trans_rotate_90c())
+
+    def trans_rotate_90a(self) -> 'Board':
+        """
+        Returns a board rotated anti-clockwise by 90 degrees.
+        """
+        return Board(self.mover.trans_rotate_90a(), self.opponent.trans_rotate_90a())
+
+    def trans_identity(self) -> 'Board':
+        """
+        Returns an unchanged board.
+        """
+        return Board(self.mover, self.opponent)
+
     def print(self):
         """
         Prints on stdout a 2D representation of the board.
