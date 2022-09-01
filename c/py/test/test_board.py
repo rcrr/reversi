@@ -487,6 +487,28 @@ class TestBoard(unittest.TestCase):
         expected = np.uint64(int('0x4689879C5E2B6C8D', 16)) ^ np.uint64(int('0x1C10E0B05C7B3C49', 16))
         self.assertEqual(expected, b.hash())
         
+    def test_flips(self):
+        mover = SquareSet.new_from_hex('0000000000000002')
+        opponent = SquareSet.new_from_hex('0000000000000004')
+        move = SquareSet.new_from_hex('0000000000000001')
+        b = Board(mover, opponent)
+        (flipped_squares, updated_b) = b.flips(move)
+        self.assertEqual(SquareSet.new_from_hex('0000000000000000'), flipped_squares)
+        self.assertEqual(mover, updated_b.mover)
+        self.assertEqual(opponent, updated_b.opponent)
+
+        mover = SquareSet.new_from_hex('0000000000000002')
+        opponent = SquareSet.new_from_hex('0000000000000004')
+        move = SquareSet.new_from_hex('0000000000000008')
+        b = Board(mover, opponent)
+        expected_mover = SquareSet.new_from_hex('0000000000000000')
+        expected_opponent = SquareSet.new_from_hex('000000000000000e')
+        (flipped_squares, updated_b) = b.flips(move)
+        self.assertEqual(SquareSet.new_from_hex('0000000000000004'), flipped_squares)
+        self.assertEqual(expected_mover, updated_b.mover)
+        self.assertEqual(expected_opponent, updated_b.opponent)
+
+        
     def test_print(self):
         with io.StringIO() as buf, redirect_stdout(buf):
             b = Board(SquareSet(1), SquareSet(2))
@@ -693,6 +715,78 @@ class TestGamePosition(unittest.TestCase):
         gp = GamePosition.new_from_hexes('0000000000000002', '0000000000000004', Player.BLACK)
         expected = np.uint64(int('0x4689879C5E2B6C8D', 16)) ^ np.uint64(int('0x1C10E0B05C7B3C49', 16))
         self.assertEqual(expected, gp.hash())
+
+    def test_flips(self):
+        blacks = SquareSet.new_from_hex('0000000000000002')
+        whites = SquareSet.new_from_hex('0000000000000004')
+        player = Player.BLACK
+        move = SquareSet.new_from_hex('0000000000000001')
+        gp = GamePosition(blacks, whites, player)
+        (flipped_squares, updated_gp) = gp.flips(move)
+        self.assertEqual(SquareSet.new_from_hex('0000000000000000'), flipped_squares)
+        self.assertEqual(blacks, updated_gp.blacks)
+        self.assertEqual(whites, updated_gp.whites)
+        self.assertEqual(player, updated_gp.player)
+
+        blacks = SquareSet.new_from_hex('0000000000000002')
+        whites = SquareSet.new_from_hex('0000000000000004')
+        player = Player.BLACK
+        move = SquareSet.new_from_hex('0000000000000008')
+        gp = GamePosition(blacks, whites, player)
+        (flipped_squares, updated_gp) = gp.flips(move)
+        self.assertEqual(SquareSet.new_from_hex('0000000000000004'), flipped_squares)
+        self.assertEqual(SquareSet.new_from_hex('000000000000000e'), updated_gp.blacks)
+        self.assertEqual(SquareSet.new_from_hex('0000000000000000'), updated_gp.whites)
+        self.assertEqual(Player.WHITE, updated_gp.player)
+
+        blacks = SquareSet.new_from_hex('0000000000000002')
+        whites = SquareSet.new_from_hex('0000000000000004')
+        player = Player.BLACK
+        move = None
+        gp = GamePosition(blacks, whites, player)
+        with self.assertRaises(TypeError) as context:
+            gp.flips(move)
+        self.assertIsInstance(context.exception, TypeError)
+
+        blacks = SquareSet.new_from_hex('0000000000000002')
+        whites = SquareSet.new_from_hex('0000000000000004')
+        player = Player.BLACK
+        move = SquareSet.new_from_hex('0300000000000000')
+        gp = GamePosition(blacks, whites, player)
+        with self.assertRaises(ValueError) as context:
+            gp.flips(move)
+        self.assertIsInstance(context.exception, ValueError)
+
+        blacks = SquareSet.new_from_hex('0000000000000002')
+        whites = SquareSet.new_from_hex('0000000000000004')
+        player = Player.BLACK
+        move = SquareSet.new_from_hex('0000000000000002')
+        gp = GamePosition(blacks, whites, player)
+        with self.assertRaises(ValueError) as context:
+            gp.flips(move)
+        self.assertIsInstance(context.exception, ValueError)
+
+        blacks = SquareSet.new_from_hex('0000000000000002')
+        whites = SquareSet.new_from_hex('0000000000000004')
+        player = Player.BLACK
+        move = SquareSet.new_from_hex('0000000000000000')
+        gp = GamePosition(blacks, whites, player)
+        (flipped_squares, updated_gp) = gp.flips(move)
+        self.assertEqual(SquareSet.new_from_hex('0000000000000000'), flipped_squares)
+        self.assertEqual(blacks, updated_gp.blacks)
+        self.assertEqual(whites, updated_gp.whites)
+        self.assertEqual(player, updated_gp.player)
+
+        blacks = SquareSet.new_from_hex('ffffffffffffffff')
+        whites = SquareSet.new_from_hex('0000000000000000')
+        player = Player.BLACK
+        move = SquareSet.new_from_hex('0000000000000000')
+        gp = GamePosition(blacks, whites, player)
+        (flipped_squares, updated_gp) = gp.flips(move)
+        self.assertEqual(SquareSet.new_from_hex('0000000000000000'), flipped_squares)
+        self.assertEqual(blacks, updated_gp.blacks)
+        self.assertEqual(whites, updated_gp.whites)
+        self.assertEqual(player, updated_gp.player)
 
     def test_print(self):
         with io.StringIO() as buf, redirect_stdout(buf):

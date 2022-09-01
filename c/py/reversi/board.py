@@ -474,6 +474,21 @@ class Board:
         Returns the hash value of the board computed by mean of a Zobrist practice. 
         """
         return self.game_position().hash()
+
+    def flips(self, m : SquareSet):
+        """
+        The moving player places a disc in the square identified by m.
+        A tuple having two entries is returned, flipped squares and the updated 
+        board when the move is legal.
+        When the move is not legal the empy set is returned.
+        When m is empty, an empty set is returned.
+
+        Parameter m must have no more than 1 bit set.
+        Parameter m  must be a set within the empty square set of the board.
+        """
+        gp = self.game_position()
+        (flipped_square_set, updated_gp) = gp.flips(m)
+        return (flipped_square_set, updated_gp.board())
     
     # TODO: missing board methods:
     #
@@ -718,9 +733,37 @@ class GamePosition:
         gph_p = ct.pointer(gph)
         zh = np.uint64(f(gph_p))
         return zh
+
+    def flips(self, m : SquareSet):
+        """
+        The moving player places a disc in the square identified by m.
+        A tuple having two entries is returned, flipped squares and the updated 
+        game position when the move is legal.
+        When the move is not legal the empy set is returned.
+        When m is empty, an empty set is returned.
+
+        Parameter m must have no more than 1 bit set.
+        Parameter m  must be a set within the empty square set of the board.
+        """
+        if not isinstance(m, SquareSet):
+            raise TypeError('Argument m is not an instance of SquareSet')
+        mc = m.count()
+        if mc > 1:
+            raise ValueError('Argument m is a set with more than one square')
+        if not ((self.blacks | self.whites) & m) == SquareSet(0):
+            raise ValueError('Argument m is overlapping existing discs')
+        f = libreversi.game_position_x_flips
+        
+        f.argtypes = [ct.c_void_p, ct.c_ulonglong, ct.c_void_p]
+        current = _GamePositionCTHelper(self.blacks, self.whites, self.player.value)
+        updated = _GamePositionCTHelper(self.blacks, self.whites, self.player.value)
+        current_p = ct.pointer(current)
+        updated_p = ct.pointer(updated)
+        flipped_squares = f(current_p, m, updated_p)
+        updated_gp = GamePosition(SquareSet(updated.blacks), SquareSet(updated.whites), Player(updated.player))
+        return (flipped_squares, updated_gp)
     
     # TO DO GamePosition methods:
-    #  - flips()
     #
     #  - Solvers ?
     #
