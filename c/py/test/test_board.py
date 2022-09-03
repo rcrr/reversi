@@ -154,6 +154,15 @@ class TestSquareSet(unittest.TestCase):
     def test_constructor(self):
         self.assertIsInstance(SquareSet(0), SquareSet)
 
+    def test_eq(self):
+        a = SquareSet(0)
+        b = SquareSet(0)
+        self.assertEqual(a == b, True)
+        
+        a = SquareSet(0)
+        b = SquareSet(1)
+        self.assertEqual(a == b, False)
+
     def test_new_from_hex(self):
         self.assertIsInstance(SquareSet.new_from_hex('ffffffffffffffff'), SquareSet)
 
@@ -375,6 +384,24 @@ class TestBoard(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             Board(SquareSet(1), SquareSet(1))
         self.assertIsInstance(context.exception, ValueError)
+
+    def test_eq(self):
+        a = Board(SquareSet(0), SquareSet(1))
+        b = Board(SquareSet(0), SquareSet(1))
+        self.assertEqual(a == b, True)
+        
+        a = Board(SquareSet(0), SquareSet(1))
+        b = Board(SquareSet(0), SquareSet(2))
+        self.assertEqual(a == b, False)
+        
+        a = Board(SquareSet(0), SquareSet(2))
+        b = Board(SquareSet(1), SquareSet(2))
+        self.assertEqual(a == b, False)
+        
+        a = Board(SquareSet(0), SquareSet(1))
+        b = Board(SquareSet(0), SquareSet(1))
+        a.legal_moves()
+        self.assertEqual(a == b, True)
 
     def test_new_from_hexes(self):
         b = Board.new_from_hexes('ffffffffffffffff', '0000000000000000')
@@ -630,6 +657,32 @@ class TestGamePosition(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             GamePosition(SquareSet(1), SquareSet(1), Player.BLACK)
         self.assertIsInstance(context.exception, ValueError)
+
+    def test_eq(self):
+        a = GamePosition(SquareSet(0), SquareSet(1), Player.BLACK)
+        b = GamePosition(SquareSet(0), SquareSet(1), Player.BLACK)
+        self.assertEqual(a == b, True)
+        
+        a = GamePosition(SquareSet(0), SquareSet(1), Player.BLACK)
+        b = GamePosition(SquareSet(0), SquareSet(2), Player.BLACK)
+        self.assertEqual(a == b, False)
+        
+        a = GamePosition(SquareSet(0), SquareSet(2), Player.BLACK)
+        b = GamePosition(SquareSet(1), SquareSet(2), Player.BLACK)
+        self.assertEqual(a == b, False)
+        
+        a = GamePosition(SquareSet(0), SquareSet(2), Player.BLACK)
+        b = GamePosition(SquareSet(0), SquareSet(2), Player.WHITE)
+        self.assertEqual(a == b, False)
+        
+        a = GamePosition(SquareSet(0), SquareSet(2), Player.BLACK)
+        b = object()
+        self.assertEqual(a == b, False)
+        
+        a = GamePosition(SquareSet(0), SquareSet(1), Player.BLACK)
+        b = GamePosition(SquareSet(0), SquareSet(1), Player.BLACK)
+        a.legal_moves()
+        self.assertEqual(a == b, True)
 
     def test_new_from_hexes(self):
         gp = GamePosition.new_from_hexes('0000000000000001', '0000000000000002', Player.BLACK)

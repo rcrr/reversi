@@ -324,6 +324,7 @@ class SquareSet(np.uint64):
 
     def trans_rotate_180(self) -> 'SquareSet':
         """
+        Returns a bit-board rotated by 180 degrees.
         """
         f = libreversi.board_trans_rotate_180
         f.restype = ct.c_ulonglong
@@ -387,6 +388,15 @@ class Board:
         self.opponent = opponent
         self.lms = None
 
+    def __eq__(self, other):
+        """
+        Two boards are equals when mover and opponent fields are equal.
+        The lms field is not relevant.
+        """
+        if isinstance(other, Board):
+            return self.mover == other.mover and self.opponent == other.opponent
+        return False
+        
     @classmethod
     def new_from_hexes(cls, mover: str, opponent: str) -> 'Board':
         """
@@ -491,9 +501,6 @@ class Board:
         return (flipped_square_set, updated_gp.board())
     
     # TODO: missing board methods:
-    #
-    # - All the board transformations defined on SquareSet
-    # - Methods equivalent to GamePosition when applicable
     #
     # - Pattern index computation ... see board_trans.h and board_patterns.h
     #
@@ -603,6 +610,15 @@ class GamePosition:
         self.whites = whites
         self.player = player
         self.lms = None
+
+    def __eq__(self, other):
+        """
+        Two game positions are equals when blacks, whites and player fields are equal.
+        The lms field is not relevant.
+        """
+        if isinstance(other, GamePosition):
+            return self.blacks == other.blacks and self.whites == other.whites and self.player == other.player
+        return False
 
     @classmethod
     def new_from_hexes(cls, blacks: str, whites: str, player: Player) -> 'GamePosition':
@@ -814,7 +830,9 @@ class GamePosition:
     # TO DO GamePosition methods:
     #
     #  - Solvers ?
-    #
+    #  - Transformations
+    #  - Equal
+    # 
     
     def print(self):
         """
