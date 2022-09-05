@@ -32,7 +32,7 @@ import ctypes as ct
 import numpy as np
 import re
 
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 
 class _Singleton(ABCMeta):
     _instances = {}
@@ -43,6 +43,20 @@ class _Singleton(ABCMeta):
 
 
 class Pattern(object, metaclass = _Singleton):
+    
+    def __init__(self):
+        self.id = -1
+        self.name = None
+        self.n_instances = -1
+        self.n_squares = -1
+        self.n_configurations = -1
+        self.masks = None
+        self.trans_to_principal_f = None
+        self.__createsingleton__()
+
+    @abstractmethod
+    def __createsingleton__(self):
+        pass
 
     @abstractmethod
     def pack(self, s : SquareSet) -> SquareSet: pass
@@ -55,24 +69,66 @@ class Pattern(object, metaclass = _Singleton):
 
 
 class Edge(Pattern):
+    
+    def __createsingleton__(self):
+        self.id = 0
+        self.name = 'EDGE'
+        self.n_instances = 4
+        self.n_squares = 8
+        self.n_configurations = 6561
+        self.masks = [SquareSet.new_from_hex(x) for x in ['00000000000000ff',
+                                                          '8080808080808080',
+                                                          'ff00000000000000',
+                                                          '0101010101010101']]
+        self.trans_to_principal_f = [SquareSet.trans_identity,
+                                     SquareSet.trans_rotate_90a,
+                                     SquareSet.trans_rotate_180,
+                                     SquareSet.trans_rotate_90c]
 
     def pack(self, s : SquareSet) -> SquareSet:
-        return s
+        f = libreversi.board_pattern_pack_edge
+        f.restype = ct.c_ulonglong
+        f.argtypes = [ct.c_ulonglong]
+        return SquareSet(f(s))
 
     def unpack(self, s : SquareSet) -> SquareSet:
-        return s
+        f = libreversi.board_pattern_unpack_edge
+        f.restype = ct.c_ulonglong
+        f.argtypes = [ct.c_ulonglong]
+        return SquareSet(f(s))
 
     def mirror(self, s : SquareSet) -> SquareSet:
-        return s
-
+        return s.trans_flip_vertical()
+    
 
 class Corner(Pattern):
+    
+    def __createsingleton__(self):
+        self.id = 1
+        self.name = 'CORNER'
+        self.n_instances = 4
+        self.n_squares = 9
+        self.n_configurations = 19683
+        self.masks = [SquareSet.new_from_hex(x) for x in ['0000000000070707',
+                                                          '0000000000e0e0e0',
+                                                          'e0e0e00000000000',
+                                                          '0707070000000000']]
+        self.trans_to_principal_f = [SquareSet.trans_identity,
+                                     SquareSet.trans_rotate_90a,
+                                     SquareSet.trans_rotate_180,
+                                     SquareSet.trans_rotate_90c]
 
     def pack(self, s : SquareSet) -> SquareSet:
-        return s
+        f = libreversi.board_pattern_pack_corner
+        f.restype = ct.c_ulonglong
+        f.argtypes = [ct.c_ulonglong]
+        return SquareSet(f(s))
 
     def unpack(self, s : SquareSet) -> SquareSet:
-        return s
+        f = libreversi.board_pattern_unpack_corner
+        f.restype = ct.c_ulonglong
+        f.argtypes = [ct.c_ulonglong]
+        return SquareSet(f(s))
 
     def mirror(self, s : SquareSet) -> SquareSet:
-        return s
+        return s.trans_flip_diag_a1h8()
