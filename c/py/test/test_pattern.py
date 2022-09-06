@@ -29,8 +29,10 @@ import unittest
 
 import reversi
 import reversi.board
+import reversi.pattern
 
 from reversi.board import *
+from reversi.pattern import *
 
 import numpy as np
 
@@ -38,7 +40,29 @@ import io
 from contextlib import redirect_stdout
 
 
-class TestEdge(unittest.TestCase):
+class TestPattern(unittest.TestCase):
 
     def test_basics(self):
-        self.assertEqual(1, 0)
+        with self.assertRaises(TypeError) as context:
+            p = Pattern()
+        self.assertIsInstance(context.exception, TypeError)
+
+        self.assertIsInstance(PEdge(), Pattern)
+        self.assertIsInstance(PEdge(), PEdge)
+
+        self.assertEqual(PEdge(), PEdge())
+
+
+class TestEdge(unittest.TestCase):
+    
+    def test_basics(self):
+        p = PEdge()
+        self.assertEqual(p, p)
+        self.assertEqual(PEdge(), PEdge())
+
+
+class TestCorner(unittest.TestCase):
+    
+    def test_basics(self):
+        p = PCorner()
+        self.assertEqual(1, 1)
