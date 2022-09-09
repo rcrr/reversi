@@ -539,6 +539,25 @@ board_pattern_compute_principal_indexes_one_value_t (ut_test_t *const t)
 }
 
 static void
+board_pattern_structure_sizes_t (ut_test_t *const t)
+{
+  /*
+   * In case of changes to the definition of the struct board_pattern_t this test may fail.
+   * In case of failure sizes have to be adjusted, and accordingly the ctypes interface in python
+   * has to be updated.
+   */
+  ut_assert(t, 1 == sizeof(char));
+  ut_assert(t, 4 == sizeof(board_pattern_id_t));
+  ut_assert(t, 7 == sizeof(char[7]));
+  ut_assert(t, 4 == sizeof(int));
+  ut_assert(t, 8 == sizeof(unsigned long int));
+  ut_assert(t, 8 == sizeof(SquareSet));
+  ut_assert(t, 8 == sizeof(board_trans_f));
+  ut_assert(t, 8 == sizeof( SquareSet (*) (SquareSet)));
+  ut_assert(t, 184 == sizeof(board_pattern_t));
+}
+
+static void
 board_patterns_t (ut_test_t *const t)
 {
   for (unsigned int bp = 0; bp < BOARD_PATTERN_INVALID; bp++) {
@@ -1534,6 +1553,7 @@ main (int argc,
 
   ut_suite_t *const s = ut_suite_new(&config, "board_pattern");
 
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_structure_sizes_t", board_pattern_structure_sizes_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_patterns", board_patterns_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_get_id_by_name", board_pattern_get_id_by_name_t);
 

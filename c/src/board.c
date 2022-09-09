@@ -82,6 +82,19 @@ kogge_stone_mm (const SquareSet generator,
                 const SquareSet propagator,
                 const SquareSet blocker);
 
+/*
+ * Global extern constants.
+ */
+
+const int square_cardinality = 64;
+const SquareSet empty_square_set = 0;
+const SquareSet full_square_set = 0xFFFFFFFFFFFFFFFF;
+const Square pass_move = (Square) 64;
+const Square invalid_move = (Square) 65;
+const Square unknown_move = (Square) 66;
+const Square invalid_square = (Square) 65;
+
+
 
 /*
  * Internal variables and constants.

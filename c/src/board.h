@@ -143,37 +143,36 @@ typedef struct {
 /**
  * @brief The count of squares on the board.
  */
-static const int square_cardinality = 64;
+extern const int square_cardinality;
 
 /**
  * @brief The empty square set.
  */
-static const SquareSet empty_square_set = 0;
-
+extern const SquareSet empty_square_set;
 /**
  * @brief The full square set.
  */
-static const SquareSet full_square_set = 0xFFFFFFFFFFFFFFFF;
+extern const SquareSet full_square_set;
 
 /**
  * @brief The pass move.
  */
-static const Square pass_move = (Square) 64;
+extern const Square pass_move;
 
 /**
  * @brief The invalid move.
  */
-static const Square invalid_move = (Square) 65;
+extern const Square invalid_move;
 
 /**
  * @brief The unknown move.
  */
-static const Square unknown_move = (Square) 66;
+extern const Square unknown_move;
 
 /**
  * @brief The invalid square.
  */
-static const Square invalid_square = (Square) 65;
+extern const Square invalid_square;
 
 
 

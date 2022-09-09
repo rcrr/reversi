@@ -34,6 +34,53 @@ import re
 
 from abc import ABCMeta, abstractmethod
 
+class _BoardPatternCTHelper(ct.Structure):
+    _fields_ = [('id', ct.c_int),
+                ('name', ct.c_char*7),
+                ('n_instances', ct.c_int),
+                ('n_squares', ct.c_int),
+                ('n_configurations', ct.c_ulonglong),
+                ('masks', ct.c_ulonglong*8),
+                ('trans_to_principal_f', ct.c_void_p*8),
+                ('pattern_pack_f', ct.c_void_p),
+                ('pattern_unpack_f', ct.c_void_p),
+                ('pattern_mirror_f', ct.c_void_p)]
+
+_c_board_pattern_count = ct.c_int.in_dll(libreversi, "board_pattern_count")
+_c_board_patterns = ct.pointer(_BoardPatternCTHelper.in_dll(libreversi, 'board_patterns'))
+_c_s_to_s_fun = ct.CFUNCTYPE(ct.c_ulonglong, ct.c_ulonglong)
+
+for i in range(0,  _c_board_pattern_count.value):
+    p = _c_board_patterns[i]
+    if not p.id == i: raise ValueError('Error reading the libreversi.board_patterns table.')
+    # print('{:02d} - {:6} -'.format(p.id, p.name.decode('utf-8')))
+
+#print('---')
+#entry = board_patterns[0]
+#print(entry.id)
+#print(entry.name.decode('utf-8'))
+#print(entry.n_instances)
+#print(entry.n_squares)
+#print(entry.n_configurations)
+#print(hex(entry.masks[0]))
+#print(hex(entry.masks[1]))
+#print(hex(entry.masks[2]))
+#print(hex(entry.masks[3]))
+#f = squareset_to_squareset(entry.trans_to_principal_f[0])
+#x = f(1)
+#print(x)
+#print('---')
+#entry = board_patterns[1]
+#print(entry.id)
+#print(entry.name.decode('utf-8'))
+#print(entry.n_instances)
+#print(entry.n_squares)
+#print(entry.n_configurations)
+
+# _bar = CFUNCTYPE(c_longlong, c_void_p).in_dll(_lib, "bar")
+
+###
+
 
 class _Singleton(ABCMeta):
     _instances = {}
@@ -56,6 +103,13 @@ class Pattern(object, metaclass = _Singleton):
         self.masks = None
         self.trans_to_principal_f = None
         self.__createsingleton__()
+        
+        self._c_pattern = None
+        for i in range(0,  _c_board_pattern_count.value):
+            p = _c_board_patterns[i]
+            if p.id == self.id and p.name.decode('utf-8') == self.name:
+                self._c_pattern = p
+                break    
 
     @abstractmethod
     def __createsingleton__(self):
@@ -525,3 +579,4 @@ All defined patterns in a dictionary having name as key.
 It is a global variable, it must not be modified.
 """
 patterns_as_dict = dict([(x.name, x) for x in patterns_as_list])
+
