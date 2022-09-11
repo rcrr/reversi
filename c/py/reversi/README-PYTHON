@@ -7,6 +7,10 @@ Documentation on Python Packages and Modules
 
 Run python from the $(HOME_REVESI)/c folder.
 
+Re-init everything by issuing the command:
+
+>>> exec(open("py/reversi/start.py").read())
+
 >>> import sys
 >>> sys.path
 >>> sys.path.append("./py")

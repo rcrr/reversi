@@ -27,6 +27,7 @@
 
 from reversi import libreversi as libreversi
 from reversi.board import *
+from reversi.board import _BoardCTHelper
 
 import ctypes as ct
 import numpy as np
@@ -35,6 +36,25 @@ import re
 from abc import ABCMeta, abstractmethod
 
 class _BoardPatternCTHelper(ct.Structure):
+    """
+    Objects are read from the libreversi C library by loading the board_patterns symbol.
+    The class matches the definition in the C code of the type board_pattern_t.
+    The field name is an array of bytes, in order to use it as a string:
+
+      pattern_id = 3
+      entry = _c_board_patterns[pattern_id]
+      name_as_string = entry.name.decode('utf-8')
+
+    To call a C function, e.g. pattern_mirror_f do the following:
+
+      pattern_id = 3
+      entry = _c_board_patterns[pattern_id]
+      fun = _c_s_to_s_fun(entry.pattern_mirror_f)
+      x = fun(y)
+
+    where x and y are SquareSet objects.
+    
+    """
     _fields_ = [('id', ct.c_int),
                 ('name', ct.c_char*7),
                 ('n_instances', ct.c_int),
@@ -53,33 +73,6 @@ _c_s_to_s_fun = ct.CFUNCTYPE(ct.c_ulonglong, ct.c_ulonglong)
 for i in range(0,  _c_board_pattern_count.value):
     p = _c_board_patterns[i]
     if not p.id == i: raise ValueError('Error reading the libreversi.board_patterns table.')
-    # print('{:02d} - {:6} -'.format(p.id, p.name.decode('utf-8')))
-
-#print('---')
-#entry = board_patterns[0]
-#print(entry.id)
-#print(entry.name.decode('utf-8'))
-#print(entry.n_instances)
-#print(entry.n_squares)
-#print(entry.n_configurations)
-#print(hex(entry.masks[0]))
-#print(hex(entry.masks[1]))
-#print(hex(entry.masks[2]))
-#print(hex(entry.masks[3]))
-#f = squareset_to_squareset(entry.trans_to_principal_f[0])
-#x = f(1)
-#print(x)
-#print('---')
-#entry = board_patterns[1]
-#print(entry.id)
-#print(entry.name.decode('utf-8'))
-#print(entry.n_instances)
-#print(entry.n_squares)
-#print(entry.n_configurations)
-
-# _bar = CFUNCTYPE(c_longlong, c_void_p).in_dll(_lib, "bar")
-
-###
 
 
 class _Singleton(ABCMeta):
@@ -109,7 +102,9 @@ class Pattern(object, metaclass = _Singleton):
             p = _c_board_patterns[i]
             if p.id == self.id and p.name.decode('utf-8') == self.name:
                 self._c_pattern = p
-                break    
+                break
+        if self._c_pattern:
+            pass
 
     @abstractmethod
     def __createsingleton__(self):
@@ -580,3 +575,25 @@ It is a global variable, it must not be modified.
 """
 patterns_as_dict = dict([(x.name, x) for x in patterns_as_list])
 
+
+def _compute_pattern_indexes(self, p : Pattern) -> np.ndarray:
+    if not isinstance(p, Pattern):
+        raise TypeError('Argument p is not an instance of Pattern')
+    f = libreversi.board_pattern_compute_indexes
+    f.restype = None
+    f.argtypes = [ct.POINTER(ct.c_uint16*8), ct.POINTER(_BoardPatternCTHelper), ct.POINTER(_BoardCTHelper)]
+    board = ct.byref(_BoardCTHelper((self.mover, self.opponent)))
+    indexes = (ct.c_uint16*8) (0, 0, 0, 0, 0, 0, 0, 0)
+    f(ct.byref(indexes), p._c_pattern, board)
+    return np.frombuffer(indexes, np.uint16, count = p.n_instances)
+
+setattr(Board, "compute_pattern_indexes", _compute_pattern_indexes)
+
+def _compute_patternlist_indexes(self, pl : list) -> np.ndarray:
+    if not isinstance(pl, list):
+        raise TypeError('Argument pl is not an instance of list')
+    if not all([isinstance(e, Pattern) for e in pl]):
+        raise TypeError('Argument pl must have all elements belonging to Pattern type')
+    return np.concatenate([self.compute_pattern_indexes(p) for p in pl])
+
+setattr(Board, "compute_patternlist_indexes", _compute_patternlist_indexes)

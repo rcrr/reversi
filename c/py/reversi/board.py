@@ -135,6 +135,10 @@ class _GamePositionCTHelper(ct.Structure):
                 ("player", ct.c_ushort)]
 
 
+class _BoardCTHelper(ct.Structure):
+    _fields_ = [("square_sets", ct.c_ulonglong*2)]
+
+
 class SquareSet(np.uint64):
     """
     A set of squares.
@@ -485,7 +489,7 @@ class Board:
         """
         return self.game_position().hash()
 
-    def flips(self, m : SquareSet):
+    def flips(self, m : SquareSet) -> (SquareSet, 'Board'):
         """
         The moving player places a disc in the square identified by m.
         A tuple having two entries is returned, flipped squares and the updated 
@@ -499,11 +503,6 @@ class Board:
         gp = self.game_position()
         (flipped_square_set, updated_gp) = gp.flips(m)
         return (flipped_square_set, updated_gp.board())
-    
-    # TODO: missing board methods:
-    #
-    # - Pattern index computation ... see board_trans.h and board_patterns.h
-    #
 
     def trans_flip_horizontal(self) -> 'Board':
         """
