@@ -582,10 +582,10 @@ def _compute_pattern_indexes(self, p : Pattern) -> np.ndarray:
     f = libreversi.board_pattern_compute_indexes
     f.restype = None
     f.argtypes = [ct.POINTER(ct.c_uint16*8), ct.POINTER(_BoardPatternCTHelper), ct.POINTER(_BoardCTHelper)]
-    board = ct.byref(_BoardCTHelper((self.mover, self.opponent)))
-    indexes = (ct.c_uint16*8) (0, 0, 0, 0, 0, 0, 0, 0)
-    f(ct.byref(indexes), p._c_pattern, board)
-    return np.frombuffer(indexes, np.uint16, count = p.n_instances)
+    ct_board_p = ct.byref(_BoardCTHelper((self.mover, self.opponent)))
+    ct_indexes = (ct.c_uint16*8) (0, 0, 0, 0, 0, 0, 0, 0)
+    f(ct.byref(ct_indexes), p._c_pattern, ct_board_p)
+    return np.frombuffer(ct_indexes, np.uint16, count = p.n_instances)
 
 setattr(Board, "compute_pattern_indexes", _compute_pattern_indexes)
 
@@ -597,3 +597,40 @@ def _compute_patternlist_indexes(self, pl : list) -> np.ndarray:
     return np.concatenate([self.compute_pattern_indexes(p) for p in pl])
 
 setattr(Board, "compute_patternlist_indexes", _compute_patternlist_indexes)
+
+def compute_pattern_principal_indexes(indexes : np.ndarray, p : Pattern) -> np.ndarray:
+    if not isinstance(indexes, np.ndarray):
+        raise TypeError('Argument indexes is not an instance of numpy.ndarray')
+    if not indexes.dtype == 'uint16':
+        raise TypeError('Argument indexes must be an array having dtype equal to uint16')
+    if not isinstance(p, Pattern):
+        raise TypeError('Argument p is not an instance of Pattern')
+    if not len(indexes) == p.n_instances:
+        raise ValueError('Argument mismatch: len(indexes) must be equal to p.n_instances')
+    f = libreversi.board_pattern_compute_principal_indexes
+    f.restype = None
+    f.argtypes = [ct.POINTER(ct.c_uint16*8), ct.POINTER(ct.c_uint16*8), ct.POINTER(_BoardPatternCTHelper), ct.c_bool]
+    ct_principals = (ct.c_uint16*8) (0, 0, 0, 0, 0, 0, 0, 0)
+    indexes_padded = np.pad(indexes, (0, 8 - p.n_instances), mode='constant', constant_values=0)
+    ct_indexes_p = indexes_padded.ctypes.data_as(ct.POINTER(ct.c_uint16*8))
+    f(ct.byref(ct_principals), ct_indexes_p, p._c_pattern, False)
+    return np.frombuffer(ct_principals, np.uint16, count = p.n_instances)
+
+def _compute_pattern_principal_indexes(self, p : Pattern) -> np.ndarray:
+    if not isinstance(p, Pattern):
+        raise TypeError('Argument p is not an instance of Pattern')
+    f0 = libreversi.board_pattern_compute_indexes
+    f0.restype = None
+    f0.argtypes = [ct.POINTER(ct.c_uint16*8), ct.POINTER(_BoardPatternCTHelper), ct.POINTER(_BoardCTHelper)]
+    ct_board_p = ct.byref(_BoardCTHelper((self.mover, self.opponent)))
+    ct_indexes = (ct.c_uint16*8) (0, 0, 0, 0, 0, 0, 0, 0)
+    f0(ct.byref(ct_indexes), p._c_pattern, ct_board_p)
+    f1 = libreversi.board_pattern_compute_principal_indexes
+    f1.restype = None
+    f1.argtypes = [ct.POINTER(ct.c_uint16*8), ct.POINTER(ct.c_uint16*8), ct.POINTER(_BoardPatternCTHelper), ct.c_bool]
+    ct_principals = (ct.c_uint16*8) (0, 0, 0, 0, 0, 0, 0, 0)
+    f1(ct.byref(ct_principals), ct.byref(ct_indexes), p._c_pattern, False)
+    return (np.frombuffer(ct_indexes, np.uint16, count = p.n_instances),
+            np.frombuffer(ct_principals, np.uint16, count = p.n_instances))
+
+setattr(Board, "compute_pattern_principal_indexes", _compute_pattern_principal_indexes)
