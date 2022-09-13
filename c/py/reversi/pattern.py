@@ -35,6 +35,8 @@ import re
 
 from abc import ABCMeta, abstractmethod
 
+_c_s_to_s_fun = ct.CFUNCTYPE(ct.c_ulonglong, ct.c_ulonglong)
+
 class _BoardPatternCTHelper(ct.Structure):
     """
     Objects are read from the libreversi C library by loading the board_patterns symbol.
@@ -61,14 +63,13 @@ class _BoardPatternCTHelper(ct.Structure):
                 ('n_squares', ct.c_int),
                 ('n_configurations', ct.c_ulonglong),
                 ('masks', ct.c_ulonglong*8),
-                ('trans_to_principal_f', ct.c_void_p*8),
-                ('pattern_pack_f', ct.c_void_p),
-                ('pattern_unpack_f', ct.c_void_p),
-                ('pattern_mirror_f', ct.c_void_p)]
+                ('trans_to_principal_f', _c_s_to_s_fun*8),
+                ('pattern_pack_f', _c_s_to_s_fun),
+                ('pattern_unpack_f', _c_s_to_s_fun),
+                ('pattern_mirror_f', _c_s_to_s_fun)]
 
 _c_board_pattern_count = ct.c_int.in_dll(libreversi, "board_pattern_count")
 _c_board_patterns = ct.pointer(_BoardPatternCTHelper.in_dll(libreversi, 'board_patterns'))
-_c_s_to_s_fun = ct.CFUNCTYPE(ct.c_ulonglong, ct.c_ulonglong)
 
 for i in range(0,  _c_board_pattern_count.value):
     p = _c_board_patterns[i]
