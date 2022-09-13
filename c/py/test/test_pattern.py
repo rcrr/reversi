@@ -138,7 +138,7 @@ mask_diag7_0  = f('0001020408102040')
 mask_diag8_0  = f('0102040810204080')
 mask_2x5cor_0 = f('0000000000001f1f')
 
-f = None
+
 
 class TestPattern(unittest.TestCase):
 
@@ -178,6 +178,12 @@ class TestPattern(unittest.TestCase):
 
         self.assertEqual(len(patterns_as_set), n_matches)
 
+    def test_get_id_by_name(self):
+        self.assertEqual( 1, patterns_as_dict['CORNER'].id)
+        self.assertEqual( 2, patterns_as_dict['XEDGE'].id)
+        self.assertEqual(12, patterns_as_dict['DIAG3'].id)
+
+        
 class TestEdge(unittest.TestCase):
     
     def test_basics(self):
@@ -185,9 +191,314 @@ class TestEdge(unittest.TestCase):
         self.assertEqual(p, p)
         self.assertEqual(PEdge(), PEdge())
 
+    def test_pack(self):
+        p = PEdge()
+        self.assertEqual(empty, p.pack(empty))
+        self.assertEqual(packed_08, p.pack(mask_edge_0))
+        self.assertEqual(packed_08, p.pack(full))
+
+    def test_unpack(self):
+        p = PEdge()
+        self.assertEqual(empty, p.unpack(empty))
+        self.assertEqual(mask_edge_0, p.unpack(packed_08))
+
 
 class TestCorner(unittest.TestCase):
     
     def test_basics(self):
         p = PCorner()
         self.assertEqual(1, 1)
+
+    def test_pack(self):
+        p = PCorner()
+        self.assertEqual(empty, p.pack(empty))
+        self.assertEqual(packed_09, p.pack(mask_corner_0))
+        self.assertEqual(packed_09, p.pack(full))
+
+    def test_unpack(self):
+        p = PCorner()
+        self.assertEqual(empty, p.unpack(empty))
+        self.assertEqual(mask_corner_0, p.unpack(packed_09))
+
+
+class TestXedge(unittest.TestCase):
+    
+    def test_basics(self):
+        p = PXedge()
+        self.assertEqual(1, 1)
+
+    def test_pack(self):
+        p = PXedge()
+        self.assertEqual(empty, p.pack(empty))
+        self.assertEqual(packed_10, p.pack(mask_xedge_0))
+        self.assertEqual(packed_10, p.pack(full))
+
+    def test_unpack(self):
+        p = PXedge()
+        self.assertEqual(empty, p.unpack(empty))
+        self.assertEqual(mask_xedge_0, p.unpack(packed_10))
+
+
+class TestR2(unittest.TestCase):
+    
+    def test_basics(self):
+        p = PR2()
+        self.assertEqual(1, 1)
+
+    def test_pack(self):
+        p = PR2()
+        self.assertEqual(empty, p.pack(empty))
+        self.assertEqual(packed_08, p.pack(mask_r2_0))
+        self.assertEqual(packed_08, p.pack(full))
+
+    def test_unpack(self):
+        p = PR2()
+        self.assertEqual(empty, p.unpack(empty))
+        self.assertEqual(mask_r2_0, p.unpack(packed_08))
+
+
+class TestR3(unittest.TestCase):
+    
+    def test_basics(self):
+        p = PR3()
+        self.assertEqual(1, 1)
+
+    def test_pack(self):
+        p = PR3()
+        self.assertEqual(empty, p.pack(empty))
+        self.assertEqual(packed_08, p.pack(mask_r3_0))
+        self.assertEqual(packed_08, p.pack(full))
+
+    def test_unpack(self):
+        p = PR3()
+        self.assertEqual(empty, p.unpack(empty))
+        self.assertEqual(mask_r3_0, p.unpack(packed_08))
+
+
+class TestR4(unittest.TestCase):
+    
+    def test_basics(self):
+        p = PR4()
+        self.assertEqual(1, 1)
+
+    def test_pack(self):
+        p = PR4()
+        self.assertEqual(empty, p.pack(empty))
+        self.assertEqual(packed_08, p.pack(mask_r4_0))
+        self.assertEqual(packed_08, p.pack(full))
+
+    def test_unpack(self):
+        p = PR4()
+        self.assertEqual(empty, p.unpack(empty))
+        self.assertEqual(mask_r4_0, p.unpack(packed_08))
+
+
+class TestDiag4(unittest.TestCase):
+    
+    def test_basics(self):
+        p = PDiag4()
+        self.assertEqual(1, 1)
+
+    def test_pack(self):
+        p = PDiag4()
+        self.assertEqual(empty, p.pack(empty))
+        self.assertEqual(packed_04, p.pack(mask_diag4_0))
+        self.assertEqual(packed_04, p.pack(full))
+        self.assertEqual(f('0000000000000008'), p.pack(f('0000000000000008')))
+        self.assertEqual(f('0000000000000004'), p.pack(f('0000000000000400')))
+        self.assertEqual(f('0000000000000002'), p.pack(f('0000000000020000')))
+        self.assertEqual(f('0000000000000001'), p.pack(f('0000000001000000')))
+        self.assertEqual(empty, p.pack(full & ~mask_diag4_0))
+
+    def test_unpack(self):
+        p = PDiag4()
+        self.assertEqual(empty, p.unpack(empty))
+        self.assertEqual(mask_diag4_0, p.unpack(packed_04))
+        self.assertEqual(mask_diag4_0, p.unpack(full))
+        self.assertEqual(f('0000000000000008'), p.unpack(f('0000000000000008')))
+        self.assertEqual(f('0000000000000400'), p.unpack(f('0000000000000004')))
+        self.assertEqual(f('0000000000020000'), p.unpack(f('0000000000000002')))
+        self.assertEqual(f('0000000001000000'), p.unpack(f('0000000000000001')))
+        self.assertEqual(empty, p.unpack(full & ~packed_04))
+
+
+class TestDiag5(unittest.TestCase):
+    
+    def test_basics(self):
+        p = PDiag5()
+        self.assertEqual(1, 1)
+
+    def test_pack(self):
+        p = PDiag5()
+        self.assertEqual(empty, p.pack(empty))
+        self.assertEqual(packed_05, p.pack(mask_diag5_0))
+        self.assertEqual(packed_05, p.pack(full))
+        self.assertEqual(f('0000000000000010'), p.pack(f('0000000000000010')))
+        self.assertEqual(f('0000000000000008'), p.pack(f('0000000000000800')))
+        self.assertEqual(f('0000000000000004'), p.pack(f('0000000000040000')))
+        self.assertEqual(f('0000000000000002'), p.pack(f('0000000002000000')))
+        self.assertEqual(f('0000000000000001'), p.pack(f('0000000100000000')))
+        self.assertEqual(empty, p.pack(full & ~mask_diag5_0))
+
+    def test_unpack(self):
+        p = PDiag5()
+        self.assertEqual(empty, p.unpack(empty))
+        self.assertEqual(mask_diag5_0, p.unpack(packed_05))
+        self.assertEqual(mask_diag5_0, p.unpack(full))
+        self.assertEqual(f('0000000000000010'), p.unpack(f('0000000000000010')))
+        self.assertEqual(f('0000000000000800'), p.unpack(f('0000000000000008')))
+        self.assertEqual(f('0000000000040000'), p.unpack(f('0000000000000004')))
+        self.assertEqual(f('0000000002000000'), p.unpack(f('0000000000000002')))
+        self.assertEqual(f('0000000100000000'), p.unpack(f('0000000000000001')))
+        self.assertEqual(empty, p.unpack(full & ~packed_05))
+
+
+class TestDiag6(unittest.TestCase):
+    
+    def test_basics(self):
+        p = PDiag6()
+        self.assertEqual(1, 1)
+
+    def test_pack(self):
+        p = PDiag6()
+        self.assertEqual(empty, p.pack(empty))
+        self.assertEqual(packed_06, p.pack(mask_diag6_0))
+        self.assertEqual(packed_06, p.pack(full))
+        self.assertEqual(f('0000000000000020'), p.pack(f('0000000000000020')))
+        self.assertEqual(f('0000000000000010'), p.pack(f('0000000000001000')))
+        self.assertEqual(f('0000000000000008'), p.pack(f('0000000000080000')))
+        self.assertEqual(f('0000000000000004'), p.pack(f('0000000004000000')))
+        self.assertEqual(f('0000000000000002'), p.pack(f('0000000200000000')))
+        self.assertEqual(f('0000000000000001'), p.pack(f('0000010000000000')))
+        self.assertEqual(empty, p.pack(full & ~mask_diag6_0))
+
+    def test_unpack(self):
+        p = PDiag6()
+        self.assertEqual(empty, p.unpack(empty))
+        self.assertEqual(mask_diag6_0, p.unpack(packed_06))
+        self.assertEqual(mask_diag6_0, p.unpack(full))
+        self.assertEqual(f('0000000000000020'), p.unpack(f('0000000000000020')))
+        self.assertEqual(f('0000000000001000'), p.unpack(f('0000000000000010')))
+        self.assertEqual(f('0000000000080000'), p.unpack(f('0000000000000008')))
+        self.assertEqual(f('0000000004000000'), p.unpack(f('0000000000000004')))
+        self.assertEqual(f('0000000200000000'), p.unpack(f('0000000000000002')))
+        self.assertEqual(f('0000010000000000'), p.unpack(f('0000000000000001')))
+        self.assertEqual(empty, p.unpack(full & ~packed_06))
+
+
+class TestDiag7(unittest.TestCase):
+    
+    def test_basics(self):
+        p = PDiag7()
+        self.assertEqual(1, 1)
+
+    def test_pack(self):
+        p = PDiag7()
+        self.assertEqual(empty, p.pack(empty))
+        self.assertEqual(packed_07, p.pack(mask_diag7_0))
+        self.assertEqual(packed_07, p.pack(full))
+        self.assertEqual(f('0000000000000040'), p.pack(f('0000000000000040')))
+        self.assertEqual(f('0000000000000020'), p.pack(f('0000000000002000')))
+        self.assertEqual(f('0000000000000010'), p.pack(f('0000000000100000')))
+        self.assertEqual(f('0000000000000008'), p.pack(f('0000000008000000')))
+        self.assertEqual(f('0000000000000004'), p.pack(f('0000000400000000')))
+        self.assertEqual(f('0000000000000002'), p.pack(f('0000020000000000')))
+        self.assertEqual(f('0000000000000001'), p.pack(f('0001000000000000')))
+        self.assertEqual(empty, p.pack(full & ~mask_diag7_0))
+
+    def test_unpack(self):
+        p = PDiag7()
+        self.assertEqual(empty, p.unpack(empty))
+        self.assertEqual(mask_diag7_0, p.unpack(packed_07))
+        self.assertEqual(mask_diag7_0, p.unpack(full))
+        self.assertEqual(f('0000000000000040'), p.unpack(f('0000000000000040')))
+        self.assertEqual(f('0000000000002000'), p.unpack(f('0000000000000020')))
+        self.assertEqual(f('0000000000100000'), p.unpack(f('0000000000000010')))
+        self.assertEqual(f('0000000008000000'), p.unpack(f('0000000000000008')))
+        self.assertEqual(f('0000000400000000'), p.unpack(f('0000000000000004')))
+        self.assertEqual(f('0000020000000000'), p.unpack(f('0000000000000002')))
+        self.assertEqual(f('0001000000000000'), p.unpack(f('0000000000000001')))
+        self.assertEqual(empty, p.unpack(full & ~packed_07))
+
+
+class TestDiag8(unittest.TestCase):
+    
+    def test_basics(self):
+        p = PDiag8()
+        self.assertEqual(1, 1)
+
+    def test_pack(self):
+        p = PDiag8()
+        self.assertEqual(empty, p.pack(empty))
+        self.assertEqual(packed_08, p.pack(mask_diag8_0))
+        self.assertEqual(packed_08, p.pack(full))
+        self.assertEqual(f('0000000000000080'), p.pack(f('0000000000000080')))
+        self.assertEqual(f('0000000000000040'), p.pack(f('0000000000004000')))
+        self.assertEqual(f('0000000000000020'), p.pack(f('0000000000200000')))
+        self.assertEqual(f('0000000000000010'), p.pack(f('0000000010000000')))
+        self.assertEqual(f('0000000000000008'), p.pack(f('0000000800000000')))
+        self.assertEqual(f('0000000000000004'), p.pack(f('0000040000000000')))
+        self.assertEqual(f('0000000000000002'), p.pack(f('0002000000000000')))
+        self.assertEqual(f('0000000000000001'), p.pack(f('0100000000000000')))
+        self.assertEqual(empty, p.pack(full & ~mask_diag8_0))
+
+    def test_unpack(self):
+        p = PDiag8()
+        self.assertEqual(empty, p.unpack(empty))
+        self.assertEqual(mask_diag8_0, p.unpack(packed_08))
+        self.assertEqual(mask_diag8_0, p.unpack(full))
+        self.assertEqual(f('0000000000000080'), p.unpack(f('0000000000000080')))
+        self.assertEqual(f('0000000000004000'), p.unpack(f('0000000000000040')))
+        self.assertEqual(f('0000000000200000'), p.unpack(f('0000000000000020')))
+        self.assertEqual(f('0000000010000000'), p.unpack(f('0000000000000010')))
+        self.assertEqual(f('0000000800000000'), p.unpack(f('0000000000000008')))
+        self.assertEqual(f('0000040000000000'), p.unpack(f('0000000000000004')))
+        self.assertEqual(f('0002000000000000'), p.unpack(f('0000000000000002')))
+        self.assertEqual(f('0100000000000000'), p.unpack(f('0000000000000001')))
+        self.assertEqual(empty, p.unpack(full & ~packed_08))
+
+
+class Test2x5cor(unittest.TestCase):
+    
+    def test_basics(self):
+        p = P2x5cor()
+        self.assertEqual(1, 1)
+
+    def test_pack(self):
+        p = P2x5cor()
+        self.assertEqual(empty, p.pack(empty))
+        self.assertEqual(packed_10, p.pack(mask_2x5cor_0))
+        self.assertEqual(packed_10, p.pack(full))
+
+    def test_unpack(self):
+        p = P2x5cor()
+        self.assertEqual(empty, p.unpack(empty))
+        self.assertEqual(mask_2x5cor_0, p.unpack(packed_10))
+        self.assertEqual(mask_2x5cor_0, p.unpack(full))
+
+
+class TestDiag3(unittest.TestCase):
+    
+    def test_basics(self):
+        p = PDiag3()
+        self.assertEqual(1, 1)
+
+    def test_pack(self):
+        p = PDiag3()
+        self.assertEqual(empty, p.pack(empty))
+        self.assertEqual(packed_03, p.pack(mask_diag3_0))
+        self.assertEqual(packed_03, p.pack(full))
+        self.assertEqual(f('0000000000000004'), p.pack(f('0000000000000004')))
+        self.assertEqual(f('0000000000000002'), p.pack(f('0000000000000200')))
+        self.assertEqual(f('0000000000000001'), p.pack(f('0000000000010000')))
+        self.assertEqual(empty, p.pack(full & ~mask_diag3_0))
+
+    def test_unpack(self):
+        p = PDiag3()
+        self.assertEqual(empty, p.unpack(empty))
+        self.assertEqual(mask_diag3_0, p.unpack(packed_03))
+        self.assertEqual(mask_diag3_0, p.unpack(full))
+        self.assertEqual(f('0000000000000004'), p.unpack(f('0000000000000004')))
+        self.assertEqual(f('0000000000000200'), p.unpack(f('0000000000000002')))
+        self.assertEqual(f('0000000000010000'), p.unpack(f('0000000000000001')))
+        self.assertEqual(empty, p.unpack(full & ~packed_03))
