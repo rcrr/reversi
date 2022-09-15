@@ -928,11 +928,11 @@ board_pattern_packed_to_index_aux (ut_test_t *const t,
   board_set_square_sets(&b, 0x00f4, 0x0008);
   ut_assert(t, fp(&b, 8) == 3303);
 
-  /* Test 2x4cor 2222222220 */
+  /* Test 2x5cor 2222222220 */
   board_set_square_sets(&b, 0x0000, 0x01ff);
   ut_assert(t, fp(&b, 10) == 19682);
 
-  /* Test 2x4cor 2222222222 */
+  /* Test 2x5cor 2222222222 */
   board_set_square_sets(&b, 0x0000, 0x03ff);
   ut_assert(t, fp(&b, 10) == 59048);
 }

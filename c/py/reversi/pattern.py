@@ -635,3 +635,20 @@ def _compute_pattern_principal_indexes(self, p : Pattern) -> np.ndarray:
             np.frombuffer(ct_principals, np.uint16, count = p.n_instances))
 
 setattr(Board, "compute_pattern_principal_indexes", _compute_pattern_principal_indexes)
+
+def board_pattern_packed_to_index(packed : Board, n_squares : int) -> int:
+    f = libreversi.board_pattern_packed_to_index
+    f.restype = ct.c_uint16
+    f.argtypes = [ct.POINTER(_BoardCTHelper), ct.c_uint]
+    c_packed_p = ct.byref(_BoardCTHelper((packed.mover, packed.opponent)))
+    ret = f(c_packed_p, n_squares)
+    return ret
+
+def board_pattern_index_to_packed(index : int) -> Board:
+    f = libreversi.board_pattern_index_to_packed
+    f.restype = None
+    f.argtypes = [ct.POINTER(_BoardCTHelper), ct.c_uint16]
+    ct_board = _BoardCTHelper((0, 0))
+    ct_board_p = ct.byref(ct_board)
+    f(ct_board_p, index)
+    return Board(SquareSet(ct_board.square_sets[0]), SquareSet(ct_board.square_sets[1]))

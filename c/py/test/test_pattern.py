@@ -202,6 +202,45 @@ class TestEdge(unittest.TestCase):
         self.assertEqual(empty, p.unpack(empty))
         self.assertEqual(mask_edge_0, p.unpack(packed_08))
 
+    def test_compute_indexes(self):
+        test_data = [
+            ( (empty,    empty),    [    0,    0,    0,    0 ], [    0,    0,    0,    0 ] ),
+            ( (full,     empty),    [ 3280, 3280, 3280, 3280 ], [ 3280, 3280, 3280, 3280 ] ),
+            ( (empty,    full),     [ 6560, 6560, 6560, 6560 ], [ 6560, 6560, 6560, 6560 ] ),
+            ( (border,   empty),    [ 3280, 3280, 3280, 3280 ], [ 3280, 3280, 3280, 3280 ] ),
+            ( (empty,    border),   [ 6560, 6560, 6560, 6560 ], [ 6560, 6560, 6560, 6560 ] ),
+            ( (n_edge,   empty),    [ 3280,    1,    0, 2187 ], [ 3280,    1,    0,    1 ] ),
+            ( (e_edge,   empty),    [ 2187, 3280,    1,    0 ], [    1, 3280,    1,    0 ] ),
+            ( (s_edge,   empty),    [    0, 2187, 3280,    1 ], [    0,    1, 3280,    1 ] ),
+            ( (w_edge,   empty),    [    1,    0, 2187, 3280 ], [    1,    0,    1, 3280 ] ),
+            ( (empty,    n_edge),   [ 6560,    2,    0, 4374 ], [ 6560,    2,    0,    2 ] ),
+            ( (empty,    e_edge),   [ 4374, 6560,    2,    0 ], [    2, 6560,    2,    0 ] ),
+            ( (empty,    s_edge),   [    0, 4374, 6560,    2 ], [    0,    2, 6560,    2 ] ),
+            ( (empty,    w_edge),   [    2,    0, 4374, 6560 ], [    2,    0,    2, 6560 ] ),
+            ( (zebra_e,  empty),    [  820,    0,    0, 2187 ], [  820,    0,    0,    1 ] ),
+            ( (empty,    zebra_e),  [ 1640,    0,    0, 4374 ], [ 1640,    0,    0,    2 ] ),
+            ( (zebra_o,  empty),    [ 2460,    1,    0,    0 ], [  820,    1,    0,    0 ] ),
+            ( (empty,    zebra_o),  [ 4920,    2,    0,    0 ], [ 1640,    2,    0,    0 ] ),
+            ( (zebra_e,  zebra_o),  [ 5740,    2,    0, 2187 ], [ 4100,    2,    0,    1 ] ),
+            ( (zebra_o,  zebra_e),  [ 4100,    1,    0, 4374 ], [ 4100,    1,    0,    2 ] ),
+            ( (n_r2,     empty),    [    0,    3,    0,  729 ], [    0,    3,    0,    3 ] ),
+            ( (n_r3,     empty),    [    0,    9,    0,  243 ], [    0,    9,    0,    9 ] ),
+            ( (n_r4,     empty),    [    0,   27,    0,   81 ], [    0,   27,    0,   27 ] ),
+            ( (nw_3x3,   e_r2),     [ 1471,    0,    6, 3159 ], [ 1471,    0,    6,   13 ] ),
+            ( (empty,    ne_tri_5), [ 6534,  242,    0,    0 ], [  242,  242,    0,    0 ] ),
+        ]
+
+        def check_expected_indexes(t):
+            p = PEdge()
+            square_sets, indexes, principals = t
+            mover, opponent = square_sets
+            board = Board(mover, opponent)
+            computed_indexes, computed_principals = board.compute_pattern_principal_indexes(p)
+            [self.assertEqual(e, c) for e, c in zip(indexes, computed_indexes)]
+            [self.assertEqual(e, c) for e, c in zip(principals, computed_principals)]
+
+        [check_expected_indexes(t) for t in test_data]
+
 
 class TestCorner(unittest.TestCase):
     
@@ -502,3 +541,49 @@ class TestDiag3(unittest.TestCase):
         self.assertEqual(f('0000000000000200'), p.unpack(f('0000000000000002')))
         self.assertEqual(f('0000000000010000'), p.unpack(f('0000000000000001')))
         self.assertEqual(empty, p.unpack(full & ~packed_03))
+
+class TestModuleMethods(unittest.TestCase):
+
+    def test_board_pattern_packed_to_index(self):
+        packed = Board.new_from_hexes('0000000000000002', '0000000000000001')
+        n_squares = 8
+        index = board_pattern_packed_to_index(packed, n_squares)
+        self.assertEqual(5, index)
+
+    def test_board_pattern_index_to_packed(self):
+        expected = Board.new_from_hexes('0000000000000002', '0000000000000001')
+        packed = board_pattern_index_to_packed(5)
+        self.assertEqual(expected, packed)
+
+    def test_board_pattern_index_to_from_packed(self):
+
+        def execute_test(t):
+            mover, opponent, n_squares, index, comment = t
+            m = SquareSet.new_from_hex('000000000000' + mover)
+            o = SquareSet.new_from_hex('000000000000' + opponent)
+            packed = Board(m, o)
+            computed_index = board_pattern_packed_to_index(packed, n_squares)
+            self.assertEqual(index, computed_index)
+            computed_packed = board_pattern_index_to_packed(index)
+            computed_mover = computed_packed.mover
+            computed_opponent = computed_packed.opponent
+            self.assertEqual(m, computed_mover)
+            self.assertEqual(o, computed_opponent)
+
+        test_data = [ ('0000', '0000',  8,     0, 'edge 00000000'),
+                      ('00ff', '0000',  8,  3280, 'edge 11111111'),
+                      ('0000', '00ff',  8,  6560, 'edge 22222222'),
+                      ('0220', '015c', 10, 34740, 'xedge 0022212021'),
+                      ('0024', '01d0',  9, 19368, 'corner 001021222'),
+                      ('0081', '007e',  8,  4372, 'R2 12222221'),
+                      ('0006', '0001',  3,    14, 'diag3 211'),
+                      ('0002', '000c',  4,    75, 'diag4 0122'),
+                      ('0006', '0019',  5,   230, 'diag5 21122'),
+                      ('0027', '0008',  6,   310, 'diag6 111201'),
+                      ('0022', '005c',  7,  1938, 'diag7 0122212'),
+                      ('00f4', '0008',  8,  3303, 'diag8 00121111'),
+                      ('0000', '01ff', 10, 19682, '2x5cor 2222222220'),
+                      ('0000', '03ff', 10, 59048, '2x5cor 2222222222'),
+                     ]
+
+        [execute_test(t) for t in test_data]
