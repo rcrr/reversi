@@ -1,0 +1,97 @@
+Use REGAB and RGLM programs to generate the regab_extract_999_positions_all_patterns.P.csv CSV file.
+
+
+$ ./build/bin/regab -v -a extract -c cfg/regab.cfg -e test -b 4 -u CMS -y 20 -f MOBILITY -p EDGE,CORNER,XEDGE,R2,R3,R4,DIAG3,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR -o ./py/test/data/regab_extract_999_positions_all_patterns.dat
+Output file "./py/test/data/regab_extract_999_positions_all_patterns.dat" has been overwritten.
+
+-----------------------------------------------------------
+--- Last entries from the regab database connection log ---
+-----------------------------------------------------------
+seq                           con_time                      
+6399                          2022-09-18 12:03:28.999182    
+6400                          2022-09-18 12:03:55.693266    
+6401                          2022-09-18 12:05:16.743155    
+-----------------------------------------------------------
+
+Time saved to file is Sun Sep 18 12:05:16 2022
+_____________________________________
+
+Searched batch_ids: 4
+Batch ids found matching the query
+_____________________________________
+      |          |        |          
+ ---- | batch_id | status |   ngames 
+______|__________|________|__________
+ 0000 |        4 |   CMP  |     1000
+
+Searched position statuses: CMS
+
+____________________________________________________
+
+Searched patterns: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+Patterns found matching the query
+____________________________________________________
+      |            |        |            |          
+ ---- | pattern_id |  name  | ninstances | nsquares 
+______|____________|________|____________|__________
+ 0000 |          0 | EDGE   |          4 |        8
+ 0001 |          1 | CORNER |          4 |        9
+ 0002 |          2 | XEDGE  |          4 |       10
+ 0003 |          3 | R2     |          4 |        8
+ 0004 |          4 | R3     |          4 |        8
+ 0005 |          5 | R4     |          4 |        8
+ 0006 |          6 | DIAG4  |          4 |        4
+ 0007 |          7 | DIAG5  |          4 |        5
+ 0008 |          8 | DIAG6  |          4 |        6
+ 0009 |          9 | DIAG7  |          4 |        7
+ 0010 |         10 | DIAG8  |          2 |        8
+ 0011 |         11 | 2X5COR |          8 |       10
+ 0012 |         12 | DIAG3  |          4 |        3
+
+Procedure regab_action_extract_count_positions() executed succesfully.
+
+   ----------------------------
+      Position Summary Table   
+   ----------------------------
+________________________________________________________
+      |          |        |            |                
+ rec  | batch_id | status |   gp_cnt   | classified_cnt 
+______|__________|________|____________|________________
+ 0000 |        4 |   CMS  |        999 |            999
+
+Procedure regab_action_extract_count_pattern_freqs() executed succesfully.
+GLM variables are 15296, given by features are 1, and by patterns are 15295.
+Procedure do_action_extract_game_pos_prepare_cursor() executed succesfully.
+Total count of Game Position Records is 999.
+Database transaction has been closed.
+Binary output file written to ./py/test/data/regab_extract_999_positions_all_patterns.dat, computed SHA3-256 digest, written to file ./py/test/data/regab_extract_999_positions_all_patterns.dat.sha3-256.
+
+
+$ ./build/bin/rglm -v -i ./py/test/data/regab_extract_999_positions_all_patterns.dat -P ./py/test/data/regab_extract_999_positions_all_patterns.P.csv
+Opening RGLM general data binary file: "./py/test/data/regab_extract_999_positions_all_patterns.dat" - SHA3-256 file digest: 71ba39a18bb3d870647934fd0d5dabbf11e12e035bcbfe3ca2b3c8b28f920b26
+Input file started to be written on (UTC) Sun Sep 18 10:05:16 2022
+The format of the binary data file is: GENERAL
+Selected batch_id values: 4
+Selected empty_count value: 20
+Selected position_statuses values: CMS
+Selected feature values: MOBILITY
+Selected pattern values: EDGE, CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR, DIAG3
+Position Summary Table: number of tuples = 1; game position count = 999
+Feature and Pattern Frequency Summary Table: number of tuples = 15296
+  Feature id:  1 [  MOBILITY][     1][F_000:F_000], total_cnt =      999
+  Pattern id:  0     [  EDGE][  1140][I_000:I_003], total_cnt =     3996, gp_cnt =      999, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.7797
+  Pattern id:  1     [CORNER][  1648][I_004:I_007], total_cnt =     3996, gp_cnt =      999, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.6629
+  Pattern id:  2     [ XEDGE][  2421][I_008:I_011], total_cnt =     3996, gp_cnt =      999, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.4372
+  Pattern id:  3     [    R2][  1610][I_012:I_015], total_cnt =     3996, gp_cnt =      999, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.6670
+  Pattern id:  4     [    R3][  1242][I_016:I_019], total_cnt =     3996, gp_cnt =      999, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.7628
+  Pattern id:  5     [    R4][   862][I_020:I_023], total_cnt =     3996, gp_cnt =      999, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.8693
+  Pattern id:  6     [ DIAG4][    45][I_024:I_027], total_cnt =     3996, gp_cnt =      999, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  7     [ DIAG5][   133][I_028:I_031], total_cnt =     3996, gp_cnt =      999, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.9966
+  Pattern id:  8     [ DIAG6][   300][I_032:I_035], total_cnt =     3996, gp_cnt =      999, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.9707
+  Pattern id:  9     [ DIAG7][   459][I_036:I_039], total_cnt =     3996, gp_cnt =      999, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.9483
+  Pattern id: 10     [ DIAG8][   517][I_040:I_041], total_cnt =     1998, gp_cnt =      999, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.8356
+  Pattern id: 11     [2X5COR][  4900][I_042:I_049], total_cnt =     7992, gp_cnt =      999, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.5608
+  Pattern id: 12     [ DIAG3][    18][I_050:I_053], total_cnt =     3996, gp_cnt =      999, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+The reverse map "(entity_class, entity_id, principal_index_value) --> glm_variable_id" has been computed.
+All 999 solved and classified game positions has been read succesfully.
+Game positions dumped to CSV file: "./py/test/data/regab_extract_999_positions_all_patterns.P.csv".

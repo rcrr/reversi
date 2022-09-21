@@ -14,10 +14,13 @@ from importlib import reload
 import reversi
 import reversi.board
 import reversi.pattern
+import reversi.regab
 
 reload(reversi)
 reload(reversi.board)
 reload(reversi.pattern)
+reload(reversi.regab)
 
 from reversi.board import *
 from reversi.pattern import *
+from reversi.regab import *

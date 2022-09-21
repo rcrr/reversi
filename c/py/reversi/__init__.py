@@ -29,18 +29,18 @@ import ctypes as ct
 
 import sys
 
-print('Running __init__.py in reversi package: start')
+#print('Running __init__.py in reversi package: start')
 
 # pythonpath
-print('sys.path =', sys.path)
+#print('sys.path =', sys.path)
 
 # The python shell has to be run from the $REVERSI_HOME/c directory.
 libreversi = ct.cdll.LoadLibrary('./build/lib/reversi.so')
-print('Loaded C dynamic link library: ', libreversi)
+#print('Loaded C dynamic link library: ', libreversi)
 
 # Initializing the Board module.
 f = libreversi.board_module_init
 f()
-print('Initialized the Board module.')
+#print('Initialized the Board module.')
 
-print('Running __init__.py in reversi package: finish')
+#print('Running __init__.py in reversi package: finish')

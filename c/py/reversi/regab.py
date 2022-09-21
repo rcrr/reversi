@@ -1,5 +1,5 @@
 #
-# __init__.py
+# regab.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -25,6 +25,27 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
-#print('Running __init__.py in test package: start')
+import reversi
+import reversi.board
+import reversi.pattern
 
-#print('Running __init__.py in test package: finish')
+from reversi.board import *
+from reversi.pattern import *
+
+import psycopg2
+
+# Connect to the REGAB tests database
+conn = psycopg2.connect("dbname=tst_regab user=tst_regab host=localhost port=5432")
+
+# Open a cursor to perform database operations
+cur = conn.cursor()
+
+cur.execute("SET search_path TO reversi;")
+cur.execute("SELECT * FROM regab_prng_gp_h;")
+res = cur.fetchall()
+
+# Clese the cursor
+cur.close()
+
+# Close communication with the database
+conn.close()
