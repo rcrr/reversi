@@ -15,12 +15,15 @@ import reversi
 import reversi.board
 import reversi.pattern
 import reversi.regab
+import reversi.cfg
 
 reload(reversi)
 reload(reversi.board)
 reload(reversi.pattern)
 reload(reversi.regab)
+reload(reversi.cfg)
 
 from reversi.board import *
 from reversi.pattern import *
 from reversi.regab import *
+from reversi.cfg import *

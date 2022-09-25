@@ -32,6 +32,9 @@ import reversi.pattern
 from reversi.board import *
 from reversi.pattern import *
 
+import numpy as np
+import pandas as pd
+
 import psycopg2
 
 # Connect to the REGAB tests database
@@ -49,3 +52,34 @@ cur.close()
 
 # Close communication with the database
 conn.close()
+
+def compute_indexes_on_df(df : pd.DataFrame, pl : list) -> pd.DataFrame:
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError('Argument df is not an instance of DataFrame')
+    if not isinstance(pl, list):
+        raise TypeError('Argument pl is not an instance of list')
+    if not all([isinstance(e, Pattern) for e in pl]):
+        raise TypeError('Argument pl must have all elements belonging to Pattern type')
+    if not pl:
+        return None
+
+    def compute_indexes(row):
+        m = row['MOVER']
+        o = row['OPPONENT']
+        b = Board(SquareSet.new_from_signed_int(m), SquareSet.new_from_signed_int(o))
+        ret = np.concatenate(b.compute_patternlist_principal_indexes(pl))
+        return ret
+
+    def build_col_names(pl, label):
+        names = []
+        idx_start = 0
+        for p in pl:
+            idx_end = idx_start + p.n_instances
+            x = ['{:2s}_{:03d}'.format(label, x) for x in range(idx_start, idx_end)]
+            names = names + x
+            idx_start = idx_end
+        return names
+
+    indexes = pd.DataFrame(list(df.apply(compute_indexes, axis=1))).astype(np.uint16)
+    indexes.columns = build_col_names(pl, 'I0') + build_col_names(pl, 'I1')
+    return indexes
