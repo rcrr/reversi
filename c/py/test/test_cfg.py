@@ -34,28 +34,28 @@ from reversi.cfg import *
 
 class TestCfg(unittest.TestCase):
 
-    def test_load_wrong_arg(self):
+    def test_init_wrong_arg(self):
         with self.assertRaises(TypeError) as context:
-            c = Cfg.load(None)
+            c = Cfg(None)
         self.assertIsInstance(context.exception, TypeError)
 
-    def test_load_not_existing(self):
+    def test_init_not_existing(self):
         with self.assertRaises(FileNotFoundError) as context:
-            c = Cfg.load('./py/test/data/missing_file.cfg')
+            c = Cfg('./py/test/data/missing_file.cfg')
         self.assertIsInstance(context.exception, FileNotFoundError)
 
-    def test_load_dir(self):
+    def test_init_dir(self):
         with self.assertRaises(FileNotFoundError) as context:
-            c = Cfg.load('./py/test/data')
+            c = Cfg('./py/test/data')
         self.assertIsInstance(context.exception, FileNotFoundError)
 
-    def test_load_is_not_none(self):
-        c = Cfg.load('./py/test/data/config_for_testing.cfg')
+    def test_init_is_not_none(self):
+        c = Cfg('./py/test/data/config_for_testing.cfg')
         self.assertIsNotNone(c)
         c.free()
 
     def test_get(self):
-        c = Cfg.load('./py/test/data/config_for_testing.cfg')
+        c = Cfg('./py/test/data/config_for_testing.cfg')
         self.assertIsNotNone(c)
         
         value = c.get('planets','mars')

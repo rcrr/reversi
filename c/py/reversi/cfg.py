@@ -45,18 +45,7 @@ class Cfg:
 
     Collects value/key pairs organized by sections.
     """
-
-    __load_key = object()
-    
-    def __init__(self, load_key, helper):
-        """
-        Do not use. Internal use only. Use the Cfg.load(filepath) class method instead.
-        """
-        assert(load_key == Cfg.__load_key), "Cfg objects must be created using the Cfg.load(filepath) method"
-        self._helper = helper
-
-    @classmethod
-    def load(cls, filepath: str) -> 'Cfg':
+    def __init__(self, filepath):
         """
         Loads a config file into memory.
         """
@@ -72,7 +61,7 @@ class Cfg:
         helper = f(filepath.encode())
         if not helper:
             raise RuntimeError('The C function returned NULL')
-        return Cfg(cls.__load_key, helper)
+        self._helper = helper
 
     def free(self) -> None:
         """
