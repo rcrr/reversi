@@ -39,7 +39,7 @@ import pandas as pd
 
 import psycopg2 as pg
 
-def compute_indexes_on_df(df : pd.DataFrame, pl : list) -> pd.DataFrame:
+def compute_indexes_on_df(df : pd.DataFrame, pl : list, mover='MOVER', opponent='OPPONENT') -> pd.DataFrame:
     """
     Returns a new data frame having the indexes and principal ones compute on the game
     position defined in the df argument.
@@ -61,12 +61,16 @@ def compute_indexes_on_df(df : pd.DataFrame, pl : list) -> pd.DataFrame:
         raise TypeError('Argument pl is not an instance of list')
     if not all([isinstance(e, Pattern) for e in pl]):
         raise TypeError('Argument pl must have all elements belonging to Pattern type')
+    if not isinstance(mover, str):
+        raise TypeError('Argument mover is not an instance of str')
+    if not isinstance(opponent, str):
+        raise TypeError('Argument opponent is not an instance of str')
     if not pl:
         return None
 
     def compute_indexes(row):
-        m = row['MOVER']
-        o = row['OPPONENT']
+        m = np.int64(row[mover])
+        o = np.int64(row[opponent])
         b = Board(SquareSet.new_from_signed_int(m), SquareSet.new_from_signed_int(o))
         ret = np.concatenate(b.compute_patternlist_principal_indexes(pl))
         return ret
@@ -185,6 +189,97 @@ def regab_batches_as_df(rc: RegabDBConnection) -> pd.DataFrame:
         raise TypeError('The database connection is closed')
     with rc.conn.cursor() as curs:
         curs.execute("SELECT * FROM regab_prng_gp_h;")
+        colnames = [d[0] for d in curs.description]
+        df = pd.DataFrame(curs.fetchall(), columns=colnames)
+    return df
+
+def regab_gp_as_df(rc: RegabDBConnection, bid, status, ec: int, limit=None, where=None, fields=None) -> pd.DataFrame:
+    """
+    """
+    def check_arg_status():
+        if isinstance(status, list):
+            if all([isinstance(x, str) for x in status]):
+                ret = status
+            else:
+                raise TypeError('Argument status has elements not being of type str')
+        elif isinstance(status, str):
+            ret = [status]
+        else:
+            raise TypeError('Argument status must be str or a list of strs')
+        if not all([len(x) == 3 for x in ret]):
+            raise ValueError('Argument status must have elements of lenght equal to 3')
+        return ret
+    
+    def check_arg_bid():
+        ret = None
+        if isinstance(bid, list):
+            if all([isinstance(x, int) for x in bid]):
+                ret = bid
+            else:
+                raise TypeError('Argument bid has elements not being of type int')
+        elif isinstance(bid, int):
+            ret = [bid]
+        else:
+            raise TypeError('Argument bid must be int or a list of ints')
+        if not all([x >= 0 for x in ret]):
+            raise ValueError('Argument bid must be equal or greather than zero')
+        return ret
+
+    def check_arg_fields():
+        with rc.conn.cursor() as curs:
+            curs.execute("SELECT * FROM regab_prng_gp LIMIT 0;")
+            colnames = [d[0] for d in curs.description]
+        base_colnames = ['seq, batch_id', 'status', 'mover', 'opponent', 'player', 'empty_count', 'game_value']
+
+        if not fields:
+            return base_colnames
+        else:
+            if isinstance(fields, str):
+                if fields == '*':
+                    return colnames
+                else:
+                    raise ValueError('Argument fields has an invalid value')
+            elif isinstance(fields, list):
+                if not all([isinstance(x, str) for x in fields]):
+                    raise TypeError('Argument fields is a list thta must have all elements belonging to the string type')
+                if len(fields) != len(list(dict.fromkeys(fields))):
+                    raise ValueError('Argument fields has duplicate entries')
+                if not all([x in colnames for x in fields]):
+                    raise ValueError('Argument fields has entries not being a column of the game positions db table')
+                return fields
+            else:
+                raise TypeError('Argument field must be string or a list of stings')
+
+    if not isinstance(rc, RegabDBConnection):
+        raise TypeError('Argument rc is not an instance of RegabDBConnection')
+    if not rc.conn.closed == 0:
+        raise TypeError('The database connection is closed')
+    if not isinstance(ec, int):
+        raise TypeError('Argument ec is not an instance of int')
+    if not ec >= 0 and ec <= 60:
+        raise ValueError('Argument ec must be in range [0..60]')
+    lbid = check_arg_bid()
+    lbid_str = ', '.join([str(x) for x in lbid])
+    lstatus = check_arg_status()
+    lstatus_str = ', '.join(["'{}'".format(x) for x in lstatus])
+    if limit:
+        if not isinstance(limit, int):
+            raise TypeError('Argument limit is not an instance of int')
+        if not limit >= 0:
+            raise ValueError('Argument limit must be equal or greather than zero')
+    if where:
+        if not isinstance(where, str):
+            raise TypeError('Argument where is not an instance of str')
+    selection = ', '.join(check_arg_fields())
+    q = "SELECT {:s} FROM regab_prng_gp WHERE batch_id IN ({:s}) AND empty_count = {:d} AND status IN ({:s})".format(selection, lbid_str, ec, lstatus_str)
+    if where:
+        q = q + ' AND {:s}'.format(where)
+    q = q + ' ORDER BY seq'
+    if limit != None:
+        q = q + ' LIMIT {:d}'.format(limit)
+    q = q + ';'
+    with rc.conn.cursor() as curs:
+        curs.execute(q)
         colnames = [d[0] for d in curs.description]
         df = pd.DataFrame(curs.fetchall(), columns=colnames)
     return df
