@@ -52,6 +52,33 @@
  * Global extern constants.
  */
 
+const int board_feature_count = BOARD_FEATURE_COUNT;
+
+const board_feature_t board_features[] =
+  {
+    { BOARD_FEATURE_INTERCEPT,
+      "INTERCEPT",
+      1,
+      board_feature_values_intercept },
+
+    { BOARD_FEATURE_MOBILITY,
+      "MOBILITY",
+      1,
+      board_feature_values_mobility },
+
+    { BOARD_FEATURE_MOBILITY2,
+      "MOBILITY2",
+      2,
+      board_feature_values_mobility2 },
+
+    { BOARD_FEATURE_MOBILITY3,
+      "MOBILITY3",
+      3,
+      board_feature_values_mobility3 },
+
+    { BOARD_FEATURE_INVALID, "NULL", 0, NULL }
+  };
+
 const int board_pattern_count = BOARD_PATTERN_COUNT;
 
 const board_pattern_t board_patterns[] =

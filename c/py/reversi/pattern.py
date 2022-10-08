@@ -37,6 +37,18 @@ from abc import ABCMeta, abstractmethod
 
 _c_s_to_s_fun = ct.CFUNCTYPE(ct.c_ulonglong, ct.c_ulonglong)
 
+class _BoardFeatureCTHelper(ct.Structure):
+    """
+    Objects are read from the libreversi C library by loading the board_features symbol.
+    """
+    _fields_ = [('id',ct.c_int),
+                ('name', ct.c_char*11),
+                ('field_cnt', ct.c_uint),
+                ('feature_values_f', ct.CFUNCTYPE(None, ct.POINTER(_BoardCTHelper), ct.c_void_p))]
+
+_c_board_feature_count = ct.c_int.in_dll(libreversi, "board_feature_count")
+_c_board_features = ct.pointer(_BoardFeatureCTHelper.in_dll(libreversi, 'board_features'))
+
 class _BoardPatternCTHelper(ct.Structure):
     """
     Objects are read from the libreversi C library by loading the board_patterns symbol.
@@ -83,12 +95,114 @@ class _Singleton(ABCMeta):
             cls._instances[cls] = super(_Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
+class Feature(object, metaclass = _Singleton):
+    """
+    """
+    def __init__(self):
+        self.id = -1
+        self.name = None
+        self.field_cnt = -1
+        self.values = None
+        self.__createsingleton__()
+        
+        self._c_feature = None
+        for i in range(0,  _c_board_feature_count.value):
+            f = _c_board_features[i]
+            if f.id == self.id and f.name.decode('utf-8') == self.name:
+                self._c_feature = f
+                def feature_values(b: Board) -> np.array:
+                    ct_board_p = ct.byref(_BoardCTHelper((b.mover, b.opponent)))
+                    ct_values = (ct.c_double*f.field_cnt) ()
+                    f.feature_values_f(ct_board_p, ct.byref(ct_values))
+                    return np.frombuffer(ct_values, np.double, count = f.field_cnt)
+                self.values = feature_values
+                break
+        if not self._c_feature:
+            raise ValueError('Fature id not found in _c_board_features C symbol')
+
+    @abstractmethod
+    def __createsingleton__(self): pass
+
+
+class FIntercept(Feature):
+    
+    def __createsingleton__(self):
+        self.id = 0
+        self.name = 'INTERCEPT'
+        self.field_cnt = 1
+
+
+class FMobility(Feature):
+    
+    def __createsingleton__(self):
+        self.id = 1
+        self.name = 'MOBILITY'
+        self.field_cnt = 1
+
+
+class FMobility2(Feature):
+    
+    def __createsingleton__(self):
+        self.id = 2
+        self.name = 'MOBILITY2'
+        self.field_cnt = 2
+
+
+class FMobility3(Feature):
+    
+    def __createsingleton__(self):
+        self.id = 3
+        self.name = 'MOBILITY3'
+        self.field_cnt = 3
+
+
+"""
+All defined features in a set.
+It is a global variable, it must not be modified.
+"""
+features_as_set = {FIntercept(), FMobility(), FMobility2(), FMobility3()}
+
+"""
+All defined features in a list sorted by id.
+It is a global variable, it must not be modified.
+"""
+features_as_list = list(features_as_set)
+features_as_list.sort(key = lambda x: x.id, reverse = False)
+
+"""
+All defined features in a dictionary having name as key.
+It is a global variable, it must not be modified.
+"""
+features_as_dict = dict([(x.name, x) for x in features_as_list])
+
 
 class Pattern(object, metaclass = _Singleton):
     """
+    A board pattern is a defined subset of named squares on the board.
+
+    Attributes
+    ----------
+    id : int
+      Unique identifier of the pattern. It must match with the REGAB database definition.
+    name : str
+      Unique name of the pattern. It must have a lenght of six characters or less.
+    n_instances : int
+    n_configurations : int
+    masks
+    trans_to_principal_f
+
+    Methods
+    -------
+    pack
+    unpack
+    mirror
+
     """
     
     def __init__(self):
+        """
+        Methods pack, unpack and mirror could be defined here instead of the redundant approach.
+        """
         self.id = -1
         self.name = None
         self.n_instances = -1
@@ -104,12 +218,11 @@ class Pattern(object, metaclass = _Singleton):
             if p.id == self.id and p.name.decode('utf-8') == self.name:
                 self._c_pattern = p
                 break
-        if self._c_pattern:
-            pass
+        if not self._c_pattern:
+            raise ValueError('Fature id not found in _c_board_patterns C symbol')
 
     @abstractmethod
-    def __createsingleton__(self):
-        pass
+    def __createsingleton__(self): pass
 
     @abstractmethod
     def pack(self, s : SquareSet) -> SquareSet: pass
@@ -122,6 +235,21 @@ class Pattern(object, metaclass = _Singleton):
 
 
 class PEdge(Pattern):
+    """
+    The EDGE pattern has four instances ranging from [0..3]:
+    
+       a b c d e f g h     a b c d e f g h     a b c d e f g h     a b c d e f g h
+
+    1  a b c d e f g h     . . . . . . . a     . . . . . . . .     h . . . . . . .
+    2  . . . . . . . .     . . . . . . . b     . . . . . . . .     g . . . . . . .
+    3  . . . . . . . .     . . . . . . . c     . . . . . . . .     f . . . . . . .
+    4  . . . . . . . .     . . . . . . . d     . . . . . . . .     e . . . . . . .
+    5  . . . . . . . .     . . . . . . . e     . . . . . . . .     d . . . . . . .
+    6  . . . . . . . .     . . . . . . . f     . . . . . . . .     c . . . . . . .
+    7  . . . . . . . .     . . . . . . . g     . . . . . . . .     b . . . . . . .
+    8  . . . . . . . .     . . . . . . . h     h g f e d c b a     a . . . . . . .
+
+    """
     
     def __createsingleton__(self):
         self.id = 0
@@ -155,7 +283,22 @@ class PEdge(Pattern):
     
 
 class PCorner(Pattern):
+    """
+    The CORNER pattern has four instances ranging from [0..3]:
+
+       a b c d e f g h     a b c d e f g h     a b c d e f g h     a b c d e f g h
+
+    1  a b c . . . . .     . . . . . g d a     . . . . . . . .     . . . . . . . .
+    2  d e f . . . . .     . . . . . h e b     . . . . . . . .     . . . . . . . .
+    3  g h i . . . . .     . . . . . i f c     . . . . . . . .     . . . . . . . .
+    4  . . . . . . . .     . . . . . . . .     . . . . . . . .     . . . . . . . .
+    5  . . . . . . . .     . . . . . . . .     . . . . . . . .     . . . . . . . .
+    6  . . . . . . . .     . . . . . . . .     . . . . . i h g     c f i . . . . .
+    7  . . . . . . . .     . . . . . . . .     . . . . . f e d     b e h . . . . .
+    8  . . . . . . . .     . . . . . . . .     . . . . . c b a     a d g . . . . .
     
+    """
+
     def __createsingleton__(self):
         self.id = 1
         self.name = 'CORNER'
@@ -188,6 +331,21 @@ class PCorner(Pattern):
     
 
 class PXedge(Pattern):
+    """
+    The XEDGE pattern has four instances ranging from [0..3]:
+
+       a b c d e f g h     a b c d e f g h     a b c d e f g h     a b c d e f g h
+
+    1  a b c d e f g h     . . . . . . . a     . . . . . . . .     h . . . . . . .
+    2  . i . . . . l .     . . . . . . i b     . . . . . . . .     g l . . . . . .
+    3  . . . . . . . .     . . . . . . . c     . . . . . . . .     f . . . . . . .
+    4  . . . . . . . .     . . . . . . . d     . . . . . . . .     e . . . . . . .
+    5  . . . . . . . .     . . . . . . . e     . . . . . . . .     d . . . . . . .
+    6  . . . . . . . .     . . . . . . . f     . . . . . . . .     c . . . . . . .
+    7  . . . . . . . .     . . . . . . l g     . l . . . . i .     b i . . . . . .
+    8  . . . . . . . .     . . . . . . . h     h g f e d c b a     a . . . . . . .
+
+    """
     
     def __createsingleton__(self):
         self.id = 2
@@ -221,6 +379,21 @@ class PXedge(Pattern):
     
 
 class PR2(Pattern):
+    """
+    The R2 pattern has four instances ranging from [0..3]:
+
+       a b c d e f g h     a b c d e f g h     a b c d e f g h     a b c d e f g h
+
+    1  . . . . . . . .     . . . . . . a .     . . . . . . . .     . h . . . . . .
+    2  a b c d e f g h     . . . . . . b .     . . . . . . . .     . g . . . . . .
+    3  . . . . . . . .     . . . . . . c .     . . . . . . . .     . f . . . . . .
+    4  . . . . . . . .     . . . . . . d .     . . . . . . . .     . e . . . . . .
+    5  . . . . . . . .     . . . . . . e .     . . . . . . . .     . d . . . . . .
+    6  . . . . . . . .     . . . . . . f .     . . . . . . . .     . c . . . . . .
+    7  . . . . . . . .     . . . . . . g .     h g f e d c b a     . b . . . . . .
+    8  . . . . . . . .     . . . . . . h .     . . . . . . . .     . a . . . . . .
+
+    """
     
     def __createsingleton__(self):
         self.id = 3
@@ -254,6 +427,21 @@ class PR2(Pattern):
     
 
 class PR3(Pattern):
+    """
+    The R3 pattern has four instances ranging from [0..3]:
+
+       a b c d e f g h     a b c d e f g h     a b c d e f g h     a b c d e f g h
+
+    1  . . . . . . . .     . . . . . a . .     . . . . . . . .     . . h . . . . .
+    2  . . . . . . . .     . . . . . b . .     . . . . . . . .     . . g . . . . .
+    3  a b c d e f g h     . . . . . c . .     . . . . . . . .     . . f . . . . .
+    4  . . . . . . . .     . . . . . d . .     . . . . . . . .     . . e . . . . .
+    5  . . . . . . . .     . . . . . e . .     . . . . . . . .     . . d . . . . .
+    6  . . . . . . . .     . . . . . f . .     h g f e d c b a     . . c . . . . .
+    7  . . . . . . . .     . . . . . g . .     . . . . . . . .     . . b . . . . .
+    8  . . . . . . . .     . . . . . h . .     . . . . . . . .     . . a . . . . .
+
+    """
     
     def __createsingleton__(self):
         self.id = 4
@@ -287,6 +475,21 @@ class PR3(Pattern):
 
 
 class PR4(Pattern):
+    """
+    The `R4` pattern has four instances ranging from `[0..3]`:
+
+       a b c d e f g h     a b c d e f g h     a b c d e f g h     a b c d e f g h
+
+    1  . . . . . . . .     . . . . a . . .     . . . . . . . .     . . . h . . . .
+    2  . . . . . . . .     . . . . b . . .     . . . . . . . .     . . . g . . . .
+    3  . . . . . . . .     . . . . c . . .     . . . . . . . .     . . . f . . . .
+    4  a b c d e f g h     . . . . d . . .     . . . . . . . .     . . . e . . . .
+    5  . . . . . . . .     . . . . e . . .     h g f e d c b a     . . . d . . . .
+    6  . . . . . . . .     . . . . f . . .     . . . . . . . .     . . . c . . . .
+    7  . . . . . . . .     . . . . g . . .     . . . . . . . .     . . . b . . . .
+    8  . . . . . . . .     . . . . h . . .     . . . . . . . .     . . . a . . . .
+
+    """
     
     def __createsingleton__(self):
         self.id = 5
@@ -320,6 +523,21 @@ class PR4(Pattern):
 
 
 class PDiag4(Pattern):
+    """
+    The DIAG4 pattern has four instances ranging from [0..3]:
+
+       a b c d e f g h     a b c d e f g h     a b c d e f g h     a b c d e f g h
+
+    1  . . . d . . . .     . . . . a . . .     . . . . . . . .     . . . . . . . .
+    2  . . c . . . . .     . . . . . b . .     . . . . . . . .     . . . . . . . .
+    3  . b . . . . . .     . . . . . . c .     . . . . . . . .     . . . . . . . .
+    4  a . . . . . . .     . . . . . . . d     . . . . . . . .     . . . . . . . .
+    5  . . . . . . . .     . . . . . . . .     . . . . . . . a     d . . . . . . .
+    6  . . . . . . . .     . . . . . . . .     . . . . . . b .     . c . . . . . .
+    7  . . . . . . . .     . . . . . . . .     . . . . . c . .     . . b . . . . .
+    8  . . . . . . . .     . . . . . . . .     . . . . d . . .     . . . a . . . .
+
+    """
     
     def __createsingleton__(self):
         self.id = 6
@@ -353,6 +571,21 @@ class PDiag4(Pattern):
 
 
 class PDiag5(Pattern):
+    """
+    The DIAG5 pattern has four instances ranging from [0..3]:
+
+       a b c d e f g h     a b c d e f g h     a b c d e f g h     a b c d e f g h
+
+    1  . . . . e . . .     . . . a . . . .     . . . . . . . .     . . . . . . . .
+    2  . . . d . . . .     . . . . b . . .     . . . . . . . .     . . . . . . . .
+    3  . . c . . . . .     . . . . . c . .     . . . . . . . .     . . . . . . . .
+    4  . b . . . . . .     . . . . . . d .     . . . . . . . a     e . . . . . . .
+    5  a . . . . . . .     . . . . . . . e     . . . . . . b .     . d . . . . . .
+    6  . . . . . . . .     . . . . . . . .     . . . . . c . .     . . c . . . . .
+    7  . . . . . . . .     . . . . . . . .     . . . . d . . .     . . . b . . . .
+    8  . . . . . . . .     . . . . . . . .     . . . e . . . .     . . . . a . . .
+
+    """
     
     def __createsingleton__(self):
         self.id = 7
@@ -386,6 +619,21 @@ class PDiag5(Pattern):
 
 
 class PDiag6(Pattern):
+    """
+    The DIAG6 pattern has four instances ranging from [0..3]:
+
+       a b c d e f g h     a b c d e f g h     a b c d e f g h     a b c d e f g h
+
+    1  . . . . . f . .     . . a . . . . .     . . . . . . . .     . . . . . . . .
+    2  . . . . e . . .     . . . b . . . .     . . . . . . . .     . . . . . . . .
+    3  . . . d . . . .     . . . . c . . .     . . . . . . . a     f . . . . . . .
+    4  . . c . . . . .     . . . . . d . .     . . . . . . b .     . e . . . . . .
+    5  . b . . . . . .     . . . . . . e .     . . . . . c . .     . . d . . . . .
+    6  a . . . . . . .     . . . . . . . f     . . . . d . . .     . . . c . . . .
+    7  . . . . . . . .     . . . . . . . .     . . . e . . . .     . . . . b . . .
+    8  . . . . . . . .     . . . . . . . .     . . f . . . . .     . . . . . a . .
+
+    """
     
     def __createsingleton__(self):
         self.id = 8
@@ -419,6 +667,21 @@ class PDiag6(Pattern):
 
 
 class PDiag7(Pattern):
+    """
+    The DIAG7 pattern has four instances ranging from [0..3]:
+
+       a b c d e f g h     a b c d e f g h     a b c d e f g h     a b c d e f g h
+
+    1  . . . . . . g .     . a . . . . . .     . . . . . . . .     . . . . . . . .
+    2  . . . . . f . .     . . b . . . . .     . . . . . . . a     g . . . . . . .
+    3  . . . . e . . .     . . . c . . . .     . . . . . . b .     . f . . . . . .
+    4  . . . d . . . .     . . . . d . . .     . . . . . c . .     . . e . . . . .
+    5  . . c . . . . .     . . . . . e . .     . . . . d . . .     . . . d . . . .
+    6  . b . . . . . .     . . . . . . f .     . . . e . . . .     . . . . c . . .
+    7  a . . . . . . .     . . . . . . . g     . . f . . . . .     . . . . . b . .
+    8  . . . . . . . .     . . . . . . . .     . g . . . . . .     . . . . . . a .
+
+    """
     
     def __createsingleton__(self):
         self.id = 9
@@ -452,6 +715,21 @@ class PDiag7(Pattern):
 
 
 class PDiag8(Pattern):
+    """
+    The DIAG8 pattern has two instances ranging [0, 1]:
+
+       a b c d e f g h     a b c d e f g h
+
+    1  . . . . . . . h     a . . . . . . .
+    2  . . . . . . g .     . b . . . . . .
+    3  . . . . . f . .     . . c . . . . .
+    4  . . . . e . . .     . . . d . . . .
+    5  . . . d . . . .     . . . . e . . .
+    6  . . c . . . . .     . . . . . f . .
+    7  . b . . . . . .     . . . . . . g .
+    8  a . . . . . . .     . . . . . . . h
+
+    """
     
     def __createsingleton__(self):
         self.id = 10
@@ -483,6 +761,33 @@ class PDiag8(Pattern):
 
 
 class P2x5cor(Pattern):
+    """
+    The 2X5COR pattern has eight instances ranging from [0..7]:
+
+       a b c d e f g h     a b c d e f g h     a b c d e f g h     a b c d e f g h
+
+    1  a b c d e . . .     . . . . . . f a     . . . . . . . .     . . . . . . . .
+    2  f g h i l . . .     . . . . . . g b     . . . . . . . .     . . . . . . . .
+    3  . . . . . . . .     . . . . . . h c     . . . . . . . .     . . . . . . . .
+    4  . . . . . . . .     . . . . . . i d     . . . . . . . .     e l . . . . . .
+    5  . . . . . . . .     . . . . . . l e     . . . . . . . .     d i . . . . . .
+    6  . . . . . . . .     . . . . . . . .     . . . . . . . .     c h . . . . . .
+    7  . . . . . . . .     . . . . . . . .     . . . l i h g f     b g . . . . . .
+    8  . . . . . . . .     . . . . . . . .     . . . e d c b a     a f . . . . . .
+
+
+       a b c d e f g h     a b c d e f g h     a b c d e f g h     a b c d e f g h
+
+    1  . . . e d c b a     . . . . . . . .     . . . . . . . .     a f . . . . . .
+    2  . . . l i h g f     . . . . . . . .     . . . . . . . .     b g . . . . . .
+    3  . . . . . . . .     . . . . . . . .     . . . . . . . .     c h . . . . . .
+    4  . . . . . . . .     . . . . . . l e     . . . . . . . .     d i . . . . . .
+    5  . . . . . . . .     . . . . . . i d     . . . . . . . .     e l . . . . . .
+    6  . . . . . . . .     . . . . . . h c     . . . . . . . .     . . . . . . . .
+    7  . . . . . . . .     . . . . . . g b     f g h i l . . .     . . . . . . . .
+    8  . . . . . . . .     . . . . . . f a     a b c d e . . .     . . . . . . . .
+
+    """
     
     def __createsingleton__(self):
         self.id = 11
@@ -524,6 +829,21 @@ class P2x5cor(Pattern):
 
 
 class PDiag3(Pattern):
+    """
+    The DIAG3 pattern has four instances ranging from [0..3]:
+
+       a b c d e f g h     a b c d e f g h     a b c d e f g h     a b c d e f g h
+
+    1  . . c . . . . .     . . . . . a . .     . . . . . . . .     . . . . . . . .
+    2  . b . . . . . .     . . . . . . b .     . . . . . . . .     . . . . . . . .
+    3  a . . . . . . .     . . . . . . . c     . . . . . . . .     . . . . . . . .
+    4  . . . . . . . .     . . . . . . . .     . . . . . . . .     . . . . . . . .
+    5  . . . . . . . .     . . . . . . . .     . . . . . . . .     . . . . . . . .
+    6  . . . . . . . .     . . . . . . . .     . . . . . . . a     c . . . . . . .
+    7  . . . . . . . .     . . . . . . . .     . . . . . . b .     . b . . . . . .
+    8  . . . . . . . .     . . . . . . . .     . . . . . c . .     . . a . . . . .
+
+    """
     
     def __createsingleton__(self):
         self.id = 12
@@ -554,7 +874,6 @@ class PDiag3(Pattern):
 
     def mirror(self, s : SquareSet) -> SquareSet:
         return s.trans_flip_diag_a1h8()
-
 
 
 """

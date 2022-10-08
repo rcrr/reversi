@@ -423,13 +423,15 @@ typedef enum {
 
 #define BOARD_PATTERN_COUNT BOARD_PATTERN_INVALID
 #define BOARD_PATTERN_INDEX_TABLE_SIZE 6561 + 19683 + 59049 + 6561 + 6561 + 6561 + 81 + 243 + 729 + 2187 + 6561 + 59049 + 27
-#define BOARD_PATTERN_MAX_N_INSTANCES 8
+#define BOARD_PATTERN_MAX_Ns_INSTANCES 8
 
 typedef uint16_t board_pattern_index_t;
 
 typedef struct board_feature_s board_feature_t;
 
 typedef struct board_pattern_s board_pattern_t;
+
+extern const int board_feature_count;
 
 extern const int board_pattern_count;
 
@@ -588,31 +590,6 @@ struct board_feature_s {
   void (*feature_values_f) (const board_t *, double *);
 };
 
-static const board_feature_t board_features[] =
-  {
-    { BOARD_FEATURE_INTERCEPT,
-      "INTERCEPT",
-      1,
-      board_feature_values_intercept },
-
-    { BOARD_FEATURE_MOBILITY,
-      "MOBILITY",
-      1,
-      board_feature_values_mobility },
-
-    { BOARD_FEATURE_MOBILITY2,
-      "MOBILITY2",
-      2,
-      board_feature_values_mobility2 },
-
-    { BOARD_FEATURE_MOBILITY3,
-      "MOBILITY3",
-      3,
-      board_feature_values_mobility3 },
-
-    { BOARD_FEATURE_INVALID, "NULL", 0, NULL }
-  };
-
 #define BOARD_FEATURE_MAX_FIELD_CNT 3
 #define BOARD_FEATURE_COMBINED_FIELD_CNT 7
 
@@ -628,6 +605,8 @@ struct board_pattern_s {
   SquareSet (*pattern_unpack_f) (SquareSet);
   SquareSet (*pattern_mirror_f) (SquareSet);
 };
+
+extern const board_feature_t board_features[];
 
 extern const board_pattern_t board_patterns[];
 
