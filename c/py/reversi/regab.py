@@ -283,3 +283,92 @@ def regab_gp_as_df(rc: RegabDBConnection, bid, status, ec: int, limit=None, wher
         colnames = [d[0] for d in curs.description]
         df = pd.DataFrame(curs.fetchall(), columns=colnames)
     return df
+
+def regab_empty_count(ec: int) -> int:
+    if not isinstance(ec, int):
+        raise TypeError('Argument ec is not an instance of int')
+    if not ec >= 0 and ec <= 60:
+        raise ValueError('Argument ec must be in range [0..60]')
+    return ec
+
+def regab_batches(bs) -> list:
+    if isinstance(bs, list):
+        if not all([isinstance(x, int) for x in bs]):
+            raise ValueError('Argument bs must have elements of type int')
+        batches = bs
+    elif isinstance(bs, int):
+        batches = [bs]
+    else:
+        raise TypeError('Argument bs is not an instance of list or int')
+    if not all([x >= 0 for x in batches]):
+        raise ValueError('All batches must be int values equal or greather than zero')
+    return batches
+
+def regab_statuses(sts) -> list:
+    if isinstance(sts, list):
+        if not all([isinstance(x, str) for x in sts]):
+            raise ValueError('Argument sts must have elements of type str')
+        statuses = sts
+    elif isinstance(sts, str):
+        statuses = sts.split(',')
+    else:
+        raise TypeError('Argument sts is not an instance of list or str')
+    if not all([len(x) == 3 for x in statuses]):
+        raise ValueError('All statuses must be three characters strings')
+    if not all([all([c.isalnum() for c in status]) for status in statuses]):
+        raise ValueError('All statuses must be three characters strings')
+    return statuses
+
+def regab_features(fs) -> list:
+    fset = set()
+    if isinstance(fs, list):
+        if all([isinstance(f, str) for f in fs]):
+            for name in fs:
+                feature = features_as_dict.get(name)
+                if not feature:
+                    raise ValueError('Name \"{:s}\" is not found as a defined feature'.format(name))
+                fset.add(feature)
+        elif all([isinstance(f, Feature) for f in fs]):
+            fset.update(fs)
+        else:
+            raise TypeError('Elements in fs list must be all strings or all features')
+    elif isinstance(fs, str):
+        feature_names = fs.split(',')
+        for name in feature_names:
+            feature = features_as_dict.get(name)
+            if not feature:
+                raise ValueError('Name \"{:s}\" is not found as a defined feature'.format(name))
+            fset.add(feature)
+    elif isinstance(fs, Feature):
+        fset.add(feature)
+    else:
+        raise TypeError('Argument fs is not an instance of Feature, list or str')
+    features = sorted(list(fset), key=lambda f: f.id)
+    return features
+
+def regab_patterns(ps) -> list:
+    pset = set()
+    if isinstance(ps, list):
+        if all([isinstance(p, str) for p in ps]):
+            for name in ps:
+                pattern = patterns_as_dict.get(name)
+                if not pattern:
+                    raise ValueError('Name \"{:s}\" is not found as a defined pattern'.format(name))
+                pset.add(pattern)
+        elif all([isinstance(p, Pattern) for p in ps]):
+            pset.update(ps)
+        else:
+            raise TypeError('Elements in ps list must be all strings or all patterns')
+    elif isinstance(ps, str):
+        pattern_names = ps.split(',')
+        for name in pattern_names:
+            pattern = patterns_as_dict.get(name)
+            if not pattern:
+                raise ValueError('Name \"{:s}\" is not found as a defined pattern'.format(name))
+            pset.add(pattern)
+    elif isinstance(ps, Pattern):
+        pset.add(pattern)
+    else:
+        raise TypeError('Argument ps is not an instance of Pattern, list or str')
+    patterns = sorted(list(pset), key=lambda p: p.id)
+    return patterns
