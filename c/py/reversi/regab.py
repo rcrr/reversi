@@ -39,9 +39,37 @@ import pandas as pd
 
 import psycopg2 as pg
 
+def compute_feature_values_on_df(df : pd.DataFrame, fl : list, mover='MOVER', opponent='OPPONENT') -> pd.DataFrame:
+    """
+    Returns a new data frame having the values of the features listed in fl computed on the game
+    position defined in the df argument.
+
+    The df argument must have two colums: MOVER and OPPONENT having dtype equal to int64.
+    The fl argument must be a list of Feature objects.
+
+    The returned data frame has columns named F_???.
+    Features are named as a progression F_000, F_001, F_002, ... that is ordered as features
+    are ordered in fl argument.
+    """
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError('Argument df is not an instance of DataFrame')
+    if not isinstance(fl, list):
+        raise TypeError('Argument fl is not an instance of list')
+    if not all([isinstance(e, Feature) for e in fl]):
+        raise TypeError('Argument fl must have all elements belonging to Feature type')
+    if not isinstance(mover, str):
+        raise TypeError('Argument mover is not an instance of str')
+    if not isinstance(opponent, str):
+        raise TypeError('Argument opponent is not an instance of str')
+    if not pf:
+        return None
+    feature_values = None
+    # ### ### ### Code to be complete here ....
+    return feature_values
+
 def compute_indexes_on_df(df : pd.DataFrame, pl : list, mover='MOVER', opponent='OPPONENT') -> pd.DataFrame:
     """
-    Returns a new data frame having the indexes and principal ones compute on the game
+    Returns a new data frame having the indexes and principal ones computed on the game
     position defined in the df argument.
 
     The df argument must have two colums: MOVER and OPPONENT having dtype equal to int64.

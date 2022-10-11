@@ -987,3 +987,12 @@ def board_pattern_index_to_packed(index : int) -> Board:
     ct_board_p = ct.byref(ct_board)
     f(ct_board_p, index)
     return Board(SquareSet(ct_board.square_sets[0]), SquareSet(ct_board.square_sets[1]))
+
+#
+# To Be completed ....
+#
+def compute_feature_values():
+    pass
+
+def compute_featurelist_values():
+    pass
