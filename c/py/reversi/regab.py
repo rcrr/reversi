@@ -38,6 +38,7 @@ import numpy as np
 import pandas as pd
 
 import psycopg2 as pg
+import duckdb
 
 def compute_feature_values_on_df(df : pd.DataFrame, fl : list, mover='MOVER', opponent='OPPONENT') -> pd.DataFrame:
     """
@@ -61,10 +62,28 @@ def compute_feature_values_on_df(df : pd.DataFrame, fl : list, mover='MOVER', op
         raise TypeError('Argument mover is not an instance of str')
     if not isinstance(opponent, str):
         raise TypeError('Argument opponent is not an instance of str')
-    if not pf:
+    if not fl:
         return None
-    feature_values = None
-    # ### ### ### Code to be complete here ....
+
+    def compute_values(row):
+        m = np.int64(row[mover])
+        o = np.int64(row[opponent])
+        b = Board(SquareSet.new_from_signed_int(m), SquareSet.new_from_signed_int(o))
+        return b.compute_featurelist_values(fl)
+
+    def build_col_names(fl, label):
+        names = []
+        idx_start = 0
+        for f in fl:
+            idx_end = idx_start + f.field_cnt
+            x = ['{:1s}_{:03d}'.format(label, x) for x in range(idx_start, idx_end)]
+            names = names + x
+            idx_start = idx_end
+        return names
+
+    feature_values = pd.DataFrame(list(df.apply(compute_values, axis=1))).astype(np.double)
+    feature_values.columns = build_col_names(fl, 'F')
+    
     return feature_values
 
 def compute_indexes_on_df(df : pd.DataFrame, pl : list, mover='MOVER', opponent='OPPONENT') -> pd.DataFrame:
@@ -137,16 +156,17 @@ class RegabDBConnection():
         self.host = host
         self.port = port
         self.password = password
-        cs = 'dbname={:s} user={:s} host={:s} port={:s}'.format(self.dbname,
-                                                                self.user,
-                                                                self.host,
-                                                                self.port)
-        if self.password:
-            cs = cs + ' password={:s}'.format(self.password)
-        self._connect_string = cs
-        self.conn = pg.connect(self._connect_string)
-        with self.conn.cursor() as curs:
-            curs.execute("SET search_path TO reversi;")
+        if dbname != '':
+            cs = 'dbname={:s} user={:s} host={:s} port={:s}'.format(self.dbname,
+                                                                    self.user,
+                                                                    self.host,
+                                                                    self.port)
+            if self.password:
+                cs = cs + ' password={:s}'.format(self.password)
+            self._connect_string = cs
+            self.conn = pg.connect(self._connect_string)
+            with self.conn.cursor() as curs:
+                curs.execute("SET search_path TO reversi;")
 
     @classmethod
     def new_from_config(cls, filepath: str, section: str):
@@ -183,6 +203,20 @@ class RegabDBConnection():
             rc = RegabDBConnection(dbname, user, host, port=port, password=password)
         return rc
 
+    @classmethod
+    def new_duckdb(cls, conn: duckdb.DuckDBPyConnection) -> 'RegabDBConnection':
+        """
+        Returns a new RegabDBConnection for testing based on duckdb.
+        """
+        if not isinstance(conn, duckdb.DuckDBPyConnection):
+            raise TypeError('Argument conn is not an instance of duckdb.DuckDBPyConnection')
+        dbname = ''
+        user = ''
+        host = ''
+        rc = RegabDBConnection(dbname, user, host)
+        rc.conn = conn
+        return rc
+
     def close(self):
         """
         Closes the db connection.
@@ -213,8 +247,6 @@ def regab_batches_as_df(rc: RegabDBConnection) -> pd.DataFrame:
     """
     if not isinstance(rc, RegabDBConnection):
         raise TypeError('Argument rc is not an instance of RegabDBConnection')
-    if not rc.conn.closed == 0:
-        raise TypeError('The database connection is closed')
     with rc.conn.cursor() as curs:
         curs.execute("SELECT * FROM regab_prng_gp_h;")
         colnames = [d[0] for d in curs.description]
@@ -280,8 +312,6 @@ def regab_gp_as_df(rc: RegabDBConnection, bid, status, ec: int, limit=None, wher
 
     if not isinstance(rc, RegabDBConnection):
         raise TypeError('Argument rc is not an instance of RegabDBConnection')
-    if not rc.conn.closed == 0:
-        raise TypeError('The database connection is closed')
     if not isinstance(ec, int):
         raise TypeError('Argument ec is not an instance of int')
     if not ec >= 0 and ec <= 60:

@@ -988,11 +988,20 @@ def board_pattern_index_to_packed(index : int) -> Board:
     f(ct_board_p, index)
     return Board(SquareSet(ct_board.square_sets[0]), SquareSet(ct_board.square_sets[1]))
 
-#
-# To Be completed ....
-#
-def compute_feature_values():
-    pass
+def _compute_feature_values(self, f : Feature) -> np.ndarray:
+    if not isinstance(f, Feature):
+        raise TypeError('Argument f is not an instance of Feature')
+    return f.values(self)
 
-def compute_featurelist_values():
-    pass
+setattr(Board, "compute_feature_values", _compute_feature_values)
+
+def _compute_featurelist_values(self, fl : list) -> np.ndarray:
+    if not isinstance(fl, list):
+        raise TypeError('Argument fl is not an instance of list')
+    if not all([isinstance(e, Feature) for e in fl]):
+        raise TypeError('Argument fl must have all elements belonging to Feature type')
+    if not fl:
+        return None
+    return np.concatenate([self.compute_feature_values(f) for f in fl])
+
+setattr(Board, "compute_featurelist_values", _compute_featurelist_values)

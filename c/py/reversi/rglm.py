@@ -56,8 +56,9 @@ from sklearn.linear_model import LogisticRegression
 #     .done. returned RESULT SET ( a pandas Data Frame )
 #     .done. Feature/Pattern configuration
 #     .done. data frame with computed indexes
-#     .. df computed features: pattern.py + regab.py + rglm.py to be coded.
+#     .done. df computed features
 #     .. EXPANDED sparse matrix ( the H matrix ) .. see the point #3 and #4
+#        pd.concat([df1, df2, df3, ...], axis=1, copy=False)
 #     .. hyperparameters
 #     .. REGRESSION MODEL
 #     .. computed weights
@@ -97,10 +98,11 @@ class Rglm:
         self.game_positions = None
         self.indexes = None
         self.feature_values = None
+        self.gpdf = None
         self.mover_field = 'mover'
         self.opponent_field = 'opponent'
 
-    def set_conn(self, conn: RegabDBConnection) -> 'Rglm':
+    def set_conn(self, conn) -> 'Rglm':
         if not isinstance(conn, RegabDBConnection):
             raise TypeError('Argument conn is not an instance of RegabDBConnection')
         self.conn = conn
@@ -152,6 +154,9 @@ class Rglm:
             raise ValueError('The game_positions data frame is missing mover or opponent columns')
         if self.features is None or self.features == []:
             raise ValueError('The field features is not defined or empty')
-        # To be completed ...
-        self.feature_values = None
+        self.feature_values = compute_feature_values_on_df(self.game_positions, self.features, mover=self.mover_field, opponent=self.opponent_field)
+        return self
+
+    def combine_gps_features_patterns(self) -> 'Rglm':
+        self.gpdf = pd.concat([self.game_positions, self.indexes, self.feature_values], axis=1, copy=False)
         return self
