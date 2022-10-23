@@ -156,7 +156,8 @@ class TestRglm(unittest.TestCase):
             .set_patterns('EDGE,DIAG8') \
             .compute_indexes() \
             .compute_feature_values() \
-            .combine_gps_features_patterns()
+            .combine_gps_features_patterns() \
+            .compute_vmaps()
         
         self.assertIsInstance(m, Rglm)
         m.close_conn()

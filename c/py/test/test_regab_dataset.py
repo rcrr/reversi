@@ -61,7 +61,7 @@ class TestRegabExtractFile(unittest.TestCase):
 
     def test_compute_indexes_on_df(self):
         data = aux_get_test_data()
-        computed = compute_indexes_on_df(data[['MOVER', 'OPPONENT']], patterns_as_list)
+        computed, d_i0, d_i1 = compute_indexes_on_df(data[['MOVER', 'OPPONENT']], patterns_as_list)
         for col_name in computed.columns:
             is_equal = all(data[col_name] - computed[col_name] == 0)
             self.assertEqual(True, is_equal)

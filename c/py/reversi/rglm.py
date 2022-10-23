@@ -57,19 +57,14 @@ from sklearn.linear_model import LogisticRegression
 #     .done. Feature/Pattern configuration
 #     .done. data frame with computed indexes
 #     .done. df computed features
-#     .. EXPANDED sparse matrix ( the H matrix ) .. see the point #3 and #4
-#        pd.concat([df1, df2, df3, ...], axis=1, copy=False)
+#     .done. build a dictionary that maps gpdf columns to features and patterns
+#     .done. build the vmap and the inverse vmap (ivmap) tables
+#     .. EXPANDED sparse matrix ( the X matrix ) .. see the point #2, and #3
 #     .. hyperparameters
 #     .. REGRESSION MODEL
 #     .. computed weights
 #
-# -2- Read and write to file ...
-#
-# -3- It is needed to HotEncoding and to collapse the four ( or 2 or 8 ) instance values
-#     into a single UNION.
-#     It is done by SQL (duckdb) transformations.
-#
-# -4- Build the X and y numpy array.
+# -2- Build the X and y numpy array.
 #     X is a data frame having as row the game position and as columns the GLM variables.
 #     X must be sparse. No way otherwise it is huge.
 #     All columns must be float32.
@@ -77,14 +72,167 @@ from sklearn.linear_model import LogisticRegression
 #     in case of a Logistic Regression y should be 0 or 1 dpending on value set as border between
 #     win or lose.
 #
+# -3- Read and write to file ...
+#
 #     In practice we need to build the REGAB/RGML machinery in a different way.
 #
 #     *** what happens when a pattern configuation is missing from the data ?
 #     *** run many solutions of the logit model having a different win/lose boundary
 #
+# --- --- ---
+#
+# A2063 jupyter notebook notes.
+#
+# Z is a data frame having one row for each game_position/pattern/instance and [row_n, index, value]
+#   Moving to a multi-pattern we do need to add the patetrn.id column.
+#   row_n is the line in the game_positions table.
+#
+# Z is build with the following code:
+#
+# q = """ WITH T_A (
+#             row_n,
+#             index
+#           ) AS
+#           (SELECT ROW_N AS row_n, I1_000 AS index FROM a2063_data
+#            UNION ALL
+#            SELECT ROW_N AS row_n, I1_001 AS index FROM a2063_data
+#            UNION ALL
+#            SELECT ROW_N AS row_n, I1_002 AS index FROM a2063_data
+#            UNION ALL
+#            SELECT ROW_N AS row_n, I1_003 AS index FROM a2063_data)
+#         SELECT
+#             row_n AS row_n,
+#             index AS index,
+#             count(1) as value
+#           FROM T_A GROUP BY row_n, index, ORDER BY (row_n, index); """
+#
+# Z = conn.execute(q).fetchdf()
+#
+#
+# Then .... :
+#
+# create the table "a2063_z_data"
+# conn.execute("DROP TABLE IF EXISTS a2063_z_data;")
+# conn.execute("CREATE TABLE a2063_z_data AS SELECT * FROM Z;")
+# conn.execute("CREATE INDEX a2063_z_data_pk ON a2063_z_data (row_n);")
+# conn.execute("CREATE INDEX a2063_z_data_ind ON a2063_z_data (index);")
+#
+# q = """ SELECT
+#             ta.row_n AS row_n,
+#             ta.index AS index,
+#             tb.position AS position,
+#             ta.value AS value
+#           FROM a2063_z_data AS ta
+#           LEFT JOIN a2063_indexes AS tb
+#           ON ta.index = tb.index
+#           ORDER BY row_n, index;"""
+#
+# Z = conn.execute(q).fetchdf()
+#
+# Now Z has one more column: position, that is th rglm_var_id value.
+# Z is now defined as [row_n, index, position, value]
+#
+#
+# x_labels = ['EDGE_' + format(x, '06d') for x in indexes.index]
+#
+# row_idx = Z['row_n'].to_numpy()
+# col_idx = Z['position'].to_numpy()
+# data_values = Z['value'].to_numpy()
+# n_row = len(data)
+# n_col = len(indexes)
+# X = csr_matrix((data_values, (row_idx, col_idx)), shape = (n_row, n_col), dtype = 'float32')
+# X_df = pd.DataFrame.sparse.from_spmatrix(X, columns = x_labels)
+# X_df.insert(0, 'MOBILITY', data.F_001)
+#
+# mob = np.transpose(np.asmatrix(data.F_001.to_numpy()))
+#
+# mob_sparse = csr_matrix(mob, dtype = 'float32')
+# display(mob_sparse)
+# print('mob_sparse.shape = ', mob_sparse.shape)
+# print('X.shape          = ', X.shape)
+#
+# from scipy.sparse import hstack
+#
+# X_plus = hstack([mob_sparse, X])
+#
+# X_plus is the sparse matrix used as X by the LogisticRegression class.
+#
 
 class Rglm:
     """
+    RGLM - Reversi Generalized Linear Model
+
+    The class implements a full workflow starting from data selection up to model optimization.
+
+    Steps are:
+
+        - Create the Rglm object:
+            m = Rglm()
+        - Assign a database connection to the REGAB data base:
+            m.set_conn(RegabDBConnection(dbname, user, host))
+        - Set the query parameters values for empty count, batches and statuses:
+            m.set_empty_count(20)
+            m.set_batches(7)
+            m.set_statuses('CMR,CMS')
+        - Execute the query to retrieve the game positions from the REGAB data base:
+            m.retrieve_game_positions()
+          The query populates the game_position field with the resulting data frame
+        - Select the model features and patterns:
+            m.set_features('INTERCEPT,MOBILITY3')
+            m.set_patterns('EDGE,DIAG8')
+          The operations populate the fields:
+          features, patterns, flabel_dict, plabel_dict_i0 and plabel_dict_i1
+        - Compute the feature values and pattern indexes on the game position selection.
+          Then combines game_positions, feature_values and indexes into a single gpdf data frame:
+            m.compute_indexes()
+            m.compute_feature_values()
+            m.combine_gps_features_patterns()
+        - Compute the rglm variable id <-> entity type, entity, index reference map.
+            m.compute_vmaps()
+
+    Attributes
+    ----------
+    conn : RegabDBConnection
+      Connection to the REGAB database
+    empty_count : int
+      Clause used to query the REGAB database for game positions
+    batches : list
+      Clause used to query the REGAB database for game positions
+    statuses : list
+      Clause used to query the REGAB database for game positions
+    features : list
+      Selected features characterizing the model
+    flabel_dict : dict
+      Dictionary of the labels belonging to a selected feature.
+      The feature object is the key, the value is a list of strings collecting the
+      labels used to name the columns of the game_positions data frame
+    patterns : list
+      Selected patterns characterizing the model
+    plabel_dict_i0 : dict
+      Dictionary of the labels of indexes belonging to a selected pattern.
+    plabel_dict_i1 : dict
+      Dictionary of the labels of principal indexes belonging to a selected pattern.
+    game_positions : pandas.DataFrame
+      Game positions extracted from the REGAB database
+    indexes : pandas.DataFrame
+      Computed indexes belonging to selected patterns assigned to game positions
+    feature_values : pandas.DataFrame
+      Computed values belonging to selected features assigned to game positions
+    gpdf : pandas.DataFrame
+      Join of game_positions, feature_values, indexes
+    vmap: pandas.DataFrame
+      It has the cardinality of the RGLM variables.
+      Fields are:
+        - vid : int64
+          RGLM variable id
+        - etype : int64
+          Entity type - 0 for feature, 1 for pattern
+        - eid : int64
+          Entity id - Pattern or feature id
+        - idx : int64
+          Index value - It is the pattern configuration index, or for features the index of the enumeration
+    ivmap: pandas.DataFrame
+      Like vmap, it has the cardinality of the RGLM variables.
     """
     def __init__(self):
         """
@@ -92,15 +240,22 @@ class Rglm:
         self.conn = None
         self.empty_count = None
         self.batches = None
-        self.stauses = None
+        self.statuses = None
         self.features = None
+        self.flabel_dict = None
         self.patterns = None
+        self.plabel_dict_i0 = None
+        self.plabel_dict_i1 = None
         self.game_positions = None
         self.indexes = None
         self.feature_values = None
         self.gpdf = None
-        self.mover_field = 'mover'
-        self.opponent_field = 'opponent'
+        self.vmap = None
+        self.ivmap = None
+        
+        self._mover_field = 'mover'
+        self._opponent_field = 'opponent'
+
 
     def set_conn(self, conn) -> 'Rglm':
         if not isinstance(conn, RegabDBConnection):
@@ -140,23 +295,85 @@ class Rglm:
     def compute_indexes(self) -> 'Rglm':
         if not isinstance(self.game_positions, pd.DataFrame):
             raise TypeError('The field game_positions is not an instance of DataFrame')
-        if not set([self.mover_field, self.opponent_field]).issubset(self.game_positions.columns):
+        if not set([self._mover_field, self._opponent_field]).issubset(self.game_positions.columns):
             raise ValueError('The game_positions data frame is missing mover or opponent columns')
         if self.patterns is None or self.patterns == []:
             raise ValueError('The field patterns is not defined or empty')
-        self.indexes = compute_indexes_on_df(self.game_positions, self.patterns, mover=self.mover_field, opponent=self.opponent_field)
+        self.indexes, self.plabel_dict_i0, self.plabel_dict_i1 = compute_indexes_on_df(self.game_positions, self.patterns, mover=self._mover_field, opponent=self._opponent_field)
         return self
 
     def compute_feature_values(self) -> 'Rglm':
         if not isinstance(self.game_positions, pd.DataFrame):
             raise TypeError('The field game_positions is not an instance of DataFrame')
-        if not set([self.mover_field, self.opponent_field]).issubset(self.game_positions.columns):
+        if not set([self._mover_field, self._opponent_field]).issubset(self.game_positions.columns):
             raise ValueError('The game_positions data frame is missing mover or opponent columns')
         if self.features is None or self.features == []:
             raise ValueError('The field features is not defined or empty')
-        self.feature_values = compute_feature_values_on_df(self.game_positions, self.features, mover=self.mover_field, opponent=self.opponent_field)
+        self.feature_values, self.flabel_dict = compute_feature_values_on_df(self.game_positions, self.features, mover=self._mover_field, opponent=self._opponent_field)
         return self
 
     def combine_gps_features_patterns(self) -> 'Rglm':
         self.gpdf = pd.concat([self.game_positions, self.indexes, self.feature_values], axis=1, copy=False)
         return self
+
+    def compute_vmaps(self) -> 'Rglm':
+
+        vmap_colnames = ['vid', 'etype', 'eid', 'idx']
+        self.vmap = pd.DataFrame(columns = vmap_colnames, dtype = 'int64')
+        
+        var_cnt = 0
+        for f in self.features:
+            var_cnt_for_f = f.field_cnt
+            var_cnt_updated = var_cnt + var_cnt_for_f
+            indexes = list(range(0, var_cnt_for_f))
+            rglm_var_id = list(range(var_cnt, var_cnt_updated))
+            entity_type = [0] * var_cnt_for_f
+            f_id_list = [f.id] * var_cnt_for_f
+            vmap_f = pd.DataFrame(list(zip(rglm_var_id, entity_type, f_id_list, indexes)), columns = vmap_colnames)
+            self.vmap = pd.concat([self.vmap, vmap_f], axis = 0, ignore_index = True, sort = False, copy = False)
+            var_cnt = var_cnt_updated
+            
+        for p in self.patterns:
+            set_of_indexes = set()
+            labels = self.plabel_dict_i1[p]
+            for label in labels:
+                col_as_list = self.gpdf[label].values.tolist()
+                set_of_indexes.update(col_as_list)
+            indexes = sorted(set_of_indexes)
+            var_cnt_for_p = len(indexes)
+            var_cnt_updated = var_cnt + var_cnt_for_p
+            rglm_var_id = list(range(var_cnt, var_cnt_updated))
+            entity_type = [1] * var_cnt_for_p
+            p_id_list = [p.id] * var_cnt_for_p
+            vmap_p = pd.DataFrame(list(zip(rglm_var_id, entity_type, p_id_list, indexes)), columns = vmap_colnames)
+            self.vmap = pd.concat([self.vmap, vmap_p], axis = 0, ignore_index = True, sort = False, copy = False)
+            var_cnt = var_cnt_updated
+                      
+            mi = pd.MultiIndex.from_frame(self.vmap[['etype', 'eid', 'idx']])
+            self.ivmap = pd.DataFrame(self.vmap['vid'].values, index=mi, columns=['vid'])
+            
+        return self
+
+    def compute_gpx_df(self) -> 'Rglm':
+        # una colonna per ogni Pattern che fa la Union con le istanze del pattern ... poi la GROUP BY ...
+        # indicativamente escono tante righe quanti sono i gp x pattern.instances
+        # A questo punto va fatta la matrice sparsa.
+        pass
+
+
+
+def rglm_test():
+    m = Rglm() \
+        .set_conn(RegabDBConnection.new_from_config('cfg/regab.cfg', 'test')) \
+        .set_empty_count(20) \
+        .set_batches(7) \
+        .set_statuses('CMR,CMS') \
+        .retrieve_game_positions() \
+        .set_features('INTERCEPT,MOBILITY3') \
+        .set_patterns('EDGE,DIAG8') \
+        .compute_indexes() \
+        .compute_feature_values() \
+        .combine_gps_features_patterns() \
+        .compute_vmaps()
+
+    return m

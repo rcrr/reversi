@@ -74,17 +74,19 @@ def compute_feature_values_on_df(df : pd.DataFrame, fl : list, mover='MOVER', op
     def build_col_names(fl, label):
         names = []
         idx_start = 0
+        d = {}
         for f in fl:
             idx_end = idx_start + f.field_cnt
             x = ['{:1s}_{:03d}'.format(label, x) for x in range(idx_start, idx_end)]
             names = names + x
+            d.update({f: x})
             idx_start = idx_end
-        return names
+        return names, d
 
     feature_values = pd.DataFrame(list(df.apply(compute_values, axis=1))).astype(np.double)
-    feature_values.columns = build_col_names(fl, 'F')
+    feature_values.columns, flabel_dict = build_col_names(fl, 'F')
     
-    return feature_values
+    return feature_values, flabel_dict
 
 def compute_indexes_on_df(df : pd.DataFrame, pl : list, mover='MOVER', opponent='OPPONENT') -> pd.DataFrame:
     """
@@ -125,16 +127,20 @@ def compute_indexes_on_df(df : pd.DataFrame, pl : list, mover='MOVER', opponent=
     def build_col_names(pl, label):
         names = []
         idx_start = 0
+        d = {}
         for p in pl:
             idx_end = idx_start + p.n_instances
             x = ['{:2s}_{:03d}'.format(label, x) for x in range(idx_start, idx_end)]
             names = names + x
+            d.update({p: x})
             idx_start = idx_end
-        return names
+        return names, d
 
     indexes = pd.DataFrame(list(df.apply(compute_indexes, axis=1))).astype(np.uint16)
-    indexes.columns = build_col_names(pl, 'I0') + build_col_names(pl, 'I1')
-    return indexes
+    cnames_i0, plabel_dict_i0 = build_col_names(pl, 'I0')
+    cnames_i1, plabel_dict_i1 = build_col_names(pl, 'I1')
+    indexes.columns = cnames_i0 + cnames_i1
+    return indexes, plabel_dict_i0, plabel_dict_i1
 
 class RegabDBConnection():
     """
