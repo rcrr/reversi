@@ -158,6 +158,56 @@ from sklearn.linear_model import LogisticRegression
 # X_plus is the sparse matrix used as X by the LogisticRegression class.
 #
 
+#
+# pd.concat([m.gpdf[x] for x in m.plabel_dict_i1[PDiag8()]])
+#
+# pd.concat([a[['gpid', x]].rename(columns=dict(zip(m.plabel_dict_i1[PDiag8()], [PDiag8().name]*PDiag8().n_instances))) for x in m.plabel_dict_i1[PDiag8()]])
+#        gpid  DIAG8
+#    0      0    402
+#    1      1   1180
+#    2      2   4337
+#    3      3    618
+#    4      4   1120
+#    5      5    715
+#    6      6    477
+#    7      7    240
+#    8      8    720
+#    9      9    607
+#    10    10   2636
+#    11    11    375
+#    12    12   1423
+#    13    13    618
+#    14    14   1444
+#    15    15    715
+#    16    16    477
+#    17    17    234
+#    18    18    720
+#    19    19    364
+#    0      0    647
+#    1      1    402
+#    2      2    458
+#    3      3   4021
+#    4      4   2078
+#    5      5   1096
+#    6      6    387
+#    7      7   2092
+#    8      8    363
+#    9      9    395
+#    10    10    458
+#    11    11    644
+#    12    12    483
+#    13    13   4264
+#    14    14   2105
+#    15    15   1096
+#    16    16    387
+#    17    17   2092
+#    18    18    363
+#    19    19    404
+#
+#
+# https://jamesrledoux.com/code/group-by-aggregate-pandas
+#
+
 class Rglm:
     """
     RGLM - Reversi Generalized Linear Model
@@ -252,6 +302,7 @@ class Rglm:
         self.gpdf = None
         self.vmap = None
         self.ivmap = None
+        self.gpxdf = None
         
         self._mover_field = 'mover'
         self._opponent_field = 'opponent'
@@ -289,6 +340,10 @@ class Rglm:
 
     def retrieve_game_positions(self, limit=None, where=None, fields=None) -> 'Rglm':
         gps = regab_gp_as_df(self.conn, self.batches, self.statuses, self.empty_count, limit, where, fields)
+        cols = gps.columns
+        gps['gpid'] = gps.index
+        for c in ['gpid'] + list(cols):
+            gps[c] = gps.pop(c)
         self.game_positions = gps
         return self
 
@@ -313,7 +368,7 @@ class Rglm:
         return self
 
     def combine_gps_features_patterns(self) -> 'Rglm':
-        self.gpdf = pd.concat([self.game_positions, self.indexes, self.feature_values], axis=1, copy=False)
+        self.gpdf = pd.concat([self.game_positions, self.feature_values, self.indexes], axis=1, copy=False)
         return self
 
     def compute_vmaps(self) -> 'Rglm':
@@ -348,17 +403,38 @@ class Rglm:
             vmap_p = pd.DataFrame(list(zip(rglm_var_id, entity_type, p_id_list, indexes)), columns = vmap_colnames)
             self.vmap = pd.concat([self.vmap, vmap_p], axis = 0, ignore_index = True, sort = False, copy = False)
             var_cnt = var_cnt_updated
-                      
+
             mi = pd.MultiIndex.from_frame(self.vmap[['etype', 'eid', 'idx']])
             self.ivmap = pd.DataFrame(self.vmap['vid'].values, index=mi, columns=['vid'])
             
         return self
 
-    def compute_gpx_df(self) -> 'Rglm':
+    def compute_gpxdf(self) -> 'Rglm':
         # una colonna per ogni Pattern che fa la Union con le istanze del pattern ... poi la GROUP BY ...
         # indicativamente escono tante righe quanti sono i gp x pattern.instances
         # A questo punto va fatta la matrice sparsa.
-        pass
+
+        # pd.concat([m.gpdf[x] for x in m.plabel_dict_i1[PDiag8()]])
+        #
+        # pd.concat([a[['gpid', x]].rename(columns=dict(zip(m.plabel_dict_i1[PDiag8()], [PDiag8().name]*PDiag8().n_instances))) for x in m.plabel_dict_i1[PDiag8()]])
+
+        gpxdf_colnames = ['vid', 'etype', 'eid', 'idx', 'gpid', 'counter']
+        self.gpxdf = pd.DataFrame(columns = gpxdf_colnames, dtype = 'int64')
+
+        for p in self.patterns:
+            labels = self.plabel_dict_i1[p]
+            renamed_labels = dict(zip(labels, ['idx']*p.n_instances))
+            res = pd.concat(self.gpdf[['gpid', x]].rename(columns=renamed_labels) for x in labels)
+            res.insert(loc=1, column='eid', value=[p.id]*len(res))
+            res.insert(loc=1, column='etype', value=[1]*len(res))
+            res['counter'] = 1
+            res_grouped = res.groupby(['gpid', 'etype', 'eid', 'idx'])['counter'].sum().reset_index()
+            mi = pd.MultiIndex.from_frame(res_grouped[['etype', 'eid', 'idx']])
+            res_grouped = pd.DataFrame(res_grouped.values, index=mi, columns=['gpid', 'etype', 'eid', 'idx', 'counter'], dtype = 'int64')
+            res_grouped = res_grouped.merge(self.ivmap, left_index=True, right_index=True, how='left')
+            self.gpxdf = pd.concat([self.gpxdf, res_grouped], axis=0,  ignore_index = True, sort = False, copy = False)
+
+        return self
 
 
 
@@ -366,7 +442,7 @@ def rglm_test():
     m = Rglm() \
         .set_conn(RegabDBConnection.new_from_config('cfg/regab.cfg', 'test')) \
         .set_empty_count(20) \
-        .set_batches(7) \
+        .set_batches(5) \
         .set_statuses('CMR,CMS') \
         .retrieve_game_positions() \
         .set_features('INTERCEPT,MOBILITY3') \
@@ -374,6 +450,7 @@ def rglm_test():
         .compute_indexes() \
         .compute_feature_values() \
         .combine_gps_features_patterns() \
-        .compute_vmaps()
+        .compute_vmaps() \
+        .compute_gpxdf()
 
     return m
