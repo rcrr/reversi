@@ -414,19 +414,90 @@ class Rglm:
         return self
     
 def rglm_test():
-    m = Rglm() \
-        .set_conn(RegabDBConnection.new_from_config('cfg/regab.cfg', 'test')) \
-        .set_empty_count(20) \
-        .set_batches(5) \
-        .set_statuses('CMR,CMS') \
-        .retrieve_game_positions() \
-        .set_features('INTERCEPT,MOBILITY3') \
-        .set_patterns('EDGE,DIAG8') \
-        .compute_indexes() \
-        .compute_feature_values() \
-        .combine_gps_features_patterns() \
-        .compute_vmaps() \
-        .compute_gpxpidf() \
-        .compute_x()
+
+    cfg_fname = 'cfg/regab.cfg'
+    env = 'test'
+    ec = 20
+    batches = [5]
+    statuses = 'CMR,CMS'
+    features = 'INTERCEPT,MOBILITY3'
+    patterns = 'EDGE,DIAG8'
+
+    conn = RegabDBConnection.new_from_config(cfg_fname, env)
+    
+    def timed_run(m, s, *args):
+        sw = StopWatch()
+        sw.start()
+        ret = m(*args)
+        sw.stop()
+        cs = s.format(*args)
+        print("{:<75} {}".format(cs, sw.get_elapsed_time_as_td()))
+        return ret
+
+    m = timed_run(Rglm, "m = Rglm()")
+    m = timed_run(m.set_conn, "m = m.set_conn({})", conn)
+    m = timed_run(m.set_empty_count, "m = m.set_empty_count({})", ec)
+    m = timed_run(m.set_batches, "m = m.set_batches({})", batches)
+    m = timed_run(m.set_statuses, "m = m.set_statuses({})", statuses)
+    m = timed_run(m.retrieve_game_positions, "m = m.retrieve_game_positions()")
+    m = timed_run(m.set_features, "m = m.set_features({})", features)
+    m = timed_run(m.set_patterns, "m = m.set_patterns({})", patterns)
+    m = timed_run(m.compute_indexes, "m = m.compute_indexes()")
+    m = timed_run(m.compute_feature_values, "m = m.compute_feature_values()")
+    m = timed_run(m.combine_gps_features_patterns, "m = m.combine_gps_features_patterns()")
+    m = timed_run(m.compute_vmaps, "m = m.compute_vmaps()")
+    m = timed_run(m.compute_gpxpidf, "m = m.compute_gpxpidf()")
+    m = timed_run(m.compute_x, "m = m.compute_x()")
 
     return m
+
+import time
+
+class StopWatch:
+    """
+    Collects the time spent by a program execution between the start and stop statements.
+    """
+    def __init__(self):
+        """
+        Sets to None all the relevant attributes.
+        """
+        self._start_time = None
+        self._stop_time = None
+        self._status = 0
+        self._elapsed_time = 0
+
+    def start(self):
+        if not self._status == 0:
+            raise Exception('Cannot call start on a running stop-watch')
+        self._status = 1
+        self._stop_time = None
+        self._start_time = time.perf_counter_ns()
+
+    def stop(self):
+        if not self._status == 1:
+            raise Exception('Cannot call stop on a stopped stop-watch')
+        self._stop_time = time.perf_counter_ns()
+        self._status = 0
+        self._elapsed_time += self._stop_time - self._start_time
+
+    def reset(self):
+        if not self._status == 0:
+            raise Exception('Cannot call reset on a running stop-watch')        
+        self._start_time = None
+        self._stop_time = None
+        self._elapsed_time = 0        
+        
+    def get_status(self):
+        return self._status
+
+    def get_start_time(self):
+        return self._start_time
+
+    def get_stop_time(self):
+        return self._stop_time
+    
+    def get_elapsed_time(self):
+        return self._elapsed_time
+
+    def get_elapsed_time_as_td(self):
+        return pd.Timedelta(self.get_elapsed_time(), unit='ns') 
