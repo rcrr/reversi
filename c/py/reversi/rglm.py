@@ -80,84 +80,6 @@ from sklearn.linear_model import LogisticRegression
 #     *** what happens when a pattern configuation is missing from the data ?
 #     *** run many solutions of the logit model having a different win/lose boundary
 #
-# --- --- ---
-#
-# A2063 jupyter notebook notes.
-#
-# Z is a data frame having one row for each game_position/pattern/instance and [row_n, index, value]
-#   Moving to a multi-pattern we do need to add the patetrn.id column.
-#   row_n is the line in the game_positions table.
-#
-# Z is build with the following code:
-#
-# q = """ WITH T_A (
-#             row_n,
-#             index
-#           ) AS
-#           (SELECT ROW_N AS row_n, I1_000 AS index FROM a2063_data
-#            UNION ALL
-#            SELECT ROW_N AS row_n, I1_001 AS index FROM a2063_data
-#            UNION ALL
-#            SELECT ROW_N AS row_n, I1_002 AS index FROM a2063_data
-#            UNION ALL
-#            SELECT ROW_N AS row_n, I1_003 AS index FROM a2063_data)
-#         SELECT
-#             row_n AS row_n,
-#             index AS index,
-#             count(1) as value
-#           FROM T_A GROUP BY row_n, index, ORDER BY (row_n, index); """
-#
-# Z = conn.execute(q).fetchdf()
-#
-#
-# Then .... :
-#
-# create the table "a2063_z_data"
-# conn.execute("DROP TABLE IF EXISTS a2063_z_data;")
-# conn.execute("CREATE TABLE a2063_z_data AS SELECT * FROM Z;")
-# conn.execute("CREATE INDEX a2063_z_data_pk ON a2063_z_data (row_n);")
-# conn.execute("CREATE INDEX a2063_z_data_ind ON a2063_z_data (index);")
-#
-# q = """ SELECT
-#             ta.row_n AS row_n,
-#             ta.index AS index,
-#             tb.position AS position,
-#             ta.value AS value
-#           FROM a2063_z_data AS ta
-#           LEFT JOIN a2063_indexes AS tb
-#           ON ta.index = tb.index
-#           ORDER BY row_n, index;"""
-#
-# Z = conn.execute(q).fetchdf()
-#
-# Now Z has one more column: position, that is th rglm_var_id value.
-# Z is now defined as [row_n, index, position, value]
-#
-#
-# x_labels = ['EDGE_' + format(x, '06d') for x in indexes.index]
-#
-# row_idx = Z['row_n'].to_numpy()
-# col_idx = Z['position'].to_numpy()
-# data_values = Z['value'].to_numpy()
-# n_row = len(data)
-# n_col = len(indexes)
-# X = csr_matrix((data_values, (row_idx, col_idx)), shape = (n_row, n_col), dtype = 'float32')
-# X_df = pd.DataFrame.sparse.from_spmatrix(X, columns = x_labels)
-# X_df.insert(0, 'MOBILITY', data.F_001)
-#
-# mob = np.transpose(np.asmatrix(data.F_001.to_numpy()))
-#
-# mob_sparse = csr_matrix(mob, dtype = 'float32')
-# display(mob_sparse)
-# print('mob_sparse.shape = ', mob_sparse.shape)
-# print('X.shape          = ', X.shape)
-#
-# from scipy.sparse import hstack
-#
-# X_plus = hstack([mob_sparse, X])
-#
-# X_plus is the sparse matrix used as X by the LogisticRegression class.
-#
 
 class Rglm:
     """
@@ -275,6 +197,7 @@ class Rglm:
         self.ivmap = None
         self.gpxpidf = None
         self.x = None
+        self.y = None
         
         self._mover_field = 'mover'
         self._opponent_field = 'opponent'
@@ -396,7 +319,6 @@ class Rglm:
             self.gpxpidf = pd.concat([self.gpxpidf, res_grouped], axis=0,  ignore_index = True, sort = False, copy = False)
         return self
 
-    # An alternative way is to use hstack ...
     def compute_x(self):
         n_row = len(self.game_positions)
         n_col = len(self.vmap)
@@ -412,16 +334,22 @@ class Rglm:
         data_values = np.append(data_values, self.gpxpidf['counter'].to_numpy())
         self.x = csr_matrix((data_values, (row_idx, col_idx)), shape = (n_row, n_col), dtype = 'float64')
         return self
+
+    def compute_y(self):
+        gv = self.game_positions['game_value'].to_numpy()
+        gvt = rglm_gv_to_gvt(gv)
+        self.y = gvt
+        return self
     
 def rglm_test():
 
     cfg_fname = 'cfg/regab.cfg'
     env = 'test'
     ec = 20
-    batches = [5]
+    batches = [4]
     statuses = 'CMR,CMS'
-    features = 'INTERCEPT,MOBILITY3'
-    patterns = 'EDGE,DIAG8'
+    features = 'INTERCEPT,MOBILITY2'
+    patterns = 'XEDGE,2X5COR,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,R2,R3,R4'
 
     conn = RegabDBConnection.new_from_config(cfg_fname, env)
     
@@ -448,8 +376,34 @@ def rglm_test():
     m = timed_run(m.compute_vmaps, "m = m.compute_vmaps()")
     m = timed_run(m.compute_gpxpidf, "m = m.compute_gpxpidf()")
     m = timed_run(m.compute_x, "m = m.compute_x()")
+    m = timed_run(m.compute_y, "m = m.compute_y()")
 
     return m
+
+def rglm_sigmoid(x: np.ndarray) -> np.ndarray:
+    return 1. / (1. + np.exp(-x))
+
+def rglm_gv_to_gvt(g: int) -> float:
+    """
+    Transforms the game value, that belongs to the range [-64..+64] of even numbers,
+    to the range [0.01..0.99] of float values.
+    """
+    # a = 0.49/64
+    a = 0.00765625
+    b = 0.5
+    t = a * g + b
+    return t
+
+def rglm_compute_grad(m: Rglm) -> np.ndarray:
+    y = m.y
+    yh = np.full(len(m.game_positions), 0.5)
+    r = y - yh
+    dg = yh * (1. - yh)
+    tmp = dg * r
+    x = m.x
+    xt = x.transpose()
+    grad = - xt @ tmp
+    return grad
 
 import time
 

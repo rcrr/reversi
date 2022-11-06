@@ -88,10 +88,13 @@ def compute_feature_values_on_df(df : pd.DataFrame, fl : list, mover='MOVER', op
     
     return feature_values, flabel_dict
 
-def compute_indexes_on_df(df : pd.DataFrame, pl : list, mover='MOVER', opponent='OPPONENT') -> pd.DataFrame:
+def compute_indexes_on_df(df : pd.DataFrame, pl : list, mover='MOVER', opponent='OPPONENT') -> (pd.DataFrame, dict, dict):
     """
-    Returns a new data frame having the indexes and principal ones computed on the game
-    position defined in the df argument.
+    Returns a tuple containing:
+     - a new data frame having the indexes and principal ones computed on the game
+       position defined in the df argument.
+     - a dictionary having as key the pattern and as values the list of corresponding column names holding the index values
+     - a second dictionary holding the principal index values
 
     The df argument must have two colums: MOVER and OPPONENT having dtype equal to int64.
     The pl argument must be a list of Pattern objects.
