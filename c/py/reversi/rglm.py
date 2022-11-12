@@ -39,17 +39,11 @@ from reversi.regab import *
 import numpy as np
 import pandas as pd
 
+from scipy.sparse import csr_matrix
+from scipy.optimize import minimize
+
 #
 # To do:
-#
-# See the ml/A2063 notebook
-#
-# imported packages and functions:
-from sklearn.preprocessing import OneHotEncoder
-import duckdb
-from scipy.sparse import csr_matrix
-from scipy.sparse import hstack
-from sklearn.linear_model import LogisticRegression
 #
 # -1- We need a Model class. This class is collecting:
 #     .done. the REGAB query
@@ -60,7 +54,7 @@ from sklearn.linear_model import LogisticRegression
 #     .done. build a dictionary that maps gpdf columns to features and patterns
 #     .done. build the vmap and the inverse vmap (ivmap) tables
 #     .done. build the sparse matrix for patterns as a dataframe of integers
-#     .. X sparse matrix ( the X matrix )
+#     .done. X sparse matrix ( the X matrix )
 #        Build the X and y numpy array.
 #        X is a data frame having as row the game position and as columns the GLM variables.
 #        X must be sparse. No way otherwise it is huge.
@@ -68,17 +62,22 @@ from sklearn.linear_model import LogisticRegression
 #        y is an array having the expected value for the game position.
 #        in case of a Logistic Regression y should be 0 or 1 dpending on value set as border between
 #        win or lose.
+#     .. Compute the effe and grad values for the scipy.optimize.minimize call
 #     .. hyperparameters
-#     .. REGRESSION MODEL
 #     .. computed weights
 #
+# -2- Setup a kind of workflow with states and checks ....
 #
-# -2- Read and write to file ...
+# -3- Read and write to file ...
 #
 #     In practice we need to build the REGAB/RGML machinery in a different way.
 #
 #     *** what happens when a pattern configuation is missing from the data ?
 #     *** run many solutions of the logit model having a different win/lose boundary
+#
+# -4- Complete documentation ....
+#
+# -5- Code tests ....
 #
 
 class Rglm:
@@ -197,7 +196,10 @@ class Rglm:
         self.ivmap = None
         self.gpxpidf = None
         self.x = None
+        self.xt = None
         self.y = None
+        self.yh = None
+        self.w = None
         
         self._mover_field = 'mover'
         self._opponent_field = 'opponent'
@@ -333,23 +335,58 @@ class Rglm:
         col_idx = np.append(col_idx, self.gpxpidf['vid'].to_numpy())
         data_values = np.append(data_values, self.gpxpidf['counter'].to_numpy())
         self.x = csr_matrix((data_values, (row_idx, col_idx)), shape = (n_row, n_col), dtype = 'float64')
+        self.xt = self.x.transpose()
         return self
 
     def compute_y(self):
         gv = self.game_positions['game_value'].to_numpy()
         gvt = rglm_gv_to_gvt(gv)
         self.y = gvt
+        self.yh = np.full(len(gvt), 0.5)
         return self
+
+
+    def function(self):
+        return 0.5 * sum((self.y - self.yh)**2)
+    
+    def gradient(self):
+        return - self.xt @ ((self.yh * (1. - self.yh)) * (self.y - self.yh))
+
+    def optimize(self):
+
+        opts = {'disp': None,
+                'maxcor': 40,
+                'ftol': 1e-08,
+                'gtol': 1e-05,
+                'eps': 1e-08,
+                'maxfun': 5000,
+                'maxiter': 5000,
+                'iprint': 99,
+                'maxls': 20,
+                'finite_diff_rel_step': None}
+
+        self.w = np.full(len(self.vmap), 0.)
+
+        def fg(w):
+            linear_predictor = self.x @ w
+            self.yh = rglm_sigmoid(linear_predictor)
+            r = self.y - self.yh
+            f = 0.5 * sum(r**2)
+            g = - self.xt @ ((self.yh * (1. - self.yh)) * r)            
+            return f, g
+        
+        result = minimize(fg, self.w, jac=True, method='L-BFGS-B', options=opts)
+        return result
     
 def rglm_test():
 
     cfg_fname = 'cfg/regab.cfg'
     env = 'test'
     ec = 20
-    batches = [4]
+    batches = [3]
     statuses = 'CMR,CMS'
-    features = 'INTERCEPT,MOBILITY2'
-    patterns = 'XEDGE,2X5COR,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,R2,R3,R4'
+    features = 'INTERCEPT,MOBILITY3'
+    patterns = 'XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR'
 
     conn = RegabDBConnection.new_from_config(cfg_fname, env)
     
@@ -359,7 +396,7 @@ def rglm_test():
         ret = m(*args)
         sw.stop()
         cs = s.format(*args)
-        print("{:<75} {}".format(cs, sw.get_elapsed_time_as_td()))
+        print("{:<80} {}".format(cs, sw.get_elapsed_time_as_td()))
         return ret
 
     m = timed_run(Rglm, "m = Rglm()")

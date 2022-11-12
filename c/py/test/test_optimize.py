@@ -115,3 +115,66 @@ class TestOptimize(unittest.TestCase):
         x0 = self.x0
         result = minimize(self.fun, x0, jac=self.jacobian, method='CG', tol=1.e-8)
         self.aux_assert_result(result)
+
+
+class TestOptimizeRglm(unittest.TestCase):
+    """
+    The function f has a min value at ( x = 4.0 , y = 2.0 ) equal to -1:
+    
+    f(x, y) = x^2 - 4xy + 5y^2 - 4y + 3
+
+    The Jacobian [df/dx, df/dy] is:
+
+    df/dx = 2x -4y
+    df/dy = -4x +10y -4
+
+    The Jacobian is equal to [0.0, 0.0] at [x=4, y=2] as it must be.
+
+    Naming:
+    -------
+    x -> x[0]
+    y -> x[1]
+    z -> fun
+    """
+    def test_optimize_rglm(self):
+
+        def fun(x):
+            f = x[0]**2 -4*x[0]*x[1] +5*x[1]**2 -4*x[1] +3
+            return f
+        
+        def grad(x):
+            g0 = 2*x[0] -4*x[1]
+            g1 = -4*x[0] +10*x[1] -4
+            return np.array([g0, g1])
+
+        x = np.array([0., 0.])
+
+        result = minimize(fun, x, jac=grad, method='L-BFGS-B', tol=1.e-8,
+                          options={'iprint': 0, 'disp': False, 'maxiter': 10})
+        
+        self.assertEqual(True, result.success)
+        self.assertAlmostEqual(-1.0, result.fun, delta=1.e-7)
+        self.assertAlmostEqual(0.0, result.jac[0], delta=1.e-7)
+        self.assertAlmostEqual(0.0, result.jac[1], delta=1.e-7)        
+        self.assertAlmostEqual(4.0, result.x[0], delta=1.e-7)
+        self.assertAlmostEqual(2.0, result.x[1], delta=1.e-7)
+        
+    def test_optimize_rglm2(self):
+        
+        def fg(x):
+            f = x[0]**2 -4*x[0]*x[1] +5*x[1]**2 -4*x[1] +3
+            g0 = 2*x[0] -4*x[1]
+            g1 = -4*x[0] +10*x[1] -4
+            return f, np.array([g0, g1])
+
+        x = np.array([0., 0.])
+
+        result = minimize(fg, x, jac=True, method='L-BFGS-B', tol=1.e-8,
+                          options={'iprint': 100, 'disp': False, 'maxiter': 10})
+        
+        self.assertEqual(True, result.success)
+        self.assertAlmostEqual(-1.0, result.fun, delta=1.e-7)
+        self.assertAlmostEqual(0.0, result.jac[0], delta=1.e-7)
+        self.assertAlmostEqual(0.0, result.jac[1], delta=1.e-7)        
+        self.assertAlmostEqual(4.0, result.x[0], delta=1.e-7)
+        self.assertAlmostEqual(2.0, result.x[1], delta=1.e-7)

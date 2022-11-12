@@ -832,6 +832,24 @@ main (int argc,
         effe *= 0.5;
         r_magnitude = lial_vector_magnitude(r, emme, &r_abs_min, &r_abs_min_pos, &r_abs_max, &r_abs_max_pos);
         grad_magnitude = lial_vector_magnitude(minus_grad_f, enne, &g_abs_min, &g_abs_min_pos, &g_abs_max, &g_abs_max_pos);
+
+        // C vs PYTHON TEST gradient comparison test ...
+        if (false) {
+          fprintf(stdout, "C vs PYTHON gradient comparison test.\n");
+          char *xfname = "tmp/rglm_c_minus_grad_f.txt";
+          FILE *xfp = NULL;
+          xfp = fopen(xfname, "w");
+          if (!xfp) {
+            fprintf(stderr, "Unable to open output file: %s\n", xfname);
+            return EXIT_FAILURE;
+          }
+          fprintf(xfp, "Gradient vector size (enne) = %zu\n", enne);
+          for (size_t i = 0; i < enne; i++) {
+            fprintf(xfp, "%06zu; %16.6f\n", i, minus_grad_f[i]);
+          }
+          fclose(xfp);
+          return EXIT_SUCCESS;
+        }
       }
 
       rgmlut_big_b_eval(&data, big_b, enne, emme, e, de, v);
