@@ -200,6 +200,8 @@ class Rglm:
         self.y = None
         self.yh = None
         self.w = None
+        self.r = None
+        self.opt_res = None
         
         self._mover_field = 'mover'
         self._opponent_field = 'opponent'
@@ -301,6 +303,8 @@ class Rglm:
             var_cnt = var_cnt_updated
             mi = pd.MultiIndex.from_frame(self.vmap[['etype', 'eid', 'idx']])
             self.ivmap = pd.DataFrame(self.vmap['vid'].values, index=mi, columns=['vid'])
+
+        self.w = np.full(len(self.vmap), 0.)
             
         return self
 
@@ -354,39 +358,44 @@ class Rglm:
 
     def optimize(self):
 
-        opts = {'disp': None,
-                'maxcor': 40,
+        opts = {'disp': False,
+                'maxcor': 50,
                 'ftol': 1e-08,
                 'gtol': 1e-05,
                 'eps': 1e-08,
                 'maxfun': 5000,
                 'maxiter': 5000,
-                'iprint': 99,
+                'iprint': 1,
                 'maxls': 20,
                 'finite_diff_rel_step': None}
-
-        self.w = np.full(len(self.vmap), 0.)
 
         def fg(w):
             linear_predictor = self.x @ w
             self.yh = rglm_sigmoid(linear_predictor)
-            r = self.y - self.yh
-            f = 0.5 * sum(r**2)
-            g = - self.xt @ ((self.yh * (1. - self.yh)) * r)            
+            self.r = self.y - self.yh
+            f = 0.5 * sum(self.r**2)
+            g = - self.xt @ ((self.yh * (1. - self.yh)) * self.r)            
             return f, g
         
-        result = minimize(fg, self.w, jac=True, method='L-BFGS-B', options=opts)
-        return result
+        self.opt_res = minimize(fg, self.w, jac=True, method='L-BFGS-B', options=opts)
+
+        self.w = self.opt_res.x
+        self.yh = rglm_sigmoid(self.x @ self.w)
+        self.r = self.y - self.yh
+        
+        return self
     
 def rglm_test():
 
     cfg_fname = 'cfg/regab.cfg'
     env = 'test'
     ec = 20
-    batches = [3]
+    batches = [6]
     statuses = 'CMR,CMS'
-    features = 'INTERCEPT,MOBILITY3'
-    patterns = 'XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR'
+    features = 'INTERCEPT,MOBILITY'
+    patterns = 'EDGE'
+    # features = 'INTERCEPT,MOBILITY3'
+    # patterns = 'XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR'
 
     conn = RegabDBConnection.new_from_config(cfg_fname, env)
     
@@ -414,6 +423,7 @@ def rglm_test():
     m = timed_run(m.compute_gpxpidf, "m = m.compute_gpxpidf()")
     m = timed_run(m.compute_x, "m = m.compute_x()")
     m = timed_run(m.compute_y, "m = m.compute_y()")
+    m = timed_run(m.optimize, "m = m.optimize()")
 
     return m
 
