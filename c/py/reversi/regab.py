@@ -439,3 +439,43 @@ def regab_patterns(ps) -> list:
         raise TypeError('Argument ps is not an instance of Pattern, list or str')
     patterns = sorted(list(pset), key=lambda p: p.id)
     return patterns
+
+def regab_pattern_probs_as_df(rc : RegabDBConnection, pattern : Pattern, ec : int, is_principal=False) -> pd.DataFrame:
+    if not isinstance(rc, RegabDBConnection):
+        raise TypeError('Argument rc is not an instance of RegabDBConnection')
+    if not isinstance(pattern, Pattern):
+        raise TypeError('Argument pattern is not an instance of Pattern')
+    if not isinstance(ec, int):
+        raise TypeError('Argument ec is not an instance of int')
+    if not ec >= 0 and ec <= 60:
+        raise ValueError('Argument ec must be in range [0..60]')
+    if not isinstance(is_principal, bool):
+        raise TypeError('Argument is_principal is not an instance of bool')
+
+    if is_principal:
+        colnames = ['principal', 'probs']
+        q = \
+            """
+            SELECT b.principal_index_value AS idx, sum(c.index_prob_given_ec) AS probs
+            FROM regab_prng_patterns AS a
+            LEFT JOIN regab_prng_pattern_ranges AS b ON a.pattern_id = b.pattern_id
+            LEFT JOIN regab_prng_pattern_probs AS c ON b.seq = c.range_id
+            WHERE a.pattern_id = {:d} AND c.empty_count = {:d}
+            GROUP BY b.principal_index_value
+            ORDER BY b.principal_index_value;
+            """.format(pattern.id, ec)
+    else:
+        colnames = ['index', 'probs']
+        q = \
+            """
+            SELECT b.index_value AS idx, c.index_prob_given_ec AS probs FROM regab_prng_patterns AS a
+            LEFT JOIN regab_prng_pattern_ranges AS b ON a.pattern_id = b.pattern_id
+            LEFT JOIN regab_prng_pattern_probs AS c ON b.seq = c.range_id
+            WHERE a.pattern_id = {:d} AND c.empty_count = {:d}
+            ORDER BY b.index_value;
+            """.format(pattern.id, ec)
+    
+    with rc.conn.cursor() as curs:
+        curs.execute(q)
+        df = pd.DataFrame(curs.fetchall(), columns=colnames)
+    return df

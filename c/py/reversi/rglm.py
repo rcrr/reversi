@@ -45,39 +45,33 @@ from scipy.optimize import minimize
 #
 # To do:
 #
-# -1- We need a Model class. This class is collecting:
-#     .done. the REGAB query
-#     .done. returned RESULT SET ( a pandas Data Frame )
-#     .done. Feature/Pattern configuration
-#     .done. data frame with computed indexes
-#     .done. df computed features
-#     .done. build a dictionary that maps gpdf columns to features and patterns
-#     .done. build the vmap and the inverse vmap (ivmap) tables
-#     .done. build the sparse matrix for patterns as a dataframe of integers
-#     .done. X sparse matrix ( the X matrix )
-#        Build the X and y numpy array.
-#        X is a data frame having as row the game position and as columns the GLM variables.
-#        X must be sparse. No way otherwise it is huge.
-#        All columns must be float64.
-#        y is an array having the expected value for the game position.
-#        in case of a Logistic Regression y should be 0 or 1 dpending on value set as border between
-#        win or lose.
-#     .. Compute the effe and grad values for the scipy.optimize.minimize call
-#     .. hyperparameters
-#     .. computed weights
+# -0- Implements the Ridge regularization.
 #
-# -2- Setup a kind of workflow with states and checks ....
+# -1- Add one more Feature ( MOBILITYX ) and one more Pattern ( 2X6COR da 12 !!! ).
 #
-# -3- Read and write to file ...
+# -2- Introduce the Lasso regularization.
+#     Here we do not have a solution yet, options are:
+#     . Use the (Orthant-Wise Limited-memory Quasi-Newton (OWL-QN) method: https://www.chokkan.org/software/liblbfgs/
+#     . "double the variables" and use the constraint version L-BFGS-C of the algorithm
+#     . Try something more fancy ...
+#
+# -3- More data analytics.
+#     Parameters profiling ... each variable/weight should have min, max, mean, std game values.
+#     gpdf has the data for the feature analytics, gpxpidf has the info for patterns, but we need to join game values using the gpid field.
+#     There should be a second data set for validation.
+#     There should be a final report ... with KPI used to compare different models.
+#
+# -4- Setup a kind of workflow with states and checks ....
+#     rglm_test() should be renamed to something like ... execute work-flow
+#     input data should be provided by means of a dictionary
+#
+# -5- Read and write to file ...
 #
 #     In practice we need to build the REGAB/RGML machinery in a different way.
 #
-#     *** what happens when a pattern configuation is missing from the data ?
-#     *** run many solutions of the logit model having a different win/lose boundary
+# -6- Complete documentation ....
 #
-# -4- Complete documentation ....
-#
-# -5- Code tests ....
+# -7- Code tests ....
 #
 
 class Rglm:
@@ -113,6 +107,13 @@ class Rglm:
             m.compute_vmaps()
         - Compute the game positions X matrix as an integer data frame.
             m.compute_gpxpidf()
+        - Compute the correlation matrix
+            m.compute_x()
+        - Compute the expected values
+            m.compute_y()
+        - Run the optimization procedure
+            m.optimize()
+
 
     Attributes
     ----------
@@ -174,6 +175,21 @@ class Rglm:
         - counter : int64
           Count of times the index is present in the game position
       The table key is (vid, gpid), the value is counter. The fields (etype, eid, idx) are an alias for vid.
+    x: scipy.sparse._csr.csr_matrix
+      Matrix of correlations between the observations (valued and classified game positions) and the independent variables (weights).
+      The matrix product X * weights is named the linear predictor.
+    xt: scipy.sparse._csc.csc_matrix
+      Transposed matrix of correlations.
+    y: numpy.ndarray
+      Epsilon is the vector of the true game position values.
+    yh: numpy.ndarray
+      Epsilon-hat is the vector of estimated game position values.
+    w: numpy.ndarray
+      Vector of weights. It is the result of the optimization.
+    r: numpy.ndarray
+      Vector of residuals. It is computed as: r = y - yh
+    opt_res: scipy.optimize._optimize.OptimizeResult
+      Result of the optimization.
     """
     def __init__(self):
         """
@@ -207,7 +223,7 @@ class Rglm:
         self._opponent_field = 'opponent'
 
 
-    def set_conn(self, conn) -> 'Rglm':
+    def set_conn(self, conn: RegabDBConnection) -> 'Rglm':
         if not isinstance(conn, RegabDBConnection):
             raise TypeError('Argument conn is not an instance of RegabDBConnection')
         self.conn = conn
@@ -270,6 +286,13 @@ class Rglm:
         self.gpdf = pd.concat([self.game_positions, self.feature_values, self.indexes], axis=1, copy=False)
         return self
 
+    def get_feature_analytics(self, labels) -> pd.DataFrame:
+        """
+        Argument labels must be one column or a list of columns included in the gpdf column labels.
+        """
+        res = self.gpdf.groupby(label).game_value.agg(['count', 'min', 'max', 'mean', 'std'])
+        return res
+
     def compute_vmaps(self) -> 'Rglm':
         vmap_colnames = ['vid', 'etype', 'eid', 'idx']
         self.vmap = pd.DataFrame(columns = vmap_colnames, dtype = 'int64')
@@ -325,7 +348,11 @@ class Rglm:
             self.gpxpidf = pd.concat([self.gpxpidf, res_grouped], axis=0,  ignore_index = True, sort = False, copy = False)
         return self
 
-    def compute_x(self):
+    def compute_analytics(self) -> 'Rglm':
+        # To be completed ...
+        return self
+    
+    def compute_x(self) -> 'Rglm':
         n_row = len(self.game_positions)
         n_col = len(self.vmap)
         row_idx = np.array([], dtype='int64')
@@ -342,21 +369,20 @@ class Rglm:
         self.xt = self.x.transpose()
         return self
 
-    def compute_y(self):
+    def compute_y(self) -> 'Rglm':
         gv = self.game_positions['game_value'].to_numpy()
         gvt = rglm_gv_to_gvt(gv)
         self.y = gvt
         self.yh = np.full(len(gvt), 0.5)
         return self
 
-
-    def function(self):
+    def function(self) -> float:
         return 0.5 * sum((self.y - self.yh)**2)
     
-    def gradient(self):
+    def gradient(self) -> np.ndarray:
         return - self.xt @ ((self.yh * (1. - self.yh)) * (self.y - self.yh))
 
-    def optimize(self):
+    def optimize(self) -> 'Rglm':
 
         opts = {'disp': False,
                 'maxcor': 50,
@@ -370,11 +396,13 @@ class Rglm:
                 'finite_diff_rel_step': None}
 
         def fg(w):
+            # Ridge coefficient
+            c = 0.0
             linear_predictor = self.x @ w
             self.yh = rglm_sigmoid(linear_predictor)
             self.r = self.y - self.yh
-            f = 0.5 * sum(self.r**2)
-            g = - self.xt @ ((self.yh * (1. - self.yh)) * self.r)            
+            f = 0.5 * (sum(self.r**2) + c * sum(w**2))
+            g = - self.xt @ ((self.yh * (1. - self.yh)) * self.r) + c * w            
             return f, g
         
         self.opt_res = minimize(fg, self.w, jac=True, method='L-BFGS-B', options=opts)
@@ -421,6 +449,7 @@ def rglm_test():
     m = timed_run(m.combine_gps_features_patterns, "m = m.combine_gps_features_patterns()")
     m = timed_run(m.compute_vmaps, "m = m.compute_vmaps()")
     m = timed_run(m.compute_gpxpidf, "m = m.compute_gpxpidf()")
+    m = timed_run(m.compute_analytics, "m = m.compute_analytics()")
     m = timed_run(m.compute_x, "m = m.compute_x()")
     m = timed_run(m.compute_y, "m = m.compute_y()")
     m = timed_run(m.optimize, "m = m.optimize()")
@@ -432,8 +461,8 @@ def rglm_sigmoid(x: np.ndarray) -> np.ndarray:
 
 def rglm_gv_to_gvt(g: int) -> float:
     """
-    Transforms the game value, that belongs to the range [-64..+64] of even numbers,
-    to the range [0.01..0.99] of float values.
+    Transforms the game value (GV), that belongs to the range [-64..+64] of even numbers,
+    to the range [0.01..0.99] of float values (GVT - Game Value Transformed).
     """
     # a = 0.49/64
     a = 0.00765625
@@ -441,16 +470,17 @@ def rglm_gv_to_gvt(g: int) -> float:
     t = a * g + b
     return t
 
-def rglm_compute_grad(m: Rglm) -> np.ndarray:
-    y = m.y
-    yh = np.full(len(m.game_positions), 0.5)
-    r = y - yh
-    dg = yh * (1. - yh)
-    tmp = dg * r
-    x = m.x
-    xt = x.transpose()
-    grad = - xt @ tmp
-    return grad
+def rglm_gvt_to_gv(t: float) -> float:
+    """
+    Transforms the game value transformed (GVT) to the game value in disc difference.
+    The returned value is not rounded and so it is not an even integer.
+    """
+    # a = 0.49/64 = 0.00765625
+    # b = 0.5
+    # g = (t - b) / a
+    # 1/a = 64 / 0.49 = 130.612245
+    g = 130.612244897959 * (t - .5)
+    return g
 
 import time
 

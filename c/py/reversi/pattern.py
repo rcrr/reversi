@@ -31,6 +31,7 @@ from reversi.board import _BoardCTHelper
 
 import ctypes as ct
 import numpy as np
+import pandas as pd
 import re
 
 from abc import ABCMeta, abstractmethod
@@ -233,6 +234,20 @@ class Pattern(object, metaclass = _Singleton):
     @abstractmethod
     def mirror(self, s : SquareSet) -> SquareSet: pass
 
+    def mirror_index(self, index : int) -> int:
+        b = board_pattern_index_to_packed(index)
+        m = self.unpack(b.mover)
+        o = self.unpack(b.opponent)
+        mm = self.mirror(m)
+        mo = self.mirror(o)
+        mmp = self.pack(mm)
+        mop = self.pack(mo)
+        mbp = Board(mmp, mop)
+        mirror = board_pattern_packed_to_index(mbp, self.n_squares)
+        return mirror
+
+    def principal_index(self, index : int) -> int:
+        return min(index, self.mirror_index(index))
 
 class PEdge(Pattern):
     """
@@ -896,7 +911,7 @@ It is a global variable, it must not be modified.
 patterns_as_dict = dict([(x.name, x) for x in patterns_as_list])
 
 
-def _compute_pattern_indexes(self, p : Pattern) -> np.ndarray:
+def _compute_pattern_indexes(self : Board, p : Pattern) -> np.ndarray:
     if not isinstance(p, Pattern):
         raise TypeError('Argument p is not an instance of Pattern')
     f = libreversi.board_pattern_compute_indexes
@@ -909,7 +924,7 @@ def _compute_pattern_indexes(self, p : Pattern) -> np.ndarray:
 
 setattr(Board, "compute_pattern_indexes", _compute_pattern_indexes)
 
-def _compute_patternlist_indexes(self, pl : list) -> np.ndarray:
+def _compute_patternlist_indexes(self : Board, pl : list) -> np.ndarray:
     if not isinstance(pl, list):
         raise TypeError('Argument pl is not an instance of list')
     if not all([isinstance(e, Pattern) for e in pl]):
@@ -938,7 +953,7 @@ def compute_pattern_principal_indexes(indexes : np.ndarray, p : Pattern) -> np.n
     f(ct.byref(ct_principals), ct_indexes_p, p._c_pattern, False)
     return np.frombuffer(ct_principals, np.uint16, count = p.n_instances)
 
-def _compute_pattern_principal_indexes(self, p : Pattern) -> (np.ndarray, np.ndarray):
+def _compute_pattern_principal_indexes(self : Board, p : Pattern) -> (np.ndarray, np.ndarray):
     if not isinstance(p, Pattern):
         raise TypeError('Argument p is not an instance of Pattern')
     f0 = libreversi.board_pattern_compute_indexes
@@ -957,7 +972,7 @@ def _compute_pattern_principal_indexes(self, p : Pattern) -> (np.ndarray, np.nda
 
 setattr(Board, "compute_pattern_principal_indexes", _compute_pattern_principal_indexes)
 
-def _compute_patternlist_principal_indexes(self, pl : list) -> (np.ndarray, np.ndarray):
+def _compute_patternlist_principal_indexes(self : Board, pl : list) -> (np.ndarray, np.ndarray):
     if not isinstance(pl, list):
         raise TypeError('Argument pl is not an instance of list')
     if not all([isinstance(e, Pattern) for e in pl]):
@@ -995,7 +1010,7 @@ def _compute_feature_values(self, f : Feature) -> np.ndarray:
 
 setattr(Board, "compute_feature_values", _compute_feature_values)
 
-def _compute_featurelist_values(self, fl : list) -> np.ndarray:
+def _compute_featurelist_values(self : Board, fl : list) -> np.ndarray:
     if not isinstance(fl, list):
         raise TypeError('Argument fl is not an instance of list')
     if not all([isinstance(e, Feature) for e in fl]):
@@ -1005,3 +1020,9 @@ def _compute_featurelist_values(self, fl : list) -> np.ndarray:
     return np.concatenate([self.compute_feature_values(f) for f in fl])
 
 setattr(Board, "compute_featurelist_values", _compute_featurelist_values)
+
+for p in patterns_as_list:
+    indexes = range(0, p.n_configurations)
+    df = pd.DataFrame(data={'index': indexes, 'mirror': np.fromiter(map(p.mirror_index, indexes), dtype=int)})
+    df['principal'] = df[['index', 'mirror']].min(axis=1)
+    p.table = df
