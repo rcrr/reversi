@@ -254,6 +254,9 @@ class Rglm:
         return self
 
     def retrieve_game_positions(self, limit=None, where=None, fields=None) -> 'Rglm':
+        """
+        Retrieves game positions from the REGAB database.
+        """
         gps = regab_gp_as_df(self.conn, self.batches, self.statuses, self.empty_count, limit, where, fields)
         cols = gps.columns
         gps['gpid'] = gps.index
@@ -263,6 +266,9 @@ class Rglm:
         return self
 
     def compute_indexes(self) -> 'Rglm':
+        """
+        Computes the pattern index values on all the game positions extracted from he REGAB database.
+        """
         if not isinstance(self.game_positions, pd.DataFrame):
             raise TypeError('The field game_positions is not an instance of DataFrame')
         if not set([self._mover_field, self._opponent_field]).issubset(self.game_positions.columns):
@@ -273,6 +279,9 @@ class Rglm:
         return self
 
     def compute_feature_values(self) -> 'Rglm':
+        """
+        Computes the feature values on all the game positions extracted from he REGAB database.
+        """
         if not isinstance(self.game_positions, pd.DataFrame):
             raise TypeError('The field game_positions is not an instance of DataFrame')
         if not set([self._mover_field, self._opponent_field]).issubset(self.game_positions.columns):
@@ -283,17 +292,88 @@ class Rglm:
         return self
 
     def combine_gps_features_patterns(self) -> 'Rglm':
+        """
+        Computes the gpdf data frame, by concatenating game_positions, feature values, and pattern indexes.
+        """
         self.gpdf = pd.concat([self.game_positions, self.feature_values, self.indexes], axis=1, copy=False)
         return self
 
     def get_feature_analytics(self, labels) -> pd.DataFrame:
         """
         Argument labels must be one column or a list of columns included in the gpdf column labels.
+        
+        As an example, here label F_001 represent MOBILITY:
+        .
+        .  >>> m.get_feature_analytics('F_001')
+        .         count  min  max       mean        std
+        .  F_001                                       
+        .  0.05     455  -64    4 -52.153846  14.186395
+        .  0.10    1015  -64   28 -45.389163  17.277788
+        .  0.15    2297  -64   54 -38.234219  19.879931
+        .  0.20    4348  -64   58 -31.655934  20.895818
+        .  0.25    7755  -64   58 -25.470277  21.595861
+        .  0.30   12077  -64   64 -19.850294  22.070053
+        .  0.35   17537  -64   64 -14.563722  22.112477
+        .  0.40   22566  -64   64  -9.372153  22.392523
+        .  0.45   26262  -60   64  -4.100069  22.464623
+        .  0.50   27320  -64   64   1.286969  22.574448
+        .  0.55   25447  -58   64   5.917790  22.487615
+        .  0.60   20506  -54   64  10.651907  22.195976
+        .  0.65   14909  -46   64  15.655242  21.785173
+        .  0.70    9312  -40   64  19.483677  21.067947
+        .  0.75    4922  -34   64  24.036164  19.704655
+        .  0.80    2100  -32   64  26.958095  18.537477
+        .  0.85     803  -24   64  30.789539  17.553603
+        .  0.90     240  -10   62  33.941667  15.495604
+        .  0.95      56  -20   64  33.500000  17.982820
+        .  1.00       5   46   54  49.600000   2.966479
+
         """
-        res = self.gpdf.groupby(label).game_value.agg(['count', 'min', 'max', 'mean', 'std'])
+        res = self.gpdf.groupby(labels).game_value.agg(['count', 'min', 'max', 'mean', 'std'])
         return res
 
     def compute_vmaps(self) -> 'Rglm':
+        """
+        Computes the vmap and ivmap data frames.
+        These two data frames map the RGLM variable id (weight) to and from the three-field-key (etype, eid, idx). 
+
+        Here an example of the vmap data frame:
+        .
+        .         vid  etype  eid   idx
+        .  0        0      0    0     0
+        .  1        1      0    1     0
+        .  2        2      1    0     0
+        .  3        3      1    0     1
+        .  4        4      1    0     2
+        .  ...    ...    ...  ...   ...
+        .  2960  2960      1    0  6371
+        .  2961  2961      1    0  6398
+        .  2962  2962      1    0  6452
+        .  2963  2963      1    0  6479
+        .  2964  2964      1    0  6560
+
+        Here an example of the ivmap data frame:
+        .
+        .                   vid
+        .  etype eid idx       
+        .  0     0   0        0
+        .        1   0        1
+        .  1     0   0        2
+        .            1        3
+        .            2        4
+        .  ...              ...
+        .            6371  2960
+        .            6398  2961
+        .            6452  2962
+        .            6479  2963
+        .            6560  2964
+
+        vid : variable id, it is the index of the weight in the weight array.
+        etype : entity type, 0 for features, 1 for patterns. It is always 1 in this data frame.
+        eid : entity id, it is the pattern id.
+        idx : index, the index value.
+
+        """
         vmap_colnames = ['vid', 'etype', 'eid', 'idx']
         self.vmap = pd.DataFrame(columns = vmap_colnames, dtype = 'int64')
         var_cnt = 0
@@ -326,12 +406,41 @@ class Rglm:
             var_cnt = var_cnt_updated
             mi = pd.MultiIndex.from_frame(self.vmap[['etype', 'eid', 'idx']])
             self.ivmap = pd.DataFrame(self.vmap['vid'].values, index=mi, columns=['vid'])
-
-        self.w = np.full(len(self.vmap), 0.)
             
         return self
 
     def compute_gpxpidf(self) -> 'Rglm':
+        """
+        Computes the gpxpidf data frame.
+
+        This data frame is the precomputation of the X matrix for what belongs to patterns:
+          gpid    -> row_id
+          vid     -> column_id
+          counter -> value
+
+        Here an example of the data frame:
+        . 
+        .           vid  etype  eid   idx    gpid  counter
+        .  0          2      1    0     0       0        1
+        .  1          2      1    0     0      23        1
+        .  2          2      1    0     0      27        1
+        .  3          2      1    0     0      28        1
+        .  4          2      1    0     0      32        1
+        .  ...      ...    ...  ...   ...     ...      ...
+        .  796170  2964      1    0  6560  199786        1
+        .  796171  2964      1    0  6560  199795        1
+        .  796172  2964      1    0  6560  199871        1
+        .  796173  2964      1    0  6560  199882        1
+        .  796174  2964      1    0  6560  199915        1
+
+        vid : variable id, it is the index of the weight in the weight array.
+        etype : entity type, 0 for features, 1 for patterns. It is always 1 in this data frame.
+        eid : entity id, it is the pattern id.
+        idx : index, the index value.
+        gpid : game position id, the id of the game position record in the gpdf/game_positions data frames.
+        counter : count the times the pattern/index is found in the game position (almost always it is 1).
+
+        """
         gpxpidf_colnames = ['vid', 'etype', 'eid', 'idx', 'gpid', 'counter']
         self.gpxpidf = pd.DataFrame(columns = gpxpidf_colnames, dtype = 'int64')
         for p in self.patterns:
@@ -353,6 +462,11 @@ class Rglm:
         return self
     
     def compute_x(self) -> 'Rglm':
+        """
+        Computes the x matrix and its transposed xt one.
+        X is a standard name in machine learning terminology to refer to the matrix that
+        multiplied by the weights return the linear predictor vector.
+        """
         n_row = len(self.game_positions)
         n_col = len(self.vmap)
         row_idx = np.array([], dtype='int64')
@@ -370,34 +484,56 @@ class Rglm:
         return self
 
     def compute_y(self) -> 'Rglm':
+        """
+        Computes the y (epsilon) array applaying the rglm_gv_to_gvt transformation to the game_value
+        field as retrieved from the regab database (game_position data frame).
+        Reset w (weights) array to 0, and yh (epsilon-hat) array to 0.5.
+        """
         gv = self.game_positions['game_value'].to_numpy()
         gvt = rglm_gv_to_gvt(gv)
         self.y = gvt
+        self.w = np.full(len(self.vmap), 0.)
         self.yh = np.full(len(gvt), 0.5)
         return self
 
     def function(self) -> float:
+        """
+        Computes the objective function evaluated at the current weight values.
+        As a side effects it updates the epsilon-hat array.
+        """
+        self.yh = rglm_sigmoid(self.x @ self.w)
         return 0.5 * sum((self.y - self.yh)**2)
     
     def gradient(self) -> np.ndarray:
+        """
+        Computes the gradient of the objective function evaluated at the current weight values.
+        As a side effects it updates the epsilon-hat array.
+        """
+        self.yh = rglm_sigmoid(self.x @ self.w)
         return - self.xt @ ((self.yh * (1. - self.yh)) * (self.y - self.yh))
 
-    def optimize(self) -> 'Rglm':
+    def optimize(self,
+                 c = 0.,
+                 options = {'disp': False,
+                            'maxcor': 50,
+                            'ftol': 1e-08,
+                            'gtol': 1e-05,
+                            'eps': 1e-08,
+                            'maxfun': 5000,
+                            'maxiter': 5000,
+                            'iprint': 1,
+                            'maxls': 20,
+                            'finite_diff_rel_step': None}
+                 ) -> 'Rglm':
+        """
+        Finds the minimum of the objective function, optimizing the values
+        assigned to weights.
+        Argument c is the Ridge regularization coefficient defaulted to 0.0.
+        Argument options is passed as it is to the scipy minimize call.
 
-        opts = {'disp': False,
-                'maxcor': 50,
-                'ftol': 1e-08,
-                'gtol': 1e-05,
-                'eps': 1e-08,
-                'maxfun': 5000,
-                'maxiter': 5000,
-                'iprint': 1,
-                'maxls': 20,
-                'finite_diff_rel_step': None}
-
+        """
+        
         def fg(w):
-            # Ridge coefficient
-            c = 0.0
             linear_predictor = self.x @ w
             self.yh = rglm_sigmoid(linear_predictor)
             self.r = self.y - self.yh
@@ -405,7 +541,7 @@ class Rglm:
             g = - self.xt @ ((self.yh * (1. - self.yh)) * self.r) + c * w            
             return f, g
         
-        self.opt_res = minimize(fg, self.w, jac=True, method='L-BFGS-B', options=opts)
+        self.opt_res = minimize(fg, self.w, jac=True, method='L-BFGS-B', options=options)
 
         self.w = self.opt_res.x
         self.yh = rglm_sigmoid(self.x @ self.w)
@@ -413,7 +549,7 @@ class Rglm:
         
         return self
     
-def rglm_test():
+def rglm_test(c=0.):
 
     cfg_fname = 'cfg/regab.cfg'
     env = 'test'
@@ -452,35 +588,69 @@ def rglm_test():
     m = timed_run(m.compute_analytics, "m = m.compute_analytics()")
     m = timed_run(m.compute_x, "m = m.compute_x()")
     m = timed_run(m.compute_y, "m = m.compute_y()")
-    m = timed_run(m.optimize, "m = m.optimize()")
+    m = timed_run(m.optimize, "m = m.optimize({})", c)
 
     return m
 
 def rglm_sigmoid(x: np.ndarray) -> np.ndarray:
+    """
+    Computes the sigmoid (logistic) function on the given array of float values.
+    """
     return 1. / (1. + np.exp(-x))
 
-def rglm_gv_to_gvt(g: int) -> float:
+def rglm_gv_to_gvt(gv: np.ndarray) -> np.ndarray:
     """
-    Transforms the game value (GV), that belongs to the range [-64..+64] of even numbers,
-    to the range [0.01..0.99] of float values (GVT - Game Value Transformed).
-    """
-    # a = 0.49/64
-    a = 0.00765625
-    b = 0.5
-    t = a * g + b
-    return t
+    Applies a linear transformation to the game value (GV), that belongs to the range
+    [-64..+64] of even integer numbers, or to the same range of float values, to the
+    range [0.01..0.99] of float values (GVT - Game Value Transformed).
+    The function works on scalar values as well as on ndarays.
 
-def rglm_gvt_to_gv(t: float) -> float:
+    The gap between the two bounds 0 and 1 and the values mapping -64 and +64
+    is choosen to be 0.01, leading to -64 mapped to 0.01 and +64 to 0.99.
+    The value 0.1 for the gap has been tested as well, giving very similar results.
+    0.01 is mapping values over 40 to be quite sensibly out of the linear part of the
+    sigmoid function, on the other side 0.1 has values up to 50 still quite in the linear
+    region. Anyhow the residual of the optimization, when trasformed in the range [-64..64]
+    are very similar.
+
+    gvt  = a *  gv + b
+    0.01 = a * -64 + b
+    0.99 = a * +64 + b
+
+    Summing the two equations: 1    =   2b -> b = 0.5
+    Subctracting them:         0.98 = 128a -> a = 0.98/128 = 0.49/64 = 0.00765625
+
+    gvt = 0.00765625 * gv + 0.5
+
     """
-    Transforms the game value transformed (GVT) to the game value in disc difference.
+    return 0.00765625 * gv + 0.5
+
+def rglm_gvt_to_gv(gvt: np.ndarray) -> np.ndarray:
+    """
+    Reverts back the game value transformed (GVT) to the game value represented in
+    its standard form of disc difference.
     The returned value is not rounded and so it is not an even integer.
+    The function works on scalar values as well as on ndarays.
+
+    gvt  = a *  gv + b
+    a = 0.49/64 = 0.00765625
+    b = 0.5
+
+    gv = (gvt - b) / a
+
+    1/a = 64 / 0.49 = 130.612244897959
+
+    gv = 130.612244897959 * (gvt - .5)
+
     """
-    # a = 0.49/64 = 0.00765625
-    # b = 0.5
-    # g = (t - b) / a
-    # 1/a = 64 / 0.49 = 130.612245
-    g = 130.612244897959 * (t - .5)
-    return g
+    return 130.612244897959 * (gvt - .5)
+
+def rglm_round_gv(gv: np.ndarray) -> np.ndarray:
+    """
+    Rounds the game float value to the nearest even integer.
+    The function works on scalar values as well as on ndarays.
+    """
+    return (np.round(0.5 * gv) * 2).astype(int)
 
 import time
 
