@@ -74,6 +74,9 @@ from scipy.optimize import minimize
 # -7- Code tests ....
 #
 
+def rgml_test(m):
+    print('rglm_test')
+
 class Rglm:
     """
     RGLM - Reversi Generalized Linear Model
@@ -457,10 +460,6 @@ class Rglm:
             self.gpxpidf = pd.concat([self.gpxpidf, res_grouped], axis=0,  ignore_index = True, sort = False, copy = False)
         return self
 
-    def compute_analytics(self) -> 'Rglm':
-        # To be completed ...
-        return self
-    
     def compute_x(self) -> 'Rglm':
         """
         Computes the x matrix and its transposed xt one.
@@ -512,6 +511,72 @@ class Rglm:
         self.yh = rglm_sigmoid(self.x @ self.w)
         return - self.xt @ ((self.yh * (1. - self.yh)) * (self.y - self.yh))
 
+    def compute_analytics(self) -> 'Rglm':
+        #
+        # ocount: observed count
+        #         It is the count of the occurrences of the pattern configuration in the data set.
+        #
+        # oprob: observed probability
+        #        It is the observed probability to have the pattern configuration corresponding to the vid value
+        #        present in the board of the game position record in the model sample.
+        #        For features it is always 1.0
+        #
+        # meangv: mean game value
+        #         It is the mean game value of the subset of game positions having the pattern configuration
+        #         In case of features, it is the weighted mean value, where the weight is the feature value.
+        #
+        #        The values are added to the vmap data frame as columns.
+        #
+        x_sum_by_weight = np.array(self.x.sum(axis=0)).ravel()
+        game_position_count = len(self.game_positions)
+        w_belonging_to_feature_count = len(self.vmap[self.vmap['etype'] == 0])
+        oprob = x_sum_by_weight / game_position_count
+        oprob[0:w_belonging_to_feature_count] = 1.0
+        ocount = np.array(x_sum_by_weight, dtype=int)
+        ocount[0:w_belonging_to_feature_count] = game_position_count
+
+        meangv = np.squeeze(np.asarray(np.multiply(1. / np.sum(self.x, axis=0), self.xt @ self.game_positions.game_value)))
+
+        # https://stackoverflow.com/questions/24029659/python-pandas-replicate-rows-in-dataframe
+        # Python Pandas replicate rows in dataframe
+        # in order then to compute MIN, MAX, MEAN, Percentiles ....
+        #
+        # It means looping over vid ... and ...
+        #
+        # X has gp rows and w columns ...
+        #
+        # csr_matrix((data, indices, indptr), [shape=(M, N)])
+        #
+        # is the standard CSR representation where the column indices for row i are stored in
+        # indices[indptr[i]:indptr[i+1]] and their corresponding values are stored in
+        # data[indptr[i]:indptr[i+1]].
+        # If the shape parameter is not supplied, the matrix dimensions are inferred from the index arrays.
+        #
+        #
+        for index, row in self.vmap.iterrows():
+            vid = row['vid']
+            x_row = self.x[:,vid].toarray().flatten().astype(int)
+            count = sum(x_row)
+            df = pd.DataFrame({'x': x_row, 'gv': self.game_positions.game_value})
+            df1 = df[df['x'] > 0]
+            df2 = df1.loc[np.repeat(df1.index.values, df1.x)]
+            mean = df2['gv'].mean()
+            print("vid = {:4d}, count = {:6d}, mean = {:10.6f}".format(vid, count, mean))
+        
+        self.vmap['ocount'] = ocount
+        self.vmap['oprob'] = oprob
+        self.vmap['meangv'] = meangv
+        #
+        # To do:
+        #
+        # - Column with expected probabilities taken from the REGAB db
+        # - Columns with min and max
+        # - Column with mean/average
+        # - Column with standard deviation
+        # - np.percentile(self.game_positions.game_value, [10,25,50,75,90])
+        #
+        return self
+    
     def optimize(self,
                  c = 0.,
                  options = {'disp': False,
@@ -549,7 +614,7 @@ class Rglm:
         
         return self
     
-def rglm_test(c=0.):
+def rglm_workflow(c=0.):
 
     cfg_fname = 'cfg/regab.cfg'
     env = 'test'
@@ -585,9 +650,9 @@ def rglm_test(c=0.):
     m = timed_run(m.combine_gps_features_patterns, "m = m.combine_gps_features_patterns()")
     m = timed_run(m.compute_vmaps, "m = m.compute_vmaps()")
     m = timed_run(m.compute_gpxpidf, "m = m.compute_gpxpidf()")
-    m = timed_run(m.compute_analytics, "m = m.compute_analytics()")
     m = timed_run(m.compute_x, "m = m.compute_x()")
     m = timed_run(m.compute_y, "m = m.compute_y()")
+    m = timed_run(m.compute_analytics, "m = m.compute_analytics()")
     m = timed_run(m.optimize, "m = m.optimize({})", c)
 
     return m
