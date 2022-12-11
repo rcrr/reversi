@@ -527,54 +527,99 @@ class Rglm:
         #
         #        The values are added to the vmap data frame as columns.
         #
-        x_sum_by_weight = np.array(self.x.sum(axis=0)).ravel()
-        game_position_count = len(self.game_positions)
-        w_belonging_to_feature_count = len(self.vmap[self.vmap['etype'] == 0])
-        oprob = x_sum_by_weight / game_position_count
-        oprob[0:w_belonging_to_feature_count] = 1.0
-        ocount = np.array(x_sum_by_weight, dtype=int)
-        ocount[0:w_belonging_to_feature_count] = game_position_count
 
-        meangv = np.squeeze(np.asarray(np.multiply(1. / np.sum(self.x, axis=0), self.xt @ self.game_positions.game_value)))
-
-        # https://stackoverflow.com/questions/24029659/python-pandas-replicate-rows-in-dataframe
-        # Python Pandas replicate rows in dataframe
-        # in order then to compute MIN, MAX, MEAN, Percentiles ....
-        #
-        # It means looping over vid ... and ...
-        #
-        # X has gp rows and w columns ...
-        #
-        # csr_matrix((data, indices, indptr), [shape=(M, N)])
-        #
-        # is the standard CSR representation where the column indices for row i are stored in
-        # indices[indptr[i]:indptr[i+1]] and their corresponding values are stored in
-        # data[indptr[i]:indptr[i+1]].
-        # If the shape parameter is not supplied, the matrix dimensions are inferred from the index arrays.
-        #
-        #
-        for index, row in self.vmap.iterrows():
-            vid = row['vid']
-            x_row = self.x[:,vid].toarray().flatten().astype(int)
-            count = sum(x_row)
-            df = pd.DataFrame({'x': x_row, 'gv': self.game_positions.game_value})
-            df1 = df[df['x'] > 0]
-            df2 = df1.loc[np.repeat(df1.index.values, df1.x)]
-            mean = df2['gv'].mean()
-            print("vid = {:4d}, count = {:6d}, mean = {:10.6f}".format(vid, count, mean))
+        # Boundaries for the percentile analysis.
+        percentiles = [10, 25, 50, 75, 90]
         
-        self.vmap['ocount'] = ocount
+        # Transform the x matrix from CSR to CSC format. CSC is better suited to slice columns.
+        x = self.x.tocsc()
+        
+        # Collects game values as an array.
+        y = self.game_positions.game_value.values
+
+        # Count of RGLM variables (weights).
+        w_count = len(self.vmap)
+
+        # Count of variables belonging to features and to patterns.
+        w_belonging_to_feature_count = len(self.vmap[self.vmap['etype'] == 0])
+        w_belonging_to_pattern_count = len(self.vmap[self.vmap['etype'] == 1])
+        
+        if w_belonging_to_feature_count + w_belonging_to_pattern_count != w_count:
+            raise ValueError('w_belonging_to_feature_count + w_belonging_to_pattern_count must be equal to w_count')
+
+        # Prepare the list to accumulate result to.
+        vmap_extension_records = []
+        
+        # Key statistics of the sample are assigned to all features.
+        sample_count = len(y)
+        sample_min = y.min()
+        sample_max = y.max()
+        sample_mean = y.mean()
+        sample_std = y.std()
+        sample_perc = np.percentile(y, percentiles)
+        vmap_extension_record = {
+            'count': sample_count,
+            'min': sample_min,
+            'max': sample_max,
+            'mean': sample_mean,
+            'std': sample_std,
+            'perc10': sample_perc[0], 'perc25': sample_perc[1], 'perc50': sample_perc[2], 'perc75': sample_perc[3], 'perc90': sample_perc[4]
+        }
+
+        # Loop over variables belonging to features.
+        for vid in range(0, w_belonging_to_feature_count):
+            vmap_extension_records.append(vmap_extension_record)
+
+        # Loop over variables belonging to patterns.
+        for vid in range(w_belonging_to_feature_count, w_count):
+            # Slice the column corresponding to the RGLM variable (vid).
+            vid_x_col = x[:,vid].astype(int)
+            # Duplicate values time the occurrences when a pattern is found more than once in a game position.
+            game_values = np.repeat(y[vid_x_col.indices], vid_x_col.data)
+            # Compute prcentiles.
+            perc = np.percentile(game_values, percentiles)
+            # Prepare the record and append it.
+            vmap_extension_record = {
+                'count': len(game_values),
+                'min': min(game_values),
+                'max': max(game_values),
+                'mean': game_values.mean(),
+                'std': game_values.std(),
+                'perc10': perc[0], 'perc25': perc[1], 'perc50': perc[2], 'perc75': perc[3], 'perc90': perc[4]
+            }
+            vmap_extension_records.append(vmap_extension_record)
+            
+        vmap_extension = pd.DataFrame.from_dict(vmap_extension_records)
+        self.vmap = pd.concat([self.vmap, vmap_extension], axis=1, ignore_index=False)
+        
+        # Compute the Observed Probabilities (oprob).
+        def get_n_instances(row):
+            if row['etype'] == 0:
+                ret = 1.
+            elif row['etype'] == 1:
+                pid = int(row['eid'])
+                p = patterns_as_list[pid]
+                ret = float(p.n_instances)
+            else:
+                raise ValueError('etype must be 0 (Feature) or 1 (Pattern).')
+            return ret
+
+        n_instances = self.vmap.apply(lambda row: get_n_instances(row), axis=1)
+        
+        x_sum_by_weight = np.array(self.x.sum(axis=0)).ravel()
+        oprob = x_sum_by_weight / (n_instances.values * sample_count)
+        oprob[0:w_belonging_to_feature_count] = 1.0
+        
         self.vmap['oprob'] = oprob
-        self.vmap['meangv'] = meangv
-        #
-        # To do:
-        #
-        # - Column with expected probabilities taken from the REGAB db
-        # - Columns with min and max
-        # - Column with mean/average
-        # - Column with standard deviation
-        # - np.percentile(self.game_positions.game_value, [10,25,50,75,90])
-        #
+        
+        # Retrieve the expected probabilities (eprob) from the REGAB database, then merge (join) vmap with the extraction (df_b).
+        # eprobs for features are set to 1.
+        df_b = regab_patternlist_probs_as_df(rc=self.conn, patterns=self.patterns, ec=self.empty_count, is_principal=True)
+        df_b = df_b.rename(columns={'pattern_id': 'eid', 'principal': 'idx', 'probs': 'eprobs'})
+        df_b['etype'] = 1
+        self.vmap = pd.merge(self.vmap, df_b, how='left', on=['etype', 'eid', 'idx'])
+        self.vmap.loc[self.vmap['etype'] == 0, 'eprobs'] = 1.
+
         return self
     
     def optimize(self,
@@ -614,17 +659,18 @@ class Rglm:
         
         return self
     
-def rglm_workflow(c=0.):
+def rglm_workflow(c=0.01):
 
     cfg_fname = 'cfg/regab.cfg'
     env = 'test'
     ec = 20
-    batches = [6]
+    # batches = [6]
+    batches = [10]
     statuses = 'CMR,CMS'
-    features = 'INTERCEPT,MOBILITY'
-    patterns = 'EDGE'
-    # features = 'INTERCEPT,MOBILITY3'
-    # patterns = 'XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR'
+    # features = 'INTERCEPT,MOBILITY'
+    # patterns = 'EDGE,DIAG3'
+    features = 'INTERCEPT,MOBILITY3'
+    patterns = 'XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR'
 
     conn = RegabDBConnection.new_from_config(cfg_fname, env)
     
