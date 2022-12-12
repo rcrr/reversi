@@ -512,6 +512,21 @@ class Rglm:
         return - self.xt @ ((self.yh * (1. - self.yh)) * (self.y - self.yh))
 
     def compute_analytics(self) -> 'Rglm':
+        """
+        Adds to vmap the following fields:
+          - count  : Count of game positions categorized by having the pattern/feature configuration
+          - min    :
+          - max    :
+          - mean   :
+          - std    :
+          - perc10 :
+          - perc25 :
+          - perc50 :
+          - perc75 :
+          - perc90 :
+          - oprobs : Observed probability
+          - eprobs : Expected probability
+        """
         #
         # ocount: observed count
         #         It is the count of the occurrences of the pattern configuration in the data set.
@@ -526,6 +541,19 @@ class Rglm:
         #         In case of features, it is the weighted mean value, where the weight is the feature value.
         #
         #        The values are added to the vmap data frame as columns.
+        #
+        #                  vid  etype  eid    idx   count  min  max       mean        std  perc10  perc25  perc50  perc75  perc90     oprob    eprobs
+        #         0          0      0    0      0  399792  -64   64  -1.393860  26.459620   -36.0   -22.0    -2.0    18.0    34.0  1.000000  1.000000
+        #         1          1      0    3      0  399792  -64   64  -1.393860  26.459620   -36.0   -22.0    -2.0    18.0    34.0  1.000000  1.000000
+        #         2          2      0    3      1  399792  -64   64  -1.393860  26.459620   -36.0   -22.0    -2.0    18.0    34.0  1.000000  1.000000
+        #         3          3      0    3      2  399792  -64   64  -1.393860  26.459620   -36.0   -22.0    -2.0    18.0    34.0  1.000000  1.000000
+        #         4          4      1    1      0    9086  -64   64  -2.420207  30.424988   -42.0   -26.0    -4.0    20.0    40.0  0.005682  0.005270
+        #         ...      ...    ...  ...    ...     ...  ...  ...        ...        ...     ...     ...     ...     ...     ...       ...       ...
+        #         71441  71441      1   11  59044     479  -60   64   8.125261  22.410876   -20.0    -6.0    10.0    22.0    36.4  0.000150  0.000105
+        #         71442  71442      1   11  59045     238  -62   30 -17.436975  21.176386   -44.6   -33.5   -18.0    -4.0    12.0  0.000074  0.000050
+        #         71443  71443      1   11  59046    3224  -64   64  13.232630  22.925177   -18.0    -2.0    14.0    30.0    42.0  0.001008  0.000939
+        #         71444  71444      1   11  59047    1271  -62   64   4.483084  23.602854   -26.0   -10.0     4.0    22.0    36.0  0.000397  0.000259
+        #         71445  71445      1   11  59048    8114  -64   44 -31.440227  20.963169   -58.0   -48.0   -34.0   -18.0    -2.0  0.002537  0.001444
         #
 
         # Boundaries for the percentile analysis.
@@ -607,10 +635,10 @@ class Rglm:
         n_instances = self.vmap.apply(lambda row: get_n_instances(row), axis=1)
         
         x_sum_by_weight = np.array(self.x.sum(axis=0)).ravel()
-        oprob = x_sum_by_weight / (n_instances.values * sample_count)
-        oprob[0:w_belonging_to_feature_count] = 1.0
+        oprobs = x_sum_by_weight / (n_instances.values * sample_count)
+        oprobs[0:w_belonging_to_feature_count] = 1.0
         
-        self.vmap['oprob'] = oprob
+        self.vmap['oprobs'] = oprobs
         
         # Retrieve the expected probabilities (eprob) from the REGAB database, then merge (join) vmap with the extraction (df_b).
         # eprobs for features are set to 1.
@@ -641,14 +669,13 @@ class Rglm:
         Argument c is the Ridge regularization coefficient defaulted to 0.0.
         Argument options is passed as it is to the scipy minimize call.
 
-        """
-        
+        """        
         def fg(w):
             linear_predictor = self.x @ w
             self.yh = rglm_sigmoid(linear_predictor)
             self.r = self.y - self.yh
             f = 0.5 * (sum(self.r**2) + c * sum(w**2))
-            g = - self.xt @ ((self.yh * (1. - self.yh)) * self.r) + c * w            
+            g = - self.xt @ ((self.yh * (1. - self.yh)) * self.r) + c * w
             return f, g
         
         self.opt_res = minimize(fg, self.w, jac=True, method='L-BFGS-B', options=options)
