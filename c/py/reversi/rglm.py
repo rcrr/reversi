@@ -5,7 +5,7 @@
 # http://github.com/rcrr/reversi
 # 
 # Aauthor Roberto Corradini mailto:rob_corradini@yahoo.it
-# Copyright 2022 Roberto Corradini. All rights reserved.
+# Copyright 2022, 2023 Roberto Corradini. All rights reserved.
 #
 # License
 # 
@@ -24,6 +24,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 # or visit the site <http://www.gnu.org/licenses/>.
 #
+
+from __future__ import annotations
 
 import reversi
 import reversi.board
@@ -45,7 +47,7 @@ from scipy.optimize import minimize
 #
 # To do:
 #
-# -0- Implements the Ridge regularization.
+# -0- [done] Implements the Ridge regularization.
 #
 # -1- Add one more Feature ( MOBILITYX ) and one more Pattern ( 2X6COR da 12 !!! ).
 #
@@ -56,10 +58,10 @@ from scipy.optimize import minimize
 #     . Try something more fancy ...
 #
 # -3- More data analytics.
-#     Parameters profiling ... each variable/weight should have min, max, mean, std game values.
-#     gpdf has the data for the feature analytics, gpxpidf has the info for patterns, but we need to join game values using the gpid field.
+#     [done] Parameters profiling ... each variable/weight should have min, max, mean, std game values.
 #     There should be a second data set for validation.
 #     There should be a final report ... with KPI used to compare different models.
+#     Prepare an info(verbosity) method that give back Model Info.
 #
 # -4- Setup a kind of workflow with states and checks ....
 #     rglm_test() should be renamed to something like ... execute work-flow
@@ -196,19 +198,20 @@ class Rglm:
     """
     def __init__(self):
         """
-        Sets to None all the relevant attributes.
+        Initit all the relevant attributes.
         """
+        self.level_index = 0
         self.conn = None
         self.empty_count = None
         self.batches = None
         self.statuses = None
+        self.game_positions = None
         self.features = None
         self.flabel_dict = None
         self.patterns = None
+        self.indexes = None
         self.plabel_dict_i0 = None
         self.plabel_dict_i1 = None
-        self.game_positions = None
-        self.indexes = None
         self.feature_values = None
         self.gpdf = None
         self.vmap = None
@@ -221,42 +224,88 @@ class Rglm:
         self.w = None
         self.r = None
         self.opt_res = None
+
+        self.levels = [
+            {'name': 'INIT', 'desc': 'Init RGLM object', 'promote': self.set_conn, 'demote': None, 'fields': []},
+            {'name': 'CONN', 'desc': 'REGAB database connection', 'promote': self.set_empty_count, 'fields': [self.conn]},
+            {'name': 'ECNT', 'desc': 'Set empty count field', 'fields': [self.empty_count]},
+            {'name': 'BATC', 'desc': 'Set REGAB batches', 'fields': [self.batches]},
+            {'name': 'STTS', 'desc': 'Set REGAB game position status values', 'fields': [self.statuses]},
+            {'name': 'RETR', 'desc': 'Retrieve game positions from REGAB db', 'fields': [self.game_positions]},
+            {'name': 'FEAT', 'desc': 'Set model features', 'fields': [self.features, self.flabel_dict]},
+            {'name': 'PTTR', 'desc': 'Set model patterns', 'fields': [self.patterns]},
+            {'name': 'INDX', 'desc': 'Compute pattern indexes', 'fields': [self.indexes, self.plabel_dict_i0, self.plabel_dict_i1]},
+            {'name': 'FVAL', 'desc': 'Compute feature values', 'fields': [self.feature_values]},
+            {'name': 'GPPF', 'desc': 'Combine game positions with features and patterns', 'fields': [self.gpdf]},
+            {'name': 'VMAP', 'desc': 'Compute variable id cross ref map', 'fields': [self.vmap, self.ivmap]},
+            {'name': 'GPXI', 'desc': 'Compute the gpxpidf data frame', 'fields': [self.gpxpidf]},
+            {'name': 'CMPX', 'desc': 'Computes the x sparse matrix', 'fields': [self.x, self.xt]},
+            {'name': 'CMPY', 'desc': '', 'fields': [self.y, self.yh, self.w, self.r]},
+            {'name': 'ANLT', 'desc': '', 'fields': []},
+            {'name': 'OPTM', 'desc': '', 'fields': [self.opt_res]},
+        ]
         
         self._mover_field = 'mover'
         self._opponent_field = 'opponent'
 
+    import inspect
+    
+    def promote(self, *args, **kwargs):
+        level = self.levels[self.level_index]
+        next_level_index = self.level_index + 1
+        if not next_level_index < len(self.levels):
+            raise RuntimeError('There is no next level available')
+        next_level = self.levels[next_level_index]
+        print('Current level: [{}], next [{}]'.format(level['name'], next_level['name']))
+        action = level['promote']
+        print('Promote action: {}'.format(action.__name__))
+        print(f' Args: {args}' )
+        print(f' Kwargs: {kwargs}' )
+        print(inspect.signature(action))
+        result = action(*args, **kwargs)
+        self.level_index = next_level_index
 
-    def set_conn(self, conn: RegabDBConnection) -> 'Rglm':
+    def demote(self, *args, **kwargs):
+        level = self.levels[self.level_index]
+        previous_level_index = self.level_index - 1
+        if not previous_level_index >= 0:
+            raise RuntimeError('There is no previous level available')
+        previous_level = self.levels[previous_level_index]
+        print('Current level: [{}], previous [{}]'.format(level['name'], previous_level['name']))
+        self.level_index = previous_level_index
+    
+    def set_conn(self, conn: RegabDBConnection) -> Rglm:
         if not isinstance(conn, RegabDBConnection):
             raise TypeError('Argument conn is not an instance of RegabDBConnection')
         self.conn = conn
+        self.status = 'CONN'
         return self
 
     def close_conn(self):
         if self.conn:
             self.conn.close()
 
-    def set_empty_count(self, ec: int) -> 'Rglm':
+    def set_empty_count(self, ec: int) -> Rglm:
         self.empty_count = regab_empty_count(ec)
         return self
 
-    def set_batches(self, bs) -> 'Rglm':
+    def set_batches(self, bs) -> Rglm:
         self.batches = regab_batches(bs)
         return self
 
-    def set_statuses(self, sts) -> 'Rglm':
+    def set_statuses(self, sts) -> Rglm:
         self.statuses = regab_statuses(sts)
         return self
 
-    def set_features(self, fs) -> 'Rglm':
+    def set_features(self, fs) -> Rglm:
         self.features = regab_features(fs)
         return self
 
-    def set_patterns(self, ps) -> 'Rglm':
+    def set_patterns(self, ps) -> Rglm:
         self.patterns = regab_patterns(ps)
         return self
 
-    def retrieve_game_positions(self, limit=None, where=None, fields=None) -> 'Rglm':
+    def retrieve_game_positions(self, limit=None, where=None, fields=None) -> Rglm:
         """
         Retrieves game positions from the REGAB database.
         """
@@ -268,7 +317,7 @@ class Rglm:
         self.game_positions = gps
         return self
 
-    def compute_indexes(self) -> 'Rglm':
+    def compute_indexes(self) -> Rglm:
         """
         Computes the pattern index values on all the game positions extracted from he REGAB database.
         """
@@ -281,7 +330,7 @@ class Rglm:
         self.indexes, self.plabel_dict_i0, self.plabel_dict_i1 = compute_indexes_on_df(self.game_positions, self.patterns, mover=self._mover_field, opponent=self._opponent_field)
         return self
 
-    def compute_feature_values(self) -> 'Rglm':
+    def compute_feature_values(self) -> Rglm:
         """
         Computes the feature values on all the game positions extracted from he REGAB database.
         """
@@ -294,7 +343,7 @@ class Rglm:
         self.feature_values, self.flabel_dict = compute_feature_values_on_df(self.game_positions, self.features, mover=self._mover_field, opponent=self._opponent_field)
         return self
 
-    def combine_gps_features_patterns(self) -> 'Rglm':
+    def combine_gps_features_patterns(self) -> Rglm:
         """
         Computes the gpdf data frame, by concatenating game_positions, feature values, and pattern indexes.
         """
@@ -335,7 +384,7 @@ class Rglm:
         res = self.gpdf.groupby(labels).game_value.agg(['count', 'min', 'max', 'mean', 'std'])
         return res
 
-    def compute_vmaps(self) -> 'Rglm':
+    def compute_vmaps(self) -> Rglm:
         """
         Computes the vmap and ivmap data frames.
         These two data frames map the RGLM variable id (weight) to and from the three-field-key (etype, eid, idx). 
@@ -412,7 +461,7 @@ class Rglm:
             
         return self
 
-    def compute_gpxpidf(self) -> 'Rglm':
+    def compute_gpxpidf(self) -> Rglm:
         """
         Computes the gpxpidf data frame.
 
@@ -460,7 +509,7 @@ class Rglm:
             self.gpxpidf = pd.concat([self.gpxpidf, res_grouped], axis=0,  ignore_index = True, sort = False, copy = False)
         return self
 
-    def compute_x(self) -> 'Rglm':
+    def compute_x(self) -> Rglm:
         """
         Computes the x matrix and its transposed xt one.
         X is a standard name in machine learning terminology to refer to the matrix that
@@ -482,7 +531,7 @@ class Rglm:
         self.xt = self.x.transpose()
         return self
 
-    def compute_y(self) -> 'Rglm':
+    def compute_y(self) -> Rglm:
         """
         Computes the y (epsilon) array applaying the rglm_gv_to_gvt transformation to the game_value
         field as retrieved from the regab database (game_position data frame).
@@ -511,7 +560,7 @@ class Rglm:
         self.yh = rglm_sigmoid(self.x @ self.w)
         return - self.xt @ ((self.yh * (1. - self.yh)) * (self.y - self.yh))
 
-    def compute_analytics(self) -> 'Rglm':
+    def compute_analytics(self) -> Rglm:
         """
         Adds to vmap the following fields:
           - count  : Count of game positions categorized by having the pattern/feature configuration
@@ -650,26 +699,28 @@ class Rglm:
 
         return self
     
-    def optimize(self,
-                 c = 0.,
-                 options = {'disp': False,
-                            'maxcor': 50,
-                            'ftol': 1e-08,
-                            'gtol': 1e-05,
-                            'eps': 1e-08,
-                            'maxfun': 5000,
-                            'maxiter': 5000,
-                            'iprint': 1,
-                            'maxls': 20,
-                            'finite_diff_rel_step': None}
-                 ) -> 'Rglm':
+    def optimize(self, c=None, options=None) -> Rglm:
         """
         Finds the minimum of the objective function, optimizing the values
         assigned to weights.
         Argument c is the Ridge regularization coefficient defaulted to 0.0.
         Argument options is passed as it is to the scipy minimize call.
 
-        """        
+        """
+        if c is None:
+            c = 0.
+        if options is None:
+            options = {'disp': False,
+                       'maxcor': 50,
+                       'ftol': 1e-08,
+                       'gtol': 1e-05,
+                       'eps': 1e-08,
+                       'maxfun': 5000,
+                       'maxiter': 5000,
+                       'iprint': 1,
+                       'maxls': 20,
+                       'finite_diff_rel_step': None}
+        
         def fg(w):
             linear_predictor = self.x @ w
             self.yh = rglm_sigmoid(linear_predictor)
@@ -685,20 +736,51 @@ class Rglm:
         self.r = self.y - self.yh
         
         return self
+
+test_run_0 = {'cfg_fname': 'cfg/regab.cfg',
+              'env': 'test',
+              'ec': 20,
+              'batches': [6],
+              'statuses': 'CMR,CMS',
+              'features': 'INTERCEPT,MOBILITY',
+              'patterns': 'EDGE,DIAG3',
+              'ridge_reg_param': 0.01,
+              'l_bfgs_b_options': {'disp': False,
+                                   'maxcor': 50,
+                                   'ftol': 1e-08,
+                                   'gtol': 1e-05,
+                                   'eps': 1e-08,
+                                   'maxfun': 5000,
+                                   'maxiter': 5000,
+                                   'iprint': 1,
+                                   'maxls': 20,
+                                   'finite_diff_rel_step': None},
+              }
+
+def rglm_workflow(kvargs: dict):
+
+    def get_key(key: str):
+        if key in kvargs:
+            return kvargs[key]
+        else:
+            raise ValueError('Key {} is missing from the kvargs dictionary.'.format(key))
+
+    def get_key_if_exists(key: str):
+        if key in kvargs:
+            return kvargs[key]
+        else:
+            return None
+
+    cfg_fname = get_key('cfg_fname')
+    env = get_key('env')
+    ec = get_key('ec')
+    batches = get_key('batches')
+    statuses = get_key('statuses')
+    features = get_key('features')
+    patterns = get_key('patterns')
+    ridge_reg_param = get_key_if_exists('ridge_reg_param')
+    l_bfgs_b_options = get_key_if_exists('l_bfgs_b_options')
     
-def rglm_workflow(c=0.01):
-
-    cfg_fname = 'cfg/regab.cfg'
-    env = 'test'
-    ec = 20
-    # batches = [6]
-    batches = [10]
-    statuses = 'CMR,CMS'
-    # features = 'INTERCEPT,MOBILITY'
-    # patterns = 'EDGE,DIAG3'
-    features = 'INTERCEPT,MOBILITY3'
-    patterns = 'XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR'
-
     conn = RegabDBConnection.new_from_config(cfg_fname, env)
     
     def timed_run(m, s, *args):
@@ -726,7 +808,9 @@ def rglm_workflow(c=0.01):
     m = timed_run(m.compute_x, "m = m.compute_x()")
     m = timed_run(m.compute_y, "m = m.compute_y()")
     m = timed_run(m.compute_analytics, "m = m.compute_analytics()")
-    m = timed_run(m.optimize, "m = m.optimize({})", c)
+    m = timed_run(m.optimize, "m = m.optimize({}, {{...}})", ridge_reg_param, l_bfgs_b_options)
+    if l_bfgs_b_options is not None:
+        print("   l_bfgs_b_options = {}".format(l_bfgs_b_options))
 
     return m
 
