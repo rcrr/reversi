@@ -63,9 +63,9 @@ from scipy.optimize import minimize
 #     There should be a final report ... with KPI used to compare different models.
 #     Prepare an info(verbosity) method that give back Model Info.
 #
-# -4- Setup a kind of workflow with states and checks ....
-#     rglm_test() should be renamed to something like ... execute work-flow
-#     input data should be provided by means of a dictionary
+# -4- [done] Setup a kind of workflow.
+#            rglm_test() should be renamed to something like ... execute work-flow
+#            input data should be provided by means of a dictionary
 #
 # -5- Read and write to file ...
 #
@@ -200,20 +200,25 @@ class Rglm:
         """
         Initit all the relevant attributes.
         """
-        self.level_index = 0
         self.conn = None
         self.empty_count = None
         self.batches = None
+        self.vld_batches = None
         self.statuses = None
+        self.vld_statuses = None
         self.game_positions = None
+        self.vld_game_positions = None
         self.features = None
         self.flabel_dict = None
         self.patterns = None
+        self.feature_values = None
+        self.vld_feature_values = None
         self.indexes = None
+        self.vld_indexes = None
         self.plabel_dict_i0 = None
         self.plabel_dict_i1 = None
-        self.feature_values = None
         self.gpdf = None
+        self.vld_gpdf = None
         self.vmap = None
         self.ivmap = None
         self.gpxpidf = None
@@ -224,55 +229,11 @@ class Rglm:
         self.w = None
         self.r = None
         self.opt_res = None
-
-        self.levels = [
-            {'name': 'INIT', 'desc': 'Init RGLM object', 'promote': self.set_conn, 'demote': None, 'fields': []},
-            {'name': 'CONN', 'desc': 'REGAB database connection', 'promote': self.set_empty_count, 'fields': [self.conn]},
-            {'name': 'ECNT', 'desc': 'Set empty count field', 'fields': [self.empty_count]},
-            {'name': 'BATC', 'desc': 'Set REGAB batches', 'fields': [self.batches]},
-            {'name': 'STTS', 'desc': 'Set REGAB game position status values', 'fields': [self.statuses]},
-            {'name': 'RETR', 'desc': 'Retrieve game positions from REGAB db', 'fields': [self.game_positions]},
-            {'name': 'FEAT', 'desc': 'Set model features', 'fields': [self.features, self.flabel_dict]},
-            {'name': 'PTTR', 'desc': 'Set model patterns', 'fields': [self.patterns]},
-            {'name': 'INDX', 'desc': 'Compute pattern indexes', 'fields': [self.indexes, self.plabel_dict_i0, self.plabel_dict_i1]},
-            {'name': 'FVAL', 'desc': 'Compute feature values', 'fields': [self.feature_values]},
-            {'name': 'GPPF', 'desc': 'Combine game positions with features and patterns', 'fields': [self.gpdf]},
-            {'name': 'VMAP', 'desc': 'Compute variable id cross ref map', 'fields': [self.vmap, self.ivmap]},
-            {'name': 'GPXI', 'desc': 'Compute the gpxpidf data frame', 'fields': [self.gpxpidf]},
-            {'name': 'CMPX', 'desc': 'Computes the x sparse matrix', 'fields': [self.x, self.xt]},
-            {'name': 'CMPY', 'desc': '', 'fields': [self.y, self.yh, self.w, self.r]},
-            {'name': 'ANLT', 'desc': '', 'fields': []},
-            {'name': 'OPTM', 'desc': '', 'fields': [self.opt_res]},
-        ]
         
         self._mover_field = 'mover'
         self._opponent_field = 'opponent'
 
     import inspect
-    
-    def promote(self, *args, **kwargs):
-        level = self.levels[self.level_index]
-        next_level_index = self.level_index + 1
-        if not next_level_index < len(self.levels):
-            raise RuntimeError('There is no next level available')
-        next_level = self.levels[next_level_index]
-        print('Current level: [{}], next [{}]'.format(level['name'], next_level['name']))
-        action = level['promote']
-        print('Promote action: {}'.format(action.__name__))
-        print(f' Args: {args}' )
-        print(f' Kwargs: {kwargs}' )
-        print(inspect.signature(action))
-        result = action(*args, **kwargs)
-        self.level_index = next_level_index
-
-    def demote(self, *args, **kwargs):
-        level = self.levels[self.level_index]
-        previous_level_index = self.level_index - 1
-        if not previous_level_index >= 0:
-            raise RuntimeError('There is no previous level available')
-        previous_level = self.levels[previous_level_index]
-        print('Current level: [{}], previous [{}]'.format(level['name'], previous_level['name']))
-        self.level_index = previous_level_index
     
     def set_conn(self, conn: RegabDBConnection) -> Rglm:
         if not isinstance(conn, RegabDBConnection):
@@ -293,8 +254,16 @@ class Rglm:
         self.batches = regab_batches(bs)
         return self
 
+    def set_vld_batches(self, bs) -> Rglm:
+        self.vld_batches = regab_batches(bs)
+        return self
+
     def set_statuses(self, sts) -> Rglm:
         self.statuses = regab_statuses(sts)
+        return self
+
+    def set_vld_statuses(self, sts) -> Rglm:
+        self.vld_statuses = regab_statuses(sts)
         return self
 
     def set_features(self, fs) -> Rglm:
@@ -305,29 +274,28 @@ class Rglm:
         self.patterns = regab_patterns(ps)
         return self
 
-    def retrieve_game_positions(self, limit=None, where=None, fields=None) -> Rglm:
-        """
-        Retrieves game positions from the REGAB database.
-        """
-        gps = regab_gp_as_df(self.conn, self.batches, self.statuses, self.empty_count, limit, where, fields)
+    def _retrieve_game_positions(self, batches, statuses, limit=None, where=None, fields=None) -> pd.DataFrame:
+        gps = regab_gp_as_df(self.conn, batches, statuses, self.empty_count, limit, where, fields)
         cols = gps.columns
         gps['gpid'] = gps.index
         for c in ['gpid'] + list(cols):
             gps[c] = gps.pop(c)
+        return gps
+
+    def retrieve_game_positions(self, limit=None, where=None, fields=None) -> Rglm:
+        """
+        Retrieves game positions from the REGAB database.
+        """
+        gps = self._retrieve_game_positions(self.batches, self.statuses, limit, where, fields)
         self.game_positions = gps
         return self
 
-    def compute_indexes(self) -> Rglm:
+    def retrieve_vld_game_positions(self, limit=None, where=None, fields=None) -> Rglm:
         """
-        Computes the pattern index values on all the game positions extracted from he REGAB database.
+        Retrieves validation game positions from the REGAB database.
         """
-        if not isinstance(self.game_positions, pd.DataFrame):
-            raise TypeError('The field game_positions is not an instance of DataFrame')
-        if not set([self._mover_field, self._opponent_field]).issubset(self.game_positions.columns):
-            raise ValueError('The game_positions data frame is missing mover or opponent columns')
-        if self.patterns is None or self.patterns == []:
-            raise ValueError('The field patterns is not defined or empty')
-        self.indexes, self.plabel_dict_i0, self.plabel_dict_i1 = compute_indexes_on_df(self.game_positions, self.patterns, mover=self._mover_field, opponent=self._opponent_field)
+        gps = self._retrieve_game_positions(self.vld_batches, self.vld_statuses, limit, where, fields)
+        self.vld_game_positions = gps
         return self
 
     def compute_feature_values(self) -> Rglm:
@@ -341,6 +309,21 @@ class Rglm:
         if self.features is None or self.features == []:
             raise ValueError('The field features is not defined or empty')
         self.feature_values, self.flabel_dict = compute_feature_values_on_df(self.game_positions, self.features, mover=self._mover_field, opponent=self._opponent_field)
+        self.vld_feature_values, unused = compute_feature_values_on_df(self.vld_game_positions, self.features, mover=self._mover_field, opponent=self._opponent_field)
+        return self
+
+    def compute_indexes(self) -> Rglm:
+        """
+        Computes the pattern index values on all the game positions extracted from he REGAB database.
+        """
+        if not isinstance(self.game_positions, pd.DataFrame):
+            raise TypeError('The field game_positions is not an instance of DataFrame')
+        if not set([self._mover_field, self._opponent_field]).issubset(self.game_positions.columns):
+            raise ValueError('The game_positions data frame is missing mover or opponent columns')
+        if self.patterns is None or self.patterns == []:
+            raise ValueError('The field patterns is not defined or empty')
+        self.indexes, self.plabel_dict_i0, self.plabel_dict_i1 = compute_indexes_on_df(self.game_positions, self.patterns, mover=self._mover_field, opponent=self._opponent_field)
+        self.vld_indexes, unused_0, unused_1 = compute_indexes_on_df(self.vld_game_positions, self.patterns, mover=self._mover_field, opponent=self._opponent_field)
         return self
 
     def combine_gps_features_patterns(self) -> Rglm:
@@ -348,6 +331,7 @@ class Rglm:
         Computes the gpdf data frame, by concatenating game_positions, feature values, and pattern indexes.
         """
         self.gpdf = pd.concat([self.game_positions, self.feature_values, self.indexes], axis=1, copy=False)
+        self.vld_gpdf = pd.concat([self.vld_game_positions, self.vld_feature_values, self.vld_indexes], axis=1, copy=False)
         return self
 
     def get_feature_analytics(self, labels) -> pd.DataFrame:
@@ -737,11 +721,16 @@ class Rglm:
         
         return self
 
+    def validate(self):
+        return self
+
 test_run_0 = {'cfg_fname': 'cfg/regab.cfg',
               'env': 'test',
               'ec': 20,
               'batches': [6],
+              'vld_batches': [5],
               'statuses': 'CMR,CMS',
+              'vld_statuses': 'CMR,CMS',
               'features': 'INTERCEPT,MOBILITY',
               'patterns': 'EDGE,DIAG3',
               'ridge_reg_param': 0.01,
@@ -775,7 +764,9 @@ def rglm_workflow(kvargs: dict):
     env = get_key('env')
     ec = get_key('ec')
     batches = get_key('batches')
+    vld_batches = get_key('vld_batches')
     statuses = get_key('statuses')
+    vld_statuses = get_key('vld_statuses')
     features = get_key('features')
     patterns = get_key('patterns')
     ridge_reg_param = get_key_if_exists('ridge_reg_param')
@@ -796,12 +787,15 @@ def rglm_workflow(kvargs: dict):
     m = timed_run(m.set_conn, "m = m.set_conn({})", conn)
     m = timed_run(m.set_empty_count, "m = m.set_empty_count({})", ec)
     m = timed_run(m.set_batches, "m = m.set_batches({})", batches)
+    m = timed_run(m.set_vld_batches, "m = m.set_vld_batches({})", vld_batches)
     m = timed_run(m.set_statuses, "m = m.set_statuses({})", statuses)
+    m = timed_run(m.set_vld_statuses, "m = m.set_vld_statuses({})", vld_statuses)
     m = timed_run(m.retrieve_game_positions, "m = m.retrieve_game_positions()")
+    m = timed_run(m.retrieve_vld_game_positions, "m = m.retrieve_vld_game_positions()")
     m = timed_run(m.set_features, "m = m.set_features({})", features)
     m = timed_run(m.set_patterns, "m = m.set_patterns({})", patterns)
-    m = timed_run(m.compute_indexes, "m = m.compute_indexes()")
     m = timed_run(m.compute_feature_values, "m = m.compute_feature_values()")
+    m = timed_run(m.compute_indexes, "m = m.compute_indexes()")
     m = timed_run(m.combine_gps_features_patterns, "m = m.combine_gps_features_patterns()")
     m = timed_run(m.compute_vmaps, "m = m.compute_vmaps()")
     m = timed_run(m.compute_gpxpidf, "m = m.compute_gpxpidf()")
@@ -811,6 +805,7 @@ def rglm_workflow(kvargs: dict):
     m = timed_run(m.optimize, "m = m.optimize({}, {{...}})", ridge_reg_param, l_bfgs_b_options)
     if l_bfgs_b_options is not None:
         print("   l_bfgs_b_options = {}".format(l_bfgs_b_options))
+    m = timed_run(m.validate, "m = m.validate()")
 
     return m
 
