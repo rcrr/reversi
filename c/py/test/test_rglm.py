@@ -150,14 +150,20 @@ class TestRglm(unittest.TestCase):
             .set_conn(RegabDBConnection.new_duckdb(self.conn)) \
             .set_empty_count(20) \
             .set_batches(7) \
+            .set_vld_batches(7) \
             .set_statuses('CMR,CMS') \
+            .set_vld_statuses('CMR,CMS') \
             .retrieve_game_positions() \
+            .retrieve_vld_game_positions() \
             .set_features('INTERCEPT,MOBILITY3') \
             .set_patterns('EDGE,DIAG8') \
-            .compute_indexes() \
             .compute_feature_values() \
+            .compute_indexes() \
             .combine_gps_features_patterns() \
-            .compute_vmaps()
+            .compute_vmaps() \
+            .compute_gpxpidf() \
+            .compute_x() \
+            .compute_y()
         
         self.assertIsInstance(m, Rglm)
         m.close_conn()
