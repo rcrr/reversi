@@ -229,6 +229,7 @@ class Rglm:
         self.w = None
         self.r = None
         self.opt_res = None
+        self.wmeans = None
         
         self._mover_field = 'mover'
         self._opponent_field = 'opponent'
@@ -718,9 +719,22 @@ class Rglm:
         self.w = self.opt_res.x
         self.yh = rglm_sigmoid(self.x @ self.w)
         self.r = self.y - self.yh
+
+        self.vmap['weight'] = self.w
         
         return self
 
+    def compute_wmean_for_patterns(self):
+        self.wmeans = dict.fromkeys(self.patterns)
+        df = self.vmap[self.vmap['etype'] == 1][['eid','oprobs','weight']]
+        wmeandf = df.assign(wmean=df.oprobs*df.weight).groupby('eid', as_index=False).wmean.sum()
+        wmeandf = wmeandf.astype({'eid':'int','wmean':'float'})
+        for row in wmeandf.itertuples(index=False):
+            eid, wmean = row
+            p = patterns_as_list[eid]
+            self.wmeans[p] = wmean
+        return self
+    
     def validate(self):
         return self
 
@@ -733,7 +747,7 @@ test_run_0 = {'cfg_fname': 'cfg/regab.cfg',
               'vld_statuses': 'CMR,CMS',
               'features': 'INTERCEPT,MOBILITY',
               'patterns': 'EDGE,DIAG3',
-              'ridge_reg_param': 0.01,
+              'ridge_reg_param': 0.1,
               'l_bfgs_b_options': {'disp': False,
                                    'maxcor': 50,
                                    'ftol': 1e-08,
@@ -805,6 +819,7 @@ def rglm_workflow(kvargs: dict):
     m = timed_run(m.optimize, "m = m.optimize({}, {{...}})", ridge_reg_param, l_bfgs_b_options)
     if l_bfgs_b_options is not None:
         print("   l_bfgs_b_options = {}".format(l_bfgs_b_options))
+    m = timed_run(m.compute_wmean_for_patterns, "m = m.compute_wmean_for_patterns()")
     m = timed_run(m.validate, "m = m.validate()")
 
     return m
