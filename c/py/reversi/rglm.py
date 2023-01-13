@@ -60,6 +60,11 @@ from scipy.optimize import minimize
 # -3- More data analytics.
 #     [done] Parameters profiling ... each variable/weight should have min, max, mean, std game values.
 #     There should be a second data set for validation.
+#        Actions:
+#        . Add the vid column to exp_weights, could we name it evid (expanded variable id) to make it clear it is a different thing. 
+#        . Add e new function compute_vld_gpxpidf
+#        . Add a new function compute_vld_x
+#        . Finally compute logit(vld_x @ ew) as the vld_yh. Compare it with vld_y ...
 #     There should be a final report ... with KPI used to compare different models.
 #     Prepare an info(verbosity) method that give back Model Info.
 #
@@ -230,6 +235,8 @@ class Rglm:
         self.r = None
         self.opt_res = None
         self.wmeans = None
+        self.exp_weights = None
+        self.ew = None
         
         self._mover_field = 'mover'
         self._opponent_field = 'opponent'
@@ -734,6 +741,50 @@ class Rglm:
             p = patterns_as_list[eid]
             self.wmeans[p] = wmean
         return self
+
+    def compute_exp_weights(self):
+        etype = np.empty([0], dtype = int)
+        eid = np.empty([0], dtype = int)
+        idx = np.empty([0], dtype = int)
+        pidx = np.empty([0], dtype = int)
+        wmean = np.empty([0], dtype = int)
+        for f in self.features:
+            f_etype = np.repeat(0, (f.field_cnt))
+            f_eid = np.repeat(f.id, (f.field_cnt))
+            f_idx = np.arange(0, f.field_cnt)
+            f_pidx = f_idx
+            f_wmean = np.repeat(0.0, (f.field_cnt))
+            etype = np.concatenate((etype, f_etype))
+            eid = np.concatenate((eid, f_eid))
+            idx = np.concatenate((idx, f_idx))
+            pidx = np.concatenate((pidx, f_pidx))
+            wmean = np.concatenate((wmean, f_wmean))
+        for p in self.patterns:
+            p_etype = np.repeat(1, (p.n_configurations))
+            p_eid = np.repeat(p.id, (p.n_configurations))
+            p_idx = np.arange(0, p.n_configurations)
+            p_pidx = p.principal_index_vec(p_idx)
+            p_wmean = np.repeat(self.wmeans[p], (p.n_configurations))
+            etype = np.concatenate((etype, p_etype))
+            eid = np.concatenate((eid, p_eid))
+            idx = np.concatenate((idx, p_idx))
+            pidx = np.concatenate((pidx, p_pidx))
+            wmean = np.concatenate((wmean, p_wmean))
+        self.exp_weights = pd.DataFrame()
+        self.exp_weights['etype'] = etype
+        self.exp_weights['eid'] = eid
+        self.exp_weights['idx'] = idx
+        self.exp_weights['pidx'] = pidx
+        self.exp_weights['wmean'] = wmean
+        self.exp_weights = self.exp_weights.merge(self.vmap[['etype', 'eid', 'idx', 'weight']],
+                                                  how='left',
+                                                  left_on=['etype', 'eid', 'pidx'],
+                                                  right_on=['etype', 'eid', 'idx'])
+        self.exp_weights.rename(columns={'idx_x': 'idx'}, inplace=True)
+        self.exp_weights['computed'] = ~pd.isna(self.exp_weights["idx_y"])
+        self.exp_weights.weight.fillna(self.exp_weights.wmean, inplace=True)
+        self.exp_weights.drop(columns=['idx_y'], inplace=True)        
+        return self
     
     def validate(self):
         return self
@@ -820,6 +871,7 @@ def rglm_workflow(kvargs: dict):
     if l_bfgs_b_options is not None:
         print("   l_bfgs_b_options = {}".format(l_bfgs_b_options))
     m = timed_run(m.compute_wmean_for_patterns, "m = m.compute_wmean_for_patterns()")
+    m = timed_run(m.compute_exp_weights, "m = m.compute_exp_weights()")
     m = timed_run(m.validate, "m = m.validate()")
 
     return m

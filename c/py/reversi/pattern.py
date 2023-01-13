@@ -222,6 +222,8 @@ class Pattern(object, metaclass = _Singleton):
         if not self._c_pattern:
             raise ValueError('Fature id not found in _c_board_patterns C symbol')
 
+        self.principal_index_vec = np.vectorize(self.principal_index)
+
     @abstractmethod
     def __createsingleton__(self): pass
 
