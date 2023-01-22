@@ -61,7 +61,7 @@ from scipy.optimize import minimize
 #     [done] Parameters profiling ... each variable/weight should have min, max, mean, std game values.
 #     There should be a second data set for validation.
 #        Actions:
-#        . Add the vid column to exp_weights, could we name it evid (expanded variable id) to make it clear it is a different thing. 
+#        . Add the vid column to evmap, could we name it evid (expanded variable id) to make it clear it is a different thing. 
 #        . Add e new function compute_vld_gpxpidf
 #        . Add a new function compute_vld_x
 #        . Finally compute logit(vld_x @ ew) as the vld_yh. Compare it with vld_y ...
@@ -235,8 +235,15 @@ class Rglm:
         self.r = None
         self.opt_res = None
         self.wmeans = None
-        self.exp_weights = None
+        self.evmap = None
+        self.ievmap = None
         self.ew = None
+        self.vld_gpxpidf = None
+        self.vld_x = None
+        self.vld_xt = None
+        self.vld_y = None
+        self.vld_yh = None
+        self.vld_r = None
         
         self._mover_field = 'mover'
         self._opponent_field = 'opponent'
@@ -742,7 +749,7 @@ class Rglm:
             self.wmeans[p] = wmean
         return self
 
-    def compute_exp_weights(self):
+    def compute_evmap(self):
         etype = np.empty([0], dtype = int)
         eid = np.empty([0], dtype = int)
         idx = np.empty([0], dtype = int)
@@ -770,23 +777,90 @@ class Rglm:
             idx = np.concatenate((idx, p_idx))
             pidx = np.concatenate((pidx, p_pidx))
             wmean = np.concatenate((wmean, p_wmean))
-        self.exp_weights = pd.DataFrame()
-        self.exp_weights['etype'] = etype
-        self.exp_weights['eid'] = eid
-        self.exp_weights['idx'] = idx
-        self.exp_weights['pidx'] = pidx
-        self.exp_weights['wmean'] = wmean
-        self.exp_weights = self.exp_weights.merge(self.vmap[['etype', 'eid', 'idx', 'weight']],
+        self.evmap = pd.DataFrame()
+        self.evmap['etype'] = etype
+        self.evmap['eid'] = eid
+        self.evmap['idx'] = idx
+        self.evmap['pidx'] = pidx
+        self.evmap['wmean'] = wmean
+        self.evmap = self.evmap.merge(self.vmap[['etype', 'eid', 'idx', 'weight']],
                                                   how='left',
                                                   left_on=['etype', 'eid', 'pidx'],
                                                   right_on=['etype', 'eid', 'idx'])
-        self.exp_weights.rename(columns={'idx_x': 'idx'}, inplace=True)
-        self.exp_weights['computed'] = ~pd.isna(self.exp_weights["idx_y"])
-        self.exp_weights.weight.fillna(self.exp_weights.wmean, inplace=True)
-        self.exp_weights.drop(columns=['idx_y'], inplace=True)        
+        self.evmap.rename(columns={'idx_x': 'idx'}, inplace=True)
+        self.evmap['computed'] = ~pd.isna(self.evmap["idx_y"])
+        self.evmap.weight.fillna(self.evmap.wmean, inplace=True)
+        self.evmap.drop(columns=['idx_y'], inplace=True)
+        self.evmap['evid'] = self.evmap.index
+        self.evmap = self.evmap.loc[:, ['evid', 'etype', 'eid', 'idx', 'pidx', 'wmean', 'computed', 'weight']]
+        self.ew = self.evmap['weight'].values
+        return self
+
+    def compute_ievmap(self):
+        mi = pd.MultiIndex.from_frame(self.evmap[['etype', 'eid', 'idx']])
+        self.ievmap = pd.DataFrame(self.evmap['evid'].values, index=mi, columns=['evid'])
+        return self
+
+    def compute_vld_gpxpidf(self):
+        """
+        Computes the vld_gpxpidf data frame.
+
+        This data frame is the precomputation of the X matrix for validation for what belongs to patterns:
+          gpid    -> row_id
+          vid     -> column_id
+          counter -> value
+
+        Here an example of the data frame:
+        . 
+
+
+        vid : variable id, it is the index of the weight in the weight array.
+        etype : entity type, 0 for features, 1 for patterns. It is always 1 in this data frame.
+        eid : entity id, it is the pattern id.
+        idx : index, the index value.
+        gpid : game position id, the id of the game position record in the gpdf/game_positions data frames.
+        counter : count the times the pattern/index is found in the game position (almost always it is 1).
+
+        """
+        vld_gpxpidf_colnames = ['evid', 'etype', 'eid', 'idx', 'gpid', 'counter']
+        self.vld_gpxpidf = pd.DataFrame(columns = vld_gpxpidf_colnames, dtype = 'int64')
+        for p in self.patterns:
+            labels = self.plabel_dict_i0[p]
+            renamed_labels = dict(zip(labels, ['idx']*p.n_instances))
+            res = pd.concat(self.vld_gpdf[['gpid', x]].rename(columns=renamed_labels) for x in labels)
+            res.insert(loc=1, column='eid', value=[p.id]*len(res))
+            res.insert(loc=1, column='etype', value=[1]*len(res))
+            res['counter'] = 1
+            res_grouped = res.groupby(['gpid', 'etype', 'eid', 'idx'])['counter'].sum().reset_index()
+            mi = pd.MultiIndex.from_frame(res_grouped[['etype', 'eid', 'idx']])
+            res_grouped = pd.DataFrame(res_grouped.values, index=mi, columns=['gpid', 'etype', 'eid', 'idx', 'counter'], dtype = 'int64')
+            res_grouped = res_grouped.merge(self.ievmap, left_index=True, right_index=True, how='left')
+            self.vld_gpxpidf = pd.concat([self.vld_gpxpidf, res_grouped], axis=0,  ignore_index = True, sort = False, copy = False)
+        return self
+    
+    def compute_vld_x(self):
+        n_row = len(self.vld_game_positions)
+        n_col = len(self.evmap)
+        row_idx = np.array([], dtype='int64')
+        col_idx = np.array([], dtype='int64')
+        data_values = np.array([], dtype='float64')
+        for find, fcol in enumerate(self.vld_feature_values):
+            row_idx = np.append(row_idx, np.array(range(0, n_row)))
+            col_idx = np.append(col_idx, np.array([find]*n_row))
+            data_values = np.append(data_values, self.vld_feature_values[fcol].to_numpy())
+        row_idx = np.append(row_idx, self.vld_gpxpidf['gpid'].to_numpy())
+        col_idx = np.append(col_idx, self.vld_gpxpidf['evid'].to_numpy())
+        data_values = np.append(data_values, self.vld_gpxpidf['counter'].to_numpy())
+        self.vld_x = csr_matrix((data_values, (row_idx, col_idx)), shape = (n_row, n_col), dtype = 'float64')
+        self.vld_xt = self.vld_x.transpose()
         return self
     
     def validate(self):
+        vld_linear_predictor = self.vld_x @ self.ew
+        self.vld_yh = rglm_sigmoid(vld_linear_predictor)
+        vld_gv = self.vld_game_positions['game_value'].to_numpy()
+        vld_gvt = rglm_gv_to_gvt(vld_gv)
+        self.vld_y = vld_gvt
         return self
 
 test_run_0 = {'cfg_fname': 'cfg/regab.cfg',
@@ -871,7 +945,10 @@ def rglm_workflow(kvargs: dict):
     if l_bfgs_b_options is not None:
         print("   l_bfgs_b_options = {}".format(l_bfgs_b_options))
     m = timed_run(m.compute_wmean_for_patterns, "m = m.compute_wmean_for_patterns()")
-    m = timed_run(m.compute_exp_weights, "m = m.compute_exp_weights()")
+    m = timed_run(m.compute_evmap, "m = m.compute_evmap()")
+    m = timed_run(m.compute_ievmap, "m = m.compute_ievmap()")
+    m = timed_run(m.compute_vld_gpxpidf, "m = m.compute_vld_gpxpidf()")
+    m = timed_run(m.compute_vld_x, "m = m.compute_vld_x()")
     m = timed_run(m.validate, "m = m.validate()")
 
     return m
