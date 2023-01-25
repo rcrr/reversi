@@ -44,6 +44,9 @@ import pandas as pd
 from scipy.sparse import csr_matrix
 from scipy.optimize import minimize
 
+import pickle
+
+
 #
 # To do:
 #
@@ -59,7 +62,7 @@ from scipy.optimize import minimize
 #
 # -3- More data analytics.
 #     [done] Parameters profiling ... each variable/weight should have min, max, mean, std game values.
-#     There should be a second data set for validation.
+#     [done] There should be a second data set for validation.
 #        Actions:
 #        . Add the vid column to evmap, could we name it evid (expanded variable id) to make it clear it is a different thing. 
 #        . Add e new function compute_vld_gpxpidf
@@ -139,7 +142,7 @@ class Rglm:
       Selected features characterizing the model
     flabel_dict : dict
       Dictionary of the labels belonging to a selected feature.
-      The feature object is the key, the value is a list of strings collecting the
+      The feature id is the key, the value is a list of strings collecting the
       labels used to name the columns of the game_positions data frame
     patterns : list
       Selected patterns characterizing the model
@@ -244,6 +247,7 @@ class Rglm:
         self.vld_y = None
         self.vld_yh = None
         self.vld_r = None
+        self.vld_summary = None
         
         self._mover_field = 'mover'
         self._opponent_field = 'opponent'
@@ -323,7 +327,8 @@ class Rglm:
             raise ValueError('The game_positions data frame is missing mover or opponent columns')
         if self.features is None or self.features == []:
             raise ValueError('The field features is not defined or empty')
-        self.feature_values, self.flabel_dict = compute_feature_values_on_df(self.game_positions, self.features, mover=self._mover_field, opponent=self._opponent_field)
+        self.feature_values, flabel_dict = compute_feature_values_on_df(self.game_positions, self.features, mover=self._mover_field, opponent=self._opponent_field)
+        self.flabel_dict = dict((key.id, value) for (key, value) in flabel_dict.items())
         self.vld_feature_values, unused = compute_feature_values_on_df(self.vld_game_positions, self.features, mover=self._mover_field, opponent=self._opponent_field)
         return self
 
@@ -337,7 +342,9 @@ class Rglm:
             raise ValueError('The game_positions data frame is missing mover or opponent columns')
         if self.patterns is None or self.patterns == []:
             raise ValueError('The field patterns is not defined or empty')
-        self.indexes, self.plabel_dict_i0, self.plabel_dict_i1 = compute_indexes_on_df(self.game_positions, self.patterns, mover=self._mover_field, opponent=self._opponent_field)
+        self.indexes, plabel_dict_i0, plabel_dict_i1 = compute_indexes_on_df(self.game_positions, self.patterns, mover=self._mover_field, opponent=self._opponent_field)
+        self.plabel_dict_i0 = dict((key.id, value) for (key, value) in plabel_dict_i0.items())
+        self.plabel_dict_i1 = dict((key.id, value) for (key, value) in plabel_dict_i1.items())
         self.vld_indexes, unused_0, unused_1 = compute_indexes_on_df(self.vld_game_positions, self.patterns, mover=self._mover_field, opponent=self._opponent_field)
         return self
 
@@ -442,7 +449,7 @@ class Rglm:
             
         for p in self.patterns:
             set_of_indexes = set()
-            labels = self.plabel_dict_i1[p]
+            labels = self.plabel_dict_i1[p.id]
             for label in labels:
                 col_as_list = self.gpdf[label].values.tolist()
                 set_of_indexes.update(col_as_list)
@@ -495,7 +502,7 @@ class Rglm:
         gpxpidf_colnames = ['vid', 'etype', 'eid', 'idx', 'gpid', 'counter']
         self.gpxpidf = pd.DataFrame(columns = gpxpidf_colnames, dtype = 'int64')
         for p in self.patterns:
-            labels = self.plabel_dict_i1[p]
+            labels = self.plabel_dict_i1[p.id]
             renamed_labels = dict(zip(labels, ['idx']*p.n_instances))
             res = pd.concat(self.gpdf[['gpid', x]].rename(columns=renamed_labels) for x in labels)
             res.insert(loc=1, column='eid', value=[p.id]*len(res))
@@ -739,14 +746,14 @@ class Rglm:
         return self
 
     def compute_wmean_for_patterns(self):
-        self.wmeans = dict.fromkeys(self.patterns)
+        self.wmeans = dict.fromkeys([p.id for p in self.patterns])
         df = self.vmap[self.vmap['etype'] == 1][['eid','oprobs','weight']]
         wmeandf = df.assign(wmean=df.oprobs*df.weight).groupby('eid', as_index=False).wmean.sum()
         wmeandf = wmeandf.astype({'eid':'int','wmean':'float'})
         for row in wmeandf.itertuples(index=False):
             eid, wmean = row
             p = patterns_as_list[eid]
-            self.wmeans[p] = wmean
+            self.wmeans[p.id] = wmean
         return self
 
     def compute_evmap(self):
@@ -771,7 +778,7 @@ class Rglm:
             p_eid = np.repeat(p.id, (p.n_configurations))
             p_idx = np.arange(0, p.n_configurations)
             p_pidx = p.principal_index_vec(p_idx)
-            p_wmean = np.repeat(self.wmeans[p], (p.n_configurations))
+            p_wmean = np.repeat(self.wmeans[p.id], (p.n_configurations))
             etype = np.concatenate((etype, p_etype))
             eid = np.concatenate((eid, p_eid))
             idx = np.concatenate((idx, p_idx))
@@ -825,7 +832,7 @@ class Rglm:
         vld_gpxpidf_colnames = ['evid', 'etype', 'eid', 'idx', 'gpid', 'counter']
         self.vld_gpxpidf = pd.DataFrame(columns = vld_gpxpidf_colnames, dtype = 'int64')
         for p in self.patterns:
-            labels = self.plabel_dict_i0[p]
+            labels = self.plabel_dict_i0[p.id]
             renamed_labels = dict(zip(labels, ['idx']*p.n_instances))
             res = pd.concat(self.vld_gpdf[['gpid', x]].rename(columns=renamed_labels) for x in labels)
             res.insert(loc=1, column='eid', value=[p.id]*len(res))
@@ -855,13 +862,106 @@ class Rglm:
         self.vld_xt = self.vld_x.transpose()
         return self
     
-    def validate(self):
+    def compute_vld_y(self):
         vld_linear_predictor = self.vld_x @ self.ew
         self.vld_yh = rglm_sigmoid(vld_linear_predictor)
         vld_gv = self.vld_game_positions['game_value'].to_numpy()
         vld_gvt = rglm_gv_to_gvt(vld_gv)
         self.vld_y = vld_gvt
+        self.vld_r = self.vld_y - self.vld_yh
         return self
+    
+    def validate(self):
+        opt_gp_count = len(self.game_positions)
+        vld_gp_count = len(self.vld_game_positions)
+        self.vld_summary = {
+            'ref_residual_norm': np.linalg.norm(self.y - 0.5),
+            'ref_residual_mean': np.mean(self.y - 0.5),
+            'ref_residual_std': np.std(self.y - 0.5),
+            'opt_residual_norm': np.linalg.norm(self.r),
+            'opt_residual_mean': np.mean(self.r),
+            'opt_residual_std': np.std(self.r),
+            'vld_residual_norm': np.linalg.norm(self.vld_r),
+            'vld_residual_mean': np.mean(self.vld_r),
+            'vld_residual_std': np.std(self.vld_r),
+            'opt_function_value': 0.5 * sum(self.r**2),
+            'vld_function_value': 0.5 * sum(self.vld_r**2),
+        }
+        return self
+
+    def save(self, fp):
+        if self.conn == None:
+            conn_established = False
+            conn_dbname = None
+            conn_user = None
+            conn_host = None
+            conn_port = None
+            conn_password = None
+        else:
+            conn_established = True
+            conn_dbname = self.conn.dbname
+            conn_user = self.conn.user
+            conn_host = self.conn.host
+            conn_port = self.conn.port
+            conn_password = self.conn.password            
+
+        fields = {
+            'conn_established': conn_established,
+            'conn_dbname': conn_dbname,
+            'conn_user': conn_user,
+            'conn_host': conn_host,
+            'conn_port': conn_port,
+            'conn_password': conn_password,
+            'empty_count': self.empty_count,
+            'batches': self.batches,
+            'statuses': self.statuses,
+            'game_positions': self.game_positions,
+            'features': self.features if self.features == None else [f.id for f in self.features],
+            'patterns': self.patterns if self.patterns == None else [p.id for p in self.patterns],
+            'flabel_dict': self.flabel_dict,
+            'feature_values': self.feature_values,
+            'indexes': self.indexes,
+            'plabel_dict_i0': self.plabel_dict_i0,
+            'plabel_dict_i1': self.plabel_dict_i1,
+            'gpdf': self.gpdf,
+            'vmap': self.vmap,
+            'ivmap': self.ivmap,
+            'gpxpidf': self.gpxpidf,
+            'x': self.x,
+            'xt': self.xt,
+            'y': self.y,
+            'yh': self.yh,
+            'w': self.w,
+            'r': self.r,
+            'opt_res': self.opt_res,
+            'wmeans': self.wmeans,
+            'evmap': self.evmap,
+            'ievmap': self.ievmap,
+            'ew': self.ew,
+            'vld_batches': self.vld_batches,
+            'vld_statuses': self.vld_statuses,
+            'vld_game_positions': self.vld_game_positions,
+            'vld_feature_values': self.vld_feature_values,
+            'vld_indexes': self.vld_indexes,
+            'vld_gpdf': self.vld_gpdf,
+            'vld_gpxpidf': self.vld_gpxpidf,
+            'vld_x': self.vld_x,
+            'vld_xt': self.vld_xt,
+            'vld_y': self.vld_y,
+            'vld_yh': self.vld_yh,
+            'vld_r': self.vld_r,
+            'vld_summary': self.vld_summary,
+        }
+        
+        f = open(fp, 'wb')
+        pickle.dump(fields, f)
+        f.close()
+
+    def load(self, fp):
+        f = open(fp, 'rb')
+        fields = pickle.load(f)
+        f.close()
+        return fields        
 
 test_run_0 = {'cfg_fname': 'cfg/regab.cfg',
               'env': 'test',
@@ -884,6 +984,28 @@ test_run_0 = {'cfg_fname': 'cfg/regab.cfg',
                                    'maxls': 20,
                                    'finite_diff_rel_step': None},
               }
+
+test_run_a2050 = {'cfg_fname': 'cfg/regab.cfg',
+                  'env': 'test',
+                  'ec': 20,
+                  'batches': [3],
+                  'vld_batches': [5],
+                  'statuses': 'CMR,CMS',
+                  'vld_statuses': 'CMR,CMS',
+                  'features': 'INTERCEPT,MOBILITY3',
+                  'patterns': 'XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR',
+                  'ridge_reg_param': 0.01,
+                  'l_bfgs_b_options': {'disp': True,
+                                       'maxcor': 50,
+                                       'ftol': 1e-08,
+                                       'gtol': 1e-05,
+                                       'eps': 1e-08,
+                                       'maxfun': 5000,
+                                       'maxiter': 5000,
+                                       'iprint': 1,
+                                       'maxls': 20,
+                                       'finite_diff_rel_step': None},
+                  }
 
 def rglm_workflow(kvargs: dict):
 
@@ -949,6 +1071,7 @@ def rglm_workflow(kvargs: dict):
     m = timed_run(m.compute_ievmap, "m = m.compute_ievmap()")
     m = timed_run(m.compute_vld_gpxpidf, "m = m.compute_vld_gpxpidf()")
     m = timed_run(m.compute_vld_x, "m = m.compute_vld_x()")
+    m = timed_run(m.compute_vld_y, "m = m.compute_vld_y()")
     m = timed_run(m.validate, "m = m.validate()")
 
     return m
