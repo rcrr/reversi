@@ -258,7 +258,6 @@ class Rglm:
         if not isinstance(conn, RegabDBConnection):
             raise TypeError('Argument conn is not an instance of RegabDBConnection')
         self.conn = conn
-        self.status = 'CONN'
         return self
 
     def close_conn(self):
@@ -957,11 +956,66 @@ class Rglm:
         pickle.dump(fields, f)
         f.close()
 
+    @classmethod
     def load(self, fp):
         f = open(fp, 'rb')
         fields = pickle.load(f)
         f.close()
-        return fields        
+
+        conn_established = fields['conn_established']
+        if conn_established:
+            conn_dbname = fields['conn_dbname']
+            conn_user = fields['conn_user']
+            conn_host = fields['conn_host']
+            conn_port = fields['conn_port']
+            conn_password = fields['conn_password']
+            self.conn = RegabDBConnection(dbname=conn_dbname, user=conn_user, host=conn_host, port=conn_port, password=conn_password)
+        else:
+            self.conn = None
+        
+        self.empty_count = fields['empty_count']
+        self.batches = fields['batches']
+        self.vld_batches = fields['vld_batches']
+        self.statuses = fields['statuses']
+        self.vld_statuses = fields['vld_statuses']
+        self.game_positions = fields['game_positions']
+        self.vld_game_positions = fields['vld_game_positions']
+        features = fields['features']
+        self.features = None if features == None else [features_as_list[i] for i in features]
+        self.flabel_dict = fields['flabel_dict']
+        patterns = fields['patterns']
+        self.patterns = None if patterns == None else [patterns_as_list[i] for i in patterns]
+        self.feature_values = fields['feature_values']
+        self.vld_feature_values = fields['vld_feature_values']
+        self.indexes = fields['indexes']
+        self.vld_indexes = fields['vld_indexes']
+        self.plabel_dict_i0 = fields['plabel_dict_i0']
+        self.plabel_dict_i1 = fields['plabel_dict_i1']
+        self.gpdf = fields['gpdf']
+        self.vld_gpdf = fields['vld_gpdf']
+        self.vmap = fields['vmap']
+        self.ivmap = fields['ivmap']
+        self.gpxpidf = fields['gpxpidf']
+        self.x = fields['x']
+        self.xt = fields['xt']
+        self.y = fields['y']
+        self.yh = fields['yh']
+        self.w = fields['w']
+        self.r = fields['r']
+        self.opt_res = fields['opt_res']
+        self.wmeans = fields['wmeans']
+        self.evmap = fields['evmap']
+        self.ievmap = fields['ievmap']
+        self.ew = fields['ew']
+        self.vld_gpxpidf = fields['vld_gpxpidf']
+        self.vld_x = fields['vld_x']
+        self.vld_xt = fields['vld_xt']
+        self.vld_y = fields['vld_y']
+        self.vld_yh = fields['vld_yh']
+        self.vld_r = fields['vld_r']
+        self.vld_summary = fields['vld_summary']
+        
+        return self
 
 test_run_0 = {'cfg_fname': 'cfg/regab.cfg',
               'env': 'test',
