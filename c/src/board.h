@@ -149,6 +149,7 @@ extern const int square_cardinality;
  * @brief The empty square set.
  */
 extern const SquareSet empty_square_set;
+
 /**
  * @brief The full square set.
  */

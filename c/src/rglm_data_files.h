@@ -505,7 +505,7 @@ typedef struct rglmdf_weight_record_s {
  *          All the feature and pattern configuration are stored sequentially in the weights table.
  *          For a given model, the fields entity_class, entity_id, index_value, and Principal_index_value
  *          are equal. Meaning: same number of records, same ordering, same values.
- *          Equal models could have difefrent values of the fields glm_variable_id and weight. It depends
+ *          Equal models could have different values of the fields glm_variable_id and weight. It depends
  *          on the data used to generate the model (the game position selected in the general data structure) and on the
  *          optimization of the weights (number of steps, or different algorithms).
  *          The general_data_checksum contains the SHA3-255 fingerprint of the general model binary file used to generate
