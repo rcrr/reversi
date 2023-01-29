@@ -46,6 +46,8 @@ from scipy.optimize import minimize
 
 import pickle
 
+import ctypes as ct
+
 
 #
 # To do:
@@ -75,17 +77,69 @@ import pickle
 #            rglm_test() should be renamed to something like ... execute work-flow
 #            input data should be provided by means of a dictionary
 #
-# -5- Read and write to file ...
-#
-#     In practice we need to build the REGAB/RGML machinery in a different way.
+# -5- [done] Read and write to file ...
+#            In practice we need to build the REGAB/RGML machinery in a different way.
 #
 # -6- Complete documentation ....
 #
 # -7- Code tests ....
 #
+# -8- Read/Write the RGLM Model Weights file format ...
+#     - read works
+#     - remember to free the mw helper object !!!
+#     - reorganize he methods as _CT class methods ...
+#
 
-def rgml_test(m):
-    print('rglm_test')
+def _rglmdf_model_weights_init(mw : _RglmModelWeightsCTHelper) -> _RglmModelWeightsCTHelper:
+    f = libreversi.rglmdf_model_weights_init
+    f.restype = None
+    f.argtypes = [ct.POINTER(_RglmModelWeightsCTHelper)]
+    ct_rglmdf_model_weights_p = ct.byref(mw)
+    f(ct_rglmdf_model_weights_p)
+    return mw
+
+def _rglmdf_model_weights_read_from_binary_file(mw : _RglmModelWeightsCTHelper,
+                                                filename : str,
+                                                verbose : bool,
+                                                check_digest : bool) -> int:
+    f = libreversi.rglmdf_model_weights_read_from_binary_file
+    f.restype = ct.c_int
+    f.argtypes = [ct.POINTER(_RglmModelWeightsCTHelper), ct.c_char_p, ct.c_bool, ct.c_bool]
+    ret = f(ct.byref(mw), filename.encode('utf-8'), verbose, check_digest)
+    return ret
+
+class _RglmModelWeightsCTHelper(ct.Structure):
+    _fields_ = [
+        ("file_creation_time", ct.c_uint64),
+        ("general_data_checksum", ct.c_void_p),
+        ("gp_sample_size", ct.c_int64),
+        ("empty_count", ct.c_uint8),
+        ("feature_cnt", ct.c_size_t),
+        ("features", ct.c_void_p),
+        ("pattern_cnt", ct.c_size_t),
+        ("patterns", ct.c_void_p),
+        ("weight_cnt", ct.c_size_t),
+        ("weights", ct.c_void_p),
+        ("reverse_map_mw_a", ct.c_void_p),
+        ("reverse_map_mw_b", ct.c_void_p),
+    ]
+
+class RglmModelWeights:
+    """
+    Load and store the rglmdf_model_weights_t C data structure as defined in the
+    rglm_data_files.h C header file.
+    """
+    def __init__(self):
+        """
+        Init the class.
+        """
+        self._CTHelper = _RglmModelWeightsCTHelper()
+        _rglmdf_model_weights_init(self._CTHelper)
+
+    def test(self):
+        filename = 'rglmdata/A2050_01.w.dat'
+        _rglmdf_model_weights_read_from_binary_file(self._CTHelper, filename, True, True)
+        
 
 class Rglm:
     """
@@ -1239,4 +1293,4 @@ class StopWatch:
         return self._elapsed_time
 
     def get_elapsed_time_as_td(self):
-        return pd.Timedelta(self.get_elapsed_time(), unit='ns') 
+        return pd.Timedelta(self.get_elapsed_time(), unit='ns')
