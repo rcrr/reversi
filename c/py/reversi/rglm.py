@@ -43,6 +43,7 @@ import pandas as pd
 
 from scipy.sparse import csr_matrix
 from scipy.optimize import minimize
+from datetime import datetime
 
 import pickle
 
@@ -90,24 +91,31 @@ import ctypes as ct
 #     - reorganize he methods as _CT class methods ...
 #
 
-def _rglmdf_model_weights_init(mw : _RglmModelWeightsCTHelper) -> _RglmModelWeightsCTHelper:
-    f = libreversi.rglmdf_model_weights_init
-    f.restype = None
-    f.argtypes = [ct.POINTER(_RglmModelWeightsCTHelper)]
-    ct_rglmdf_model_weights_p = ct.byref(mw)
-    f(ct_rglmdf_model_weights_p)
-    return mw
+def _rglmdf_model_weights_write_to_binary_file(mv : _RglmModelWeightsCTHelper,
+                                               filename : str,
+                                               time : int) -> int:
+    pass
 
-def _rglmdf_model_weights_read_from_binary_file(mw : _RglmModelWeightsCTHelper,
-                                                filename : str,
-                                                verbose : bool,
-                                                check_digest : bool) -> int:
-    f = libreversi.rglmdf_model_weights_read_from_binary_file
-    f.restype = ct.c_int
-    f.argtypes = [ct.POINTER(_RglmModelWeightsCTHelper), ct.c_char_p, ct.c_bool, ct.c_bool]
-    ret = f(ct.byref(mw), filename.encode('utf-8'), verbose, check_digest)
-    return ret
+# np.ctypeslib.as_array((ct.c_double * mw._CTHelper.weight_cnt).from_address(mw._CTHelper.weights))
+# https://stackoverflow.com/questions/4355524/getting-data-from-ctypes-array-into-numpy
+#
+# ctypes_pntr = ctypes.cast(mw._CTHelper.weights, ctypes.POINTER(reversi.rglm._RglmWeightRecordCTHelper))
+# x = np.ctypeslib.as_array(ctypes_pntr, shape=(mw._CTHelper.weight_cnt,))
+#
 
+class _RglmWeightRecordCTHelper(ct.Structure):
+    _fields_ = [
+        ("entity_class", ct.c_int16),
+        ("entity_id", ct.c_int16),
+        ("index_value", ct.c_int32),
+        ("principal_index_value", ct.c_int32),
+        ("glm_variable_id", ct.c_int32),
+        ("total_cnt", ct.c_int64),
+        ("relative_frequency", ct.c_double),
+        ("theoretical_probability", ct.c_double),
+        ("weight", ct.c_double),
+    ]
+    
 class _RglmModelWeightsCTHelper(ct.Structure):
     _fields_ = [
         ("file_creation_time", ct.c_uint64),
@@ -124,6 +132,9 @@ class _RglmModelWeightsCTHelper(ct.Structure):
         ("reverse_map_mw_b", ct.c_void_p),
     ]
 
+libc = ct.cdll.LoadLibrary('libc.so.6')
+cstdout = ct.c_void_p.in_dll(libc, 'stdout')
+
 class RglmModelWeights:
     """
     Load and store the rglmdf_model_weights_t C data structure as defined in the
@@ -134,12 +145,56 @@ class RglmModelWeights:
         Init the class.
         """
         self._CTHelper = _RglmModelWeightsCTHelper()
-        _rglmdf_model_weights_init(self._CTHelper)
+        self.init()
 
-    def test(self):
-        filename = 'rglmdata/A2050_01.w.dat'
-        _rglmdf_model_weights_read_from_binary_file(self._CTHelper, filename, True, True)
-        
+    def init(self):
+        f = libreversi.rglmdf_model_weights_init
+        f.restype = None
+        f.argtypes = [ct.POINTER(_RglmModelWeightsCTHelper)]
+        ct_rglmdf_model_weights_p = ct.byref(self._CTHelper)
+        f(ct_rglmdf_model_weights_p)
+
+    def allocate_memory_for_arrays(self, weight_cnt : int):
+        f = libreversi.rglmdf_model_weights_allocate_memory
+        f.restype = ct.c_int
+        f.argtypes = [ct.POINTER(_RglmModelWeightsCTHelper), ct.c_size_t]
+        ct_rglmdf_model_weights_p = ct.byref(self._CTHelper)
+        ret = f(ct_rglmdf_model_weights_p, weight_cnt)
+        if ret != 0:
+            raise Exception('Return code is not zero')
+    
+    def load(self, filename : str, verbose : bool, check_digest : bool):
+        f = libreversi.rglmdf_model_weights_read_from_binary_file
+        f.restype = ct.c_int
+        f.argtypes = [ct.POINTER(_RglmModelWeightsCTHelper), ct.c_char_p, ct.c_bool, ct.c_bool]
+        ret = f(ct.byref(self._CTHelper), filename.encode('utf-8'), verbose, check_digest)
+        if ret != 0:
+            raise Exception('Return code is not zero')
+
+    def write(self, filename, time=None):
+        if time is None:
+            dt = datetime.now()
+            ts = datetime.timestamp(dt)
+            time = int(ts)
+        f = libreversi.rglmdf_model_weights_write_to_binary_file
+        f.restype = ct.c_int
+        f.argtypes = [ct.POINTER(_RglmModelWeightsCTHelper), ct.c_char_p, ct.c_uint64]
+        ret = f(ct.byref(self._CTHelper), filename.encode('utf-8'), time)
+        if ret != 0:
+            raise Exception('Return code is not zero')
+
+    def release(self):
+        f = libreversi.rglmdf_model_weights_release
+        f.restype = None
+        f.argtypes = [ct.POINTER(_RglmModelWeightsCTHelper)]
+        f(ct.byref(self._CTHelper))
+        self.init()
+
+    def print_summary(self):
+        f = libreversi.rglmdf_model_weights_summary_to_stream
+        f.restype = None
+        f.argtypes = [ct.POINTER(_RglmModelWeightsCTHelper), cstdout]
+        f(self._CTHelper, cstdout)
 
 class Rglm:
     """
@@ -843,7 +898,7 @@ class Rglm:
         self.evmap['idx'] = idx
         self.evmap['pidx'] = pidx
         self.evmap['wmean'] = wmean
-        self.evmap = self.evmap.merge(self.vmap[['etype', 'eid', 'idx', 'weight']],
+        self.evmap = self.evmap.merge(self.vmap[['etype', 'eid', 'idx', 'weight', 'count', 'oprobs', 'eprobs']],
                                                   how='left',
                                                   left_on=['etype', 'eid', 'pidx'],
                                                   right_on=['etype', 'eid', 'idx'])
@@ -852,7 +907,12 @@ class Rglm:
         self.evmap.weight.fillna(self.evmap.wmean, inplace=True)
         self.evmap.drop(columns=['idx_y'], inplace=True)
         self.evmap['evid'] = self.evmap.index
-        self.evmap = self.evmap.loc[:, ['evid', 'etype', 'eid', 'idx', 'pidx', 'wmean', 'computed', 'weight']]
+        self.evmap['count'] = self.evmap['count'].fillna(0)
+        self.evmap['count'] = self.evmap['count'].astype('int')
+        self.evmap['oprobs'] = self.evmap['oprobs'].fillna(0)
+        self.evmap['eprobs'] = self.evmap['eprobs'].fillna(0)
+        self.evmap = self.evmap.loc[:, ['evid', 'etype', 'eid', 'idx', 'pidx', 'wmean', 'computed', 'weight', 'count', 'oprobs', 'eprobs']]
+        self.evmap.rename(columns={'count': 'total_cnt'}, inplace=True)
         self.ew = self.evmap['weight'].values
         return self
 
@@ -942,6 +1002,143 @@ class Rglm:
         }
         return self
 
+    def get_model_weights_old(self):
+        """
+        patterns_p = ct.cast(mw._CTHelper.patterns, ct.POINTER(ct.c_int16))
+        np.ctypeslib.as_array(patterns_p, shape=(mw._CTHelper.pattern_cnt,))
+
+        mw0 = RglmModelWeights()
+        mw0.load('tmp/A2050_01.w.dat', True, True)
+        weights_p = ct.cast(mw0._CTHelper.weights, ct.POINTER(reversi.rglm._RglmWeightRecordCTHelper))
+        np.ctypeslib.as_array(weights_p, shape=(mw0._CTHelper.weight_cnt,))
+
+        array([(0,  0,     0,     0,     0, 1999175, 1.00000000e+00, 1.00000000e+00, -7.94579594e+01),
+               (0,  3,     0,     0,     1, 1999175, 1.00000000e+00, 1.00000000e+00,  3.81928442e+00),
+               (0,  3,     1,     1,     2, 1999175, 1.00000000e+00, 1.00000000e+00, -4.90639879e+00),
+                ...,
+               (1, 11, 59046, 59046, 77922,   16514, 1.03255093e-03, 9.39475357e-04, -1.07502442e-02),
+               (1, 11, 59047, 59047, 77923,    6070, 3.79531557e-04, 2.59273395e-04, -1.64292154e-01),
+               (1, 11, 59048, 59048, 77924,   39544, 2.47251991e-03, 1.44404282e-03, -3.26743747e-01)],
+                dtype=[('entity_class', '<i2'), ('entity_id', '<i2'), ('index_value', '<i4'), ('principal_index_value', '<i4'), ('glm_variable_id', '<i4'), ('total_cnt', '<i8'), ('relative_frequency', '<f8'), ('theoretical_probability', '<f8'), ('weight', '<f8')])
+
+        Structured Array - numpy.ndarray
+        """
+        w_size = len(self.ew)
+        
+        mw = RglmModelWeights()
+        c = mw._CTHelper
+        c.file_creation_time = 0
+        c.general_data_checksum = None
+        c.empty_count = self.empty_count
+        c.feature_cnt = len(self.features)
+        c.features = np.array([f.id for f in self.features], dtype=np.int32).ctypes.data_as(ct.c_void_p)
+        c.pattern_cnt = len(self.patterns)
+        c.patterns = np.array([p.id for p in self.patterns], dtype=np.int32).ctypes.data_as(ct.c_void_p)
+        c.weight_cnt = w_size
+
+        #print('patterns')
+        #patterns_p = ct.cast(c.patterns, ct.POINTER(ct.c_int32))
+        #ppp = np.ctypeslib.as_array(patterns_p, shape=(c.pattern_cnt,))
+        #print(ppp)
+
+        weights = np.zeros(w_size, dtype = [('entity_class', '<i2'),
+                                            ('entity_id', '<i2'),
+                                            ('index_value', '<i4'),
+                                            ('principal_index_value', '<i4'),
+                                            ('glm_variable_id', '<i4'),
+                                            ('total_cnt', '<i8'),
+                                            ('relative_frequency', '<f8'),
+                                            ('theoretical_probability', '<f8'),
+                                            ('weight', '<f8')]
+                           )
+        weights['entity_class'] = self.evmap.etype.values
+        weights['entity_id'] = self.evmap.eid.values
+        weights['index_value'] = self.evmap.idx.values
+        weights['principal_index_value'] = self.evmap.pidx.values
+
+        #print('weights - 0')
+        #print(w_size)
+        #print(weights)
+
+        c.weights = weights.ctypes.data_as(ct.c_void_p)
+        ### c.weights = weights.ctypes.data_as(ct.POINTER(reversi.rglm._RglmWeightRecordCTHelper))
+        #weights_p = ct.cast(c.weights, ct.POINTER(reversi.rglm._RglmWeightRecordCTHelper))
+        #abc0 = np.ctypeslib.as_array(weights_p, shape=(w_size,))
+        #print('abc 0')
+        #print(abc0)
+
+        ### Ora mi ricordo ... c'è la corruzione dei dati OUCH !!!
+
+        #print('weights - 1')
+        #print(w_size)
+        #print(weights)
+
+        #temp = weights.ctypes.data_as(ct.c_void_p)
+        #poin = ct.cast(temp, ct.POINTER(reversi.rglm._RglmWeightRecordCTHelper))
+        #abc1 = np.ctypeslib.as_array(poin, shape=(w_size,))
+        #print('abc 1')
+        #print(abc1)
+
+        # TO BE COMPLETED ...
+        # https://stackoverflow.com/questions/3195660/how-to-use-numpy-array-with-ctypes
+
+        return mw
+
+    def get_model_weights(self):
+        
+        mw = RglmModelWeights()
+
+        w_size = len(self.ew)
+        print(w_size)
+
+        mw.allocate_memory_for_arrays(w_size)
+        
+        c = mw._CTHelper
+
+        weights = np.zeros(w_size, dtype = [('entity_class', '<i2'),
+                                            ('entity_id', '<i2'),
+                                            ('index_value', '<i4'),
+                                            ('principal_index_value', '<i4'),
+                                            ('glm_variable_id', '<i4'),
+                                            ('total_cnt', '<i8'),
+                                            ('relative_frequency', '<f8'),
+                                            ('theoretical_probability', '<f8'),
+                                            ('weight', '<f8')]
+                           )
+        weights['entity_class'] = self.evmap.etype.values
+        weights['entity_id'] = self.evmap.eid.values
+        weights['index_value'] = self.evmap.idx.values
+        weights['principal_index_value'] = self.evmap.pidx.values
+        weights['glm_variable_id'] = self.evmap.evid.values
+        weights['total_cnt'] = self.evmap.total_cnt.values
+        weights['relative_frequency'] = self.evmap.oprobs.values
+        weights['theoretical_probability'] = self.evmap.eprobs.values
+        weights['weight'] = self.evmap.weight.values
+
+        ct.memmove(c.weights, weights.ctypes.data, w_size * 48)
+
+        ###
+        ### Il 48 va in qualche manira messo come PARAMETRO e va TESTATO .... DEVE ESSERE TESTATO se no il rischio e' troppo grosso.
+        ###
+        ### Pare funzionare !!!
+        ###
+        ### Bisogna aggiungere gli altri array.
+        ###
+
+        ### >>> weights_p = ct.cast(mw._CTHelper.weights, ct.POINTER(reversi.rglm._RglmWeightRecordCTHelper))
+        ### >>> np.ctypeslib.as_array(weights_p, shape=(6590,))
+        ### array([(0,  0,  0,  0,    0, 199932, 1.        , 1.        , -0.48559556),
+        ###        (0,  1,  0,  0,    1, 199932, 1.        , 1.        ,  2.24770973),
+        ###        (1,  0,  0,  0,    2,  17912, 0.02239762, 0.02031022, -0.11333224),
+        ###        ...,
+        ###        (1, 12, 24,  8, 6587,  67293, 0.08414486, 0.08187263,  0.09392657),
+        ###        (1, 12, 25, 17, 6588,  43117, 0.05391458, 0.05285704,  0.08409392),
+        ###        (1, 12, 26, 26, 6589,  43568, 0.05447852, 0.05189251,  0.15245475)],
+        ###       dtype=[('entity_class', '<i2'), ('entity_id', '<i2'), ('index_value', '<i4'), ('principal_index_value', '<i4'), ('glm_variable_id', '<i4'), ('total_cnt', '<i8'), ('relative_frequency', '<f8'), ('theoretical_probability', '<f8'), ('weight', '<f8')])
+        ###
+
+        return mw
+
     def save(self, fp):
         if self.conn == None:
             conn_established = False
@@ -1011,10 +1208,12 @@ class Rglm:
         f.close()
 
     @classmethod
-    def load(self, fp):
+    def load(cls, fp) -> Rglm:
         f = open(fp, 'rb')
         fields = pickle.load(f)
         f.close()
+
+        mw = Rglm()
 
         conn_established = fields['conn_established']
         if conn_established:
@@ -1023,53 +1222,53 @@ class Rglm:
             conn_host = fields['conn_host']
             conn_port = fields['conn_port']
             conn_password = fields['conn_password']
-            self.conn = RegabDBConnection(dbname=conn_dbname, user=conn_user, host=conn_host, port=conn_port, password=conn_password)
+            mw.conn = RegabDBConnection(dbname=conn_dbname, user=conn_user, host=conn_host, port=conn_port, password=conn_password)
         else:
-            self.conn = None
+            mw.conn = None
         
-        self.empty_count = fields['empty_count']
-        self.batches = fields['batches']
-        self.vld_batches = fields['vld_batches']
-        self.statuses = fields['statuses']
-        self.vld_statuses = fields['vld_statuses']
-        self.game_positions = fields['game_positions']
-        self.vld_game_positions = fields['vld_game_positions']
+        mw.empty_count = fields['empty_count']
+        mw.batches = fields['batches']
+        mw.vld_batches = fields['vld_batches']
+        mw.statuses = fields['statuses']
+        mw.vld_statuses = fields['vld_statuses']
+        mw.game_positions = fields['game_positions']
+        mw.vld_game_positions = fields['vld_game_positions']
         features = fields['features']
-        self.features = None if features == None else [features_as_list[i] for i in features]
-        self.flabel_dict = fields['flabel_dict']
+        mw.features = None if features == None else [features_as_list[i] for i in features]
+        mw.flabel_dict = fields['flabel_dict']
         patterns = fields['patterns']
-        self.patterns = None if patterns == None else [patterns_as_list[i] for i in patterns]
-        self.feature_values = fields['feature_values']
-        self.vld_feature_values = fields['vld_feature_values']
-        self.indexes = fields['indexes']
-        self.vld_indexes = fields['vld_indexes']
-        self.plabel_dict_i0 = fields['plabel_dict_i0']
-        self.plabel_dict_i1 = fields['plabel_dict_i1']
-        self.gpdf = fields['gpdf']
-        self.vld_gpdf = fields['vld_gpdf']
-        self.vmap = fields['vmap']
-        self.ivmap = fields['ivmap']
-        self.gpxpidf = fields['gpxpidf']
-        self.x = fields['x']
-        self.xt = fields['xt']
-        self.y = fields['y']
-        self.yh = fields['yh']
-        self.w = fields['w']
-        self.r = fields['r']
-        self.opt_res = fields['opt_res']
-        self.wmeans = fields['wmeans']
-        self.evmap = fields['evmap']
-        self.ievmap = fields['ievmap']
-        self.ew = fields['ew']
-        self.vld_gpxpidf = fields['vld_gpxpidf']
-        self.vld_x = fields['vld_x']
-        self.vld_xt = fields['vld_xt']
-        self.vld_y = fields['vld_y']
-        self.vld_yh = fields['vld_yh']
-        self.vld_r = fields['vld_r']
-        self.vld_summary = fields['vld_summary']
+        mw.patterns = None if patterns == None else [patterns_as_list[i] for i in patterns]
+        mw.feature_values = fields['feature_values']
+        mw.vld_feature_values = fields['vld_feature_values']
+        mw.indexes = fields['indexes']
+        mw.vld_indexes = fields['vld_indexes']
+        mw.plabel_dict_i0 = fields['plabel_dict_i0']
+        mw.plabel_dict_i1 = fields['plabel_dict_i1']
+        mw.gpdf = fields['gpdf']
+        mw.vld_gpdf = fields['vld_gpdf']
+        mw.vmap = fields['vmap']
+        mw.ivmap = fields['ivmap']
+        mw.gpxpidf = fields['gpxpidf']
+        mw.x = fields['x']
+        mw.xt = fields['xt']
+        mw.y = fields['y']
+        mw.yh = fields['yh']
+        mw.w = fields['w']
+        mw.r = fields['r']
+        mw.opt_res = fields['opt_res']
+        mw.wmeans = fields['wmeans']
+        mw.evmap = fields['evmap']
+        mw.ievmap = fields['ievmap']
+        mw.ew = fields['ew']
+        mw.vld_gpxpidf = fields['vld_gpxpidf']
+        mw.vld_x = fields['vld_x']
+        mw.vld_xt = fields['vld_xt']
+        mw.vld_y = fields['vld_y']
+        mw.vld_yh = fields['vld_yh']
+        mw.vld_r = fields['vld_r']
+        mw.vld_summary = fields['vld_summary']
         
-        return self
+        return mw
 
 test_run_0 = {'cfg_fname': 'cfg/regab.cfg',
               'env': 'test',

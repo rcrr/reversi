@@ -565,6 +565,22 @@ extern void
 rglmdf_model_weights_release (rglmdf_model_weights_t *mw);
 
 /**
+ * @brief Allocates memory for the arrays in the substructures of `mw`.
+ *
+ * @details It is used by the python code to create the structure and
+ * populate it using the pandas and numpy structures.
+ *
+ * @invariant Parameter `mw` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] mw reference to the model weights structure
+ * @return            on success `EXIT_SUCCESS` otherwise `EXIT_FAILURE`
+ */
+extern int
+rglmdf_model_weights_allocate_memory (rglmdf_model_weights_t *const mw,
+                                      size_t weight_cnt);
+
+/**
  * @brief Frees all the allocated memory in the substructures of `mw`.
  *
  * @invariant Parameter `mw` must be not `NULL`.

@@ -283,6 +283,34 @@ rglmdf_model_weights_init (rglmdf_model_weights_t *const mw)
   mw->reverse_map_mw_b = NULL;
 }
 
+int
+rglmdf_model_weights_allocate_memory (rglmdf_model_weights_t *const mw,
+                                      size_t weight_cnt)
+{
+  assert(mw);
+  printf("rglmdf_model_weights_allocate_memory: begin\n");
+
+  size_t record_lenght = sizeof(rglmdf_weight_record_t);
+  printf("weights record_lenght = %zu\n", record_lenght);
+  printf("Weights record count  = %zu\n", weight_cnt);
+
+  /* Allocates memory for the weights array. */
+  if (mw->weights) {
+    free(mw->weights);
+    mw->weights = NULL;
+  }
+  mw->weights = (rglmdf_weight_record_t *) malloc(sizeof(rglmdf_weight_record_t) * weight_cnt);
+  if (!mw->weights) {
+    fprintf(stderr, "Unamble to allocate memory for the patterns field.\n");
+    return EXIT_FAILURE;
+  }
+  mw->weight_cnt = weight_cnt;
+  printf("Allocated %zu bytes of memory for mw->weights\n", record_lenght * weight_cnt);
+
+  printf("rglmdf_model_weights_allocate_memory: end\n");
+  return EXIT_SUCCESS;
+}
+
 void
 rglmdf_model_weights_release (rglmdf_model_weights_t *const mw)
 {

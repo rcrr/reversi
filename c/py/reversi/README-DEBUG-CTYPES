@@ -1,0 +1,83 @@
+
+2023-05-06
+
+Descrizione del problema ....
+
+Devo salvare la ottimizzazione fatta don python e creare quindi il file model weights.
+
+Prima di tutto creiamo il modello:
+
+>>> m = rglm_workflow(test_run_0)
+m = Rglm()                                                                       0 days 00:00:00.000013615
+m = m.set_conn(<reversi.regab.RegabDBConnection object at 0x7f5a462ea1d0>)       0 days 00:00:00.000003633
+m = m.set_empty_count(20)                                                        0 days 00:00:00.000004449
+m = m.set_batches([6])                                                           0 days 00:00:00.000007665
+m = m.set_vld_batches([5])                                                       0 days 00:00:00.000004914
+m = m.set_statuses(CMR,CMS)                                                      0 days 00:00:00.000015102
+m = m.set_vld_statuses(CMR,CMS)                                                  0 days 00:00:00.000008156
+m = m.retrieve_game_positions()                                                  0 days 00:00:01.177367537
+m = m.retrieve_vld_game_positions()                                              0 days 00:00:00.085047251
+m = m.set_features(INTERCEPT,MOBILITY)                                           0 days 00:00:00.000011840
+m = m.set_patterns(EDGE,DIAG3)                                                   0 days 00:00:00.000007082
+m = m.compute_feature_values()                                                   0 days 00:00:07.660350574
+m = m.compute_indexes()                                                          0 days 00:00:12.908818499
+m = m.combine_gps_features_patterns()                                            0 days 00:00:00.005934060
+m = m.compute_vmaps()                                                            0 days 00:00:00.057282616
+m = m.compute_gpxpidf()                                                          0 days 00:00:02.575287969
+m = m.compute_x()                                                                0 days 00:00:00.149484764
+m = m.compute_y()                                                                0 days 00:00:00.000647972
+m = m.compute_analytics()                                                        0 days 00:00:01.243786782
+m = m.optimize(0.1, {...})                                                       0 days 00:00:10.243182519
+   l_bfgs_b_options = {'disp': False, 'maxcor': 50, 'ftol': 1e-08, 'gtol': 1e-05, 'eps': 1e-08, 'maxfun': 5000, 'maxiter': 5000, 'iprint': 1, 'maxls': 20, 'finite_diff_rel_step': None}
+m = m.compute_wmean_for_patterns()                                               0 days 00:00:00.004206248
+m = m.compute_evmap()                                                            0 days 00:00:00.119725910
+m = m.compute_ievmap()                                                           0 days 00:00:00.001660399
+m = m.compute_vld_gpxpidf()                                                      0 days 00:00:00.250948428
+m = m.compute_vld_x()                                                            0 days 00:00:00.011363500
+m = m.compute_vld_y()                                                            0 days 00:00:00.000529041
+m = m.validate()                                                                 0 days 00:00:00.017519116
+
+Ora il tema e' di salvare il model weights dal modello.
+C'e' un metodo: get_model_weights che restituisce un oggetto RglmModelWeights.
+
+>>> mv = m.get_model_weights()
+patterns
+[ 0 12]
+weights - 0
+6590
+[(0,  0,  0,  0, 0, 0, 0., 0., 0.) (0,  1,  0,  0, 0, 0, 0., 0., 0.)
+ (1,  0,  0,  0, 0, 0, 0., 0., 0.) ... (1, 12, 24,  8, 0, 0, 0., 0., 0.)
+ (1, 12, 25, 17, 0, 0, 0., 0., 0.) (1, 12, 26, 26, 0, 0, 0., 0., 0.)]
+abc
+[(0,  0,  0,  0, 0, 0, 0., 0., 0.) (0,  1,  0,  0, 0, 0, 0., 0., 0.)
+ (1,  0,  0,  0, 0, 0, 0., 0., 0.) ... (1, 12, 24,  8, 0, 0, 0., 0., 0.)
+ (1, 12, 25, 17, 0, 0, 0., 0., 0.) (1, 12, 26, 26, 0, 0, 0., 0., 0.)]
+weights - 1
+6590
+[(0,  0,  0,  0, 0, 0, 0., 0., 0.) (0,  1,  0,  0, 0, 0, 0., 0., 0.)
+ (1,  0,  0,  0, 0, 0, 0., 0., 0.) ... (1, 12, 24,  8, 0, 0, 0., 0., 0.)
+ (1, 12, 25, 17, 0, 0, 0., 0., 0.) (1, 12, 26, 26, 0, 0, 0., 0., 0.)]
+
+I print-out sono di debug ...
+
+>>> mw
+<reversi.rglm.RglmModelWeights object at 0x7f5a30fb4e20>
+
+Ma c'e' un problema di corruzione ( sospetta ) della memoria ...
+
+>>> mw._CTHelper.weights
+94802764197136
+>>> weights_p = ct.cast(mw._CTHelper.weights, ct.POINTER(reversi.rglm._RglmWeightRecordCTHelper))
+>>> weights_p
+<reversi.rglm.LP__RglmWeightRecordCTHelper object at 0x7f5a34717140>
+>>> np.ctypeslib.as_array(weights_p, shape=(mw._CTHelper.weight_cnt,))
+array([(-23376, 18113, 32602, -20882624, 22072, 94802870771232, 4.68388063e-310, 0., 0.),
+       (     0,     1,     0,         0,     0,              0, 0.00000000e+000, 0., 0.),
+       (     1,     0,     0,         0,     0,              0, 0.00000000e+000, 0., 0.),
+       ...,
+       (     1,    12,    24,         8,     0,              0, 0.00000000e+000, 0., 0.),
+       (     1,    12,    25,        17,     0,              0, 0.00000000e+000, 0., 0.),
+       (     1,    12,    26,        26,     0,              0, 0.00000000e+000, 0., 0.)],
+      dtype=[('entity_class', '<i2'), ('entity_id', '<i2'), ('index_value', '<i4'), ('principal_index_value', '<i4'), ('glm_variable_id', '<i4'), ('total_cnt', '<i8'), ('relative_frequency', '<f8'), ('theoretical_probability', '<f8'), ('weight', '<f8')])
+
+Il primo record e' corrotto ...
