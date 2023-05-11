@@ -135,10 +135,52 @@ rglmdf_transform_piv_to_glm_variable_id (rglmdf_general_data_t *gd)
   }
 }
 
+/* Wrapper for the fwrite library function. */
+static size_t
+fwrite2 (const void *ptr,
+         size_t size,
+         size_t nmemb,
+         FILE *stream,
+         size_t *written_byte_count)
+{
+  size_t n;
+  n = fwrite(ptr, size, nmemb, stream);
+  *written_byte_count = n * nmemb;
+  return n;
+}
+
+
+
+/*
+ * Public functions.
+ */
+
+int
+rglmdf_get_endianness (void)
+{
+  int ret;
+  const uint32_t u32 = 1;
+  const char *const c = (char *) &u32;
+  if (*c) {
+    assert(*(c+0) == 0x01);
+    assert(*(c+1) == 0x00);
+    assert(*(c+2) == 0x00);
+    assert(*(c+3) == 0x00);
+    ret = 0;
+  } else {
+    assert(*(c+0) == 0x00);
+    assert(*(c+1) == 0x00);
+    assert(*(c+2) == 0x00);
+    assert(*(c+3) == 0x01);
+    ret = 1;
+  }
+  return ret;
+}
+
 /* Computes and populates the field reverse_map_mw_a and reverse_map_mw_b.
  * The function must be called after the weights table has been populated.
  */
-static int
+int
 rglmdf_model_veights_compute_reverse_map (rglmdf_model_weights_t *const mw)
 {
 
@@ -196,48 +238,6 @@ rglmdf_model_veights_compute_reverse_map (rglmdf_model_weights_t *const mw)
   return EXIT_SUCCESS;
 }
 
-/* Wrapper for the fwrite library function. */
-static size_t
-fwrite2 (const void *ptr,
-         size_t size,
-         size_t nmemb,
-         FILE *stream,
-         size_t *written_byte_count)
-{
-  size_t n;
-  n = fwrite(ptr, size, nmemb, stream);
-  *written_byte_count = n * nmemb;
-  return n;
-}
-
-
-
-/*
- * Public functions.
- */
-
-int
-rglmdf_get_endianness (void)
-{
-  int ret;
-  const uint32_t u32 = 1;
-  const char *const c = (char *) &u32;
-  if (*c) {
-    assert(*(c+0) == 0x01);
-    assert(*(c+1) == 0x00);
-    assert(*(c+2) == 0x00);
-    assert(*(c+3) == 0x00);
-    ret = 0;
-  } else {
-    assert(*(c+0) == 0x00);
-    assert(*(c+1) == 0x00);
-    assert(*(c+2) == 0x00);
-    assert(*(c+3) == 0x01);
-    ret = 1;
-  }
-  return ret;
-}
-
 bool
 rglmdf_verify_type_sizes (void)
 {
@@ -285,29 +285,75 @@ rglmdf_model_weights_init (rglmdf_model_weights_t *const mw)
 
 int
 rglmdf_model_weights_allocate_memory (rglmdf_model_weights_t *const mw,
-                                      size_t weight_cnt)
+                                      size_t feature_cnt,
+                                      size_t pattern_cnt,
+                                      size_t weight_cnt,
+                                      size_t feature_record_size,
+                                      size_t pattern_record_size,
+                                      size_t weight_record_size)
 {
   assert(mw);
-  printf("rglmdf_model_weights_allocate_memory: begin\n");
 
-  size_t record_lenght = sizeof(rglmdf_weight_record_t);
-  printf("weights record_lenght = %zu\n", record_lenght);
-  printf("Weights record count  = %zu\n", weight_cnt);
+  /* Fields feature_cnt and features.*/
+  size_t f_record_lenght = sizeof(board_feature_id_t);
+  if (f_record_lenght != feature_record_size) {
+    fprintf(stderr, "Features record_lenght            = %zu\n", f_record_lenght);
+    fprintf(stderr, "Features record count             = %zu\n", feature_cnt);
+    fprintf(stderr, "Features record size from caller  = %zu\n", feature_record_size);
+    fprintf(stderr, "The caller is expecting a record size different from the one here defined.\n");
+    return EXIT_FAILURE;
+  }
+  if (mw->features) {
+    free(mw->features);
+    mw->features = NULL;
+  }
+  mw->features = (board_feature_id_t *) malloc(f_record_lenght * feature_cnt);
+  if (!mw->features) {
+    fprintf(stderr, "Unamble to allocate memory for the features field.\n");
+    return EXIT_FAILURE;
+  }
+  mw->feature_cnt = feature_cnt;
+
+  /* Fields pattern_cnt and patterns. */
+  size_t p_record_lenght = sizeof(board_pattern_id_t);
+  if (p_record_lenght != pattern_record_size) {
+    fprintf(stderr, "Patterns record_lenght            = %zu\n", p_record_lenght);
+    fprintf(stderr, "Patterns record count             = %zu\n", pattern_cnt);
+    fprintf(stderr, "Patterns record size from caller  = %zu\n", pattern_record_size);
+    fprintf(stderr, "The caller is expecting a record size different from the one here defined.\n");
+    return EXIT_FAILURE;
+  }
+  if (mw->patterns) {
+    free(mw->patterns);
+    mw->patterns = NULL;
+  }
+  mw->patterns = (board_pattern_id_t *) malloc(p_record_lenght * pattern_cnt);
+  if (!mw->patterns) {
+    fprintf(stderr, "Unamble to allocate memory for the patterns field.\n");
+    return EXIT_FAILURE;
+  }
+  mw->pattern_cnt = pattern_cnt;
 
   /* Allocates memory for the weights array. */
+  size_t w_record_lenght = sizeof(rglmdf_weight_record_t);
+  if (w_record_lenght != weight_record_size) {
+    fprintf(stderr, "Weights record_lenght = %zu\n", w_record_lenght);
+    fprintf(stderr, "Weights record count  = %zu\n", weight_cnt);
+    fprintf(stderr, "Weights record size from caller  = %zu\n", weight_record_size);
+    fprintf(stderr, "The caller is expecting a record size different from the one here defined.\n");
+    return EXIT_FAILURE;
+  }
   if (mw->weights) {
     free(mw->weights);
     mw->weights = NULL;
   }
-  mw->weights = (rglmdf_weight_record_t *) malloc(sizeof(rglmdf_weight_record_t) * weight_cnt);
+  mw->weights = (rglmdf_weight_record_t *) malloc(w_record_lenght * weight_cnt);
   if (!mw->weights) {
     fprintf(stderr, "Unamble to allocate memory for the patterns field.\n");
     return EXIT_FAILURE;
   }
   mw->weight_cnt = weight_cnt;
-  printf("Allocated %zu bytes of memory for mw->weights\n", record_lenght * weight_cnt);
 
-  printf("rglmdf_model_weights_allocate_memory: end\n");
   return EXIT_SUCCESS;
 }
 

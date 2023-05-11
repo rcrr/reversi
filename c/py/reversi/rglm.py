@@ -50,6 +50,7 @@ import pickle
 import ctypes as ct
 
 
+
 #
 # To do:
 #
@@ -85,25 +86,17 @@ import ctypes as ct
 #
 # -7- Code tests ....
 #
-# -8- Read/Write the RGLM Model Weights file format ...
+# -8- [done] Read/Write the RGLM Model Weights file format ...
 #     - read works
 #     - remember to free the mw helper object !!!
 #     - reorganize he methods as _CT class methods ...
 #
 
-def _rglmdf_model_weights_write_to_binary_file(mv : _RglmModelWeightsCTHelper,
-                                               filename : str,
-                                               time : int) -> int:
-    pass
-
-# np.ctypeslib.as_array((ct.c_double * mw._CTHelper.weight_cnt).from_address(mw._CTHelper.weights))
-# https://stackoverflow.com/questions/4355524/getting-data-from-ctypes-array-into-numpy
-#
-# ctypes_pntr = ctypes.cast(mw._CTHelper.weights, ctypes.POINTER(reversi.rglm._RglmWeightRecordCTHelper))
-# x = np.ctypeslib.as_array(ctypes_pntr, shape=(mw._CTHelper.weight_cnt,))
-#
-
 class _RglmWeightRecordCTHelper(ct.Structure):
+    """
+    This is the record definition of the weights array.
+    """
+    
     _fields_ = [
         ("entity_class", ct.c_int16),
         ("entity_id", ct.c_int16),
@@ -117,6 +110,11 @@ class _RglmWeightRecordCTHelper(ct.Structure):
     ]
     
 class _RglmModelWeightsCTHelper(ct.Structure):
+    """
+    Load and store the rglmdf_model_weights_t C data structure as defined in the
+    rglm_data_files.h C header file.
+    """
+    
     _fields_ = [
         ("file_creation_time", ct.c_uint64),
         ("general_data_checksum", ct.c_void_p),
@@ -132,45 +130,46 @@ class _RglmModelWeightsCTHelper(ct.Structure):
         ("reverse_map_mw_b", ct.c_void_p),
     ]
 
-libc = ct.cdll.LoadLibrary('libc.so.6')
-cstdout = ct.c_void_p.in_dll(libc, 'stdout')
-
-class RglmModelWeights:
-    """
-    Load and store the rglmdf_model_weights_t C data structure as defined in the
-    rglm_data_files.h C header file.
-    """
     def __init__(self):
-        """
-        Init the class.
-        """
-        self._CTHelper = _RglmModelWeightsCTHelper()
-        self.init()
-
-    def init(self):
         f = libreversi.rglmdf_model_weights_init
         f.restype = None
         f.argtypes = [ct.POINTER(_RglmModelWeightsCTHelper)]
-        ct_rglmdf_model_weights_p = ct.byref(self._CTHelper)
+        ct_rglmdf_model_weights_p = ct.byref(self)
         f(ct_rglmdf_model_weights_p)
 
-    def allocate_memory_for_arrays(self, weight_cnt : int):
+    def __del__(self):
+        f = libreversi.rglmdf_model_weights_release
+        f.restype = None
+        f.argtypes = [ct.POINTER(_RglmModelWeightsCTHelper)]
+        f(ct.byref(self))
+    
+    def allocate_memory_for_arrays(self, feature_cnt : int, pattern_cnt : int, weight_cnt : int,
+                                   feature_record_size : int, pattern_record_size : int, weight_record_size : int):
         f = libreversi.rglmdf_model_weights_allocate_memory
         f.restype = ct.c_int
-        f.argtypes = [ct.POINTER(_RglmModelWeightsCTHelper), ct.c_size_t]
-        ct_rglmdf_model_weights_p = ct.byref(self._CTHelper)
-        ret = f(ct_rglmdf_model_weights_p, weight_cnt)
+        f.argtypes = [ct.POINTER(_RglmModelWeightsCTHelper),
+                      ct.c_size_t, ct.c_size_t, ct.c_size_t,
+                      ct.c_size_t, ct.c_size_t, ct.c_size_t]
+        ct_rglmdf_model_weights_p = ct.byref(self)
+        ret = f(ct_rglmdf_model_weights_p, feature_cnt, pattern_cnt, weight_cnt,
+                feature_record_size, pattern_record_size, weight_record_size)
         if ret != 0:
             raise Exception('Return code is not zero')
-    
+        
+    def print_summary(self):
+        f = libreversi.rglmdf_model_weights_summary_to_stream
+        f.restype = None
+        f.argtypes = [ct.POINTER(_RglmModelWeightsCTHelper), cstdout]
+        f(self, cstdout)
+        
     def load(self, filename : str, verbose : bool, check_digest : bool):
         f = libreversi.rglmdf_model_weights_read_from_binary_file
         f.restype = ct.c_int
         f.argtypes = [ct.POINTER(_RglmModelWeightsCTHelper), ct.c_char_p, ct.c_bool, ct.c_bool]
-        ret = f(ct.byref(self._CTHelper), filename.encode('utf-8'), verbose, check_digest)
+        ret = f(ct.byref(self), filename.encode('utf-8'), verbose, check_digest)
         if ret != 0:
             raise Exception('Return code is not zero')
-
+        
     def write(self, filename, time=None):
         if time is None:
             dt = datetime.now()
@@ -179,23 +178,51 @@ class RglmModelWeights:
         f = libreversi.rglmdf_model_weights_write_to_binary_file
         f.restype = ct.c_int
         f.argtypes = [ct.POINTER(_RglmModelWeightsCTHelper), ct.c_char_p, ct.c_uint64]
-        ret = f(ct.byref(self._CTHelper), filename.encode('utf-8'), time)
+        ret = f(ct.byref(self), filename.encode('utf-8'), time)
         if ret != 0:
             raise Exception('Return code is not zero')
 
-    def release(self):
-        f = libreversi.rglmdf_model_weights_release
-        f.restype = None
-        f.argtypes = [ct.POINTER(_RglmModelWeightsCTHelper)]
-        f(ct.byref(self._CTHelper))
-        self.init()
+class RglmModelWeights:
+    """
+    RGLM Model Weight class collects the weight array for a given model.
+    Most of the work is done by the C implementation.
+    """
+    def __init__(self):
+        self._CTHelper = _RglmModelWeightsCTHelper()
+
+    def __del__(self):
+        self._CTHelper = None
+
+    def allocate_memory_for_arrays(self, feature_cnt : int, pattern_cnt : int, weight_cnt : int,
+                                   feature_record_size : int, pattern_record_size : int, weight_record_size : int):
+        self._CTHelper.allocate_memory_for_arrays(feature_cnt, pattern_cnt, weight_cnt,
+                                                  feature_record_size, pattern_record_size, weight_record_size)
+    
+    def load(self, filename : str, verbose : bool, check_digest : bool):
+        self._CTHelper.load(filename, verbose, check_digest)
+
+    def write(self, filename, time=None):
+        self._CTHelper.write(filename, time)
 
     def print_summary(self):
-        f = libreversi.rglmdf_model_weights_summary_to_stream
-        f.restype = None
-        f.argtypes = [ct.POINTER(_RglmModelWeightsCTHelper), cstdout]
-        f(self._CTHelper, cstdout)
+        self._CTHelper.print_summary()
 
+    def get_features_as_numpy_array(self):
+        features_p = ct.cast(self._CTHelper.features, ct.POINTER(ct.c_int32))
+        features = np.ctypeslib.as_array(features_p, shape=(self._CTHelper.feature_cnt,))
+        return features
+
+    def get_patterns_as_numpy_array(self):
+        patterns_p = ct.cast(self._CTHelper.patterns, ct.POINTER(ct.c_int32))
+        patterns = np.ctypeslib.as_array(patterns_p, shape=(self._CTHelper.pattern_cnt,))
+        return patterns
+
+    def get_weights_as_numpy_array(self):
+        weights_p = ct.cast(self._CTHelper.weights, ct.POINTER(reversi.rglm._RglmWeightRecordCTHelper))
+        weights = np.ctypeslib.as_array(weights_p, shape=(self._CTHelper.weight_cnt,))
+        return weights
+        
+        
 class Rglm:
     """
     RGLM - Reversi Generalized Linear Model
@@ -1002,109 +1029,31 @@ class Rglm:
         }
         return self
 
-    def get_model_weights_old(self):
-        """
-        patterns_p = ct.cast(mw._CTHelper.patterns, ct.POINTER(ct.c_int16))
-        np.ctypeslib.as_array(patterns_p, shape=(mw._CTHelper.pattern_cnt,))
-
-        mw0 = RglmModelWeights()
-        mw0.load('tmp/A2050_01.w.dat', True, True)
-        weights_p = ct.cast(mw0._CTHelper.weights, ct.POINTER(reversi.rglm._RglmWeightRecordCTHelper))
-        np.ctypeslib.as_array(weights_p, shape=(mw0._CTHelper.weight_cnt,))
-
-        array([(0,  0,     0,     0,     0, 1999175, 1.00000000e+00, 1.00000000e+00, -7.94579594e+01),
-               (0,  3,     0,     0,     1, 1999175, 1.00000000e+00, 1.00000000e+00,  3.81928442e+00),
-               (0,  3,     1,     1,     2, 1999175, 1.00000000e+00, 1.00000000e+00, -4.90639879e+00),
-                ...,
-               (1, 11, 59046, 59046, 77922,   16514, 1.03255093e-03, 9.39475357e-04, -1.07502442e-02),
-               (1, 11, 59047, 59047, 77923,    6070, 3.79531557e-04, 2.59273395e-04, -1.64292154e-01),
-               (1, 11, 59048, 59048, 77924,   39544, 2.47251991e-03, 1.44404282e-03, -3.26743747e-01)],
-                dtype=[('entity_class', '<i2'), ('entity_id', '<i2'), ('index_value', '<i4'), ('principal_index_value', '<i4'), ('glm_variable_id', '<i4'), ('total_cnt', '<i8'), ('relative_frequency', '<f8'), ('theoretical_probability', '<f8'), ('weight', '<f8')])
-
-        Structured Array - numpy.ndarray
-        """
-        w_size = len(self.ew)
-        
-        mw = RglmModelWeights()
-        c = mw._CTHelper
-        c.file_creation_time = 0
-        c.general_data_checksum = None
-        c.empty_count = self.empty_count
-        c.feature_cnt = len(self.features)
-        c.features = np.array([f.id for f in self.features], dtype=np.int32).ctypes.data_as(ct.c_void_p)
-        c.pattern_cnt = len(self.patterns)
-        c.patterns = np.array([p.id for p in self.patterns], dtype=np.int32).ctypes.data_as(ct.c_void_p)
-        c.weight_cnt = w_size
-
-        #print('patterns')
-        #patterns_p = ct.cast(c.patterns, ct.POINTER(ct.c_int32))
-        #ppp = np.ctypeslib.as_array(patterns_p, shape=(c.pattern_cnt,))
-        #print(ppp)
-
-        weights = np.zeros(w_size, dtype = [('entity_class', '<i2'),
-                                            ('entity_id', '<i2'),
-                                            ('index_value', '<i4'),
-                                            ('principal_index_value', '<i4'),
-                                            ('glm_variable_id', '<i4'),
-                                            ('total_cnt', '<i8'),
-                                            ('relative_frequency', '<f8'),
-                                            ('theoretical_probability', '<f8'),
-                                            ('weight', '<f8')]
-                           )
-        weights['entity_class'] = self.evmap.etype.values
-        weights['entity_id'] = self.evmap.eid.values
-        weights['index_value'] = self.evmap.idx.values
-        weights['principal_index_value'] = self.evmap.pidx.values
-
-        #print('weights - 0')
-        #print(w_size)
-        #print(weights)
-
-        c.weights = weights.ctypes.data_as(ct.c_void_p)
-        ### c.weights = weights.ctypes.data_as(ct.POINTER(reversi.rglm._RglmWeightRecordCTHelper))
-        #weights_p = ct.cast(c.weights, ct.POINTER(reversi.rglm._RglmWeightRecordCTHelper))
-        #abc0 = np.ctypeslib.as_array(weights_p, shape=(w_size,))
-        #print('abc 0')
-        #print(abc0)
-
-        ### Ora mi ricordo ... c'è la corruzione dei dati OUCH !!!
-
-        #print('weights - 1')
-        #print(w_size)
-        #print(weights)
-
-        #temp = weights.ctypes.data_as(ct.c_void_p)
-        #poin = ct.cast(temp, ct.POINTER(reversi.rglm._RglmWeightRecordCTHelper))
-        #abc1 = np.ctypeslib.as_array(poin, shape=(w_size,))
-        #print('abc 1')
-        #print(abc1)
-
-        # TO BE COMPLETED ...
-        # https://stackoverflow.com/questions/3195660/how-to-use-numpy-array-with-ctypes
-
-        return mw
-
     def get_model_weights(self):
         
-        mw = RglmModelWeights()
+        feature_cnt = len(self.features)
+        pattern_cnt = len(self.patterns)
+        weight_cnt = len(self.ew)
 
-        w_size = len(self.ew)
-        print(w_size)
+        features = np.array([f.id for f in self.features], dtype=np.int32)
+        feature_record_size = features.itemsize
+        if ct.sizeof(ct.c_int32) != feature_record_size:
+            raise Exception('Sizeof features record is not defined consistently.')
 
-        mw.allocate_memory_for_arrays(w_size)
-        
-        c = mw._CTHelper
+        patterns = np.array([p.id for p in self.patterns], dtype=np.int32)
+        pattern_record_size = patterns.itemsize
+        if ct.sizeof(ct.c_int32) != pattern_record_size:
+            raise Exception('Sizeof patterns record is not defined consistently.')
 
-        weights = np.zeros(w_size, dtype = [('entity_class', '<i2'),
-                                            ('entity_id', '<i2'),
-                                            ('index_value', '<i4'),
-                                            ('principal_index_value', '<i4'),
-                                            ('glm_variable_id', '<i4'),
-                                            ('total_cnt', '<i8'),
-                                            ('relative_frequency', '<f8'),
-                                            ('theoretical_probability', '<f8'),
-                                            ('weight', '<f8')]
-                           )
+        weights = np.zeros(weight_cnt, dtype = [('entity_class', '<i2'),
+                                                ('entity_id', '<i2'),
+                                                ('index_value', '<i4'),
+                                                ('principal_index_value', '<i4'),
+                                                ('glm_variable_id', '<i4'),
+                                                ('total_cnt', '<i8'),
+                                                ('relative_frequency', '<f8'),
+                                                ('theoretical_probability', '<f8'),
+                                                ('weight', '<f8')])
         weights['entity_class'] = self.evmap.etype.values
         weights['entity_id'] = self.evmap.eid.values
         weights['index_value'] = self.evmap.idx.values
@@ -1114,29 +1063,30 @@ class Rglm:
         weights['relative_frequency'] = self.evmap.oprobs.values
         weights['theoretical_probability'] = self.evmap.eprobs.values
         weights['weight'] = self.evmap.weight.values
+        weight_record_size = weights.itemsize
+        if ct.sizeof(_RglmWeightRecordCTHelper) != weight_record_size:
+            raise Exception('Sizeof weights record is not defined consistently.')
+        
+        mw = RglmModelWeights()
+        mw.allocate_memory_for_arrays(feature_cnt, pattern_cnt, weight_cnt,
+                                      feature_record_size, pattern_record_size, weight_record_size)
+        
+        c = mw._CTHelper
+        c.file_creation_time = 0
+        c.general_data_checksum = None
+        c.empty_count = self.empty_count
+        c.gp_sample_size = len(self.game_positions)
+ 
+        ct.memmove(c.features, features.ctypes.data, feature_cnt * feature_record_size)
+        ct.memmove(c.patterns, patterns.ctypes.data, pattern_cnt * pattern_record_size)
+        ct.memmove(c.weights, weights.ctypes.data, weight_cnt * weight_record_size)
 
-        ct.memmove(c.weights, weights.ctypes.data, w_size * 48)
-
-        ###
-        ### Il 48 va in qualche manira messo come PARAMETRO e va TESTATO .... DEVE ESSERE TESTATO se no il rischio e' troppo grosso.
-        ###
-        ### Pare funzionare !!!
-        ###
-        ### Bisogna aggiungere gli altri array.
-        ###
-
-        ### >>> weights_p = ct.cast(mw._CTHelper.weights, ct.POINTER(reversi.rglm._RglmWeightRecordCTHelper))
-        ### >>> np.ctypeslib.as_array(weights_p, shape=(6590,))
-        ### array([(0,  0,  0,  0,    0, 199932, 1.        , 1.        , -0.48559556),
-        ###        (0,  1,  0,  0,    1, 199932, 1.        , 1.        ,  2.24770973),
-        ###        (1,  0,  0,  0,    2,  17912, 0.02239762, 0.02031022, -0.11333224),
-        ###        ...,
-        ###        (1, 12, 24,  8, 6587,  67293, 0.08414486, 0.08187263,  0.09392657),
-        ###        (1, 12, 25, 17, 6588,  43117, 0.05391458, 0.05285704,  0.08409392),
-        ###        (1, 12, 26, 26, 6589,  43568, 0.05447852, 0.05189251,  0.15245475)],
-        ###       dtype=[('entity_class', '<i2'), ('entity_id', '<i2'), ('index_value', '<i4'), ('principal_index_value', '<i4'), ('glm_variable_id', '<i4'), ('total_cnt', '<i8'), ('relative_frequency', '<f8'), ('theoretical_probability', '<f8'), ('weight', '<f8')])
-        ###
-
+        f = libreversi.rglmdf_model_veights_compute_reverse_map
+        f.restype = None
+        f.argtypes = [ct.POINTER(_RglmModelWeightsCTHelper)]
+        ct_rglmdf_model_weights_p = ct.byref(mw._CTHelper)
+        f(ct_rglmdf_model_weights_p)        
+        
         return mw
 
     def save(self, fp):

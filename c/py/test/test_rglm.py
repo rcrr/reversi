@@ -5,7 +5,7 @@
 # http://github.com/rcrr/reversi
 # 
 # Aauthor Roberto Corradini mailto:rob_corradini@yahoo.it
-# Copyright 2022 Roberto Corradini. All rights reserved.
+# Copyright 2022, 2023 Roberto Corradini. All rights reserved.
 #
 # License
 # 
@@ -164,6 +164,8 @@ class TestRglm(unittest.TestCase):
             .compute_gpxpidf() \
             .compute_x() \
             .compute_y()
+        
+        # Calling compute_analytics() would require a more complete duckdb definition.
         
         self.assertIsInstance(m, Rglm)
         m.close_conn()

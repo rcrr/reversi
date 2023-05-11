@@ -25,6 +25,8 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
  
+from reversi import libc as libc
+from reversi import cstdout as cstdout
 from reversi import libreversi as libreversi
 
 import ctypes as ct

@@ -567,18 +567,37 @@ rglmdf_model_weights_release (rglmdf_model_weights_t *mw);
 /**
  * @brief Allocates memory for the arrays in the substructures of `mw`.
  *
+ * @details Computes and populates the field reverse_map_mw_a and reverse_map_mw_b.
+ * The function must be called after the weights table has been populated.
+ *
+ * @param [in,out] mw reference to the model weights structure
+ */
+extern int
+rglmdf_model_veights_compute_reverse_map (rglmdf_model_weights_t *const mw);
+
+/**
+ * @brief Allocates memory for the arrays in the substructures of `mw`.
+ *
  * @details It is used by the python code to create the structure and
  * populate it using the pandas and numpy structures.
  *
  * @invariant Parameter `mw` must be not `NULL`.
  * The invariant is guarded by an assertion.
  *
- * @param [in,out] mw reference to the model weights structure
- * @return            on success `EXIT_SUCCESS` otherwise `EXIT_FAILURE`
+ * @param [in,out] mw          reference to the model weights structure
+ * @param [in]     feature_cnt number of features of the model
+ * @param [in]     pattern_cnt number of patterns of the model
+ * @param [in]     weight_cnt  number of weights  of the model
+ * @return                     on success `EXIT_SUCCESS` otherwise `EXIT_FAILURE`
  */
 extern int
 rglmdf_model_weights_allocate_memory (rglmdf_model_weights_t *const mw,
-                                      size_t weight_cnt);
+                                      size_t feature_cnt,
+                                      size_t pattern_cnt,
+                                      size_t weight_cnt,
+                                      size_t feature_record_size,
+                                      size_t pattern_record_size,
+                                      size_t weight_record_size);
 
 /**
  * @brief Frees all the allocated memory in the substructures of `mw`.

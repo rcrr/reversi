@@ -5,7 +5,7 @@
 # http://github.com/rcrr/reversi
 # 
 # Aauthor Roberto Corradini mailto:rob_corradini@yahoo.it
-# Copyright 2022 Roberto Corradini. All rights reserved.
+# Copyright 2022, 2023 Roberto Corradini. All rights reserved.
 #
 # License
 # 
@@ -33,6 +33,12 @@ import sys
 
 # pythonpath
 #print('sys.path =', sys.path)
+
+# Standard Lib
+libc = ct.cdll.LoadLibrary('libc.so.6')
+#print('Loaded C dynamic link library: ', libc)
+cstdout = ct.c_void_p.in_dll(libc, 'stdout')
+#print('cstdout: ', cstdout)
 
 # The python shell has to be run from the $REVERSI_HOME/c directory.
 libreversi = ct.cdll.LoadLibrary('./build/lib/reversi.so')
