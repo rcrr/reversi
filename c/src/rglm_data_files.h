@@ -584,10 +584,13 @@ rglmdf_model_veights_compute_reverse_map (rglmdf_model_weights_t *const mw);
  * @invariant Parameter `mw` must be not `NULL`.
  * The invariant is guarded by an assertion.
  *
- * @param [in,out] mw          reference to the model weights structure
- * @param [in]     feature_cnt number of features of the model
- * @param [in]     pattern_cnt number of patterns of the model
- * @param [in]     weight_cnt  number of weights  of the model
+ * @param [in,out] mw                  reference to the model weights structure
+ * @param [in]     feature_cnt         number of features of the model
+ * @param [in]     pattern_cnt         number of patterns of the model
+ * @param [in]     weight_cnt          number of weights  of the model
+ * @param [in]     feature_record_size number of bytes used by a record in the features array
+ * @param [in]     pattern_record_size number of bytes used by a record in the patterns array
+ * @param [in]     weight_record_size  number of bytes used by a record in the weights array
  * @return                     on success `EXIT_SUCCESS` otherwise `EXIT_FAILURE`
  */
 extern int

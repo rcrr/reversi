@@ -1,7 +1,7 @@
 
   README-GLM
 
-  Copyright (c) 2018, 2019, 2020, 2021 Roberto Corradini. All rights reserved.
+  Copyright (c) 2018, 2019, 2020, 2021, 2023 Roberto Corradini. All rights reserved.
 
   This file is part of the reversi program
   http://github.com/rcrr/reversi
@@ -22,6 +22,350 @@
   or visit the site <http://www.gnu.org/licenses/>.
 
 Todo: Add Features to section three.
+Todo: Add Index ( Section --0-- )
+
+ - 2023 - Reviewed section
+--- --- --- ---
+
+We want to introduce a new pattern: 2X6COR
+
+By analogy, most likely, we need to code everything already coded for other options, like patterns EDGE, DIAG5, or 2X5COR.
+We select 2X5COR, being the one more similar, but this similarity should not be relevant to the scope of this analysis.
+
+We start by searching all the occurences of the string "2X5COR" and "2x5cor"
+
+rcrr@acheron:~/base/prj/reversi/c$ find ./src | grep "\.[ch]$" | sort | xargs grep -i "2x5cor"
+./src/board_pattern.c:    { BOARD_PATTERN_2X5COR,
+./src/board_pattern.c:      "2X5COR",
+./src/board_pattern.c:      board_pattern_pack_2x5cor,
+./src/board_pattern.c:      board_pattern_unpack_2x5cor,
+./src/board_pattern.c:board_pattern_pack_2x5cor (SquareSet s)
+./src/board_pattern.c:board_pattern_unpack_2x5cor (SquareSet s)
+./src/board_pattern.h: *               - 2X5COR
+./src/board_pattern.h: *               - 2X5COR_0, ... , 2X5COR_7
+./src/board_pattern.h: * The `2X5COR` pattern has eight instances ranging from `[0..7]`:
+./src/board_pattern.h:  BOARD_PATTERN_2X5COR,              /**< A1 B1 C1 D1 E1 A2 B2 C2 D2 E2 */
+./src/board_pattern.h:board_pattern_pack_2x5cor (SquareSet s);
+./src/board_pattern.h:board_pattern_unpack_2x5cor (SquareSet s);
+./src/endgame_solver.c:  "  -P, --pattern          Pattern                  - Used with the rand solver - Must be in [EDGE|CORNER|XEDGE|R2|R3|R4|DIAG4|DIAG5|DIAG6|DIAG7|DIAG8|2X5COR|DIAG3].\n"
+
+rcrr@acheron:~/base/prj/reversi/c$ find ./test | grep "\.[ch]$" | sort | xargs grep -i "2x5cor"
+./test/ut_board_pattern.c:static const SquareSet mask_2x5cor_0 = 0x0000000000001f1f;
+./test/ut_board_pattern.c:board_pattern_pack_2x5cor_t (ut_test_t *const t)
+./test/ut_board_pattern.c:  ut_assert(t, empty == board_pattern_pack_2x5cor(empty));
+./test/ut_board_pattern.c:  ut_assert(t, packed_10 == board_pattern_pack_2x5cor(mask_2x5cor_0));
+./test/ut_board_pattern.c:  ut_assert(t, packed_10 == board_pattern_pack_2x5cor(full));
+./test/ut_board_pattern.c:board_pattern_unpack_2x5cor_t (ut_test_t *const t)
+./test/ut_board_pattern.c:  ut_assert(t, empty == board_pattern_unpack_2x5cor(empty));
+./test/ut_board_pattern.c:  ut_assert(t, mask_2x5cor_0 == board_pattern_unpack_2x5cor(packed_10));
+./test/ut_board_pattern.c:  /* Test 2x5cor 2222222220 */
+./test/ut_board_pattern.c:  /* Test 2x5cor 2222222222 */
+./test/ut_board_pattern.c:board_pattern_compute_indexes_2x5cor_t (ut_test_t *const t)
+./test/ut_board_pattern.c:  aux_check_expected_indexes_array(t, BOARD_PATTERN_2X5COR, test_data, sizeof(test_data) / sizeof(struct board_pattern_test_s));
+./test/ut_board_pattern.c:  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_pack_2x5cor", board_pattern_pack_2x5cor_t);
+./test/ut_board_pattern.c:  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_unpack_2x5cor", board_pattern_unpack_2x5cor_t);
+./test/ut_board_pattern.c:  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_2x5cor", board_pattern_compute_indexes_2x5cor_t);
+
+rcrr@acheron:~/base/prj/reversi/c$ find ./sql | grep "\.sql$" | sort | xargs grep -i "2x5cor"
+./sql/0103_up_patterns.sql:                                          i_2x5cor_0 INTEGER,
+./sql/0103_up_patterns.sql:                                          i_2x5cor_1 INTEGER,
+./sql/0103_up_patterns.sql:                                          i_2x5cor_2 INTEGER,
+./sql/0103_up_patterns.sql:                                          i_2x5cor_3 INTEGER,
+./sql/0103_up_patterns.sql:                                          i_2x5cor_4 INTEGER,
+./sql/0103_up_patterns.sql:                                          i_2x5cor_5 INTEGER,
+./sql/0103_up_patterns.sql:                                          i_2x5cor_6 INTEGER,
+./sql/0103_up_patterns.sql:                                          i_2x5cor_7 INTEGER,
+./sql/0104_down_pattern_functions.sql:DROP FUNCTION regab_mirror_value_2x5cor_pattern;
+./sql/0104_down_pattern_functions.sql:DROP FUNCTION square_set_pattern_unpack_2x5cor;
+./sql/0104_down_pattern_functions.sql:DROP FUNCTION square_set_pattern_pack_2x5cor;
+./sql/0104_up_pattern_functions.sql:-- Packs 2X5COR pattern.
+./sql/0104_up_pattern_functions.sql:CREATE FUNCTION square_set_pattern_pack_2x5cor (s square_set)
+./sql/0104_up_pattern_functions.sql:  nw_2x5cor          square_set := (x'0000000000001f1f')::BIGINT;
+./sql/0104_up_pattern_functions.sql:  packed_2x5cor_mask square_set := (x'00000000000003ff')::BIGINT;
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_pack_2x5cor(empty_) = empty_, 'Expected result is empty_.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_pack_2x5cor(full_) = packed_2x5cor_mask, 'Expected result is packed_2x5cor_mask.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_pack_2x5cor(nw_2x5cor) = packed_2x5cor_mask, 'Expected result is packed_2x5cor_mask.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_pack_2x5cor((x'000000000000001f')::square_set) = (x'000000000000001f')::square_set, 'Expected result is 000000000000001f.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_pack_2x5cor((x'0000000000001f00')::square_set) = (x'00000000000003e0')::square_set, 'Expected result is 00000000000003e0.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_pack_2x5cor((x'ffffffffffffe0e0')::square_set) = (x'0000000000000000')::square_set, 'Expected result is 0000000000000000.');
+./sql/0104_up_pattern_functions.sql:-- Un-packs 2X5COR pattern.
+./sql/0104_up_pattern_functions.sql:CREATE FUNCTION square_set_pattern_unpack_2x5cor (s square_set)
+./sql/0104_up_pattern_functions.sql:  nw_2x5cor          square_set := (x'0000000000001f1f')::BIGINT;
+./sql/0104_up_pattern_functions.sql:  packed_2x5cor_mask square_set := (x'00000000000003ff')::BIGINT;
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_unpack_2x5cor(empty_) = empty_, 'Expected result is empty_.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_unpack_2x5cor(packed_2x5cor_mask) = nw_2x5cor, 'Expected result is nw_2x5cor.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_unpack_2x5cor((x'000000000000001f')::square_set) = (x'000000000000001f')::square_set, 'Expected result is 000000000000001f.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_unpack_2x5cor((x'00000000000003e0')::square_set) = (x'0000000000001f00')::square_set, 'Expected result is 0000000000001f00.');
+./sql/0104_up_pattern_functions.sql:-- Computes the mirror value for the given index, for the 2X5COR pattern.
+./sql/0104_up_pattern_functions.sql:CREATE FUNCTION regab_mirror_value_2x5cor_pattern (index_value INTEGER)
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(regab_mirror_value_2x5cor_pattern(0) IS NULL, 'Expected value is NULL.');
+./sql/0104_up_pattern_functions.sql:                                                  OUT i_2x5cor_0 INTEGER,
+./sql/0104_up_pattern_functions.sql:                                                  OUT i_2x5cor_1 INTEGER,
+./sql/0104_up_pattern_functions.sql:                                                  OUT i_2x5cor_2 INTEGER,
+./sql/0104_up_pattern_functions.sql:                                                  OUT i_2x5cor_3 INTEGER,
+./sql/0104_up_pattern_functions.sql:                                                  OUT i_2x5cor_4 INTEGER,
+./sql/0104_up_pattern_functions.sql:                                                  OUT i_2x5cor_5 INTEGER,
+./sql/0104_up_pattern_functions.sql:                                                  OUT i_2x5cor_6 INTEGER,
+./sql/0104_up_pattern_functions.sql:                                                  OUT i_2x5cor_7 INTEGER,
+./sql/0104_up_pattern_functions.sql:  i_2x5cor_0 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x5cor(mo_identity),
+./sql/0104_up_pattern_functions.sql:                                                   square_set_pattern_pack_2x5cor(op_identity));
+./sql/0104_up_pattern_functions.sql:  i_2x5cor_1 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x5cor(mo_rot_90a),
+./sql/0104_up_pattern_functions.sql:                                                   square_set_pattern_pack_2x5cor(op_rot_90a));
+./sql/0104_up_pattern_functions.sql:  i_2x5cor_2 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x5cor(mo_rot_180),
+./sql/0104_up_pattern_functions.sql:                                                   square_set_pattern_pack_2x5cor(op_rot_180));
+./sql/0104_up_pattern_functions.sql:  i_2x5cor_3 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x5cor(mo_rot_90c),
+./sql/0104_up_pattern_functions.sql:                                                   square_set_pattern_pack_2x5cor(op_rot_90c));
+./sql/0104_up_pattern_functions.sql:  i_2x5cor_4 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x5cor(mo_flip_ve),
+./sql/0104_up_pattern_functions.sql:                                                   square_set_pattern_pack_2x5cor(op_flip_ve));
+./sql/0104_up_pattern_functions.sql:  i_2x5cor_5 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x5cor(mo_flip_dh),
+./sql/0104_up_pattern_functions.sql:                                                   square_set_pattern_pack_2x5cor(op_flip_dh));
+./sql/0104_up_pattern_functions.sql:  i_2x5cor_6 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x5cor(mo_flip_ho),
+./sql/0104_up_pattern_functions.sql:                                                   square_set_pattern_pack_2x5cor(op_flip_ho));
+./sql/0104_up_pattern_functions.sql:  i_2x5cor_7 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x5cor(mo_flip_da),
+./sql/0104_up_pattern_functions.sql:                                                   square_set_pattern_pack_2x5cor(op_flip_da));
+./sql/0104_up_pattern_functions.sql:    --- 2X5COR
+./sql/0104_up_pattern_functions.sql:    SELECT principal_index_value INTO STRICT i_2x5cor_0 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_0;
+./sql/0104_up_pattern_functions.sql:    SELECT principal_index_value INTO STRICT i_2x5cor_1 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_1;
+./sql/0104_up_pattern_functions.sql:    SELECT principal_index_value INTO STRICT i_2x5cor_2 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_2;
+./sql/0104_up_pattern_functions.sql:    SELECT principal_index_value INTO STRICT i_2x5cor_3 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_3;
+./sql/0104_up_pattern_functions.sql:    SELECT principal_index_value INTO STRICT i_2x5cor_4 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_4;
+./sql/0104_up_pattern_functions.sql:    SELECT principal_index_value INTO STRICT i_2x5cor_5 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_5;
+./sql/0104_up_pattern_functions.sql:    SELECT principal_index_value INTO STRICT i_2x5cor_6 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_6;
+./sql/0104_up_pattern_functions.sql:    SELECT principal_index_value INTO STRICT i_2x5cor_7 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_7;    
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_0 = 11704, 'Expected value for i_2x5cor_0 is 11704.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_1 = 41040, 'Expected value for i_2x5cor_1 is 41040.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_2 = 49074, 'Expected value for i_2x5cor_2 is 49074.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_3 = 23337, 'Expected value for i_2x5cor_3 is 23337.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_4 = 21222, 'Expected value for i_2x5cor_4 is 21222.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_5 = 16758, 'Expected value for i_2x5cor_5 is 16758.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_6 = 38871, 'Expected value for i_2x5cor_6 is 38871.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_7 =  9730, 'Expected value for i_2x5cor_7 is  9730.');
+./sql/0104_up_pattern_functions.sql:        OR gp_pattern_class_o_rec.i_2x5cor_0 <> gp_pattern_class_n_rec.i_2x5cor_0
+./sql/0104_up_pattern_functions.sql:        OR gp_pattern_class_o_rec.i_2x5cor_1 <> gp_pattern_class_n_rec.i_2x5cor_1
+./sql/0104_up_pattern_functions.sql:        OR gp_pattern_class_o_rec.i_2x5cor_2 <> gp_pattern_class_n_rec.i_2x5cor_2
+./sql/0104_up_pattern_functions.sql:        OR gp_pattern_class_o_rec.i_2x5cor_3 <> gp_pattern_class_n_rec.i_2x5cor_3
+./sql/0104_up_pattern_functions.sql:        OR gp_pattern_class_o_rec.i_2x5cor_4 <> gp_pattern_class_n_rec.i_2x5cor_4
+./sql/0104_up_pattern_functions.sql:        OR gp_pattern_class_o_rec.i_2x5cor_5 <> gp_pattern_class_n_rec.i_2x5cor_5
+./sql/0104_up_pattern_functions.sql:        OR gp_pattern_class_o_rec.i_2x5cor_6 <> gp_pattern_class_n_rec.i_2x5cor_6
+./sql/0104_up_pattern_functions.sql:        OR gp_pattern_class_o_rec.i_2x5cor_7 <> gp_pattern_class_n_rec.i_2x5cor_7
+./sql/0104_up_pattern_functions.sql:                                               i_2x5cor_0 = gp_pattern_class_n_rec.i_2x5cor_0,
+./sql/0104_up_pattern_functions.sql:                                               i_2x5cor_1 = gp_pattern_class_n_rec.i_2x5cor_1,
+./sql/0104_up_pattern_functions.sql:                                               i_2x5cor_2 = gp_pattern_class_n_rec.i_2x5cor_2,
+./sql/0104_up_pattern_functions.sql:                                               i_2x5cor_3 = gp_pattern_class_n_rec.i_2x5cor_3,
+./sql/0104_up_pattern_functions.sql:                                               i_2x5cor_4 = gp_pattern_class_n_rec.i_2x5cor_4,
+./sql/0104_up_pattern_functions.sql:                                               i_2x5cor_5 = gp_pattern_class_n_rec.i_2x5cor_5,
+./sql/0104_up_pattern_functions.sql:                                               i_2x5cor_6 = gp_pattern_class_n_rec.i_2x5cor_6,
+./sql/0104_up_pattern_functions.sql:                                               i_2x5cor_7 = gp_pattern_class_n_rec.i_2x5cor_7,
+./sql/0107_down_pattern_data.sql:DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = '2X5COR');
+./sql/0107_down_pattern_data.sql:DELETE FROM regab_prng_patterns WHERE pattern_name = '2X5COR';
+./sql/0107_up_pattern_data.sql:--- Populates the patter table with EDGE, CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR, and DIAG3 patterns.
+./sql/0107_up_pattern_data.sql:    (now(), 11, '2X5COR',  8, 10, 'Ten square, asymmetric corner'),
+./sql/0107_up_pattern_data.sql:  pn := '2X5COR';
+./sql/0107_up_pattern_data.sql:  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_2x5cor_pattern(index_value) WHERE pattern_id = pid;
+./sql/0107_up_pattern_data.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_0 = 11704, 'Expected value for i_2x5cor_0 is 11704.');
+./sql/0107_up_pattern_data.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_1 = 41040, 'Expected value for i_2x5cor_1 is 41040.');
+./sql/0107_up_pattern_data.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_2 = 49074, 'Expected value for i_2x5cor_2 is 49074.');
+./sql/0107_up_pattern_data.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_3 = 23337, 'Expected value for i_2x5cor_3 is 23337.');
+./sql/0107_up_pattern_data.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_4 = 21222, 'Expected value for i_2x5cor_4 is 21222.');
+./sql/0107_up_pattern_data.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_5 = 16758, 'Expected value for i_2x5cor_5 is 16758.');
+./sql/0107_up_pattern_data.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_6 = 38871, 'Expected value for i_2x5cor_6 is 38871.');
+./sql/0107_up_pattern_data.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_7 =  9730, 'Expected value for i_2x5cor_7 is  9730.');
+./sql/0107_up_pattern_data.sql:-- 2X5COR
+./sql/0107_up_pattern_data.sql:SELECT 'Loading frequencies for the 2X5COR pattern ...' AS message;
+./sql/0107_up_pattern_data.sql:\COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_2X5COR_112_116_292_298_372_378_973_977_80000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
+./sql/0107_up_pattern_data.sql:SELECT regab_update_prob_into_pattern_probs_from_staging('2X5COR');
+./sql/0109_up_action_extract.sql:--- Populates the patter table with EDGE, CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR, and DIAG3 patterns.
+./sql/0109_up_action_extract.sql:    (now(), 11, 0, 'i_2x5cor_0'),
+./sql/0109_up_action_extract.sql:    (now(), 11, 1, 'i_2x5cor_1'),
+./sql/0109_up_action_extract.sql:    (now(), 11, 2, 'i_2x5cor_2'),
+./sql/0109_up_action_extract.sql:    (now(), 11, 3, 'i_2x5cor_3'),
+./sql/0109_up_action_extract.sql:    (now(), 11, 4, 'i_2x5cor_4'),
+./sql/0109_up_action_extract.sql:    (now(), 11, 5, 'i_2x5cor_5'),
+./sql/0109_up_action_extract.sql:    (now(), 11, 6, 'i_2x5cor_6'),
+./sql/0109_up_action_extract.sql:    (now(), 11, 7, 'i_2x5cor_7'),
+
+rcrr@acheron:~/base/prj/reversi/c$ find ./py | grep "\.py$" | sort | xargs grep -i "2x5cor"
+./py/reversi/pattern.py:class P2x5cor(Pattern):
+./py/reversi/pattern.py:    The 2X5COR pattern has eight instances ranging from [0..7]:
+./py/reversi/pattern.py:        self.name = '2X5COR'
+./py/reversi/pattern.py:        f = libreversi.board_pattern_pack_2x5cor
+./py/reversi/pattern.py:        f = libreversi.board_pattern_unpack_2x5cor
+./py/reversi/pattern.py:patterns_as_set = {PEdge(), PCorner(), PXedge(), PR2(), PR3(), PR4(), PDiag4(), PDiag5(), PDiag6(), PDiag7(), PDiag8(), P2x5cor(), PDiag3()}
+./py/reversi/rglm.py:                  'patterns': 'XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR',
+./py/test/test_pattern.py:mask_2x5cor_0 = f('0000000000001f1f')
+./py/test/test_pattern.py:class Test2x5cor(unittest.TestCase):
+./py/test/test_pattern.py:        p = P2x5cor()
+./py/test/test_pattern.py:        p = P2x5cor()
+./py/test/test_pattern.py:        self.assertEqual(packed_10, p.pack(mask_2x5cor_0))
+./py/test/test_pattern.py:        p = P2x5cor()
+./py/test/test_pattern.py:        self.assertEqual(mask_2x5cor_0, p.unpack(packed_10))
+./py/test/test_pattern.py:        self.assertEqual(mask_2x5cor_0, p.unpack(full))
+./py/test/test_pattern.py:        [check_expected_indexes(self, r, P2x5cor()) for r in test_data]
+./py/test/test_pattern.py:                      ('0000', '01ff', 10, 19682, '2x5cor 2222222220'),
+./py/test/test_pattern.py:                      ('0000', '03ff', 10, 59048, '2x5cor 2222222222'),
+./py/test/test_regab_dataset.py:        #  Pattern id: 11     [2X5COR][  4900][I_042:I_049]
+./py/test/test_regab_dataset.py:            '2X5COR': (42, 49),
+
+
+
+Source files (C source, C header, C unit test, sql, Python source/test):
+
+./src/board_pattern.c
+./src/board_pattern.h
+./src/endgame_solver.c
+
+./test/ut_board_pattern.c
+
+./sql/0103_up_patterns.sql
+./sql/0104_down_pattern_functions.sql
+./sql/0104_up_pattern_functions.sql
+./sql/0107_down_pattern_data.sql
+./sql/0107_up_pattern_data.sql
+./sql/0109_up_action_extract.sql
+
+./py/reversi/pattern.py
+./py/reversi/rglm.py
+./py/test/test_pattern.py
+./py/test/test_regab_dataset.py
+
+This is a BIG change ... in case of ROLL BACK the actual/current commit is:
+
+commit 9e84116aeb68c1dc16f9cddbc299166713479db2 (HEAD -> master, origin/master, origin/HEAD)
+Author: rcrr <rob_corradini@yahoo.it>
+Date:   Thu May 11 10:51:50 2023 +0200
+
+    Model weight now works fine in python.
+
+Let's start to review the files:
+
+./src/board_pattern.h
+257: Update documentation adding the pattern definition
+407: typed of enum board_pattern_id_t
+425: BOARD_PATTERN_INDEX_TABLE_SIZE ... add 59049 * 9 = 531441
+426: #define BOARD_PATTERN_MAX_N_INSTANCES 8 ... should be 10
+510: board_pattern_pack_ and _unpack
+
+./src/board_pattern.c
+85: const board_pattern_t board_patterns[] = ... add the new ENTRY at the right place, that is the END.
+692: code board_pattern_pack_ and _unpack_ functions
+743: board_pattern_compute_indexes ... increment the number of squares from 8 to 10 , cim, cio ( I would do 16 ... )
+
+./src/endgame_solver.c
+439: update help string
+
+./test/ut_board_pattern.c
+450: add packed 11..16 definition
+460: add mask definition
+931: add test for the new pattern
+1449: add test function board_pattern_compute_indexes_
+1586,1605: add the 3 test function calls.
+
+./sql/0103_up_patterns.sql
+Table definition for regab_prng_gp_pattern_class.
+We need to add the columns/fields for the new pattern. But this is going to be not very flexible and sustainable.
+There are two opptions ... add the fields to the existing table, easier but messy to update, or add one or more tables.
+This is going to be a lot more work, but then adding and experimenting with more patterns would be easier.
+
+./sql/0104_up_pattern_functions.sql
+Here there is a lot to do !!! And honestly creating more tables seems to me very ambitious.
+Add the function square_set_pattern_pack_ and square_set_pattern_unpack_
+Add the function regab_mirror_value_newpattern_pattern
+Modify the function regab_gp_compute_pattern_indexes adding the new fields ...
+Modify the function regab_gp_populate_pattern_class_table ....
+
+./sql/0104_down_pattern_functions.sql
+remove the pack and unpack functions.
+
+./sql/0107_up_pattern_data.sql
+Update the table regab_prng_patterns adding the new pattern.
+Prepare and load data for the pattern: mirror and principal_index.
+Populate tests for the new pattern.
+Prepare and load frequencies ...
+
+./sql/0107_down_pattern_data.sql
+Add the removal of records also for the given pattern.
+
+./sql/0109_up_action_extract.sql
+Insert appropriate entries into regab_prng_gp_pattern_class_instance_names
+
+./py/reversi/pattern.py
+780: add the pattern definition
+900: add the the pattern set
+
+./py/reversi/rglm.py
+Nothing to do here, really.
+
+./py/test/test_pattern.py
+886: Write the specific pattern test
+1033: Add entries into test_board_pattern_index_to_from_packed
+
+./py/test/test_regab_dataset.py
+Nothing really relevant here.
+
+---
+--- Who interact with TABLE : regab_prng_gp_pattern_class
+---
+
+--- SQL :
+
+rcrr@acheron:~/base/prj/reversi/c$ find ./sql | grep "\.sql$" | sort | xargs grep -i "regab_prng_gp_pattern_class"
+./sql/0103_down_patterns.sql:DROP TABLE regab_prng_gp_pattern_class;
+./sql/0103_up_patterns.sql:CREATE TABLE regab_prng_gp_pattern_class (gp_id      BIGINT PRIMARY KEY REFERENCES regab_prng_gp(seq) ON DELETE CASCADE,
+./sql/0104_up_pattern_functions.sql:-- Populates or updates table regab_prng_gp_pattern_class.
+./sql/0104_up_pattern_functions.sql:    SELECT INTO gp_pattern_class_o_rec * FROM regab_prng_gp_pattern_class WHERE gp_id = game_position_rec.seq;
+./sql/0104_up_pattern_functions.sql:        INSERT INTO regab_prng_gp_pattern_class (gp_id, ins_time, status, cst_time) VALUES (game_position_rec.seq, now(), 'INS', now());
+./sql/0104_up_pattern_functions.sql:        UPDATE regab_prng_gp_pattern_class SET status     = 'CMP',
+./sql/0109_down_action_extract.sql:DROP TABLE regab_prng_gp_pattern_class_instance_names;
+./sql/0109_up_action_extract.sql:CREATE TABLE regab_prng_gp_pattern_class_instance_names (ins_time      TIMESTAMP,
+./sql/0109_up_action_extract.sql:INSERT INTO regab_prng_gp_pattern_class_instance_names (ins_time, pattern_id, instance_id, instance_name)
+./sql/0109_up_action_extract.sql:    regab_prng_gp_pattern_class AS pc
+./sql/0109_up_action_extract.sql:            regab_prng_gp_pattern_class AS pc
+./sql/0109_up_action_extract.sql:-- and a list of column named i000, i001, i002, ... , i00n with the index values taken from the regab_prng_gp_pattern_class table and organized
+./sql/0109_up_action_extract.sql:        SELECT ta.instance_name INTO i_name FROM regab_prng_gp_pattern_class_instance_names AS ta WHERE ta.pattern_id = pattern_id_current AND ta.instance_id = i;
+./sql/0109_up_action_extract.sql:    query_command := format('%s FROM regab_prng_gp AS gp RIGHT JOIN regab_prng_gp_pattern_class AS pc ON gp.seq = pc.gp_id WHERE (gp.legal_move_count_adjusted > 0 OR %s = 0) AND gp.empty_count = %s', query_command, empty_count_arg, empty_count_arg);
+./sql/0109_up_action_extract.sql:    SELECT count(1) INTO row_cnt FROM regab_prng_gp AS gp RIGHT JOIN regab_prng_gp_pattern_class AS pc ON gp.seq = pc.gp_id
+
+--- C code :
+
+rcrr@acheron:~/base/prj/reversi/c$ find ./src | grep "\.[ch]$" | sort | xargs grep -i "regab_prng_gp_pattern_class"
+./src/board_pattern.h: *              Build a new table regab_prng_gp_pattern_class with the following colums:
+./src/regab.c:    "SELECT count(1) FROM regab_prng_gp AS gp RIGHT JOIN regab_prng_gp_pattern_class AS pc ON gp.seq = pc.gp_id WHERE "
+./src/rglm_data_files.h: * one into table `regab_prng_gp_pattern_class` (it means that the game position is not classified).
+./src/rglm_data_files.h: * Patterns are generated by a "group by" operation on the REGAB database table `regab_prng_gp_pattern_class`
+
+---
+---
+
+There are 3 main option to deal with this extention:
+
+ - Option #1 : Extend the current model by adding 8 columns to the table regab_prng_gp_pattern_class
+               Columns would be i_2x6cor_0 , i_2x6cor_1 , ... , i_2x6cor_7
+               This option is the easiest, but it opens some concern.
+               The table is running wider at each new pattern added, and each row has to be computed again and again ...
+               Programs have hardcoded the column names.
+
+ - Option #2 : Transform the database schema, adding a group of tables: regab_prng_gp_pattern_class_000
+               regab_prng_gp_pattern_class_001, regab_prng_gp_pattern_class_002, ... and so on ..
+               All tables have the same key. Joining them we obtain the original definition of
+               regab_prng_gp_pattern_class as query or a view.
+               Advantages: we are not tinkering with existing table when adding a new pattern.
+               Not sure about the programs. We need to remove the names of the columns from the SQL procedures.
+
+ - Option #3 : The most extreme, elegant, but very difficult to not degrade performances.
+               Move the table regab_prng_gp_pattern_class to a single index value per row.
+               Having as key : gpid, pattern, instance
+
+I would start with the first one. Then when done we need to test that a 500,000 parameters model is solvable, and finally that the
+accuracy when evaluating a position is consistently increasing.
+In case we will be succesfull then testing more patetrns ( there are many 12 squares interesting patterns ) will drive to the adoption
+of something more smart and effective.
+
+
+
+
+--- --- --- ---
+ - 2023 - End of reviewed section
+
 
 This file describes how to use the REGAB (REversi GAme Base) program, database, and procedures in section 1.
 The procedure to compose and solve the GLM (Generalized Linear Model) problem in section two, and how to add
@@ -362,3 +706,12 @@ rcrr@acheron:~/base/prj/reversi/c$ find ./sql | grep "\.sql$" | sort | xargs gre
 ./sql/0109_up_action_extract.sql:    (now(), 12, 1, 'i_diag3_1'),
 ./sql/0109_up_action_extract.sql:    (now(), 12, 2, 'i_diag3_2'),
 ./sql/0109_up_action_extract.sql:    (now(), 12, 3, 'i_diag3_3')
+
+
+###
+### Section --4--
+###
+### How to create a new Feature for the GLM model
+###
+
+TO BE COMPLETED

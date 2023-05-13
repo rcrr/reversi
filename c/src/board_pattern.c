@@ -9,7 +9,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2018, 2019, 2020, 2021 Roberto Corradini. All rights reserved.
+ * @copyright 2018, 2019, 2020, 2021, 2023 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -839,8 +839,8 @@ board_pattern_packed_to_index (board_t *packed,
 {
 
   board_pattern_index_t idxv;
-  const uint64_t kv[16] = {1,3,9,27,81,243,729,2187,6561,19683,59049,177147,531441,1594323,4782969,14348907};
-  const uint64_t mv[16] = {1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768};
+  const uint64_t kv[16] = {1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441, 1594323, 4782969, 14348907};
+  const uint64_t mv[16] = {1, 2, 4,  8, 16,  32,  64,  128,  256,   512,  1024,   2048,   4096,    8192,   16384,    32768};
 
   SquareSet *bv = (SquareSet *) packed;
 

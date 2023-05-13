@@ -301,13 +301,43 @@
  * @endcode
  *
  *
+ * The `2X6COR` pattern has eight instances ranging from `[0..7]`:
+ *
+ * @code
+ *
+ *    a b c d e f g h     a b c d e f g h     a b c d e f g h     a b c d e f g h
+ *
+ * 1  a b c d e f . .     . . . . . . g a     . . . . . . . .     . . . . . . . .
+ * 2  g h i l m n . .     . . . . . . h b     . . . . . . . .     . . . . . . . .
+ * 3  . . . . . . . .     . . . . . . i c     . . . . . . . .     f n . . . . . .
+ * 4  . . . . . . . .     . . . . . . l d     . . . . . . . .     e m . . . . . .
+ * 5  . . . . . . . .     . . . . . . m e     . . . . . . . .     d l . . . . . .
+ * 6  . . . . . . . .     . . . . . . n f     . . . . . . . .     c i . . . . . .
+ * 7  . . . . . . . .     . . . . . . . .     . . n m l i h g     b h . . . . . .
+ * 8  . . . . . . . .     . . . . . . . .     . . f e d c b a     a g . . . . . .
+ *
+ *
+ *    a b c d e f g h     a b c d e f g h     a b c d e f g h     a b c d e f g h
+ *
+ * 1  . . f e d c b a     . . . . . . . .     . . . . . . . .     a g . . . . . .
+ * 2  . . n m l i h g     . . . . . . . .     . . . . . . . .     b h . . . . . .
+ * 3  . . . . . . . .     . . . . . . n f     . . . . . . . .     c i . . . . . .
+ * 4  . . . . . . . .     . . . . . . m e     . . . . . . . .     d l . . . . . .
+ * 5  . . . . . . . .     . . . . . . l d     . . . . . . . .     e m . . . . . .
+ * 6  . . . . . . . .     . . . . . . i c     . . . . . . . .     f n . . . . . .
+ * 7  . . . . . . . .     . . . . . . h b     g h i l m n . .     . . . . . . . .
+ * 8  . . . . . . . .     . . . . . . g a     a b c d e f . .     . . . . . . . .
+ *
+ * @endcode
+ *
+ *
  * @par board_pattern.h
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2018, 2020, 2021 Roberto Corradini. All rights reserved.
+ * @copyright 2018, 2020, 2021, 2023 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -422,8 +452,26 @@ typedef enum {
 } board_pattern_id_t;
 
 #define BOARD_PATTERN_COUNT BOARD_PATTERN_INVALID
-#define BOARD_PATTERN_INDEX_TABLE_SIZE 6561 + 19683 + 59049 + 6561 + 6561 + 6561 + 81 + 243 + 729 + 2187 + 6561 + 59049 + 27
-#define BOARD_PATTERN_MAX_Ns_INSTANCES 8
+#define BOARD_PATTERN_MAX_N_INSTANCES 8
+
+#define BOARD_PATTERN_INDEX_TABLE_SIZE_EDGE 6561
+#define BOARD_PATTERN_INDEX_TABLE_SIZE_CORNER 19683
+#define BOARD_PATTERN_INDEX_TABLE_SIZE_XEDGE 59049
+#define BOARD_PATTERN_INDEX_TABLE_SIZE_R2 6561
+#define BOARD_PATTERN_INDEX_TABLE_SIZE_R3 6561
+#define BOARD_PATTERN_INDEX_TABLE_SIZE_R4 6561
+#define BOARD_PATTERN_INDEX_TABLE_SIZE_DIAG4 81
+#define BOARD_PATTERN_INDEX_TABLE_SIZE_DIAG5 243
+#define BOARD_PATTERN_INDEX_TABLE_SIZE_DIAG6 729
+#define BOARD_PATTERN_INDEX_TABLE_SIZE_DIAG7 2187
+#define BOARD_PATTERN_INDEX_TABLE_SIZE_DIAG8 6561
+#define BOARD_PATTERN_INDEX_TABLE_SIZE_2X5COR 59049
+#define BOARD_PATTERN_INDEX_TABLE_SIZE_DIAG3 27
+#define BOARD_PATTERN_INDEX_TABLE_SIZE BOARD_PATTERN_INDEX_TABLE_SIZE_EDGE + BOARD_PATTERN_INDEX_TABLE_SIZE_CORNER \
+  + BOARD_PATTERN_INDEX_TABLE_SIZE_XEDGE + BOARD_PATTERN_INDEX_TABLE_SIZE_R2 + BOARD_PATTERN_INDEX_TABLE_SIZE_R3 \
+  + BOARD_PATTERN_INDEX_TABLE_SIZE_R4 + BOARD_PATTERN_INDEX_TABLE_SIZE_DIAG4 + BOARD_PATTERN_INDEX_TABLE_SIZE_DIAG5 \
+  + BOARD_PATTERN_INDEX_TABLE_SIZE_DIAG6 + BOARD_PATTERN_INDEX_TABLE_SIZE_DIAG7 + BOARD_PATTERN_INDEX_TABLE_SIZE_DIAG8 \
+  + BOARD_PATTERN_INDEX_TABLE_SIZE_2X5COR + BOARD_PATTERN_INDEX_TABLE_SIZE_DIAG3
 
 typedef uint16_t board_pattern_index_t;
 

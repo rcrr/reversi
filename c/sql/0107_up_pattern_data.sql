@@ -173,7 +173,7 @@ BEGIN
 END $$;
 
 --
--- This is a functional thest that cannot be run before having populated the regab_prng_pattern_probs table.
+-- This is a functional test that cannot be run before having populated the regab_prng_pattern_probs table.
 -- Calling the function regab_gp_compute_pattern_indexes(mo, op, is_principal) with the boolena parameter is_principal
 -- being TRUE require the described data being loaded.
 --

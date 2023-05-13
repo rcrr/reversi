@@ -92,6 +92,19 @@ import ctypes as ct
 #     - reorganize he methods as _CT class methods ...
 #
 
+#
+# Tested hash function ... gives same result as the libreversi C version ...
+#
+#def sha256sum(filename):
+#    h  = hashlib.sha3_256()
+#    b  = bytearray(128*1024)
+#    mv = memoryview(b)
+#    with open(filename, 'rb', buffering=0) as f:
+#        while n := f.readinto(mv):
+#            h.update(mv[:n])
+#            return h.hexdigest()
+#
+
 class _RglmWeightRecordCTHelper(ct.Structure):
     """
     This is the record definition of the weights array.
