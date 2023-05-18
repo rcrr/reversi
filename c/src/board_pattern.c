@@ -332,6 +332,31 @@ const board_pattern_t board_patterns[] =
       board_pattern_unpack_diag3,
       board_trans_flip_diag_a1h8 },
 
+    { BOARD_PATTERN_2X6COR,
+      "2X6COR",
+      8,
+      12,
+      531441,
+      { 0x0000000000003f3f,
+        0x0000c0c0c0c0c0c0,
+        0xfcfc000000000000,
+        0x0303030303030000,
+        0x000000000000fcfc,
+        0xc0c0c0c0c0c00000,
+        0x3f3f000000000000,
+        0x0000030303030303 },
+      { board_trans_identity,
+        board_trans_rotate_90a,
+        board_trans_rotate_180,
+        board_trans_rotate_90c,
+        board_trans_flip_vertical,
+        board_trans_flip_diag_h1a8,
+        board_trans_flip_horizontal,
+        board_trans_flip_diag_a1h8 },
+      board_pattern_pack_2x6cor,
+      board_pattern_unpack_2x6cor,
+      board_trans_identity },
+
     { BOARD_PATTERN_INVALID, "NULL", 0, 0, 0, { 0,0,0,0,0,0,0,0 }, { NULL }, NULL, NULL, NULL }
   };
 
@@ -475,7 +500,7 @@ board_feature_get_id_by_name (board_feature_id_t *idp,
 
 SquareSet
 board_pattern_mask (SquareSet s,
-                    board_pattern_index_t p,
+                    board_pattern_id_t p,
                     unsigned int instance)
 {
   assert(p < BOARD_PATTERN_COUNT);
@@ -727,6 +752,22 @@ board_pattern_unpack_diag3 (SquareSet s)
   return s & diag3;
 }
 
+SquareSet
+board_pattern_pack_2x6cor (SquareSet s)
+{
+  const SquareSet mask0  = 0x000000000000003f;
+  const SquareSet mask1  = 0x0000000000003f00;
+  return (s & mask0) | ((s & mask1) >> 2);
+}
+
+SquareSet
+board_pattern_unpack_2x6cor (SquareSet s)
+{
+  const SquareSet mask0  = 0x000000000000003f;
+  const SquareSet mask1  = 0x0000000000000fc0;
+  return (s & mask0) | ((s & mask1) << 2);
+}
+
 bool
 board_pattern_get_id_by_name (board_pattern_id_t *idp,
                               char *name)
@@ -751,8 +792,9 @@ board_pattern_compute_indexes (board_pattern_index_t *indexes,
   SquareSet mover_pattern_packed[8];
   SquareSet opponent_pattern_packed[8];
 
-  const uint64_t cim[] = { 1, 3,  9, 27,  81, 243,  729, 2187,  6561, 19683,  59049, 177147 };
-  const uint64_t cio[] = { 2, 6, 18, 54, 162, 486, 1458, 4374, 13122, 39366, 118098, 354294 };
+  /*                       0  1   2   3    4    5     6     7      8      9      10      11      12        13       14        15 */
+  const uint64_t cim[] = { 1, 3,  9, 27,  81, 243,  729, 2187,  6561, 19683,  59049, 177147,  531441, 1594323, 4782969, 14348907 };
+  const uint64_t cio[] = { 2, 6, 18, 54, 162, 486, 1458, 4374, 13122, 39366, 118098, 354294, 1062882, 3188646, 9565938, 28697814 };
 
   /*
    * This part should go out of the specific pattern, and done once for all patterns.

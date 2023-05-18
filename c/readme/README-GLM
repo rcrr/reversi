@@ -360,7 +360,283 @@ accuracy when evaluating a position is consistently increasing.
 In case we will be succesfull then testing more patetrns ( there are many 12 squares interesting patterns ) will drive to the adoption
 of something more smart and effective.
 
+---
+---
 
+Change 2x6cor: step #1 - added the documentation of the pattern into c/src/board_pattern.h
+Change 2x6cor: step #2 - adding the new pattern having 531441 configuration a terrible problem
+                         arises.
+                         Into the function board_pattern_compute_principal_indexes the loop:
+                           for (board_pattern_index_t idx = 0; idx < n; idx++) {
+                           ....
+                         cannot works. idx overflows and never get larger then n.
+                         The assignment *p++ = ... then generates a segmentation fault.
+
+                         Unfortunately this is part of a larger, much larger, issue:
+                         the definition of board_pattern_index_t is:
+                         typedef uint16_t board_pattern_index_t;
+                         It needs to be changed to uint32_t.
+                         
+                         This is a huge change.
+
+---
+--- Impact analysis of redefining board_pattern_index_t.
+---
+
+board_pattern_index_t is referenced into:
+
+src/board_pattern.c
+src/board_pattern.h
+src/game_value_estimator.c
+src/minimax_solver.c
+src/rglm_data_files.c
+src/rglm_solver.c
+src/rglm_utils.c
+
+But it is a very minimal list.
+The binary file formats are using uint16_t definitions that needs to be carefully checked.
+The REGAB database is using what ?
+The python code is using 16bit int as well into the ctypes.
+
+In SUMMARY:
+
+ - The REGAB database does not seem to be affected, al fields are 32bit INTEGER (signed).
+ - The REGAB/RGML binary files are all using int32_t fields, always (it seems).
+ - The C code seems really to be unaffected by a change ... we do need to test ...
+ - What type is best, uint32_t or int32_t ? For consistency I think it is better to go with the
+   signed version. We do lose 1bit (31 bits will be used) but they are enough for sure.
+   The range will be expanded from 65,535 to 2,147,483,647 , so this is by far mre than what is needed.
+
+--
+-- Details ...
+--
+
+Notice: M-x electric-indent-mode to cut and paste ...
+
+Let's look into the REGAB database:
+
+tst_regab=> \d
+                              List of relations
+ Schema  |                    Name                    |   Type   |   Owner
+---------+--------------------------------------------+----------+-----------
+ reversi | axis_info                                  | table    | tst_regab
+ reversi | board_bitrow_changes_for_player            | table    | tst_regab
+ reversi | color_info                                 | table    | tst_regab
+ reversi | direction_info                             | table    | tst_regab
+ reversi | game_position_test_data                    | table    | tst_regab
+ reversi | game_tree_log                              | table    | tst_regab
+ reversi | game_tree_log_header                       | table    | tst_regab
+ reversi | game_tree_log_header_run_id_seq            | sequence | tst_regab
+ reversi | game_tree_log_staging                      | table    | tst_regab
+ reversi | game_tree_solver                           | table    | tst_regab
+ reversi | migrations                                 | table    | tst_regab
+ reversi | player_info                                | table    | tst_regab
+ reversi | principal_variation_staging                | table    | tst_regab
+ reversi | regab_connection_log                       | table    | tst_regab
+ reversi | regab_connection_log_seq_seq               | sequence | tst_regab
+ reversi | regab_prng_gp                              | table    | tst_regab
+ reversi | regab_prng_gp_h                            | table    | tst_regab
+ reversi | regab_prng_gp_h_seq_seq                    | sequence | tst_regab
+ reversi | regab_prng_gp_pattern_class                | table    | tst_regab
+ reversi | regab_prng_gp_pattern_class_instance_names | table    | tst_regab
+ reversi | regab_prng_gp_seq_seq                      | sequence | tst_regab
+ reversi | regab_prng_pattern_probs                   | table    | tst_regab
+ reversi | regab_prng_pattern_ranges                  | table    | tst_regab
+ reversi | regab_prng_pattern_ranges_seq_seq          | sequence | tst_regab
+ reversi | regab_prng_patterns                        | table    | tst_regab
+ reversi | regab_staging_ec_pidx_cnt_tmp              | table    | tst_regab
+ reversi | square_info                                | table    | tst_regab
+(27 rows)
+
+
+Tables governing PATTERN data:
+
+  OK - regab_prng_patterns
+  OK - regab_prng_gp_pattern_class
+  OK - regab_prng_gp_pattern_class_instance_names
+  OK - regab_prng_pattern_probs
+  OK - regab_prng_pattern_ranges
+
+here the analysis:
+
+tst_regab=> \d regab_prng_patterns
+                     Table "reversi.regab_prng_patterns"
+    Column    |            Type             | Collation | Nullable | Default
+--------------+-----------------------------+-----------+----------+---------
+ pattern_id   | smallint                    |           | not null |
+ pattern_name | character(6)                |           | not null |
+ ins_time     | timestamp without time zone |           |          |
+ ninstances   | smallint                    |           | not null |
+ nsquares     | smallint                    |           | not null |
+ description  | text                        |           |          |
+Indexes:
+    "regab_prng_patterns_pkey" PRIMARY KEY, btree (pattern_id)
+    "regab_prng_patterns_pattern_name_key" UNIQUE CONSTRAINT, btree (pattern_name)
+Check constraints:
+    "ninstances_is_positive" CHECK (ninstances > 0)
+    "nsquares_is_positive" CHECK (nsquares > 0)
+Referenced by:
+    TABLE "regab_prng_gp_pattern_class_instance_names" CONSTRAINT "regab_prng_gp_pattern_class_instance_names_pattern_id_fkey" FOREIGN KEY (pattern_id) REFERENCES regab_prng_patterns(pattern_id) ON DELETE CASCADE
+    TABLE "regab_prng_pattern_ranges" CONSTRAINT "regab_prng_pattern_ranges_pattern_id_fkey" FOREIGN KEY (pattern_id) REFERENCES regab_prng_patterns(pattern_id) ON DELETE CASCADE
+
+tst_regab=> SELECT * FROM regab_prng_patterns;
+ pattern_id | pattern_name |         ins_time          | ninstances | nsquares |                  description
+------------+--------------+---------------------------+------------+----------+------------------------------------------------
+          0 | EDGE         | 2020-06-23 08:35:04.38269 |          4 |        8 | The edge of the board
+          1 | CORNER       | 2020-06-23 08:35:04.38269 |          4 |        9 | The 3x3 corner
+          2 | XEDGE        | 2020-06-23 08:35:04.38269 |          4 |       10 | The edge of the board plus X squares
+          3 | R2           | 2020-06-23 08:35:04.38269 |          4 |        8 | Second row, A2-B2-C2-D2-E2-F2-G2-H2
+          4 | R3           | 2020-06-23 08:35:04.38269 |          4 |        8 | Third row, A3-B3-C3-D3-E3-F3-G3-H3
+          5 | R4           | 2020-06-23 08:35:04.38269 |          4 |        8 | Fourth row, A4-B4-C4-D4-E4-F4-G4-H4
+          6 | DIAG4        | 2020-06-23 08:35:04.38269 |          4 |        4 | Four square diagonal, D1-C2-B3-A4
+          7 | DIAG5        | 2020-06-23 08:35:04.38269 |          4 |        5 | Five square diagonal, E1-D2-C3-B4-A5
+          8 | DIAG6        | 2020-06-23 08:35:04.38269 |          4 |        6 | Six square diagonal, F1-E2-D3-C4-B5-A6
+          9 | DIAG7        | 2020-06-23 08:35:04.38269 |          4 |        7 | Seven square diagonal, G1-F2-E3-D4-C5-B6-A7
+         10 | DIAG8        | 2020-06-23 08:35:04.38269 |          2 |        8 | Eight square diagonal, H1-G2-F3-E4-D5-C6-B7-A8
+         11 | 2X5COR       | 2020-06-23 08:35:04.38269 |          8 |       10 | Ten square, asymmetric corner
+         12 | DIAG3        | 2020-06-23 08:35:04.38269 |          4 |        3 | Three square diagonal, C1-B2-A3
+(13 rows)
+
+
+tst_regab=> \d regab_prng_gp_pattern_class
+                   Table "reversi.regab_prng_gp_pattern_class"
+   Column   |            Type             | Collation | Nullable |    Default
+------------+-----------------------------+-----------+----------+---------------
+ gp_id      | bigint                      |           | not null |
+ ins_time   | timestamp without time zone |           |          | now()
+ status     | character(3)                |           |          | 'INS'::bpchar
+ cst_time   | timestamp without time zone |           |          | now()
+ i_edge_0   | integer                     |           |          |
+ i_edge_1   | integer                     |           |          |
+ i_edge_2   | integer                     |           |          |
+ i_edge_3   | integer                     |           |          |
+ i_corner_0 | integer                     |           |          |
+ i_corner_1 | integer                     |           |          |
+ i_corner_2 | integer                     |           |          |
+ i_corner_3 | integer                     |           |          |
+ i_xedge_0  | integer                     |           |          |
+ i_xedge_1  | integer                     |           |          |
+ i_xedge_2  | integer                     |           |          |
+ i_xedge_3  | integer                     |           |          |
+ i_r2_0     | integer                     |           |          |
+ i_r2_1     | integer                     |           |          |
+ i_r2_2     | integer                     |           |          |
+ i_r2_3     | integer                     |           |          |
+ i_r3_0     | integer                     |           |          |
+ i_r3_1     | integer                     |           |          |
+ i_r3_2     | integer                     |           |          |
+ i_r3_3     | integer                     |           |          |
+ i_r4_0     | integer                     |           |          |
+ i_r4_1     | integer                     |           |          |
+ i_r4_2     | integer                     |           |          |
+ i_r4_3     | integer                     |           |          |
+ i_diag4_0  | integer                     |           |          |
+ i_diag4_1  | integer                     |           |          |
+ i_diag4_2  | integer                     |           |          |
+ i_diag4_3  | integer                     |           |          |
+ i_diag5_0  | integer                     |           |          |
+ i_diag5_1  | integer                     |           |          |
+ i_diag5_2  | integer                     |           |          |
+ i_diag5_3  | integer                     |           |          |
+ i_diag6_0  | integer                     |           |          |
+ i_diag6_1  | integer                     |           |          |
+ i_diag6_2  | integer                     |           |          |
+ i_diag6_3  | integer                     |           |          |
+ i_diag7_0  | integer                     |           |          |
+ i_diag7_1  | integer                     |           |          |
+ i_diag7_2  | integer                     |           |          |
+ i_diag7_3  | integer                     |           |          |
+ i_diag8_0  | integer                     |           |          |
+ i_diag8_1  | integer                     |           |          |
+ i_2x5cor_0 | integer                     |           |          |
+ i_2x5cor_1 | integer                     |           |          |
+ i_2x5cor_2 | integer                     |           |          |
+ i_2x5cor_3 | integer                     |           |          |
+ i_2x5cor_4 | integer                     |           |          |
+ i_2x5cor_5 | integer                     |           |          |
+ i_2x5cor_6 | integer                     |           |          |
+ i_2x5cor_7 | integer                     |           |          |
+ i_diag3_0  | integer                     |           |          |
+ i_diag3_1  | integer                     |           |          |
+ i_diag3_2  | integer                     |           |          |
+ i_diag3_3  | integer                     |           |          |
+Indexes:
+    "regab_prng_gp_pattern_class_pkey" PRIMARY KEY, btree (gp_id)
+Check constraints:
+    "regab_prng_gp_pattern_class_status_check" CHECK (status = ANY (ARRAY['INS'::bpchar, 'WIP'::bpchar, 'CMP'::bpchar]))
+Foreign-key constraints:
+    "regab_prng_gp_pattern_class_gp_id_fkey" FOREIGN KEY (gp_id) REFERENCES regab_prng_gp(seq) ON DELETE CASCADE
+
+From the PostgreSQL Documentation:
+  integer : 4 bytes : typical choice for integer : -2147483648 to +2147483647
+so the values shudn't be an issue.
+
+tst_regab=> \d regab_prng_gp_pattern_class_instance_names
+          Table "reversi.regab_prng_gp_pattern_class_instance_names"
+    Column     |            Type             | Collation | Nullable | Default
+---------------+-----------------------------+-----------+----------+---------
+ ins_time      | timestamp without time zone |           |          |
+ pattern_id    | integer                     |           | not null |
+ instance_id   | integer                     |           | not null |
+ instance_name | text                        |           |          |
+Indexes:
+    "rpgpcin_pk" PRIMARY KEY, btree (pattern_id, instance_id)
+    "regab_prng_gp_pattern_class_instance_names_instance_name_key" UNIQUE CONSTRAINT, btree (instance_name)
+Foreign-key constraints:
+    "regab_prng_gp_pattern_class_instance_names_pattern_id_fkey" FOREIGN KEY (pattern_id) REFERENCES regab_prng_patterns(pattern_id) ON DELETE CASCADE
+
+No issue also here ...
+
+tst_regab=> \d regab_prng_pattern_probs
+                Table "reversi.regab_prng_pattern_probs"
+       Column        |       Type       | Collation | Nullable | Default
+---------------------+------------------+-----------+----------+---------
+ range_id            | bigint           |           |          |
+ empty_count         | smallint         |           |          |
+ index_prob_given_ec | double precision |           |          |
+Indexes:
+    "regab_prng_pattern_probs_range_id_empty_count_key" UNIQUE CONSTRAINT, btree (range_id, empty_count)
+Foreign-key constraints:
+    "regab_prng_pattern_probs_range_id_fkey" FOREIGN KEY (range_id) REFERENCES regab_prng_pattern_ranges(seq) ON DELETE CASCADE
+
+tst_regab=> SELECT * FROM regab_prng_pattern_probs LIMIT 3;
+ range_id | empty_count | index_prob_given_ec
+----------+-------------+---------------------
+   180416 |          18 |                   0
+   180416 |          24 |                   0
+   180416 |          23 |                   0
+(3 rows)
+
+tst_regab=> \d regab_prng_pattern_ranges
+                                    Table "reversi.regab_prng_pattern_ranges"
+        Column         |   Type   | Collation | Nullable |                        Default
+-----------------------+----------+-----------+----------+--------------------------------------------------------
+ seq                   | bigint   |           | not null | nextval('regab_prng_pattern_ranges_seq_seq'::regclass)
+ pattern_id            | smallint |           |          |
+ index_value           | integer  |           |          |
+ mirror_value          | integer  |           |          |
+ principal_index_value | integer  |           |          |
+Indexes:
+    "regab_prng_pattern_ranges_pkey" PRIMARY KEY, btree (seq)
+    "regab_prng_pattern_ranges_pattern_id_index_value_key" UNIQUE CONSTRAINT, btree (pattern_id, index_value)
+Foreign-key constraints:
+    "regab_prng_pattern_ranges_pattern_id_fkey" FOREIGN KEY (pattern_id) REFERENCES regab_prng_patterns(pattern_id) ON DELETE CASCADE
+Referenced by:
+    TABLE "regab_prng_pattern_probs" CONSTRAINT "regab_prng_pattern_probs_range_id_fkey" FOREIGN KEY (range_id) REFERENCES regab_prng_pattern_ranges(seq) ON DELETE CASCADE
+
+tst_regab=> SELECT * FROM regab_prng_pattern_ranges LIMIT 3;
+  seq   | pattern_id | index_value | mirror_value | principal_index_value
+--------+------------+-------------+--------------+-----------------------
+ 173854 |          0 |           0 |            0 |                     0
+ 173855 |          0 |           1 |         2187 |                     1
+ 173856 |          0 |           2 |         4374 |                     2
+(3 rows)
+
+No issue also here ...
+All PATTERN INDEX values are hosted into INTEGER fields. It is OK!
+
+...
+...
 
 
 --- --- --- ---

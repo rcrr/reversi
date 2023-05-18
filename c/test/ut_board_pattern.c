@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2018, 2019 Roberto Corradini. All rights reserved.
+ * @copyright 2018, 2019, 2023 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -501,7 +501,14 @@ aux_check_expected_indexes (ut_test_t *const t,
 
   board_set_square_sets(b, m, o);
   board_pattern_compute_indexes(computed_indexes, p, b);
-  for (int i = 0; i < n; i++) ut_assert(t, expected_indexes[i] == computed_indexes[i]);
+  for (int i = 0; i < n; i++) {
+    if (expected_indexes[i] != computed_indexes[i]) {
+      printf("i = %d\n", i);
+      printf("expected_indexes[i] = %d\n", expected_indexes[i]);
+      printf("computed_indexes[i] = %d\n", computed_indexes[i]);
+      ut_assert(t, false);
+    }
+  }
   board_pattern_compute_principal_indexes(computed_principal_indexes, computed_indexes, p, false);
   for (int i = 0; i < n; i++) ut_assert(t, expected_principal_indexes[i] == computed_principal_indexes[i]);
 }

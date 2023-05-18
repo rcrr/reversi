@@ -5,7 +5,7 @@
 # http://github.com/rcrr/reversi
 # 
 # Aauthor Roberto Corradini mailto:rob_corradini@yahoo.it
-# Copyright 2022 Roberto Corradini. All rights reserved.
+# Copyright 2022, 2023 Roberto Corradini. All rights reserved.
 #
 # License
 # 
@@ -35,6 +35,10 @@ import pandas as pd
 import re
 
 from abc import ABCMeta, abstractmethod
+
+# It must match the typedef definition in board_pattern.h
+# It must!
+c_board_pattern_index = ct.c_int32
 
 _c_s_to_s_fun = ct.CFUNCTYPE(ct.c_ulonglong, ct.c_ulonglong)
 
@@ -918,11 +922,11 @@ def _compute_pattern_indexes(self : Board, p : Pattern) -> np.ndarray:
         raise TypeError('Argument p is not an instance of Pattern')
     f = libreversi.board_pattern_compute_indexes
     f.restype = None
-    f.argtypes = [ct.POINTER(ct.c_uint16*8), ct.POINTER(_BoardPatternCTHelper), ct.POINTER(_BoardCTHelper)]
+    f.argtypes = [ct.POINTER(c_board_pattern_index*8), ct.POINTER(_BoardPatternCTHelper), ct.POINTER(_BoardCTHelper)]
     ct_board_p = ct.byref(_BoardCTHelper((self.mover, self.opponent)))
-    ct_indexes = (ct.c_uint16*8) (0, 0, 0, 0, 0, 0, 0, 0)
+    ct_indexes = (c_board_pattern_index*8) (0, 0, 0, 0, 0, 0, 0, 0)
     f(ct.byref(ct_indexes), p._c_pattern, ct_board_p)
-    return np.frombuffer(ct_indexes, np.uint16, count = p.n_instances)
+    return np.frombuffer(ct_indexes, np.int32, count = p.n_instances)
 
 setattr(Board, "compute_pattern_indexes", _compute_pattern_indexes)
 
@@ -960,17 +964,17 @@ def _compute_pattern_principal_indexes(self : Board, p : Pattern) -> (np.ndarray
         raise TypeError('Argument p is not an instance of Pattern')
     f0 = libreversi.board_pattern_compute_indexes
     f0.restype = None
-    f0.argtypes = [ct.POINTER(ct.c_uint16*8), ct.POINTER(_BoardPatternCTHelper), ct.POINTER(_BoardCTHelper)]
+    f0.argtypes = [ct.POINTER(c_board_pattern_index*8), ct.POINTER(_BoardPatternCTHelper), ct.POINTER(_BoardCTHelper)]
     ct_board_p = ct.byref(_BoardCTHelper((self.mover, self.opponent)))
-    ct_indexes = (ct.c_uint16*8) (0, 0, 0, 0, 0, 0, 0, 0)
+    ct_indexes = (c_board_pattern_index*8) (0, 0, 0, 0, 0, 0, 0, 0)
     f0(ct.byref(ct_indexes), p._c_pattern, ct_board_p)
     f1 = libreversi.board_pattern_compute_principal_indexes
     f1.restype = None
-    f1.argtypes = [ct.POINTER(ct.c_uint16*8), ct.POINTER(ct.c_uint16*8), ct.POINTER(_BoardPatternCTHelper), ct.c_bool]
-    ct_principals = (ct.c_uint16*8) (0, 0, 0, 0, 0, 0, 0, 0)
+    f1.argtypes = [ct.POINTER(c_board_pattern_index*8), ct.POINTER(c_board_pattern_index*8), ct.POINTER(_BoardPatternCTHelper), ct.c_bool]
+    ct_principals = (c_board_pattern_index*8) (0, 0, 0, 0, 0, 0, 0, 0)
     f1(ct.byref(ct_principals), ct.byref(ct_indexes), p._c_pattern, False)
-    return (np.frombuffer(ct_indexes, np.uint16, count = p.n_instances),
-            np.frombuffer(ct_principals, np.uint16, count = p.n_instances))
+    return (np.frombuffer(ct_indexes, np.int32, count = p.n_instances),
+            np.frombuffer(ct_principals, np.int32, count = p.n_instances))
 
 setattr(Board, "compute_pattern_principal_indexes", _compute_pattern_principal_indexes)
 

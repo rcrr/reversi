@@ -4,7 +4,7 @@
 #  This file is part of the reversi program
 #  http://github.com/rcrr/reversi
 #
-#  Copyright (c) 2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022 Roberto Corradini. All rights reserved.
+#  Copyright (c) 2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023 Roberto Corradini. All rights reserved.
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -296,7 +296,7 @@ CFLAGS := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g3 -O3 $(AR
 CFLAGS_TEST := -std=c18 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g0 -O3 $(ARCH_FLAGS) -I$(EXT_INC) -fopenmp -fpic
 LDFLAGS :=
 LDFLAGS_TEST :=
-ASFLAGS := -c -g -O
+ASFLAGS := -c -g -O3
 #
 # add -masm=intel to have the intel assembly format.
 # BE CAREFULL because assembly code inlined as __asm__ compiles but will NOT work as expected.

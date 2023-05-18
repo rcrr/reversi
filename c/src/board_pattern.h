@@ -448,11 +448,12 @@ typedef enum {
   BOARD_PATTERN_DIAG8,               /**< A8 B7 C6 D5 E4 F3 G2 H1 */
   BOARD_PATTERN_2X5COR,              /**< A1 B1 C1 D1 E1 A2 B2 C2 D2 E2 */
   BOARD_PATTERN_DIAG3,               /**< A3 B2 C1 */
+  BOARD_PATTERN_2X6COR,              /**< A1 B1 C1 D1 E1 F1 A2 B2 C2 D2 E2 F2 */
   BOARD_PATTERN_INVALID              /**< Not a valid pattern. */
 } board_pattern_id_t;
 
 #define BOARD_PATTERN_COUNT BOARD_PATTERN_INVALID
-#define BOARD_PATTERN_MAX_N_INSTANCES 8
+#define BOARD_PATTERN_MAX_N_INSTANCES 16
 
 #define BOARD_PATTERN_INDEX_TABLE_SIZE_EDGE 6561
 #define BOARD_PATTERN_INDEX_TABLE_SIZE_CORNER 19683
@@ -467,13 +468,14 @@ typedef enum {
 #define BOARD_PATTERN_INDEX_TABLE_SIZE_DIAG8 6561
 #define BOARD_PATTERN_INDEX_TABLE_SIZE_2X5COR 59049
 #define BOARD_PATTERN_INDEX_TABLE_SIZE_DIAG3 27
+#define BOARD_PATTERN_INDEX_TABLE_SIZE_2X6COR 531441
 #define BOARD_PATTERN_INDEX_TABLE_SIZE BOARD_PATTERN_INDEX_TABLE_SIZE_EDGE + BOARD_PATTERN_INDEX_TABLE_SIZE_CORNER \
   + BOARD_PATTERN_INDEX_TABLE_SIZE_XEDGE + BOARD_PATTERN_INDEX_TABLE_SIZE_R2 + BOARD_PATTERN_INDEX_TABLE_SIZE_R3 \
   + BOARD_PATTERN_INDEX_TABLE_SIZE_R4 + BOARD_PATTERN_INDEX_TABLE_SIZE_DIAG4 + BOARD_PATTERN_INDEX_TABLE_SIZE_DIAG5 \
   + BOARD_PATTERN_INDEX_TABLE_SIZE_DIAG6 + BOARD_PATTERN_INDEX_TABLE_SIZE_DIAG7 + BOARD_PATTERN_INDEX_TABLE_SIZE_DIAG8 \
-  + BOARD_PATTERN_INDEX_TABLE_SIZE_2X5COR + BOARD_PATTERN_INDEX_TABLE_SIZE_DIAG3
+  + BOARD_PATTERN_INDEX_TABLE_SIZE_2X5COR + BOARD_PATTERN_INDEX_TABLE_SIZE_DIAG3 + BOARD_PATTERN_INDEX_TABLE_SIZE_2X6COR
 
-typedef uint16_t board_pattern_index_t;
+typedef int32_t board_pattern_index_t;
 
 typedef struct board_feature_s board_feature_t;
 
@@ -485,7 +487,7 @@ extern const int board_pattern_count;
 
 extern SquareSet
 board_pattern_mask (SquareSet s,
-                    board_pattern_index_t p,
+                    board_pattern_id_t p,
                     unsigned int instance);
 
 extern SquareSet
@@ -565,6 +567,12 @@ board_pattern_pack_diag3 (SquareSet s);
 
 extern SquareSet
 board_pattern_unpack_diag3 (SquareSet s);
+
+extern SquareSet
+board_pattern_pack_2x6cor (SquareSet s);
+
+extern SquareSet
+board_pattern_unpack_2x6cor (SquareSet s);
 
 /**
  * @brief Returns `true` when `name` matches with valid pattern, otherwise `false`.

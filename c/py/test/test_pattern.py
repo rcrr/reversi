@@ -5,7 +5,7 @@
 # http://github.com/rcrr/reversi
 # 
 # Aauthor Roberto Corradini mailto:rob_corradini@yahoo.it
-# Copyright 2022 Roberto Corradini. All rights reserved.
+# Copyright 2022, 2023 Roberto Corradini. All rights reserved.
 #
 # License
 # 
