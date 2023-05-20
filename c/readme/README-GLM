@@ -364,20 +364,21 @@ of something more smart and effective.
 ---
 
 Change 2x6cor: step #1 - added the documentation of the pattern into c/src/board_pattern.h
-Change 2x6cor: step #2 - adding the new pattern having 531441 configuration a terrible problem
-                         arises.
+Change 2x6cor: step #2 - adding the new pattern having 531441 configuration a problem arises.
                          Into the function board_pattern_compute_principal_indexes the loop:
                            for (board_pattern_index_t idx = 0; idx < n; idx++) {
                            ....
                          cannot works. idx overflows and never get larger then n.
                          The assignment *p++ = ... then generates a segmentation fault.
-
-                         Unfortunately this is part of a larger, much larger, issue:
+                         Unfortunately this is part of a larger issue:
                          the definition of board_pattern_index_t is:
                          typedef uint16_t board_pattern_index_t;
-                         It needs to be changed to uint32_t.
-                         
-                         This is a huge change.
+                         It needs to be changed to int32_t.
+                         This is a relevant change affecting also the python code.
+                         Database is not affected, as well as the RGLM data file definition.
+                         The change has been done. Now we have:
+                           typedef int32_t board_pattern_index_t;
+Change 2x6cor: step #3 - adding C tests for the new pattern into unit test file ut_board_pattern.c
 
 ---
 --- Impact analysis of redefining board_pattern_index_t.

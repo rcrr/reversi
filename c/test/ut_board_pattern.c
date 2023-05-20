@@ -448,6 +448,8 @@ static const SquareSet packed_08     = 0x00000000000000ff;
 static const SquareSet packed_09     = 0x00000000000001ff;
 static const SquareSet packed_10     = 0x00000000000003ff;
 
+static const SquareSet packed_12     = 0x0000000000000fff;
+
 static const SquareSet mask_edge_0   = 0x00000000000000ff;
 static const SquareSet mask_corner_0 = 0x0000000000070707;
 static const SquareSet mask_xedge_0  = 0x00000000000042ff;
@@ -461,6 +463,7 @@ static const SquareSet mask_diag6_0  = 0x0000010204081020;
 static const SquareSet mask_diag7_0  = 0x0001020408102040;
 static const SquareSet mask_diag8_0  = 0x0102040810204080;
 static const SquareSet mask_2x5cor_0 = 0x0000000000001f1f;
+static const SquareSet mask_2x6cor_0 = 0x0000000000003f3f;
 
 /*
  * Test structure.
@@ -503,14 +506,23 @@ aux_check_expected_indexes (ut_test_t *const t,
   board_pattern_compute_indexes(computed_indexes, p, b);
   for (int i = 0; i < n; i++) {
     if (expected_indexes[i] != computed_indexes[i]) {
-      printf("i = %d\n", i);
-      printf("expected_indexes[i] = %d\n", expected_indexes[i]);
-      printf("computed_indexes[i] = %d\n", computed_indexes[i]);
+      printf("\n");
+      printf("  i = %d\n", i);
+      printf("  expected_indexes[i] = %d\n", expected_indexes[i]);
+      printf("  computed_indexes[i] = %d\n", computed_indexes[i]);
       ut_assert(t, false);
     }
   }
   board_pattern_compute_principal_indexes(computed_principal_indexes, computed_indexes, p, false);
-  for (int i = 0; i < n; i++) ut_assert(t, expected_principal_indexes[i] == computed_principal_indexes[i]);
+  for (int i = 0; i < n; i++) {
+    if (expected_principal_indexes[i] != computed_principal_indexes[i]) {
+      printf("\n");
+      printf("  i = %d\n", i);
+      printf("  expected_principal_indexes[i] = %d\n", expected_principal_indexes[i]);
+      printf("  computed_principal_indexes[i] = %d\n", computed_principal_indexes[i]);
+      ut_assert(t, false);
+    }
+  }
 }
 
 static void
@@ -882,6 +894,21 @@ board_pattern_unpack_diag3_t (ut_test_t *const t)
 }
 
 static void
+board_pattern_pack_2x6cor_t (ut_test_t *const t)
+{
+  ut_assert(t, empty == board_pattern_pack_2x6cor(empty));
+  ut_assert(t, packed_12 == board_pattern_pack_2x6cor(mask_2x6cor_0));
+  ut_assert(t, packed_12 == board_pattern_pack_2x6cor(full));
+}
+
+static void
+board_pattern_unpack_2x6cor_t (ut_test_t *const t)
+{
+  ut_assert(t, empty == board_pattern_unpack_2x6cor(empty));
+  ut_assert(t, mask_2x6cor_0 == board_pattern_unpack_2x6cor(packed_12));
+}
+
+static void
 board_pattern_packed_to_index_aux (ut_test_t *const t,
                                    board_pattern_index_t (*fp) (board_t *, unsigned int))
 {
@@ -942,6 +969,18 @@ board_pattern_packed_to_index_aux (ut_test_t *const t,
   /* Test 2x5cor 2222222222 */
   board_set_square_sets(&b, 0x0000, 0x03ff);
   ut_assert(t, fp(&b, 10) == 59048);
+
+  /* Test diag3 222 */
+  board_set_square_sets(&b, 0x0000, 0x0007);
+  ut_assert(t, fp(&b, 3) == 26);
+
+  /* Test 2x6cor 222222222222 */
+  board_set_square_sets(&b, 0x0000, 0x0fff);
+  ut_assert(t, fp(&b, 12) == 531440);
+
+  /* Test 2x6cor 222222222220 */
+  board_set_square_sets(&b, 0x0000, 0x07ff);
+  ut_assert(t, fp(&b, 12) == 177146);
 }
 
 static void
@@ -1548,6 +1587,60 @@ board_pattern_compute_indexes_diag3_t (ut_test_t *const t)
   aux_check_expected_indexes_array(t, BOARD_PATTERN_DIAG3, test_data, sizeof(test_data) / sizeof(struct board_pattern_test_s));
 }
 
+static void
+board_pattern_compute_indexes_2x6cor_t (ut_test_t *const t)
+{
+  struct board_pattern_test_s test_data[] =
+    {
+      {empty,    empty,    {      0,      0,      0,      0,      0,      0,      0,      0 }, {      0,      0,      0,      0,      0,      0,      0,      0 }},
+      {full,     empty,    { 265720, 265720, 265720, 265720, 265720, 265720, 265720, 265720 }, { 265720, 265720, 265720, 265720, 265720, 265720, 265720, 265720 }},
+      {empty,    full,     { 531440, 531440, 531440, 531440, 531440, 531440, 531440, 531440 }, { 531440, 531440, 531440, 531440, 531440, 531440, 531440, 531440 }},
+      {n_edge,   empty,    {    364,    730,      0,      0,    364,      0,      0,    730 }, {    364,    730,      0,      0,    364,      0,      0,    730 }},
+      {e_edge,   empty,    {      0,    364,    730,      0,    730,    364,      0,      0 }, {      0,    364,    730,      0,    730,    364,      0,      0 }},
+      {s_edge,   empty,    {      0,      0,    364,    730,      0,    730,    364,      0 }, {      0,      0,    364,    730,      0,    730,    364,      0 }},
+      {w_edge,   empty,    {    730,      0,      0,    364,      0,      0,    730,    364 }, {    730,      0,      0,    364,      0,      0,    730,    364 }},
+      {empty,    n_r2,     { 530712,   4380,      0,      0, 530712,      0,      0,   4380 }, { 530712,   4380,      0,      0, 530712,      0,      0,   4380 }},
+      {empty,    e_r2,     {      0, 530712,   4380,      0,   4380, 530712,      0,      0 }, {      0, 530712,   4380,      0,   4380, 530712,      0,      0 }},
+      {empty,    s_r2,     {      0,      0, 530712,   4380,      0,   4380, 530712,      0 }, {      0,      0, 530712,   4380,      0,   4380, 530712,      0 }},
+      {empty,    w_r2,     {   4380,      0,      0, 530712,      0,      0,   4380, 530712 }, {   4380,      0,      0, 530712,      0,      0,   4380, 530712 }},
+      {n_r3,     n_r4,     {      0,  45990,      0, 295650,      0, 295650,      0,  45990 }, {      0,  45990,      0, 295650,      0, 295650,      0,  45990 }},
+      {e_r3,     e_r4,     { 295650,      0,  45990,      0,  45990,      0, 295650,      0 }, { 295650,      0,  45990,      0,  45990,      0, 295650,      0 }},
+      {s_r3,     s_r4,     {      0, 295650,      0,  45990,      0,  45990,      0, 295650 }, {      0, 295650,      0,  45990,      0,  45990,      0, 295650 }},
+      {w_r3,     w_r4,     {  45990,      0, 295650,      0, 295650,      0,  45990,      0 }, {  45990,      0, 295650,      0, 295650,      0,  45990,      0 }},
+      {border,   empty,    {   1093,   1093,   1093,   1093,   1093,   1093,   1093,   1093 }, {   1093,   1093,   1093,   1093,   1093,   1093,   1093,   1093 }},
+      {empty,    border,   {   2186,   2186,   2186,   2186,   2186,   2186,   2186,   2186 }, {   2186,   2186,   2186,   2186,   2186,   2186,   2186,   2186 }},
+      {bord_1,   empty,    { 264627, 264627, 264627, 264627, 264627, 264627, 264627, 264627 }, { 264627, 264627, 264627, 264627, 264627, 264627, 264627, 264627 }},
+      {empty,    bord_1,   { 529254, 529254, 529254, 529254, 529254, 529254, 529254, 529254 }, { 529254, 529254, 529254, 529254, 529254, 529254, 529254, 529254 }},
+      {bord_2,   bord_3,   {      0,      0,      0,      0,      0,      0,      0,      0 }, {      0,      0,      0,      0,      0,      0,      0,      0 }},
+      {border,   bord_1,   { 530347, 530347, 530347, 530347, 530347, 530347, 530347, 530347 }, { 530347, 530347, 530347, 530347, 530347, 530347, 530347, 530347 }},
+      {bord_1,   border,   { 266813, 266813, 266813, 266813, 266813, 266813, 266813, 266813 }, { 266813, 266813, 266813, 266813, 266813, 266813, 266813, 266813 }},
+      {nw_3x3,   ne_3x3,   { 364270,  18980,      0, 177390, 196370, 354780,      0,   9490 }, { 364270,  18980,      0, 177390, 196370, 354780,      0,   9490 }},
+      {ne_3x3,   se_3x3,   { 177390, 364270,  18980,      0,   9490, 196370, 354780,      0 }, { 177390, 364270,  18980,      0,   9490, 196370, 354780,      0 }},
+      {se_3x3,   sw_3x3,   {      0, 177390, 364270,  18980,      0,   9490, 196370, 354780 }, {      0, 177390, 364270,  18980,      0,   9490, 196370, 354780 }},
+      {sw_3x3,   nw_3x3,   {  18980,      0, 177390, 364270, 354780,      0,   9490, 196370 }, {  18980,      0, 177390, 364270, 354780,      0,   9490, 196370 }},
+      {nw_7x7,   empty,    { 265720, 265356, 264627, 264990, 264990, 264627, 265356, 265720 }, { 265720, 265356, 264627, 264990, 264990, 264627, 265356, 265720 }},
+      {ne_7x7,   empty,    { 264990, 265720, 265356, 264627, 265720, 264990, 264627, 265356 }, { 264990, 265720, 265356, 264627, 265720, 264990, 264627, 265356 }},
+      {se_7x7,   empty,    { 264627, 264990, 265720, 265356, 265356, 265720, 264990, 264627 }, { 264627, 264990, 265720, 265356, 265356, 265720, 264990, 264627 }},
+      {sw_7x7,   empty,    { 265356, 264627, 264990, 265720, 264627, 265356, 265720, 264990 }, { 265356, 264627, 264990, 265720, 264627, 265356, 265720, 264990 }},
+      {empty,    nw_7x7,   { 531440, 530712, 529254, 529980, 529980, 529254, 530712, 531440 }, { 531440, 530712, 529254, 529980, 529980, 529254, 530712, 531440 }},
+      {empty,    ne_7x7,   { 529980, 531440, 530712, 529254, 531440, 529980, 529254, 530712 }, { 529980, 531440, 530712, 529254, 531440, 529980, 529254, 530712 }},
+      {empty,    se_7x7,   { 529254, 529980, 531440, 530712, 530712, 531440, 529980, 529254 }, { 529254, 529980, 531440, 530712, 530712, 531440, 529980, 529254 }},
+      {empty,    sw_7x7,   { 530712, 529254, 529980, 531440, 529254, 530712, 531440, 529980 }, { 530712, 529254, 529980, 531440, 529254, 530712, 531440, 529980 }},
+      {nw_tri_2, ne_tri_3, {   1219,   5858,      0,      0,   5858,    486,      0,    733 }, {   1219,   5858,      0,      0,   5858,    486,      0,    733 }},
+      {ne_tri_2, se_tri_3, {      0,   1219,   5858,      0,    733,   5858,    486,      0 }, {      0,   1219,   5858,      0,    733,   5858,    486,      0 }},
+      {se_tri_2, sw_tri_3, {      0,      0,   1219,   5858,      0,    733,   5858,    486 }, {      0,      0,   1219,   5858,      0,    733,   5858,    486 }},
+      {sw_tri_2, nw_tri_3, {   5858,      0,      0,   1219,    486,      0,    733,   5858 }, {   5858,      0,      0,   1219,    486,      0,    733,   5858 }},
+      {nw_tri_4, se_tri_5, {   9517, 473094,  58562, 177471, 177471,  58562, 473094,   9517 }, {   9517, 473094,  58562, 177471, 177471,  58562, 473094,   9517 }},
+      {ne_tri_4, sw_tri_5, { 177471,   9517, 473094,  58562,   9517, 177471,  58562, 473094 }, { 177471,   9517, 473094,  58562,   9517,  177471, 58562, 473094 }},
+      {se_tri_4, nw_tri_5, {  58562, 177471,   9517, 473094, 473094,   9517, 177471,  58562 }, {  58562, 177471,   9517, 473094, 473094,   9517, 177471,  58562 }},
+      {sw_tri_4, ne_tri_5, { 473094,  58562, 177471,   9517,  58562, 473094,   9517, 177471 }, { 473094,  58562, 177471,   9517,  58562, 473094,   9517, 177471 }},
+    };
+
+  aux_check_expected_indexes_array(t, BOARD_PATTERN_2X6COR, test_data, sizeof(test_data) / sizeof(struct board_pattern_test_s));
+}
+
+
+
 /**
  * @brief Runs the test suite.
  */
@@ -1590,6 +1683,8 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_unpack_2x5cor", board_pattern_unpack_2x5cor_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_pack_diag3", board_pattern_pack_diag3_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_unpack_diag3", board_pattern_unpack_diag3_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_pack_2x6cor", board_pattern_pack_2x6cor_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_unpack_2x6cor", board_pattern_unpack_2x6cor_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_packed_to_index", board_pattern_packed_to_index_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_index_to_packed", board_pattern_index_to_packed_t);
@@ -1609,6 +1704,7 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_diag8", board_pattern_compute_indexes_diag8_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_2x5cor", board_pattern_compute_indexes_2x5cor_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_diag3", board_pattern_compute_indexes_diag3_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_2x6cor", board_pattern_compute_indexes_2x6cor_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_principal_indexes_one_value", board_pattern_compute_principal_indexes_one_value_t);
 

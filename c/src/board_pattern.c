@@ -890,7 +890,7 @@ board_pattern_packed_to_index (board_t *packed,
   const SquareSet o = bv[1] << 1;
 
   idxv = 0;
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < BOARD_PATTERN_MAX_N_INSTANCES; i++) {
     idxv += kv[i] * (((m & mv[i]) + (o & mv[i+1])) >> i);
     if (i == n_squares -1) break;
   }
