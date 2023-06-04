@@ -1,0 +1,55 @@
+--
+-- 0107_data_pattern_index_frequencies_2X6COR_762291_1000000000.sql.howto
+--
+-- This file is part of the reversi program
+-- http://github.com/rcrr/reversi
+--
+-- Author: Roberto Corradini mailto:rob_corradini@yahoo.it
+-- Copyright 2023 Roberto Corradini. All rights reserved.
+--
+--
+-- License:
+--
+-- This program is free software; you can redistribute it and/or modify it
+-- under the terms of the GNU General Public License as published by the
+-- Free Software Foundation; either version 3, or (at your option) any
+-- later version.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program; if not, write to the Free Software
+-- Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+-- or visit the site <http://www.gnu.org/licenses/>.
+--
+
+The file:
+
+  0107_data_pattern_index_frequencies_2X6COR_762291_1000000000.sql
+
+is to big to be loaded into GitHub.
+
+So in order to recreate it run from the $(REVERSI_HOME)/c directory:
+
+$ ./build/bin/endgame_solver -s rand -f db/gpdb-sample-games.txt -q initial -P 2X6COR -n 1000000000 -r 762291
+
+then move the generated file:
+
+  data_pattern_index_frequencies_2X6COR_762291_1000000000.csv
+
+to the sql directory with the name changed to:
+
+  0107_data_pattern_index_frequencies_2X6COR_762291_1000000000.sql
+
+The file has the format:
+
+EMPTY_COUNT;PATTERN_INDEX;COUNT
+0;0;0
+0;1;0
+0;2;0
+...
+
+and has 32,417,902 rows ( 32 millions ).
