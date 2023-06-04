@@ -5,7 +5,7 @@
 -- http://github.com/rcrr/reversi
 --
 -- Author: Roberto Corradini mailto:rob_corradini@yahoo.it
--- Copyright 2018 Roberto Corradini. All rights reserved.
+-- Copyright 2018, 2023 Roberto Corradini. All rights reserved.
 --
 --
 -- License:
@@ -33,6 +33,7 @@
 SET search_path TO reversi;
 
 BEGIN;
+DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = '2X6COR');
 DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = 'DIAG3');
 DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = '2X5COR');
 DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = 'DIAG8');
@@ -47,6 +48,7 @@ DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM
 DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = 'CORNER');
 DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = 'EDGE');
 
+DELETE FROM regab_prng_patterns WHERE pattern_name = '2X6COR';
 DELETE FROM regab_prng_patterns WHERE pattern_name = 'DIAG3';
 DELETE FROM regab_prng_patterns WHERE pattern_name = '2X5COR';
 DELETE FROM regab_prng_patterns WHERE pattern_name = 'DIAG8';

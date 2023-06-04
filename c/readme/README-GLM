@@ -379,6 +379,9 @@ Change 2x6cor: step #2 - adding the new pattern having 531441 configuration a pr
                          The change has been done. Now we have:
                            typedef int32_t board_pattern_index_t;
 Change 2x6cor: step #3 - adding C tests for the new pattern into unit test file ut_board_pattern.c
+Change 2x6cor: step #4 - adding 2X5COR alla documentazione di endgame_solver 
+                        $ ./build/bin/endgame_solver -s rand -f db/gpdb-sample-games.txt -q initial -P 2X6COR -n 100000000 -r 762290
+
 
 ---
 --- Impact analysis of redefining board_pattern_index_t.
@@ -638,6 +641,545 @@ All PATTERN INDEX values are hosted into INTEGER fields. It is OK!
 
 ...
 ...
+
+##--##--## 2023-01-31 : let's start working on the SQL changes ...
+
+##
+## Changes to the C code are done and OK.
+##
+commit bc2c770e02e627f1a388a0a27e4b70db61a51591 (HEAD -> master, origin/master, origin/HEAD)
+Author: rcrr <rob_corradini@yahoo.it>
+Date:   Thu May 25 09:54:19 2023 +0200
+
+    Added missing files for testing.
+
+This is the sequence of REGAB database migrations:
+
+0100_down_regab_create_schema.sql
+0100_up_regab_create_schema.sql
+0101_down_migrations.sql
+0101_up_migrations.sql
+0102_down_gp_ext.sql
+0102_up_gp_ext.sql
+0103_down_patterns.sql
+0103_up_patterns.sql
+0104_down_pattern_functions.sql
+0104_up_pattern_functions.sql
+0107_data_pattern_index_frequencies_2X5COR_112_116_292_298_372_378_973_977_80000000000.sql
+0107_data_pattern_index_frequencies_CORNER_112_116_292_298_372_378_973_977_32000000000.sql
+0107_data_pattern_index_frequencies_DIAG3_628_1000000000.sql
+0107_data_pattern_index_frequencies_DIAG4_628_1000000000.sql
+0107_data_pattern_index_frequencies_DIAG5_628_1000000000.sql
+0107_data_pattern_index_frequencies_DIAG6_628_1000000000.sql
+0107_data_pattern_index_frequencies_DIAG7_628_1000000000.sql
+0107_data_pattern_index_frequencies_DIAG8_628_1000000000.sql
+0107_data_pattern_index_frequencies_EDGE_826_1billion.sql
+0107_data_pattern_index_frequencies_R2_628_1000000000.sql
+0107_data_pattern_index_frequencies_R3_628_1000000000.sql
+0107_data_pattern_index_frequencies_R4_628_1000000000.sql
+0107_data_pattern_index_frequencies_XEDGE_112_116_292_298_372_378_973_977_80000000000.sql
+0107_down_pattern_data.sql
+0107_up_pattern_data.sql
+0109_down_action_extract.sql
+0109_up_action_extract.sql
+0110_down_gp_solver.sql
+0110_up_gp_solver.sql
+
+###
+### 0 - go down
+###
+
+NO:  0110_down_gp_solver.sql should not be called, we would loose information about the solver running it.
+YES: 0109_down_action_extract.sql run it.
+YES: 0107_down_pattern_data.sql run it.
+YES: 0104_down_pattern_functions.sql run it, are all functions.
+YES: 0103_down_patterns.sql
+  it drops tables:
+    DROP TABLE regab_prng_gp_pattern_class;   : all the classification data will be lost.
+    DROP TABLE regab_staging_ec_pidx_cnt_tmp; : no data lost.
+    DROP TABLE regab_prng_pattern_probs;      : probs can be recreated by 0107 data.
+    DROP TABLE regab_prng_pattern_ranges;     : this is master data ... is recreated by the script.
+    DROP TABLE regab_prng_patterns;           : master data
+
+
+## Run database migrations
+ $ psql -U tst_regab -d tst_regab -h localhost
+
+ tst_regab=> SET search_path TO reversi;
+ tst_regab=> \i 0109_down_action_extract.sql;
+ tst_regab=> \i 0107_down_pattern_data.sql;
+ tst_regab=> \i 0104_down_pattern_functions.sql;
+ tst_regab=> \i 0103_down_patterns.sql;
+
+tst_regab=> \i 0109_down_action_extract.sql;
+SET
+BEGIN
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP TABLE
+DELETE 1
+COMMIT
+tst_regab=> \i 0107_down_pattern_data.sql;
+SET
+BEGIN
+DELETE 27
+DELETE 59049
+DELETE 6561
+DELETE 2187
+DELETE 729
+DELETE 243
+DELETE 81
+DELETE 6561
+DELETE 6561
+DELETE 6561
+DELETE 59049
+DELETE 19683
+DELETE 6561
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+COMMIT
+VACUUM
+VACUUM
+tst_regab=> \i 0104_down_pattern_functions.sql;
+SET
+BEGIN
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DELETE 1
+COMMIT
+tst_regab=> \i 0103_down_patterns.sql;
+SET
+BEGIN
+DROP TABLE
+DROP TABLE
+DROP TABLE
+DROP TABLE
+DROP TABLE
+DELETE 1
+COMMIT
+
+##
+## 1 - start working on ./sql/0103_up_patterns.sql
+##
+
+./sql/0103_up_patterns.sql
+New 8 columns/fields have been added for the new pattern.
+
+##
+## 2 - update ./sql/0104_up_pattern_functions.sql and ./sql/0104_down_pattern_functions.sql
+##
+
+add the _pack_ and unpack_ functions in both files.
+add the _mirror_ function ...
+update the function regab_gp_compute_pattern_indexes
+update the function regab_gp_populate_pattern_class_table
+
+##
+## 3 - update ./sql/0107_up_pattern_data.sql and ./sql/0107_down_pattern_data.sql
+##
+
+Insert record into table regab_prng_patterns
+Add pattern loading ranges ...
+Add testing ... ( is it duplicate from the 0104 file ? )
+Add the freq data file loading ...
+Add the 2 delete statement into the down file
+
+##
+## 4 - update ./sql/0109_up_action_extract.sql and ./sql/0109_down_action_extract.sql
+##
+
+Populate table regab_prng_gp_pattern_class_instance_names with new column/patetrn
+
+##
+## 5 - POPULATE the table regab_prng_gp_pattern_class
+##
+
+tst_regab=> SELECT * FROM regab_prng_gp_h ORDER BY ngames;
+ seq |          ins_time          | status | prng_seed | ngames  | npositions 
+-----+----------------------------+--------+-----------+---------+------------
+   1 | 2017-12-17 18:19:16.440571 | CMP    |     97531 |       1 |         61
+   7 | 2018-01-03 16:38:51.097299 | CMP    |       277 |      10 |        614
+   8 | 2018-01-03 16:39:24.466546 | CMP    |       607 |     100 |       6140
+   4 | 2018-01-03 16:25:52.05024  | CMP    |         0 |    1000 |      61356
+   5 | 2018-01-03 16:27:08.188697 | CMP    |      5577 |   10000 |     614283
+   6 | 2018-01-03 16:30:24.238143 | CMP    |       881 |  100000 |    6142003
+  10 | 2021-07-24 17:58:18.845845 | CMP    |     25487 |  200000 |   12281722
+  11 | 2021-07-25 20:51:04.829293 | CMP    |     40132 |  400000 |   24566078
+   3 | 2017-12-17 18:42:13.782953 | CMP    |     13579 | 1000000 |   61412190
+   9 | 2020-12-20 18:02:16.47252  | CMP    |     77357 | 2000000 |  122829157
+  12 | 2021-08-21 17:55:04.407724 | CMP    |     33057 | 4000000 |  245656852
+(11 rows)
+
+# This query checks what is missing to be classified.
+
+SELECT t1.batch_id, t1.empty_count, count(1) FROM regab_prng_gp AS t1 LEFT JOIN regab_prng_gp_pattern_class AS t2 ON t1.seq = t2.gp_id WHERE t2.gp_id IS NULL AND t1.status IN('CMS','CMR') GROUP BY t1.batch_id, t1.empty_count;
+
+tst_regab=> SELECT t1.batch_id, t1.empty_count, count(1) FROM regab_prng_gp AS t1 LEFT JOIN regab_prng_gp_pattern_class AS t2 ON t1.seq = t2.gp_id WHERE t2.gp_id IS NULL AND t1.status IN('CMS','CMR') GROUP BY t1.batch_id, t1.empty_count;
+ batch_id | empty_count |  count   
+----------+-------------+----------
+        1 |           0 |        3
+        1 |           1 |        2
+        1 |           2 |        2
+        1 |           3 |        2
+        1 |           4 |        2
+        1 |           5 |        2
+        1 |           6 |        2
+        1 |           7 |        2
+        1 |           8 |        2
+        1 |           9 |        2
+        1 |          10 |        2
+        1 |          11 |        2
+        1 |          12 |        2
+        1 |          13 |        2
+        1 |          14 |        2
+        1 |          15 |        2
+        1 |          16 |        2
+        1 |          17 |        2
+        1 |          18 |        2
+        1 |          19 |        2
+        1 |          20 |        2
+        1 |          21 |        2
+        1 |          22 |        2
+        1 |          23 |        2
+        1 |          24 |        1
+        3 |           0 |  2971044
+        3 |           1 |  2503768
+        3 |           2 |  2192895
+        3 |           3 |  2086347
+        3 |           4 |  2042953
+        3 |           5 |  2022609
+        3 |           6 |  2013085
+        3 |           7 |  2007402
+        3 |           8 |  2004322
+        3 |           9 |  2002525
+        3 |          10 |  2001428
+        3 |          11 |  2000520
+        3 |          12 |  2000159
+        3 |          13 |  1999800
+        3 |          14 |  1999728
+        3 |          15 |  1999486
+        3 |          16 |  1999436
+        3 |          17 |  1999340
+        3 |          18 |  1999278
+        3 |          19 |  1999194
+        3 |          20 |  1999179
+        3 |          21 |  1999131
+        3 |          22 |  1999134
+        3 |          23 |  1999104
+        3 |          24 |   999611
+        4 |           0 |     2967
+        4 |           1 |     2470
+        4 |           2 |     2204
+        4 |           3 |     2088
+        4 |           4 |     2028
+        4 |           5 |     2008
+        4 |           6 |     2000
+        4 |           7 |     2004
+        4 |           8 |     2002
+        4 |           9 |     2002
+        4 |          10 |     2000
+        4 |          11 |     2002
+        4 |          12 |     1998
+        4 |          13 |     1998
+        4 |          14 |     2000
+        4 |          15 |     1998
+        4 |          16 |     1998
+        4 |          17 |     1998
+        4 |          18 |     1998
+        4 |          19 |     1998
+        4 |          20 |     1998
+        4 |          21 |     1998
+        4 |          22 |     1998
+        4 |          23 |     1998
+        4 |          24 |      999
+        5 |           0 |    29733
+        5 |           1 |    25092
+        5 |           2 |    21959
+        5 |           3 |    20806
+        5 |           4 |    20456
+        5 |           5 |    20274
+        5 |           6 |    20124
+        5 |           7 |    20076
+        5 |           8 |    20042
+        5 |           9 |    20026
+        5 |          10 |    20016
+        5 |          11 |    20010
+        5 |          12 |    20006
+        5 |          13 |    20006
+        5 |          14 |    19998
+        5 |          15 |    20002
+        5 |          16 |    19998
+        5 |          17 |    20002
+        5 |          18 |    19996
+        5 |          19 |    19996
+        5 |          20 |    20000
+        5 |          21 |    19996
+        5 |          22 |    19996
+        5 |          23 |    19998
+        5 |          24 |    10002
+        6 |           0 |   297300
+        6 |           1 |   250360
+        6 |           2 |   219522
+        6 |           3 |   208848
+        6 |           4 |   204324
+        6 |           5 |   202356
+        6 |           6 |   201248
+        6 |           7 |   200716
+        6 |           8 |   200423
+        6 |           9 |   200304
+        6 |          10 |   200138
+        6 |          11 |   200064
+        6 |          12 |   200062
+        6 |          13 |   200020
+        6 |          14 |   199984
+        6 |          15 |   199998
+        6 |          16 |   199968
+        6 |          17 |   199958
+        6 |          18 |   199940
+        6 |          19 |   199934
+        6 |          20 |   199932
+        6 |          21 |   199946
+        6 |          22 |   199948
+        6 |          23 |   199942
+        6 |          24 |    99971
+        7 |           0 |       30
+        7 |           1 |       24
+        7 |           2 |       20
+        7 |           3 |       20
+        7 |           4 |       20
+        7 |           5 |       22
+        7 |           6 |       22
+        7 |           7 |       20
+        7 |           8 |       20
+        7 |           9 |       20
+        7 |          10 |       20
+        7 |          11 |       20
+        7 |          12 |       20
+        7 |          13 |       20
+        7 |          14 |       20
+        7 |          15 |       20
+        7 |          16 |       20
+        7 |          17 |       20
+        7 |          18 |       20
+        7 |          19 |       20
+        7 |          20 |       20
+        7 |          21 |       20
+        7 |          22 |       20
+        7 |          23 |       20
+        7 |          24 |       10
+        8 |           0 |      294
+        8 |           1 |      250
+        8 |           2 |      222
+        8 |           3 |      204
+        8 |           4 |      204
+        8 |           5 |      202
+        8 |           6 |      202
+        8 |           7 |      200
+        8 |           8 |      200
+        8 |           9 |      200
+        8 |          10 |      200
+        8 |          11 |      200
+        8 |          12 |      202
+        8 |          13 |      200
+        8 |          14 |      200
+        8 |          15 |      200
+        8 |          16 |      200
+        8 |          17 |      200
+        8 |          18 |      200
+        8 |          19 |      200
+        8 |          20 |      200
+        8 |          21 |      200
+        8 |          22 |      200
+        8 |          23 |      200
+        8 |          24 |      200
+        8 |          25 |      100
+        9 |           0 |  5942115
+        9 |           1 |  5008038
+        9 |           2 |  4387124
+        9 |           3 |  4173039
+        9 |           4 |  4086251
+        9 |           5 |  4045957
+        9 |           6 |  4025452
+        9 |           7 |  4014509
+        9 |           8 |  4008786
+        9 |           9 |  4005109
+        9 |          10 |  4002891
+        9 |          11 |  4001510
+        9 |          12 |  4000650
+        9 |          13 |  3999852
+        9 |          14 |  3999448
+        9 |          15 |  3999262
+        9 |          16 |  3999017
+        9 |          17 |  3998838
+        9 |          18 |  3998718
+        9 |          19 |  3998598
+        9 |          20 |  3998537
+        9 |          21 |  3998498
+        9 |          22 |  3998468
+        9 |          23 |  3998450
+        9 |          24 |  1999327
+       10 |           0 |   594417
+       10 |           1 |   500702
+       10 |           2 |   438467
+       10 |           3 |   417177
+       10 |           4 |   408308
+       10 |           5 |   404354
+       10 |           6 |   402603
+       10 |           7 |   401380
+       10 |           8 |   400910
+       10 |           9 |   400458
+       10 |          10 |   400196
+       10 |          11 |   400096
+       10 |          12 |   400054
+       10 |          13 |   399928
+       10 |          14 |   399892
+       10 |          15 |   399888
+       10 |          16 |   399860
+       10 |          17 |   399818
+       10 |          18 |   399808
+       10 |          19 |   399838
+       10 |          20 |   399792
+       10 |          21 |   399793
+       10 |          22 |   399788
+       10 |          23 |   399802
+       10 |          24 |   199913
+       11 |           0 |  1188849
+       11 |           1 |  1002097
+       11 |           2 |   877459
+       11 |           3 |   834931
+       11 |           4 |   817295
+       11 |           5 |   809060
+       11 |           6 |   805142
+       11 |           7 |   802894
+       11 |           8 |   801726
+       11 |           9 |   801034
+       11 |          10 |   800582
+       11 |          11 |   800262
+       11 |          12 |   800122
+       11 |          13 |   799982
+       11 |          14 |   799922
+       11 |          15 |   799802
+       11 |          16 |   799760
+       11 |          17 |   799746
+       11 |          18 |   799726
+       11 |          19 |   799704
+       11 |          20 |   799678
+       11 |          21 |   799674
+       11 |          22 |   799666
+       11 |          23 |   799660
+       11 |          24 |   399861
+       12 |           0 | 11884806
+       12 |           1 | 10017667
+       12 |           2 |  8775563
+       12 |           3 |  8346539
+       12 |           4 |  8172357
+       12 |           5 |  8091717
+       12 |           6 |  8051655
+       12 |           7 |  8029290
+       12 |           8 |  8017448
+       12 |           9 |  8009909
+       12 |          10 |  8005579
+       12 |          11 |  8002796
+       12 |          12 |  8001164
+       12 |          13 |  7999653
+       12 |          14 |  7998842
+       12 |          15 |  7998260
+       12 |          16 |  7997754
+       12 |          17 |  7997497
+       12 |          18 |  7997293
+       12 |          19 |  7996976
+       12 |          20 |  7996897
+       12 |          21 |  7996814
+       12 |          22 |  7996744
+       12 |          23 |  7996504
+       12 |          24 |  3998566
+(276 rows)
+
+SELECT * FROM regab_gp_populate_pattern_class_table(1, 20, 30, '{CMR,CMS}', FALSE, FALSE);
+...
+...
+...
+
+Works !!!
+
+Now tests ... and then the fixes to the python code !!!
+
+
+
+
+
+
+
+
+##--##--## 2023-01-31
+
 
 
 --- --- --- ---

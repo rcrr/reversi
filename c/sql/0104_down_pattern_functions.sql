@@ -5,7 +5,7 @@
 -- http://github.com/rcrr/reversi
 --
 -- Author: Roberto Corradini mailto:rob_corradini@yahoo.it
--- Copyright 2018 Roberto Corradini. All rights reserved.
+-- Copyright 2018, 2023 Roberto Corradini. All rights reserved.
 --
 --
 -- License:
@@ -42,6 +42,7 @@ DROP FUNCTION regab_update_prob_into_pattern_probs_from_staging;
 DROP FUNCTION ragab_populate_pattern_probs;
 DROP FUNCTION ragab_populate_pattern_ranges;
 
+DROP FUNCTION regab_mirror_value_2x6cor_pattern;
 DROP FUNCTION regab_mirror_value_diag3_pattern;
 DROP FUNCTION regab_mirror_value_2x5cor_pattern;
 DROP FUNCTION regab_mirror_value_diag8_pattern;
@@ -59,6 +60,8 @@ DROP FUNCTION regab_mirror_value_edge_pattern;
 DROP FUNCTION regab_transformed_pattern_to_index;
 DROP FUNCTION regab_index_to_transformed_pattern;
 
+DROP FUNCTION square_set_pattern_unpack_2x6cor;
+DROP FUNCTION square_set_pattern_pack_2x6cor;
 DROP FUNCTION square_set_pattern_unpack_diag3;
 DROP FUNCTION square_set_pattern_pack_diag3;
 DROP FUNCTION square_set_pattern_unpack_2x5cor;

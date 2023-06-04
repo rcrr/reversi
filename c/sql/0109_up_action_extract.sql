@@ -5,7 +5,7 @@
 -- http://github.com/rcrr/reversi
 --
 -- Author: Roberto Corradini mailto:rob_corradini@yahoo.it
--- Copyright 2018, 2019 Roberto Corradini. All rights reserved.
+-- Copyright 2018, 2019, 2023 Roberto Corradini. All rights reserved.
 --
 --
 -- License:
@@ -49,7 +49,7 @@ CREATE TABLE regab_prng_gp_pattern_class_instance_names (ins_time      TIMESTAMP
                                                          );
 
 ---
---- Populates the patter table with EDGE, CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR, and DIAG3 patterns.
+--- Populates the patter table with EDGE, CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR, DIAG3, and 2X6COR patterns.
 ---
 INSERT INTO regab_prng_gp_pattern_class_instance_names (ins_time, pattern_id, instance_id, instance_name)
   SELECT * FROM (VALUES
@@ -118,7 +118,16 @@ INSERT INTO regab_prng_gp_pattern_class_instance_names (ins_time, pattern_id, in
     (now(), 12, 0, 'i_diag3_0'),
     (now(), 12, 1, 'i_diag3_1'),
     (now(), 12, 2, 'i_diag3_2'),
-    (now(), 12, 3, 'i_diag3_3')
+    (now(), 12, 3, 'i_diag3_3'),
+    --
+    (now(), 13, 0, 'i_2x6cor_0'),
+    (now(), 13, 1, 'i_2x6cor_1'),
+    (now(), 13, 2, 'i_2x6cor_2'),
+    (now(), 13, 3, 'i_2x6cor_3'),
+    (now(), 13, 4, 'i_2x6cor_4'),
+    (now(), 13, 5, 'i_2x6cor_5'),
+    (now(), 13, 6, 'i_2x6cor_6'),
+    (now(), 13, 7, 'i_2x6cor_7')
   ) AS tmp_table(ins_time, pattern_id, instance_id, instance_name);
 
 --

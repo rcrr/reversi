@@ -5,7 +5,7 @@
 -- http://github.com/rcrr/reversi
 --
 -- Author: Roberto Corradini mailto:rob_corradini@yahoo.it
--- Copyright 2018 Roberto Corradini. All rights reserved.
+-- Copyright 2018, 2023 Roberto Corradini. All rights reserved.
 --
 --
 -- License:
@@ -165,6 +165,15 @@ CREATE TABLE regab_prng_gp_pattern_class (gp_id      BIGINT PRIMARY KEY REFERENC
                                           i_diag3_1  INTEGER,
                                           i_diag3_2  INTEGER,
                                           i_diag3_3  INTEGER,
+                                          ---
+                                          i_2x6cor_0 INTEGER,
+                                          i_2x6cor_1 INTEGER,
+                                          i_2x6cor_2 INTEGER,
+                                          i_2x6cor_3 INTEGER,
+                                          i_2x6cor_4 INTEGER,
+                                          i_2x6cor_5 INTEGER,
+                                          i_2x6cor_6 INTEGER,
+                                          i_2x6cor_7 INTEGER,
                                           ---
                                           CHECK (status IN ('INS', 'WIP', 'CMP')));
 

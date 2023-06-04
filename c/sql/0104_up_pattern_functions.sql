@@ -5,7 +5,7 @@
 -- http://github.com/rcrr/reversi
 --
 -- Author: Roberto Corradini mailto:rob_corradini@yahoo.it
--- Copyright 2018 Roberto Corradini. All rights reserved.
+-- Copyright 2018, 2023 Roberto Corradini. All rights reserved.
 --
 --
 -- License:
@@ -1132,6 +1132,64 @@ BEGIN
 END $$;
 
 --
+-- Packs 2X6COR pattern.
+-- Transforms instance zero pattern to packed pattern.
+--
+CREATE FUNCTION square_set_pattern_pack_2x6cor (s square_set)
+RETURNS square_set
+AS $$
+DECLARE
+  s1 square_set := (x'000000000000003f')::BIGINT;
+  s2 square_set := (x'0000000000003f00')::BIGINT;
+BEGIN
+  RETURN (s & s1) | ((s & s2) >> 2);
+END;
+$$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_              square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_             square_set := (x'0000000000000000')::BIGINT;
+  nw_2x6cor          square_set := (x'0000000000003f3f')::BIGINT;
+  packed_2x6cor_mask square_set := (x'0000000000000fff')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_pack_2x6cor(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_pack_2x6cor(full_) = packed_2x6cor_mask, 'Expected result is packed_2x6cor_mask.');
+  PERFORM p_assert(square_set_pattern_pack_2x6cor(nw_2x6cor) = packed_2x6cor_mask, 'Expected result is packed_2x6cor_mask.');
+  PERFORM p_assert(square_set_pattern_pack_2x6cor((x'000000000000003f')::square_set) = (x'000000000000003f')::square_set, 'Expected result is 000000000000003f.');
+  PERFORM p_assert(square_set_pattern_pack_2x6cor((x'0000000000003f00')::square_set) = (x'0000000000000fc0')::square_set, 'Expected result is 0000000000000fc0.');
+  PERFORM p_assert(square_set_pattern_pack_2x6cor((x'ffffffffffffc0c0')::square_set) = (x'0000000000000000')::square_set, 'Expected result is 0000000000000000.');
+END $$;
+
+--
+-- Un-packs 2X6COR pattern.
+-- Transforms packed pattern to instance zero pattern.
+--
+CREATE FUNCTION square_set_pattern_unpack_2x6cor (s square_set)
+RETURNS square_set
+AS $$
+DECLARE
+  s1 square_set := (x'000000000000003f')::BIGINT;
+  s2 square_set := (x'0000000000000fc0')::BIGINT;
+BEGIN
+  RETURN (s & s1) | ((s & s2) << 2);
+END;
+$$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests ...
+DO $$
+DECLARE
+  full_              square_set := (x'ffffffffffffffff')::BIGINT;
+  empty_             square_set := (x'0000000000000000')::BIGINT;
+  nw_2x6cor          square_set := (x'0000000000003f3f')::BIGINT;
+  packed_2x6cor_mask square_set := (x'0000000000000fff')::BIGINT;
+BEGIN
+  PERFORM p_assert(square_set_pattern_unpack_2x6cor(empty_) = empty_, 'Expected result is empty_.');
+  PERFORM p_assert(square_set_pattern_unpack_2x6cor(packed_2x6cor_mask) = nw_2x6cor, 'Expected result is nw_2x6cor.');
+  PERFORM p_assert(square_set_pattern_unpack_2x6cor((x'000000000000003f')::square_set) = (x'000000000000003f')::square_set, 'Expected result is 000000000000003f.');
+  PERFORM p_assert(square_set_pattern_unpack_2x6cor((x'0000000000000fc0')::square_set) = (x'0000000000003f00')::square_set, 'Expected result is 0000000000003f00.');
+END $$;
+
+--
 --
 --
 
@@ -1738,6 +1796,22 @@ BEGIN
 END $$;
 
 --
+-- Computes the mirror value for the given index, for the 2X6COR pattern.
+--
+CREATE FUNCTION regab_mirror_value_2x6cor_pattern (index_value INTEGER)
+RETURNS INTEGER
+AS $$
+BEGIN
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
+--- Tests.
+DO $$
+BEGIN
+  PERFORM p_assert(regab_mirror_value_2x6cor_pattern(0) IS NULL, 'Expected value is NULL.');
+END $$;
+
+--
 --
 --
 
@@ -1977,7 +2051,15 @@ CREATE FUNCTION regab_gp_compute_pattern_indexes (mover          square_set,
                                                   OUT i_diag3_0  INTEGER,
                                                   OUT i_diag3_1  INTEGER,
                                                   OUT i_diag3_2  INTEGER,
-                                                  OUT i_diag3_3  INTEGER)
+                                                  OUT i_diag3_3  INTEGER,
+                                                  OUT i_2x6cor_0 INTEGER,
+                                                  OUT i_2x6cor_1 INTEGER,
+                                                  OUT i_2x6cor_2 INTEGER,
+                                                  OUT i_2x6cor_3 INTEGER,
+                                                  OUT i_2x6cor_4 INTEGER,
+                                                  OUT i_2x6cor_5 INTEGER,
+                                                  OUT i_2x6cor_6 INTEGER,
+                                                  OUT i_2x6cor_7 INTEGER)
 AS $$
 DECLARE
   mo_identity square_set := mover;
@@ -2120,6 +2202,23 @@ BEGIN
                                                    square_set_pattern_pack_diag3(op_rot_180));
   i_diag3_3  := regab_transformed_pattern_to_index(square_set_pattern_pack_diag3(mo_rot_90c),
                                                    square_set_pattern_pack_diag3(op_rot_90c));
+  ---
+  i_2x6cor_0 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x6cor(mo_identity),
+                                                   square_set_pattern_pack_2x6cor(op_identity));
+  i_2x6cor_1 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x6cor(mo_rot_90a),
+                                                   square_set_pattern_pack_2x6cor(op_rot_90a));
+  i_2x6cor_2 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x6cor(mo_rot_180),
+                                                   square_set_pattern_pack_2x6cor(op_rot_180));
+  i_2x6cor_3 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x6cor(mo_rot_90c),
+                                                   square_set_pattern_pack_2x6cor(op_rot_90c));
+  i_2x6cor_4 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x6cor(mo_flip_ve),
+                                                   square_set_pattern_pack_2x6cor(op_flip_ve));
+  i_2x6cor_5 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x6cor(mo_flip_dh),
+                                                   square_set_pattern_pack_2x6cor(op_flip_dh));
+  i_2x6cor_6 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x6cor(mo_flip_ho),
+                                                   square_set_pattern_pack_2x6cor(op_flip_ho));
+  i_2x6cor_7 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x6cor(mo_flip_da),
+                                                   square_set_pattern_pack_2x6cor(op_flip_da));
 
   --- Transform the index value to its principal value (mirror of minimal value).
   IF is_principal THEN
@@ -2203,6 +2302,16 @@ BEGIN
     SELECT principal_index_value INTO STRICT i_diag3_1  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag3_1;
     SELECT principal_index_value INTO STRICT i_diag3_2  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag3_2;
     SELECT principal_index_value INTO STRICT i_diag3_3  FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_diag3_3;
+    --- 2X6COR
+    pid := 13;
+    SELECT principal_index_value INTO STRICT i_2x6cor_0 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x6cor_0;
+    SELECT principal_index_value INTO STRICT i_2x6cor_1 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x6cor_1;
+    SELECT principal_index_value INTO STRICT i_2x6cor_2 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x6cor_2;
+    SELECT principal_index_value INTO STRICT i_2x6cor_3 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x6cor_3;
+    SELECT principal_index_value INTO STRICT i_2x6cor_4 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x6cor_4;
+    SELECT principal_index_value INTO STRICT i_2x6cor_5 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x6cor_5;
+    SELECT principal_index_value INTO STRICT i_2x6cor_6 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x6cor_6;
+    SELECT principal_index_value INTO STRICT i_2x6cor_7 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x6cor_7;    
   END IF;
   
 END;
@@ -2285,6 +2394,15 @@ BEGIN
   PERFORM p_assert(pattern_index_values.i_diag3_1 =  6, 'Expected value for i_diag3_1 is  6.');
   PERFORM p_assert(pattern_index_values.i_diag3_2 = 14, 'Expected value for i_diag3_2 is 14.');
   PERFORM p_assert(pattern_index_values.i_diag3_3 = 17, 'Expected value for i_diag3_3 is 17.');
+  ---
+  PERFORM p_assert(pattern_index_values.i_2x6cor_0 =  35032, 'Expected value for i_2x6cor_0 is  35032.');
+  PERFORM p_assert(pattern_index_values.i_2x6cor_1 = 300321, 'Expected value for i_2x6cor_1 is 300321.');
+  PERFORM p_assert(pattern_index_values.i_2x6cor_2 = 501540, 'Expected value for i_2x6cor_2 is 501540.');
+  PERFORM p_assert(pattern_index_values.i_2x6cor_3 = 247383, 'Expected value for i_2x6cor_3 is 247383.');
+  PERFORM p_assert(pattern_index_values.i_2x6cor_4 = 418041, 'Expected value for i_2x6cor_4 is 418041.');
+  PERFORM p_assert(pattern_index_values.i_2x6cor_5 =  49806, 'Expected value for i_2x6cor_5 is  49806.');
+  PERFORM p_assert(pattern_index_values.i_2x6cor_6 = 293535, 'Expected value for i_2x6cor_6 is 293535.');
+  PERFORM p_assert(pattern_index_values.i_2x6cor_7 = 206560, 'Expected value for i_2x6cor_7 is 206560.');
 END $$;
 
 --
@@ -2397,6 +2515,14 @@ BEGIN
         OR gp_pattern_class_o_rec.i_diag3_1  <> gp_pattern_class_n_rec.i_diag3_1
         OR gp_pattern_class_o_rec.i_diag3_2  <> gp_pattern_class_n_rec.i_diag3_2
         OR gp_pattern_class_o_rec.i_diag3_3  <> gp_pattern_class_n_rec.i_diag3_3
+        OR gp_pattern_class_o_rec.i_2x6cor_0 <> gp_pattern_class_n_rec.i_2x6cor_0
+        OR gp_pattern_class_o_rec.i_2x6cor_1 <> gp_pattern_class_n_rec.i_2x6cor_1
+        OR gp_pattern_class_o_rec.i_2x6cor_2 <> gp_pattern_class_n_rec.i_2x6cor_2
+        OR gp_pattern_class_o_rec.i_2x6cor_3 <> gp_pattern_class_n_rec.i_2x6cor_3
+        OR gp_pattern_class_o_rec.i_2x6cor_4 <> gp_pattern_class_n_rec.i_2x6cor_4
+        OR gp_pattern_class_o_rec.i_2x6cor_5 <> gp_pattern_class_n_rec.i_2x6cor_5
+        OR gp_pattern_class_o_rec.i_2x6cor_6 <> gp_pattern_class_n_rec.i_2x6cor_6
+        OR gp_pattern_class_o_rec.i_2x6cor_7 <> gp_pattern_class_n_rec.i_2x6cor_7
        ) THEN
 
       IF verb THEN
@@ -2459,7 +2585,15 @@ BEGIN
                                                i_diag3_0  = gp_pattern_class_n_rec.i_diag3_0,
                                                i_diag3_1  = gp_pattern_class_n_rec.i_diag3_1,
                                                i_diag3_2  = gp_pattern_class_n_rec.i_diag3_2,
-                                               i_diag3_3  = gp_pattern_class_n_rec.i_diag3_3
+                                               i_diag3_3  = gp_pattern_class_n_rec.i_diag3_3,
+                                               i_2x6cor_0 = gp_pattern_class_n_rec.i_2x6cor_0,
+                                               i_2x6cor_1 = gp_pattern_class_n_rec.i_2x6cor_1,
+                                               i_2x6cor_2 = gp_pattern_class_n_rec.i_2x6cor_2,
+                                               i_2x6cor_3 = gp_pattern_class_n_rec.i_2x6cor_3,
+                                               i_2x6cor_4 = gp_pattern_class_n_rec.i_2x6cor_4,
+                                               i_2x6cor_5 = gp_pattern_class_n_rec.i_2x6cor_5,
+                                               i_2x6cor_6 = gp_pattern_class_n_rec.i_2x6cor_6,
+                                               i_2x6cor_7 = gp_pattern_class_n_rec.i_2x6cor_7
           WHERE gp_id = game_position_rec.seq;
       END IF;
         

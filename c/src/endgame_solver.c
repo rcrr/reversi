@@ -331,7 +331,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014, 2015, 2016, 2017, 2018, 2021 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2015, 2016, 2017, 2018, 2021, 2023 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -436,7 +436,7 @@ static const char *documentation =
   "  -s, --solver           Solver                   - Mandatory - Must be in [es|ifes|rand|minimax|ab|rab|rglm|gve].\n"
   "  -n, --repeats          N. of repetitions        - Used with the rand/rab solvers.\n"
   "  -r, --prng-seed        random generator seed    - Used with rand/rab solvers.\n"
-  "  -P, --pattern          Pattern                  - Used with the rand solver - Must be in [EDGE|CORNER|XEDGE|R2|R3|R4|DIAG4|DIAG5|DIAG6|DIAG7|DIAG8|2X5COR|DIAG3].\n"
+  "  -P, --pattern          Pattern                  - Used with the rand solver - Must be in [EDGE|CORNER|XEDGE|R2|R3|R4|DIAG4|DIAG5|DIAG6|DIAG7|DIAG8|2X5COR|DIAG3|2X6COR].\n"
   "  -l, --log              Turns logging on         - Requires a filename prefx.\n"
   "  -d, --pve-dump         Dumps PV                 - Requires a filename path. Available only for es solver.\n"
   "  -R, --pv-rec           Collects PV info         - Available only for es solver.\n"
@@ -486,7 +486,7 @@ static const char *documentation =
   "Author:\n"
   "  Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
   "\n"
-  "Copyright (c) 2013, 2014, 2015, 2016, 2017, 2018, 2021 Roberto Corradini. All rights reserved.\n"
+  "Copyright (c) 2013, 2014, 2015, 2016, 2017, 2018, 2021, 2023 Roberto Corradini. All rights reserved.\n"
   "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
   "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n"
   ;

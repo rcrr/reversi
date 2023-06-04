@@ -5,7 +5,7 @@
 -- http://github.com/rcrr/reversi
 --
 -- Author: Roberto Corradini mailto:rob_corradini@yahoo.it
--- Copyright 2018 Roberto Corradini. All rights reserved.
+-- Copyright 2018, 2023 Roberto Corradini. All rights reserved.
 --
 --
 -- License:
@@ -54,7 +54,8 @@ INSERT INTO regab_prng_patterns (ins_time, pattern_id, pattern_name, ninstances,
     (now(),  9, 'DIAG7',   4,  7, 'Seven square diagonal, G1-F2-E3-D4-C5-B6-A7'),
     (now(), 10, 'DIAG8',   2,  8, 'Eight square diagonal, H1-G2-F3-E4-D5-C6-B7-A8'),
     (now(), 11, '2X5COR',  8, 10, 'Ten square, asymmetric corner'),
-    (now(), 12, 'DIAG3',   4,  3, 'Three square diagonal, C1-B2-A3')
+    (now(), 12, 'DIAG3',   4,  3, 'Three square diagonal, C1-B2-A3'),
+    (now(), 13, '2X6COR',  8, 12, 'Twelve square, asymmetric corner')
   ) AS tmp_table(ins_time, pattern_id, pattern_name, ninstances, nsquares, description);
 
 ---
@@ -170,6 +171,14 @@ BEGIN
   UPDATE regab_prng_pattern_ranges SET principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
   PERFORM ragab_populate_pattern_probs(pn);
   --
+  pn := '2X6COR';
+  RAISE NOTICE 'Pattern %: loading pattern ranges.', pn;
+  SELECT pattern_id INTO pid FROM regab_prng_patterns WHERE pattern_name = pn;
+  PERFORM ragab_populate_pattern_ranges(pn);
+  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_2x6cor_pattern(index_value) WHERE pattern_id = pid;
+  UPDATE regab_prng_pattern_ranges SET principal_index_value = least(index_value, mirror_value) WHERE pattern_id = pid;
+  PERFORM ragab_populate_pattern_probs(pn);
+  --
 END $$;
 
 --
@@ -255,6 +264,15 @@ BEGIN
   PERFORM p_assert(pattern_index_values.i_diag3_1 =  6, 'Expected value for i_diag3_1 is  6.');
   PERFORM p_assert(pattern_index_values.i_diag3_2 = 14, 'Expected value for i_diag3_2 is 14.');
   PERFORM p_assert(pattern_index_values.i_diag3_3 = 17, 'Expected value for i_diag3_3 is 17.');
+  ---
+  PERFORM p_assert(pattern_index_values.i_2x6cor_0 =  35032, 'Expected value for i_2x6cor_0 is  35032.');
+  PERFORM p_assert(pattern_index_values.i_2x6cor_1 = 300321, 'Expected value for i_2x6cor_1 is 300321.');
+  PERFORM p_assert(pattern_index_values.i_2x6cor_2 = 501540, 'Expected value for i_2x6cor_2 is 501540.');
+  PERFORM p_assert(pattern_index_values.i_2x6cor_3 = 247383, 'Expected value for i_2x6cor_3 is 247383.');
+  PERFORM p_assert(pattern_index_values.i_2x6cor_4 = 418041, 'Expected value for i_2x6cor_4 is 418041.');
+  PERFORM p_assert(pattern_index_values.i_2x6cor_5 =  49806, 'Expected value for i_2x6cor_5 is  49806.');
+  PERFORM p_assert(pattern_index_values.i_2x6cor_6 = 293535, 'Expected value for i_2x6cor_6 is 293535.');
+  PERFORM p_assert(pattern_index_values.i_2x6cor_7 = 206560, 'Expected value for i_2x6cor_7 is 206560.');
 END $$;
 
 COMMIT;
@@ -379,4 +397,13 @@ VACUUM ANALYZE regab_prng_pattern_probs;
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
 \COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_DIAG3_628_1000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
 SELECT regab_update_prob_into_pattern_probs_from_staging('DIAG3');
+TRUNCATE regab_staging_ec_pidx_cnt_tmp;
+--
+-- 2X6COR
+--
+SELECT 'Loading frequencies for the 2X6COR pattern ...' AS message;
+VACUUM ANALYZE regab_prng_pattern_probs;
+TRUNCATE regab_staging_ec_pidx_cnt_tmp;
+\COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_2X6COR_762291_1000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
+SELECT regab_update_prob_into_pattern_probs_from_staging('2X6COR');
 TRUNCATE regab_staging_ec_pidx_cnt_tmp;
