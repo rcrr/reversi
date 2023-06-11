@@ -1062,3 +1062,34 @@ class TestModuleMethods(unittest.TestCase):
                      ]
 
         [execute_test(t) for t in test_data]
+
+class TestComputePatternIndexes(unittest.TestCase):
+
+    def setUp(self):
+        # This is game position 61412414:
+        m = SquareSet.new_from_signed_int(np.int64(4039748727574502410))
+        o = SquareSet.new_from_signed_int(np.int64(327827004853592689))
+        self.b = Board(m, o)
+    
+    def test_compute_pattern_indexes_edge(self):
+        indexes = self.b.compute_pattern_indexes(PEdge())
+        expected = np.array([2138, 2169, 603, 4374], dtype=np.int32)
+        self.assertIsNone(np.testing.assert_array_equal(expected, indexes))
+    
+    def test_compute_pattern_indexes_2x6cor(self):
+        indexes = self.b.compute_pattern_indexes(P2x6cor())
+        expected = np.array([444641, 146511, 494136, 183708, 269160, 276045, 111906, 188813], dtype=np.int32)
+        self.assertIsNone(np.testing.assert_array_equal(expected, indexes))
+
+    def test_compute_patternlist_indexes(self):
+        indexes = self.b.compute_patternlist_indexes([PEdge(), P2x6cor()])
+        expected = np.array([2138, 2169, 603, 4374, 444641, 146511, 494136, 183708, 269160, 276045, 111906, 188813], dtype=np.int32)
+        self.assertIsNone(np.testing.assert_array_equal(expected, indexes))
+
+    def test_compute_pattern_principal_indexes(self):
+        indexes = np.array([444641, 146511, 494136, 183708, 269160, 276045, 111906, 188813], dtype=np.int32)
+        principals = compute_pattern_principal_indexes(indexes, P2x6cor())
+        expected = indexes
+        self.assertIsNone(np.testing.assert_array_equal(expected, principals))
+        
+    # Aggiungere i tests sui PRINCIPAL INDEX ... dovrebbero fallire perchè sono solo 16 bit ....

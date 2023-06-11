@@ -139,7 +139,7 @@ def compute_indexes_on_df(df : pd.DataFrame, pl : list, mover='MOVER', opponent=
             idx_start = idx_end
         return names, d
 
-    indexes = pd.DataFrame(list(df.apply(compute_indexes, axis=1))).astype(np.uint16)
+    indexes = pd.DataFrame(list(df.apply(compute_indexes, axis=1))).astype(np.int32)
     cnames_i0, plabel_dict_i0 = build_col_names(pl, 'I0')
     cnames_i1, plabel_dict_i1 = build_col_names(pl, 'I1')
     indexes.columns = cnames_i0 + cnames_i1

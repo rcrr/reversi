@@ -36,11 +36,24 @@ import re
 
 from abc import ABCMeta, abstractmethod
 
+#
 # It must match the typedef definition in board_pattern.h
-# It must!
+# It must!!
+# typedef int32_t board_pattern_index_t;
+#
 c_board_pattern_index = ct.c_int32
 
-_c_s_to_s_fun = ct.CFUNCTYPE(ct.c_ulonglong, ct.c_ulonglong)
+# typedef int64_t SquareSet;
+c_square_set = ct.c_uint64
+
+# board_pattern_id_t is an enum in the C source code (int).
+c_board_pattern_id = ct.c_int
+
+#
+# Equivalent to:
+# SquareSet (*fun) (SquareSet)
+#
+_c_s_to_s_fun = ct.CFUNCTYPE(c_square_set, c_square_set)
 
 class _BoardFeatureCTHelper(ct.Structure):
     """
@@ -74,12 +87,12 @@ class _BoardPatternCTHelper(ct.Structure):
     where x and y are SquareSet objects.
     
     """
-    _fields_ = [('id', ct.c_int),
+    _fields_ = [('id', c_board_pattern_id),
                 ('name', ct.c_char*7),
-                ('n_instances', ct.c_int),
-                ('n_squares', ct.c_int),
+                ('n_instances', ct.c_uint),
+                ('n_squares', ct.c_uint),
                 ('n_configurations', ct.c_ulonglong),
-                ('masks', ct.c_ulonglong*8),
+                ('masks', c_square_set*8),
                 ('trans_to_principal_f', _c_s_to_s_fun*8),
                 ('pattern_pack_f', _c_s_to_s_fun),
                 ('pattern_unpack_f', _c_s_to_s_fun),
@@ -289,14 +302,14 @@ class PEdge(Pattern):
 
     def pack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_pack_edge
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def unpack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_unpack_edge
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def mirror(self, s : SquareSet) -> SquareSet:
@@ -337,14 +350,14 @@ class PCorner(Pattern):
 
     def pack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_pack_corner
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def unpack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_unpack_corner
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def mirror(self, s : SquareSet) -> SquareSet:
@@ -385,14 +398,14 @@ class PXedge(Pattern):
 
     def pack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_pack_xedge
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def unpack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_unpack_xedge
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def mirror(self, s : SquareSet) -> SquareSet:
@@ -433,14 +446,14 @@ class PR2(Pattern):
 
     def pack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_pack_r2
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def unpack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_unpack_r2
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def mirror(self, s : SquareSet) -> SquareSet:
@@ -481,14 +494,14 @@ class PR3(Pattern):
 
     def pack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_pack_r3
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def unpack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_unpack_r3
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def mirror(self, s : SquareSet) -> SquareSet:
@@ -529,14 +542,14 @@ class PR4(Pattern):
 
     def pack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_pack_r4
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def unpack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_unpack_r4
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def mirror(self, s : SquareSet) -> SquareSet:
@@ -577,14 +590,14 @@ class PDiag4(Pattern):
 
     def pack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_pack_diag4
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def unpack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_unpack_diag4
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def mirror(self, s : SquareSet) -> SquareSet:
@@ -625,14 +638,14 @@ class PDiag5(Pattern):
 
     def pack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_pack_diag5
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def unpack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_unpack_diag5
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def mirror(self, s : SquareSet) -> SquareSet:
@@ -673,14 +686,14 @@ class PDiag6(Pattern):
 
     def pack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_pack_diag6
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def unpack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_unpack_diag6
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def mirror(self, s : SquareSet) -> SquareSet:
@@ -721,14 +734,14 @@ class PDiag7(Pattern):
 
     def pack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_pack_diag7
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def unpack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_unpack_diag7
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def mirror(self, s : SquareSet) -> SquareSet:
@@ -767,14 +780,14 @@ class PDiag8(Pattern):
 
     def pack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_pack_diag8
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def unpack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_unpack_diag8
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def mirror(self, s : SquareSet) -> SquareSet:
@@ -835,14 +848,14 @@ class P2x5cor(Pattern):
 
     def pack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_pack_2x5cor
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def unpack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_unpack_2x5cor
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def mirror(self, s : SquareSet) -> SquareSet:
@@ -883,25 +896,92 @@ class PDiag3(Pattern):
 
     def pack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_pack_diag3
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def unpack(self, s : SquareSet) -> SquareSet:
         f = libreversi.board_pattern_unpack_diag3
-        f.restype = ct.c_ulonglong
-        f.argtypes = [ct.c_ulonglong]
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
         return SquareSet(f(s))
 
     def mirror(self, s : SquareSet) -> SquareSet:
         return s.trans_flip_diag_a1h8()
 
+class P2x6cor(Pattern):
+    """
+    The 2X6COR pattern has eight instances ranging from [0..7]:
 
+       a b c d e f g h     a b c d e f g h     a b c d e f g h     a b c d e f g h
+
+    1  a b c d e f . .     . . . . . . g a     . . . . . . . .     . . . . . . . .
+    2  g h i l m n . .     . . . . . . h b     . . . . . . . .     . . . . . . . .
+    3  . . . . . . . .     . . . . . . i c     . . . . . . . .     f n . . . . . .
+    4  . . . . . . . .     . . . . . . l d     . . . . . . . .     e m . . . . . .
+    5  . . . . . . . .     . . . . . . m e     . . . . . . . .     d l . . . . . .
+    6  . . . . . . . .     . . . . . . n f     . . . . . . . .     c i . . . . . .
+    7  . . . . . . . .     . . . . . . . .     . . n m l i h g     b h . . . . . .
+    8  . . . . . . . .     . . . . . . . .     . . f e d c b a     a g . . . . . .
+
+
+       a b c d e f g h     a b c d e f g h     a b c d e f g h     a b c d e f g h
+
+    1  . . f e d c b a     . . . . . . . .     . . . . . . . .     a g . . . . . .
+    2  . . n m l i h g     . . . . . . . .     . . . . . . . .     b h . . . . . .
+    3  . . . . . . . .     . . . . . . n f     . . . . . . . .     c i . . . . . .
+    4  . . . . . . . .     . . . . . . m e     . . . . . . . .     d l . . . . . .
+    5  . . . . . . . .     . . . . . . l d     . . . . . . . .     e m . . . . . .
+    6  . . . . . . . .     . . . . . . i c     . . . . . . . .     f n . . . . . .
+    7  . . . . . . . .     . . . . . . h b     g h i l m n . .     . . . . . . . .
+    8  . . . . . . . .     . . . . . . g a     a b c d e f . .     . . . . . . . .
+
+    """
+    
+    def __createsingleton__(self):
+        self.id = 13
+        self.name = '2X6COR'
+        self.n_instances = 8
+        self.n_squares = 12
+        self.n_configurations = 531441
+        self.masks = [SquareSet.new_from_hex(x) for x in ['0000000000003f3f',
+                                                          '0000c0c0c0c0c0c0',
+                                                          'fcfc000000000000',
+                                                          '0303030303030000',
+                                                          '000000000000fcfc',
+                                                          'c0c0c0c0c0c00000',
+                                                          '3f3f000000000000',
+                                                          '0000030303030303']]
+        self.trans_to_principal_f = [SquareSet.trans_identity,
+                                     SquareSet.trans_rotate_90a,
+                                     SquareSet.trans_rotate_180,
+                                     SquareSet.trans_rotate_90c,
+                                     SquareSet.trans_flip_vertical,
+                                     SquareSet.trans_flip_diag_h1a8,
+                                     SquareSet.trans_flip_horizontal,
+                                     SquareSet.trans_flip_diag_a1h8]
+
+    def pack(self, s : SquareSet) -> SquareSet:
+        f = libreversi.board_pattern_pack_2x6cor
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
+        return SquareSet(f(s))
+
+    def unpack(self, s : SquareSet) -> SquareSet:
+        f = libreversi.board_pattern_unpack_2x6cor
+        f.restype = c_square_set
+        f.argtypes = [c_square_set]
+        return SquareSet(f(s))
+
+    def mirror(self, s : SquareSet) -> SquareSet:
+        return s.trans_identity()
+
+    
 """
 All defined patterns in a set.
 It is a global variable, it must not be modified.
 """
-patterns_as_set = {PEdge(), PCorner(), PXedge(), PR2(), PR3(), PR4(), PDiag4(), PDiag5(), PDiag6(), PDiag7(), PDiag8(), P2x5cor(), PDiag3()}
+patterns_as_set = {PEdge(), PCorner(), PXedge(), PR2(), PR3(), PR4(), PDiag4(), PDiag5(), PDiag6(), PDiag7(), PDiag8(), P2x5cor(), PDiag3(), P2x6cor()}
 
 """
 All defined patterns in a list sorted by id.
@@ -944,20 +1024,20 @@ setattr(Board, "compute_patternlist_indexes", _compute_patternlist_indexes)
 def compute_pattern_principal_indexes(indexes : np.ndarray, p : Pattern) -> np.ndarray:
     if not isinstance(indexes, np.ndarray):
         raise TypeError('Argument indexes is not an instance of numpy.ndarray')
-    if not indexes.dtype == 'uint16':
-        raise TypeError('Argument indexes must be an array having dtype equal to uint16')
+    if not indexes.dtype == 'int32':
+        raise TypeError('Argument indexes must be an array having dtype equal to int32')
     if not isinstance(p, Pattern):
         raise TypeError('Argument p is not an instance of Pattern')
     if not len(indexes) == p.n_instances:
         raise ValueError('Argument mismatch: len(indexes) must be equal to p.n_instances')
     f = libreversi.board_pattern_compute_principal_indexes
     f.restype = None
-    f.argtypes = [ct.POINTER(ct.c_uint16*8), ct.POINTER(ct.c_uint16*8), ct.POINTER(_BoardPatternCTHelper), ct.c_bool]
-    ct_principals = (ct.c_uint16*8) (0, 0, 0, 0, 0, 0, 0, 0)
+    f.argtypes = [ct.POINTER(c_board_pattern_index*8), ct.POINTER(c_board_pattern_index*8), ct.POINTER(_BoardPatternCTHelper), ct.c_bool]
+    ct_principals = (c_board_pattern_index*8) (0, 0, 0, 0, 0, 0, 0, 0)
     indexes_padded = np.pad(indexes, (0, 8 - p.n_instances), mode='constant', constant_values=0)
-    ct_indexes_p = indexes_padded.ctypes.data_as(ct.POINTER(ct.c_uint16*8))
+    ct_indexes_p = indexes_padded.ctypes.data_as(ct.POINTER(c_board_pattern_index*8))
     f(ct.byref(ct_principals), ct_indexes_p, p._c_pattern, False)
-    return np.frombuffer(ct_principals, np.uint16, count = p.n_instances)
+    return np.frombuffer(ct_principals, np.int32, count = p.n_instances)
 
 def _compute_pattern_principal_indexes(self : Board, p : Pattern) -> (np.ndarray, np.ndarray):
     if not isinstance(p, Pattern):
@@ -994,7 +1074,7 @@ setattr(Board, "compute_patternlist_principal_indexes", _compute_patternlist_pri
 
 def board_pattern_packed_to_index(packed : Board, n_squares : int) -> int:
     f = libreversi.board_pattern_packed_to_index
-    f.restype = ct.c_uint16
+    f.restype = c_board_pattern_index
     f.argtypes = [ct.POINTER(_BoardCTHelper), ct.c_uint]
     c_packed_p = ct.byref(_BoardCTHelper((packed.mover, packed.opponent)))
     ret = f(c_packed_p, n_squares)
@@ -1003,7 +1083,7 @@ def board_pattern_packed_to_index(packed : Board, n_squares : int) -> int:
 def board_pattern_index_to_packed(index : int) -> Board:
     f = libreversi.board_pattern_index_to_packed
     f.restype = None
-    f.argtypes = [ct.POINTER(_BoardCTHelper), ct.c_uint16]
+    f.argtypes = [ct.POINTER(_BoardCTHelper), c_board_pattern_index]
     ct_board = _BoardCTHelper((0, 0))
     ct_board_p = ct.byref(ct_board)
     f(ct_board_p, index)
