@@ -198,9 +198,9 @@ load_model_weights <- function(data_dir, runcode) {
   residual_color  <- "firebrick"
   validation_color <- "black"
   
-  reference_p0 <- geom_density(aes_string(x = dt$REFERENCE), color = reference_color)
-  residual_p0 <- geom_density(aes_string(x = dt$RESIDUAL),  color = residual_color)
-  validation_p0 <- geom_density(aes_string(x = dtv$RESIDUAL), color = validation_color)
+  reference_p0 <- geom_density(aes(x = dt$REFERENCE), color = reference_color)
+  residual_p0 <- geom_density(aes(x = dt$RESIDUAL),  color = residual_color)
+  validation_p0 <- geom_density(aes(x = dtv$RESIDUAL), color = validation_color)
   
   label_reference <- sprintf("Reference:\nsd = %6.4f", reference_sd)
   label_residual  <- sprintf("Residual:\nsd = %6.4f", residual_sd)
@@ -212,7 +212,7 @@ load_model_weights <- function(data_dir, runcode) {
     labs(title = 'RGLM Residuals Distribution', subtitle = runcode) +
     xlab('Game value residual') + ylab('Probability density') +
     geom_vline(aes(xintercept = mean(dt$RESIDUAL)),
-               color = validation_color, linetype="dashed", size=0.3) +
+               color = validation_color, linetype="dashed", linewidth=0.3) +
     geom_label(aes(x =  0.25, y = max_y * 0.60, label = label_reference),  color = reference_color , size = 3, hjust = 0) +
     geom_label(aes(x =  0.15, y = max_y * 0.90, label = label_residual),   color = residual_color  , size = 3, hjust = 0) +
     geom_label(aes(x = -0.45, y = max_y * 0.75, label = label_validation), color = validation_color, size = 3, hjust = 0) +

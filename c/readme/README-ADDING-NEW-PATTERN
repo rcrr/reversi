@@ -1,0 +1,1355 @@
+
+  README-ADDING-NEW-PATTERN
+
+  Copyright (c) 2023 Roberto Corradini. All rights reserved.
+
+  This file is part of the reversi program
+  http://github.com/rcrr/reversi
+
+  This program is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by the
+  Free Software Foundation; either version 3, or (at your option) any
+  later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+  or visit the site <http://www.gnu.org/licenses/>.
+
+
+We want to introduce a new pattern: 2X6COR
+
+---
+---
+---
+
+There are 3 main option to deal with this extention:
+
+ - Option #1 : Extend the current model by adding 8 columns to the table regab_prng_gp_pattern_class
+               Columns would be i_2x6cor_0 , i_2x6cor_1 , ... , i_2x6cor_7
+               This option is the easiest, but it opens some concern.
+               The table is running wider at each new pattern added, and each row has to be computed again and again ...
+               Programs have hardcoded the column names.
+
+ - Option #2 : Transform the database schema, adding a group of tables: regab_prng_gp_pattern_class_000
+               regab_prng_gp_pattern_class_001, regab_prng_gp_pattern_class_002, ... and so on ..
+               All tables have the same key. Joining them we obtain the original definition of
+               regab_prng_gp_pattern_class as query or a view.
+               Advantages: we are not tinkering with existing table when adding a new pattern.
+               Not sure about the programs. We need to remove the names of the columns from the SQL procedures.
+
+ - Option #3 : The most extreme, elegant, but very difficult to not degrade performances.
+               Move the table regab_prng_gp_pattern_class to a single index value per row.
+               Having as key : gpid, pattern, instance
+
+Here we make the change following the direction described in option #1.
+
+---
+---
+---
+
+Change 2x6cor: step #1 - added the documentation of the pattern into c/src/board_pattern.h.
+Change 2x6cor: step #2 - adding the new pattern having 531441 configuration a problem arises. See commit 1941fc8560c47dc7e9d9c36216c1e0d7cf8ee2c4
+                         Into the function board_pattern_compute_principal_indexes the loop:
+                           for (board_pattern_index_t idx = 0; idx < n; idx++) {
+                           ....
+                         cannot works. idx overflows and never get larger then n.
+                         The assignment *p++ = ... then generates a segmentation fault.
+                         Unfortunately this is part of a larger issue:
+                         the definition of board_pattern_index_t is:
+                         typedef uint16_t board_pattern_index_t;
+                         It needs to be changed to int32_t.
+                         This is a relevant change affecting also the python code.
+                         Database is not affected, as well as the RGLM data file definition.
+                         The change has been done. Now we have:
+                           typedef int32_t board_pattern_index_t;
+Change 2x6cor: step #3 - adding C tests for the new pattern into unit test file ut_board_pattern.c. See commit ecaa22dd23089bbb001d9aadd5c94cf3cd102c3e
+Change 2x6cor: step #4 - adding 2X5COR alla documentazione di endgame_solver 
+                         $ ./build/bin/endgame_solver -s rand -f db/gpdb-sample-games.txt -q initial -P 2X6COR -n 100000000 -r 762290
+Change 2x6cor: step #5 - Adding SQL missing parts. See commit 01b743e19e29304e3de02683d7810d7e1af91883 and bc2c770e02e627f1a388a0a27e4b70db61a51591
+Change 2x6cor: step #6 - Update all the required python code.See commit 42a378242540b5809979bffd1d934bcb8e3cccab
+
+---
+---
+---
+
+By analogy, most likely, we need to code everything already coded for other options, like patterns EDGE, DIAG5, or 2X5COR.
+We select 2X5COR, being the one more similar, but this similarity should not be relevant to the scope of this analysis.
+
+We start by searching all the occurences of the string "2X5COR" and "2x5cor"
+
+./reversi/c$ find ./src | grep "\.[ch]$" | sort | xargs grep -i "2x5cor"
+./src/board_pattern.c:    { BOARD_PATTERN_2X5COR,
+./src/board_pattern.c:      "2X5COR",
+./src/board_pattern.c:      board_pattern_pack_2x5cor,
+./src/board_pattern.c:      board_pattern_unpack_2x5cor,
+./src/board_pattern.c:board_pattern_pack_2x5cor (SquareSet s)
+./src/board_pattern.c:board_pattern_unpack_2x5cor (SquareSet s)
+./src/board_pattern.h: *               - 2X5COR
+./src/board_pattern.h: *               - 2X5COR_0, ... , 2X5COR_7
+./src/board_pattern.h: * The `2X5COR` pattern has eight instances ranging from `[0..7]`:
+./src/board_pattern.h:  BOARD_PATTERN_2X5COR,              /**< A1 B1 C1 D1 E1 A2 B2 C2 D2 E2 */
+./src/board_pattern.h:board_pattern_pack_2x5cor (SquareSet s);
+./src/board_pattern.h:board_pattern_unpack_2x5cor (SquareSet s);
+./src/endgame_solver.c:  "  -P, --pattern          Pattern                  - Used with the rand solver - Must be in [EDGE|CORNER|XEDGE|R2|R3|R4|DIAG4|DIAG5|DIAG6|DIAG7|DIAG8|2X5COR|DIAG3].\n"
+
+./reversi/c$ find ./test | grep "\.[ch]$" | sort | xargs grep -i "2x5cor"
+./test/ut_board_pattern.c:static const SquareSet mask_2x5cor_0 = 0x0000000000001f1f;
+./test/ut_board_pattern.c:board_pattern_pack_2x5cor_t (ut_test_t *const t)
+./test/ut_board_pattern.c:  ut_assert(t, empty == board_pattern_pack_2x5cor(empty));
+./test/ut_board_pattern.c:  ut_assert(t, packed_10 == board_pattern_pack_2x5cor(mask_2x5cor_0));
+./test/ut_board_pattern.c:  ut_assert(t, packed_10 == board_pattern_pack_2x5cor(full));
+./test/ut_board_pattern.c:board_pattern_unpack_2x5cor_t (ut_test_t *const t)
+./test/ut_board_pattern.c:  ut_assert(t, empty == board_pattern_unpack_2x5cor(empty));
+./test/ut_board_pattern.c:  ut_assert(t, mask_2x5cor_0 == board_pattern_unpack_2x5cor(packed_10));
+./test/ut_board_pattern.c:  /* Test 2x5cor 2222222220 */
+./test/ut_board_pattern.c:  /* Test 2x5cor 2222222222 */
+./test/ut_board_pattern.c:board_pattern_compute_indexes_2x5cor_t (ut_test_t *const t)
+./test/ut_board_pattern.c:  aux_check_expected_indexes_array(t, BOARD_PATTERN_2X5COR, test_data, sizeof(test_data) / sizeof(struct board_pattern_test_s));
+./test/ut_board_pattern.c:  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_pack_2x5cor", board_pattern_pack_2x5cor_t);
+./test/ut_board_pattern.c:  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_unpack_2x5cor", board_pattern_unpack_2x5cor_t);
+./test/ut_board_pattern.c:  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "board_pattern_compute_indexes_2x5cor", board_pattern_compute_indexes_2x5cor_t);
+
+./reversi/c$ find ./sql | grep "\.sql$" | sort | xargs grep -i "2x5cor"
+./sql/0103_up_patterns.sql:                                          i_2x5cor_0 INTEGER,
+./sql/0103_up_patterns.sql:                                          i_2x5cor_1 INTEGER,
+./sql/0103_up_patterns.sql:                                          i_2x5cor_2 INTEGER,
+./sql/0103_up_patterns.sql:                                          i_2x5cor_3 INTEGER,
+./sql/0103_up_patterns.sql:                                          i_2x5cor_4 INTEGER,
+./sql/0103_up_patterns.sql:                                          i_2x5cor_5 INTEGER,
+./sql/0103_up_patterns.sql:                                          i_2x5cor_6 INTEGER,
+./sql/0103_up_patterns.sql:                                          i_2x5cor_7 INTEGER,
+./sql/0104_down_pattern_functions.sql:DROP FUNCTION regab_mirror_value_2x5cor_pattern;
+./sql/0104_down_pattern_functions.sql:DROP FUNCTION square_set_pattern_unpack_2x5cor;
+./sql/0104_down_pattern_functions.sql:DROP FUNCTION square_set_pattern_pack_2x5cor;
+./sql/0104_up_pattern_functions.sql:-- Packs 2X5COR pattern.
+./sql/0104_up_pattern_functions.sql:CREATE FUNCTION square_set_pattern_pack_2x5cor (s square_set)
+./sql/0104_up_pattern_functions.sql:  nw_2x5cor          square_set := (x'0000000000001f1f')::BIGINT;
+./sql/0104_up_pattern_functions.sql:  packed_2x5cor_mask square_set := (x'00000000000003ff')::BIGINT;
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_pack_2x5cor(empty_) = empty_, 'Expected result is empty_.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_pack_2x5cor(full_) = packed_2x5cor_mask, 'Expected result is packed_2x5cor_mask.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_pack_2x5cor(nw_2x5cor) = packed_2x5cor_mask, 'Expected result is packed_2x5cor_mask.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_pack_2x5cor((x'000000000000001f')::square_set) = (x'000000000000001f')::square_set, 'Expected result is 000000000000001f.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_pack_2x5cor((x'0000000000001f00')::square_set) = (x'00000000000003e0')::square_set, 'Expected result is 00000000000003e0.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_pack_2x5cor((x'ffffffffffffe0e0')::square_set) = (x'0000000000000000')::square_set, 'Expected result is 0000000000000000.');
+./sql/0104_up_pattern_functions.sql:-- Un-packs 2X5COR pattern.
+./sql/0104_up_pattern_functions.sql:CREATE FUNCTION square_set_pattern_unpack_2x5cor (s square_set)
+./sql/0104_up_pattern_functions.sql:  nw_2x5cor          square_set := (x'0000000000001f1f')::BIGINT;
+./sql/0104_up_pattern_functions.sql:  packed_2x5cor_mask square_set := (x'00000000000003ff')::BIGINT;
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_unpack_2x5cor(empty_) = empty_, 'Expected result is empty_.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_unpack_2x5cor(packed_2x5cor_mask) = nw_2x5cor, 'Expected result is nw_2x5cor.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_unpack_2x5cor((x'000000000000001f')::square_set) = (x'000000000000001f')::square_set, 'Expected result is 000000000000001f.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(square_set_pattern_unpack_2x5cor((x'00000000000003e0')::square_set) = (x'0000000000001f00')::square_set, 'Expected result is 0000000000001f00.');
+./sql/0104_up_pattern_functions.sql:-- Computes the mirror value for the given index, for the 2X5COR pattern.
+./sql/0104_up_pattern_functions.sql:CREATE FUNCTION regab_mirror_value_2x5cor_pattern (index_value INTEGER)
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(regab_mirror_value_2x5cor_pattern(0) IS NULL, 'Expected value is NULL.');
+./sql/0104_up_pattern_functions.sql:                                                  OUT i_2x5cor_0 INTEGER,
+./sql/0104_up_pattern_functions.sql:                                                  OUT i_2x5cor_1 INTEGER,
+./sql/0104_up_pattern_functions.sql:                                                  OUT i_2x5cor_2 INTEGER,
+./sql/0104_up_pattern_functions.sql:                                                  OUT i_2x5cor_3 INTEGER,
+./sql/0104_up_pattern_functions.sql:                                                  OUT i_2x5cor_4 INTEGER,
+./sql/0104_up_pattern_functions.sql:                                                  OUT i_2x5cor_5 INTEGER,
+./sql/0104_up_pattern_functions.sql:                                                  OUT i_2x5cor_6 INTEGER,
+./sql/0104_up_pattern_functions.sql:                                                  OUT i_2x5cor_7 INTEGER,
+./sql/0104_up_pattern_functions.sql:  i_2x5cor_0 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x5cor(mo_identity),
+./sql/0104_up_pattern_functions.sql:                                                   square_set_pattern_pack_2x5cor(op_identity));
+./sql/0104_up_pattern_functions.sql:  i_2x5cor_1 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x5cor(mo_rot_90a),
+./sql/0104_up_pattern_functions.sql:                                                   square_set_pattern_pack_2x5cor(op_rot_90a));
+./sql/0104_up_pattern_functions.sql:  i_2x5cor_2 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x5cor(mo_rot_180),
+./sql/0104_up_pattern_functions.sql:                                                   square_set_pattern_pack_2x5cor(op_rot_180));
+./sql/0104_up_pattern_functions.sql:  i_2x5cor_3 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x5cor(mo_rot_90c),
+./sql/0104_up_pattern_functions.sql:                                                   square_set_pattern_pack_2x5cor(op_rot_90c));
+./sql/0104_up_pattern_functions.sql:  i_2x5cor_4 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x5cor(mo_flip_ve),
+./sql/0104_up_pattern_functions.sql:                                                   square_set_pattern_pack_2x5cor(op_flip_ve));
+./sql/0104_up_pattern_functions.sql:  i_2x5cor_5 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x5cor(mo_flip_dh),
+./sql/0104_up_pattern_functions.sql:                                                   square_set_pattern_pack_2x5cor(op_flip_dh));
+./sql/0104_up_pattern_functions.sql:  i_2x5cor_6 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x5cor(mo_flip_ho),
+./sql/0104_up_pattern_functions.sql:                                                   square_set_pattern_pack_2x5cor(op_flip_ho));
+./sql/0104_up_pattern_functions.sql:  i_2x5cor_7 := regab_transformed_pattern_to_index(square_set_pattern_pack_2x5cor(mo_flip_da),
+./sql/0104_up_pattern_functions.sql:                                                   square_set_pattern_pack_2x5cor(op_flip_da));
+./sql/0104_up_pattern_functions.sql:    --- 2X5COR
+./sql/0104_up_pattern_functions.sql:    SELECT principal_index_value INTO STRICT i_2x5cor_0 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_0;
+./sql/0104_up_pattern_functions.sql:    SELECT principal_index_value INTO STRICT i_2x5cor_1 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_1;
+./sql/0104_up_pattern_functions.sql:    SELECT principal_index_value INTO STRICT i_2x5cor_2 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_2;
+./sql/0104_up_pattern_functions.sql:    SELECT principal_index_value INTO STRICT i_2x5cor_3 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_3;
+./sql/0104_up_pattern_functions.sql:    SELECT principal_index_value INTO STRICT i_2x5cor_4 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_4;
+./sql/0104_up_pattern_functions.sql:    SELECT principal_index_value INTO STRICT i_2x5cor_5 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_5;
+./sql/0104_up_pattern_functions.sql:    SELECT principal_index_value INTO STRICT i_2x5cor_6 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_6;
+./sql/0104_up_pattern_functions.sql:    SELECT principal_index_value INTO STRICT i_2x5cor_7 FROM regab_prng_pattern_ranges WHERE pattern_id = pid AND index_value = i_2x5cor_7;    
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_0 = 11704, 'Expected value for i_2x5cor_0 is 11704.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_1 = 41040, 'Expected value for i_2x5cor_1 is 41040.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_2 = 49074, 'Expected value for i_2x5cor_2 is 49074.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_3 = 23337, 'Expected value for i_2x5cor_3 is 23337.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_4 = 21222, 'Expected value for i_2x5cor_4 is 21222.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_5 = 16758, 'Expected value for i_2x5cor_5 is 16758.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_6 = 38871, 'Expected value for i_2x5cor_6 is 38871.');
+./sql/0104_up_pattern_functions.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_7 =  9730, 'Expected value for i_2x5cor_7 is  9730.');
+./sql/0104_up_pattern_functions.sql:        OR gp_pattern_class_o_rec.i_2x5cor_0 <> gp_pattern_class_n_rec.i_2x5cor_0
+./sql/0104_up_pattern_functions.sql:        OR gp_pattern_class_o_rec.i_2x5cor_1 <> gp_pattern_class_n_rec.i_2x5cor_1
+./sql/0104_up_pattern_functions.sql:        OR gp_pattern_class_o_rec.i_2x5cor_2 <> gp_pattern_class_n_rec.i_2x5cor_2
+./sql/0104_up_pattern_functions.sql:        OR gp_pattern_class_o_rec.i_2x5cor_3 <> gp_pattern_class_n_rec.i_2x5cor_3
+./sql/0104_up_pattern_functions.sql:        OR gp_pattern_class_o_rec.i_2x5cor_4 <> gp_pattern_class_n_rec.i_2x5cor_4
+./sql/0104_up_pattern_functions.sql:        OR gp_pattern_class_o_rec.i_2x5cor_5 <> gp_pattern_class_n_rec.i_2x5cor_5
+./sql/0104_up_pattern_functions.sql:        OR gp_pattern_class_o_rec.i_2x5cor_6 <> gp_pattern_class_n_rec.i_2x5cor_6
+./sql/0104_up_pattern_functions.sql:        OR gp_pattern_class_o_rec.i_2x5cor_7 <> gp_pattern_class_n_rec.i_2x5cor_7
+./sql/0104_up_pattern_functions.sql:                                               i_2x5cor_0 = gp_pattern_class_n_rec.i_2x5cor_0,
+./sql/0104_up_pattern_functions.sql:                                               i_2x5cor_1 = gp_pattern_class_n_rec.i_2x5cor_1,
+./sql/0104_up_pattern_functions.sql:                                               i_2x5cor_2 = gp_pattern_class_n_rec.i_2x5cor_2,
+./sql/0104_up_pattern_functions.sql:                                               i_2x5cor_3 = gp_pattern_class_n_rec.i_2x5cor_3,
+./sql/0104_up_pattern_functions.sql:                                               i_2x5cor_4 = gp_pattern_class_n_rec.i_2x5cor_4,
+./sql/0104_up_pattern_functions.sql:                                               i_2x5cor_5 = gp_pattern_class_n_rec.i_2x5cor_5,
+./sql/0104_up_pattern_functions.sql:                                               i_2x5cor_6 = gp_pattern_class_n_rec.i_2x5cor_6,
+./sql/0104_up_pattern_functions.sql:                                               i_2x5cor_7 = gp_pattern_class_n_rec.i_2x5cor_7,
+./sql/0107_down_pattern_data.sql:DELETE FROM regab_prng_pattern_ranges WHERE pattern_id = (SELECT pattern_id FROM regab_prng_patterns WHERE pattern_name = '2X5COR');
+./sql/0107_down_pattern_data.sql:DELETE FROM regab_prng_patterns WHERE pattern_name = '2X5COR';
+./sql/0107_up_pattern_data.sql:--- Populates the patter table with EDGE, CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR, and DIAG3 patterns.
+./sql/0107_up_pattern_data.sql:    (now(), 11, '2X5COR',  8, 10, 'Ten square, asymmetric corner'),
+./sql/0107_up_pattern_data.sql:  pn := '2X5COR';
+./sql/0107_up_pattern_data.sql:  UPDATE regab_prng_pattern_ranges SET mirror_value = regab_mirror_value_2x5cor_pattern(index_value) WHERE pattern_id = pid;
+./sql/0107_up_pattern_data.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_0 = 11704, 'Expected value for i_2x5cor_0 is 11704.');
+./sql/0107_up_pattern_data.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_1 = 41040, 'Expected value for i_2x5cor_1 is 41040.');
+./sql/0107_up_pattern_data.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_2 = 49074, 'Expected value for i_2x5cor_2 is 49074.');
+./sql/0107_up_pattern_data.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_3 = 23337, 'Expected value for i_2x5cor_3 is 23337.');
+./sql/0107_up_pattern_data.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_4 = 21222, 'Expected value for i_2x5cor_4 is 21222.');
+./sql/0107_up_pattern_data.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_5 = 16758, 'Expected value for i_2x5cor_5 is 16758.');
+./sql/0107_up_pattern_data.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_6 = 38871, 'Expected value for i_2x5cor_6 is 38871.');
+./sql/0107_up_pattern_data.sql:  PERFORM p_assert(pattern_index_values.i_2x5cor_7 =  9730, 'Expected value for i_2x5cor_7 is  9730.');
+./sql/0107_up_pattern_data.sql:-- 2X5COR
+./sql/0107_up_pattern_data.sql:SELECT 'Loading frequencies for the 2X5COR pattern ...' AS message;
+./sql/0107_up_pattern_data.sql:\COPY regab_staging_ec_pidx_cnt_tmp  FROM '0107_data_pattern_index_frequencies_2X5COR_112_116_292_298_372_378_973_977_80000000000.sql' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
+./sql/0107_up_pattern_data.sql:SELECT regab_update_prob_into_pattern_probs_from_staging('2X5COR');
+./sql/0109_up_action_extract.sql:--- Populates the patter table with EDGE, CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR, and DIAG3 patterns.
+./sql/0109_up_action_extract.sql:    (now(), 11, 0, 'i_2x5cor_0'),
+./sql/0109_up_action_extract.sql:    (now(), 11, 1, 'i_2x5cor_1'),
+./sql/0109_up_action_extract.sql:    (now(), 11, 2, 'i_2x5cor_2'),
+./sql/0109_up_action_extract.sql:    (now(), 11, 3, 'i_2x5cor_3'),
+./sql/0109_up_action_extract.sql:    (now(), 11, 4, 'i_2x5cor_4'),
+./sql/0109_up_action_extract.sql:    (now(), 11, 5, 'i_2x5cor_5'),
+./sql/0109_up_action_extract.sql:    (now(), 11, 6, 'i_2x5cor_6'),
+./sql/0109_up_action_extract.sql:    (now(), 11, 7, 'i_2x5cor_7'),
+
+./reversi/c$ find ./py | grep "\.py$" | sort | xargs grep -i "2x5cor"
+./py/reversi/pattern.py:class P2x5cor(Pattern):
+./py/reversi/pattern.py:    The 2X5COR pattern has eight instances ranging from [0..7]:
+./py/reversi/pattern.py:        self.name = '2X5COR'
+./py/reversi/pattern.py:        f = libreversi.board_pattern_pack_2x5cor
+./py/reversi/pattern.py:        f = libreversi.board_pattern_unpack_2x5cor
+./py/reversi/pattern.py:patterns_as_set = {PEdge(), PCorner(), PXedge(), PR2(), PR3(), PR4(), PDiag4(), PDiag5(), PDiag6(), PDiag7(), PDiag8(), P2x5cor(), PDiag3()}
+./py/reversi/rglm.py:                  'patterns': 'XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR',
+./py/test/test_pattern.py:mask_2x5cor_0 = f('0000000000001f1f')
+./py/test/test_pattern.py:class Test2x5cor(unittest.TestCase):
+./py/test/test_pattern.py:        p = P2x5cor()
+./py/test/test_pattern.py:        p = P2x5cor()
+./py/test/test_pattern.py:        self.assertEqual(packed_10, p.pack(mask_2x5cor_0))
+./py/test/test_pattern.py:        p = P2x5cor()
+./py/test/test_pattern.py:        self.assertEqual(mask_2x5cor_0, p.unpack(packed_10))
+./py/test/test_pattern.py:        self.assertEqual(mask_2x5cor_0, p.unpack(full))
+./py/test/test_pattern.py:        [check_expected_indexes(self, r, P2x5cor()) for r in test_data]
+./py/test/test_pattern.py:                      ('0000', '01ff', 10, 19682, '2x5cor 2222222220'),
+./py/test/test_pattern.py:                      ('0000', '03ff', 10, 59048, '2x5cor 2222222222'),
+./py/test/test_regab_dataset.py:        #  Pattern id: 11     [2X5COR][  4900][I_042:I_049]
+./py/test/test_regab_dataset.py:            '2X5COR': (42, 49),
+
+
+
+Source files (C source, C header, C unit test, sql, Python source/test):
+
+./src/board_pattern.c
+./src/board_pattern.h
+./src/endgame_solver.c
+
+./test/ut_board_pattern.c
+
+./sql/0103_up_patterns.sql
+./sql/0104_down_pattern_functions.sql
+./sql/0104_up_pattern_functions.sql
+./sql/0107_down_pattern_data.sql
+./sql/0107_up_pattern_data.sql
+./sql/0109_up_action_extract.sql
+
+./py/reversi/pattern.py
+./py/reversi/rglm.py
+./py/test/test_pattern.py
+./py/test/test_regab_dataset.py
+
+
+###
+### Let's start to review the files:
+###
+
+./src/board_pattern.h
+257: Update documentation adding the pattern definition
+407: typed of enum board_pattern_id_t
+425: BOARD_PATTERN_INDEX_TABLE_SIZE ... add 59049 * 9 = 531441
+426: #define BOARD_PATTERN_MAX_N_INSTANCES 8 ... should be 10
+510: board_pattern_pack_ and _unpack
+
+./src/board_pattern.c
+85: const board_pattern_t board_patterns[] = ... add the new ENTRY at the right place, that is the END.
+692: code board_pattern_pack_ and _unpack_ functions
+743: board_pattern_compute_indexes ... increment the number of squares from 8 to 10 , cim, cio ( I would do 16 ... )
+
+./src/endgame_solver.c
+439: update help string
+
+./test/ut_board_pattern.c
+450: add packed 11..16 definition
+460: add mask definition
+931: add test for the new pattern
+1449: add test function board_pattern_compute_indexes_
+1586,1605: add the 3 test function calls.
+
+./sql/0103_up_patterns.sql
+Table definition for regab_prng_gp_pattern_class.
+We need to add the columns/fields for the new pattern. But this is going to be not very flexible and sustainable.
+Add the fields to the existing table ....
+
+./sql/0104_up_pattern_functions.sql
+Add the function square_set_pattern_pack_ and square_set_pattern_unpack_
+Add the function regab_mirror_value_newpattern_pattern
+Modify the function regab_gp_compute_pattern_indexes adding the new fields ...
+Modify the function regab_gp_populate_pattern_class_table ....
+
+./sql/0104_down_pattern_functions.sql
+Add the code to remove the pack and unpack functions.
+
+./sql/0107_up_pattern_data.sql
+Update the table regab_prng_patterns adding the new pattern.
+Prepare and load data for the pattern: mirror and principal_index.
+Populate tests for the new pattern.
+Prepare and load frequencies ...
+
+./sql/0107_down_pattern_data.sql
+Add the removal of records also for the given pattern.
+
+./sql/0109_up_action_extract.sql
+Insert appropriate entries into regab_prng_gp_pattern_class_instance_names
+
+./py/reversi/pattern.py
+780: add the pattern definition
+900: add the the pattern set
+
+./py/reversi/rglm.py
+Nothing to do here, really.
+
+./py/test/test_pattern.py
+886: Write the specific pattern test
+1033: Add entries into test_board_pattern_index_to_from_packed
+
+./py/test/test_regab_dataset.py
+Nothing really relevant here.
+
+---
+--- Who interact with TABLE : regab_prng_gp_pattern_class
+---
+
+--- SQL :
+
+./reversi/c$ find ./sql | grep "\.sql$" | sort | xargs grep -i "regab_prng_gp_pattern_class"
+./sql/0103_down_patterns.sql:DROP TABLE regab_prng_gp_pattern_class;
+./sql/0103_up_patterns.sql:CREATE TABLE regab_prng_gp_pattern_class (gp_id      BIGINT PRIMARY KEY REFERENCES regab_prng_gp(seq) ON DELETE CASCADE,
+./sql/0104_up_pattern_functions.sql:-- Populates or updates table regab_prng_gp_pattern_class.
+./sql/0104_up_pattern_functions.sql:    SELECT INTO gp_pattern_class_o_rec * FROM regab_prng_gp_pattern_class WHERE gp_id = game_position_rec.seq;
+./sql/0104_up_pattern_functions.sql:        INSERT INTO regab_prng_gp_pattern_class (gp_id, ins_time, status, cst_time) VALUES (game_position_rec.seq, now(), 'INS', now());
+./sql/0104_up_pattern_functions.sql:        UPDATE regab_prng_gp_pattern_class SET status     = 'CMP',
+./sql/0109_down_action_extract.sql:DROP TABLE regab_prng_gp_pattern_class_instance_names;
+./sql/0109_up_action_extract.sql:CREATE TABLE regab_prng_gp_pattern_class_instance_names (ins_time      TIMESTAMP,
+./sql/0109_up_action_extract.sql:INSERT INTO regab_prng_gp_pattern_class_instance_names (ins_time, pattern_id, instance_id, instance_name)
+./sql/0109_up_action_extract.sql:    regab_prng_gp_pattern_class AS pc
+./sql/0109_up_action_extract.sql:            regab_prng_gp_pattern_class AS pc
+./sql/0109_up_action_extract.sql:-- and a list of column named i000, i001, i002, ... , i00n with the index values taken from the regab_prng_gp_pattern_class table and organized
+./sql/0109_up_action_extract.sql:        SELECT ta.instance_name INTO i_name FROM regab_prng_gp_pattern_class_instance_names AS ta WHERE ta.pattern_id = pattern_id_current AND ta.instance_id = i;
+./sql/0109_up_action_extract.sql:    query_command := format('%s FROM regab_prng_gp AS gp RIGHT JOIN regab_prng_gp_pattern_class AS pc ON gp.seq = pc.gp_id WHERE (gp.legal_move_count_adjusted > 0 OR %s = 0) AND gp.empty_count = %s', query_command, empty_count_arg, empty_count_arg);
+./sql/0109_up_action_extract.sql:    SELECT count(1) INTO row_cnt FROM regab_prng_gp AS gp RIGHT JOIN regab_prng_gp_pattern_class AS pc ON gp.seq = pc.gp_id
+
+--- C code :
+
+./reversi/c$ find ./src | grep "\.[ch]$" | sort | xargs grep -i "regab_prng_gp_pattern_class"
+./src/board_pattern.h: *              Build a new table regab_prng_gp_pattern_class with the following colums:
+./src/regab.c:    "SELECT count(1) FROM regab_prng_gp AS gp RIGHT JOIN regab_prng_gp_pattern_class AS pc ON gp.seq = pc.gp_id WHERE "
+./src/rglm_data_files.h: * one into table `regab_prng_gp_pattern_class` (it means that the game position is not classified).
+./src/rglm_data_files.h: * Patterns are generated by a "group by" operation on the REGAB database table `regab_prng_gp_pattern_class`
+
+
+---
+--- Impact analysis of redefining board_pattern_index_t.
+---
+
+board_pattern_index_t is referenced into:
+
+src/board_pattern.c
+src/board_pattern.h
+src/game_value_estimator.c
+src/minimax_solver.c
+src/rglm_data_files.c
+src/rglm_solver.c
+src/rglm_utils.c
+
+But it is a very minimal list.
+The binary file formats are using uint16_t definitions that needs to be carefully checked.
+The REGAB database is using what ?
+The python code is using 16bit int as well into the ctypes.
+
+In SUMMARY:
+
+ - The REGAB database does not seem to be affected, al fields are 32bit INTEGER (signed).
+ - The REGAB/RGML binary files are all using int32_t fields, always (it seems).
+ - The C code seems really to be unaffected by a change ... we do need to test ...
+ - What type is best, uint32_t or int32_t ? For consistency I think it is better to go with the
+   signed version. We do lose 1bit (31 bits will be used) but they are enough for sure.
+   The range will be expanded from 65,535 to 2,147,483,647 , so this is by far mre than what is needed.
+
+--
+-- Details ...
+--
+
+Notice: M-x electric-indent-mode to cut and paste ...
+
+Let's look into the REGAB database:
+
+tst_regab=> \d
+                              List of relations
+ Schema  |                    Name                    |   Type   |   Owner
+---------+--------------------------------------------+----------+-----------
+ reversi | axis_info                                  | table    | tst_regab
+ reversi | board_bitrow_changes_for_player            | table    | tst_regab
+ reversi | color_info                                 | table    | tst_regab
+ reversi | direction_info                             | table    | tst_regab
+ reversi | game_position_test_data                    | table    | tst_regab
+ reversi | game_tree_log                              | table    | tst_regab
+ reversi | game_tree_log_header                       | table    | tst_regab
+ reversi | game_tree_log_header_run_id_seq            | sequence | tst_regab
+ reversi | game_tree_log_staging                      | table    | tst_regab
+ reversi | game_tree_solver                           | table    | tst_regab
+ reversi | migrations                                 | table    | tst_regab
+ reversi | player_info                                | table    | tst_regab
+ reversi | principal_variation_staging                | table    | tst_regab
+ reversi | regab_connection_log                       | table    | tst_regab
+ reversi | regab_connection_log_seq_seq               | sequence | tst_regab
+ reversi | regab_prng_gp                              | table    | tst_regab
+ reversi | regab_prng_gp_h                            | table    | tst_regab
+ reversi | regab_prng_gp_h_seq_seq                    | sequence | tst_regab
+ reversi | regab_prng_gp_pattern_class                | table    | tst_regab
+ reversi | regab_prng_gp_pattern_class_instance_names | table    | tst_regab
+ reversi | regab_prng_gp_seq_seq                      | sequence | tst_regab
+ reversi | regab_prng_pattern_probs                   | table    | tst_regab
+ reversi | regab_prng_pattern_ranges                  | table    | tst_regab
+ reversi | regab_prng_pattern_ranges_seq_seq          | sequence | tst_regab
+ reversi | regab_prng_patterns                        | table    | tst_regab
+ reversi | regab_staging_ec_pidx_cnt_tmp              | table    | tst_regab
+ reversi | square_info                                | table    | tst_regab
+(27 rows)
+
+
+Tables governing PATTERN data:
+
+  OK - regab_prng_patterns
+  OK - regab_prng_gp_pattern_class
+  OK - regab_prng_gp_pattern_class_instance_names
+  OK - regab_prng_pattern_probs
+  OK - regab_prng_pattern_ranges
+
+here the analysis:
+
+tst_regab=> \d regab_prng_patterns
+                     Table "reversi.regab_prng_patterns"
+    Column    |            Type             | Collation | Nullable | Default
+--------------+-----------------------------+-----------+----------+---------
+ pattern_id   | smallint                    |           | not null |
+ pattern_name | character(6)                |           | not null |
+ ins_time     | timestamp without time zone |           |          |
+ ninstances   | smallint                    |           | not null |
+ nsquares     | smallint                    |           | not null |
+ description  | text                        |           |          |
+Indexes:
+    "regab_prng_patterns_pkey" PRIMARY KEY, btree (pattern_id)
+    "regab_prng_patterns_pattern_name_key" UNIQUE CONSTRAINT, btree (pattern_name)
+Check constraints:
+    "ninstances_is_positive" CHECK (ninstances > 0)
+    "nsquares_is_positive" CHECK (nsquares > 0)
+Referenced by:
+    TABLE "regab_prng_gp_pattern_class_instance_names" CONSTRAINT "regab_prng_gp_pattern_class_instance_names_pattern_id_fkey" FOREIGN KEY (pattern_id) REFERENCES regab_prng_patterns(pattern_id) ON DELETE CASCADE
+    TABLE "regab_prng_pattern_ranges" CONSTRAINT "regab_prng_pattern_ranges_pattern_id_fkey" FOREIGN KEY (pattern_id) REFERENCES regab_prng_patterns(pattern_id) ON DELETE CASCADE
+
+tst_regab=> SELECT * FROM regab_prng_patterns;
+ pattern_id | pattern_name |         ins_time          | ninstances | nsquares |                  description
+------------+--------------+---------------------------+------------+----------+------------------------------------------------
+          0 | EDGE         | 2020-06-23 08:35:04.38269 |          4 |        8 | The edge of the board
+          1 | CORNER       | 2020-06-23 08:35:04.38269 |          4 |        9 | The 3x3 corner
+          2 | XEDGE        | 2020-06-23 08:35:04.38269 |          4 |       10 | The edge of the board plus X squares
+          3 | R2           | 2020-06-23 08:35:04.38269 |          4 |        8 | Second row, A2-B2-C2-D2-E2-F2-G2-H2
+          4 | R3           | 2020-06-23 08:35:04.38269 |          4 |        8 | Third row, A3-B3-C3-D3-E3-F3-G3-H3
+          5 | R4           | 2020-06-23 08:35:04.38269 |          4 |        8 | Fourth row, A4-B4-C4-D4-E4-F4-G4-H4
+          6 | DIAG4        | 2020-06-23 08:35:04.38269 |          4 |        4 | Four square diagonal, D1-C2-B3-A4
+          7 | DIAG5        | 2020-06-23 08:35:04.38269 |          4 |        5 | Five square diagonal, E1-D2-C3-B4-A5
+          8 | DIAG6        | 2020-06-23 08:35:04.38269 |          4 |        6 | Six square diagonal, F1-E2-D3-C4-B5-A6
+          9 | DIAG7        | 2020-06-23 08:35:04.38269 |          4 |        7 | Seven square diagonal, G1-F2-E3-D4-C5-B6-A7
+         10 | DIAG8        | 2020-06-23 08:35:04.38269 |          2 |        8 | Eight square diagonal, H1-G2-F3-E4-D5-C6-B7-A8
+         11 | 2X5COR       | 2020-06-23 08:35:04.38269 |          8 |       10 | Ten square, asymmetric corner
+         12 | DIAG3        | 2020-06-23 08:35:04.38269 |          4 |        3 | Three square diagonal, C1-B2-A3
+(13 rows)
+
+
+tst_regab=> \d regab_prng_gp_pattern_class
+                   Table "reversi.regab_prng_gp_pattern_class"
+   Column   |            Type             | Collation | Nullable |    Default
+------------+-----------------------------+-----------+----------+---------------
+ gp_id      | bigint                      |           | not null |
+ ins_time   | timestamp without time zone |           |          | now()
+ status     | character(3)                |           |          | 'INS'::bpchar
+ cst_time   | timestamp without time zone |           |          | now()
+ i_edge_0   | integer                     |           |          |
+ i_edge_1   | integer                     |           |          |
+ i_edge_2   | integer                     |           |          |
+ i_edge_3   | integer                     |           |          |
+ i_corner_0 | integer                     |           |          |
+ i_corner_1 | integer                     |           |          |
+ i_corner_2 | integer                     |           |          |
+ i_corner_3 | integer                     |           |          |
+ i_xedge_0  | integer                     |           |          |
+ i_xedge_1  | integer                     |           |          |
+ i_xedge_2  | integer                     |           |          |
+ i_xedge_3  | integer                     |           |          |
+ i_r2_0     | integer                     |           |          |
+ i_r2_1     | integer                     |           |          |
+ i_r2_2     | integer                     |           |          |
+ i_r2_3     | integer                     |           |          |
+ i_r3_0     | integer                     |           |          |
+ i_r3_1     | integer                     |           |          |
+ i_r3_2     | integer                     |           |          |
+ i_r3_3     | integer                     |           |          |
+ i_r4_0     | integer                     |           |          |
+ i_r4_1     | integer                     |           |          |
+ i_r4_2     | integer                     |           |          |
+ i_r4_3     | integer                     |           |          |
+ i_diag4_0  | integer                     |           |          |
+ i_diag4_1  | integer                     |           |          |
+ i_diag4_2  | integer                     |           |          |
+ i_diag4_3  | integer                     |           |          |
+ i_diag5_0  | integer                     |           |          |
+ i_diag5_1  | integer                     |           |          |
+ i_diag5_2  | integer                     |           |          |
+ i_diag5_3  | integer                     |           |          |
+ i_diag6_0  | integer                     |           |          |
+ i_diag6_1  | integer                     |           |          |
+ i_diag6_2  | integer                     |           |          |
+ i_diag6_3  | integer                     |           |          |
+ i_diag7_0  | integer                     |           |          |
+ i_diag7_1  | integer                     |           |          |
+ i_diag7_2  | integer                     |           |          |
+ i_diag7_3  | integer                     |           |          |
+ i_diag8_0  | integer                     |           |          |
+ i_diag8_1  | integer                     |           |          |
+ i_2x5cor_0 | integer                     |           |          |
+ i_2x5cor_1 | integer                     |           |          |
+ i_2x5cor_2 | integer                     |           |          |
+ i_2x5cor_3 | integer                     |           |          |
+ i_2x5cor_4 | integer                     |           |          |
+ i_2x5cor_5 | integer                     |           |          |
+ i_2x5cor_6 | integer                     |           |          |
+ i_2x5cor_7 | integer                     |           |          |
+ i_diag3_0  | integer                     |           |          |
+ i_diag3_1  | integer                     |           |          |
+ i_diag3_2  | integer                     |           |          |
+ i_diag3_3  | integer                     |           |          |
+Indexes:
+    "regab_prng_gp_pattern_class_pkey" PRIMARY KEY, btree (gp_id)
+Check constraints:
+    "regab_prng_gp_pattern_class_status_check" CHECK (status = ANY (ARRAY['INS'::bpchar, 'WIP'::bpchar, 'CMP'::bpchar]))
+Foreign-key constraints:
+    "regab_prng_gp_pattern_class_gp_id_fkey" FOREIGN KEY (gp_id) REFERENCES regab_prng_gp(seq) ON DELETE CASCADE
+
+From the PostgreSQL Documentation:
+  integer : 4 bytes : typical choice for integer : -2147483648 to +2147483647
+so the values shudn't be an issue.
+
+tst_regab=> \d regab_prng_gp_pattern_class_instance_names
+          Table "reversi.regab_prng_gp_pattern_class_instance_names"
+    Column     |            Type             | Collation | Nullable | Default
+---------------+-----------------------------+-----------+----------+---------
+ ins_time      | timestamp without time zone |           |          |
+ pattern_id    | integer                     |           | not null |
+ instance_id   | integer                     |           | not null |
+ instance_name | text                        |           |          |
+Indexes:
+    "rpgpcin_pk" PRIMARY KEY, btree (pattern_id, instance_id)
+    "regab_prng_gp_pattern_class_instance_names_instance_name_key" UNIQUE CONSTRAINT, btree (instance_name)
+Foreign-key constraints:
+    "regab_prng_gp_pattern_class_instance_names_pattern_id_fkey" FOREIGN KEY (pattern_id) REFERENCES regab_prng_patterns(pattern_id) ON DELETE CASCADE
+
+No issue also here ...
+
+tst_regab=> \d regab_prng_pattern_probs
+                Table "reversi.regab_prng_pattern_probs"
+       Column        |       Type       | Collation | Nullable | Default
+---------------------+------------------+-----------+----------+---------
+ range_id            | bigint           |           |          |
+ empty_count         | smallint         |           |          |
+ index_prob_given_ec | double precision |           |          |
+Indexes:
+    "regab_prng_pattern_probs_range_id_empty_count_key" UNIQUE CONSTRAINT, btree (range_id, empty_count)
+Foreign-key constraints:
+    "regab_prng_pattern_probs_range_id_fkey" FOREIGN KEY (range_id) REFERENCES regab_prng_pattern_ranges(seq) ON DELETE CASCADE
+
+tst_regab=> SELECT * FROM regab_prng_pattern_probs LIMIT 3;
+ range_id | empty_count | index_prob_given_ec
+----------+-------------+---------------------
+   180416 |          18 |                   0
+   180416 |          24 |                   0
+   180416 |          23 |                   0
+(3 rows)
+
+tst_regab=> \d regab_prng_pattern_ranges
+                                    Table "reversi.regab_prng_pattern_ranges"
+        Column         |   Type   | Collation | Nullable |                        Default
+-----------------------+----------+-----------+----------+--------------------------------------------------------
+ seq                   | bigint   |           | not null | nextval('regab_prng_pattern_ranges_seq_seq'::regclass)
+ pattern_id            | smallint |           |          |
+ index_value           | integer  |           |          |
+ mirror_value          | integer  |           |          |
+ principal_index_value | integer  |           |          |
+Indexes:
+    "regab_prng_pattern_ranges_pkey" PRIMARY KEY, btree (seq)
+    "regab_prng_pattern_ranges_pattern_id_index_value_key" UNIQUE CONSTRAINT, btree (pattern_id, index_value)
+Foreign-key constraints:
+    "regab_prng_pattern_ranges_pattern_id_fkey" FOREIGN KEY (pattern_id) REFERENCES regab_prng_patterns(pattern_id) ON DELETE CASCADE
+Referenced by:
+    TABLE "regab_prng_pattern_probs" CONSTRAINT "regab_prng_pattern_probs_range_id_fkey" FOREIGN KEY (range_id) REFERENCES regab_prng_pattern_ranges(seq) ON DELETE CASCADE
+
+tst_regab=> SELECT * FROM regab_prng_pattern_ranges LIMIT 3;
+  seq   | pattern_id | index_value | mirror_value | principal_index_value
+--------+------------+-------------+--------------+-----------------------
+ 173854 |          0 |           0 |            0 |                     0
+ 173855 |          0 |           1 |         2187 |                     1
+ 173856 |          0 |           2 |         4374 |                     2
+(3 rows)
+
+No issue also here ...
+All PATTERN INDEX values are hosted into INTEGER fields. It is OK!
+
+...
+...
+
+##--##--## 2023-01-31 : let's start working on the SQL changes ...
+
+##
+## Changes to the C code are done and OK.
+##
+commit bc2c770e02e627f1a388a0a27e4b70db61a51591 (HEAD -> master, origin/master, origin/HEAD)
+Author: rcrr <rob_corradini@yahoo.it>
+Date:   Thu May 25 09:54:19 2023 +0200
+
+    Added missing files for testing.
+
+This is the sequence of REGAB database migrations:
+
+0100_down_regab_create_schema.sql
+0100_up_regab_create_schema.sql
+0101_down_migrations.sql
+0101_up_migrations.sql
+0102_down_gp_ext.sql
+0102_up_gp_ext.sql
+0103_down_patterns.sql
+0103_up_patterns.sql
+0104_down_pattern_functions.sql
+0104_up_pattern_functions.sql
+0107_data_pattern_index_frequencies_2X5COR_112_116_292_298_372_378_973_977_80000000000.sql
+0107_data_pattern_index_frequencies_CORNER_112_116_292_298_372_378_973_977_32000000000.sql
+0107_data_pattern_index_frequencies_DIAG3_628_1000000000.sql
+0107_data_pattern_index_frequencies_DIAG4_628_1000000000.sql
+0107_data_pattern_index_frequencies_DIAG5_628_1000000000.sql
+0107_data_pattern_index_frequencies_DIAG6_628_1000000000.sql
+0107_data_pattern_index_frequencies_DIAG7_628_1000000000.sql
+0107_data_pattern_index_frequencies_DIAG8_628_1000000000.sql
+0107_data_pattern_index_frequencies_EDGE_826_1billion.sql
+0107_data_pattern_index_frequencies_R2_628_1000000000.sql
+0107_data_pattern_index_frequencies_R3_628_1000000000.sql
+0107_data_pattern_index_frequencies_R4_628_1000000000.sql
+0107_data_pattern_index_frequencies_XEDGE_112_116_292_298_372_378_973_977_80000000000.sql
+0107_down_pattern_data.sql
+0107_up_pattern_data.sql
+0109_down_action_extract.sql
+0109_up_action_extract.sql
+0110_down_gp_solver.sql
+0110_up_gp_solver.sql
+
+###
+### 0 - go down
+###
+
+NO:  0110_down_gp_solver.sql should not be called, we would loose information about the solver running it.
+YES: 0109_down_action_extract.sql run it.
+YES: 0107_down_pattern_data.sql run it.
+YES: 0104_down_pattern_functions.sql run it, are all functions.
+YES: 0103_down_patterns.sql
+  it drops tables:
+    DROP TABLE regab_prng_gp_pattern_class;   : all the classification data will be lost.
+    DROP TABLE regab_staging_ec_pidx_cnt_tmp; : no data lost.
+    DROP TABLE regab_prng_pattern_probs;      : probs can be recreated by 0107 data.
+    DROP TABLE regab_prng_pattern_ranges;     : this is master data ... is recreated by the script.
+    DROP TABLE regab_prng_patterns;           : master data
+
+
+## Run database migrations
+ $ psql -U tst_regab -d tst_regab -h localhost
+
+ tst_regab=> SET search_path TO reversi;
+ tst_regab=> \i 0109_down_action_extract.sql;
+ tst_regab=> \i 0107_down_pattern_data.sql;
+ tst_regab=> \i 0104_down_pattern_functions.sql;
+ tst_regab=> \i 0103_down_patterns.sql;
+
+tst_regab=> \i 0109_down_action_extract.sql;
+SET
+BEGIN
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP TABLE
+DELETE 1
+COMMIT
+tst_regab=> \i 0107_down_pattern_data.sql;
+SET
+BEGIN
+DELETE 27
+DELETE 59049
+DELETE 6561
+DELETE 2187
+DELETE 729
+DELETE 243
+DELETE 81
+DELETE 6561
+DELETE 6561
+DELETE 6561
+DELETE 59049
+DELETE 19683
+DELETE 6561
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+COMMIT
+VACUUM
+VACUUM
+tst_regab=> \i 0104_down_pattern_functions.sql;
+SET
+BEGIN
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DROP FUNCTION
+DELETE 1
+COMMIT
+tst_regab=> \i 0103_down_patterns.sql;
+SET
+BEGIN
+DROP TABLE
+DROP TABLE
+DROP TABLE
+DROP TABLE
+DROP TABLE
+DELETE 1
+COMMIT
+
+##
+## 1 - start working on ./sql/0103_up_patterns.sql
+##
+
+./sql/0103_up_patterns.sql
+New 8 columns/fields have been added for the new pattern.
+
+##
+## 2 - update ./sql/0104_up_pattern_functions.sql and ./sql/0104_down_pattern_functions.sql
+##
+
+add the _pack_ and unpack_ functions in both files.
+add the _mirror_ function ...
+update the function regab_gp_compute_pattern_indexes
+update the function regab_gp_populate_pattern_class_table
+
+##
+## 3 - update ./sql/0107_up_pattern_data.sql and ./sql/0107_down_pattern_data.sql
+##
+
+Insert record into table regab_prng_patterns
+Add pattern loading ranges ...
+Add testing ... ( is it duplicate from the 0104 file ? )
+Add the freq data file loading ...
+Add the 2 delete statement into the down file
+
+##
+## 4 - update ./sql/0109_up_action_extract.sql and ./sql/0109_down_action_extract.sql
+##
+
+Populate table regab_prng_gp_pattern_class_instance_names with new column/patetrn
+
+##
+## 5 - POPULATE the table regab_prng_gp_pattern_class
+##
+
+tst_regab=> SELECT * FROM regab_prng_gp_h ORDER BY ngames;
+ seq |          ins_time          | status | prng_seed | ngames  | npositions 
+-----+----------------------------+--------+-----------+---------+------------
+   1 | 2017-12-17 18:19:16.440571 | CMP    |     97531 |       1 |         61
+   7 | 2018-01-03 16:38:51.097299 | CMP    |       277 |      10 |        614
+   8 | 2018-01-03 16:39:24.466546 | CMP    |       607 |     100 |       6140
+   4 | 2018-01-03 16:25:52.05024  | CMP    |         0 |    1000 |      61356
+   5 | 2018-01-03 16:27:08.188697 | CMP    |      5577 |   10000 |     614283
+   6 | 2018-01-03 16:30:24.238143 | CMP    |       881 |  100000 |    6142003
+  10 | 2021-07-24 17:58:18.845845 | CMP    |     25487 |  200000 |   12281722
+  11 | 2021-07-25 20:51:04.829293 | CMP    |     40132 |  400000 |   24566078
+   3 | 2017-12-17 18:42:13.782953 | CMP    |     13579 | 1000000 |   61412190
+   9 | 2020-12-20 18:02:16.47252  | CMP    |     77357 | 2000000 |  122829157
+  12 | 2021-08-21 17:55:04.407724 | CMP    |     33057 | 4000000 |  245656852
+(11 rows)
+
+# This query checks what is missing to be classified.
+
+SELECT t1.batch_id, t1.empty_count, count(1) FROM regab_prng_gp AS t1 LEFT JOIN regab_prng_gp_pattern_class AS t2 ON t1.seq = t2.gp_id WHERE t2.gp_id IS NULL AND t1.status IN('CMS','CMR') GROUP BY t1.batch_id, t1.empty_count;
+
+tst_regab=> SELECT t1.batch_id, t1.empty_count, count(1) FROM regab_prng_gp AS t1 LEFT JOIN regab_prng_gp_pattern_class AS t2 ON t1.seq = t2.gp_id WHERE t2.gp_id IS NULL AND t1.status IN('CMS','CMR') GROUP BY t1.batch_id, t1.empty_count;
+ batch_id | empty_count |  count   
+----------+-------------+----------
+        1 |           0 |        3
+        1 |           1 |        2
+        1 |           2 |        2
+        1 |           3 |        2
+        1 |           4 |        2
+        1 |           5 |        2
+        1 |           6 |        2
+        1 |           7 |        2
+        1 |           8 |        2
+        1 |           9 |        2
+        1 |          10 |        2
+        1 |          11 |        2
+        1 |          12 |        2
+        1 |          13 |        2
+        1 |          14 |        2
+        1 |          15 |        2
+        1 |          16 |        2
+        1 |          17 |        2
+        1 |          18 |        2
+        1 |          19 |        2
+        1 |          20 |        2
+        1 |          21 |        2
+        1 |          22 |        2
+        1 |          23 |        2
+        1 |          24 |        1
+        3 |           0 |  2971044
+        3 |           1 |  2503768
+        3 |           2 |  2192895
+        3 |           3 |  2086347
+        3 |           4 |  2042953
+        3 |           5 |  2022609
+        3 |           6 |  2013085
+        3 |           7 |  2007402
+        3 |           8 |  2004322
+        3 |           9 |  2002525
+        3 |          10 |  2001428
+        3 |          11 |  2000520
+        3 |          12 |  2000159
+        3 |          13 |  1999800
+        3 |          14 |  1999728
+        3 |          15 |  1999486
+        3 |          16 |  1999436
+        3 |          17 |  1999340
+        3 |          18 |  1999278
+        3 |          19 |  1999194
+        3 |          20 |  1999179
+        3 |          21 |  1999131
+        3 |          22 |  1999134
+        3 |          23 |  1999104
+        3 |          24 |   999611
+        4 |           0 |     2967
+        4 |           1 |     2470
+        4 |           2 |     2204
+        4 |           3 |     2088
+        4 |           4 |     2028
+        4 |           5 |     2008
+        4 |           6 |     2000
+        4 |           7 |     2004
+        4 |           8 |     2002
+        4 |           9 |     2002
+        4 |          10 |     2000
+        4 |          11 |     2002
+        4 |          12 |     1998
+        4 |          13 |     1998
+        4 |          14 |     2000
+        4 |          15 |     1998
+        4 |          16 |     1998
+        4 |          17 |     1998
+        4 |          18 |     1998
+        4 |          19 |     1998
+        4 |          20 |     1998
+        4 |          21 |     1998
+        4 |          22 |     1998
+        4 |          23 |     1998
+        4 |          24 |      999
+        5 |           0 |    29733
+        5 |           1 |    25092
+        5 |           2 |    21959
+        5 |           3 |    20806
+        5 |           4 |    20456
+        5 |           5 |    20274
+        5 |           6 |    20124
+        5 |           7 |    20076
+        5 |           8 |    20042
+        5 |           9 |    20026
+        5 |          10 |    20016
+        5 |          11 |    20010
+        5 |          12 |    20006
+        5 |          13 |    20006
+        5 |          14 |    19998
+        5 |          15 |    20002
+        5 |          16 |    19998
+        5 |          17 |    20002
+        5 |          18 |    19996
+        5 |          19 |    19996
+        5 |          20 |    20000
+        5 |          21 |    19996
+        5 |          22 |    19996
+        5 |          23 |    19998
+        5 |          24 |    10002
+        6 |           0 |   297300
+        6 |           1 |   250360
+        6 |           2 |   219522
+        6 |           3 |   208848
+        6 |           4 |   204324
+        6 |           5 |   202356
+        6 |           6 |   201248
+        6 |           7 |   200716
+        6 |           8 |   200423
+        6 |           9 |   200304
+        6 |          10 |   200138
+        6 |          11 |   200064
+        6 |          12 |   200062
+        6 |          13 |   200020
+        6 |          14 |   199984
+        6 |          15 |   199998
+        6 |          16 |   199968
+        6 |          17 |   199958
+        6 |          18 |   199940
+        6 |          19 |   199934
+        6 |          20 |   199932
+        6 |          21 |   199946
+        6 |          22 |   199948
+        6 |          23 |   199942
+        6 |          24 |    99971
+        7 |           0 |       30
+        7 |           1 |       24
+        7 |           2 |       20
+        7 |           3 |       20
+        7 |           4 |       20
+        7 |           5 |       22
+        7 |           6 |       22
+        7 |           7 |       20
+        7 |           8 |       20
+        7 |           9 |       20
+        7 |          10 |       20
+        7 |          11 |       20
+        7 |          12 |       20
+        7 |          13 |       20
+        7 |          14 |       20
+        7 |          15 |       20
+        7 |          16 |       20
+        7 |          17 |       20
+        7 |          18 |       20
+        7 |          19 |       20
+        7 |          20 |       20
+        7 |          21 |       20
+        7 |          22 |       20
+        7 |          23 |       20
+        7 |          24 |       10
+        8 |           0 |      294
+        8 |           1 |      250
+        8 |           2 |      222
+        8 |           3 |      204
+        8 |           4 |      204
+        8 |           5 |      202
+        8 |           6 |      202
+        8 |           7 |      200
+        8 |           8 |      200
+        8 |           9 |      200
+        8 |          10 |      200
+        8 |          11 |      200
+        8 |          12 |      202
+        8 |          13 |      200
+        8 |          14 |      200
+        8 |          15 |      200
+        8 |          16 |      200
+        8 |          17 |      200
+        8 |          18 |      200
+        8 |          19 |      200
+        8 |          20 |      200
+        8 |          21 |      200
+        8 |          22 |      200
+        8 |          23 |      200
+        8 |          24 |      200
+        8 |          25 |      100
+        9 |           0 |  5942115
+        9 |           1 |  5008038
+        9 |           2 |  4387124
+        9 |           3 |  4173039
+        9 |           4 |  4086251
+        9 |           5 |  4045957
+        9 |           6 |  4025452
+        9 |           7 |  4014509
+        9 |           8 |  4008786
+        9 |           9 |  4005109
+        9 |          10 |  4002891
+        9 |          11 |  4001510
+        9 |          12 |  4000650
+        9 |          13 |  3999852
+        9 |          14 |  3999448
+        9 |          15 |  3999262
+        9 |          16 |  3999017
+        9 |          17 |  3998838
+        9 |          18 |  3998718
+        9 |          19 |  3998598
+        9 |          20 |  3998537
+        9 |          21 |  3998498
+        9 |          22 |  3998468
+        9 |          23 |  3998450
+        9 |          24 |  1999327
+       10 |           0 |   594417
+       10 |           1 |   500702
+       10 |           2 |   438467
+       10 |           3 |   417177
+       10 |           4 |   408308
+       10 |           5 |   404354
+       10 |           6 |   402603
+       10 |           7 |   401380
+       10 |           8 |   400910
+       10 |           9 |   400458
+       10 |          10 |   400196
+       10 |          11 |   400096
+       10 |          12 |   400054
+       10 |          13 |   399928
+       10 |          14 |   399892
+       10 |          15 |   399888
+       10 |          16 |   399860
+       10 |          17 |   399818
+       10 |          18 |   399808
+       10 |          19 |   399838
+       10 |          20 |   399792
+       10 |          21 |   399793
+       10 |          22 |   399788
+       10 |          23 |   399802
+       10 |          24 |   199913
+       11 |           0 |  1188849
+       11 |           1 |  1002097
+       11 |           2 |   877459
+       11 |           3 |   834931
+       11 |           4 |   817295
+       11 |           5 |   809060
+       11 |           6 |   805142
+       11 |           7 |   802894
+       11 |           8 |   801726
+       11 |           9 |   801034
+       11 |          10 |   800582
+       11 |          11 |   800262
+       11 |          12 |   800122
+       11 |          13 |   799982
+       11 |          14 |   799922
+       11 |          15 |   799802
+       11 |          16 |   799760
+       11 |          17 |   799746
+       11 |          18 |   799726
+       11 |          19 |   799704
+       11 |          20 |   799678
+       11 |          21 |   799674
+       11 |          22 |   799666
+       11 |          23 |   799660
+       11 |          24 |   399861
+       12 |           0 | 11884806
+       12 |           1 | 10017667
+       12 |           2 |  8775563
+       12 |           3 |  8346539
+       12 |           4 |  8172357
+       12 |           5 |  8091717
+       12 |           6 |  8051655
+       12 |           7 |  8029290
+       12 |           8 |  8017448
+       12 |           9 |  8009909
+       12 |          10 |  8005579
+       12 |          11 |  8002796
+       12 |          12 |  8001164
+       12 |          13 |  7999653
+       12 |          14 |  7998842
+       12 |          15 |  7998260
+       12 |          16 |  7997754
+       12 |          17 |  7997497
+       12 |          18 |  7997293
+       12 |          19 |  7996976
+       12 |          20 |  7996897
+       12 |          21 |  7996814
+       12 |          22 |  7996744
+       12 |          23 |  7996504
+       12 |          24 |  3998566
+(276 rows)
+
+SELECT * FROM regab_gp_populate_pattern_class_table(1, 20, 30, '{CMR,CMS}', FALSE, FALSE);
+...
+...
+...
+
+Works !!!
+
+Now tests ... and then the fixes to the python code !!!
+
+Python code is ok.
+
+
+##--##--## 2023-01-31
+
+####
+#### TESTS
+####
+
+REGAB MODELS:
+
+ - A2030 : INTERCEPT,MOBILITY3,EDGE   EC=20 BATCH_ID=3 VALIDATION=6
+   reference_sd:     0.202255
+   residual_sd:      0.106420
+   validation_sd:    0.106557
+   delta_valid_perc:    0.13%
+   impovement:         47.30%
+   weight_count:        3,006
+   
+ - A2037 : INTERCEPT,MOBILITY3,2X5COR EC=20 BATCH_ID=3 VALIDATION=6
+   reference_sd:     0.202255
+   residual_sd:      0.068658
+   validation_sd:    0.070325
+   delta_valid_perc:    2.37%
+   impovement:         65.20%
+   weight_count:       37,851
+
+#
+# -0- Prepare the extraction of data for the check
+#     Output file: rglmdata/T2030_positions_check.dat
+#                  rglmdata/T2030_positions_check.dat.SHA3-256
+#                  rglmdata/T2030_positions_check.log
+#
+#     This is the GAME POSITIONS file used to run the VALIDATION (check) step. 
+#
+
+./build/bin/regab -v --action extract --config-file cfg/regab.cfg --env test --batch-id 6 --position-status CMS,CMR --empty-count 20 --game-positions --out-file ./rglmdata/T2030_positions_check.dat 2>&1 | tee ./rglmdata/T2030_positions_check.log
+
+#
+# -1- Run REGAB extract
+#     Output file: rglmdata/T2030_00.dat
+#                  rglmdata/T2030_00.dat.SHA3-256
+#                  rglmdata/T2030_00.log
+#
+#     This is the GAME POSITIONS file used to train the MODEL.
+#
+
+./build/bin/regab -v --action extract --config-file cfg/regab.cfg --env test --batch-id 3 --position-status CMS,CMR --empty-count 20 --feature MOBILITY3,INTERCEPT --pattern EDGE --out-file ./rglmdata/T2030_00.dat 2>&1 | tee ./rglmdata/T2030_00.log
+
+#
+# -2- Run RGLM solve
+#     Input file:  rglmdata/T2030_00.dat
+#     Output file: rglmdata/T2030_01.dat
+#                  rglmdata/T2030_01.dat.SHA3-256
+#                  rglmdata/T2030_01.log
+#
+#     Load the GAME POSITIONS file (T2030_00.dat), solve/optimize the MODEL, write the results to a solved (having valued weights) GAME POSITIONS file (T2030_01.dat).
+#
+
+./build/bin/rglm --verbose --solve --input-file ./rglmdata/T2030_00.dat --output-file ./rglmdata/T2030_01.dat 2>&1 | tee ./rglmdata/T2030_01.log
+
+#
+# -3- Extract weights binary files as well as the CSV data files from the solved model
+#     Input file:  rglmdata/T2030_01.dat
+#     Output file: rglmdata/T2030_01.ABPw.log
+#                  rglmdata/T2030_01.A.csv
+#                  rglmdata/T2030_01.B.csv
+#                  rglmdata/T2030_01.P.csv
+#                  rglmdata/T2030_01.w.dat
+#                  rglmdata/T2030_01.w.dat.SHA3-256
+#
+#     Extract the weights binary file (T2030_01.w.dat) that can be then used by the endgame_solver program.
+#
+
+./build/bin/rglm --verbose --input-file ./rglmdata/T2030_01.dat -A ./rglmdata/T2030_01.A.csv -B ./rglmdata/T2030_01.B.csv -P ./rglmdata/T2030_01.P.csv -w ./rglmdata/T2030_01.w.dat 2>&1 | tee ./rglmdata/T2030_01.ABPw.log"
+
+#
+# -3.1- Extract the weights in CSV format
+#     Input file:  rglmdata/T2030_01.w.dat
+#     Output file: rglmdata/T2030_01.w.W.csv
+#                  rglmdata/T2030_01.w.WPP_check.log
+#
+
+./build/bin/rglmw --verbose --weights-file ./rglmdata/T2030_01.w.dat --extract-weights ./rglmdata/T2030_01.w.W.csv 2>&1 | tee ./rglmdata/T2030_01.w.WPP_check.log
+
+#
+# -4- Run the VALIDATION check on the training data.
+#     Input file:  rglmdata/T2030_01.w.dat
+#                  rglmdata/T2030_01.dat
+#     Output file: rglmdata/T2030_01.w.P.csv
+#                  rglmdata/T2030_01.w.WPP_check.log
+#
+
+./build/bin/rglmw --verbose --weights-file ./rglmdata/T2030_01.w.dat --positions-file ./rglmdata/T2030_01.dat --extract-positions ./rglmdata/T2030_01.w.P.csv 2>&1 | tee -a ./rglmdata/T2030_01.w.WPP_check.log
+
+#
+# -4.1- Run the VALIDATION check on the validation (not used for the regression) data.
+#     Input file:  rglmdata/T2030_01.w.dat
+#                  rglmdata/T2030_positions_check.dat
+#     Output file: rglmdata/T2030_01.w.P_check.csv
+#                  rglmdata/T2030_01.w.WPP_check.log ( append to the existing file )
+#
+
+./build/bin/rglmw --verbose --weights-file ./rglmdata/T2030_01.w.dat --positions-file ./rglmdata/T2030_positions_check.dat --extract-positions ./rglmdata/T2030_01.w.P_check.csv 2>&1 | tee -a ./rglmdata/T2030_01.w.WPP_check.log
+
+
+
+###
+### Everyting from step 0 up to step 4 is done by running:
+###
+
+./script/rglm.sh 20 MOBILITY3,INTERCEPT EDGE T2030 3 6 test check_sentinel
+
+# Generating the following 20 files (ls -1 rglmdata/T2030*):
+
+rglmdata/T2030_00.dat
+rglmdata/T2030_00.dat.SHA3-256
+rglmdata/T2030_00.log
+rglmdata/T2030_01.ABPw.log
+rglmdata/T2030_01.A.csv
+rglmdata/T2030_01.B.csv
+rglmdata/T2030_01.dat
+rglmdata/T2030_01.dat.SHA3-256
+rglmdata/T2030_01.log
+rglmdata/T2030_01.P.csv
+rglmdata/T2030_01.w.dat
+rglmdata/T2030_01.w.dat.SHA3-256
+rglmdata/T2030_01.w.P_check.csv
+rglmdata/T2030_01.w.P.csv
+rglmdata/T2030_01.w.W.csv
+rglmdata/T2030_01.w.WPP_check.log
+rglmdata/T2030_positions_check.dat
+rglmdata/T2030_positions_check.dat.SHA3-256
+rglmdata/T2030_positions_check.log
+rglmdata/T2030.sentinel
+
+
+
+###
+### At this point we use the R code (rglmw.R) to analyze and plot the results.
+###
+
+# change the working directory using setwd('...')
+# source te file using source('rglmw.R')
+
+r <- load_model_weights("../rglmdata", "T2030")
+r$plot_distrib
+
+##### ##### #####
+##### ##### ##### VALIDATION SD: 0.1066
+##### ##### #####
+##### ##### ##### It is consistent with the historical data. Test passed!
+##### ##### #####
+
+#
+# Running the second test, 2x5cor:
+#
+
+./script/rglm.sh 20 MOBILITY3,INTERCEPT 3X5COR T2037 3 6 test check_sentinel
+
+##### ##### #####
+##### ##### ##### VALIDATION SD: 0.0703
+##### ##### #####
+##### ##### ##### It is consistent with the historical data. Test passed!
+##### ##### #####
+
+###
+### Testing the PYTHON implementation
+###
+
+exec(open("py/reversi/start.py").read())
+m = rglm_workflow(test_run_t2030)
+mw = m.get_model_weights()
+mw = m.get_model_weights()
+mw.print_summary()
+mw.write('tmp/T2030_01.w.dat')
+
+./build/bin/rglmw --verbose --weights-file ./tmp/T2030_01.w.dat --extract-weights ./tmp/T2030_01.w.W.csv
+./build/bin/rglmw --verbose --weights-file ./tmp/T2030_01.w.dat --positions-file ./rglmdata/T2030_01.dat --extract-positions ./tmp/T2030_01.w.P.csv
+./build/bin/rglmw --verbose --weights-file ./tmp/T2030_01.w.dat --positions-file ./rglmdata/T2030_positions_check.dat --extract-positions ./tmp/T2030_01.w.P_check.csv
+
+#####
+##### F = 11322.509966808302 ( vs Effe = 11320.515059200244650128 )
+#####
+##### VALIDATION SD = 0.1066
+#####
+##### The python l_bfgs_b optimization reaches the same value of the EFFE function. Very good.
+#####
+

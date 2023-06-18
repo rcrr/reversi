@@ -962,6 +962,11 @@ rglmdf_model_weights_write_to_binary_file (const rglmdf_model_weights_t *const m
   fwrite2(&u64, sizeof(uint64_t), 1, ofp, &fwn);
 
   /* Writes the general data checksum to the binary file. */
+  if (!mw->general_data_checksum) {
+    fprintf(stderr, "Error: general_data_checksum is NULL.\n");
+    fclose(ofp);
+    return EXIT_FAILURE;
+  }
   fwrite2(mw->general_data_checksum, sizeof(char) * (2 * sha3_256_digest_lenght + 1), 1, ofp, &fwn);
 
   /* Writes the field gp_sample_size to the binary file. */

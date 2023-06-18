@@ -57,6 +57,7 @@ import ctypes as ct
 # -0- [done] Implements the Ridge regularization.
 #
 # -1- Add one more Feature ( MOBILITYX ) and one more Pattern ( 2X6COR da 12 !!! ).
+#     [done] Added new pattern 2X6COR
 #
 # -2- Introduce the Lasso regularization.
 #     Here we do not have a solution yet, options are:
@@ -130,7 +131,7 @@ class _RglmModelWeightsCTHelper(ct.Structure):
     
     _fields_ = [
         ("file_creation_time", ct.c_uint64),
-        ("general_data_checksum", ct.c_void_p),
+        ("general_data_checksum", ct.c_char_p),
         ("gp_sample_size", ct.c_int64),
         ("empty_count", ct.c_uint8),
         ("feature_cnt", ct.c_size_t),
@@ -1086,7 +1087,9 @@ class Rglm:
         
         c = mw._CTHelper
         c.file_creation_time = 0
-        c.general_data_checksum = None
+        #c.general_data_checksum = None
+        #c.general_data_checksum = "c504c50a26379b311cec9c042811f88d40e2c735258c47aaaf986de7f68cb5fd"
+        c.general_data_checksum = ct.c_char_p('0000000000000000000000000000000000000000000000000000000000000000'.encode('utf-8'))
         c.empty_count = self.empty_count
         c.gp_sample_size = len(self.game_positions)
  
@@ -1264,6 +1267,28 @@ test_run_a2050 = {'cfg_fname': 'cfg/regab.cfg',
                   'vld_statuses': 'CMR,CMS',
                   'features': 'INTERCEPT,MOBILITY3',
                   'patterns': 'XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR',
+                  'ridge_reg_param': 0.01,
+                  'l_bfgs_b_options': {'disp': True,
+                                       'maxcor': 50,
+                                       'ftol': 1e-08,
+                                       'gtol': 1e-05,
+                                       'eps': 1e-08,
+                                       'maxfun': 5000,
+                                       'maxiter': 5000,
+                                       'iprint': 1,
+                                       'maxls': 20,
+                                       'finite_diff_rel_step': None},
+                  }
+
+test_run_t2030 = {'cfg_fname': 'cfg/regab.cfg',
+                  'env': 'test',
+                  'ec': 20,
+                  'batches': [3],
+                  'vld_batches': [6],
+                  'statuses': 'CMR,CMS',
+                  'vld_statuses': 'CMR,CMS',
+                  'features': 'INTERCEPT,MOBILITY3',
+                  'patterns': 'EDGE',
                   'ridge_reg_param': 0.01,
                   'l_bfgs_b_options': {'disp': True,
                                        'maxcor': 50,
