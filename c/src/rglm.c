@@ -734,6 +734,7 @@ main (int argc,
     double effe, effe_last, delta_effe, lambda, grad_magnitude, g_abs_min, g_abs_max, r_magnitude, p_magnitude;
     double r_abs_min, r_abs_max, p_abs_min, p_abs_max;
     size_t r_abs_min_pos, r_abs_max_pos, g_abs_min_pos, g_abs_max_pos, p_abs_min_pos, p_abs_max_pos;
+    double ridge_reg_param, effe_residuals, effe_ridge;
 
     double epsilon_on_gradient_modulus;
 
@@ -804,6 +805,9 @@ main (int argc,
     /* At the beginning of the first iteration the flag is set to true. */
     cholesky_fact_ok = true;
 
+    /* Ridge regularization coefficient. */
+    ridge_reg_param = 0.01;
+
     if (verbose) {
       printf("Dumping factor for the diagonal of the Hessian matrix (Levemberg-Marquardt): lambda = %e\n", lambda);
       printf("Max number of Newton-Raphson algorithm iterations = %zu\n", max_newton_iter);
@@ -826,36 +830,20 @@ main (int argc,
         rglmut_evaluation_function_eval(&data, enne, w, emme, e);
         rglmut_evaluation_function_derivative_eval(emme, e, de);
         rglmut_residual_value_eval(emme, e, v, r);
-        rglmut_minus_grad_f_eval(&data, minus_grad_f, enne, emme, r, de);
-        effe = 0.0;
-        for (size_t i = 0; i < emme; i++) effe += r[i]*r[i];
-        effe *= 0.5;
+        rglmut_minus_grad_f_eval(&data, minus_grad_f, enne, emme, r, de, w, ridge_reg_param);
+        effe_residuals = 0.0;
+        effe_ridge = 0.0;
+        for (size_t i = 0; i < emme; i++) effe_residuals += r[i]*r[i];
+        for (size_t i = 0; i < enne; i++) effe_ridge += w[i]*w[i];
+        effe = 0.5 * (effe_residuals + ridge_reg_param * effe_ridge);
         r_magnitude = lial_vector_magnitude(r, emme, &r_abs_min, &r_abs_min_pos, &r_abs_max, &r_abs_max_pos);
         grad_magnitude = lial_vector_magnitude(minus_grad_f, enne, &g_abs_min, &g_abs_min_pos, &g_abs_max, &g_abs_max_pos);
-
-        // C vs PYTHON TEST gradient comparison test ...
-        if (false) {
-          fprintf(stdout, "C vs PYTHON gradient comparison test.\n");
-          char *xfname = "tmp/rglm_c_minus_grad_f.txt";
-          FILE *xfp = NULL;
-          xfp = fopen(xfname, "w");
-          if (!xfp) {
-            fprintf(stderr, "Unable to open output file: %s\n", xfname);
-            return EXIT_FAILURE;
-          }
-          fprintf(xfp, "Gradient vector size (enne) = %zu\n", enne);
-          for (size_t i = 0; i < enne; i++) {
-            fprintf(xfp, "%06zu; %16.6f\n", i, minus_grad_f[i]);
-          }
-          fclose(xfp);
-          return EXIT_SUCCESS;
-        }
       }
 
       rgmlut_big_b_eval(&data, big_b, enne, emme, e, de, v);
 
       /* Increases the diagonal of the Hessian matrix. */
-      for (size_t i = 0; i < enne; i++) big_b[i][i] += lambda;
+      for (size_t i = 0; i < enne; i++) big_b[i][i] += lambda + ridge_reg_param;
 
       /* Stops the stop-watch. */
       clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
@@ -959,11 +947,13 @@ main (int argc,
       rglmut_evaluation_function_eval(&data, enne, w, emme, e);
       rglmut_evaluation_function_derivative_eval(emme, e, de);
       rglmut_residual_value_eval(emme, e, v, r);
-      rglmut_minus_grad_f_eval(&data, minus_grad_f, enne, emme, r, de);
+      rglmut_minus_grad_f_eval(&data, minus_grad_f, enne, emme, r, de, w, ridge_reg_param);
       effe_last = effe;
-      effe = 0.0;
-      for (size_t i = 0; i < emme; i++) effe += r[i]*r[i];
-      effe *= 0.5;
+      effe_residuals = 0.0;
+      effe_ridge = 0.0;
+      for (size_t i = 0; i < emme; i++) effe_residuals += r[i]*r[i];
+      for (size_t i = 0; i < enne; i++) effe_ridge += w[i]*w[i];
+      effe = 0.5 * (effe_residuals + ridge_reg_param * effe_ridge);
       delta_effe = effe_last - effe;
 
       r_magnitude = lial_vector_magnitude(r, emme, &r_abs_min, &r_abs_min_pos, &r_abs_max, &r_abs_max_pos);

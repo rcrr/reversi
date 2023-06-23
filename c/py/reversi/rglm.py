@@ -939,11 +939,12 @@ class Rglm:
         self.evmap['idx'] = idx
         self.evmap['pidx'] = pidx
         self.evmap['wmean'] = wmean
-        self.evmap = self.evmap.merge(self.vmap[['etype', 'eid', 'idx', 'weight', 'count', 'oprobs', 'eprobs']],
+        self.evmap = self.evmap.merge(self.vmap[['etype', 'eid', 'idx', 'vid', 'weight', 'count', 'oprobs', 'eprobs']],
                                                   how='left',
                                                   left_on=['etype', 'eid', 'pidx'],
                                                   right_on=['etype', 'eid', 'idx'])
         self.evmap.rename(columns={'idx_x': 'idx'}, inplace=True)
+        self.evmap['vid'] = self.evmap['vid'].fillna(-1).astype(int)
         self.evmap['computed'] = ~pd.isna(self.evmap["idx_y"])
         self.evmap.weight.fillna(self.evmap.wmean, inplace=True)
         self.evmap.drop(columns=['idx_y'], inplace=True)
@@ -952,7 +953,7 @@ class Rglm:
         self.evmap['count'] = self.evmap['count'].astype('int')
         self.evmap['oprobs'] = self.evmap['oprobs'].fillna(0)
         self.evmap['eprobs'] = self.evmap['eprobs'].fillna(0)
-        self.evmap = self.evmap.loc[:, ['evid', 'etype', 'eid', 'idx', 'pidx', 'wmean', 'computed', 'weight', 'count', 'oprobs', 'eprobs']]
+        self.evmap = self.evmap.loc[:, ['evid', 'etype', 'eid', 'idx', 'pidx', 'vid', 'wmean', 'computed', 'weight', 'count', 'oprobs', 'eprobs']]
         self.evmap.rename(columns={'count': 'total_cnt'}, inplace=True)
         self.ew = self.evmap['weight'].values
         return self
@@ -1072,7 +1073,7 @@ class Rglm:
         weights['entity_id'] = self.evmap.eid.values
         weights['index_value'] = self.evmap.idx.values
         weights['principal_index_value'] = self.evmap.pidx.values
-        weights['glm_variable_id'] = self.evmap.evid.values
+        weights['glm_variable_id'] = self.evmap.vid.values
         weights['total_cnt'] = self.evmap.total_cnt.values
         weights['relative_frequency'] = self.evmap.oprobs.values
         weights['theoretical_probability'] = self.evmap.eprobs.values
@@ -1289,6 +1290,50 @@ test_run_t2030 = {'cfg_fname': 'cfg/regab.cfg',
                   'vld_statuses': 'CMR,CMS',
                   'features': 'INTERCEPT,MOBILITY3',
                   'patterns': 'EDGE',
+                  'ridge_reg_param': 0.01,
+                  'l_bfgs_b_options': {'disp': True,
+                                       'maxcor': 50,
+                                       'ftol': 1e-08,
+                                       'gtol': 1e-05,
+                                       'eps': 1e-08,
+                                       'maxfun': 5000,
+                                       'maxiter': 5000,
+                                       'iprint': 1,
+                                       'maxls': 20,
+                                       'finite_diff_rel_step': None},
+                  }
+
+test_run_t2037 = {'cfg_fname': 'cfg/regab.cfg',
+                  'env': 'test',
+                  'ec': 20,
+                  'batches': [3],
+                  'vld_batches': [6],
+                  'statuses': 'CMR,CMS',
+                  'vld_statuses': 'CMR,CMS',
+                  'features': 'INTERCEPT,MOBILITY3',
+                  'patterns': '2X5COR',
+                  'ridge_reg_param': 0.01,
+                  'l_bfgs_b_options': {'disp': True,
+                                       'maxcor': 50,
+                                       'ftol': 1e-08,
+                                       'gtol': 1e-05,
+                                       'eps': 1e-08,
+                                       'maxfun': 5000,
+                                       'maxiter': 5000,
+                                       'iprint': 1,
+                                       'maxls': 20,
+                                       'finite_diff_rel_step': None},
+                  }
+
+test_run_t2099 = {'cfg_fname': 'cfg/regab.cfg',
+                  'env': 'test',
+                  'ec': 20,
+                  'batches': [3],
+                  'vld_batches': [6],
+                  'statuses': 'CMR,CMS',
+                  'vld_statuses': 'CMR,CMS',
+                  'features': 'INTERCEPT,MOBILITY3',
+                  'patterns': '2X6COR',
                   'ridge_reg_param': 0.01,
                   'l_bfgs_b_options': {'disp': True,
                                        'maxcor': 50,

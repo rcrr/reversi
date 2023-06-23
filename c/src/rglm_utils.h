@@ -266,6 +266,8 @@ rglmut_residual_value_eval (size_t emme,
  * @param [in]  emme         the size of the vector r and de
  * @param [in]  r            the residual vector
  * @param [in]  de           the derivative vector
+ * @param [in]  w     the vector of weights
+ * @param [in]  rrc          ridge regularization coefficient
  */
 extern void
 rglmut_minus_grad_f_eval (const rglmdf_general_data_t *data,
@@ -273,7 +275,9 @@ rglmut_minus_grad_f_eval (const rglmdf_general_data_t *data,
                           size_t enne,
                           size_t emme,
                           const double *r,
-                          const double *de);
+                          const double *de,
+                          const double *w,
+                          const double rrc);
 
 /**
  * @brief Computes the upper right triangle of the Hessian matrix.

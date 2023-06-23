@@ -1337,7 +1337,6 @@ r$plot_distrib
 exec(open("py/reversi/start.py").read())
 m = rglm_workflow(test_run_t2030)
 mw = m.get_model_weights()
-mw = m.get_model_weights()
 mw.print_summary()
 mw.write('tmp/T2030_01.w.dat')
 
@@ -1352,4 +1351,109 @@ mw.write('tmp/T2030_01.w.dat')
 #####
 ##### The python l_bfgs_b optimization reaches the same value of the EFFE function. Very good.
 #####
+
+... Added RIDGE regularization to the C implementation, now F is 11322 !!! And weights are the same.
+... The two implementation are really equal.
+
+### Let's test the T2037 model:
+
+exec(open("py/reversi/start.py").read())
+m = rglm_workflow(test_run_t2037)
+mw = m.get_model_weights()
+mw.print_summary()
+mw.write('tmp/T2037_01.w.dat')
+
+###
+### Effe = 4723.540368863866206084 ; F = 4723.8648209638532
+###
+### Weights are also equal ! Good!!!
+###
+
+###
+### Model having 2X6COR:
+###
+### F = 3666.1528749771405
+###
+###
+
+###
+###
+### TO DO:
+###
+###
+
+ -0- There is a missing piece of code:
+     The RGLM Model file ( C format, as written by the rglm executable ) must be saved also by the PYTHON code.
+
+ -1- Add a few new ideas of PATTERNS ....
+
+a) SHIP
+
+   a b c d e f g h
+1  x x x x x x x x
+2  . . x x x x . .
+3  . . . . . . . .
+4  . . . . . . . .
+5  . . . . . . . .
+6  . . . . . . . .
+7  . . . . . . . .
+8  . . . . . . . .
+
+b) TABLE
+
+   a b c d e f g h
+1  x x x x x x x x
+2  x x . . . . x x
+3  . . . . . . . .
+4  . . . . . . . .
+5  . . . . . . . .
+6  . . . . . . . .
+7  . . . . . . . .
+8  . . . . . . . .
+
+c) KITE
+
+   a b c d e f g h
+1  x x x x . . . .
+2  x x x . . . . .
+3  x x x . . . . .
+4  x . . x . . . .
+5  . . . . . . . .
+6  . . . . . . . .
+7  . . . . . . . .
+8  . . . . . . . .
+
+d) DELTA
+
+   a b c d e f g h
+1  x x x x x . . .
+2  x x x . . . . .
+3  x x . . . . . .
+4  x . . . . . . .
+5  x . . . . . . .
+6  . . . . . . . .
+7  . . . . . . . .
+8  . . . . . . . .
+
+e) 3X4COR
+
+   a b c d e f g h
+1  x x x x . . . .
+2  x x x x . . . .
+3  x x x x . . . .
+4  . . . . . . . .
+5  . . . . . . . .
+6  . . . . . . . .
+7  . . . . . . . .
+8  . . . . . . . .
+
+   a b c d e f g h
+1  . . . . . . . .
+2  . . . . . . . .
+3  . . . . . . . .
+4  . . . . . . . .
+5  . . . . . . . .
+6  . . . . . . . .
+7  . . . . . . . .
+8  . . . . . . . .
 

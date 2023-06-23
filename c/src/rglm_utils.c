@@ -381,7 +381,9 @@ rglmut_minus_grad_f_eval (const rglmdf_general_data_t *const data,
                           const size_t enne,
                           const size_t emme,
                           const double *r,
-                          const double *de)
+                          const double *de,
+                          const double *w,
+                          const double rrc)
 {
   assert(data);
   assert(enne == rglmdf_get_entity_freq_summary_ntuples(data));
@@ -412,6 +414,7 @@ rglmut_minus_grad_f_eval (const rglmdf_general_data_t *const data,
     for (size_t j = 0; j < ni; j++)
       minus_grad_f[glm_variable_ids[j]] += z;
   }
+  for (size_t k = 0; k < enne; k++) minus_grad_f[k] -= rrc * w[k];
 }
 
 void
