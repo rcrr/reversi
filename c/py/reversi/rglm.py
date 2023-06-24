@@ -49,6 +49,23 @@ import pickle
 
 import ctypes as ct
 
+import inspect
+
+# time_t is defined as int64_t in the C library.
+c_time_t = ct.c_uint64
+
+# rglmdf_file_data_format_type_t is an enum in the C source code (int).
+c_rglmdf_file_data_format_type_t = ct.c_int
+
+# board_feature_id_t is an enum in the C source code (int).
+c_board_feature_id_t = ct.c_int
+
+# board_pattern_id_t is an enum in the C source code (int).
+c_board_pattern_id_t = ct.c_int
+
+# see RGLMDF_POSITION_STATUS_BUF_SIZE macro into C source code.
+# The two values must be equal.
+c_rglmdf_position_status_buf_size = 4
 
 
 #
@@ -235,8 +252,149 @@ class RglmModelWeights:
         weights_p = ct.cast(self._CTHelper.weights, ct.POINTER(reversi.rglm._RglmWeightRecordCTHelper))
         weights = np.ctypeslib.as_array(weights_p, shape=(self._CTHelper.weight_cnt,))
         return weights
+
+# --- --- --- --- --- --- --- --- --- #
+
+class _RglmdfSolvedAndClassifiedGpRecord(ct.Structure):
+    """
+    Reversi GLM data file record definition for the solved and classified game position table.
+    """
+    _fields_ = [
+        ("row_n", ct.c_int64),
+        ("gp_id", ct.c_int64),
+        ("mover", ct.c_int64),
+        ("opponent", ct.c_int64),
+        ("game_value", ct.c_int8),
+        ("game_value_transformed", ct.c_float),
+        ("evaluation_function", ct.c_float),
+        ("residual", ct.c_float),
+    ]
+
+class _RglmdfSolvedAndClassifiedGpTable(ct.Structure):
+    """
+    Reversi GLM data file table holding the game positons being solved and classified.
+    """
+    _fields_ = [
+        ("ntuples", ct.c_size_t),
+        ("n_fvalues_per_record", ct.c_size_t),
+        ("n_index_values_per_record", ct.c_size_t),
+        ("records", ct.POINTER(_RglmdfSolvedAndClassifiedGpRecord)),
+        ("farray", ct.POINTER(ct.c_double)),
+        ("i0array", ct.POINTER(ct.c_int32)),
+        ("i1array", ct.POINTER(ct.c_int32)),
+        ("i2array", ct.POINTER(ct.c_int32)),
+    ]
+
+class _RglmdfEntityFreqSummaryRecord(ct.Structure):
+    """
+    Reversi GLM data file record definition for the entity frequency summary table.
+    """
+    _fields_ = [
+        ("glm_variable_id", ct.c_int32),
+        ("entity_class", ct.c_int16),
+        ("entity_id", ct.c_int16),
+        ("principal_index_value", ct.c_int32),
+        ("total_cnt", ct.c_int64),
+        ("relative_frequency", ct.c_double),
+        ("theoretical_probability", ct.c_double),
+        ("weight", ct.c_double),
+    ]
+
+class _RglmdfEntityFreqSummaryTable(ct.Structure):
+    """
+    Reversi GLM data file table holding the summary of entity frequencies.
+    The table contains the count of feature/pattern occurrencies grouped by (entity_class, entity_id, principal_index_value).
+    The value of 'ntuples' must be equal to the sum of 'glm_f_variable_cnt' and 'glm_p_variable_cnt'.
+    """
+    _fields_ = [
+        ("glm_f_variable_cnt", ct.c_size_t),
+        ("glm_p_variable_cnt", ct.c_size_t),
+        ("ntuples", ct.c_size_t),
+        ("records", ct.POINTER(_RglmdfEntityFreqSummaryRecord)),
+    ]
+
+class _RglmdfPositionSummaryRecord(ct.Structure):
+    """
+    Reversi GLM data file record definition for the position summary table.
+    """
+    _fields_ = [
+        ("batch_id", ct.c_int32),
+        ("status", ct.c_char*c_rglmdf_position_status_buf_size),
+        ("game_position_cnt", ct.c_int64),
+        ("classified_cnt", ct.c_int64),
+    ]
+    
+class _RglmdfPositionSummaryTable(ct.Structure):
+    """
+    Reversi GLM data file table holding the summary of game positions.
+    The table contains the count of game positions grouped by batch_is and status.
+    """
+    _fields_ = [
+        ("ntuples", ct.c_size_t),
+        ("records", ct.POINTER(_RglmdfPositionSummaryRecord)),
+    ]
+
+class _RglmdfGeneralDataCTHelper(ct.Structure):
+    """
+    Reversi GLM data file general data structure.
+    The type contains all the info saved/retrieved from a RGLM Data File.
+    """
+    _fields_ = [
+        ("file_digest", ct.c_char_p),
+        ("file_creation_time", c_time_t),
+        ("format", c_rglmdf_file_data_format_type_t),
+        ("batch_id_cnt", ct.c_size_t),
+        ("batch_ids", ct.POINTER(ct.c_uint64)),
+        ("empty_count", ct.c_uint8),
+        ("position_status_cnt", ct.c_size_t),
+        ("position_status_buffer", ct.c_char_p),
+        ("position_statuses", ct.POINTER(ct.c_char_p)),
+        ("feature_cnt", ct.c_size_t),
+        ("features", ct.POINTER(c_board_feature_id_t)),
+        ("pattern_cnt", ct.c_size_t),
+        ("patterns", ct.POINTER(c_board_pattern_id_t)),
+        ("position_summay", _RglmdfPositionSummaryTable),
+        ("entity_freq_summary", _RglmdfEntityFreqSummaryTable),
+        ("positions", _RglmdfSolvedAndClassifiedGpTable),
+        ("reverse_map_a_f", ct.POINTER(ct.POINTER(ct.c_int32))),
+        ("reverse_map_a_p", ct.POINTER(ct.POINTER(ct.c_int32))),
+        ("reverse_map_b", ct.POINTER(ct.c_int32)),
+    ]
+
+    def __init__(self):
+        f = libreversi.rglmdf_general_data_init
+        f.restype = None
+        f.argtypes = [ct.POINTER(_RglmdfGeneralDataCTHelper)]
+        ct_rglmdf_general_data_p = ct.byref(self)
+        f(ct_rglmdf_general_data_p)
         
-        
+    def __del__(self):
+        f = libreversi.rglmdf_general_data_release
+        f.restype = None
+        f.argtypes = [ct.POINTER(_RglmdfGeneralDataCTHelper)]
+        f(ct.byref(self))
+
+    def read_from_binary_file(self, filename : str, verbose : bool):
+        f = libreversi.rglmdf_read_general_data_from_binary_file
+        f.restype = ct.c_int
+        f.argtypes = [ct.POINTER(_RglmdfGeneralDataCTHelper), ct.c_char_p, ct.c_bool]
+        ret = f(ct.byref(self), filename.encode('utf-8'), verbose)
+        if ret != 0:
+            raise Exception('Return code is not zero')
+
+    def write_to_binary_file(self, filename : str, time=None):
+        if time is None:
+            dt = datetime.now()
+            ts = datetime.timestamp(dt)
+            time = int(ts)
+        f = libreversi.rglmdf_write_general_data_to_binary_file
+        f.restype = ct.c_int
+        f.argtypes = [ct.POINTER(_RglmdfGeneralDataCTHelper), ct.c_char_p, c_time_t]
+        ret = f(ct.byref(self), filename.encode('utf-8'), time)
+        if ret != 0:
+            raise Exception('Return code is not zero')
+
+   
 class Rglm:
     """
     RGLM - Reversi Generalized Linear Model
@@ -356,8 +514,9 @@ class Rglm:
     """
     def __init__(self):
         """
-        Initit all the relevant attributes.
+        Init all the relevant attributes.
         """
+        self._CTHelper = _RglmdfGeneralDataCTHelper()
         self.conn = None
         self.empty_count = None
         self.batches = None
@@ -402,7 +561,9 @@ class Rglm:
         self._mover_field = 'mover'
         self._opponent_field = 'opponent'
 
-    import inspect
+    
+    def __del__(self):
+        self._CTHelper = None
     
     def set_conn(self, conn: RegabDBConnection) -> Rglm:
         if not isinstance(conn, RegabDBConnection):
