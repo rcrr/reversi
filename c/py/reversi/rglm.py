@@ -556,14 +556,67 @@ class Rglm:
         self.vld_y = None
         self.vld_yh = None
         self.vld_r = None
-        self.vld_summary = None
-        
+        self.vld_summary = None        
         self._mover_field = 'mover'
         self._opponent_field = 'opponent'
 
-    
     def __del__(self):
         self._CTHelper = None
+
+    def read_from_binary_file(self, filename : str, verbose : bool):
+        c = self._CTHelper
+        c.read_from_binary_file(filename, verbose)
+        #print("c.empty_count = {}".format(c.empty_count))
+        self.set_empty_count(c.empty_count)
+        self.set_batches(np.ctypeslib.as_array(c.batch_ids, shape=(c.batch_id_cnt,)).astype('int').tolist())
+        self.set_statuses([bytes.decode(x, 'utf-8') for x in c.position_statuses[:c.position_status_cnt]])
+        self.load_game_positions()
+        self.set_features([features_as_list[x] for x in c.features[:c.feature_cnt]])
+        self.set_patterns([patterns_as_list[x] for x in c.patterns[:c.pattern_cnt]])
+        self.compute_feature_values()
+        self.compute_indexes()
+        self.combine_gps_features_patterns()
+        self.compute_vmaps()
+        self.compute_gpxpidf()
+        self.compute_x()
+        self.compute_y()
+        self.compute_analytics()
+        #
+        # workflow:
+        #
+        # m = timed_run(Rglm, "m = Rglm()")
+        # m = timed_run(m.set_conn, "m = m.set_conn({})", conn)
+        # m = timed_run(m.set_empty_count, "m = m.set_empty_count({})", ec)
+        # m = timed_run(m.set_batches, "m = m.set_batches({})", batches)
+        # m = timed_run(m.set_vld_batches, "m = m.set_vld_batches({})", vld_batches)
+        # m = timed_run(m.set_statuses, "m = m.set_statuses({})", statuses)
+        # m = timed_run(m.set_vld_statuses, "m = m.set_vld_statuses({})", vld_statuses)
+        # m = timed_run(m.retrieve_game_positions, "m = m.retrieve_game_positions()")
+        # m = timed_run(m.retrieve_vld_game_positions, "m = m.retrieve_vld_game_positions()")
+        # m = timed_run(m.set_features, "m = m.set_features({})", features)
+        # m = timed_run(m.set_patterns, "m = m.set_patterns({})", patterns)
+        # m = timed_run(m.compute_feature_values, "m = m.compute_feature_values()")
+        # m = timed_run(m.compute_indexes, "m = m.compute_indexes()")
+        # m = timed_run(m.combine_gps_features_patterns, "m = m.combine_gps_features_patterns()")
+        # m = timed_run(m.compute_vmaps, "m = m.compute_vmaps()")
+        # m = timed_run(m.compute_gpxpidf, "m = m.compute_gpxpidf()")
+        # m = timed_run(m.compute_x, "m = m.compute_x()")
+        # m = timed_run(m.compute_y, "m = m.compute_y()")
+        # m = timed_run(m.compute_analytics, "m = m.compute_analytics()")
+        # m = timed_run(m.optimize, "m = m.optimize({}, {{...}})", ridge_reg_param, l_bfgs_b_options)
+        # if l_bfgs_b_options is not None:
+        #     print("   l_bfgs_b_options = {}".format(l_bfgs_b_options))
+        # m = timed_run(m.compute_wmean_for_patterns, "m = m.compute_wmean_for_patterns()")
+        # m = timed_run(m.compute_evmap, "m = m.compute_evmap()")
+        # m = timed_run(m.compute_ievmap, "m = m.compute_ievmap()")
+        # m = timed_run(m.compute_vld_gpxpidf, "m = m.compute_vld_gpxpidf()")
+        # m = timed_run(m.compute_vld_x, "m = m.compute_vld_x()")
+        # m = timed_run(m.compute_vld_y, "m = m.compute_vld_y()")
+        # m = timed_run(m.validate, "m = m.validate()")
+
+
+    def write_to_binary_file(self, filename : str, time=None):
+        self._CTHelper.write_to_binary_file(filename, time)
     
     def set_conn(self, conn: RegabDBConnection) -> Rglm:
         if not isinstance(conn, RegabDBConnection):
@@ -604,11 +657,12 @@ class Rglm:
         return self
 
     def _retrieve_game_positions(self, batches, statuses, limit=None, where=None, fields=None) -> pd.DataFrame:
-        gps = regab_gp_as_df(self.conn, batches, statuses, self.empty_count, limit, where, fields)
-        cols = gps.columns
-        gps['gpid'] = gps.index
-        for c in ['gpid'] + list(cols):
-            gps[c] = gps.pop(c)
+        q = regab_gp_as_df(self.conn, batches, statuses, self.empty_count, limit, where, fields)
+        cols = [x for x in list(q.columns) if x not in ['batch_id', 'status', 'player', 'empty_count']]
+        q['gpid'] = q.index
+        gps = pd.DataFrame()
+        for c in ['gpid'] + cols:
+            gps[c] = q.pop(c)
         return gps
 
     def retrieve_game_positions(self, limit=None, where=None, fields=None) -> Rglm:
@@ -617,6 +671,21 @@ class Rglm:
         """
         gps = self._retrieve_game_positions(self.batches, self.statuses, limit, where, fields)
         self.game_positions = gps
+        return self
+
+    def load_game_positions(self) -> Rglm:
+        """
+        Loads game position from the _CTHelper object.
+        """
+        game_positions = pd.DataFrame()
+        c = self._CTHelper
+        a = np.ctypeslib.as_array(c.positions.records, shape=(c.positions.ntuples,))
+        d = pd.DataFrame(a, columns = a.dtype.names)
+        game_positions['gpid'] = d.pop('row_n')
+        game_positions['seq'] = d.pop('gp_id')
+        for x in ['mover', 'opponent', 'game_value']:
+            game_positions[x] = d.pop(x)
+        self.game_positions = game_positions
         return self
 
     def retrieve_vld_game_positions(self, limit=None, where=None, fields=None) -> Rglm:
@@ -639,6 +708,19 @@ class Rglm:
             raise ValueError('The field features is not defined or empty')
         self.feature_values, flabel_dict = compute_feature_values_on_df(self.game_positions, self.features, mover=self._mover_field, opponent=self._opponent_field)
         self.flabel_dict = dict((key.id, value) for (key, value) in flabel_dict.items())
+        #self.vld_feature_values, unused = compute_feature_values_on_df(self.vld_game_positions, self.features, mover=self._mover_field, opponent=self._opponent_field)
+        return self
+
+    def compute_vld_feature_values(self) -> Rglm:
+        """
+        Computes the feature values on all the validation game positions extracted from he REGAB database.
+        """
+        if not isinstance(self.vld_game_positions, pd.DataFrame):
+            raise TypeError('The field vld_game_positions is not an instance of DataFrame')
+        if not set([self._mover_field, self._opponent_field]).issubset(self.game_positions.columns):
+            raise ValueError('The game_positions data frame is missing mover or opponent columns')
+        if self.features is None or self.features == []:
+            raise ValueError('The field features is not defined or empty')
         self.vld_feature_values, unused = compute_feature_values_on_df(self.vld_game_positions, self.features, mover=self._mover_field, opponent=self._opponent_field)
         return self
 
@@ -655,6 +737,19 @@ class Rglm:
         self.indexes, plabel_dict_i0, plabel_dict_i1 = compute_indexes_on_df(self.game_positions, self.patterns, mover=self._mover_field, opponent=self._opponent_field)
         self.plabel_dict_i0 = dict((key.id, value) for (key, value) in plabel_dict_i0.items())
         self.plabel_dict_i1 = dict((key.id, value) for (key, value) in plabel_dict_i1.items())
+        # self.vld_indexes, unused_0, unused_1 = compute_indexes_on_df(self.vld_game_positions, self.patterns, mover=self._mover_field, opponent=self._opponent_field)
+        return self
+
+    def compute_vld_indexes(self) -> Rglm:
+        """
+        Computes the pattern index values on all the validation game positions extracted from he REGAB database.
+        """
+        if not isinstance(self.vld_game_positions, pd.DataFrame):
+            raise TypeError('The field vld_game_positions is not an instance of DataFrame')
+        if not set([self._mover_field, self._opponent_field]).issubset(self.game_positions.columns):
+            raise ValueError('The game_positions data frame is missing mover or opponent columns')
+        if self.patterns is None or self.patterns == []:
+            raise ValueError('The field patterns is not defined or empty')
         self.vld_indexes, unused_0, unused_1 = compute_indexes_on_df(self.vld_game_positions, self.patterns, mover=self._mover_field, opponent=self._opponent_field)
         return self
 
@@ -663,6 +758,13 @@ class Rglm:
         Computes the gpdf data frame, by concatenating game_positions, feature values, and pattern indexes.
         """
         self.gpdf = pd.concat([self.game_positions, self.feature_values, self.indexes], axis=1, copy=False)
+        # self.vld_gpdf = pd.concat([self.vld_game_positions, self.vld_feature_values, self.vld_indexes], axis=1, copy=False)
+        return self
+
+    def combine_vld_gps_features_patterns(self) -> Rglm:
+        """
+        Computes the validation gpdf data frame, by concatenating vld_game_positions, validation feature values, and validation pattern indexes.
+        """
         self.vld_gpdf = pd.concat([self.vld_game_positions, self.vld_feature_values, self.vld_indexes], axis=1, copy=False)
         return self
 
@@ -1004,6 +1106,14 @@ class Rglm:
         oprobs[0:w_belonging_to_feature_count] = 1.0
         
         self.vmap['oprobs'] = oprobs
+
+        #
+        # RCRR - TODO:
+        #
+        # Extract the DB query from the method.
+        # When used from load_... we need to keep the data from the _CTHelper object,
+        # when running the workflow the query is ok.
+        #
         
         # Retrieve the expected probabilities (eprob) from the REGAB database, then merge (join) vmap with the extraction (df_b).
         # eprobs for features are set to 1.
@@ -1557,8 +1667,11 @@ def rglm_workflow(kvargs: dict):
     m = timed_run(m.set_features, "m = m.set_features({})", features)
     m = timed_run(m.set_patterns, "m = m.set_patterns({})", patterns)
     m = timed_run(m.compute_feature_values, "m = m.compute_feature_values()")
+    m = timed_run(m.compute_vld_feature_values, "m = m.compute_vld_feature_values()")
     m = timed_run(m.compute_indexes, "m = m.compute_indexes()")
+    m = timed_run(m.compute_vld_indexes, "m = m.compute_vld_indexes()")
     m = timed_run(m.combine_gps_features_patterns, "m = m.combine_gps_features_patterns()")
+    m = timed_run(m.combine_vld_gps_features_patterns, "m = m.combine_vld_gps_features_patterns()")
     m = timed_run(m.compute_vmaps, "m = m.compute_vmaps()")
     m = timed_run(m.compute_gpxpidf, "m = m.compute_gpxpidf()")
     m = timed_run(m.compute_x, "m = m.compute_x()")

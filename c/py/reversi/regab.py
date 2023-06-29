@@ -298,7 +298,7 @@ def regab_gp_as_df(rc: RegabDBConnection, bid, status, ec: int, limit=None, wher
         with rc.conn.cursor() as curs:
             curs.execute("SELECT * FROM regab_prng_gp LIMIT 0;")
             colnames = [d[0] for d in curs.description]
-        base_colnames = ['seq, batch_id', 'status', 'mover', 'opponent', 'player', 'empty_count', 'game_value']
+        base_colnames = ['seq', 'batch_id', 'status', 'mover', 'opponent', 'player', 'empty_count', 'game_value']
 
         if not fields:
             return base_colnames
