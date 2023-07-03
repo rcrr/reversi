@@ -566,7 +566,6 @@ class Rglm:
     def read_from_binary_file(self, filename : str, verbose : bool):
         c = self._CTHelper
         c.read_from_binary_file(filename, verbose)
-        #print("c.empty_count = {}".format(c.empty_count))
         self.set_empty_count(c.empty_count)
         self.set_batches(np.ctypeslib.as_array(c.batch_ids, shape=(c.batch_id_cnt,)).astype('int').tolist())
         self.set_statuses([bytes.decode(x, 'utf-8') for x in c.position_statuses[:c.position_status_cnt]])
@@ -581,6 +580,7 @@ class Rglm:
         self.compute_x()
         self.compute_y()
         self.compute_analytics()
+        self.retrieve_expected_probabilities_from_rglm_data_file()
         #
         # workflow:
         #
@@ -673,6 +673,17 @@ class Rglm:
         self.game_positions = gps
         return self
 
+    def extract_rglmdf_entity_freq_summary_table(self) -> pd.DataFrame:
+        """
+        Extracts the _RglmdfEntityFreqSummaryTable table from the _CTHelper object
+        and returns it as a pandas dataframe.
+        """
+        c = self._CTHelper
+        t = c.entity_freq_summary
+        a = np.ctypeslib.as_array(t.records, shape=(t.ntuples,))
+        d = pd.DataFrame(a, columns = a.dtype.names)
+        return d
+    
     def load_game_positions(self) -> Rglm:
         """
         Loads game position from the _CTHelper object.
@@ -708,7 +719,6 @@ class Rglm:
             raise ValueError('The field features is not defined or empty')
         self.feature_values, flabel_dict = compute_feature_values_on_df(self.game_positions, self.features, mover=self._mover_field, opponent=self._opponent_field)
         self.flabel_dict = dict((key.id, value) for (key, value) in flabel_dict.items())
-        #self.vld_feature_values, unused = compute_feature_values_on_df(self.vld_game_positions, self.features, mover=self._mover_field, opponent=self._opponent_field)
         return self
 
     def compute_vld_feature_values(self) -> Rglm:
@@ -737,7 +747,6 @@ class Rglm:
         self.indexes, plabel_dict_i0, plabel_dict_i1 = compute_indexes_on_df(self.game_positions, self.patterns, mover=self._mover_field, opponent=self._opponent_field)
         self.plabel_dict_i0 = dict((key.id, value) for (key, value) in plabel_dict_i0.items())
         self.plabel_dict_i1 = dict((key.id, value) for (key, value) in plabel_dict_i1.items())
-        # self.vld_indexes, unused_0, unused_1 = compute_indexes_on_df(self.vld_game_positions, self.patterns, mover=self._mover_field, opponent=self._opponent_field)
         return self
 
     def compute_vld_indexes(self) -> Rglm:
@@ -758,7 +767,6 @@ class Rglm:
         Computes the gpdf data frame, by concatenating game_positions, feature values, and pattern indexes.
         """
         self.gpdf = pd.concat([self.game_positions, self.feature_values, self.indexes], axis=1, copy=False)
-        # self.vld_gpdf = pd.concat([self.vld_game_positions, self.vld_feature_values, self.vld_indexes], axis=1, copy=False)
         return self
 
     def combine_vld_gps_features_patterns(self) -> Rglm:
@@ -1107,22 +1115,28 @@ class Rglm:
         
         self.vmap['oprobs'] = oprobs
 
-        #
-        # RCRR - TODO:
-        #
-        # Extract the DB query from the method.
-        # When used from load_... we need to keep the data from the _CTHelper object,
-        # when running the workflow the query is ok.
-        #
-        
-        # Retrieve the expected probabilities (eprob) from the REGAB database, then merge (join) vmap with the extraction (df_b).
-        # eprobs for features are set to 1.
+        return self
+
+    def retrieve_expected_probabilities_from_regab_db(self) -> Rglm:
+        """
+        Retrieve the expected probabilities (eprob) from the REGAB database, then merge (join) vmap with the extraction (df_b).
+        eprobs for features are set to 1.
+        """
         df_b = regab_patternlist_probs_as_df(rc=self.conn, patterns=self.patterns, ec=self.empty_count, is_principal=True)
         df_b = df_b.rename(columns={'pattern_id': 'eid', 'principal': 'idx', 'probs': 'eprobs'})
         df_b['etype'] = 1
         self.vmap = pd.merge(self.vmap, df_b, how='left', on=['etype', 'eid', 'idx'])
         self.vmap.loc[self.vmap['etype'] == 0, 'eprobs'] = 1.
+        return self
 
+    def retrieve_expected_probabilities_from_rglm_data_file(self) -> Rglm:
+        df = self.extract_rglmdf_entity_freq_summary_table()
+        df = df.rename(columns={'entity_class':            'etype',
+                                'entity_id':               'eid',
+                                'principal_index_value':   'idx',
+                                'theoretical_probability': 'eprobs'})
+        df.drop(columns=['glm_variable_id', 'total_cnt', 'relative_frequency', 'weight'], inplace=True)
+        self.vmap = pd.merge(self.vmap, df, how='left', on=['etype', 'eid', 'idx'])
         return self
     
     def optimize(self, c=None, options=None) -> Rglm:
@@ -1515,7 +1529,7 @@ test_run_0 = {'cfg_fname': 'cfg/regab.cfg',
               'vld_batches': [5],
               'statuses': 'CMR,CMS',
               'vld_statuses': 'CMR,CMS',
-              'features': 'INTERCEPT,MOBILITY',
+              'features': 'INTERCEPT,MOBILITY3',
               'patterns': 'EDGE,DIAG3',
               'ridge_reg_param': 0.1,
               'l_bfgs_b_options': {'disp': False,
@@ -1677,6 +1691,7 @@ def rglm_workflow(kvargs: dict):
     m = timed_run(m.compute_x, "m = m.compute_x()")
     m = timed_run(m.compute_y, "m = m.compute_y()")
     m = timed_run(m.compute_analytics, "m = m.compute_analytics()")
+    m = timed_run(m.retrieve_expected_probabilities_from_regab_db, "m = m.retrieve_expected_probabilities_from_regab_db()")
     m = timed_run(m.optimize, "m = m.optimize({}, {{...}})", ridge_reg_param, l_bfgs_b_options)
     if l_bfgs_b_options is not None:
         print("   l_bfgs_b_options = {}".format(l_bfgs_b_options))
