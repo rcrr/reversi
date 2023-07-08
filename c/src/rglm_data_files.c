@@ -45,6 +45,7 @@
 
 #include "sha3.h"
 #include "file_utils.h"
+#include "sort_utils.h"
 #include "rglm_data_files.h"
 
 #define RGLM_MAX_PATTERN_CNT 1024
@@ -1339,6 +1340,38 @@ rglmdf_set_position_status_cnt (rglmdf_general_data_t *const gd,
   } else {
     return 0;
   }
+}
+
+size_t
+rglmdf_set_position_statuses (rglmdf_general_data_t *const gd,
+                              char *const*position_statuses,
+                              const size_t position_status_cnt)
+{
+  assert(gd);
+  if (position_status_cnt == 0) return 0;
+  assert(position_statuses);
+
+  size_t ret = rglmdf_set_position_status_cnt(gd, position_status_cnt);
+  if (ret != position_status_cnt) return 0;
+
+  char *buf = gd->position_status_buffer;
+  for (size_t i = 0; i < position_status_cnt; i++) {
+    char *ps = position_statuses[i];
+    size_t len = strlen(ps);
+    if (len != RGLMDF_POSITION_STATUS_BUF_SIZE - 1) {
+      fprintf(stderr, "Error, provided position status \"%s\" value has a wrong lenght.\n", ps);
+      fprintf(stderr, "lenght = %zu\n", len);
+      fprintf(stderr, "RGLMDF_POSITION_STATUS_BUF_SIZE = %d\n", RGLMDF_POSITION_STATUS_BUF_SIZE);
+      fprintf(stderr, "lenght must be equal to RGLMDF_POSITION_STATUS_BUF_SIZE - 1 (string termination).\n");
+      return 0;
+    }
+    gd->position_statuses[i] = buf;
+    strcpy(buf, ps);
+    buf += RGLMDF_POSITION_STATUS_BUF_SIZE;
+  }
+  sort_utils_insertionsort_asc_string(gd->position_statuses, position_status_cnt);
+
+  return ret;
 }
 
 size_t

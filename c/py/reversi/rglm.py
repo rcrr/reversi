@@ -424,7 +424,29 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
         ret = f(ct.byref(self), arr, cnt)
         if ret != cnt:
             raise Exception('Return code is invalid')
-   
+
+    def set_position_statuses(self, position_statuses : list):
+        if not isinstance(position_statuses, list):
+            raise TypeError('Argument position_statuses is not an instance of list')
+        if not all([isinstance(e, str) for e in position_statuses]):
+            raise TypeError('Argument position_statuses must have all elements belonging to str type')
+        if not all([len(e) == (c_rglmdf_position_status_buf_size - 1) for e in position_statuses]):
+            raise TypeError('Argument position_statuses must have all elements haaving a given lenght')
+
+        cnt = len(position_statuses)
+        arr = (ct.c_char_p*cnt)()
+        arr[:] = [s.encode('utf-8') for s in position_statuses]
+        
+        f = libreversi.rglmdf_set_position_statuses
+        f.restype = ct.c_size_t
+        f.argtypes = [ct.POINTER(_RglmdfGeneralDataCTHelper), ct.POINTER(ct.c_char_p), ct.c_size_t]
+        ret = f(ct.byref(self), arr, cnt)
+        if ret != cnt:
+            raise Exception('Return code is invalid')
+
+        # HERE
+
+        
 class Rglm:
     """
     RGLM - Reversi Generalized Linear Model
@@ -652,6 +674,8 @@ class Rglm:
         c.file_creation_time = unix_time_now()
         c.format = c_rglmdf_file_data_format_type_is_general
         c.set_batch_ids(self.batches)
+        c.empty_count = self.empty_count
+        c.set_position_statuses(self.statuses)
         
         # HERE
 
@@ -660,10 +684,10 @@ class Rglm:
         # + ("format", c_rglmdf_file_data_format_type_t),
         # + ("batch_id_cnt", ct.c_size_t),
         # + ("batch_ids", ct.POINTER(ct.c_uint64)),
-        # ("empty_count", ct.c_uint8),
-        # ("position_status_cnt", ct.c_size_t),
-        # ("position_status_buffer", ct.c_char_p),
-        # ("position_statuses", ct.POINTER(ct.c_char_p)),
+        # + ("empty_count", ct.c_uint8),
+        # + ("position_status_cnt", ct.c_size_t),
+        # + ("position_status_buffer", ct.c_char_p),
+        # + ("position_statuses", ct.POINTER(ct.c_char_p)),
         # ("feature_cnt", ct.c_size_t),
         # ("features", ct.POINTER(c_board_feature_id_t)),
         # ("pattern_cnt", ct.c_size_t),
@@ -1391,8 +1415,6 @@ class Rglm:
             'vld_function_value': 0.5 * sum(self.vld_r**2),
         }
         return self
-
-    # HERE
     
     def get_model_weights(self):
         

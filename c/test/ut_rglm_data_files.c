@@ -38,6 +38,7 @@
 
 #include "unit_test.h"
 #include "file_utils.h"
+#include "sort_utils.h"
 #include "rglm_data_files.h"
 
 
@@ -78,6 +79,45 @@ rglmdf_set_batch_ids_t (ut_test_t *const t)
 
   for (size_t i = 0; i < batch_id_cnt; i++) {
     ut_assert(t, bids[i] == batch_ids[i]);
+  }
+
+  rglmdf_general_data_release(gd);
+}
+
+static void
+rglmdf_set_position_statuses_t (ut_test_t *const t)
+{
+  rglmdf_general_data_t gds;
+  rglmdf_general_data_t *gd;
+
+  size_t res, cnt;
+
+  gd = &gds;
+
+  rglmdf_general_data_init(gd);
+
+  char* position_statuses[] = { "CMR", "CMS", "CMP" };
+  size_t position_status_cnt = sizeof(position_statuses) / sizeof(char*);
+
+  res = rglmdf_set_position_statuses(gd, position_statuses, position_status_cnt);
+  ut_assert(t, res == position_status_cnt);
+
+  cnt = rglmdf_get_position_status_cnt(gd);
+  ut_assert(t, cnt == position_status_cnt);
+
+  sort_utils_insertionsort_asc_string(position_statuses, position_status_cnt);
+
+  char **pss = rglmdf_get_position_statuses(gd);
+  for (size_t i = 0; i < cnt; i++) {
+    char *a = position_statuses[i];
+    char *b = pss[i];
+    if (0 != strcmp(a, b)) {
+      printf("\n");
+      printf("Strings a: %s\n", a);
+      printf("        b: %s\n", b);
+      printf("  differs, they should be the same.\n");
+      ut_assert(t, false);
+    }
   }
 
   rglmdf_general_data_release(gd);
@@ -362,6 +402,7 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmdf_dummy", rglmdf_dummy_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmdf_set_batch_ids", rglmdf_set_batch_ids_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmdf_set_position_statuses", rglmdf_set_position_statuses_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmdf_get_endianness", rglmdf_get_endianness_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmdf_verify_type_sizes", rglmdf_verify_type_sizes_t);

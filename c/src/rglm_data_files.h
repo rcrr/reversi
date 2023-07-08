@@ -933,6 +933,25 @@ extern char **
 rglmdf_get_position_statuses (const rglmdf_general_data_t *gd);
 
 /**
+ * @brief Setter function for the `position_statuses` and `position_status_cnt` fields.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `position_statuses` must be not `NULL` when `position_status_cnt` is greater than zero.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] gd                  reference to the general data structure
+ * @param [in]     position_statuses   array of values to be set
+ * @param [in]     position_status_cnt size of `position_statuses` array
+ * @return                             the `position_status_cnt` value or `0` in case of error
+ */
+extern size_t
+rglmdf_set_position_statuses (rglmdf_general_data_t *const gd,
+                              char *const*position_statuses,
+                              const size_t position_status_cnt);
+
+/**
  * @brief Outputs to `stream` a text message with the list of statuses.
  *
  * @invariant Parameter `gd` must be not `NULL`.
