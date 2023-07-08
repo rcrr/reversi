@@ -1,0 +1,98 @@
+
+  README-NEW-POSSIBLE-PATTERNS
+
+  Copyright (c) 2023 Roberto Corradini. All rights reserved.
+
+  This file is part of the reversi program
+  http://github.com/rcrr/reversi
+
+  This program is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by the
+  Free Software Foundation; either version 3, or (at your option) any
+  later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+  or visit the site <http://www.gnu.org/licenses/>.
+
+
+
+#
+# New possible patterns ...
+#
+
+a) SHIP
+
+   a b c d e f g h
+1  x x x x x x x x
+2  . . x x x x . .
+3  . . . . . . . .
+4  . . . . . . . .
+5  . . . . . . . .
+6  . . . . . . . .
+7  . . . . . . . .
+8  . . . . . . . .
+
+b) TABLE
+
+   a b c d e f g h
+1  x x x x x x x x
+2  x x . . . . x x
+3  . . . . . . . .
+4  . . . . . . . .
+5  . . . . . . . .
+6  . . . . . . . .
+7  . . . . . . . .
+8  . . . . . . . .
+
+c) KITE
+
+   a b c d e f g h
+1  x x x x . . . .
+2  x x x . . . . .
+3  x x x . . . . .
+4  x . . x . . . .
+5  . . . . . . . .
+6  . . . . . . . .
+7  . . . . . . . .
+8  . . . . . . . .
+
+d) DELTA
+
+   a b c d e f g h
+1  x x x x x . . .
+2  x x x . . . . .
+3  x x . . . . . .
+4  x . . . . . . .
+5  x . . . . . . .
+6  . . . . . . . .
+7  . . . . . . . .
+8  . . . . . . . .
+
+e) 3X4COR
+
+   a b c d e f g h
+1  x x x x . . . .
+2  x x x x . . . .
+3  x x x x . . . .
+4  . . . . . . . .
+5  . . . . . . . .
+6  . . . . . . . .
+7  . . . . . . . .
+8  . . . . . . . .
+
+   a b c d e f g h
+1  . . . . . . . .
+2  . . . . . . . .
+3  . . . . . . . .
+4  . . . . . . . .
+5  . . . . . . . .
+6  . . . . . . . .
+7  . . . . . . . .
+8  . . . . . . . .

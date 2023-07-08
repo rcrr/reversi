@@ -43,7 +43,7 @@ import pandas as pd
 
 from scipy.sparse import csr_matrix
 from scipy.optimize import minimize
-from datetime import datetime
+import datetime
 
 import pickle
 
@@ -56,6 +56,8 @@ c_time_t = ct.c_uint64
 
 # rglmdf_file_data_format_type_t is an enum in the C source code (int).
 c_rglmdf_file_data_format_type_t = ct.c_int
+c_rglmdf_file_data_format_type_is_general = 0
+c_rglmdf_file_data_format_type_is_positions = 1
 
 # board_feature_id_t is an enum in the C source code (int).
 c_board_feature_id_t = ct.c_int
@@ -71,43 +73,51 @@ c_rglmdf_position_status_buf_size = 4
 #
 # To do:
 #
-# -0- [done] Implements the Ridge regularization.
+# -00- [done] Implement the Ridge regularization.
 #
-# -1- Add one more Feature ( MOBILITYX ) and one more Pattern ( 2X6COR da 12 !!! ).
-#     [done] Added new pattern 2X6COR
+# -01- Add one more Feature ( MOBILITYX ) and one more Pattern : 2X6COR having 12 squares.
+#      [done] Added new pattern 2X6COR
 #
-# -2- Introduce the Lasso regularization.
-#     Here we do not have a solution yet, options are:
-#     . Use the (Orthant-Wise Limited-memory Quasi-Newton (OWL-QN) method: https://www.chokkan.org/software/liblbfgs/
-#     . "double the variables" and use the constraint version L-BFGS-C of the algorithm
-#     . Try something more fancy ...
+# -02- Introduce the Lasso regularization.
+#      Here we do not have a solution yet, options are:
+#      . Use the (Orthant-Wise Limited-memory Quasi-Newton (OWL-QN) method: https://www.chokkan.org/software/liblbfgs/
+#      . "double the variables" and use the constraint version L-BFGS-C of the algorithm
+#      . Try something more fancy ...
 #
-# -3- More data analytics.
-#     [done] Parameters profiling ... each variable/weight should have min, max, mean, std game values.
-#     [done] There should be a second data set for validation.
-#        Actions:
-#        . Add the vid column to evmap, could we name it evid (expanded variable id) to make it clear it is a different thing. 
-#        . Add e new function compute_vld_gpxpidf
-#        . Add a new function compute_vld_x
-#        . Finally compute logit(vld_x @ ew) as the vld_yh. Compare it with vld_y ...
-#     There should be a final report ... with KPI used to compare different models.
-#     Prepare an info(verbosity) method that give back Model Info.
+# -03- More data analytics.
+#      [done] Parameters profiling ... each variable/weight should have min, max, mean, std game values.
+#      [done] There should be a second data set for validation.
+#         Actions:
+#         . Add the vid column to evmap, could we name it evid (expanded variable id) to make it clear it is a different thing. 
+#         . Add e new function compute_vld_gpxpidf
+#         . Add a new function compute_vld_x
+#         . Finally compute logit(vld_x @ ew) as the vld_yh. Compare it with vld_y ...
+#      There should be a final report ... with KPI used to compare different models.
+#      Prepare an info(verbosity) method that give back Model Info.
 #
-# -4- [done] Setup a kind of workflow.
-#            rglm_test() should be renamed to something like ... execute work-flow
-#            input data should be provided by means of a dictionary
+# -04- [done] Setup a kind of workflow.
+#             rglm_test() should be renamed to something like ... execute work-flow
+#             input data should be provided by means of a dictionary
 #
-# -5- [done] Read and write to file ...
-#            In practice we need to build the REGAB/RGML machinery in a different way.
+# -05- [done] Read and write to file ...
+#             In practice we need to build the REGAB/RGML machinery in a different way.
 #
-# -6- Complete documentation ....
+# -06- Complete documentation ....
 #
-# -7- Code tests ....
+# -07- Code tests ....
 #
-# -8- [done] Read/Write the RGLM Model Weights file format ...
-#     - read works
-#     - remember to free the mw helper object !!!
-#     - reorganize he methods as _CT class methods ...
+# -08- [done] Read/Write the RGLM Model Weights file format ...
+#      - read works
+#      - remember to free the mw helper object !!!
+#      - reorganize he methods as _CT class methods ...
+#
+# -09- There is a missing piece of code:
+#      The RGLM Model file ( C format, as written by the rglm executable ) must be saved also by the PYTHON code.
+#      [done] READ the C binary format, and load it as the Rgml python object
+#      WRITE the C binary format, converting the Rgml python object.
+#
+# -10- Add a few new ideas of PATTERNS, without having to build the REGAB database classified game positions.
+#
 #
 
 #
@@ -394,6 +404,26 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
         if ret != 0:
             raise Exception('Return code is not zero')
 
+    def set_batch_ids(self, batch_ids : list):
+        if not isinstance(batch_ids, list):
+            raise TypeError('Argument batch_ids is not an instance of list')
+        if not all([isinstance(e, int) for e in batch_ids]):
+            raise TypeError('Argument batch_ids must have all elements belonging to int type')
+        if not all([e >= 0 for e in batch_ids]):
+            raise TypeError('Argument batch_ids must have all elements being positive')
+
+        cnt = len(batch_ids)
+        arr_dtype = ct.c_uint64*cnt
+        arr = arr_dtype()
+        for i in range(cnt):
+            arr[i] = batch_ids[i]
+        
+        f = libreversi.rglmdf_set_batch_ids
+        f.restype = ct.c_size_t
+        f.argtypes = [ct.POINTER(_RglmdfGeneralDataCTHelper), ct.POINTER(ct.c_uint64), ct.c_size_t]
+        ret = f(ct.byref(self), arr, cnt)
+        if ret != cnt:
+            raise Exception('Return code is invalid')
    
 class Rglm:
     """
@@ -614,6 +644,39 @@ class Rglm:
         # m = timed_run(m.compute_vld_y, "m = m.compute_vld_y()")
         # m = timed_run(m.validate, "m = m.validate()")
 
+    def populate_cthelper(self):
+        self._CTHelper = _RglmdfGeneralDataCTHelper()
+        c = self._CTHelper
+
+        c.file_digest = ct.c_char_p('0000000000000000000000000000000000000000000000000000000000000000'.encode('utf-8'))
+        c.file_creation_time = unix_time_now()
+        c.format = c_rglmdf_file_data_format_type_is_general
+        c.set_batch_ids(self.batches)
+        
+        # HERE
+
+        # + ("file_digest", ct.c_char_p),
+        # + ("file_creation_time", c_time_t),
+        # + ("format", c_rglmdf_file_data_format_type_t),
+        # + ("batch_id_cnt", ct.c_size_t),
+        # + ("batch_ids", ct.POINTER(ct.c_uint64)),
+        # ("empty_count", ct.c_uint8),
+        # ("position_status_cnt", ct.c_size_t),
+        # ("position_status_buffer", ct.c_char_p),
+        # ("position_statuses", ct.POINTER(ct.c_char_p)),
+        # ("feature_cnt", ct.c_size_t),
+        # ("features", ct.POINTER(c_board_feature_id_t)),
+        # ("pattern_cnt", ct.c_size_t),
+        # ("patterns", ct.POINTER(c_board_pattern_id_t)),
+        # ("position_summay", _RglmdfPositionSummaryTable),
+        # ("entity_freq_summary", _RglmdfEntityFreqSummaryTable),
+        # ("positions", _RglmdfSolvedAndClassifiedGpTable),
+        # ("reverse_map_a_f", ct.POINTER(ct.POINTER(ct.c_int32))),
+        # ("reverse_map_a_p", ct.POINTER(ct.POINTER(ct.c_int32))),
+        # ("reverse_map_b", ct.POINTER(ct.c_int32)),
+
+
+        return
 
     def write_to_binary_file(self, filename : str, time=None):
         self._CTHelper.write_to_binary_file(filename, time)
@@ -1329,6 +1392,8 @@ class Rglm:
         }
         return self
 
+    # HERE
+    
     def get_model_weights(self):
         
         feature_cnt = len(self.features)
@@ -1373,8 +1438,6 @@ class Rglm:
         
         c = mw._CTHelper
         c.file_creation_time = 0
-        #c.general_data_checksum = None
-        #c.general_data_checksum = "c504c50a26379b311cec9c042811f88d40e2c735258c47aaaf986de7f68cb5fd"
         c.general_data_checksum = ct.c_char_p('0000000000000000000000000000000000000000000000000000000000000000'.encode('utf-8'))
         c.empty_count = self.empty_count
         c.gp_sample_size = len(self.game_positions)
@@ -1815,3 +1878,9 @@ class StopWatch:
 
     def get_elapsed_time_as_td(self):
         return pd.Timedelta(self.get_elapsed_time(), unit='ns')
+
+def unix_time_now() -> int:
+    presentDate = datetime.datetime.utcnow()
+    unix_timestamp = datetime.datetime.timestamp(presentDate)*1000
+    unix_timestamp_int = int(unix_timestamp)
+    return unix_timestamp_int

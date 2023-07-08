@@ -839,6 +839,25 @@ extern uint64_t *
 rglmdf_get_batch_ids (const rglmdf_general_data_t *gd);
 
 /**
+ * @brief Setter function for the `batch_ids` and `batch_id_cnt` fields.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `batch_ids` must be not `NULL` when `batch_id_cnt` is greater than zero.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] gd           reference to the general data structure
+ * @param [in]     batch_ids    array of values to be set
+ * @param [in]     batch_id_cnt size of `batch_ids` array
+ * @return                      the `batch_id_cnt` value or `0` in case of error
+ */
+extern size_t
+rglmdf_set_batch_ids (rglmdf_general_data_t *gd,
+                      const uint64_t *batch_ids,
+                      const size_t batch_id_cnt);
+
+/**
  * @brief Outputs to `stream` a text message with the list of batch id.
  *
  * @invariant Parameter `gd` must be not `NULL`.

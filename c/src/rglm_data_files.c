@@ -1267,6 +1267,26 @@ rglmdf_get_batch_ids (const rglmdf_general_data_t *const gd)
   return gd->batch_ids;
 }
 
+size_t
+rglmdf_set_batch_ids (rglmdf_general_data_t *const gd,
+                      const uint64_t *const batch_ids,
+                      const size_t batch_id_cnt)
+{
+  assert(gd);
+
+  if (batch_id_cnt == 0) return 0;
+
+  assert(batch_ids);
+
+  size_t ret = rglmdf_set_batch_id_cnt(gd, batch_id_cnt);
+  if (ret != batch_id_cnt) return 0;
+
+  for (size_t i = 0; i < gd->batch_id_cnt; i++)
+    gd->batch_ids[i] = batch_ids[i];
+
+  return ret;
+}
+
 void
 rglmdf_batch_ids_to_text_stream (const rglmdf_general_data_t *const gd,
                                  FILE *const stream)

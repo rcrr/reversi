@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2020, 2022 Roberto Corradini. All rights reserved.
+ * @copyright 2020, 2022, 2023 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -50,6 +50,37 @@ static void
 rglmdf_dummy_t (ut_test_t *const t)
 {
   ut_assert(t, true);
+}
+
+static void
+rglmdf_set_batch_ids_t (ut_test_t *const t)
+{
+  rglmdf_general_data_t gds;
+  rglmdf_general_data_t *gd;
+
+  size_t res;
+
+  gd = &gds;
+
+  rglmdf_general_data_init(gd);
+
+  uint64_t batch_ids[] = { 1, 3, 5 };
+  size_t batch_id_cnt = sizeof(batch_ids) / sizeof(uint64_t);
+
+  res = rglmdf_set_batch_ids(gd, batch_ids, batch_id_cnt);
+  ut_assert(t, res == batch_id_cnt);
+
+  ut_assert(t, 1 == gd->batch_ids[0]);
+  ut_assert(t, 3 == gd->batch_ids[1]);
+  ut_assert(t, 5 == gd->batch_ids[2]);
+
+  uint64_t *bids = rglmdf_get_batch_ids(gd);
+
+  for (size_t i = 0; i < batch_id_cnt; i++) {
+    ut_assert(t, bids[i] == batch_ids[i]);
+  }
+
+  rglmdf_general_data_release(gd);
 }
 
 static void
@@ -329,6 +360,8 @@ main (int argc,
   ut_suite_t *const s = ut_suite_new(&config, "rglm_data_files");
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmdf_dummy", rglmdf_dummy_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmdf_set_batch_ids", rglmdf_set_batch_ids_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmdf_get_endianness", rglmdf_get_endianness_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmdf_verify_type_sizes", rglmdf_verify_type_sizes_t);
