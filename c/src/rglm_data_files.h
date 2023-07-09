@@ -947,9 +947,9 @@ rglmdf_get_position_statuses (const rglmdf_general_data_t *gd);
  * @return                             the `position_status_cnt` value or `0` in case of error
  */
 extern size_t
-rglmdf_set_position_statuses (rglmdf_general_data_t *const gd,
-                              char *const*position_statuses,
-                              const size_t position_status_cnt);
+rglmdf_set_position_statuses (rglmdf_general_data_t *gd,
+                              char *const *position_statuses,
+                              size_t position_status_cnt);
 
 /**
  * @brief Outputs to `stream` a text message with the list of statuses.
@@ -988,6 +988,25 @@ rglmdf_set_feature_cnt (rglmdf_general_data_t *gd,
  */
 extern size_t
 rglmdf_get_feature_cnt (const rglmdf_general_data_t *gd);
+
+/**
+ * @brief Setter function for the `features` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `features` must be not `NULL` when `feature_cnt` is greater than zero.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] gd          reference to the general data structure
+ * @param [in]     features    new value for the `features` field
+ * @param [in]     feature_cnt size of the `features` field
+ * @return                     the `feature_cnt` value or `0` in case of error
+ */
+extern size_t
+rglmdf_set_features (rglmdf_general_data_t *gd,
+                     const board_feature_id_t *features,
+                     size_t feature_cnt);
 
 /**
  * @brief Getter function for the `features` field.
@@ -1062,6 +1081,27 @@ rglmdf_get_pattern_cnt (const rglmdf_general_data_t *gd);
  */
 extern board_pattern_id_t *
 rglmdf_get_patterns (const rglmdf_general_data_t *gd);
+
+
+/**
+ * @brief Setter function for the `patterns` field.
+ *
+ * @invariant Parameter `gd` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `patterns` must be not `NULL` when `pattern_cnt` is greater than zero.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] gd          reference to the general data structure
+ * @param [in]     patterns    new value for the `patterns` field
+ * @param [in]     pattern_cnt size of the `patterns` field
+ * @return                     the `pattern_cnt` value or `0` in case of error
+ */
+extern size_t
+rglmdf_set_patterns (rglmdf_general_data_t *gd,
+                     const board_pattern_id_t *patterns,
+                     size_t pattern_cnt);
+
 
 /**
  * @brief Outputs to `stream` a text message with the list of patterns.

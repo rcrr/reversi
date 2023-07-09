@@ -124,6 +124,70 @@ rglmdf_set_position_statuses_t (ut_test_t *const t)
 }
 
 static void
+rglmdf_set_features_t (ut_test_t *const t)
+{
+  rglmdf_general_data_t gds;
+  rglmdf_general_data_t *gd;
+
+  size_t res, cnt;
+
+  gd = &gds;
+
+  rglmdf_general_data_init(gd);
+  gd->format = RGLMDF_FILE_DATA_FORMAT_TYPE_IS_GENERAL;
+
+  board_feature_id_t features[] = { 1, 0 };
+  size_t feature_cnt = sizeof(features) / sizeof(board_feature_id_t);
+
+  res = rglmdf_set_features(gd, features, feature_cnt);
+  ut_assert(t, res == feature_cnt);
+
+  cnt = rglmdf_get_feature_cnt(gd);
+  ut_assert(t, cnt == feature_cnt);
+
+  sort_utils_insertionsort(features, feature_cnt, sizeof(board_feature_id_t), sort_utils_int_cmp);
+
+  board_feature_id_t *fs = rglmdf_get_features(gd);
+  for (size_t i = 0; i < cnt; i++) {
+      ut_assert(t, fs[i] == features[i]);
+  }
+
+  rglmdf_general_data_release(gd);
+}
+
+static void
+rglmdf_set_patterns_t (ut_test_t *const t)
+{
+  rglmdf_general_data_t gds;
+  rglmdf_general_data_t *gd;
+
+  size_t res, cnt;
+
+  gd = &gds;
+
+  rglmdf_general_data_init(gd);
+  gd->format = RGLMDF_FILE_DATA_FORMAT_TYPE_IS_GENERAL;
+
+  board_pattern_id_t patterns[] = { BOARD_PATTERN_CORNER, BOARD_PATTERN_EDGE, BOARD_PATTERN_DIAG8 };
+  size_t pattern_cnt = sizeof(patterns) / sizeof(board_pattern_id_t);
+
+  res = rglmdf_set_patterns(gd, patterns, pattern_cnt);
+  ut_assert(t, res == pattern_cnt);
+
+  cnt = rglmdf_get_pattern_cnt(gd);
+  ut_assert(t, cnt == pattern_cnt);
+
+  sort_utils_insertionsort(patterns, pattern_cnt, sizeof(board_pattern_id_t), sort_utils_int_cmp);
+
+  board_pattern_id_t *fs = rglmdf_get_patterns(gd);
+  for (size_t i = 0; i < cnt; i++) {
+      ut_assert(t, fs[i] == patterns[i]);
+  }
+
+  rglmdf_general_data_release(gd);
+}
+
+static void
 rglmdf_get_endianness_t (ut_test_t *const t)
 {
   int ret;
@@ -403,6 +467,8 @@ main (int argc,
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmdf_set_batch_ids", rglmdf_set_batch_ids_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmdf_set_position_statuses", rglmdf_set_position_statuses_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmdf_set_features", rglmdf_set_features_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmdf_set_patterns", rglmdf_set_patterns_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmdf_get_endianness", rglmdf_get_endianness_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "rglmdf_verify_type_sizes", rglmdf_verify_type_sizes_t);

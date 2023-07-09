@@ -444,6 +444,40 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
         if ret != cnt:
             raise Exception('Return code is invalid')
 
+    def set_features(self, features : list):
+        if not isinstance(features, list):
+            raise TypeError('Argument features is not an instance of list')
+        if not all([isinstance(e, Feature) for e in features]):
+            raise TypeError('Argument features must have all elements belonging to Feature type')
+
+        cnt = len(features)
+        arr = (c_board_feature_id_t*cnt)()
+        arr[:] = [f.id for f in features]
+
+        f = libreversi.rglmdf_set_features
+        f.restype = ct.c_size_t
+        f.argtypes = [ct.POINTER(_RglmdfGeneralDataCTHelper), ct.POINTER(c_board_feature_id_t), ct.c_size_t]
+        ret = f(ct.byref(self), arr, cnt)
+        if ret != cnt:
+            raise Exception('Return code is invalid')
+
+    def set_patterns(self, patterns : list):
+        if not isinstance(patterns, list):
+            raise TypeError('Argument patterns is not an instance of list')
+        if not all([isinstance(e, Pattern) for e in patterns]):
+            raise TypeError('Argument patterns must have all elements belonging to Pattern type')
+
+        cnt = len(patterns)
+        arr = (c_board_pattern_id_t*cnt)()
+        arr[:] = [f.id for f in patterns]
+
+        f = libreversi.rglmdf_set_patterns
+        f.restype = ct.c_size_t
+        f.argtypes = [ct.POINTER(_RglmdfGeneralDataCTHelper), ct.POINTER(c_board_pattern_id_t), ct.c_size_t]
+        ret = f(ct.byref(self), arr, cnt)
+        if ret != cnt:
+            raise Exception('Return code is invalid')
+        
         # HERE
 
         
@@ -676,6 +710,8 @@ class Rglm:
         c.set_batch_ids(self.batches)
         c.empty_count = self.empty_count
         c.set_position_statuses(self.statuses)
+        c.set_features(self.features)
+        c.set_patterns(self.patterns)
         
         # HERE
 
@@ -688,10 +724,10 @@ class Rglm:
         # + ("position_status_cnt", ct.c_size_t),
         # + ("position_status_buffer", ct.c_char_p),
         # + ("position_statuses", ct.POINTER(ct.c_char_p)),
-        # ("feature_cnt", ct.c_size_t),
-        # ("features", ct.POINTER(c_board_feature_id_t)),
-        # ("pattern_cnt", ct.c_size_t),
-        # ("patterns", ct.POINTER(c_board_pattern_id_t)),
+        # + ("feature_cnt", ct.c_size_t),
+        # + ("features", ct.POINTER(c_board_feature_id_t)),
+        # + ("pattern_cnt", ct.c_size_t),
+        # + ("patterns", ct.POINTER(c_board_pattern_id_t)),
         # ("position_summay", _RglmdfPositionSummaryTable),
         # ("entity_freq_summary", _RglmdfEntityFreqSummaryTable),
         # ("positions", _RglmdfSolvedAndClassifiedGpTable),

@@ -1344,7 +1344,7 @@ rglmdf_set_position_status_cnt (rglmdf_general_data_t *const gd,
 
 size_t
 rglmdf_set_position_statuses (rglmdf_general_data_t *const gd,
-                              char *const*position_statuses,
+                              char *const*const position_statuses,
                               const size_t position_status_cnt)
 {
   assert(gd);
@@ -1356,7 +1356,7 @@ rglmdf_set_position_statuses (rglmdf_general_data_t *const gd,
 
   char *buf = gd->position_status_buffer;
   for (size_t i = 0; i < position_status_cnt; i++) {
-    char *ps = position_statuses[i];
+    const char *ps = position_statuses[i];
     size_t len = strlen(ps);
     if (len != RGLMDF_POSITION_STATUS_BUF_SIZE - 1) {
       fprintf(stderr, "Error, provided position status \"%s\" value has a wrong lenght.\n", ps);
@@ -1438,6 +1438,23 @@ rglmdf_get_feature_cnt (const rglmdf_general_data_t *const gd)
   return gd->feature_cnt;
 }
 
+size_t
+rglmdf_set_features (rglmdf_general_data_t *const gd,
+                     const board_feature_id_t *const features,
+                     const size_t feature_cnt)
+{
+  assert(gd);
+  if (feature_cnt == 0) return 0;
+  assert(features);
+  size_t res = rglmdf_set_feature_cnt(gd, feature_cnt);
+  if (res == 0) return 0;
+  for (size_t i = 0; i < feature_cnt; i++) {
+    gd->features[i] = features[i];
+  }
+  sort_utils_insertionsort(gd->features, feature_cnt, sizeof(board_feature_id_t), sort_utils_int_cmp);
+  return feature_cnt;
+}
+
 board_feature_id_t *
 rglmdf_get_features (const rglmdf_general_data_t *const gd)
 {
@@ -1501,6 +1518,23 @@ rglmdf_get_pattern_cnt (const rglmdf_general_data_t *const gd)
 {
   assert(gd);
   return gd->pattern_cnt;
+}
+
+size_t
+rglmdf_set_patterns (rglmdf_general_data_t *const gd,
+                     const board_pattern_id_t *const patterns,
+                     const size_t pattern_cnt)
+{
+  assert(gd);
+  if (pattern_cnt == 0) return 0;
+  assert(patterns);
+  size_t res = rglmdf_set_pattern_cnt(gd, pattern_cnt);
+  if (res == 0) return 0;
+  for (size_t i = 0; i < pattern_cnt; i++) {
+    gd->patterns[i] = patterns[i];
+  }
+  sort_utils_insertionsort(gd->patterns, pattern_cnt, sizeof(board_pattern_id_t), sort_utils_int_cmp);
+  return pattern_cnt;
 }
 
 board_pattern_id_t *
