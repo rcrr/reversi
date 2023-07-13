@@ -93,7 +93,7 @@ MAINS := endgame_solver gpdb_verify intel_intrinsics_trial \
 #
 MODULES := arch binary_heap bit_works board board_pattern board_trans cfg distributions endgame_utils exact_solver file_utils \
            game_position_db game_tree_logger game_tree_utils game_value_estimator hashtable improved_fast_endgame_solver \
-           isqrt linear_algebra linked_list main_option_parse memory_manager memory_object_pool \
+           isqrt linear_algebra linked_list main_option_parse math_works memory_manager memory_object_pool \
            minimax_solver principal_variation prng red_black_tree \
            rglm_data_files rglm_solver rglm_utils sha3 sort_utils time_utils \
            transposition_table unit_test
@@ -106,7 +106,7 @@ S_MODULES := kogge_stone
 UTEST_MAINS := ut_binary_heap ut_bit_works ut_board ut_board_pattern ut_board_trans ut_cfg ut_distributions \
                ut_endgame_utils ut_es_pv ut_file_utils ut_flame ut_game_position ut_game_position_db \
                ut_game_tree_utils ut_hashtable ut_isqrt ut_linear_algebra ut_linked_list ut_main_option_parse \
-               ut_memory_object_pool ut_prng ut_red_black_tree ut_rglm_data_files ut_rglm_utils \
+               ut_math_works ut_memory_object_pool ut_prng ut_red_black_tree ut_rglm_data_files ut_rglm_utils \
                ut_sha3 ut_sort_utils ut_transposition_table ut_trsm ut_utest ut_prefetch ut_kogge_stone
 
 MAINS_AND_MODULES := $(sort $(MAINS) $(MODULES))
@@ -354,6 +354,9 @@ SRC_LINKED_LIST_DEP := $(SRC_LINKED_LIST) $(sort $(HDR_LINKED_LIST_DEP))
 
 HDR_MAIN_OPTION_PARSE_DEP := $(sort $(HDR_MAIN_OPTION_PARSE))
 SRC_MAIN_OPTION_PARSE_DEP := $(SRC_MAIN_OPTION_PARSE) $(sort $(HDR_MAIN_OPTION_PARSE_DEP))
+
+HDR_MATH_WORKS_DEP := $(sort $(HDR_MATH_WORKS))
+SRC_MATH_WORKS_DEP := $(SRC_MATH_WORKS) $(sort $(HDR_MATH_WORKS_DEP))
 
 HDR_SORT_UTILS_DEP := $(sort $(HDR_SORT_UTILS))
 SRC_SORT_UTILS_DEP := $(SRC_SORT_UTILS) $(sort $(HDR_SORT_UTILS_DEP))
@@ -614,6 +617,39 @@ $(UTE_BIT_WORKS): $(UTO_BIT_WORKS) $(UTE_BIT_WORKS_OBJ_DEPENDENCIES) Makefile $(
 
 
 ##
+## math_works
+##
+## math_works.h    : (null)
+## math_works.c    : math_works.h
+## ut_math_works.c : unit_test.h math_works.h
+##
+math_works: $(OBJ_MATH_WORKS)
+asm_math_works: $(ASM_MATH_WORKS)
+
+$(ASM_MATH_WORKS): $(SRC_MATH_WORKS_DEP) Makefile $(ASMDIR)/.dir_sentinel
+	@printf "Compiling source file $< into assembly $@\n"
+	@$(CC) $(ASMFLAGS) -S $< -o $@
+
+$(OBJ_MATH_WORKS): $(SRC_MATH_WORKS_DEP) Makefile $(OBJDIR)/.dir_sentinel
+	@printf "Compiling $< into $@\n"
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+ut_math_works: $(UTE_MATH_WORKS)
+
+$(UTO_MATH_WORKS): $(UTS_MATH_WORKS) $(OBJ_UNIT_TEST) $(OBJ_MATH_WORKS) Makefile $(TEST_OBJDIR)/.dir_sentinel
+	@printf "Test suite: compiling $< into $@\n"
+	@$(CC) $(CFLAGS_TEST) -c $< -o $@ $(TEST_INCLUDE)
+
+UTE_MATH_WORKS_OBJ_DEPENDENCIES := \
+  $(OBJ_LINKED_LIST) $(OBJ_UNIT_TEST) $(OBJ_TIME_UTILS) $(OBJ_MAIN_OPTION_PARSE) \
+  $(OBJ_MATH_WORKS)
+
+$(UTE_MATH_WORKS): $(UTO_MATH_WORKS) $(UTE_MATH_WORKS_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
+	@printf "Test suite: linking executable $@\n"
+	@$(CC) $(LDFLAGS_TEST) $< $(UTE_MATH_WORKS_OBJ_DEPENDENCIES) -lm -o $@
+
+
+##
 ## kogge_stone
 ##
 ## kogge_stone.h    : (null)
@@ -639,8 +675,6 @@ UTE_KOGGE_STONE_OBJ_DEPENDENCIES := \
 $(UTE_KOGGE_STONE): $(UTO_KOGGE_STONE) $(UTE_KOGGE_STONE_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
 	@$(CC) $(LDFLAGS_TEST) $< $(UTE_KOGGE_STONE_OBJ_DEPENDENCIES) -o $@
-
-
 
 
 
