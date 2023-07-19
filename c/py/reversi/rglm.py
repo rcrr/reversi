@@ -213,8 +213,8 @@ class _RglmModelWeightsCTHelper(ct.Structure):
         
     def write(self, filename, time=None):
         if time is None:
-            dt = datetime.now()
-            ts = datetime.timestamp(dt)
+            dt = datetime.datetime.now()
+            ts = datetime.datetime.timestamp(dt)
             time = int(ts)
         f = libreversi.rglmdf_model_weights_write_to_binary_file
         f.restype = ct.c_int
@@ -363,7 +363,7 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
         ("features", ct.POINTER(c_board_feature_id_t)),
         ("pattern_cnt", ct.c_size_t),
         ("patterns", ct.POINTER(c_board_pattern_id_t)),
-        ("position_summay", _RglmdfPositionSummaryTable),
+        ("position_summary", _RglmdfPositionSummaryTable),
         ("entity_freq_summary", _RglmdfEntityFreqSummaryTable),
         ("positions", _RglmdfSolvedAndClassifiedGpTable),
         ("reverse_map_a_f", ct.POINTER(ct.POINTER(ct.c_int32))),
@@ -394,8 +394,8 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
 
     def write_to_binary_file(self, filename : str, time=None):
         if time is None:
-            dt = datetime.now()
-            ts = datetime.timestamp(dt)
+            dt = datetime.datetime.now()
+            ts = datetime.datetime.timestamp(dt)
             time = int(ts)
         f = libreversi.rglmdf_write_general_data_to_binary_file
         f.restype = ct.c_int
@@ -477,8 +477,45 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
         ret = f(ct.byref(self), arr, cnt)
         if ret != cnt:
             raise Exception('Return code is invalid')
+
+
+    def set_position_summary_table(self, position_summary_table : pd.DataFrame):
+        t = position_summary_table
+        t_len = len(t)
+        record_size = ct.sizeof(_RglmdfPositionSummaryRecord)
+
+        # extern size_t
+        # rglmdf_set_position_summary_ntuples (rglmdf_general_data_t *gd,
+        #                                     size_t ntuples);
+
+        # Calling C function: rglmdf_set_position_summary_ntuples
+        f = libreversi.rglmdf_set_position_summary_ntuples
+        f.restype = ct.c_size_t
+        f.argtypes = [ct.POINTER(_RglmdfGeneralDataCTHelper), ct.c_size_t]
+        ret = f(ct.byref(self), t_len)
+        if ret != t_len:
+            raise Exception('Return code from function rglmdf_set_position_summary_ntuples is invalid')
         
-        # HERE
+        
+        # psta: position summary table array
+        psta = np.empty(t_len, dtype=[('batch_id', '<i4'),
+                                      ('status', 'S4'),
+                                      ('game_position_cnt', '<i8'),
+                                      ('classified_cnt', '<i8')])
+        
+        if record_size != psta.itemsize:
+            raise Exception('The record size of the summary table must be equal to the size of _RglmdfPositionSummaryRecord')
+
+        # Loading the data into the numpy array.
+        psta['batch_id'] = t['batch_id']
+        psta['status'] = t['status']
+        psta['game_position_cnt'] = t['count']
+        psta['classified_cnt'] = t['count']
+
+        ct.memmove(self.position_summary.records, psta.ctypes.data, t_len * record_size)
+
+        
+    # HERE
 
         
 class Rglm:
@@ -611,6 +648,8 @@ class Rglm:
         self.vld_statuses = None
         self.game_positions = None
         self.vld_game_positions = None
+        self.position_summary_table = None
+        self.vld_position_summary_table = None
         self.features = None
         self.flabel_dict = None
         self.patterns = None
@@ -712,6 +751,7 @@ class Rglm:
         c.set_position_statuses(self.statuses)
         c.set_features(self.features)
         c.set_patterns(self.patterns)
+        c.set_position_summary_table(self.position_summary_table)
         
         # HERE
 
@@ -728,7 +768,7 @@ class Rglm:
         # + ("features", ct.POINTER(c_board_feature_id_t)),
         # + ("pattern_cnt", ct.c_size_t),
         # + ("patterns", ct.POINTER(c_board_pattern_id_t)),
-        # ("position_summay", _RglmdfPositionSummaryTable),
+        # ("position_summary", _RglmdfPositionSummaryTable),
         # ("entity_freq_summary", _RglmdfEntityFreqSummaryTable),
         # ("positions", _RglmdfSolvedAndClassifiedGpTable),
         # ("reverse_map_a_f", ct.POINTER(ct.POINTER(ct.c_int32))),
@@ -781,19 +821,22 @@ class Rglm:
 
     def _retrieve_game_positions(self, batches, statuses, limit=None, where=None, fields=None) -> pd.DataFrame:
         q = regab_gp_as_df(self.conn, batches, statuses, self.empty_count, limit, where, fields)
+        summary_table = pd.DataFrame(q[['seq', 'batch_id', 'status']].groupby(['batch_id', 'status']).count().to_records())
+        summary_table.rename(columns={'seq': 'count'}, inplace=True)
         cols = [x for x in list(q.columns) if x not in ['batch_id', 'status', 'player', 'empty_count']]
         q['gpid'] = q.index
         gps = pd.DataFrame()
         for c in ['gpid'] + cols:
             gps[c] = q.pop(c)
-        return gps
+        return (gps, summary_table)
 
     def retrieve_game_positions(self, limit=None, where=None, fields=None) -> Rglm:
         """
         Retrieves game positions from the REGAB database.
         """
-        gps = self._retrieve_game_positions(self.batches, self.statuses, limit, where, fields)
+        gps, summary_table = self._retrieve_game_positions(self.batches, self.statuses, limit, where, fields)
         self.game_positions = gps
+        self.position_summary_table = summary_table
         return self
 
     def extract_rglmdf_entity_freq_summary_table(self) -> pd.DataFrame:
@@ -826,8 +869,9 @@ class Rglm:
         """
         Retrieves validation game positions from the REGAB database.
         """
-        gps = self._retrieve_game_positions(self.vld_batches, self.vld_statuses, limit, where, fields)
+        gps, summary_table = self._retrieve_game_positions(self.vld_batches, self.vld_statuses, limit, where, fields)
         self.vld_game_positions = gps
+        self.vld_position_summary_table = summary_table
         return self
 
     def compute_feature_values(self) -> Rglm:
@@ -1468,6 +1512,8 @@ class Rglm:
         if ct.sizeof(ct.c_int32) != pattern_record_size:
             raise Exception('Sizeof patterns record is not defined consistently.')
 
+        # HERE
+        
         weights = np.zeros(weight_cnt, dtype = [('entity_class', '<i2'),
                                                 ('entity_id', '<i2'),
                                                 ('index_value', '<i4'),
