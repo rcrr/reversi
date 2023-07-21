@@ -484,10 +484,6 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
         t_len = len(t)
         record_size = ct.sizeof(_RglmdfPositionSummaryRecord)
 
-        # extern size_t
-        # rglmdf_set_position_summary_ntuples (rglmdf_general_data_t *gd,
-        #                                     size_t ntuples);
-
         # Calling C function: rglmdf_set_position_summary_ntuples
         f = libreversi.rglmdf_set_position_summary_ntuples
         f.restype = ct.c_size_t
@@ -495,7 +491,6 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
         ret = f(ct.byref(self), t_len)
         if ret != t_len:
             raise Exception('Return code from function rglmdf_set_position_summary_ntuples is invalid')
-        
         
         # psta: position summary table array
         psta = np.empty(t_len, dtype=[('batch_id', '<i4'),
@@ -512,7 +507,97 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
         psta['game_position_cnt'] = t['count']
         psta['classified_cnt'] = t['count']
 
+        # Transfering to the C object.
         ct.memmove(self.position_summary.records, psta.ctypes.data, t_len * record_size)
+
+        
+    def set_entity_freq_summary_table(self, entity_freq_summary_table : pd.DataFrame):
+        
+        t = entity_freq_summary_table
+        if not isinstance(t, pd.DataFrame):
+            raise Exception('The argument entity_freq_summary_table is not a DataFrame')
+
+        required_columns = ['vid', 'etype']
+        if not pd.Series(required_columns).isin(t.columns).all():
+            raise Exception('The argument entity_freq_summary_table must have a list of required columns')
+        
+        ntuples = len(t)
+        record_size = ct.sizeof(_RglmdfEntityFreqSummaryRecord)
+
+        etype_feature = 0
+        etype_pattern = 1
+
+        df = t[['vid', 'etype']].groupby(['etype']).count().rename(columns= {'vid': 'count'})
+
+        if sum(df.index == etype_feature) == 0:
+            feature_ntuples = 0
+        else:
+            feature_ntuples = df.loc[etype_feature]['count']
+
+        if sum(df.index == etype_pattern) == 0:
+            pattern_ntuples = 0
+        else:
+            pattern_ntuples = df.loc[etype_pattern]['count']
+
+        if ntuples != feature_ntuples + pattern_ntuples:
+            raise Exception('There is a mismatch into entity_freq_summary_table')
+            
+        # extern size_t
+        # rglmdf_set_entity_freq_summary_ntuples (rglmdf_general_data_t *gd,
+        #                                         size_t feature_ntuples,
+        #                                         size_t pattern_ntuples,
+        #                                         size_t ntuples);
+        
+        # Calling C function: rglmdf_set_entity_freq_summary_ntuples
+        f = libreversi.rglmdf_set_entity_freq_summary_ntuples
+        f.restype = ct.c_size_t
+        f.argtypes = [ct.POINTER(_RglmdfGeneralDataCTHelper), ct.c_size_t, ct.c_size_t, ct.c_size_t]
+        ret = f(ct.byref(self), feature_ntuples, pattern_ntuples, ntuples)
+        if ret != ntuples:
+            raise Exception('Return code from function rglmdf_set_entity_freq_summary_ntuples is invalid')
+
+        # >>> m.vmap
+        #        vid  etype  eid  idx   count  min  max      mean        std  perc10  perc25  perc50  perc75  perc90    oprobs    eprobs    weight
+        #        0        0      0    0    0  199932  -64   64 -1.391293  26.406980   -36.0   -22.0    -2.0    18.0    34.0  1.000000  1.000000 -0.652285
+        #        1        1      0    3    0  199932  -64   64 -1.391293  26.406980   -36.0   -22.0    -2.0    18.0    34.0  1.000000  1.000000  3.754061
+        #        2        2      0    3    1  199932  -64   64 -1.391293  26.406980   -36.0   -22.0    -2.0    18.0    34.0  1.000000  1.000000 -1.906323
+        #        3        3      0    3    2  199932  -64   64 -1.391293  26.406980   -36.0   -22.0    -2.0    18.0    34.0  1.000000  1.000000  0.424061
+        #        4        4      1    0    0   17912  -64   64 -2.076262  27.835930   -38.0   -22.0    -2.0    18.0    36.0  0.022398  0.020310 -0.104893
+        #        ...    ...    ...  ...  ...     ...  ...  ...       ...        ...     ...     ...     ...     ...     ...       ...       ...       ...
+        #        2980  2980      1   12   16   13435  -64   64  2.475921  25.261466   -30.0   -16.0     2.0    20.0    36.0  0.016799  0.017455 -0.042112
+        #        2981  2981      1   12   17   43117  -64   64  1.432474  26.432125   -34.0   -18.0     2.0    22.0    36.0  0.053915  0.052857  0.046707
+        #        2982  2982      1   12   20   15451  -64   64 -1.338425  26.634843   -36.0   -22.0    -2.0    18.0    36.0  0.019320  0.018632 -0.011399
+        #        2983  2983      1   12   23   12698  -64   64 -5.289967  25.947034   -38.0   -24.0    -6.0    14.0    30.0  0.015878  0.015555 -0.181499
+        #        2984  2984      1   12   26   43568  -64   64 -2.641710  27.245382   -38.0   -22.0    -2.0    18.0    34.0  0.054479  0.051893  0.116055
+        #
+        #        [2985 rows x 17 columns]
+        #
+        
+        # efsta:  entity_freq_summary_table array
+        efsta = np.empty(ntuples, dtype=np.dtype([('glm_variable_id', '<i4'),
+                                                  ('entity_class', '<i2'),
+                                                  ('entity_id', '<i2'),
+                                                  ('principal_index_value', '<i4'),
+                                                  ('total_cnt', '<i8'),
+                                                  ('relative_frequency', '<d'),
+                                                  ('theoretical_probability', '<d'),
+                                                  ('weight', '<d')], align=True))
+        
+        if record_size != efsta.itemsize:
+            raise Exception('The record size of the freq summary table must be equal to the size of _RglmdfEntityFreqSummaryRecord')
+
+        # Loading the data into the numpy array.
+        efsta['glm_variable_id'] = t['vid']
+        efsta['entity_class'] = t['etype']
+        efsta['entity_id'] = t['eid']
+        efsta['principal_index_value'] = t['idx']
+        efsta['total_cnt'] = t['count']
+        efsta['relative_frequency'] = t['oprobs']
+        efsta['theoretical_probability'] = t['eprobs']
+        efsta['weight'] = t['weight']
+
+        # Transfering to the C object.
+        ct.memmove(self.entity_freq_summary.records, efsta.ctypes.data, ntuples * record_size)
 
         
     # HERE
@@ -752,6 +837,7 @@ class Rglm:
         c.set_features(self.features)
         c.set_patterns(self.patterns)
         c.set_position_summary_table(self.position_summary_table)
+        c.set_entity_freq_summary_table(self.vmap)
         
         # HERE
 
@@ -768,7 +854,7 @@ class Rglm:
         # + ("features", ct.POINTER(c_board_feature_id_t)),
         # + ("pattern_cnt", ct.c_size_t),
         # + ("patterns", ct.POINTER(c_board_pattern_id_t)),
-        # ("position_summary", _RglmdfPositionSummaryTable),
+        # + ("position_summary", _RglmdfPositionSummaryTable),
         # ("entity_freq_summary", _RglmdfEntityFreqSummaryTable),
         # ("positions", _RglmdfSolvedAndClassifiedGpTable),
         # ("reverse_map_a_f", ct.POINTER(ct.POINTER(ct.c_int32))),
