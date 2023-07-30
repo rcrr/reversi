@@ -600,7 +600,7 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
         if not isinstance(t, pd.DataFrame):
             raise Exception('The argument gp_table is not a DataFrame')
 
-        required_columns = ['gpid', 'seq', 'mover', 'opponent', 'game_value']
+        required_columns = ['gp_row_n', 'gp_id', 'mover', 'opponent', 'game_value']
         if not pd.Series(required_columns).isin(t.columns).all():
             raise Exception('The gp_table must have a list of required columns')
         
@@ -641,9 +641,6 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
 
         # at the end of optimize add to self.game_positions the missing fields: game_value_transformed
         #    evaluation_function residual
-        #
-        # row_n is gpid
-        # gp_id is seq ....
 
 
     # HERE
@@ -745,11 +742,11 @@ class Rglm:
           Entity id - Pattern or feature id
         - idx : int64
           Index value - It is the pattern configuration index, or for features the index of the enumeration
-        - gpid : int64
+        - gp_row_n : int64
           Game position id
         - counter : int64
           Count of times the index is present in the game position
-      The table key is (vid, gpid), the value is counter. The fields (etype, eid, idx) are an alias for vid.
+      The table key is (vid, gp_row_n), the value is counter. The fields (etype, eid, idx) are an alias for vid.
     x: scipy.sparse._csr.csr_matrix
       Matrix of correlations between the observations (valued and classified game positions) and the independent variables (weights).
       The matrix product X * weights is named the linear predictor.
@@ -954,12 +951,13 @@ class Rglm:
 
     def _retrieve_game_positions(self, batches, statuses, limit=None, where=None, fields=None) -> pd.DataFrame:
         q = regab_gp_as_df(self.conn, batches, statuses, self.empty_count, limit, where, fields)
-        summary_table = pd.DataFrame(q[['seq', 'batch_id', 'status']].groupby(['batch_id', 'status']).count().to_records())
-        summary_table.rename(columns={'seq': 'count'}, inplace=True)
+        q.rename(columns={'seq': 'gp_id'}, inplace=True)
+        summary_table = pd.DataFrame(q[['gp_id', 'batch_id', 'status']].groupby(['batch_id', 'status']).count().to_records())
+        summary_table.rename(columns={'gp_id': 'count'}, inplace=True)
         cols = [x for x in list(q.columns) if x not in ['batch_id', 'status', 'player', 'empty_count']]
-        q['gpid'] = q.index
+        q['gp_row_n'] = q.index
         gps = pd.DataFrame()
-        for c in ['gpid'] + cols:
+        for c in ['gp_row_n'] + cols:
             gps[c] = q.pop(c)
         return (gps, summary_table)
 
@@ -991,9 +989,8 @@ class Rglm:
         c = self._CTHelper
         a = np.ctypeslib.as_array(c.positions.records, shape=(c.positions.ntuples,))
         d = pd.DataFrame(a, columns = a.dtype.names)
-        game_positions['gpid'] = d.pop('row_n')
-        game_positions['seq'] = d.pop('gp_id')
-        for x in ['mover', 'opponent', 'game_value']:
+        game_positions['gp_row_n'] = d.pop('row_n')
+        for x in ['gp_id', 'mover', 'opponent', 'game_value']:
             game_positions[x] = d.pop(x)
         self.game_positions = game_positions
         return self
@@ -1192,45 +1189,45 @@ class Rglm:
         Computes the gpxpidf data frame.
 
         This data frame is the precomputation of the X matrix for what belongs to patterns:
-          gpid    -> row_id
-          vid     -> column_id
-          counter -> value
+          gp_row_n -> row_id
+          vid      -> column_id
+          counter  -> value
 
         Here an example of the data frame:
         . 
-        .           vid  etype  eid   idx    gpid  counter
-        .  0          2      1    0     0       0        1
-        .  1          2      1    0     0      23        1
-        .  2          2      1    0     0      27        1
-        .  3          2      1    0     0      28        1
-        .  4          2      1    0     0      32        1
-        .  ...      ...    ...  ...   ...     ...      ...
-        .  796170  2964      1    0  6560  199786        1
-        .  796171  2964      1    0  6560  199795        1
-        .  796172  2964      1    0  6560  199871        1
-        .  796173  2964      1    0  6560  199882        1
-        .  796174  2964      1    0  6560  199915        1
+        .           vid  etype  eid   idx gp_row_n  counter
+        .  0          2      1    0     0        0        1
+        .  1          2      1    0     0       23        1
+        .  2          2      1    0     0       27        1
+        .  3          2      1    0     0       28        1
+        .  4          2      1    0     0       32        1
+        .  ...      ...    ...  ...   ...      ...      ...
+        .  796170  2964      1    0  6560   199786        1
+        .  796171  2964      1    0  6560   199795        1
+        .  796172  2964      1    0  6560   199871        1
+        .  796173  2964      1    0  6560   199882        1
+        .  796174  2964      1    0  6560   199915        1
 
         vid : variable id, it is the index of the weight in the weight array.
         etype : entity type, 0 for features, 1 for patterns. It is always 1 in this data frame.
         eid : entity id, it is the pattern id.
         idx : index, the index value.
-        gpid : game position id, the id of the game position record in the gpdf/game_positions data frames.
+        gp_row_n : game position id, the id of the game position record in the gpdf/game_positions data frames.
         counter : count the times the pattern/index is found in the game position (almost always it is 1).
 
         """
-        gpxpidf_colnames = ['vid', 'etype', 'eid', 'idx', 'gpid', 'counter']
+        gpxpidf_colnames = ['vid', 'etype', 'eid', 'idx', 'gp_row_n', 'counter']
         self.gpxpidf = pd.DataFrame(columns = gpxpidf_colnames, dtype = 'int64')
         for p in self.patterns:
             labels = self.plabel_dict_i1[p.id]
             renamed_labels = dict(zip(labels, ['idx']*p.n_instances))
-            res = pd.concat(self.gpdf[['gpid', x]].rename(columns=renamed_labels) for x in labels)
+            res = pd.concat(self.gpdf[['gp_row_n', x]].rename(columns=renamed_labels) for x in labels)
             res.insert(loc=1, column='eid', value=[p.id]*len(res))
             res.insert(loc=1, column='etype', value=[1]*len(res))
             res['counter'] = 1
-            res_grouped = res.groupby(['gpid', 'etype', 'eid', 'idx'])['counter'].sum().reset_index()
+            res_grouped = res.groupby(['gp_row_n', 'etype', 'eid', 'idx'])['counter'].sum().reset_index()
             mi = pd.MultiIndex.from_frame(res_grouped[['etype', 'eid', 'idx']])
-            res_grouped = pd.DataFrame(res_grouped.values, index=mi, columns=['gpid', 'etype', 'eid', 'idx', 'counter'], dtype = 'int64')
+            res_grouped = pd.DataFrame(res_grouped.values, index=mi, columns=['gp_row_n', 'etype', 'eid', 'idx', 'counter'], dtype = 'int64')
             res_grouped = res_grouped.merge(self.ivmap, left_index=True, right_index=True, how='left')
             self.gpxpidf = pd.concat([self.gpxpidf, res_grouped], axis=0,  ignore_index = True, sort = False, copy = False)
         return self
@@ -1250,7 +1247,7 @@ class Rglm:
             row_idx = np.append(row_idx, np.array(range(0, n_row)))
             col_idx = np.append(col_idx, np.array([find]*n_row))
             data_values = np.append(data_values, self.feature_values[fcol].to_numpy())
-        row_idx = np.append(row_idx, self.gpxpidf['gpid'].to_numpy())
+        row_idx = np.append(row_idx, self.gpxpidf['gp_row_n'].to_numpy())
         col_idx = np.append(col_idx, self.gpxpidf['vid'].to_numpy())
         data_values = np.append(data_values, self.gpxpidf['counter'].to_numpy())
         self.x = csr_matrix((data_values, (row_idx, col_idx)), shape = (n_row, n_col), dtype = 'float64')
@@ -1555,9 +1552,9 @@ class Rglm:
         Computes the vld_gpxpidf data frame.
 
         This data frame is the precomputation of the X matrix for validation for what belongs to patterns:
-          gpid    -> row_id
-          vid     -> column_id
-          counter -> value
+          gp_row_n -> row_id
+          vid      -> column_id
+          counter  -> value
 
         Here an example of the data frame:
         . 
@@ -1567,22 +1564,22 @@ class Rglm:
         etype : entity type, 0 for features, 1 for patterns. It is always 1 in this data frame.
         eid : entity id, it is the pattern id.
         idx : index, the index value.
-        gpid : game position id, the id of the game position record in the gpdf/game_positions data frames.
+        gp_row_n : game position id, the id of the game position record in the gpdf/game_positions data frames.
         counter : count the times the pattern/index is found in the game position (almost always it is 1).
 
         """
-        vld_gpxpidf_colnames = ['evid', 'etype', 'eid', 'idx', 'gpid', 'counter']
+        vld_gpxpidf_colnames = ['evid', 'etype', 'eid', 'idx', 'gp_row_n', 'counter']
         self.vld_gpxpidf = pd.DataFrame(columns = vld_gpxpidf_colnames, dtype = 'int64')
         for p in self.patterns:
             labels = self.plabel_dict_i0[p.id]
             renamed_labels = dict(zip(labels, ['idx']*p.n_instances))
-            res = pd.concat(self.vld_gpdf[['gpid', x]].rename(columns=renamed_labels) for x in labels)
+            res = pd.concat(self.vld_gpdf[['gp_row_n', x]].rename(columns=renamed_labels) for x in labels)
             res.insert(loc=1, column='eid', value=[p.id]*len(res))
             res.insert(loc=1, column='etype', value=[1]*len(res))
             res['counter'] = 1
-            res_grouped = res.groupby(['gpid', 'etype', 'eid', 'idx'])['counter'].sum().reset_index()
+            res_grouped = res.groupby(['gp_row_n', 'etype', 'eid', 'idx'])['counter'].sum().reset_index()
             mi = pd.MultiIndex.from_frame(res_grouped[['etype', 'eid', 'idx']])
-            res_grouped = pd.DataFrame(res_grouped.values, index=mi, columns=['gpid', 'etype', 'eid', 'idx', 'counter'], dtype = 'int64')
+            res_grouped = pd.DataFrame(res_grouped.values, index=mi, columns=['gp_row_n', 'etype', 'eid', 'idx', 'counter'], dtype = 'int64')
             res_grouped = res_grouped.merge(self.ievmap, left_index=True, right_index=True, how='left')
             self.vld_gpxpidf = pd.concat([self.vld_gpxpidf, res_grouped], axis=0,  ignore_index = True, sort = False, copy = False)
         return self
@@ -1597,7 +1594,7 @@ class Rglm:
             row_idx = np.append(row_idx, np.array(range(0, n_row)))
             col_idx = np.append(col_idx, np.array([find]*n_row))
             data_values = np.append(data_values, self.vld_feature_values[fcol].to_numpy())
-        row_idx = np.append(row_idx, self.vld_gpxpidf['gpid'].to_numpy())
+        row_idx = np.append(row_idx, self.vld_gpxpidf['gp_row_n'].to_numpy())
         col_idx = np.append(col_idx, self.vld_gpxpidf['evid'].to_numpy())
         data_values = np.append(data_values, self.vld_gpxpidf['counter'].to_numpy())
         self.vld_x = csr_matrix((data_values, (row_idx, col_idx)), shape = (n_row, n_col), dtype = 'float64')
