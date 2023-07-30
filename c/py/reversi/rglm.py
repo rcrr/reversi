@@ -541,13 +541,7 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
 
         if ntuples != feature_ntuples + pattern_ntuples:
             raise Exception('There is a mismatch into entity_freq_summary_table')
-            
-        # extern size_t
-        # rglmdf_set_entity_freq_summary_ntuples (rglmdf_general_data_t *gd,
-        #                                         size_t feature_ntuples,
-        #                                         size_t pattern_ntuples,
-        #                                         size_t ntuples);
-        
+
         # Calling C function: rglmdf_set_entity_freq_summary_ntuples
         f = libreversi.rglmdf_set_entity_freq_summary_ntuples
         f.restype = ct.c_size_t
@@ -599,7 +593,59 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
         # Transfering to the C object.
         ct.memmove(self.entity_freq_summary.records, efsta.ctypes.data, ntuples * record_size)
 
+    def set_solved_and_classified_gp_table(self, gp_table : pd.DataFrame):
+
+        t = gp_table
         
+        if not isinstance(t, pd.DataFrame):
+            raise Exception('The argument gp_table is not a DataFrame')
+
+        required_columns = ['gpid', 'seq', 'mover', 'opponent', 'game_value']
+        if not pd.Series(required_columns).isin(t.columns).all():
+            raise Exception('The gp_table must have a list of required columns')
+        
+        ntuples = len(t)
+        record_size = ct.sizeof(_RglmdfSolvedAndClassifiedGpRecord)
+
+        print(t)
+
+        # Calling C function: rglmdf_set_positions_ntuples
+        f = libreversi.rglmdf_set_positions_ntuples
+        f.restype = ct.c_size_t
+        f.argtypes = [ct.POINTER(_RglmdfGeneralDataCTHelper), ct.c_size_t]
+        ret = f(ct.byref(self), ntuples)
+        if ret != ntuples:
+            raise Exception('Return code from function rglmdf_set_positions_ntuples is invalid')
+
+        table_fields_ = [
+            ("ntuples", ct.c_size_t),
+            ("n_fvalues_per_record", ct.c_size_t),
+            ("n_index_values_per_record", ct.c_size_t),
+            ("records", ct.POINTER(_RglmdfSolvedAndClassifiedGpRecord)),
+            ("farray", ct.POINTER(ct.c_double)),
+            ("i0array", ct.POINTER(ct.c_int32)),
+            ("i1array", ct.POINTER(ct.c_int32)),
+            ("i2array", ct.POINTER(ct.c_int32)),
+        ]
+
+        record_fields_ = [
+            ("row_n", ct.c_int64),
+            ("gp_id", ct.c_int64),
+            ("mover", ct.c_int64),
+            ("opponent", ct.c_int64),
+            ("game_value", ct.c_int8),
+            ("game_value_transformed", ct.c_float),
+            ("evaluation_function", ct.c_float),
+            ("residual", ct.c_float),
+        ]
+
+        # at the end of optimize add to self.game_positions the missing fields: game_value_transformed
+        #    evaluation_function residual
+        #
+        # row_n is gpid
+        # gp_id is seq ....
+
+
     # HERE
 
         
@@ -838,6 +884,7 @@ class Rglm:
         c.set_patterns(self.patterns)
         c.set_position_summary_table(self.position_summary_table)
         c.set_entity_freq_summary_table(self.vmap)
+        c.set_solved_and_classified_gp_table(self.game_positions)
         
         # HERE
 
@@ -855,7 +902,7 @@ class Rglm:
         # + ("pattern_cnt", ct.c_size_t),
         # + ("patterns", ct.POINTER(c_board_pattern_id_t)),
         # + ("position_summary", _RglmdfPositionSummaryTable),
-        # ("entity_freq_summary", _RglmdfEntityFreqSummaryTable),
+        # + ("entity_freq_summary", _RglmdfEntityFreqSummaryTable),
         # ("positions", _RglmdfSolvedAndClassifiedGpTable),
         # ("reverse_map_a_f", ct.POINTER(ct.POINTER(ct.c_int32))),
         # ("reverse_map_a_p", ct.POINTER(ct.POINTER(ct.c_int32))),
@@ -1429,6 +1476,8 @@ class Rglm:
         self.r = self.y - self.yh
 
         self.vmap['weight'] = self.w
+
+        # HERE
         
         return self
 
@@ -1778,7 +1827,7 @@ class Rglm:
 test_run_0 = {'cfg_fname': 'cfg/regab.cfg',
               'env': 'test',
               'ec': 20,
-              'batches': [6],
+              'batches': [6,7],
               'vld_batches': [5],
               'statuses': 'CMR,CMS',
               'vld_statuses': 'CMR,CMS',
