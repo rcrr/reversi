@@ -5,7 +5,7 @@
 # http://github.com/rcrr/reversi
 # 
 # Aauthor Roberto Corradini mailto:rob_corradini@yahoo.it
-# Copyright 2022 Roberto Corradini. All rights reserved.
+# Copyright 2022, 2023 Roberto Corradini. All rights reserved.
 #
 # License
 # 
@@ -62,6 +62,14 @@ def compute_feature_values_on_df(df : pd.DataFrame, fl : list, mover='MOVER', op
         raise TypeError('Argument mover is not an instance of str')
     if not isinstance(opponent, str):
         raise TypeError('Argument opponent is not an instance of str')
+    if not mover in df.columns:
+        raise ValueError('Argument df doesn\'t have a mover column')
+    if not opponent in df.columns:
+        raise ValueError('Argument df doesn\'t have an opponent column')
+    if df[mover].dtype != 'int64':
+        raise TypeError('Column mover has not the correct int64 type')
+    if df[opponent].dtype != 'int64':
+        raise TypeError('Column opponent has not the correct int64 type')
     if not fl:
         return None
 
@@ -83,7 +91,10 @@ def compute_feature_values_on_df(df : pd.DataFrame, fl : list, mover='MOVER', op
             idx_start = idx_end
         return names, d
 
-    feature_values = pd.DataFrame(list(df.apply(compute_values, axis=1))).astype(np.double)
+    # A new dataframe with just the two int64 columns is required to avoid corruption of the data.
+    df2 = df[[mover, opponent]].copy(deep=False)
+    
+    feature_values = pd.DataFrame(list(df2.apply(compute_values, axis=1))).astype(np.double)
     feature_values.columns, flabel_dict = build_col_names(fl, 'F')
     
     return feature_values, flabel_dict
@@ -117,6 +128,14 @@ def compute_indexes_on_df(df : pd.DataFrame, pl : list, mover='MOVER', opponent=
         raise TypeError('Argument mover is not an instance of str')
     if not isinstance(opponent, str):
         raise TypeError('Argument opponent is not an instance of str')
+    if not mover in df.columns:
+        raise ValueError('Argument df doesn\'t have a mover column')
+    if not opponent in df.columns:
+        raise ValueError('Argument df doesn\'t have an opponent column')
+    if df[mover].dtype != 'int64':
+        raise TypeError('Column mover has not the correct int64 type')
+    if df[opponent].dtype != 'int64':
+        raise TypeError('Column opponent has not the correct int64 type')
     if not pl:
         return None
 
@@ -139,7 +158,10 @@ def compute_indexes_on_df(df : pd.DataFrame, pl : list, mover='MOVER', opponent=
             idx_start = idx_end
         return names, d
 
-    indexes = pd.DataFrame(list(df.apply(compute_indexes, axis=1))).astype(np.int32)
+    # A new dataframe with just the two int64 columns is required to avoid corruption of the data.
+    df2 = df[[mover, opponent]].copy(deep=False)
+
+    indexes = pd.DataFrame(list(df2.apply(compute_indexes, axis=1))).astype(np.int32)
     cnames_i0, plabel_dict_i0 = build_col_names(pl, 'I0')
     cnames_i1, plabel_dict_i1 = build_col_names(pl, 'I1')
     indexes.columns = cnames_i0 + cnames_i1

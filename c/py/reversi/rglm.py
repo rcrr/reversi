@@ -959,6 +959,7 @@ class Rglm:
         gps = pd.DataFrame()
         for c in ['gp_row_n'] + cols:
             gps[c] = q.pop(c)
+        gps['game_value_transtormed'] = rglm_gv_to_gvt(gps['game_value'])
         return (gps, summary_table)
 
     def retrieve_game_positions(self, limit=None, where=None, fields=None) -> Rglm:
@@ -1824,7 +1825,7 @@ class Rglm:
 test_run_0 = {'cfg_fname': 'cfg/regab.cfg',
               'env': 'test',
               'ec': 20,
-              'batches': [6,7],
+              'batches': [7,6],
               'vld_batches': [5],
               'statuses': 'CMR,CMS',
               'vld_statuses': 'CMR,CMS',
