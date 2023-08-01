@@ -960,6 +960,8 @@ class Rglm:
         for c in ['gp_row_n'] + cols:
             gps[c] = q.pop(c)
         gps['game_value_transtormed'] = rglm_gv_to_gvt(gps['game_value'])
+        gps['evaluation_function'] = 0.5
+        gps['residual'] = gps['game_value_transtormed'] - gps['evaluation_function']
         return (gps, summary_table)
 
     def retrieve_game_positions(self, limit=None, where=None, fields=None) -> Rglm:
