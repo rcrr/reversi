@@ -617,6 +617,32 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
         if ret != ntuples:
             raise Exception('Return code from function rglmdf_set_positions_ntuples is invalid')
 
+        # sacgpta: solved_and_classified_gp_table array
+        sacgpta = np.empty(ntuples, dtype=np.dtype([('row_n', '<i8'),
+                                                    ('gp_id', '<i8'),
+                                                    ('mover', '<i8'),
+                                                    ('opponent', '<i8'),
+                                                    ('game_value', '<i1'),
+                                                    ('game_value_transformed', '<f4'),
+                                                    ('evaluation_function', '<f4'),
+                                                    ('residual', '<f4')], align=True))
+        
+        if record_size != sacgpta.itemsize:
+            raise Exception('The record size of the solved and classified game position table must be equal to the size of _RglmdfSolvedAndClassifiedGpRecord')
+
+        # Loading the data into the numpy array.
+        sacgpta['row_n'] = t['gp_row_n']
+        sacgpta['gp_id'] = t['gp_id']
+        sacgpta['mover'] = t['mover']
+        sacgpta['opponent'] = t['opponent']
+        sacgpta['game_value'] = t['game_value']
+        sacgpta['game_value_transformed'] = t['game_value_transformed']
+        sacgpta['evaluation_function'] = t['evaluation_function']
+        sacgpta['residual'] = t['residual']
+
+        # Transfering to the C object.
+        ct.memmove(self.positions.records, sacgpta.ctypes.data, ntuples * record_size)
+        
         table_fields_ = [
             ("ntuples", ct.c_size_t),
             ("n_fvalues_per_record", ct.c_size_t),
@@ -639,9 +665,15 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
             ("residual", ct.c_float),
         ]
 
-        # at the end of optimize add to self.game_positions the missing fields: game_value_transformed
-        #    evaluation_function residual
-
+        #
+        # 3 things missing ...
+        #
+        #   - write the 4 arrays farray, i0array, i1array, i2array ... ( and we should also read it consistently ... ) 
+        #
+        #   - update the game_positions columns when needed after running optimize ...
+        #
+        #   - remove duplicated variables ... e.g. game_positions['evaluation_function'] and y ...
+        #
 
     # HERE
 
@@ -959,9 +991,9 @@ class Rglm:
         gps = pd.DataFrame()
         for c in ['gp_row_n'] + cols:
             gps[c] = q.pop(c)
-        gps['game_value_transtormed'] = rglm_gv_to_gvt(gps['game_value'])
+        gps['game_value_transformed'] = rglm_gv_to_gvt(gps['game_value'])
         gps['evaluation_function'] = 0.5
-        gps['residual'] = gps['game_value_transtormed'] - gps['evaluation_function']
+        gps['residual'] = gps['game_value_transformed'] - gps['evaluation_function']
         return (gps, summary_table)
 
     def retrieve_game_positions(self, limit=None, where=None, fields=None) -> Rglm:
