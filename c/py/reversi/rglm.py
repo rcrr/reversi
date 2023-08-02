@@ -50,6 +50,7 @@ import pickle
 import ctypes as ct
 
 import inspect
+import copy
 
 # time_t is defined as int64_t in the C library.
 c_time_t = ct.c_uint64
@@ -593,7 +594,12 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
         # Transfering to the C object.
         ct.memmove(self.entity_freq_summary.records, efsta.ctypes.data, ntuples * record_size)
 
-    def set_solved_and_classified_gp_table(self, gp_table : pd.DataFrame):
+    def set_solved_and_classified_gp_table(self,
+                                           gp_table : pd.DataFrame,
+                                           flabel_dict : dict,
+                                           plabel_dict_i0 : dict,
+                                           plabel_dict_i1 : dict,
+                                           plabel_dict_i2 : dict):
 
         t = gp_table
         
@@ -640,8 +646,27 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
         sacgpta['evaluation_function'] = t['evaluation_function']
         sacgpta['residual'] = t['residual']
 
-        # Transfering to the C object.
+        # Transfering the table to the C object.
         ct.memmove(self.positions.records, sacgpta.ctypes.data, ntuples * record_size)
+
+        # Transfering farray to the C object.
+        fcols = [item for sublist in list(flabel_dict.values()) for item in sublist]
+        n_fvalues_per_record = len(fcols)
+        farray = t[fcols].to_numpy()
+        farray_size = ntuples * n_fvalues_per_record * ct.sizeof(ct.c_double)
+        ct.memmove(self.positions.farray, farray.ctypes.data, farray_size)
+
+        # Transfering i0array to the C object.
+        p_i0_cols = [item for sublist in list(plabel_dict_i0.values()) for item in sublist]
+        n_pvalues_per_record = len(p_i0_cols)
+        p_i0_array = t[p_i0_cols].to_numpy()
+        parray_size = ntuples * n_pvalues_per_record * ct.sizeof(ct.c_int32)
+        ct.memmove(self.positions.i0array, p_i0_array.ctypes.data, parray_size)
+
+        # Transfering i1array to the C object.
+        p_i1_cols = [item for sublist in list(plabel_dict_i1.values()) for item in sublist]
+        p_i1_array = t[p_i1_cols].to_numpy()
+        ct.memmove(self.positions.i1array, p_i1_array.ctypes.data, parray_size)
         
         table_fields_ = [
             ("ntuples", ct.c_size_t),
@@ -819,6 +844,7 @@ class Rglm:
         self.vld_indexes = None
         self.plabel_dict_i0 = None
         self.plabel_dict_i1 = None
+        self.plabel_dict_i2 = None
         self.gpdf = None
         self.vld_gpdf = None
         self.vmap = None
@@ -913,7 +939,8 @@ class Rglm:
         c.set_patterns(self.patterns)
         c.set_position_summary_table(self.position_summary_table)
         c.set_entity_freq_summary_table(self.vmap)
-        c.set_solved_and_classified_gp_table(self.game_positions)
+        c.set_solved_and_classified_gp_table(self.gpdf, self.flabel_dict,
+                                             self.plabel_dict_i0, self.plabel_dict_i1, self.plabel_dict_i2)
         
         # HERE
 
@@ -1182,6 +1209,9 @@ class Rglm:
         etype : entity type, 0 for features, 1 for patterns. It is always 1 in this data frame.
         eid : entity id, it is the pattern id.
         idx : index, the index value.
+        
+        Furthermore the method populates columns I2_... in the self.gpdf dataframe, and populates the
+        self.plabel_dict_i2 dictionary.
 
         """
         vmap_colnames = ['vid', 'etype', 'eid', 'idx']
@@ -1216,7 +1246,23 @@ class Rglm:
             var_cnt = var_cnt_updated
             mi = pd.MultiIndex.from_frame(self.vmap[['etype', 'eid', 'idx']])
             self.ivmap = pd.DataFrame(self.vmap['vid'].values, index=mi, columns=['vid'])
-            
+
+        # Adding the plabel dictionary for the i2 as a copy of i1
+        d = copy.deepcopy(self.plabel_dict_i1)
+        for k,v in d.items():
+            d[k] = [e.replace('I1_', 'I2_') for e in v]
+        self.plabel_dict_i2 = d
+
+        # Adding the I2_... columns to self.gpdf
+        etype = 1
+        for eid,columns in self.plabel_dict_i1.items():
+            vids = self.ivmap.loc[etype].loc[eid].astype('int32', copy=True)
+            for col in columns:
+                added_col = col.replace('I1_', 'I2_')
+                i1s = self.gpdf[col]
+                i2s = pd.merge(i1s, vids, how='left', left_on=col, right_index=True)
+                self.gpdf[added_col] = i2s['vid']
+        
         return self
 
     def compute_gpxpidf(self) -> Rglm:

@@ -9,7 +9,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2018, 2019, 2020, 2021 Roberto Corradini. All rights reserved.
+ * @copyright 2018, 2019, 2020, 2021, 2023 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -1828,6 +1828,8 @@ rglmdf_set_positions_ntuples (rglmdf_general_data_t *const gd,
   rglmdf_solved_and_classified_gp_record_t *arr;
   arr = (rglmdf_solved_and_classified_gp_record_t *) malloc(s);
   if (!arr) {
+    free(i2arr);
+    free(i1arr);
     free(i0arr);
     free(farr);
     return 0;
