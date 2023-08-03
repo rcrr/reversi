@@ -60,7 +60,7 @@
  * The data in `reverse_map_a_f`, as well as the memory allocation are
  * prepared before by the call to rglmdf_set_entity_freq_summary_ntuples().
  */
-static void
+void
 rglmdf_build_reverse_map (rglmdf_general_data_t *gd)
 {
   assert(gd);

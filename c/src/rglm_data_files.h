@@ -1568,5 +1568,21 @@ rglmdf_write_general_data_to_binary_file (const rglmdf_general_data_t *gd,
                                           const char *filename,
                                           time_t t);
 
+/**
+ * @brief Computes and populates the reverse map structures.
+ *
+ * @details This function has to be called once just after having populated
+ *          the Pattern Frequency Summary Table.
+ *          The procedure populates the data in the array `reverse_map_b`.
+ *          The data in `reverse_map_a_f`, as well as the memory allocation are
+ *          prepared before by the call to rglmdf_set_entity_freq_summary_ntuples().
+ *
+ *          The function is exposed to enable his usage from the python code.
+ *
+ * @param [in] gd reference to the general data structure
+ */
+extern void
+rglmdf_build_reverse_map (rglmdf_general_data_t *gd);
+
 
 #endif /* RGLM_DATA_FILES_H */

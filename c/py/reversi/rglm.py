@@ -594,6 +594,15 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
         # Transfering to the C object.
         ct.memmove(self.entity_freq_summary.records, efsta.ctypes.data, ntuples * record_size)
 
+        # Construction of the reverse map, it is not required to write the binary files,
+        # but it consistently build the CTHelper object for any purpose.
+        # Calling C function: rglmdf_build_reverse_map
+        f = libreversi.rglmdf_build_reverse_map
+        f.restype = None
+        f.argtypes = [ct.POINTER(_RglmdfGeneralDataCTHelper)]
+        ret = f(ct.byref(self))
+
+
     def set_solved_and_classified_gp_table(self,
                                            gp_table : pd.DataFrame,
                                            flabel_dict : dict,
@@ -612,8 +621,6 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
         
         ntuples = len(t)
         record_size = ct.sizeof(_RglmdfSolvedAndClassifiedGpRecord)
-
-        print(t)
 
         # Calling C function: rglmdf_set_positions_ntuples
         f = libreversi.rglmdf_set_positions_ntuples
@@ -652,55 +659,27 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
         # Transfering farray to the C object.
         fcols = [item for sublist in list(flabel_dict.values()) for item in sublist]
         n_fvalues_per_record = len(fcols)
-        farray = t[fcols].to_numpy()
+        #farray = t[fcols].to_numpy().transpose().flatten(order='F')
+        farray = t[fcols].to_numpy().flatten(order='C')
         farray_size = ntuples * n_fvalues_per_record * ct.sizeof(ct.c_double)
         ct.memmove(self.positions.farray, farray.ctypes.data, farray_size)
 
         # Transfering i0array to the C object.
         p_i0_cols = [item for sublist in list(plabel_dict_i0.values()) for item in sublist]
         n_pvalues_per_record = len(p_i0_cols)
-        p_i0_array = t[p_i0_cols].to_numpy()
+        p_i0_array = t[p_i0_cols].to_numpy().flatten(order='C')
         parray_size = ntuples * n_pvalues_per_record * ct.sizeof(ct.c_int32)
         ct.memmove(self.positions.i0array, p_i0_array.ctypes.data, parray_size)
 
         # Transfering i1array to the C object.
         p_i1_cols = [item for sublist in list(plabel_dict_i1.values()) for item in sublist]
-        p_i1_array = t[p_i1_cols].to_numpy()
+        p_i1_array = t[p_i1_cols].to_numpy().flatten(order='C')
         ct.memmove(self.positions.i1array, p_i1_array.ctypes.data, parray_size)
-        
-        table_fields_ = [
-            ("ntuples", ct.c_size_t),
-            ("n_fvalues_per_record", ct.c_size_t),
-            ("n_index_values_per_record", ct.c_size_t),
-            ("records", ct.POINTER(_RglmdfSolvedAndClassifiedGpRecord)),
-            ("farray", ct.POINTER(ct.c_double)),
-            ("i0array", ct.POINTER(ct.c_int32)),
-            ("i1array", ct.POINTER(ct.c_int32)),
-            ("i2array", ct.POINTER(ct.c_int32)),
-        ]
 
-        record_fields_ = [
-            ("row_n", ct.c_int64),
-            ("gp_id", ct.c_int64),
-            ("mover", ct.c_int64),
-            ("opponent", ct.c_int64),
-            ("game_value", ct.c_int8),
-            ("game_value_transformed", ct.c_float),
-            ("evaluation_function", ct.c_float),
-            ("residual", ct.c_float),
-        ]
-
-        #
-        # 3 things missing ...
-        #
-        #   - write the 4 arrays farray, i0array, i1array, i2array ... ( and we should also read it consistently ... ) 
-        #
-        #   - update the game_positions columns when needed after running optimize ...
-        #
-        #   - remove duplicated variables ... e.g. game_positions['evaluation_function'] and y ...
-        #
-
-    # HERE
+        # Transfering i2array to the C object.
+        p_i2_cols = [item for sublist in list(plabel_dict_i2.values()) for item in sublist]
+        p_i2_array = t[p_i2_cols].to_numpy().flatten(order='C')
+        ct.memmove(self.positions.i2array, p_i2_array.ctypes.data, parray_size)
 
         
 class Rglm:
@@ -943,6 +922,17 @@ class Rglm:
                                              self.plabel_dict_i0, self.plabel_dict_i1, self.plabel_dict_i2)
         
         # HERE
+        
+        #
+        # 3 things missing ...
+        #
+        #   - write the 4 arrays farray, i0array, i1array, i2array ... ( and we should also read it consistently ... ) 
+        #
+        #   - update the game_positions columns when needed after running optimize ...
+        #
+        #   - remove duplicated variables ... e.g. game_positions['evaluation_function'] and y ...
+        #
+
 
         # + ("file_digest", ct.c_char_p),
         # + ("file_creation_time", c_time_t),
@@ -959,7 +949,7 @@ class Rglm:
         # + ("patterns", ct.POINTER(c_board_pattern_id_t)),
         # + ("position_summary", _RglmdfPositionSummaryTable),
         # + ("entity_freq_summary", _RglmdfEntityFreqSummaryTable),
-        # ("positions", _RglmdfSolvedAndClassifiedGpTable),
+        # + ("positions", _RglmdfSolvedAndClassifiedGpTable),
         # ("reverse_map_a_f", ct.POINTER(ct.POINTER(ct.c_int32))),
         # ("reverse_map_a_p", ct.POINTER(ct.POINTER(ct.c_int32))),
         # ("reverse_map_b", ct.POINTER(ct.c_int32)),
