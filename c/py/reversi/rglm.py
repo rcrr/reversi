@@ -110,7 +110,7 @@ c_rglmdf_position_status_buf_size = 4
 # -08- [done] Read/Write the RGLM Model Weights file format ...
 #      - read works
 #      - remember to free the mw helper object !!!
-#      - reorganize he methods as _CT class methods ...
+#      - reorganize the methods as _CT class methods ...
 #
 # -09- There is a missing piece of code:
 #      The RGLM Model file ( C format, as written by the rglm executable ) must be saved also by the PYTHON code.
@@ -550,23 +550,6 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
         ret = f(ct.byref(self), feature_ntuples, pattern_ntuples, ntuples)
         if ret != ntuples:
             raise Exception('Return code from function rglmdf_set_entity_freq_summary_ntuples is invalid')
-
-        # >>> m.vmap
-        #        vid  etype  eid  idx   count  min  max      mean        std  perc10  perc25  perc50  perc75  perc90    oprobs    eprobs    weight
-        #        0        0      0    0    0  199932  -64   64 -1.391293  26.406980   -36.0   -22.0    -2.0    18.0    34.0  1.000000  1.000000 -0.652285
-        #        1        1      0    3    0  199932  -64   64 -1.391293  26.406980   -36.0   -22.0    -2.0    18.0    34.0  1.000000  1.000000  3.754061
-        #        2        2      0    3    1  199932  -64   64 -1.391293  26.406980   -36.0   -22.0    -2.0    18.0    34.0  1.000000  1.000000 -1.906323
-        #        3        3      0    3    2  199932  -64   64 -1.391293  26.406980   -36.0   -22.0    -2.0    18.0    34.0  1.000000  1.000000  0.424061
-        #        4        4      1    0    0   17912  -64   64 -2.076262  27.835930   -38.0   -22.0    -2.0    18.0    36.0  0.022398  0.020310 -0.104893
-        #        ...    ...    ...  ...  ...     ...  ...  ...       ...        ...     ...     ...     ...     ...     ...       ...       ...       ...
-        #        2980  2980      1   12   16   13435  -64   64  2.475921  25.261466   -30.0   -16.0     2.0    20.0    36.0  0.016799  0.017455 -0.042112
-        #        2981  2981      1   12   17   43117  -64   64  1.432474  26.432125   -34.0   -18.0     2.0    22.0    36.0  0.053915  0.052857  0.046707
-        #        2982  2982      1   12   20   15451  -64   64 -1.338425  26.634843   -36.0   -22.0    -2.0    18.0    36.0  0.019320  0.018632 -0.011399
-        #        2983  2983      1   12   23   12698  -64   64 -5.289967  25.947034   -38.0   -24.0    -6.0    14.0    30.0  0.015878  0.015555 -0.181499
-        #        2984  2984      1   12   26   43568  -64   64 -2.641710  27.245382   -38.0   -22.0    -2.0    18.0    34.0  0.054479  0.051893  0.116055
-        #
-        #        [2985 rows x 17 columns]
-        #
         
         # efsta:  entity_freq_summary_table array
         efsta = np.empty(ntuples, dtype=np.dtype([('glm_variable_id', '<i4'),
@@ -601,6 +584,21 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
         f.restype = None
         f.argtypes = [ct.POINTER(_RglmdfGeneralDataCTHelper)]
         ret = f(ct.byref(self))
+
+    def get_game_positions(self) -> Rglm:
+        """
+        Gets the game position table as a data frame consistent with Rgml type expectations.
+        """
+        game_positions = pd.DataFrame()
+        a = np.ctypeslib.as_array(self.positions.records, shape=(self.positions.ntuples,))
+        d = pd.DataFrame(a, columns = a.dtype.names)
+        game_positions['gp_row_n'] = d.pop('row_n')
+        for x in ['gp_id', 'mover', 'opponent', 'game_value']:
+            game_positions[x] = d.pop(x)
+        game_positions['game_value_transformed'] = rglm_gv_to_gvt(game_positions['game_value'])
+        game_positions['evaluation_function'] = 0.5
+        game_positions['residual'] = game_positions['game_value_transformed'] - game_positions['evaluation_function']
+        return game_positions
 
 
     def set_solved_and_classified_gp_table(self,
@@ -799,6 +797,7 @@ class Rglm:
     opt_res: scipy.optimize._optimize.OptimizeResult
       Result of the optimization.
     """
+    
     def __init__(self):
         """
         Init all the relevant attributes.
@@ -824,6 +823,7 @@ class Rglm:
         self.plabel_dict_i0 = None
         self.plabel_dict_i1 = None
         self.plabel_dict_i2 = None
+        # CHANGE_GPDF
         self.gpdf = None
         self.vld_gpdf = None
         self.vmap = None
@@ -854,14 +854,19 @@ class Rglm:
         self._CTHelper = None
 
     def read_from_binary_file(self, filename : str, verbose : bool):
+        
         c = self._CTHelper
         c.read_from_binary_file(filename, verbose)
         self.set_empty_count(c.empty_count)
         self.set_batches(np.ctypeslib.as_array(c.batch_ids, shape=(c.batch_id_cnt,)).astype('int').tolist())
         self.set_statuses([bytes.decode(x, 'utf-8') for x in c.position_statuses[:c.position_status_cnt]])
-        self.load_game_positions()
+        self.game_positions = c.get_game_positions()
         self.set_features([features_as_list[x] for x in c.features[:c.feature_cnt]])
         self.set_patterns([patterns_as_list[x] for x in c.patterns[:c.pattern_cnt]])
+        # The call to compute_feature_values() sets fields:
+        #  - self.feature_values
+        #  - self.flabel_dict
+        # it has to be transformed into reading from the c object ...
         self.compute_feature_values()
         self.compute_indexes()
         self.combine_gps_features_patterns()
@@ -871,38 +876,9 @@ class Rglm:
         self.compute_y()
         self.compute_analytics()
         self.retrieve_expected_probabilities_from_rglm_data_file()
-        #
-        # workflow:
-        #
-        # m = timed_run(Rglm, "m = Rglm()")
-        # m = timed_run(m.set_conn, "m = m.set_conn({})", conn)
-        # m = timed_run(m.set_empty_count, "m = m.set_empty_count({})", ec)
-        # m = timed_run(m.set_batches, "m = m.set_batches({})", batches)
-        # m = timed_run(m.set_vld_batches, "m = m.set_vld_batches({})", vld_batches)
-        # m = timed_run(m.set_statuses, "m = m.set_statuses({})", statuses)
-        # m = timed_run(m.set_vld_statuses, "m = m.set_vld_statuses({})", vld_statuses)
-        # m = timed_run(m.retrieve_game_positions, "m = m.retrieve_game_positions()")
-        # m = timed_run(m.retrieve_vld_game_positions, "m = m.retrieve_vld_game_positions()")
-        # m = timed_run(m.set_features, "m = m.set_features({})", features)
-        # m = timed_run(m.set_patterns, "m = m.set_patterns({})", patterns)
-        # m = timed_run(m.compute_feature_values, "m = m.compute_feature_values()")
-        # m = timed_run(m.compute_indexes, "m = m.compute_indexes()")
-        # m = timed_run(m.combine_gps_features_patterns, "m = m.combine_gps_features_patterns()")
-        # m = timed_run(m.compute_vmaps, "m = m.compute_vmaps()")
-        # m = timed_run(m.compute_gpxpidf, "m = m.compute_gpxpidf()")
-        # m = timed_run(m.compute_x, "m = m.compute_x()")
-        # m = timed_run(m.compute_y, "m = m.compute_y()")
-        # m = timed_run(m.compute_analytics, "m = m.compute_analytics()")
-        # m = timed_run(m.optimize, "m = m.optimize({}, {{...}})", ridge_reg_param, l_bfgs_b_options)
-        # if l_bfgs_b_options is not None:
-        #     print("   l_bfgs_b_options = {}".format(l_bfgs_b_options))
-        # m = timed_run(m.compute_wmean_for_patterns, "m = m.compute_wmean_for_patterns()")
-        # m = timed_run(m.compute_evmap, "m = m.compute_evmap()")
-        # m = timed_run(m.compute_ievmap, "m = m.compute_ievmap()")
-        # m = timed_run(m.compute_vld_gpxpidf, "m = m.compute_vld_gpxpidf()")
-        # m = timed_run(m.compute_vld_x, "m = m.compute_vld_x()")
-        # m = timed_run(m.compute_vld_y, "m = m.compute_vld_y()")
-        # m = timed_run(m.validate, "m = m.validate()")
+
+        # HERE
+        # We need to avoid to compute again what is already in the rglm data file.
 
     def populate_cthelper(self):
         self._CTHelper = _RglmdfGeneralDataCTHelper()
@@ -918,42 +894,25 @@ class Rglm:
         c.set_patterns(self.patterns)
         c.set_position_summary_table(self.position_summary_table)
         c.set_entity_freq_summary_table(self.vmap)
+        # CHANGE_GPDF
         c.set_solved_and_classified_gp_table(self.gpdf, self.flabel_dict,
                                              self.plabel_dict_i0, self.plabel_dict_i1, self.plabel_dict_i2)
         
         # HERE
         
         #
-        # 3 things missing ...
+        # 4 things missing ...
         #
-        #   - write the 4 arrays farray, i0array, i1array, i2array ... ( and we should also read it consistently ... ) 
+        #   - [done] write the 4 arrays farray, i0array, i1array, i2array
+        #
+        #   - read all the data from the binary file without recomputing ... 
         #
         #   - update the game_positions columns when needed after running optimize ...
         #
         #   - remove duplicated variables ... e.g. game_positions['evaluation_function'] and y ...
         #
-
-
-        # + ("file_digest", ct.c_char_p),
-        # + ("file_creation_time", c_time_t),
-        # + ("format", c_rglmdf_file_data_format_type_t),
-        # + ("batch_id_cnt", ct.c_size_t),
-        # + ("batch_ids", ct.POINTER(ct.c_uint64)),
-        # + ("empty_count", ct.c_uint8),
-        # + ("position_status_cnt", ct.c_size_t),
-        # + ("position_status_buffer", ct.c_char_p),
-        # + ("position_statuses", ct.POINTER(ct.c_char_p)),
-        # + ("feature_cnt", ct.c_size_t),
-        # + ("features", ct.POINTER(c_board_feature_id_t)),
-        # + ("pattern_cnt", ct.c_size_t),
-        # + ("patterns", ct.POINTER(c_board_pattern_id_t)),
-        # + ("position_summary", _RglmdfPositionSummaryTable),
-        # + ("entity_freq_summary", _RglmdfEntityFreqSummaryTable),
-        # + ("positions", _RglmdfSolvedAndClassifiedGpTable),
-        # ("reverse_map_a_f", ct.POINTER(ct.POINTER(ct.c_int32))),
-        # ("reverse_map_a_p", ct.POINTER(ct.POINTER(ct.c_int32))),
-        # ("reverse_map_b", ct.POINTER(ct.c_int32)),
-
+        #   - organize the workflow, and consistency checks ...
+        #
 
         return
 
@@ -1032,20 +991,6 @@ class Rglm:
         a = np.ctypeslib.as_array(t.records, shape=(t.ntuples,))
         d = pd.DataFrame(a, columns = a.dtype.names)
         return d
-    
-    def load_game_positions(self) -> Rglm:
-        """
-        Loads game position from the _CTHelper object.
-        """
-        game_positions = pd.DataFrame()
-        c = self._CTHelper
-        a = np.ctypeslib.as_array(c.positions.records, shape=(c.positions.ntuples,))
-        d = pd.DataFrame(a, columns = a.dtype.names)
-        game_positions['gp_row_n'] = d.pop('row_n')
-        for x in ['gp_id', 'mover', 'opponent', 'game_value']:
-            game_positions[x] = d.pop(x)
-        self.game_positions = game_positions
-        return self
 
     def retrieve_vld_game_positions(self, limit=None, where=None, fields=None) -> Rglm:
         """
@@ -1115,6 +1060,7 @@ class Rglm:
         """
         Computes the gpdf data frame, by concatenating game_positions, feature values, and pattern indexes.
         """
+        # CHANGE_GPDF
         self.gpdf = pd.concat([self.game_positions, self.feature_values, self.indexes], axis=1, copy=False)
         return self
 
@@ -1122,6 +1068,7 @@ class Rglm:
         """
         Computes the validation gpdf data frame, by concatenating vld_game_positions, validation feature values, and validation pattern indexes.
         """
+        # CHANGE_GPDF
         self.vld_gpdf = pd.concat([self.vld_game_positions, self.vld_feature_values, self.vld_indexes], axis=1, copy=False)
         return self
 
@@ -1156,6 +1103,7 @@ class Rglm:
         .  1.00       5   46   54  49.600000   2.966479
 
         """
+        # CHANGE_GPDF
         res = self.gpdf.groupby(labels).game_value.agg(['count', 'min', 'max', 'mean', 'std'])
         return res
 
@@ -1223,6 +1171,7 @@ class Rglm:
             set_of_indexes = set()
             labels = self.plabel_dict_i1[p.id]
             for label in labels:
+                # CHANGE_GPDF
                 col_as_list = self.gpdf[label].values.tolist()
                 set_of_indexes.update(col_as_list)
             indexes = sorted(set_of_indexes)
@@ -1249,8 +1198,10 @@ class Rglm:
             vids = self.ivmap.loc[etype].loc[eid].astype('int32', copy=True)
             for col in columns:
                 added_col = col.replace('I1_', 'I2_')
+                # CHANGE_GPDF
                 i1s = self.gpdf[col]
                 i2s = pd.merge(i1s, vids, how='left', left_on=col, right_index=True)
+                # CHANGE_GPDF
                 self.gpdf[added_col] = i2s['vid']
         
         return self
@@ -1292,6 +1243,7 @@ class Rglm:
         for p in self.patterns:
             labels = self.plabel_dict_i1[p.id]
             renamed_labels = dict(zip(labels, ['idx']*p.n_instances))
+            # CHANGE_GPDF
             res = pd.concat(self.gpdf[['gp_row_n', x]].rename(columns=renamed_labels) for x in labels)
             res.insert(loc=1, column='eid', value=[p.id]*len(res))
             res.insert(loc=1, column='etype', value=[1]*len(res))
@@ -1644,6 +1596,7 @@ class Rglm:
         for p in self.patterns:
             labels = self.plabel_dict_i0[p.id]
             renamed_labels = dict(zip(labels, ['idx']*p.n_instances))
+            # CHANGE_GPDF
             res = pd.concat(self.vld_gpdf[['gp_row_n', x]].rename(columns=renamed_labels) for x in labels)
             res.insert(loc=1, column='eid', value=[p.id]*len(res))
             res.insert(loc=1, column='etype', value=[1]*len(res))
