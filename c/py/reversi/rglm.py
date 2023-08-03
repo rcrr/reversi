@@ -45,8 +45,6 @@ from scipy.sparse import csr_matrix
 from scipy.optimize import minimize
 import datetime
 
-import pickle
-
 import ctypes as ct
 
 import inspect
@@ -705,7 +703,7 @@ class Rglm:
           The operations populate the fields:
           features, patterns, flabel_dict, plabel_dict_i0 and plabel_dict_i1
         - Compute the feature values and pattern indexes on the game position selection.
-          Then combines game_positions, feature_values and indexes into a single gpdf data frame:
+          Then combines game_positions, feature_values and indexes into a single data frame:
             m.compute_indexes()
             m.compute_feature_values()
             m.combine_gps_features_patterns()
@@ -745,12 +743,11 @@ class Rglm:
       Dictionary of the labels of principal indexes belonging to a selected pattern.
     game_positions : pandas.DataFrame
       Game positions extracted from the REGAB database
+      Then augmented with computed data, feature_values, indexes ...
     indexes : pandas.DataFrame
       Computed indexes belonging to selected patterns assigned to game positions
     feature_values : pandas.DataFrame
       Computed values belonging to selected features assigned to game positions
-    gpdf : pandas.DataFrame
-      Join of game_positions, feature_values, indexes
     vmap: pandas.DataFrame
       It has the cardinality of the RGLM variables.
       Fields are:
@@ -823,9 +820,6 @@ class Rglm:
         self.plabel_dict_i0 = None
         self.plabel_dict_i1 = None
         self.plabel_dict_i2 = None
-        # CHANGE_GPDF
-        self.gpdf = None
-        self.vld_gpdf = None
         self.vmap = None
         self.ivmap = None
         self.gpxpidf = None
@@ -894,8 +888,7 @@ class Rglm:
         c.set_patterns(self.patterns)
         c.set_position_summary_table(self.position_summary_table)
         c.set_entity_freq_summary_table(self.vmap)
-        # CHANGE_GPDF
-        c.set_solved_and_classified_gp_table(self.gpdf, self.flabel_dict,
+        c.set_solved_and_classified_gp_table(self.game_positions, self.flabel_dict,
                                              self.plabel_dict_i0, self.plabel_dict_i1, self.plabel_dict_i2)
         
         # HERE
@@ -1058,23 +1051,21 @@ class Rglm:
 
     def combine_gps_features_patterns(self) -> Rglm:
         """
-        Computes the gpdf data frame, by concatenating game_positions, feature values, and pattern indexes.
+        Computes the extended game_positions data frame, by concatenating game_positions, feature values, and pattern indexes.
         """
-        # CHANGE_GPDF
-        self.gpdf = pd.concat([self.game_positions, self.feature_values, self.indexes], axis=1, copy=False)
+        self.game_positions = pd.concat([self.game_positions, self.feature_values, self.indexes], axis=1, copy=False)
         return self
 
     def combine_vld_gps_features_patterns(self) -> Rglm:
         """
-        Computes the validation gpdf data frame, by concatenating vld_game_positions, validation feature values, and validation pattern indexes.
+        Computes the validation extended game_positions data frame, by concatenating vld_game_positions, validation feature values, and validation pattern indexes.
         """
-        # CHANGE_GPDF
-        self.vld_gpdf = pd.concat([self.vld_game_positions, self.vld_feature_values, self.vld_indexes], axis=1, copy=False)
+        self.vld_game_positions = pd.concat([self.vld_game_positions, self.vld_feature_values, self.vld_indexes], axis=1, copy=False)
         return self
 
     def get_feature_analytics(self, labels) -> pd.DataFrame:
         """
-        Argument labels must be one column or a list of columns included in the gpdf column labels.
+        Argument labels must be one column or a list of columns included in the game_positions column labels.
         
         As an example, here label F_001 represent MOBILITY:
         .
@@ -1103,8 +1094,7 @@ class Rglm:
         .  1.00       5   46   54  49.600000   2.966479
 
         """
-        # CHANGE_GPDF
-        res = self.gpdf.groupby(labels).game_value.agg(['count', 'min', 'max', 'mean', 'std'])
+        res = self.game_positions.groupby(labels).game_value.agg(['count', 'min', 'max', 'mean', 'std'])
         return res
 
     def compute_vmaps(self) -> Rglm:
@@ -1148,7 +1138,7 @@ class Rglm:
         eid : entity id, it is the pattern id.
         idx : index, the index value.
         
-        Furthermore the method populates columns I2_... in the self.gpdf dataframe, and populates the
+        Furthermore the method populates columns I2_... in the self.game_positions dataframe, and populates the
         self.plabel_dict_i2 dictionary.
 
         """
@@ -1171,8 +1161,7 @@ class Rglm:
             set_of_indexes = set()
             labels = self.plabel_dict_i1[p.id]
             for label in labels:
-                # CHANGE_GPDF
-                col_as_list = self.gpdf[label].values.tolist()
+                col_as_list = self.game_positions[label].values.tolist()
                 set_of_indexes.update(col_as_list)
             indexes = sorted(set_of_indexes)
             var_cnt_for_p = len(indexes)
@@ -1192,17 +1181,15 @@ class Rglm:
             d[k] = [e.replace('I1_', 'I2_') for e in v]
         self.plabel_dict_i2 = d
 
-        # Adding the I2_... columns to self.gpdf
+        # Adding the I2_... columns to self.game_positions
         etype = 1
         for eid,columns in self.plabel_dict_i1.items():
             vids = self.ivmap.loc[etype].loc[eid].astype('int32', copy=True)
             for col in columns:
                 added_col = col.replace('I1_', 'I2_')
-                # CHANGE_GPDF
-                i1s = self.gpdf[col]
+                i1s = self.game_positions[col]
                 i2s = pd.merge(i1s, vids, how='left', left_on=col, right_index=True)
-                # CHANGE_GPDF
-                self.gpdf[added_col] = i2s['vid']
+                self.game_positions[added_col] = i2s['vid']
         
         return self
 
@@ -1234,7 +1221,7 @@ class Rglm:
         etype : entity type, 0 for features, 1 for patterns. It is always 1 in this data frame.
         eid : entity id, it is the pattern id.
         idx : index, the index value.
-        gp_row_n : game position id, the id of the game position record in the gpdf/game_positions data frames.
+        gp_row_n : game position id, the id of the game position record in the game_positions data frames.
         counter : count the times the pattern/index is found in the game position (almost always it is 1).
 
         """
@@ -1243,8 +1230,7 @@ class Rglm:
         for p in self.patterns:
             labels = self.plabel_dict_i1[p.id]
             renamed_labels = dict(zip(labels, ['idx']*p.n_instances))
-            # CHANGE_GPDF
-            res = pd.concat(self.gpdf[['gp_row_n', x]].rename(columns=renamed_labels) for x in labels)
+            res = pd.concat(self.game_positions[['gp_row_n', x]].rename(columns=renamed_labels) for x in labels)
             res.insert(loc=1, column='eid', value=[p.id]*len(res))
             res.insert(loc=1, column='etype', value=[1]*len(res))
             res['counter'] = 1
@@ -1587,7 +1573,7 @@ class Rglm:
         etype : entity type, 0 for features, 1 for patterns. It is always 1 in this data frame.
         eid : entity id, it is the pattern id.
         idx : index, the index value.
-        gp_row_n : game position id, the id of the game position record in the gpdf/game_positions data frames.
+        gp_row_n : game position id, the id of the game position record in the game_positions data frames.
         counter : count the times the pattern/index is found in the game position (almost always it is 1).
 
         """
@@ -1596,8 +1582,7 @@ class Rglm:
         for p in self.patterns:
             labels = self.plabel_dict_i0[p.id]
             renamed_labels = dict(zip(labels, ['idx']*p.n_instances))
-            # CHANGE_GPDF
-            res = pd.concat(self.vld_gpdf[['gp_row_n', x]].rename(columns=renamed_labels) for x in labels)
+            res = pd.concat(self.vld_game_positions[['gp_row_n', x]].rename(columns=renamed_labels) for x in labels)
             res.insert(loc=1, column='eid', value=[p.id]*len(res))
             res.insert(loc=1, column='etype', value=[1]*len(res))
             res['counter'] = 1
@@ -1714,136 +1699,6 @@ class Rglm:
         
         return mw
 
-    def save(self, fp):
-        if self.conn == None:
-            conn_established = False
-            conn_dbname = None
-            conn_user = None
-            conn_host = None
-            conn_port = None
-            conn_password = None
-        else:
-            conn_established = True
-            conn_dbname = self.conn.dbname
-            conn_user = self.conn.user
-            conn_host = self.conn.host
-            conn_port = self.conn.port
-            conn_password = self.conn.password            
-
-        fields = {
-            'conn_established': conn_established,
-            'conn_dbname': conn_dbname,
-            'conn_user': conn_user,
-            'conn_host': conn_host,
-            'conn_port': conn_port,
-            'conn_password': conn_password,
-            'empty_count': self.empty_count,
-            'batches': self.batches,
-            'statuses': self.statuses,
-            'game_positions': self.game_positions,
-            'features': self.features if self.features == None else [f.id for f in self.features],
-            'patterns': self.patterns if self.patterns == None else [p.id for p in self.patterns],
-            'flabel_dict': self.flabel_dict,
-            'feature_values': self.feature_values,
-            'indexes': self.indexes,
-            'plabel_dict_i0': self.plabel_dict_i0,
-            'plabel_dict_i1': self.plabel_dict_i1,
-            'gpdf': self.gpdf,
-            'vmap': self.vmap,
-            'ivmap': self.ivmap,
-            'gpxpidf': self.gpxpidf,
-            'x': self.x,
-            'xt': self.xt,
-            'y': self.y,
-            'yh': self.yh,
-            'w': self.w,
-            'r': self.r,
-            'opt_res': self.opt_res,
-            'wmeans': self.wmeans,
-            'evmap': self.evmap,
-            'ievmap': self.ievmap,
-            'ew': self.ew,
-            'vld_batches': self.vld_batches,
-            'vld_statuses': self.vld_statuses,
-            'vld_game_positions': self.vld_game_positions,
-            'vld_feature_values': self.vld_feature_values,
-            'vld_indexes': self.vld_indexes,
-            'vld_gpdf': self.vld_gpdf,
-            'vld_gpxpidf': self.vld_gpxpidf,
-            'vld_x': self.vld_x,
-            'vld_xt': self.vld_xt,
-            'vld_y': self.vld_y,
-            'vld_yh': self.vld_yh,
-            'vld_r': self.vld_r,
-            'vld_summary': self.vld_summary,
-        }
-        
-        f = open(fp, 'wb')
-        pickle.dump(fields, f)
-        f.close()
-
-    @classmethod
-    def load(cls, fp) -> Rglm:
-        f = open(fp, 'rb')
-        fields = pickle.load(f)
-        f.close()
-
-        mw = Rglm()
-
-        conn_established = fields['conn_established']
-        if conn_established:
-            conn_dbname = fields['conn_dbname']
-            conn_user = fields['conn_user']
-            conn_host = fields['conn_host']
-            conn_port = fields['conn_port']
-            conn_password = fields['conn_password']
-            mw.conn = RegabDBConnection(dbname=conn_dbname, user=conn_user, host=conn_host, port=conn_port, password=conn_password)
-        else:
-            mw.conn = None
-        
-        mw.empty_count = fields['empty_count']
-        mw.batches = fields['batches']
-        mw.vld_batches = fields['vld_batches']
-        mw.statuses = fields['statuses']
-        mw.vld_statuses = fields['vld_statuses']
-        mw.game_positions = fields['game_positions']
-        mw.vld_game_positions = fields['vld_game_positions']
-        features = fields['features']
-        mw.features = None if features == None else [features_as_list[i] for i in features]
-        mw.flabel_dict = fields['flabel_dict']
-        patterns = fields['patterns']
-        mw.patterns = None if patterns == None else [patterns_as_list[i] for i in patterns]
-        mw.feature_values = fields['feature_values']
-        mw.vld_feature_values = fields['vld_feature_values']
-        mw.indexes = fields['indexes']
-        mw.vld_indexes = fields['vld_indexes']
-        mw.plabel_dict_i0 = fields['plabel_dict_i0']
-        mw.plabel_dict_i1 = fields['plabel_dict_i1']
-        mw.gpdf = fields['gpdf']
-        mw.vld_gpdf = fields['vld_gpdf']
-        mw.vmap = fields['vmap']
-        mw.ivmap = fields['ivmap']
-        mw.gpxpidf = fields['gpxpidf']
-        mw.x = fields['x']
-        mw.xt = fields['xt']
-        mw.y = fields['y']
-        mw.yh = fields['yh']
-        mw.w = fields['w']
-        mw.r = fields['r']
-        mw.opt_res = fields['opt_res']
-        mw.wmeans = fields['wmeans']
-        mw.evmap = fields['evmap']
-        mw.ievmap = fields['ievmap']
-        mw.ew = fields['ew']
-        mw.vld_gpxpidf = fields['vld_gpxpidf']
-        mw.vld_x = fields['vld_x']
-        mw.vld_xt = fields['vld_xt']
-        mw.vld_y = fields['vld_y']
-        mw.vld_yh = fields['vld_yh']
-        mw.vld_r = fields['vld_r']
-        mw.vld_summary = fields['vld_summary']
-        
-        return mw
 
 test_run_0 = {'cfg_fname': 'cfg/regab.cfg',
               'env': 'test',
