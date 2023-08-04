@@ -798,7 +798,7 @@ class Rglm:
         """
         Init all the relevant attributes.
         """
-        self._CTHelper = _RglmdfGeneralDataCTHelper()
+        self._CTHelper = None
         self.conn = None
         self.empty_count = None
         self.batches = None
@@ -847,8 +847,9 @@ class Rglm:
         self._CTHelper = None
 
     def read_from_binary_file(self, filename : str, verbose : bool):
-        
+        self._CTHelper = _RglmdfGeneralDataCTHelper()
         c = self._CTHelper
+
         c.read_from_binary_file(filename, verbose)
         self.set_empty_count(c.empty_count)
         self.set_batches(np.ctypeslib.as_array(c.batch_ids, shape=(c.batch_id_cnt,)).astype('int').tolist())
@@ -857,11 +858,7 @@ class Rglm:
         self.set_features([features_as_list[x] for x in c.features[:c.feature_cnt]])
         self.set_patterns([patterns_as_list[x] for x in c.patterns[:c.pattern_cnt]])
         self.compute_feature_values_from_rglm_data_file()
-        # The call to compute_indexes sets fields:
-        #  - self.indexes
-        #  - self.plabel_dict_i0
-        #  - self.plabel_dict_i1
-        self.compute_indexes()
+        self.compute_indexes_from_rglm_data_file()
         # The call to combine_gps_features_patterns:
         #  - self.game_positions
         self.combine_gps_features_patterns()
@@ -870,6 +867,13 @@ class Rglm:
         #  - self.ivmap
         #  - self.plabel_dict_i2
         #  - self.game_positions
+        #
+        # Comment ... ivmap should be a dedicated call ...
+        #             vmap is build in 2 steps ... here and into compute_analytics
+        #             the data into the rgml_file is stored as the model_weight view.
+        #             The code to get it is:
+        #               w = m.get_model_weights()
+        #               w.get_weights_as_numpy_array()
         self.compute_vmaps()
         # The call to compute_gpxpidf:
         #  - self.gpxpidf
@@ -927,7 +931,10 @@ class Rglm:
         return
 
     def write_to_binary_file(self, filename : str, time=None):
-        self._CTHelper.write_to_binary_file(filename, time)
+        c = self._CTHelper
+        if c is None:
+            return None
+        c.write_to_binary_file(filename, time)
     
     def set_conn(self, conn: RegabDBConnection) -> Rglm:
         if not isinstance(conn, RegabDBConnection):
@@ -997,6 +1004,8 @@ class Rglm:
         and returns it as a pandas dataframe.
         """
         c = self._CTHelper
+        if c is None:
+            return None
         t = c.entity_freq_summary
         a = np.ctypeslib.as_array(t.records, shape=(t.ntuples,))
         d = pd.DataFrame(a, columns = a.dtype.names)
@@ -1090,6 +1099,59 @@ class Rglm:
         self.indexes, plabel_dict_i0, plabel_dict_i1 = compute_indexes_on_df(self.game_positions, self.patterns, mover=self._mover_field, opponent=self._opponent_field)
         self.plabel_dict_i0 = dict((key.id, value) for (key, value) in plabel_dict_i0.items())
         self.plabel_dict_i1 = dict((key.id, value) for (key, value) in plabel_dict_i1.items())
+        return self
+
+    def extract_rglmdf_iarray(self, i : int) -> pd.DataFrame:
+        """
+        Extracts the iXarray from the _CTHelper object and returns it.
+        Argument i must be in range [0..2]. Given the value of i iXarray takes one
+        of the 3 possible values: i0array, i1array or i2array.
+        """
+        if i not in range(0, 3):
+            raise ValueError('Argument i must be in range [0..2], {} instead'.format(i))
+        c = self._CTHelper
+        if c is None:
+            return None
+        gps = c.positions
+        n = gps.ntuples
+        iarrays = [gps.i0array, gps.i1array, gps.i2array]
+        nivpr = gps.n_index_values_per_record
+        a = np.ctypeslib.as_array(iarrays[i], shape=(n,nivpr))
+        return a
+    
+    def compute_indexes_from_rglm_data_file(self) -> Rglm:
+        c = self._CTHelper
+        if c is None:
+            return None
+
+        def get_dictionary(i : int):
+            pids = c.patterns[:c.pattern_cnt]
+            all_col_names = []
+            k = 0
+            for pid in pids:
+                p = patterns_as_list[pid]
+                n = p.n_instances
+                col_names = [ 'I{:1d}_{:03d}'.format(i, j) for j in range(k, k + n)]
+                all_col_names.append(col_names)
+                k = k + n
+            plabel_dict = dict(zip(pids, all_col_names))
+            return plabel_dict
+
+        i0array = self.extract_rglmdf_iarray(0)
+        i1array = self.extract_rglmdf_iarray(1)
+        plabel_dict_i0 = get_dictionary(0)
+        plabel_dict_i1 = get_dictionary(1)
+        i0cols = [item for sublist in list(plabel_dict_i0.values()) for item in sublist]
+        i1cols = [item for sublist in list(plabel_dict_i1.values()) for item in sublist]
+        i0indexes = pd.DataFrame(i0array, columns = i0cols)
+        i1indexes = pd.DataFrame(i1array, columns = i1cols)
+
+        indexes = pd.concat([i0indexes, i1indexes], axis=1, copy=False)
+
+        self.indexes = indexes
+        self.plabel_dict_i0 = plabel_dict_i0
+        self.plabel_dict_i1 = plabel_dict_i1
+        
         return self
 
     def compute_vld_indexes(self) -> Rglm:
@@ -1228,8 +1290,9 @@ class Rglm:
             vmap_p = pd.DataFrame(list(zip(rglm_var_id, entity_type, p_id_list, indexes)), columns = vmap_colnames)
             self.vmap = pd.concat([self.vmap, vmap_p], axis = 0, ignore_index = True, sort = False, copy = False)
             var_cnt = var_cnt_updated
-            mi = pd.MultiIndex.from_frame(self.vmap[['etype', 'eid', 'idx']])
-            self.ivmap = pd.DataFrame(self.vmap['vid'].values, index=mi, columns=['vid'])
+
+        mi = pd.MultiIndex.from_frame(self.vmap[['etype', 'eid', 'idx']])
+        self.ivmap = pd.DataFrame(self.vmap['vid'].values, index=mi, columns=['vid'])
 
         # Adding the plabel dictionary for the i2 as a copy of i1
         d = copy.deepcopy(self.plabel_dict_i1)
