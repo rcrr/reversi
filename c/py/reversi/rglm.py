@@ -655,7 +655,6 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
         # Transfering farray to the C object.
         fcols = [item for sublist in list(flabel_dict.values()) for item in sublist]
         n_fvalues_per_record = len(fcols)
-        #farray = t[fcols].to_numpy().transpose().flatten(order='F')
         farray = t[fcols].to_numpy().flatten(order='C')
         farray_size = ntuples * n_fvalues_per_record * ct.sizeof(ct.c_double)
         ct.memmove(self.positions.farray, farray.ctypes.data, farray_size)
@@ -857,17 +856,35 @@ class Rglm:
         self.game_positions = c.get_game_positions()
         self.set_features([features_as_list[x] for x in c.features[:c.feature_cnt]])
         self.set_patterns([patterns_as_list[x] for x in c.patterns[:c.pattern_cnt]])
-        # The call to compute_feature_values() sets fields:
-        #  - self.feature_values
-        #  - self.flabel_dict
-        # it has to be transformed into reading from the c object ...
-        self.compute_feature_values()
+        self.compute_feature_values_from_rglm_data_file()
+        # The call to compute_indexes sets fields:
+        #  - self.indexes
+        #  - self.plabel_dict_i0
+        #  - self.plabel_dict_i1
         self.compute_indexes()
+        # The call to combine_gps_features_patterns:
+        #  - self.game_positions
         self.combine_gps_features_patterns()
+        # The call to compute_vmaps:
+        #  - self.vmap
+        #  - self.ivmap
+        #  - self.plabel_dict_i2
+        #  - self.game_positions
         self.compute_vmaps()
+        # The call to compute_gpxpidf:
+        #  - self.gpxpidf
         self.compute_gpxpidf()
+        # The call to compute_x:
+        #  - self.x
+        #  - self.xt
         self.compute_x()
+        # The call to compute_y:
+        #  - self.y
+        #  - self.w
+        #  - self.yh
         self.compute_y()
+        # The call to compute_analytics:
+        #  - self.vmap
         self.compute_analytics()
         self.retrieve_expected_probabilities_from_rglm_data_file()
 
@@ -1006,6 +1023,45 @@ class Rglm:
             raise ValueError('The field features is not defined or empty')
         self.feature_values, flabel_dict = compute_feature_values_on_df(self.game_positions, self.features, mover=self._mover_field, opponent=self._opponent_field)
         self.flabel_dict = dict((key.id, value) for (key, value) in flabel_dict.items())
+        return self
+
+    def extract_rglmdf_farray(self) -> pd.DataFrame:
+        """
+        Extracts the farray from the _CTHelper object
+        and returns it.
+        """
+        c = self._CTHelper
+        if c is None:
+            return None
+        gps = c.positions
+        n = gps.ntuples
+        nfvpr = gps.n_fvalues_per_record
+        a = np.ctypeslib.as_array(gps.farray, shape=(n,nfvpr))
+        return a
+    
+    def compute_feature_values_from_rglm_data_file(self) -> Rglm:
+        c = self._CTHelper
+        if c is None:
+            return None
+        
+        fids = c.features[:c.feature_cnt]
+        all_col_names = []
+        k = 0
+        for fid in fids:
+            f = features_as_list[fid]
+            n = f.field_cnt
+            col_names = [ 'F_{:03d}'.format(i) for i in range(k, k + n)]
+            all_col_names.append(col_names)
+            k = k + n
+        flabel_dict = dict(zip(fids, all_col_names))
+
+        farray = self.extract_rglmdf_farray()
+        fcols = [item for sublist in list(flabel_dict.values()) for item in sublist]
+        feature_values = pd.DataFrame(farray, columns = fcols)
+
+        self.feature_values = feature_values
+        self.flabel_dict = flabel_dict
+        
         return self
 
     def compute_vld_feature_values(self) -> Rglm:
@@ -1652,8 +1708,6 @@ class Rglm:
         pattern_record_size = patterns.itemsize
         if ct.sizeof(ct.c_int32) != pattern_record_size:
             raise Exception('Sizeof patterns record is not defined consistently.')
-
-        # HERE
         
         weights = np.zeros(weight_cnt, dtype = [('entity_class', '<i2'),
                                                 ('entity_id', '<i2'),
