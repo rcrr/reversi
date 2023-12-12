@@ -31,6 +31,8 @@
 	* 
 	*/
 
+        .section .note.GNU-stack,"",@progbits
+
         .globl  kost_mm
         .globl  kost_lms
 
