@@ -549,6 +549,8 @@ do_check_load_regab_prng_gp_h (int *result,
   int clen;
   size_t ngames, npos;
 
+  ngames = npos = 0;
+
   if (!result) return;
   if (!con) {
     *result = -1;
