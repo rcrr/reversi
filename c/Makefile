@@ -990,7 +990,7 @@ UTE_FLAME_OBJ_DEPENDENCIES := \
   $(OBJ_MAIN_OPTION_PARSE) $(OBJ_UNIT_TEST) $(OBJ_LINKED_LIST) $(OBJ_TIME_UTILS) \
   $(OBJ_LINEAR_ALGEBRA)
 
-LIB_FLAME := -lm $(FLAME_LIB) $(BLIS_LIB) -lgomp -lpthread 
+LIB_FLAME := -lm $(FLAME_LIB) $(BLIS_LIB) -lgomp -lpthread -lgfortran
 
 $(UTE_FLAME): $(UTO_FLAME) $(UTE_FLAME_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel $(TMPDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
@@ -1293,7 +1293,7 @@ UTE_LINEAR_ALGEBRA_OBJ_DEPENDENCIES := \
   $(OBJ_MAIN_OPTION_PARSE) $(OBJ_UNIT_TEST) $(OBJ_LINKED_LIST) $(OBJ_TIME_UTILS) $(OBJ_PRNG) \
   $(OBJ_LINEAR_ALGEBRA)
 
-LIB_LINEAR_ALGEBRA := -lm $(FLAME_LIB) $(BLIS_LIB) -lgomp -lpthread
+LIB_LINEAR_ALGEBRA := -lm $(FLAME_LIB) $(BLIS_LIB) -lgomp -lpthread -lgfortran
 
 $(UTE_LINEAR_ALGEBRA): $(UTO_LINEAR_ALGEBRA) $(UTE_LINEAR_ALGEBRA_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
@@ -1602,7 +1602,7 @@ BIN_RGLM_OBJ_DEPENDENCIES := \
 
 $(BIN_RGLM): $(OBJ_RGLM) $(BIN_RGLM_OBJ_DEPENDENCIES) Makefile $(BINDIR)/.dir_sentinel
 	@printf "Linking executable $@\n"
-	@$(CC) $(LDFLAGS) $< $(BIN_RGLM_OBJ_DEPENDENCIES) -lm $(FLAME_LIB) $(BLIS_LIB) -lgomp -lpthread -o $@
+	@$(CC) $(LDFLAGS) $< $(BIN_RGLM_OBJ_DEPENDENCIES) -lm $(FLAME_LIB) $(BLIS_LIB) -lgomp -lpthread -lgfortran -o $@
 
 ##
 ## rglm_data_files
@@ -1713,7 +1713,7 @@ BIN_RGLMW_OBJ_DEPENDENCIES := \
 
 $(BIN_RGLMW): $(OBJ_RGLMW) $(BIN_RGLMW_OBJ_DEPENDENCIES) Makefile $(BINDIR)/.dir_sentinel
 	@printf "Linking executable $@\n"
-	@$(CC) $(LDFLAGS) $< $(BIN_RGLMW_OBJ_DEPENDENCIES) -lm $(FLAME_LIB) $(BLIS_LIB) -lgomp -lpthread -o $@
+	@$(CC) $(LDFLAGS) $< $(BIN_RGLMW_OBJ_DEPENDENCIES) -lm $(FLAME_LIB) $(BLIS_LIB) -lgomp -lpthread -lgfortran -o $@
 
 ##
 ## sha3
@@ -1840,7 +1840,7 @@ UTE_TRSM_OBJ_DEPENDENCIES := \
   $(OBJ_MAIN_OPTION_PARSE) $(OBJ_UNIT_TEST) $(OBJ_LINKED_LIST) $(OBJ_TIME_UTILS) $(OBJ_PRNG) \
   $(OBJ_TRSM) $(OBJ_LINEAR_ALGEBRA)
 
-LIB_TRSM := -lm $(FLAME_LIB) $(BLIS_LIB) -lgomp -lpthread
+LIB_TRSM := -lm $(FLAME_LIB) $(BLIS_LIB) -lgomp -lpthread -lgfortran
 
 $(UTE_TRSM): $(UTO_TRSM) $(UTE_TRSM_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"

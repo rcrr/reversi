@@ -158,6 +158,13 @@ $ cd blis
 
 $ ./configure --help
 
+$ ls config
+a64fx	  amd64		arm64	bulldozer  cortexa57  firestorm  intel64  old	      power    power9	  rv32iv  sandybridge  steamroller  x86_64  zen3
+altra	  amd64_legacy	armsve	cortexa15  cortexa9   generic	 knc	  penryn      power10  README.md  rv64i   sifive_x280  template     zen
+altramax  arm32		bgq	cortexa53  excavator  haswell	 knl	  piledriver  power7   rv32i	  rv64iv  skx	       thunderx2    zen2
+
+# Select the architecture that fits your needs ( haswell , zen2 , ... )
+
 $ CFLAGS=-fpic ./configure --enable-cblas --enable-threading=openmp haswell
 $ make
 $ make check
