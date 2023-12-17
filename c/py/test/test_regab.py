@@ -48,7 +48,7 @@ class TestRegab(unittest.TestCase):
 
     def test_db_connection(self):
         # Connect to the REGAB tests database
-        conn = pg.connect("dbname=tst_regab user=tst_regab host=localhost port=5432")
+        conn = pg.connect("dbname=tst_regab user=tst_regab host=gandalf.skynet port=5432")
 
         # Open a cursor to perform database operations
         cur = conn.cursor()
@@ -70,7 +70,7 @@ class TestRegab(unittest.TestCase):
         conn.close()
 
     def test_init(self):
-        rc = RegabDBConnection('tst_regab', 'tst_regab', 'localhost')
+        rc = RegabDBConnection('tst_regab', 'tst_regab', 'gandalf.skynet')
         self.assertIsNotNone(rc)
         rc.close()
 
