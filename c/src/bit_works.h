@@ -230,9 +230,6 @@ bitw_tzcnt_64_tzcnt (uint64_t bit_set)
 }
 #endif
 
-/**
- * @endcond
- */
 
 __attribute__((always_inline))
 inline uint8_t

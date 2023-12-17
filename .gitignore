@@ -63,3 +63,5 @@ tmp.sh
 large_binary.*
 rglmdata
 __pycache__
+c/sql/0107_data_pattern_index_frequencies_2X6COR_762291_1000000000.sql
+

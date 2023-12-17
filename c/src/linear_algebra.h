@@ -65,6 +65,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wpedantic"
 #define BLIS_DISABLE_BLAS_DEFS
 #include "blis.h"
 #pragma GCC diagnostic pop

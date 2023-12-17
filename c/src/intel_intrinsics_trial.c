@@ -105,6 +105,11 @@ main (int argc, char *argv[])
   unsigned int level;
   unsigned int eax, ebx, ecx, edx;
 
+  eax = 0;
+  ebx = 0;
+  ecx = 0;
+  edx = 0,
+
   // level = 0x80000006;
   level = 0;
   ret = __get_cpuid(level, &eax, &ebx, &ecx, &edx);

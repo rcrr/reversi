@@ -28,3 +28,15 @@ Re-init everything by issuing the command:
 # running unit tests ( run from the $(REVERSI_HOME)/c folder )
 
 $ python -m unittest discover -s ./py
+
+######
+###### Install python packages using apt ...
+######
+
+root@legolas:~# apt install python3-full
+root@legolas:~# apt install python3-numpy
+root@legolas:~# apt install python3-pandas
+root@legolas:~# apt install python3-psycopg2
+
+rcrr@legolas:~$ pip install --break-system-packages duckdb
+

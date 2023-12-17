@@ -223,7 +223,7 @@ class SquareSet(np.uint64):
           sb = SquareSet(1)                  # sa is '0000000000000001'
           sa = sb.fill_square_at_position(1) # sb is '0000000000000003'
         """
-        return SquareSet(self | np.uint64(1) << np.uint64(pos))
+        return SquareSet(self | np.uint64(1) << np.uint64(ct.c_ulong(pos)))
 
     def remove_square_at_position(self, pos: int) -> 'SquareSet':
         """
@@ -236,7 +236,7 @@ class SquareSet(np.uint64):
           sb = SquareSet(3)                  # sa is '0000000000000003'
           sa = sb.fill_square_at_position(0) # sb is '0000000000000002'
         """
-        return SquareSet(self & ~(np.uint64(1) << np.uint64(pos)))
+        return SquareSet(self & ~(np.uint64(1) << np.uint64(ct.c_ulong(pos))))
 
     def count(self) -> int:
         """
