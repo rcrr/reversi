@@ -5,7 +5,7 @@
 # http://github.com/rcrr/reversi
 # 
 # Aauthor Roberto Corradini mailto:rob_corradini@yahoo.it
-# Copyright 2022, 2023 Roberto Corradini. All rights reserved.
+# Copyright 2022, 2023, 2024 Roberto Corradini. All rights reserved.
 #
 # License
 # 
@@ -1861,6 +1861,28 @@ test_run_a2050 = {'cfg_fname': 'cfg/regab.cfg',
                                        'finite_diff_rel_step': None},
                   }
 
+test_run_g2050 = {'cfg_fname': 'cfg/regab.cfg',
+                  'env': 'test',
+                  'ec': 20,
+                  'batches': [3,9,12],
+                  'vld_batches': [5],
+                  'statuses': 'CMR,CMS',
+                  'vld_statuses': 'CMR,CMS',
+                  'features': 'INTERCEPT,MOBILITY3',
+                  'patterns': 'XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR',
+                  'ridge_reg_param': 0.01,
+                  'l_bfgs_b_options': {'disp': True,
+                                       'maxcor': 50,
+                                       'ftol': 1e-08,
+                                       'gtol': 1e-05,
+                                       'eps': 1e-08,
+                                       'maxfun': 5000,
+                                       'maxiter': 5000,
+                                       'iprint': 1,
+                                       'maxls': 20,
+                                       'finite_diff_rel_step': None},
+                  }
+
 test_run_t2030 = {'cfg_fname': 'cfg/regab.cfg',
                   'env': 'test',
                   'ec': 20,
@@ -1914,6 +1936,50 @@ test_run_t2099 = {'cfg_fname': 'cfg/regab.cfg',
                   'vld_statuses': 'CMR,CMS',
                   'features': 'INTERCEPT,MOBILITY3',
                   'patterns': '2X6COR',
+                  'ridge_reg_param': 0.01,
+                  'l_bfgs_b_options': {'disp': True,
+                                       'maxcor': 50,
+                                       'ftol': 1e-08,
+                                       'gtol': 1e-05,
+                                       'eps': 1e-08,
+                                       'maxfun': 5000,
+                                       'maxiter': 5000,
+                                       'iprint': 1,
+                                       'maxls': 20,
+                                       'finite_diff_rel_step': None},
+                  }
+
+test_run_g2099 = {'cfg_fname': 'cfg/regab.cfg',
+                  'env': 'test',
+                  'ec': 20,
+                  'batches': [3,9,12],
+                  'vld_batches': [5],
+                  'statuses': 'CMR,CMS',
+                  'vld_statuses': 'CMR,CMS',
+                  'features': 'INTERCEPT,MOBILITY3',
+                  'patterns': '2X6COR',
+                  'ridge_reg_param': 0.01,
+                  'l_bfgs_b_options': {'disp': True,
+                                       'maxcor': 50,
+                                       'ftol': 1e-08,
+                                       'gtol': 1e-05,
+                                       'eps': 1e-08,
+                                       'maxfun': 5000,
+                                       'maxiter': 5000,
+                                       'iprint': 1,
+                                       'maxls': 20,
+                                       'finite_diff_rel_step': None},
+                  }
+
+test_run_g2098 = {'cfg_fname': 'cfg/regab.cfg',
+                  'env': 'test',
+                  'ec': 20,
+                  'batches': [3,9,12],
+                  'vld_batches': [5],
+                  'statuses': 'CMR,CMS',
+                  'vld_statuses': 'CMR,CMS',
+                  'features': 'INTERCEPT,MOBILITY3',
+                  'patterns': 'XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X6COR',
                   'ridge_reg_param': 0.01,
                   'l_bfgs_b_options': {'disp': True,
                                        'maxcor': 50,

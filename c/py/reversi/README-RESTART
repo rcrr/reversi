@@ -1,0 +1,880 @@
+
+##
+## 2024-02-19 - README RESTART
+##
+
+#
+# After a long pause ....
+#
+
+#
+# Start a simulation ... test_run_0
+#
+
+rcrr@legolas:~/base/prj/reversi/c$ python3
+Python 3.11.2 (main, Mar 13 2023, 12:18:29) [GCC 12.2.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> 
+>>> exec(open("py/reversi/start.py").read())
+>>> 
+>>> m = rglm_workflow(test_run_0)
+m = Rglm()                                                                       0 days 00:00:00.000095561
+m = m.set_conn(<reversi.regab.RegabDBConnection object at 0x7f200bfe6410>)       0 days 00:00:00.000004630
+m = m.set_empty_count(20)                                                        0 days 00:00:00.000006923
+m = m.set_batches([7, 6])                                                        0 days 00:00:00.000020899
+m = m.set_vld_batches([5])                                                       0 days 00:00:00.000002685
+m = m.set_statuses(CMR,CMS)                                                      0 days 00:00:00.000022101
+m = m.set_vld_statuses(CMR,CMS)                                                  0 days 00:00:00.000008927
+m = m.retrieve_game_positions()                                                  0 days 00:00:03.445041401
+m = m.retrieve_vld_game_positions()                                              0 days 00:00:00.186020251
+m = m.set_features(INTERCEPT,MOBILITY3)                                          0 days 00:00:00.000012504
+m = m.set_patterns(EDGE,DIAG3)                                                   0 days 00:00:00.000008466
+m = m.compute_feature_values()                                                   0 days 00:00:05.055808027
+m = m.compute_vld_feature_values()                                               0 days 00:00:00.492334367
+m = m.compute_indexes()                                                          0 days 00:00:28.456128258
+m = m.compute_vld_indexes()                                                      0 days 00:00:02.834530569
+m = m.combine_gps_features_patterns()                                            0 days 00:00:00.002321957
+m = m.combine_vld_gps_features_patterns()                                        0 days 00:00:00.000636488
+m = m.compute_vmaps()                                                            0 days 00:00:00.110376983
+m = m.compute_gpxpidf()                                                          0 days 00:00:03.169899253
+m = m.compute_x()                                                                0 days 00:00:00.140093738
+m = m.compute_y()                                                                0 days 00:00:00.000535887
+m = m.compute_analytics()                                                        0 days 00:00:01.110623543
+m = m.retrieve_expected_probabilities_from_regab_db()                            0 days 00:00:00.866070922
+m = m.optimize(0.1, {...})                                                       0 days 00:00:14.146707154
+   l_bfgs_b_options = {'disp': False, 'maxcor': 50, 'ftol': 1e-08, 'gtol': 1e-05, 'eps': 1e-08, 'maxfun': 5000, 'maxiter': 5000, 'iprint': 1, 'maxls': 20, 'finite_diff_rel_step': None}
+m = m.compute_wmean_for_patterns()                                               0 days 00:00:00.004019398
+m = m.compute_evmap()                                                            0 days 00:00:00.136102334
+m = m.compute_ievmap()                                                           0 days 00:00:00.001648097
+m = m.compute_vld_gpxpidf()                                                      0 days 00:00:00.273893902
+m = m.compute_vld_x()                                                            0 days 00:00:00.013270864
+m = m.compute_vld_y()                                                            0 days 00:00:00.000622331
+m = m.validate()                                                                 0 days 00:00:00.024728277
+>>>
+>>> m.populate_cthelper()
+>>> m._CTHelper
+<reversi.rglm._RglmdfGeneralDataCTHelper object at 0x7f201355f770>
+>>> m.write_to_binary_file("./tmp/test_run_0_model.dat")
+
+rcrr@legolas:~/base/prj/reversi/c$ ls -l tmp/
+total 22016
+-rw-r--r-- 1 rcrr rcrr 22538962 Feb 19 11:20 test_run_0_model.dat
+-rw-r--r-- 1 rcrr rcrr       93 Feb 19 11:20 test_run_0_model.dat.SHA3-256
+
+rcrr@legolas:~/base/prj/reversi/c$ ./build/bin/rglm -v -i tmp/test_run_0_model.dat -B tmp/test_run_0_model.dat.B.csv
+Opening RGLM general data binary file: "tmp/test_run_0_model.dat" - SHA3-256 file digest: 2bb6852f2e75169244c09f7bb098fb6fe4f1d9ee3204f80bf5d13228d0cfd50e
+Input file started to be written on (UTC) Mon Feb 19 11:20:14 2024
+The format of the binary data file is: GENERAL
+Selected batch_id values: 7, 6
+Selected empty_count value: 20
+Selected position_statuses values: CMR, CMS
+Selected feature values: INTERCEPT, MOBILITY3
+Selected pattern values: EDGE, DIAG3
+Position Summary Table: number of tuples = 4; game position count = 199952
+Feature and Pattern Frequency Summary Table: number of tuples = 2985
+  Feature id:  0 [ INTERCEPT][     1][F_000:F_000], total_cnt =   199952
+  Feature id:  3 [ MOBILITY3][     3][F_001:F_003], total_cnt =   599856
+  Pattern id:  0     [  EDGE][  2963][I_000:I_003], total_cnt =   799808, gp_cnt =   199952, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.9999
+  Pattern id: 12     [ DIAG3][    18][I_004:I_007], total_cnt =   799808, gp_cnt =   199952, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+The reverse map "(entity_class, entity_id, principal_index_value) --> glm_variable_id" has been computed.
+All 199952 solved and classified game positions has been read succesfully.
+Feature and pattern frequencies summary table dumped to CSV file: "tmp/test_run_0_model.dat.B.csv".
+
+rcrr@legolas:~/base/prj/reversi/c$ ls -la tmp/
+total 22480
+drwxr-xr-x  2 rcrr rcrr     4096 Feb 19 15:23 .
+drwxr-xr-x 17 rcrr rcrr     4096 Feb 19 11:10 ..
+-rw-r--r--  1 rcrr rcrr 22538962 Feb 19 11:20 test_run_0_model.dat
+-rw-r--r--  1 rcrr rcrr   465816 Feb 19 15:23 test_run_0_model.dat.B.csv
+-rw-r--r--  1 rcrr rcrr       93 Feb 19 11:20 test_run_0_model.dat.SHA3-256
+
+rcrr@legolas:~/base/prj/reversi/c$ head tmp/test_run_0_model.dat.B.csv 
+     SEQ; GLM_VARIABLE_ID;   ENTITY_CLASS;  ENTITY_ID; PRINCIPAL_INDEX_VALUE;   TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_PROBABILITY;              WEIGHT
+00000000;               0;              0;          0;                     0;      199952;           1.000000;                1.000000;  -0.652123969886748
+00000001;               1;              0;          3;                     0;      199952;           1.000000;                1.000000;  +3.751198067211907
+00000002;               2;              0;          3;                     1;      199952;           1.000000;                1.000000;  -1.900639902651130
+00000003;               3;              0;          3;                     2;      199952;           1.000000;                1.000000;  +0.420505714461686
+00000004;               4;              1;          0;                     0;       17915;           0.022399;                0.020310;  -0.104686447372792
+00000005;               5;              1;          0;                     1;        6375;           0.007971;                0.007276;  +0.062699457860649
+00000006;               6;              1;          0;                     2;        6875;           0.008596;                0.007536;  -0.242233708714368
+00000007;               7;              1;          0;                     3;        6683;           0.008356;                0.007751;  -0.227637596370059
+00000008;               8;              1;          0;                     4;         992;           0.001240;                0.001163;  +0.193080912657796
+
+rcrr@legolas:~/base/prj/reversi/c$ ./build/bin/rglm -v -i tmp/test_run_0_model.dat -w tmp/test_run_0_model.dat.w.dat
+Opening RGLM general data binary file: "tmp/test_run_0_model.dat" - SHA3-256 file digest: 2bb6852f2e75169244c09f7bb098fb6fe4f1d9ee3204f80bf5d13228d0cfd50e
+Input file started to be written on (UTC) Mon Feb 19 11:20:14 2024
+The format of the binary data file is: GENERAL
+Selected batch_id values: 7, 6
+Selected empty_count value: 20
+Selected position_statuses values: CMR, CMS
+Selected feature values: INTERCEPT, MOBILITY3
+Selected pattern values: EDGE, DIAG3
+Position Summary Table: number of tuples = 4; game position count = 199952
+Feature and Pattern Frequency Summary Table: number of tuples = 2985
+  Feature id:  0 [ INTERCEPT][     1][F_000:F_000], total_cnt =   199952
+  Feature id:  3 [ MOBILITY3][     3][F_001:F_003], total_cnt =   599856
+  Pattern id:  0     [  EDGE][  2963][I_000:I_003], total_cnt =   799808, gp_cnt =   199952, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.9999
+  Pattern id: 12     [ DIAG3][    18][I_004:I_007], total_cnt =   799808, gp_cnt =   199952, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+The reverse map "(entity_class, entity_id, principal_index_value) --> glm_variable_id" has been computed.
+All 199952 solved and classified game positions has been read succesfully.
+RGLM model weights binary file written to tmp/test_run_0_model.dat.w.dat
+
+rcrr@legolas:~/base/prj/reversi/c$ ./build/bin/rglmw -v -w tmp/test_run_0_model.dat.w.dat -W tmp/test_run_0_model.dat.w.dat.W.csv
+Opening RGLM model weights binary file: "tmp/test_run_0_model.dat.w.dat" - SHA3-256 file digest: a2b18d72e4dd0938fb27ea44784ee6009cb43f47de4ad39ff5302e5bbf95d9cd
+Input file started to be written on (UTC) Mon Feb 19 15:26:23 2024
+General data checksum (SHA3-256 file digest): 2bb6852f2e75169244c09f7bb098fb6fe4f1d9ee3204f80bf5d13228d0cfd50e
+Game position sample size: 199952
+Empty count: 20
+Feature count: 2
+Features: INTERCEPT, MOBILITY3
+Pattern count: 2
+Patterns: EDGE, DIAG3
+Weight array size: 6592
+Read 6592 weight records.
+File: "tmp/test_run_0_model.dat.w.dat" read and closed succesfully.
+Reverse map computed succesfully.
+RGLM model weights data structure loaded and ready.
+RGLM model weights table exported to CSV file: "tmp/test_run_0_model.dat.w.dat.W.csv".
+
+rcrr@legolas:~/base/prj/reversi/c$ head tmp/test_run_0_model.dat.w.dat.W.csv 
+   SEQ; ENTITY_CLASS; ENTITY_ID; INDEX_VALUE; PRINCIPAL_INDEX_VALUE; GLM_VARIABLE_ID;  TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_PROBABILITY;                  WEIGHT
+000000;            0;         0;           0;                     0;               0;     199952;  1.000000000000000;       1.000000000000000;      -0.652123969886748
+000001;            0;         3;           0;                     0;               1;     199952;  1.000000000000000;       1.000000000000000;      +3.751198067211907
+000002;            0;         3;           1;                     1;               2;     199952;  1.000000000000000;       1.000000000000000;      -1.900639902651130
+000003;            0;         3;           2;                     2;               3;     199952;  1.000000000000000;       1.000000000000000;      +0.420505714461686
+000004;            1;         0;           0;                     0;               4;      17915;  0.022399125790190;       0.020310218928538;      -0.104686447372792
+000005;            1;         0;           1;                     1;               5;       6375;  0.007970662959110;       0.007275793613507;      +0.062699457860649
+000006;            1;         0;           2;                     2;               6;       6875;  0.008595812995119;       0.007536261260438;      -0.242233708714368
+000007;            1;         0;           3;                     3;               7;       6683;  0.008355755381292;       0.007751301275305;      -0.227637596370059
+000008;            1;         0;           4;                     4;               8;        992;  0.001240297671441;       0.001163245451456;      +0.193080912657796
+
+#
+# Good! Python and C implementations are fully interoperable.
+#
+# Now ... we do need to compute the MORE complex PATTERNS ...
+#
+# Test the call to:
+#
+#    >>> m1 = rglm_workflow(test_run_t2099)
+#
+# this call loads and solves 2X6COR pattern ...
+#
+
+>>> m1 = rglm_workflow(test_run_t2099)
+m = Rglm()                                                                       0 days 00:00:00.000600059
+m = m.set_conn(<reversi.regab.RegabDBConnection object at 0x7f2002a8be50>)       0 days 00:00:00.000005841
+m = m.set_empty_count(20)                                                        0 days 00:00:00.000208155
+m = m.set_batches([3])                                                           0 days 00:00:00.000242721
+m = m.set_vld_batches([6])                                                       0 days 00:00:00.000004748
+m = m.set_statuses(CMR,CMS)                                                      0 days 00:00:00.000253732
+m = m.set_vld_statuses(CMR,CMS)                                                  0 days 00:00:00.000005330
+m = m.retrieve_game_positions()                                                  0 days 00:05:40.890301476
+m = m.retrieve_vld_game_positions()                                              0 days 00:00:01.668917620
+m = m.set_features(INTERCEPT,MOBILITY3)                                          0 days 00:00:00.000144625
+m = m.set_patterns(2X6COR)                                                       0 days 00:00:00.000195510
+m = m.compute_feature_values()                                                   0 days 00:00:50.337347026
+m = m.compute_vld_feature_values()                                               0 days 00:00:04.919657197
+m = m.compute_indexes()                                                          0 days 00:04:31.998923717
+m = m.compute_vld_indexes()                                                      0 days 00:00:26.279741416
+m = m.combine_gps_features_patterns()                                            0 days 00:00:00.040283262
+m = m.combine_vld_gps_features_patterns()                                        0 days 00:00:00.002112940
+m = m.compute_vmaps()                                                            0 days 00:00:03.307662965
+m = m.compute_gpxpidf()                                                          0 days 00:02:00.590607698
+m = m.compute_x()                                                                0 days 00:00:01.781421138
+m = m.compute_y()                                                                0 days 00:00:00.009053342
+m = m.compute_analytics()                                                        0 days 00:01:13.036834507
+m = m.retrieve_expected_probabilities_from_regab_db()                            0 days 00:00:00.039463434
+RUNNING THE L-BFGS-B CODE
+
+           * * *
+
+Machine precision = 2.220D-16
+ N =       259771     M =           50
+ This problem is unconstrained.
+
+At X0         0 variables are exactly at the bounds
+
+At iterate    0    f=  4.09934D+04    |proj g|=  6.21430D+03
+
+At iterate    1    f=  3.22332D+04    |proj g|=  3.52065D+03
+
+At iterate    2    f=  3.09556D+04    |proj g|=  1.23765D+04
+
+...
+...
+...
+
+At iterate  884    f=  3.66615D+03    |proj g|=  1.37451D+00
+
+           * * *
+
+Tit   = total number of iterations
+Tnf   = total number of function evaluations
+Tnint = total number of segments explored during Cauchy searches
+Skip  = number of BFGS updates skipped
+Nact  = number of active bounds at final generalized Cauchy point
+Projg = norm of the final projected gradient
+F     = final function value
+
+           * * *
+
+   N    Tit     Tnf  Tnint  Skip  Nact     Projg        F
+*****    884    978      1     0     0   1.375D+00   3.666D+03
+  F =   3666.1528749771405     
+
+CONVERGENCE: REL_REDUCTION_OF_F_<=_FACTR*EPSMCH             
+m = m.optimize(0.01, {...})                                                      0 days 00:07:31.952799513
+   l_bfgs_b_options = {'disp': True, 'maxcor': 50, 'ftol': 1e-08, 'gtol': 1e-05, 'eps': 1e-08, 'maxfun': 5000, 'maxiter': 5000, 'iprint': 1, 'maxls': 20, 'finite_diff_rel_step': None}
+m = m.compute_wmean_for_patterns()                                               0 days 00:00:00.020537957
+m = m.compute_evmap()                                                            0 days 00:00:09.432458037
+m = m.compute_ievmap()                                                           0 days 00:00:00.052327394
+m = m.compute_vld_gpxpidf()                                                      0 days 00:00:05.082752619
+m = m.compute_vld_x()                                                            0 days 00:00:00.139989969
+m = m.compute_vld_y()                                                            0 days 00:00:00.008324638
+m = m.validate()                                                                 0 days 00:00:00.245568783
+
+##
+## Constatato che gira, quale e' l'obiettivo ?
+##
+## Vorrei poter eseguire una OTTIMIZZAZIONE dei PESI come segue ...
+##
+## Lanciare la A2050 , che e' il mio riferimento. Ed ottenere:
+##
+## Valore RESIDUAL_SD e valore VALIDATION_SD in linea con le aspettative.
+##
+##   RESIDUAL_SD:   0.053658
+##   VALIDATION_SD: 0.056387
+##
+## Estraiamo i PESI, verifichiamo che siano "equivalenti" a quelli attuali
+## ed usiamoli nel SOLVER.
+##
+## Ottenuto questo risultato passiamo a fare una G2050, dove il dataset passa
+## da 2M a 14M ... i risultati dovrebbero essere sostanzialmente uguali.
+##
+## A questo punto va testato il PATTERN 2X6COR, che con Newton/Cholesky/C non si puo' risolvere
+## mentre con L-BFGS-B/Python si dovrebbe riuscire.
+##
+## --- Domanda --- Cosa manca per poter effettuare queste prove in termini di codice ?
+##
+
+### 2024-03-30
+
+>>> m = rglm_workflow(test_run_a2050)
+m = Rglm()                                                                       0 days 00:00:00.000020980
+m = m.set_conn(<reversi.regab.RegabDBConnection object at 0x7efc38c62710>)       0 days 00:00:00.000002195
+m = m.set_empty_count(20)                                                        0 days 00:00:00.000003126
+m = m.set_batches([3])                                                           0 days 00:00:00.000006173
+m = m.set_vld_batches([5])                                                       0 days 00:00:00.000003717
+m = m.set_statuses(CMR,CMS)                                                      0 days 00:00:00.000009818
+m = m.set_vld_statuses(CMR,CMS)                                                  0 days 00:00:00.000005260
+m = m.retrieve_game_positions()                                                  0 days 00:00:40.426234165
+m = m.retrieve_vld_game_positions()                                              0 days 00:00:00.083183211
+m = m.set_features(INTERCEPT,MOBILITY3)                                          0 days 00:00:00.000013265
+m = m.set_patterns(XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR)   0 days 00:00:00.000024347
+m = m.compute_feature_values()                                                   0 days 00:00:49.132051866
+m = m.compute_vld_feature_values()                                               0 days 00:00:00.524928095
+m = m.compute_indexes()                                                          0 days 00:24:16.658371076
+m = m.compute_vld_indexes()                                                      0 days 00:00:14.549696369
+m = m.combine_gps_features_patterns()                                            0 days 00:00:00.014589559
+m = m.combine_vld_gps_features_patterns()                                        0 days 00:00:00.000709466
+m = m.compute_vmaps()                                                            0 days 00:00:07.202302233
+m = m.compute_gpxpidf()                                                          0 days 00:04:03.651099713
+m = m.compute_x()                                                                0 days 00:00:05.206355421
+m = m.compute_y()                                                                0 days 00:00:00.174782697
+m = m.compute_analytics()                                                        0 days 00:00:39.375721680
+m = m.retrieve_expected_probabilities_from_regab_db()                            0 days 00:00:05.316984014
+RUNNING THE L-BFGS-B CODE
+
+           * * *
+
+Machine precision = 2.220D-16
+ N =        77925     M =           50
+ This problem is unconstrained.
+
+At X0         0 variables are exactly at the bounds
+
+At iterate    0    f=  4.09934D+04    |proj g|=  7.06421D+03
+
+At iterate    1    f=  2.47393D+04    |proj g|=  1.14540D+04
+
+... ... ...
+
+At iterate 1665    f=  2.88415D+03    |proj g|=  2.00721D+00
+
+           * * *
+
+Tit   = total number of iterations
+Tnf   = total number of function evaluations
+Tnint = total number of segments explored during Cauchy searches
+Skip  = number of BFGS updates skipped
+Nact  = number of active bounds at final generalized Cauchy point
+Projg = norm of the final projected gradient
+F     = final function value
+
+           * * *
+
+   N    Tit     Tnf  Tnint  Skip  Nact     Projg        F
+77925   1665   1772      1     0     0   2.007D+00   2.884D+03
+  F =   2884.1457738338113     
+
+CONVERGENCE: REL_REDUCTION_OF_F_<=_FACTR*EPSMCH             
+m = m.optimize(0.01, {...})                                                      0 days 00:19:54.079458325
+   l_bfgs_b_options = {'disp': True, 'maxcor': 50, 'ftol': 1e-08, 'gtol': 1e-05, 'eps': 1e-08, 'maxfun': 5000, 'maxiter': 5000, 'iprint': 1, 'maxls': 20, 'finite_diff_rel_step': None}
+m = m.compute_wmean_for_patterns()                                               0 days 00:00:00.042017695
+m = m.compute_evmap()                                                            0 days 00:00:03.189142617
+m = m.compute_ievmap()                                                           0 days 00:00:00.011540615
+m = m.compute_vld_gpxpidf()                                                      0 days 00:00:04.092334088
+m = m.compute_vld_x()                                                            0 days 00:00:00.024959277
+m = m.compute_vld_y()                                                            0 days 00:00:00.002310378
+m = m.validate()                                                                 0 days 00:00:00.224644138
+munmap_chunk(): invalid pointer
+Aborted
+
+###
+### Mmmmmmmmmmmmm !!!
+###
+
+#
+# F = 2884 ... F (A2050_01.log in lake) = 2878 ...
+#
+# mi pare giusto ... consideriamo che l_bfgs_b ha 0.01 di smorzamento RIDGE ...
+#
+# Pero' e' andato in crash sulla chiamata m.validate() ... TUTTO DA INDAGARE ...
+#
+# >>> opt_residual_norm = np.linalg.norm(m.r)
+# >>> opt_residual_norm
+# 75.88023015791549
+# >>> opt_residual_mean = np.mean(m.r)
+# >>> opt_residual_mean
+# 0.00024471214729192015
+# >>> opt_residual_std = np.std(m.r)
+# >>> opt_residual_std
+# 0.05366588353938643
+#
+# File A2050_01.log :
+#
+# Termination criteria reached:
+#    Residual: mean =  0.000248990348, variance =  0.002879216328, standard deviation =  0.053658329528 ( 7.01) [ 8]
+#    Effe             =        2878.089181967358854308
+#    Residual modulus =          75.869482428277564168; abs min = [    0.000000000000000000,  513518]; abs max = [    0.507195317033750204,  787031]
+#    Gradient modulus =           0.000000000960248438; abs min = [    0.000000000000000000,   11033]; abs max = [    0.000000000404665496,       0]
+# Binary output file written to ./rglmdata/A2050_01.dat, computed SHA3-256 digest, written to file ./rglmdata/A2050_01.dat.sha3-256.
+#
+#
+# Direi proprio che ci siamo. Le due ottimizzazioni sono analoghe.
+#
+# >>> vld_residual_norm = np.linalg.norm(m.vld_r)
+# >>> vld_residual_norm
+# 7.940609967376157
+# >>> vld_residual_mean = np.mean(m.vld_r)
+# >>> vld_residual_mean
+# -0.0004977429764420205
+# >>> vld_residual_std = np.std(m.vld_r)
+# >>> vld_residual_std
+# 0.05614638532113255
+#
+# Addirittura vld_residual_std e' piu' bassa di VALIDATION_SD (0.056387). Eccellente!
+#
+# >>> opt_function_value = 0.5 * sum(m.r**2)
+# >>> opt_function_value
+# 2878.9046644091136
+#
+# Incredibile! La funzione da minimizzare, depurata dalla REGOLARIZZAZIONE di Ridge vale 2878.
+# Come con la ottimizzazione fatta con Newton/Cholesky
+#
+# Rilanciato ha funzionato bene.
+# >>> m.vld_summary
+# {'ref_residual_norm': 286.3333115158032,
+#  'ref_residual_mean': -0.010151768707304347,
+#  'ref_residual_std': 0.2022551826979362,
+#  'opt_residual_norm': 75.88023015791549,
+#  'opt_residual_mean': 0.00024471214729192015,
+#  'opt_residual_std': 0.05366588353938643,
+#  'vld_residual_norm': 7.940609967376157,
+#  'vld_residual_mean': -0.0004977429764420205,
+#  'vld_residual_std': 0.05614638532113255,
+#  'opt_function_value': 2878.9046644091136,
+#  'vld_function_value': 31.526643326996787}
+#
+## Ora estraiamo i PESI, verifichiamo che siano "equivalenti" a quelli attuali
+## ed usiamoli nel SOLVER.
+#
+# >>> m.populate_cthelper()
+# >>> m.write_to_binary_file("./tmp/test_run_a2050_0_model.dat")
+#
+
+rcrr@legolas:~/base/prj/reversi/c$ ls -la tmp/
+total 773804
+drwxr-xr-x  2 rcrr rcrr      4096 Mar 30 16:57 .
+drwxr-xr-x 17 rcrr rcrr      4096 Feb 19 11:10 ..
+-rw-r--r--  1 rcrr rcrr  22538962 Mar 30 08:27 test_run_0_model.dat
+-rw-r--r--  1 rcrr rcrr    465816 Feb 19 15:23 test_run_0_model.dat.B.csv
+-rw-r--r--  1 rcrr rcrr        93 Mar 30 08:27 test_run_0_model.dat.SHA3-256
+-rw-r--r--  1 rcrr rcrr    316578 Feb 19 15:26 test_run_0_model.dat.w.dat
+-rw-r--r--  1 rcrr rcrr        97 Feb 19 15:26 test_run_0_model.dat.w.dat.SHA3-256
+-rw-r--r--  1 rcrr rcrr   1101031 Feb 19 15:28 test_run_0_model.dat.w.dat.W.csv
+-rw-r--r--  1 rcrr rcrr 531531716 Mar 30 16:57 test_run_a2050_0_model.dat
+-rw-r--r--  1 rcrr rcrr        99 Mar 30 16:57 test_run_a2050_0_model.dat.SHA3-256
+-rw-r--r--  1 rcrr rcrr 236385096 Feb 22 17:47 test_run_t2099_model.dat
+-rw-r--r--  1 rcrr rcrr        97 Feb 22 17:47 test_run_t2099_model.dat.SHA3-256
+
+rcrr@legolas:~/base/prj/reversi/c$ ./build/bin/rglm -v -i tmp/test_run_a2050_0_model.dat -B tmp/test_run_a2050_0_model.dat.B.csv
+Opening RGLM general data binary file: "tmp/test_run_a2050_0_model.dat" - SHA3-256 file digest: c35a8909790bf281927599076047abaaa688fb1af83ed94d0e0aefae32de23e0
+Input file started to be written on (UTC) Sat Mar 30 16:57:47 2024
+The format of the binary data file is: GENERAL
+Selected batch_id values: 3
+Selected empty_count value: 20
+Selected position_statuses values: CMR, CMS
+Selected feature values: INTERCEPT, MOBILITY3
+Selected pattern values: CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR
+Position Summary Table: number of tuples = 2; game position count = 1999179
+Feature and Pattern Frequency Summary Table: number of tuples = 77925
+  Feature id:  0 [ INTERCEPT][     1][F_000:F_000], total_cnt =  1999179
+  Feature id:  3 [ MOBILITY3][     3][F_001:F_003], total_cnt =  5997537
+  Pattern id:  1     [CORNER][  5156][I_000:I_003], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  2     [ XEDGE][ 24046][I_004:I_007], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.9998
+  Pattern id:  3     [    R2][  3321][I_008:I_011], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  4     [    R3][  3304][I_012:I_015], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  5     [    R4][  1485][I_016:I_019], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  6     [ DIAG4][    45][I_020:I_023], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  7     [ DIAG5][   135][I_024:I_027], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  8     [ DIAG6][   378][I_028:I_031], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  9     [ DIAG7][   756][I_032:I_035], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id: 10     [ DIAG8][  1448][I_036:I_037], total_cnt =  3998358, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id: 11     [2X5COR][ 37847][I_038:I_045], total_cnt = 15993432, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.9999
+The reverse map "(entity_class, entity_id, principal_index_value) --> glm_variable_id" has been computed.
+All 1999179 solved and classified game positions has been read succesfully.
+Feature and pattern frequencies summary table dumped to CSV file: "tmp/test_run_a2050_0_model.dat.B.csv".
+
+#
+# I due files B sono sostanzialmente identici, quello nuovo ha 1999179 posizioni contro il vecchio che ne ha 1999175, 4 in meno.
+#
+# Strano, come se fossero state aggiunte, o rimosse dalla macchina di test dove furono calcolati.
+#
+# A parte questo si assomigliano alquanto per le statistiche delle frequenze dei pattern.
+#
+# I valori dei pesi sono invece molto diversi. Quello nuovo (l_bfgs_b) con la regolarizzazione e' raccolto intorno allo zero.
+# Il vecchio invece ha un alto valore della INTERCEPT ( negativo ) e praticamente tutti i pesi positivi.
+# Chiaramente mi piace piu' il nuovo.
+#
+
+rcrr@legolas:~/base/prj/reversi/c$ ./build/bin/rglm -v -i tmp/test_run_a2050_0_model.dat -w tmp/test_run_a2050_0_model.dat.w.dat
+Opening RGLM general data binary file: "tmp/test_run_a2050_0_model.dat" - SHA3-256 file digest: c35a8909790bf281927599076047abaaa688fb1af83ed94d0e0aefae32de23e0
+Input file started to be written on (UTC) Sat Mar 30 16:57:47 2024
+The format of the binary data file is: GENERAL
+Selected batch_id values: 3
+Selected empty_count value: 20
+Selected position_statuses values: CMR, CMS
+Selected feature values: INTERCEPT, MOBILITY3
+Selected pattern values: CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR
+Position Summary Table: number of tuples = 2; game position count = 1999179
+Feature and Pattern Frequency Summary Table: number of tuples = 77925
+  Feature id:  0 [ INTERCEPT][     1][F_000:F_000], total_cnt =  1999179
+  Feature id:  3 [ MOBILITY3][     3][F_001:F_003], total_cnt =  5997537
+  Pattern id:  1     [CORNER][  5156][I_000:I_003], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  2     [ XEDGE][ 24046][I_004:I_007], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.9998
+  Pattern id:  3     [    R2][  3321][I_008:I_011], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  4     [    R3][  3304][I_012:I_015], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  5     [    R4][  1485][I_016:I_019], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  6     [ DIAG4][    45][I_020:I_023], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  7     [ DIAG5][   135][I_024:I_027], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  8     [ DIAG6][   378][I_028:I_031], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  9     [ DIAG7][   756][I_032:I_035], total_cnt =  7996716, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id: 10     [ DIAG8][  1448][I_036:I_037], total_cnt =  3998358, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id: 11     [2X5COR][ 37847][I_038:I_045], total_cnt = 15993432, gp_cnt =  1999179, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.9999
+The reverse map "(entity_class, entity_id, principal_index_value) --> glm_variable_id" has been computed.
+All 1999179 solved and classified game positions has been read succesfully.
+RGLM model weights binary file written to tmp/test_run_a2050_0_model.dat.w.dat
+
+rcrr@legolas:~/base/prj/reversi/c$ ./build/bin/rglmw -v -w tmp/test_run_a2050_0_model.dat.w.dat -W tmp/test_run_a2050_0_model.dat.w.dat.W.csv
+Opening RGLM model weights binary file: "tmp/test_run_a2050_0_model.dat.w.dat" - SHA3-256 file digest: 19f3b1fcc3a4843e1c3b58ab2c3805c773aaef58a8fc9b6a9694e3d4b4689adf
+Input file started to be written on (UTC) Sat Mar 30 17:25:16 2024
+General data checksum (SHA3-256 file digest): c35a8909790bf281927599076047abaaa688fb1af83ed94d0e0aefae32de23e0
+Game position sample size: 1999179
+Empty count: 20
+Feature count: 2
+Features: INTERCEPT, MOBILITY3
+Pattern count: 11
+Patterns: CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR
+Weight array size: 167269
+Read 167269 weight records.
+File: "tmp/test_run_a2050_0_model.dat.w.dat" read and closed succesfully.
+Reverse map computed succesfully.
+RGLM model weights data structure loaded and ready.
+RGLM model weights table exported to CSV file: "tmp/test_run_a2050_0_model.dat.w.dat.W.csv".
+
+rcrr@legolas:~/base/prj/reversi/c$ head tmp/test_run_a2050_0_model.dat.w.dat.W.csv
+   SEQ; ENTITY_CLASS; ENTITY_ID; INDEX_VALUE; PRINCIPAL_INDEX_VALUE; GLM_VARIABLE_ID;  TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_PROBABILITY;                  WEIGHT
+000000;            0;         0;           0;                     0;               0;    1999179;  1.000000000000000;       1.000000000000000;      -0.608710627648839
+000001;            0;         3;           0;                     0;               1;    1999179;  1.000000000000000;       1.000000000000000;      +3.795333860969805
+000002;            0;         3;           1;                     1;               2;    1999179;  1.000000000000000;       1.000000000000000;      -4.851836842774922
+000003;            0;         3;           2;                     2;               3;    1999179;  1.000000000000000;       1.000000000000000;      +2.702737567687853
+000004;            1;         1;           0;                     0;               4;      45603;  0.005702715964904;       0.005269834368881;      +0.048147129652581
+000005;            1;         1;           1;                     1;              -1;          0;  0.000000000000000;      -1.000000000000000;      -0.001996293553002
+000006;            1;         1;           2;                     2;              -1;          0;  0.000000000000000;      -1.000000000000000;      -0.001996293553002
+000007;            1;         1;           3;                     3;              -1;          0;  0.000000000000000;      -1.000000000000000;      -0.001996293553002
+000008;            1;         1;           4;                     4;              -1;          0;  0.000000000000000;      -1.000000000000000;      -0.001996293553002
+
+##
+## Morale funziona tutto !
+##
+##
+##
+
+>>> m.vld_summary
+{'ref_residual_norm': 757.9759609094465,
+ 'ref_residual_mean': -0.010118238197262068,
+ 'ref_residual_std': 0.20236378310943626,
+ 'opt_residual_norm': 204.15463665835114,
+ 'opt_residual_mean': 0.0002526976189606844,
+ 'opt_residual_std': 0.05457253717076699,
+ 'vld_residual_norm': 7.763788028599605,
+ 'vld_residual_mean': -0.0014373908912673084,
+ 'vld_residual_std': 0.05487945093636625,
+ 'opt_function_value': 20839.557834551688,
+ 'vld_function_value': 30.138202276513276}
+
+rcrr@legolas:~/base/prj/reversi/c$ ls -la tmp/
+total 4432664
+drwxr-xr-x  2 rcrr rcrr       4096 Mar 31 18:24 .
+drwxr-xr-x 17 rcrr rcrr       4096 Feb 19 11:10 ..
+-rw-r--r--  1 rcrr rcrr   22538962 Mar 30 08:27 test_run_0_model.dat
+-rw-r--r--  1 rcrr rcrr     465816 Feb 19 15:23 test_run_0_model.dat.B.csv
+-rw-r--r--  1 rcrr rcrr         93 Mar 30 08:27 test_run_0_model.dat.SHA3-256
+-rw-r--r--  1 rcrr rcrr     316578 Feb 19 15:26 test_run_0_model.dat.w.dat
+-rw-r--r--  1 rcrr rcrr         97 Feb 19 15:26 test_run_0_model.dat.w.dat.SHA3-256
+-rw-r--r--  1 rcrr rcrr    1101031 Feb 19 15:28 test_run_0_model.dat.w.dat.W.csv
+-rw-r--r--  1 rcrr rcrr  531531716 Mar 30 16:57 test_run_a2050_0_model.dat
+-rw-r--r--  1 rcrr rcrr   12156456 Mar 30 17:03 test_run_a2050_0_model.dat.B.csv
+-rw-r--r--  1 rcrr rcrr         99 Mar 30 16:57 test_run_a2050_0_model.dat.SHA3-256
+-rw-r--r--  1 rcrr rcrr    8029092 Mar 30 17:25 test_run_a2050_0_model.dat.w.dat
+-rw-r--r--  1 rcrr rcrr        103 Mar 30 17:25 test_run_a2050_0_model.dat.w.dat.SHA3-256
+-rw-r--r--  1 rcrr rcrr   27934090 Mar 30 17:27 test_run_a2050_0_model.dat.w.dat.W.csv
+-rw-r--r--  1 rcrr rcrr 3698533572 Mar 31 18:24 test_run_g2050_0_model.dat
+-rw-r--r--  1 rcrr rcrr         99 Mar 31 18:24 test_run_g2050_0_model.dat.SHA3-256
+-rw-r--r--  1 rcrr rcrr  236385096 Feb 22 17:47 test_run_t2099_model.dat
+-rw-r--r--  1 rcrr rcrr         97 Feb 22 17:47 test_run_t2099_model.dat.SHA3-256
+
+rcrr@legolas:~/base/prj/reversi/c$ ./build/bin/rglm -v -i tmp/test_run_g2050_0_model.dat -B tmp/test_run_g2050_0_model.dat.B.csv
+Opening RGLM general data binary file: "tmp/test_run_g2050_0_model.dat" - SHA3-256 file digest: 5560572a1b33ed0b78785157093b617b5c4ef3891b472cc828be671a1648a539
+Input file started to be written on (UTC) Sun Mar 31 17:24:07 2024
+The format of the binary data file is: GENERAL
+Selected batch_id values: 3, 9, 12
+Selected empty_count value: 20
+Selected position_statuses values: CMR, CMS
+Selected feature values: INTERCEPT, MOBILITY3
+Selected pattern values: CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR
+Position Summary Table: number of tuples = 6; game position count = 13994613
+Feature and Pattern Frequency Summary Table: number of tuples = 81265
+  Feature id:  0 [ INTERCEPT][     1][F_000:F_000], total_cnt = 13994613
+  Feature id:  3 [ MOBILITY3][     3][F_001:F_003], total_cnt = 41983839
+  Pattern id:  1     [CORNER][  5226][I_000:I_003], total_cnt = 55978452, gp_cnt = 13994613, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  2     [ XEDGE][ 25961][I_004:I_007], total_cnt = 55978452, gp_cnt = 13994613, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  3     [    R2][  3321][I_008:I_011], total_cnt = 55978452, gp_cnt = 13994613, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  4     [    R3][  3316][I_012:I_015], total_cnt = 55978452, gp_cnt = 13994613, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  5     [    R4][  1485][I_016:I_019], total_cnt = 55978452, gp_cnt = 13994613, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  6     [ DIAG4][    45][I_020:I_023], total_cnt = 55978452, gp_cnt = 13994613, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  7     [ DIAG5][   135][I_024:I_027], total_cnt = 55978452, gp_cnt = 13994613, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  8     [ DIAG6][   378][I_028:I_031], total_cnt = 55978452, gp_cnt = 13994613, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  9     [ DIAG7][   756][I_032:I_035], total_cnt = 55978452, gp_cnt = 13994613, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id: 10     [ DIAG8][  1483][I_036:I_037], total_cnt = 27989226, gp_cnt = 13994613, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id: 11     [2X5COR][ 39155][I_038:I_045], total_cnt = 111956904, gp_cnt = 13994613, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+The reverse map "(entity_class, entity_id, principal_index_value) --> glm_variable_id" has been computed.
+All 13994613 solved and classified game positions has been read succesfully.
+Feature and pattern frequencies summary table dumped to CSV file: "tmp/test_run_g2050_0_model.dat.B.csv".
+
+###
+### 2024-04-03
+###
+### Il run di ottimizzazione g2099 ha come dati i batch 3,9,12 (14M positions) e usa come validazione il batch 5 (200k pos).
+### Le features del modello sono INTERCEPT e MOBILITY3
+### I patterns 2X6COR
+### test_run_g2099 e' girato correttamente in 45 min di preparazione e 1 h 3 min di ottimizzazione.
+### Questo run ci da la bonta' del pattern, e la fattibilita' della ottimizzazione con pattern da 12 squares (306012 weights).
+### La generazione dei files binari con i pesi ha funzionato correttamente.
+### C'e' un errore da sistemare, il file dei pesi non carica le PROBABILITA' TEORICHE, va indagato ....
+###
+### I risultati sono riassunti nella variabile vld_summary:
+### { 'ref_residual_norm':    757.9759609094465,
+###   'ref_residual_mean':     -0.010118238197262068,
+###   'ref_residual_std':       0.20236378310943626,
+###   'opt_residual_norm':    239.61611878875698,
+###   'opt_residual_mean':      0.00030694438956238725,
+###   'opt_residual_std':       0.06405169044927154,
+###   'vld_residual_norm':      9.22064576276765,
+###   'vld_residual_mean':     -0.0011362054280296705,
+###   'vld_residual_std':       0.06518991065607899,
+###   'opt_function_value': 28707.942191693848,
+###   'vld_function_value':    42.51015414122251 }
+###
+### Il piu' interessante e' (VALIDATION_SD) vld_residual_std 0.065, che ci da una misura della efficacia del pattern 2X6COR.
+### Nel file RGLM.ods che si trova nella file-share lake troviamo i dati storici dei test sulla efficacia dei
+### diversi patterns.
+###
+### RUNCODE |            FEATURES | PATTERNS | VALIDATION_SD
+### ________|_____________________|__________|______________
+###         |                     |          |
+###   a2037 | INTERCEPT,MOBILITY3 |   2X5COR |      0.070325
+###   g2099 | INTERCEPT,MOBILITY3 |   2X6COR |      0.065190
+###
+### Quindi il pattern 2X6COR, che ricopre completamente il 2X5COR, porta anche ad un miglioramento della capacita' di
+### classificare la posizione. La STANDARD DEVIATION dei residui del batch di VALIDAZIONE passa da 0.070 a 0.065.
+### Il valore 0.065 diventa quindi il minimo del valore del singolo PATTERN combinato con le due features INTERCEPT e
+### MOBILITY3.
+###
+
+
+>>> m = rglm_workflow(test_run_g2099)
+m = Rglm()                                                                       0 days 00:00:00.000028964
+m = m.set_conn(<reversi.regab.RegabDBConnection object at 0x7f2318c18650>)       0 days 00:00:00.000003296
+m = m.set_empty_count(20)                                                        0 days 00:00:00.000003577
+m = m.set_batches([3, 9, 12])                                                    0 days 00:00:00.000008806
+m = m.set_vld_batches([5])                                                       0 days 00:00:00.000002454
+m = m.set_statuses(CMR,CMS)                                                      0 days 00:00:00.000010609
+m = m.set_vld_statuses(CMR,CMS)                                                  0 days 00:00:00.000004198
+m = m.retrieve_game_positions()                                                  0 days 00:01:20.664954686
+m = m.retrieve_vld_game_positions()                                              0 days 00:00:00.111577510
+m = m.set_features(INTERCEPT,MOBILITY3)                                          0 days 00:00:00.000013105
+m = m.set_patterns(2X6COR)                                                       0 days 00:00:00.000007655
+m = m.compute_feature_values()                                                   0 days 00:05:48.538425815
+m = m.compute_vld_feature_values()                                               0 days 00:00:00.490558432
+m = m.compute_indexes()                                                          0 days 00:30:48.148671517
+m = m.compute_vld_indexes()                                                      0 days 00:00:02.606718922
+m = m.combine_gps_features_patterns()                                            0 days 00:00:00.209258880
+m = m.combine_vld_gps_features_patterns()                                        0 days 00:00:00.000981082
+m = m.compute_vmaps()                                                            0 days 00:00:21.238739917
+m = m.compute_gpxpidf()                                                          0 days 00:06:17.297395454
+m = m.compute_x()                                                                0 days 00:00:14.414045459
+m = m.compute_y()                                                                0 days 00:00:00.039270200
+m = m.compute_analytics()                                                        0 days 00:01:48.577227653
+m = m.retrieve_expected_probabilities_from_regab_db()                            0 days 00:00:00.020193309
+RUNNING THE L-BFGS-B CODE
+
+           * * *
+
+Machine precision = 2.220D-16
+ N =       306012     M =           50
+ This problem is unconstrained.
+
+At X0         0 variables are exactly at the bounds
+
+At iterate    0    f=  2.87264D+05    |proj g|=  4.36302D+04
+
+At iterate    1    f=  2.25987D+05    |proj g|=  2.89481D+04
+
+...
+
+At iterate 1284    f=  2.87940D+04    |proj g|=  5.33947D+00
+
+At iterate 1285    f=  2.87940D+04    |proj g|=  1.88081D+00
+
+           * * *
+
+Tit   = total number of iterations
+Tnf   = total number of function evaluations
+Tnint = total number of segments explored during Cauchy searches
+Skip  = number of BFGS updates skipped
+Nact  = number of active bounds at final generalized Cauchy point
+Projg = norm of the final projected gradient
+F     = final function value
+
+           * * *
+
+   N    Tit     Tnf  Tnint  Skip  Nact     Projg        F
+*****   1285   1452      1     0     0   1.881D+00   2.879D+04
+  F =   28793.963746994465     
+
+CONVERGENCE: REL_REDUCTION_OF_F_<=_FACTR*EPSMCH             
+m = m.optimize(0.01, {...})                                                      0 days 01:02:53.370695276
+   l_bfgs_b_options = {'disp': True, 'maxcor': 50, 'ftol': 1e-08, 'gtol': 1e-05, 'eps': 1e-08, 'maxfun': 5000, 'maxiter': 5000, 'iprint': 1, 'maxls': 20, 'finite_diff_rel_step': None}
+m = m.compute_wmean_for_patterns()                                               0 days 00:00:00.026342761
+m = m.compute_evmap()                                                            0 days 00:00:09.447685791
+m = m.compute_ievmap()                                                           0 days 00:00:00.047336661
+m = m.compute_vld_gpxpidf()                                                      0 days 00:00:01.355869322
+m = m.compute_vld_x()                                                            0 days 00:00:00.013865071
+m = m.compute_vld_y()                                                            0 days 00:00:00.001479438
+m = m.validate()                                                                 0 days 00:00:01.606955211
+>>> m.vld_summary
+{'ref_residual_norm': 757.9759609094465, 'ref_residual_mean': -0.010118238197262068, 'ref_residual_std': 0.20236378310943626, 'opt_residual_norm': 239.61611878875698, 'opt_residual_mean': 0.00030694438956238725, 'opt_residual_std': 0.06405169044927154, 'vld_residual_norm': 9.22064576276765, 'vld_residual_mean': -0.0011362054280296705, 'vld_residual_std': 0.06518991065607899, 'opt_function_value': 28707.942191693848, 'vld_function_value': 42.51015414122251}
+>>> m.populate_cthelper()
+>>> m.write_to_binary_file("./tmp/test_run_g2099_0_model.dat")
+
+rcrr@legolas:~/base/prj/reversi/c$ ./build/bin/rglm -v -i tmp/test_run_g2099_0_model.dat -w tmp/test_run_g2099_0_model.dat.w.dat
+Opening RGLM general data binary file: "tmp/test_run_g2099_0_model.dat" - SHA3-256 file digest: 1e6ca37b6595bf2b1815d14c495613ee34aee1359c5de451ceb93c5f5c8e5c10
+Input file started to be written on (UTC) Tue Apr  2 16:15:24 2024
+The format of the binary data file is: GENERAL
+Selected batch_id values: 3, 9, 12
+Selected empty_count value: 20
+Selected position_statuses values: CMR, CMS
+Selected feature values: INTERCEPT, MOBILITY3
+Selected pattern values: 2X6COR
+Position Summary Table: number of tuples = 6; game position count = 13994613
+Feature and Pattern Frequency Summary Table: number of tuples = 306012
+  Feature id:  0 [ INTERCEPT][     1][F_000:F_000], total_cnt = 13994613
+  Feature id:  3 [ MOBILITY3][     3][F_001:F_003], total_cnt = 41983839
+  Pattern id: 13     [2X6COR][306008][I_000:I_007], total_cnt = 111956904, gp_cnt = 13994613, cumulated relative frequency = 1.0000, cumulated theoretical probability = nan
+The reverse map "(entity_class, entity_id, principal_index_value) --> glm_variable_id" has been computed.
+All 13994613 solved and classified game positions has been read succesfully.
+RGLM model weights binary file written to tmp/test_run_g2099_0_model.dat.w.dat
+
+rcrr@legolas:~/base/prj/reversi/c$ ./build/bin/rglm -v -i tmp/test_run_g2099_0_model.dat -B tmp/test_run_g2099_0_model.dat.B.csv
+Opening RGLM general data binary file: "tmp/test_run_g2099_0_model.dat" - SHA3-256 file digest: 1e6ca37b6595bf2b1815d14c495613ee34aee1359c5de451ceb93c5f5c8e5c10
+Input file started to be written on (UTC) Tue Apr  2 16:15:24 2024
+The format of the binary data file is: GENERAL
+Selected batch_id values: 3, 9, 12
+Selected empty_count value: 20
+Selected position_statuses values: CMR, CMS
+Selected feature values: INTERCEPT, MOBILITY3
+Selected pattern values: 2X6COR
+Position Summary Table: number of tuples = 6; game position count = 13994613
+Feature and Pattern Frequency Summary Table: number of tuples = 306012
+  Feature id:  0 [ INTERCEPT][     1][F_000:F_000], total_cnt = 13994613
+  Feature id:  3 [ MOBILITY3][     3][F_001:F_003], total_cnt = 41983839
+  Pattern id: 13     [2X6COR][306008][I_000:I_007], total_cnt = 111956904, gp_cnt = 13994613, cumulated relative frequency = 1.0000, cumulated theoretical probability = nan
+The reverse map "(entity_class, entity_id, principal_index_value) --> glm_variable_id" has been computed.
+All 13994613 solved and classified game positions has been read succesfully.
+Feature and pattern frequencies summary table dumped to CSV file: "tmp/test_run_g2099_0_model.dat.B.csv".
+
+rcrr@legolas:~/base/prj/reversi/c$ head tmp/test_run_g2099_0_model.dat.B.csv 
+     SEQ; GLM_VARIABLE_ID;   ENTITY_CLASS;  ENTITY_ID; PRINCIPAL_INDEX_VALUE;   TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_PROBABILITY;              WEIGHT
+00000000;               0;              0;          0;                     0;    13994613;           1.000000;                1.000000;  -1.029027048895044
+00000001;               1;              0;          3;                     0;    13994613;           1.000000;                1.000000;  +4.359482771676625
+00000002;               2;              0;          3;                     1;    13994613;           1.000000;                1.000000;  -5.243664116501598
+00000003;               3;              0;          3;                     2;    13994613;           1.000000;                1.000000;  +2.640977857315985
+00000004;               4;              1;         13;                     0;       77171;           0.000689;                     nan;  -0.017048412359708
+00000005;               5;              1;         13;                   243;        6880;           0.000061;                     nan;  -0.069264873673889
+00000006;               6;              1;         13;                   324;         645;           0.000006;                     nan;  -0.021181924075556
+00000007;               7;              1;         13;                   351;          15;           0.000000;                     nan;  +0.080146872387792
+00000008;               8;              1;         13;                   486;        7142;           0.000064;                     nan;  +0.029262142213457
+
+###
+### 2024-04-05 - Testiamo un FULL MODEL con il pattern 2X6COR
+###
+### In pratica come per a2050, ma sostituiamo 2X5COR con 2X6COR.
+### Il modello ha quindi:
+###   - Features: INTERCEPT,MOBILITY3
+###   - Patterns: XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X6COR
+###
+### Lo chimiamo g2098
+###
+
+>>> m = rglm_workflow(test_run_g2098)
+m = Rglm()                                                                       0 days 00:00:00.000027503
+m = m.set_conn(<reversi.regab.RegabDBConnection object at 0x7f0fcef6f910>)       0 days 00:00:00.000002906
+m = m.set_empty_count(20)                                                        0 days 00:00:00.000002875
+m = m.set_batches([3, 9, 12])                                                    0 days 00:00:00.000007754
+m = m.set_vld_batches([5])                                                       0 days 00:00:00.000002224
+m = m.set_statuses(CMR,CMS)                                                      0 days 00:00:00.000010840
+m = m.set_vld_statuses(CMR,CMS)                                                  0 days 00:00:00.000004198
+m = m.retrieve_game_positions()                                                  0 days 00:01:13.791475340
+m = m.retrieve_vld_game_positions()                                              0 days 00:00:00.096690201
+m = m.set_features(INTERCEPT,MOBILITY3)                                          0 days 00:00:00.000012433
+m = m.set_patterns(XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X6COR)   0 days 00:00:00.000021220
+m = m.compute_feature_values()                                                   0 days 00:05:48.567457820
+m = m.compute_vld_feature_values()                                               0 days 00:00:00.497348531
+m = m.compute_indexes()                                                          0 days 02:51:13.494908080
+m = m.compute_vld_indexes()                                                      0 days 00:00:14.653423083
+m = m.combine_gps_features_patterns()                                            0 days 00:00:00.095661218
+m = m.combine_vld_gps_features_patterns()                                        0 days 00:00:00.000772042
+m = m.compute_vmaps()                                                            0 days 00:01:06.033429567
+m = m.compute_gpxpidf()                                                          0 days 00:39:43.464999823
+m = m.compute_x()                                                                0 days 00:01:13.203045896
+m = m.compute_y()                                                                0 days 00:00:00.993388067
+m = m.compute_analytics()                                                        0 days 00:03:57.612315366
+m = m.retrieve_expected_probabilities_from_regab_db()                            0 days 00:00:00.877119714
+RUNNING THE L-BFGS-B CODE
+
+           * * *
+
+Machine precision = 2.220D-16
+ N =       348118     M =           50
+ This problem is unconstrained.
+
+At X0         0 variables are exactly at the bounds
+
+At iterate    0    f=  2.87264D+05    |proj g|=  4.90965D+04
+
+At iterate    1    f=  1.75519D+05    |proj g|=  7.65498D+04
+
+At iterate    2    f=  1.67222D+05    |proj g|=  3.02562D+04
+
+At iterate    3    f=  1.63552D+05    |proj g|=  1.75654D+04
+
+...
+
+At iterate 3755    f=  1.92152D+04    |proj g|=  1.80244D+00
+
+At iterate 3756    f=  1.92152D+04    |proj g|=  2.25166D+00
+
+           * * *
+
+Tit   = total number of iterations
+Tnf   = total number of function evaluations
+Tnint = total number of segments explored during Cauchy searches
+Skip  = number of BFGS updates skipped
+Nact  = number of active bounds at final generalized Cauchy point
+Projg = norm of the final projected gradient
+F     = final function value
+
+           * * *
+
+   N    Tit     Tnf  Tnint  Skip  Nact     Projg        F
+*****   3756   3996      1     0     0   2.252D+00   1.922D+04
+  F =   19215.231743883251     
+
+CONVERGENCE: REL_REDUCTION_OF_F_<=_FACTR*EPSMCH             
+m = m.optimize(0.01, {...})                                                      0 days 05:22:18.005522597
+   l_bfgs_b_options = {'disp': True, 'maxcor': 50, 'ftol': 1e-08, 'gtol': 1e-05, 'eps': 1e-08, 'maxfun': 5000, 'maxiter': 5000, 'iprint': 1, 'maxls': 20, 'finite_diff_rel_step': None}
+m = m.compute_wmean_for_patterns()                                               0 days 00:00:00.147556354
+m = m.compute_evmap()                                                            0 days 00:00:11.442871367
+m = m.compute_ievmap()                                                           0 days 00:00:00.094411083
+m = m.compute_vld_gpxpidf()                                                      0 days 00:00:12.318075809
+m = m.compute_vld_x()                                                            0 days 00:00:00.051077858
+m = m.compute_vld_y()                                                            0 days 00:00:00.016235238
+m = m.validate()                                                                 0 days 00:00:01.615219529
+>>> m.vld_summary
+{'ref_residual_norm': 757.9759609094465, 'ref_residual_mean': -0.010118238197262068, 'ref_residual_std': 0.20236378310943626, 'opt_residual_norm': 195.94792253563799, 'opt_residual_mean': 0.00023953482397946, 'opt_residual_std': 0.052378815803665414, 'vld_residual_norm': 7.626585555727452, 'vld_residual_mean': -0.0014476186943445705, 'vld_residual_std': 0.05390867056473675, 'opt_function_value': 19197.79417301619, 'vld_function_value': 29.082403619415306}
+>>> m.populate_cthelper()
+>>> m.write_to_binary_file("./tmp/test_run_g2098_0_model.dat")
+
+###
+### vld_summary:
+### { 'ref_residual_norm':    757.9759609094465,
+###   'ref_residual_mean':     -0.010118238197262068,
+###   'ref_residual_std':       0.20236378310943626,
+###   'opt_residual_norm':    195.94792253563799,
+###   'opt_residual_mean':      0.00023953482397946,
+###   'opt_residual_std':       0.052378815803665414,
+###   'vld_residual_norm':      7.626585555727452,
+###   'vld_residual_mean':     -0.0014476186943445705,
+###   'vld_residual_std':       0.05390867056473675,
+###   'opt_function_value': 19197.79417301619,
+###   'vld_function_value':    29.082403619415306 }
+###
+###
+### RUNCODE | FEATURES            | PATTERNS                                                   | VALIDATION_SD |       N
+### ________|_____________________|____________________________________________________________|_______________|________
+###         |                     |                                                            |               |
+###   a2037 | INTERCEPT,MOBILITY3 | 2X5COR                                                     |      0.070325 |  37,851
+###   g2099 | INTERCEPT,MOBILITY3 | 2X6COR                                                     |      0.065190 | 306,012
+###   a2050 | INTERCEPT,MOBILITY3 | XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR |      0.056387 |  77,925
+###   g2098 | INTERCEPT,MOBILITY3 | XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X6COR |      0.053909 | 348,118
+###
+### Sicuramente il nuovo PATTERN-12 ha un potere predittivo superiore, ma e' sensibile il guadagno ?
+### Difficile dirlo senza prove dettagliate.
+###
+
+###
+### 2024-04-07 : COMMENTI
+###
+### -0- Manca da testare se questi modelli con nuovi PATTERN sono USABILI da endgame_solver ...
+###
+### -1- Sarebbe utile rifare il codice delle analisi sviluppate con R in Python ...
+###
+### -2- Sarebbe utile avere la possibilita' di costruire il modello, scriverlo su file.
+###     Rileggerlo.
+###     Ottimizzare, scriverlo su file ... rileggerlo continuare la ottimizzazione.
+###     Come fatto in Newton/Cholesky/C
+###
+### -3- Testare nuovi PATTERN da 12 ...
+###
