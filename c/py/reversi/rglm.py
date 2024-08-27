@@ -1658,7 +1658,7 @@ class Rglm:
         self.evmap.rename(columns={'idx_x': 'idx'}, inplace=True)
         self.evmap['vid'] = self.evmap['vid'].fillna(-1).astype(int)
         self.evmap['computed'] = ~pd.isna(self.evmap["idx_y"])
-        self.evmap.weight.fillna(self.evmap.wmean, inplace=True)
+        self.evmap.fillna({'weight': self.evmap.wmean}, inplace=True)
         self.evmap.drop(columns=['idx_y'], inplace=True)
         self.evmap['evid'] = self.evmap.index
         self.evmap['count'] = self.evmap['count'].fillna(0)
