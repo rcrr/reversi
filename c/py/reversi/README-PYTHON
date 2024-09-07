@@ -40,3 +40,18 @@ root@legolas:~# apt install python3-psycopg2
 
 rcrr@legolas:~$ pip install --break-system-packages duckdb
 
+###
+### How to start the new pytorch testing ....
+###
+
+rcrr@melian:~/base/prj/reversi/c$ source py/.reversi_venv/bin/activate
+
+(.reversi_venv) rcrr@melian:~/base/prj/reversi/c$ python3
+
+>>> exec(open("py/reversi/start.py").read())
+
+>>> m = rglm_workflow(test_run_0)
+
+>>> import reversi.torch
+>>> reload(reversi.torch)
+>>> from reversi.torch import *
