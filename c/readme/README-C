@@ -37,23 +37,53 @@ Software components being used are:
  - openmp
  - blas
 
-Run the following commands in a terminal:
+After having completed the Ubuntu installation, clone the REVERSI git repository:
 
-$ make clean
-$ make
-$ make test
-$ make doxygen
-$ make endgame_log_files
-$ make endgame_pv_files
-$ make dat2csv
-$ make asm
+  $ git clone https://github.com/rcrr/reversi.git reversi
+
+From now on the reversi directory will be named REVERSI_HOME.
+
+Configure your git properties, user.name and user.email.
+Eventualy change the origin address from https to ssh.
+For myself username is rcrr and email is rob_corradini@yahoo.it. Your values will be different.
+
+  $ git config user.name rcrr
+  $ git config user.email rob_corradini@yahoo.it
+  $ git remote set-url origin ssh://git@github.com/rcrr/reversi.git
+
+Beside git ( being already installed ) a few more packages are needed.
+
+  # apt install build-essential
+  # apt install gfortran
+  # apt install rhash
+  # apt install libpq-dev
+  # apt install libblas-dev
+  # apt install doxygen
+  # apt install graphviz
+
+Install the two C libraries BLIS and FLAME following the instructions found into the README file
+
+  - $(REVERSI_HOME)/ext/README-BLIS-FLAME
+
+
+Open a terminal, change directory to REVERSI_HOME and run the following commands:
+
+  $ make clean
+  $ make
+  $ make test
+  $ make doxygen
+  $ make endgame_log_files
+  $ make endgame_pv_files
+  $ make dat2csv
+  $ make asm
 
 Everything is build under the ./build directory.
-
 One shared library is generated, used by the python code, in ./build/lib:
+
   reversi.so
 
 Nine executables are created in ./build/bin:
+
  endgame_solver
  gpdb_verify
  intel_intrinsics_trial
@@ -82,4 +112,22 @@ Run 'rglmw -h' for help and options.
 utest is an unit test utility.
 Run 'utest -h' for help and options.
 
+Following some examples to practice with the tools provided by the project.
+
+Use utest to run a specific unit test:
+
+  $ ./build/bin/utest ./build/test/bin/ut_board -p /board/game_position_x_has_any_legal_move
+
+Or the full unit:
+
+  $ ./build/bin/utest ./build/test/bin/ut_board
+
+Access the database of game positions using the gpdb_verify executable:
+
+  $ ./build/bin/gpdb_verify -f db/gpdb-ffo.txt -p
+  $ ./build/bin/gpdb_verify -f db/gpdb-ffo.txt -q ffo-29
+
+Solve the game position from the database calling endgame_solver:
+
+  $ ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-29
 
