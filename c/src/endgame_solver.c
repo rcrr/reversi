@@ -331,7 +331,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014, 2015, 2016, 2017, 2018, 2021, 2023 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2015, 2016, 2017, 2018, 2021, 2023, 2024 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -425,7 +425,7 @@ static const mop_options_long_t olist[] = {
   {0, 0, 0}
 };
 
-static const char *documentation =
+static const char *documentation_0 =
   "Usage:\n"
   "  endgame_solver [OPTION...] - Solve an endgame position\n"
   "\n"
@@ -447,6 +447,9 @@ static const char *documentation =
   "  -p, --search-depth     Search depth             - Available only for gve solver.\n"
   "  -c, --config-file      Configuration file       - Requires a filename path.\n"
   "\n"
+  ;
+
+static const char *documentation_1 =
   "Description:\n"
   "  Endgame solver is the front end for a group of algorithms aimed to analyze the final part of the game and to asses the game tree structure.\n"
   "  Available engines are: es (exact solver), ifes (improved fast endgame solver), rand (random game sampler), minimax (minimax solver),\n"
@@ -480,13 +483,19 @@ static const char *documentation =
   "    $ endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s rab -l out/log -n 3\n"
   "\n"
   "  - rglm (reversi generalized linear model solver)\n"
-  "    It is an experimental solver under development, a sample call is:\n"
+  "    It applies alpha-beta algorithm sorting legal moves by their estimated value, a sample call is:\n"
   "    $ endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s rglm\n"
+  "\n"
+  "  - gve (game value estimator)\n"
+  "    It is the most advanced solver available. Could do exact solving, as well as giving an extimation.\n"
+  "    It does iterative deepening and zero-window searches, using the regab/rglm model to evaluate positions.\n"
+  "    A sample call is:\n"
+  "    $ endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified -s gve -c cfg/game_value_estimator.cfg \n"
   "\n"
   "Author:\n"
   "  Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
   "\n"
-  "Copyright (c) 2013, 2014, 2015, 2016, 2017, 2018, 2021, 2023 Roberto Corradini. All rights reserved.\n"
+  "Copyright (c) 2013, 2014, 2015, 2016, 2017, 2018, 2021, 2023, 2024 Roberto Corradini. All rights reserved.\n"
   "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
   "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n"
   ;
@@ -678,7 +687,8 @@ main (int argc,
 
   /* Prints documentation and returns, when help option is active. */
   if (h_flag) {
-    fprintf(stderr, "%s", documentation);
+    fprintf(stderr, "%s", documentation_0);
+    fprintf(stderr, "%s", documentation_1);
     return 0;
   }
 
