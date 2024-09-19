@@ -1,0 +1,1297 @@
+
+  README-ENDGAME-SOLVER-GVE
+
+  Copyright (c) 2024 Roberto Corradini. All rights reserved.
+
+  This file is part of the reversi program
+  http://github.com/rcrr/reversi
+
+  This program is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by the
+  Free Software Foundation; either version 3, or (at your option) any
+  later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+  or visit the site <http://www.gnu.org/licenses/>.
+
+This file provides some examples on how to run the executable endgame_solver, selecting the GVE solver,
+part of the REVERSI program.
+
+Move to REVESI_HOME directory.
+
+Focus on game position ffo-29 as found into the db/gpdb-ffo.txt database file.
+
+Show the position by querying it with the help of gpdb_verify tool:
+
+------code-begin------
+
+$ ./build/bin/gpdb_verify -v -f db/gpdb-ffo.txt -q ffo-29
+Entry id: ffo-29
+Description:  G2:+10. A1:+4. G6:-10. H2:-12. F8:-12. E8:-12. G7:-24. G1:-24. B2:-30. F7:-34
+Game Position:
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+------code-end--------
+
+The game position has 20 empty-count, black player has to move, there are 10 legal moves.
+Among them 2 have a positive score (G2:+10 A1:+4), and 8 are leading to defeat.
+
+Analyze the position using endgame_solver and the base solver (es). The option -F asks the solver to
+compute and print the PVE (principal variation environment).
+
+This is a quite interesting sample position, 20 EC is early endgame, BLACK has a clear win, but choosing the
+right option, G2, is not entirely obvious. It is more evident to move to A1, still a win, but having a lesser
+score, +4 vs +10.
+
+------code-begin------
+
+$ ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-29 -F
+Entry id: ffo-29
+Description:  G2:+10. A1:+4. G6:-10. H2:-12. F8:-12. E8:-12. G7:-24. G1:-24. B2:-30. F7:-34
+Game Position:
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+Solving game position ffo-29, from source db/gpdb-ffo.txt, using solver es (exact solver) ...
+
+ --- --- pve_line_with_variants_to_string() START --- ---
+G2  G1  H1  H2  F8  D8  G6  F7  G8  C8  A1  E8  B8  A2  G7  A8. B7  H8  H7--B2--
+                                                            H8  H7  A8  B2.-B7--
+                                                                        B7--B2--
+
+ --- --- pve_line_with_variants_to_string() COMPLETED --- ---
+
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+[node_count=51086738, leaf_count=9354201]
+Final outcome: best move=G2, position value=10
+PV: G2 G1 H1 H2 F8 D8 G6 F7 G8 C8 A1 E8 B8 A2 G7 A8 B7 H8 H7 -- B2 -- -- 
+
+Final state configuration playing main PV:
+    a b c d e f g h 
+ 1  @ @ @ @ @ @ @ @ 
+ 2  O @ @ @ @ O @ O 
+ 3  O @ @ O O O @ O 
+ 4  O @ O @ @ O @ O 
+ 5  O @ O @ @ O @ O 
+ 6  O @ @ @ O @ @ @ 
+ 7  O @ @ @ @ @ @ @ 
+ 8  O O O O O O O O 
+Player to move: WHITE
+
+------code-end--------
+
+The principal variation is the best line of play for the player and for the opponent.
+It is the path to the final outcome, giving then the game value.
+
+A short explanation of the syntax of the PVE print:
+
+G2  G1  H1  H2  F8  D8  G6  F7  G8  C8  A1  E8  B8  A2  G7  A8. B7  H8  H7--B2--
+                                                            H8  H7  A8  B2.-B7--
+                                                                        B7--B2--
+
+Moves are spaced with two blanks. G2 is the black player move, G1 is the opponent one.
+Up to A8. Here white has an option, A8 or H8 have the same value. The variation is signaled by
+the dot-blank ". " separator. Option could be 2 or more and are all vertically aligned.
+The A8 variation go straight to the end of the game without more bifurcations.
+The H8 variation has two branches 3 moves down the line, B2 or B7.
+
+When there is a forced pass it is represented for readibility with a dash-dash "--" separator.
+The dot-dash ".-" separator means a variation and a pass.
+
+Endgame solver offers different solvers, among them es and gve.
+Es (exact solver) is the workhorse of the family, it is straifforward and doesn't dipend on precomputed
+data files. Selecting the option -a gives back the value of all the available legal moves:
+
+------code-begin------
+
+$ ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-29 -a
+Entry id: ffo-29
+Description:  G2:+10. A1:+4. G6:-10. H2:-12. F8:-12. E8:-12. G7:-24. G1:-24. B2:-30. F7:-34
+Game Position:
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+Solving game position ffo-29, from source db/gpdb-ffo.txt, using solver es (exact solver) ...
+
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+[node_count=39759880, leaf_count=6621483]
+Final outcome: best move=G2, position value=10
+Legal move count: 10 - [Index:Move:Value]: [00:G2:+10] [01:A1:+04] [02:G6:-10] [03:H2:-12] [04:E8:-12] [05:F8:-12] [06:G1:-24] [07:G7:-24] [08:B2:-30] [09:F7:-34] 
+
+------code-end--------
+
+Gve can give an estimation of the game value, without searching by giving the -p 0 option:
+
+------code-begin------
+
+$ ./build/bin/endgame_solver -f db/gpdb-ffo.txt -q ffo-29 -s gve -c cfg/game_value_estimator.cfg -p 0
+Entry id: ffo-29
+Description:  G2:+10. A1:+4. G6:-10. H2:-12. F8:-12. E8:-12. G7:-24. G1:-24. B2:-30. F7:-34
+Game Position:
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+Solving game position ffo-29, from source db/gpdb-ffo.txt, using solver gve (game value estimator) ...
+Node Level 0: estimated game value = +12
+MTD(f) evaluation [REAL][PROCESS] time: [     0.     1523][     0.     4228]
+Transposition Table pointer: 0x58e3a126e600
+  max_n_item:            268435456  -  Number of items that could be stored in the table
+  items:            0x7cc760400010  -  Array of items
+  next_item:        0x7ccb603fffd0  -  Next item to be used when inserting
+  n_item:                        0  -  The number of item currently held in the table
+  ht:               0x58e3a126e640  -  Hashtable containing <Key:item , Item:item>
+  pq:               0x58e3a126e690  -  Priority queue
+  ht.size:                67108859  -  Hashtable size
+  ht.length:                     0  -  Hashtable length
+TT hashtable stats:
+ ELEMENTS_X_BUCKET; ELEMENT_CNT
+
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+[node_count=0, leaf_count=0]
+Final outcome: best move=NA, position value=12
+
+------code-end--------
+
+Without the -p option the search goes to the end of the game and the resulting value is the exact one.
+
+The option -c is mandatory, a well formed configuration file is required. In our example it is cfg/game_value_estimator.cfg.
+The file contains properties as well as the path to the regab/rgml data files with all the weights defined by the model.
+
+Run the gve solver for an exact game value:
+
+------code-begin------
+
+$ ./build/bin/endgame_solver -f db/gpdb-ffo.txt -q ffo-29 -s gve -c cfg/game_value_estimator.cfg
+Entry id: ffo-29
+Description:  G2:+10. A1:+4. G6:-10. H2:-12. F8:-12. E8:-12. G7:-24. G1:-24. B2:-30. F7:-34
+Game Position:
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+Solving game position ffo-29, from source db/gpdb-ffo.txt, using solver gve (game value estimator) ...
+Node Level 0: estimated game value = +12
+Thu Sep 12 14:10:48 2024 #### start  .01. Iterative deepening search depth = 1
+Thu Sep 12 14:10:48 2024 00 - A1 (+16) [+10..+12]: (failing high) f- = +16 - cumulated node count            2
+Thu Sep 12 14:10:48 2024 00 - A1 (+16) [+16..+18]: (failing low)  f+ = +16 - cumulated node count            4
+Thu Sep 12 14:10:48 2024 01 - G1 (-66) [+16..+18]: (failing low)  f+ = -10 - cumulated node count            5
+Thu Sep 12 14:10:48 2024 02 - B2 (-66) [+16..+18]: (failing low)  f+ = -14 - cumulated node count            6
+Thu Sep 12 14:10:48 2024 03 - G2 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count            7
+Thu Sep 12 14:10:48 2024 04 - H2 (-66) [+16..+18]: (failing low)  f+ = +08 - cumulated node count            8
+Thu Sep 12 14:10:48 2024 05 - G6 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count            9
+Thu Sep 12 14:10:48 2024 06 - F7 (-66) [+16..+18]: (failing low)  f+ = -04 - cumulated node count           10
+Thu Sep 12 14:10:48 2024 07 - G7 (-66) [+16..+18]: (failing low)  f+ = -06 - cumulated node count           11
+Thu Sep 12 14:10:48 2024 08 - E8 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count           12
+Thu Sep 12 14:10:48 2024 09 - F8 (-66) [+16..+18]: (failing low)  f+ = +04 - cumulated node count           13
+Thu Sep 12 14:10:48 2024 #### finish .01. Best move and game value: [A1:+16] - nc =           13 - Time [REAL][PROC]: [     0.   142618][     0.   143523]
+Thu Sep 12 14:10:48 2024 #### start  .05. Iterative deepening search depth = 5
+Thu Sep 12 14:10:48 2024 00 - A1 (+16) [+14..+16]: (failing low)  f+ = +14 - cumulated node count          101
+Thu Sep 12 14:10:48 2024 01 - H2 (+08) [+14..+16]: (failing low)  f+ = -12 - cumulated node count          165
+Thu Sep 12 14:10:48 2024 02 - F8 (+04) [+14..+16]: (failing low)  f+ = -10 - cumulated node count          199
+Thu Sep 12 14:10:48 2024 03 - G2 (+00) [+14..+16]: (failing low)  f+ = +06 - cumulated node count          262
+Thu Sep 12 14:10:48 2024 04 - G6 (+00) [+14..+16]: (failing low)  f+ = -10 - cumulated node count          304
+Thu Sep 12 14:10:48 2024 05 - E8 (+00) [+14..+16]: (failing low)  f+ = -12 - cumulated node count          334
+Thu Sep 12 14:10:48 2024 06 - F7 (-04) [+14..+16]: (failing low)  f+ = -22 - cumulated node count          347
+Thu Sep 12 14:10:48 2024 07 - G7 (-06) [+14..+16]: (failing low)  f+ = -16 - cumulated node count          379
+Thu Sep 12 14:10:48 2024 08 - G1 (-10) [+14..+16]: (failing low)  f+ = -18 - cumulated node count          447
+Thu Sep 12 14:10:48 2024 09 - B2 (-14) [+14..+16]: (failing low)  f+ = -26 - cumulated node count          512
+Thu Sep 12 14:10:48 2024 00 - A1 (+14) [+12..+14]: (failing low)  f+ = +10 - cumulated node count          538
+Thu Sep 12 14:10:48 2024 01 - G2 (+06) [+12..+14]: (failing low)  f+ = +06 - cumulated node count          539
+Thu Sep 12 14:10:48 2024 02 - F8 (-10) [+12..+14]: (failing low)  f+ = -10 - cumulated node count          540
+Thu Sep 12 14:10:48 2024 03 - G6 (-10) [+12..+14]: (failing low)  f+ = -10 - cumulated node count          541
+Thu Sep 12 14:10:48 2024 04 - H2 (-12) [+12..+14]: (failing low)  f+ = -12 - cumulated node count          542
+Thu Sep 12 14:10:48 2024 05 - E8 (-12) [+12..+14]: (failing low)  f+ = -12 - cumulated node count          543
+Thu Sep 12 14:10:48 2024 06 - G7 (-16) [+12..+14]: (failing low)  f+ = -16 - cumulated node count          544
+Thu Sep 12 14:10:48 2024 07 - G1 (-18) [+12..+14]: (failing low)  f+ = -18 - cumulated node count          545
+Thu Sep 12 14:10:48 2024 08 - F7 (-22) [+12..+14]: (failing low)  f+ = -22 - cumulated node count          546
+Thu Sep 12 14:10:48 2024 09 - B2 (-26) [+12..+14]: (failing low)  f+ = -26 - cumulated node count          547
+Thu Sep 12 14:10:48 2024 00 - A1 (+10) [+08..+10]: (failing high) f- = +10 - cumulated node count          611
+Thu Sep 12 14:10:48 2024 #### finish .05. Best move and game value: [A1:+10] - nc =          598 - Time [REAL][PROC]: [     0.  1745894][     0.  1746930]
+Thu Sep 12 14:10:48 2024 #### start  .08. Iterative deepening search depth = 8
+Thu Sep 12 14:10:48 2024 00 - A1 (+10) [+08..+10]: (failing low)  f+ = +08 - cumulated node count         1508
+Thu Sep 12 14:10:48 2024 01 - G2 (+06) [+08..+10]: (failing low)  f+ = +04 - cumulated node count         1958
+Thu Sep 12 14:10:48 2024 02 - F8 (-10) [+08..+10]: (failing low)  f+ = -08 - cumulated node count         2223
+Thu Sep 12 14:10:48 2024 03 - G6 (-10) [+08..+10]: (failing low)  f+ = -10 - cumulated node count         2503
+Thu Sep 12 14:10:48 2024 04 - H2 (-12) [+08..+10]: (failing low)  f+ = -08 - cumulated node count         2936
+Thu Sep 12 14:10:48 2024 05 - E8 (-12) [+08..+10]: (failing low)  f+ = -10 - cumulated node count         3129
+Thu Sep 12 14:10:48 2024 06 - G7 (-16) [+08..+10]: (failing low)  f+ = -20 - cumulated node count         3306
+Thu Sep 12 14:10:48 2024 07 - G1 (-18) [+08..+10]: (failing low)  f+ = -14 - cumulated node count         3830
+Thu Sep 12 14:10:48 2024 08 - F7 (-22) [+08..+10]: (failing low)  f+ = -16 - cumulated node count         3866
+Thu Sep 12 14:10:48 2024 09 - B2 (-26) [+08..+10]: (failing low)  f+ = -20 - cumulated node count         4192
+Thu Sep 12 14:10:48 2024 00 - A1 (+08) [+06..+08]: (failing high) f- = +08 - cumulated node count         5272
+Thu Sep 12 14:10:48 2024 #### finish .08. Best move and game value: [A1:+08] - nc =         4661 - Time [REAL][PROC]: [     0. 16888351][     0. 17008067]
+Thu Sep 12 14:10:48 2024 #### start  .99. Iterative deepening search depth = 99
+Thu Sep 12 14:10:48 2024 00 - A1 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       857431
+Thu Sep 12 14:10:48 2024 01 - G2 (+04) [+06..+08]: (failing high) f- = +08 - cumulated node count      1144680
+Thu Sep 12 14:10:49 2024 00 - G2 (+08) [+08..+10]: (failing high) f- = +10 - cumulated node count      1318091
+Thu Sep 12 14:10:49 2024 00 - G2 (+10) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1722734
+Thu Sep 12 14:10:49 2024 01 - A1 (+06) [+10..+12]: (failing low)  f+ = +06 - cumulated node count      1722735
+Thu Sep 12 14:10:49 2024 02 - F8 (-08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1772060
+Thu Sep 12 14:10:49 2024 03 - H2 (-08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1839556
+Thu Sep 12 14:10:49 2024 04 - G6 (-10) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1897444
+Thu Sep 12 14:10:49 2024 05 - E8 (-10) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1923653
+Thu Sep 12 14:10:49 2024 06 - G1 (-14) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1965081
+Thu Sep 12 14:10:49 2024 07 - F7 (-16) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1965521
+Thu Sep 12 14:10:49 2024 08 - G7 (-20) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      2004150
+Thu Sep 12 14:10:49 2024 09 - B2 (-20) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      2029884
+Thu Sep 12 14:10:49 2024 #### finish .99. Best move and game value: [G2:+10] - nc =      2024612 - Time [REAL][PROC]: [     0.125701361][     0.125850275]
+MTD(f) evaluation [REAL][PROCESS] time: [     0.144586728][     0.144867037]
+Transposition Table pointer: 0x5e595782c600
+  max_n_item:            268435456  -  Number of items that could be stored in the table
+  items:            0x77e35e000010  -  Array of items
+  next_item:        0x77e75df2cf50  -  Next item to be used when inserting
+  n_item:                    13506  -  The number of item currently held in the table
+  ht:               0x5e595782c640  -  Hashtable containing <Key:item , Item:item>
+  pq:               0x5e595782c690  -  Priority queue
+  ht.size:                67108859  -  Hashtable size
+  ht.length:                 13506  -  Hashtable length
+TT hashtable stats:
+ ELEMENTS_X_BUCKET; ELEMENT_CNT
+                 0;    67095353
+
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+[node_count=2029884, leaf_count=404069]
+Final outcome: best move=G2, position value=10
+
+------code-end--------
+
+The gve solver searches far less nodes compared to es, but unfortunately the time spent per node id greater.
+Mixing the pros and cons it is faster, but with one caveat. The node evaluation used for iterative deepening and
+move sorting is not happening every level down, but just one every fews. The exact number of levels "jumped" is
+taken from the property id_step (used value is 4) taken from the config file.
+
+As a first evaluation we have asked not to search, so we get an evaluation but no advice on the best move.
+Ask now for a serch depth of one level giving the option -p 1
+
+------code-begin------
+
+$ ./build/bin/endgame_solver -f db/gpdb-ffo.txt -q ffo-29 -s gve -c cfg/game_value_estimator.cfg -p 1
+Entry id: ffo-29
+Description:  G2:+10. A1:+4. G6:-10. H2:-12. F8:-12. E8:-12. G7:-24. G1:-24. B2:-30. F7:-34
+Game Position:
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+Solving game position ffo-29, from source db/gpdb-ffo.txt, using solver gve (game value estimator) ...
+Node Level 0: estimated game value = +12
+Fri Sep 13 11:05:57 2024 #### start  .01. Iterative deepening search depth = 1
+Fri Sep 13 11:05:57 2024 00 - A1 (+16) [+10..+12]: (failing high) f- = +16 - cumulated node count            2
+Fri Sep 13 11:05:57 2024 00 - A1 (+16) [+16..+18]: (failing low)  f+ = +16 - cumulated node count            4
+Fri Sep 13 11:05:57 2024 01 - G1 (-66) [+16..+18]: (failing low)  f+ = -10 - cumulated node count            5
+Fri Sep 13 11:05:57 2024 02 - B2 (-66) [+16..+18]: (failing low)  f+ = -14 - cumulated node count            6
+Fri Sep 13 11:05:57 2024 03 - G2 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count            7
+Fri Sep 13 11:05:57 2024 04 - H2 (-66) [+16..+18]: (failing low)  f+ = +08 - cumulated node count            8
+Fri Sep 13 11:05:57 2024 05 - G6 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count            9
+Fri Sep 13 11:05:57 2024 06 - F7 (-66) [+16..+18]: (failing low)  f+ = -04 - cumulated node count           10
+Fri Sep 13 11:05:57 2024 07 - G7 (-66) [+16..+18]: (failing low)  f+ = -06 - cumulated node count           11
+Fri Sep 13 11:05:57 2024 08 - E8 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count           12
+Fri Sep 13 11:05:57 2024 09 - F8 (-66) [+16..+18]: (failing low)  f+ = +04 - cumulated node count           13
+Fri Sep 13 11:05:57 2024 #### finish .01. Best move and game value: [A1:+16] - nc =           13 - Time [REAL][PROC]: [     0.   185586][     0.   254954]
+MTD(f) evaluation [REAL][PROCESS] time: [     0.   254405][     0.   331851]
+Transposition Table pointer: 0x645de08f5600
+  max_n_item:            268435456  -  Number of items that could be stored in the table
+  items:            0x78e261e00010  -  Array of items
+  next_item:        0x78e661dffd10  -  Next item to be used when inserting
+  n_item:                       11  -  The number of item currently held in the table
+  ht:               0x645de08f5640  -  Hashtable containing <Key:item , Item:item>
+  pq:               0x645de08f5690  -  Priority queue
+  ht.size:                67108859  -  Hashtable size
+  ht.length:                    11  -  Hashtable length
+TT hashtable stats:
+ ELEMENTS_X_BUCKET; ELEMENT_CNT
+                 0;    67108848
+
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+[node_count=13, leaf_count=0]
+Final outcome: best move=A1, position value=16
+
+------code-end--------
+
+By searching one ply the solver gives back an estimated value equal to 16 and A1 as best move.
+Node level zero is valued +12, this value is used to select the zero windows values [+10..+12].
+Moves are sorted based on an heuristic static value given to each square on the board, corners have the
+higher value, so A1 is selected first. The search fails high with a value of +16, so a new search
+is started with window equal to [+16..+18]. This search fails low, so we know now that A1 at one ply has
+an estimated value of +16. All other moves are searched with the same windows and all fail low.
+At this point the estimated value is +16 and best move is A1.
+
+Run now the solver searching 2 ply giving the option -p 2:
+
+------code-begin------
+
+$ ./build/bin/endgame_solver -f db/gpdb-ffo.txt -q ffo-29 -s gve -c cfg/game_value_estimator.cfg -p 2
+Entry id: ffo-29
+Description:  G2:+10. A1:+4. G6:-10. H2:-12. F8:-12. E8:-12. G7:-24. G1:-24. B2:-30. F7:-34
+Game Position:
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+Solving game position ffo-29, from source db/gpdb-ffo.txt, using solver gve (game value estimator) ...
+Node Level 0: estimated game value = +12
+Sat Sep 14 09:09:56 2024 #### start  .01. Iterative deepening search depth = 1
+Sat Sep 14 09:09:56 2024 00 - A1 (+16) [+10..+12]: (failing high) f- = +16 - cumulated node count            2
+Sat Sep 14 09:09:56 2024 00 - A1 (+16) [+16..+18]: (failing low)  f+ = +16 - cumulated node count            4
+Sat Sep 14 09:09:56 2024 01 - G1 (-66) [+16..+18]: (failing low)  f+ = -10 - cumulated node count            5
+Sat Sep 14 09:09:56 2024 02 - B2 (-66) [+16..+18]: (failing low)  f+ = -14 - cumulated node count            6
+Sat Sep 14 09:09:56 2024 03 - G2 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count            7
+Sat Sep 14 09:09:56 2024 04 - H2 (-66) [+16..+18]: (failing low)  f+ = +08 - cumulated node count            8
+Sat Sep 14 09:09:56 2024 05 - G6 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count            9
+Sat Sep 14 09:09:56 2024 06 - F7 (-66) [+16..+18]: (failing low)  f+ = -04 - cumulated node count           10
+Sat Sep 14 09:09:56 2024 07 - G7 (-66) [+16..+18]: (failing low)  f+ = -06 - cumulated node count           11
+Sat Sep 14 09:09:56 2024 08 - E8 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count           12
+Sat Sep 14 09:09:56 2024 09 - F8 (-66) [+16..+18]: (failing low)  f+ = +04 - cumulated node count           13
+Sat Sep 14 09:09:56 2024 #### finish .01. Best move and game value: [A1:+16] - nc =           13 - Time [REAL][PROC]: [     0.   155462][     0.   156537]
+Sat Sep 14 09:09:56 2024 #### start  .02. Iterative deepening search depth = 2
+Sat Sep 14 09:09:56 2024 00 - A1 (+16) [+14..+16]: (failing low)  f+ = +10 - cumulated node count           16
+Sat Sep 14 09:09:56 2024 01 - H2 (+08) [+14..+16]: (failing low)  f+ = -08 - cumulated node count           18
+Sat Sep 14 09:09:56 2024 02 - F8 (+04) [+14..+16]: (failing low)  f+ = -08 - cumulated node count           20
+Sat Sep 14 09:09:56 2024 03 - G2 (+00) [+14..+16]: (failing low)  f+ = +02 - cumulated node count           22
+Sat Sep 14 09:09:56 2024 04 - G6 (+00) [+14..+16]: (failing low)  f+ = -12 - cumulated node count           24
+Sat Sep 14 09:09:56 2024 05 - E8 (+00) [+14..+16]: (failing low)  f+ = -08 - cumulated node count           26
+Sat Sep 14 09:09:56 2024 06 - F7 (-04) [+14..+16]: (failing low)  f+ = -18 - cumulated node count           28
+Sat Sep 14 09:09:56 2024 07 - G7 (-06) [+14..+16]: (failing low)  f+ = -16 - cumulated node count           30
+Sat Sep 14 09:09:56 2024 08 - G1 (-10) [+14..+16]: (failing low)  f+ = -22 - cumulated node count           32
+Sat Sep 14 09:09:56 2024 09 - B2 (-14) [+14..+16]: (failing low)  f+ = -22 - cumulated node count           34
+Sat Sep 14 09:09:56 2024 00 - A1 (+10) [+08..+10]: (failing high) f- = +10 - cumulated node count           42
+Sat Sep 14 09:09:56 2024 #### finish .02. Best move and game value: [A1:+10] - nc =           29 - Time [REAL][PROC]: [     0.   231724][     0.   232743]
+MTD(f) evaluation [REAL][PROCESS] time: [     0.   457748][     0.   460264]
+Transposition Table pointer: 0x5b8460a66600
+  max_n_item:            268435456  -  Number of items that could be stored in the table
+  items:            0x7c63c3a00010  -  Array of items
+  next_item:        0x7c67c39ff950  -  Next item to be used when inserting
+  n_item:                       26  -  The number of item currently held in the table
+  ht:               0x5b8460a66640  -  Hashtable containing <Key:item , Item:item>
+  pq:               0x5b8460a66690  -  Priority queue
+  ht.size:                67108859  -  Hashtable size
+  ht.length:                    26  -  Hashtable length
+TT hashtable stats:
+ ELEMENTS_X_BUCKET; ELEMENT_CNT
+                 0;    67108833
+
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+[node_count=42, leaf_count=0]
+Final outcome: best move=A1, position value=10
+
+------code-end--------
+
+The first part of the evaluation is the same we have seen running one ply, the second part is new and begins from
+Iterative deepening search depth = 2. The moves are sorted using the values obtaining from the previous level.
+A1 first, then He, then F8 and so on. The search window is [+14..+16] taken from the game vale estimated one level less.
+All moves fail low, and the higher is again A1, valued +10. A final search on A1 with window [+08..+10] fails high, giving
+confirmation that +10 is the value searched.
+
+Run now the solver searching 3 ply giving the option -p 3:
+
+------code-begin------
+
+$ ./build/bin/endgame_solver -f db/gpdb-ffo.txt -q ffo-29 -s gve -c cfg/game_value_estimator.cfg -p 3
+Entry id: ffo-29
+Description:  G2:+10. A1:+4. G6:-10. H2:-12. F8:-12. E8:-12. G7:-24. G1:-24. B2:-30. F7:-34
+Game Position:
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+Solving game position ffo-29, from source db/gpdb-ffo.txt, using solver gve (game value estimator) ...
+Node Level 0: estimated game value = +12
+Sat Sep 14 18:52:48 2024 #### start  .01. Iterative deepening search depth = 1
+Sat Sep 14 18:52:48 2024 00 - A1 (+16) [+10..+12]: (failing high) f- = +16 - cumulated node count            2
+Sat Sep 14 18:52:48 2024 00 - A1 (+16) [+16..+18]: (failing low)  f+ = +16 - cumulated node count            4
+Sat Sep 14 18:52:48 2024 01 - G1 (-66) [+16..+18]: (failing low)  f+ = -10 - cumulated node count            5
+Sat Sep 14 18:52:48 2024 02 - B2 (-66) [+16..+18]: (failing low)  f+ = -14 - cumulated node count            6
+Sat Sep 14 18:52:48 2024 03 - G2 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count            7
+Sat Sep 14 18:52:48 2024 04 - H2 (-66) [+16..+18]: (failing low)  f+ = +08 - cumulated node count            8
+Sat Sep 14 18:52:48 2024 05 - G6 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count            9
+Sat Sep 14 18:52:48 2024 06 - F7 (-66) [+16..+18]: (failing low)  f+ = -04 - cumulated node count           10
+Sat Sep 14 18:52:48 2024 07 - G7 (-66) [+16..+18]: (failing low)  f+ = -06 - cumulated node count           11
+Sat Sep 14 18:52:48 2024 08 - E8 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count           12
+Sat Sep 14 18:52:48 2024 09 - F8 (-66) [+16..+18]: (failing low)  f+ = +04 - cumulated node count           13
+Sat Sep 14 18:52:48 2024 #### finish .01. Best move and game value: [A1:+16] - nc =           13 - Time [REAL][PROC]: [     0.   185922][     0.   276797]
+Sat Sep 14 18:52:48 2024 #### start  .03. Iterative deepening search depth = 3
+Sat Sep 14 18:52:48 2024 00 - A1 (+16) [+14..+16]: (failing low)  f+ = +08 - cumulated node count           25
+Sat Sep 14 18:52:48 2024 01 - H2 (+08) [+14..+16]: (failing low)  f+ = -08 - cumulated node count           35
+Sat Sep 14 18:52:48 2024 02 - F8 (+04) [+14..+16]: (failing low)  f+ = -08 - cumulated node count           43
+Sat Sep 14 18:52:48 2024 03 - G2 (+00) [+14..+16]: (failing low)  f+ = +00 - cumulated node count           53
+Sat Sep 14 18:52:48 2024 04 - G6 (+00) [+14..+16]: (failing low)  f+ = -12 - cumulated node count           62
+Sat Sep 14 18:52:48 2024 05 - E8 (+00) [+14..+16]: (failing low)  f+ = -12 - cumulated node count           70
+Sat Sep 14 18:52:48 2024 06 - F7 (-04) [+14..+16]: (failing low)  f+ = -16 - cumulated node count           75
+Sat Sep 14 18:52:48 2024 07 - G7 (-06) [+14..+16]: (failing low)  f+ = -16 - cumulated node count           84
+Sat Sep 14 18:52:48 2024 08 - G1 (-10) [+14..+16]: (failing low)  f+ = -20 - cumulated node count           94
+Sat Sep 14 18:52:48 2024 09 - B2 (-14) [+14..+16]: (failing low)  f+ = -22 - cumulated node count          104
+Sat Sep 14 18:52:48 2024 00 - A1 (+08) [+06..+08]: (failing high) f- = +08 - cumulated node count          118
+Sat Sep 14 18:52:48 2024 #### finish .03. Best move and game value: [A1:+08] - nc =          105 - Time [REAL][PROC]: [     0.   426257][     0.   507143]
+MTD(f) evaluation [REAL][PROCESS] time: [     0.   696386][     0.   884720]
+Transposition Table pointer: 0x63620b51b600
+  max_n_item:            268435456  -  Number of items that could be stored in the table
+  items:            0x7db2f5e00010  -  Array of items
+  next_item:        0x7db6f5dfe890  -  Next item to be used when inserting
+  n_item:                       93  -  The number of item currently held in the table
+  ht:               0x63620b51b640  -  Hashtable containing <Key:item , Item:item>
+  pq:               0x63620b51b690  -  Priority queue
+  ht.size:                67108859  -  Hashtable size
+  ht.length:                    93  -  Hashtable length
+TT hashtable stats:
+ ELEMENTS_X_BUCKET; ELEMENT_CNT
+                 0;    67108766
+
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+[node_count=118, leaf_count=0]
+Final outcome: best move=A1, position value=8
+
+------code-end--------
+
+Here the most relevant part is to notice that the searching steps listed in the log are just two and not three.
+There is depth 1 and depth 3, there is no depth 2.
+This is because position evaluation is expensive, evaluating each depth for sorting the moves is not efficient,
+it is better to iterate the deepening using a larger granularity, doing it only once every few steps.
+How often is governed by the id_step parameter read from the configuration file, in our test the value is 4.
+The target depth is always evaluated in order to be able to give the game estimation at that depth.
+So ply 1 is evaluated, ply 2 is skipped, and ply 3 being final is evaluated again.
+This behavior is not changing searching deeper at 4 and 5 ply. 
+
+Searching deeply A1 remains the best move, meanwhile game value decreases:
+
+PLY | Best move | Value | Second estimated best move
+  3 |        A1 |     8 |                 G2: <= +00
+  4 |        A1 |     8 |                 G2: <= -02
+  5 |        A1 |    10 |                 G2: <= +06
+
+Searching 6 ply we are adding one level of evaluation, dept 1, depth 5, depth 6.
+
+------code-begin------
+
+$ ./build/bin/endgame_solver -f db/gpdb-ffo.txt -q ffo-29 -s gve -c cfg/game_value_estimator.cfg -p 6
+Entry id: ffo-29
+Description:  G2:+10. A1:+4. G6:-10. H2:-12. F8:-12. E8:-12. G7:-24. G1:-24. B2:-30. F7:-34
+Game Position:
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+Solving game position ffo-29, from source db/gpdb-ffo.txt, using solver gve (game value estimator) ...
+Node Level 0: estimated game value = +12
+Tue Sep 17 13:58:35 2024 #### start  .01. Iterative deepening search depth = 1
+Tue Sep 17 13:58:35 2024 00 - A1 (+16) [+10..+12]: (failing high) f- = +16 - cumulated node count            2
+Tue Sep 17 13:58:35 2024 00 - A1 (+16) [+16..+18]: (failing low)  f+ = +16 - cumulated node count            4
+Tue Sep 17 13:58:35 2024 01 - G1 (-66) [+16..+18]: (failing low)  f+ = -10 - cumulated node count            5
+Tue Sep 17 13:58:35 2024 02 - B2 (-66) [+16..+18]: (failing low)  f+ = -14 - cumulated node count            6
+Tue Sep 17 13:58:35 2024 03 - G2 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count            7
+Tue Sep 17 13:58:35 2024 04 - H2 (-66) [+16..+18]: (failing low)  f+ = +08 - cumulated node count            8
+Tue Sep 17 13:58:35 2024 05 - G6 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count            9
+Tue Sep 17 13:58:35 2024 06 - F7 (-66) [+16..+18]: (failing low)  f+ = -04 - cumulated node count           10
+Tue Sep 17 13:58:35 2024 07 - G7 (-66) [+16..+18]: (failing low)  f+ = -06 - cumulated node count           11
+Tue Sep 17 13:58:35 2024 08 - E8 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count           12
+Tue Sep 17 13:58:35 2024 09 - F8 (-66) [+16..+18]: (failing low)  f+ = +04 - cumulated node count           13
+Tue Sep 17 13:58:35 2024 #### finish .01. Best move and game value: [A1:+16] - nc =           13 - Time [REAL][PROC]: [     0.   184920][     0.   264953]
+Tue Sep 17 13:58:35 2024 #### start  .05. Iterative deepening search depth = 5
+Tue Sep 17 13:58:35 2024 00 - A1 (+16) [+14..+16]: (failing low)  f+ = +14 - cumulated node count          101
+Tue Sep 17 13:58:35 2024 01 - H2 (+08) [+14..+16]: (failing low)  f+ = -12 - cumulated node count          165
+Tue Sep 17 13:58:35 2024 02 - F8 (+04) [+14..+16]: (failing low)  f+ = -10 - cumulated node count          199
+Tue Sep 17 13:58:35 2024 03 - G2 (+00) [+14..+16]: (failing low)  f+ = +06 - cumulated node count          262
+Tue Sep 17 13:58:35 2024 04 - G6 (+00) [+14..+16]: (failing low)  f+ = -10 - cumulated node count          304
+Tue Sep 17 13:58:35 2024 05 - E8 (+00) [+14..+16]: (failing low)  f+ = -12 - cumulated node count          334
+Tue Sep 17 13:58:35 2024 06 - F7 (-04) [+14..+16]: (failing low)  f+ = -22 - cumulated node count          347
+Tue Sep 17 13:58:35 2024 07 - G7 (-06) [+14..+16]: (failing low)  f+ = -16 - cumulated node count          379
+Tue Sep 17 13:58:35 2024 08 - G1 (-10) [+14..+16]: (failing low)  f+ = -18 - cumulated node count          447
+Tue Sep 17 13:58:35 2024 09 - B2 (-14) [+14..+16]: (failing low)  f+ = -26 - cumulated node count          512
+Tue Sep 17 13:58:35 2024 00 - A1 (+14) [+12..+14]: (failing low)  f+ = +10 - cumulated node count          538
+Tue Sep 17 13:58:35 2024 01 - G2 (+06) [+12..+14]: (failing low)  f+ = +06 - cumulated node count          539
+Tue Sep 17 13:58:35 2024 02 - F8 (-10) [+12..+14]: (failing low)  f+ = -10 - cumulated node count          540
+Tue Sep 17 13:58:35 2024 03 - G6 (-10) [+12..+14]: (failing low)  f+ = -10 - cumulated node count          541
+Tue Sep 17 13:58:35 2024 04 - H2 (-12) [+12..+14]: (failing low)  f+ = -12 - cumulated node count          542
+Tue Sep 17 13:58:35 2024 05 - E8 (-12) [+12..+14]: (failing low)  f+ = -12 - cumulated node count          543
+Tue Sep 17 13:58:35 2024 06 - G7 (-16) [+12..+14]: (failing low)  f+ = -16 - cumulated node count          544
+Tue Sep 17 13:58:35 2024 07 - G1 (-18) [+12..+14]: (failing low)  f+ = -18 - cumulated node count          545
+Tue Sep 17 13:58:35 2024 08 - F7 (-22) [+12..+14]: (failing low)  f+ = -22 - cumulated node count          546
+Tue Sep 17 13:58:35 2024 09 - B2 (-26) [+12..+14]: (failing low)  f+ = -26 - cumulated node count          547
+Tue Sep 17 13:58:35 2024 00 - A1 (+10) [+08..+10]: (failing high) f- = +10 - cumulated node count          611
+Tue Sep 17 13:58:35 2024 #### finish .05. Best move and game value: [A1:+10] - nc =          598 - Time [REAL][PROC]: [     0.  1821105][     0.  1822291]
+Tue Sep 17 13:58:35 2024 #### start  .06. Iterative deepening search depth = 6
+Tue Sep 17 13:58:35 2024 00 - A1 (+10) [+08..+10]: (failing low)  f+ = +08 - cumulated node count          859
+Tue Sep 17 13:58:35 2024 01 - G2 (+06) [+08..+10]: (failing low)  f+ = +06 - cumulated node count          979
+Tue Sep 17 13:58:35 2024 02 - F8 (-10) [+08..+10]: (failing low)  f+ = -10 - cumulated node count         1046
+Tue Sep 17 13:58:35 2024 03 - G6 (-10) [+08..+10]: (failing low)  f+ = -12 - cumulated node count         1114
+Tue Sep 17 13:58:35 2024 04 - H2 (-12) [+08..+10]: (failing low)  f+ = -12 - cumulated node count         1209
+Tue Sep 17 13:58:35 2024 05 - E8 (-12) [+08..+10]: (failing low)  f+ = -10 - cumulated node count         1257
+Tue Sep 17 13:58:35 2024 06 - G7 (-16) [+08..+10]: (failing low)  f+ = -20 - cumulated node count         1306
+Tue Sep 17 13:58:35 2024 07 - G1 (-18) [+08..+10]: (failing low)  f+ = -14 - cumulated node count         1424
+Tue Sep 17 13:58:35 2024 08 - F7 (-22) [+08..+10]: (failing low)  f+ = -20 - cumulated node count         1442
+Tue Sep 17 13:58:35 2024 09 - B2 (-26) [+08..+10]: (failing low)  f+ = -26 - cumulated node count         1545
+Tue Sep 17 13:58:35 2024 00 - A1 (+08) [+06..+08]: (failing high) f- = +08 - cumulated node count         1629
+Tue Sep 17 13:58:35 2024 #### finish .06. Best move and game value: [A1:+08] - nc =         1018 - Time [REAL][PROC]: [     0.  3053057][     0.  3159090]
+MTD(f) evaluation [REAL][PROCESS] time: [     0.  5162145][     0.  5361362]
+Transposition Table pointer: 0x58683270e600
+  max_n_item:            268435456  -  Number of items that could be stored in the table
+  items:            0x7823d3600010  -  Array of items
+  next_item:        0x7827d35f06d0  -  Next item to be used when inserting
+  n_item:                      996  -  The number of item currently held in the table
+  ht:               0x58683270e640  -  Hashtable containing <Key:item , Item:item>
+  pq:               0x58683270e690  -  Priority queue
+  ht.size:                67108859  -  Hashtable size
+  ht.length:                   996  -  Hashtable length
+TT hashtable stats:
+ ELEMENTS_X_BUCKET; ELEMENT_CNT
+                 0;    67107863
+
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+[node_count=1629, leaf_count=0]
+Final outcome: best move=A1, position value=8
+
+------code-end--------
+
+At six ply A1 is again the best move ... G2 is confirmed being second best, and the gap is a bit narrowing ...
+Then you find the result at seven and eight ply.
+
+PLY | Best move | Value | Second estimated best move
+  6 |        A1 |     8 |                 G2: <= +06
+  7 |        A1 |     8 |                 G2: <= +04
+  8 |        A1 |     8 |                 G2: <= +04
+
+Searching 9 ply there is a new level added ... and for the first time we are not sure that A1 is the only one
+best move
+
+------code-begin------
+
+$ ./build/bin/endgame_solver -f db/gpdb-ffo.txt -q ffo-29 -s gve -c cfg/game_value_estimator.cfg -p 9
+Entry id: ffo-29
+Description:  G2:+10. A1:+4. G6:-10. H2:-12. F8:-12. E8:-12. G7:-24. G1:-24. B2:-30. F7:-34
+Game Position:
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+Solving game position ffo-29, from source db/gpdb-ffo.txt, using solver gve (game value estimator) ...
+Node Level 0: estimated game value = +12
+Tue Sep 17 16:40:31 2024 #### start  .01. Iterative deepening search depth = 1
+Tue Sep 17 16:40:31 2024 00 - A1 (+16) [+10..+12]: (failing high) f- = +16 - cumulated node count            2
+Tue Sep 17 16:40:31 2024 00 - A1 (+16) [+16..+18]: (failing low)  f+ = +16 - cumulated node count            4
+Tue Sep 17 16:40:31 2024 01 - G1 (-66) [+16..+18]: (failing low)  f+ = -10 - cumulated node count            5
+Tue Sep 17 16:40:31 2024 02 - B2 (-66) [+16..+18]: (failing low)  f+ = -14 - cumulated node count            6
+Tue Sep 17 16:40:31 2024 03 - G2 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count            7
+Tue Sep 17 16:40:31 2024 04 - H2 (-66) [+16..+18]: (failing low)  f+ = +08 - cumulated node count            8
+Tue Sep 17 16:40:31 2024 05 - G6 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count            9
+Tue Sep 17 16:40:31 2024 06 - F7 (-66) [+16..+18]: (failing low)  f+ = -04 - cumulated node count           10
+Tue Sep 17 16:40:31 2024 07 - G7 (-66) [+16..+18]: (failing low)  f+ = -06 - cumulated node count           11
+Tue Sep 17 16:40:31 2024 08 - E8 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count           12
+Tue Sep 17 16:40:31 2024 09 - F8 (-66) [+16..+18]: (failing low)  f+ = +04 - cumulated node count           13
+Tue Sep 17 16:40:31 2024 #### finish .01. Best move and game value: [A1:+16] - nc =           13 - Time [REAL][PROC]: [     0.   136646][     0.   137611]
+Tue Sep 17 16:40:31 2024 #### start  .05. Iterative deepening search depth = 5
+Tue Sep 17 16:40:31 2024 00 - A1 (+16) [+14..+16]: (failing low)  f+ = +14 - cumulated node count          101
+Tue Sep 17 16:40:31 2024 01 - H2 (+08) [+14..+16]: (failing low)  f+ = -12 - cumulated node count          165
+Tue Sep 17 16:40:31 2024 02 - F8 (+04) [+14..+16]: (failing low)  f+ = -10 - cumulated node count          199
+Tue Sep 17 16:40:31 2024 03 - G2 (+00) [+14..+16]: (failing low)  f+ = +06 - cumulated node count          262
+Tue Sep 17 16:40:31 2024 04 - G6 (+00) [+14..+16]: (failing low)  f+ = -10 - cumulated node count          304
+Tue Sep 17 16:40:31 2024 05 - E8 (+00) [+14..+16]: (failing low)  f+ = -12 - cumulated node count          334
+Tue Sep 17 16:40:31 2024 06 - F7 (-04) [+14..+16]: (failing low)  f+ = -22 - cumulated node count          347
+Tue Sep 17 16:40:31 2024 07 - G7 (-06) [+14..+16]: (failing low)  f+ = -16 - cumulated node count          379
+Tue Sep 17 16:40:31 2024 08 - G1 (-10) [+14..+16]: (failing low)  f+ = -18 - cumulated node count          447
+Tue Sep 17 16:40:31 2024 09 - B2 (-14) [+14..+16]: (failing low)  f+ = -26 - cumulated node count          512
+Tue Sep 17 16:40:31 2024 00 - A1 (+14) [+12..+14]: (failing low)  f+ = +10 - cumulated node count          538
+Tue Sep 17 16:40:31 2024 01 - G2 (+06) [+12..+14]: (failing low)  f+ = +06 - cumulated node count          539
+Tue Sep 17 16:40:31 2024 02 - F8 (-10) [+12..+14]: (failing low)  f+ = -10 - cumulated node count          540
+Tue Sep 17 16:40:31 2024 03 - G6 (-10) [+12..+14]: (failing low)  f+ = -10 - cumulated node count          541
+Tue Sep 17 16:40:31 2024 04 - H2 (-12) [+12..+14]: (failing low)  f+ = -12 - cumulated node count          542
+Tue Sep 17 16:40:31 2024 05 - E8 (-12) [+12..+14]: (failing low)  f+ = -12 - cumulated node count          543
+Tue Sep 17 16:40:31 2024 06 - G7 (-16) [+12..+14]: (failing low)  f+ = -16 - cumulated node count          544
+Tue Sep 17 16:40:31 2024 07 - G1 (-18) [+12..+14]: (failing low)  f+ = -18 - cumulated node count          545
+Tue Sep 17 16:40:31 2024 08 - F7 (-22) [+12..+14]: (failing low)  f+ = -22 - cumulated node count          546
+Tue Sep 17 16:40:31 2024 09 - B2 (-26) [+12..+14]: (failing low)  f+ = -26 - cumulated node count          547
+Tue Sep 17 16:40:31 2024 00 - A1 (+10) [+08..+10]: (failing high) f- = +10 - cumulated node count          611
+Tue Sep 17 16:40:31 2024 #### finish .05. Best move and game value: [A1:+10] - nc =          598 - Time [REAL][PROC]: [     0.  1794895][     0.  1802354]
+Tue Sep 17 16:40:31 2024 #### start  .08. Iterative deepening search depth = 8
+Tue Sep 17 16:40:31 2024 00 - A1 (+10) [+08..+10]: (failing low)  f+ = +08 - cumulated node count         1508
+Tue Sep 17 16:40:31 2024 01 - G2 (+06) [+08..+10]: (failing low)  f+ = +04 - cumulated node count         1958
+Tue Sep 17 16:40:31 2024 02 - F8 (-10) [+08..+10]: (failing low)  f+ = -08 - cumulated node count         2223
+Tue Sep 17 16:40:31 2024 03 - G6 (-10) [+08..+10]: (failing low)  f+ = -10 - cumulated node count         2503
+Tue Sep 17 16:40:31 2024 04 - H2 (-12) [+08..+10]: (failing low)  f+ = -08 - cumulated node count         2936
+Tue Sep 17 16:40:31 2024 05 - E8 (-12) [+08..+10]: (failing low)  f+ = -10 - cumulated node count         3129
+Tue Sep 17 16:40:31 2024 06 - G7 (-16) [+08..+10]: (failing low)  f+ = -20 - cumulated node count         3306
+Tue Sep 17 16:40:31 2024 07 - G1 (-18) [+08..+10]: (failing low)  f+ = -14 - cumulated node count         3830
+Tue Sep 17 16:40:31 2024 08 - F7 (-22) [+08..+10]: (failing low)  f+ = -16 - cumulated node count         3866
+Tue Sep 17 16:40:31 2024 09 - B2 (-26) [+08..+10]: (failing low)  f+ = -20 - cumulated node count         4192
+Tue Sep 17 16:40:31 2024 00 - A1 (+08) [+06..+08]: (failing high) f- = +08 - cumulated node count         5272
+Tue Sep 17 16:40:31 2024 #### finish .08. Best move and game value: [A1:+08] - nc =         4661 - Time [REAL][PROC]: [     0. 16794844][     0. 16876935]
+Tue Sep 17 16:40:31 2024 #### start  .09. Iterative deepening search depth = 9
+Tue Sep 17 16:40:31 2024 00 - A1 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count         7923
+Tue Sep 17 16:40:31 2024 01 - G2 (+04) [+06..+08]: (failing low)  f+ = +06 - cumulated node count         9688
+Tue Sep 17 16:40:31 2024 02 - F8 (-08) [+06..+08]: (failing low)  f+ = -04 - cumulated node count        10256
+Tue Sep 17 16:40:31 2024 03 - H2 (-08) [+06..+08]: (failing low)  f+ = -04 - cumulated node count        11262
+Tue Sep 17 16:40:31 2024 04 - G6 (-10) [+06..+08]: (failing low)  f+ = -06 - cumulated node count        11878
+Tue Sep 17 16:40:31 2024 05 - E8 (-10) [+06..+08]: (failing low)  f+ = -10 - cumulated node count        12294
+Tue Sep 17 16:40:31 2024 06 - G1 (-14) [+06..+08]: (failing low)  f+ = -06 - cumulated node count        13390
+Tue Sep 17 16:40:31 2024 07 - F7 (-16) [+06..+08]: (failing low)  f+ = -16 - cumulated node count        13443
+Tue Sep 17 16:40:31 2024 08 - G7 (-20) [+06..+08]: (failing low)  f+ = -12 - cumulated node count        13803
+Tue Sep 17 16:40:31 2024 09 - B2 (-20) [+06..+08]: (failing low)  f+ = -20 - cumulated node count        14425
+Tue Sep 17 16:40:31 2024 00 - A1 (+06) [+04..+06]: (failing high) f- = +06 - cumulated node count        15129
+Tue Sep 17 16:40:31 2024 #### finish .09. Best move and game value: [A1:+06] - nc =         9857 - Time [REAL][PROC]: [     0. 16324654][     0. 16423193]
+MTD(f) evaluation [REAL][PROCESS] time: [     0. 35161395][     0. 35360029]
+Transposition Table pointer: 0x62c50a88b600
+  max_n_item:            268435456  -  Number of items that could be stored in the table
+  items:            0x7351b3000010  -  Array of items
+  next_item:        0x7355b2f57750  -  Next item to be used when inserting
+  n_item:                    10786  -  The number of item currently held in the table
+  ht:               0x62c50a88b640  -  Hashtable containing <Key:item , Item:item>
+  pq:               0x62c50a88b690  -  Priority queue
+  ht.size:                67108859  -  Hashtable size
+  ht.length:                 10786  -  Hashtable length
+TT hashtable stats:
+ ELEMENTS_X_BUCKET; ELEMENT_CNT
+                 0;    67098073
+
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+[node_count=15129, leaf_count=0]
+Final outcome: best move=A1, position value=6
+
+------code-end--------
+
+Here we need a small explanation. A1 has value 6 according to alpha-beta, no doubt (remember that this is an
+evaluation given by the rglm evaluator at empty-count equal to 11) about it, but now G2 could be matching the
+same value.
+
+PLY | Best move | Value | Second estimated best move
+  9 |        A1 |     6 |                 G2: <= +06
+
+Run the evaluation at 10 ply:
+
+------code-begin------
+
+$ ./build/bin/endgame_solver -f db/gpdb-ffo.txt -q ffo-29 -s gve -c cfg/game_value_estimator.cfg -p 10
+Entry id: ffo-29
+Description:  G2:+10. A1:+4. G6:-10. H2:-12. F8:-12. E8:-12. G7:-24. G1:-24. B2:-30. F7:-34
+Game Position:
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+Solving game position ffo-29, from source db/gpdb-ffo.txt, using solver gve (game value estimator) ...
+Node Level 0: estimated game value = +12
+Wed Sep 18 11:08:52 2024 #### start  .01. Iterative deepening search depth = 1
+Wed Sep 18 11:08:52 2024 00 - A1 (+16) [+10..+12]: (failing high) f- = +16 - cumulated node count            2
+Wed Sep 18 11:08:52 2024 00 - A1 (+16) [+16..+18]: (failing low)  f+ = +16 - cumulated node count            4
+Wed Sep 18 11:08:52 2024 01 - G1 (-66) [+16..+18]: (failing low)  f+ = -10 - cumulated node count            5
+Wed Sep 18 11:08:52 2024 02 - B2 (-66) [+16..+18]: (failing low)  f+ = -14 - cumulated node count            6
+Wed Sep 18 11:08:52 2024 03 - G2 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count            7
+Wed Sep 18 11:08:52 2024 04 - H2 (-66) [+16..+18]: (failing low)  f+ = +08 - cumulated node count            8
+Wed Sep 18 11:08:52 2024 05 - G6 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count            9
+Wed Sep 18 11:08:52 2024 06 - F7 (-66) [+16..+18]: (failing low)  f+ = -04 - cumulated node count           10
+Wed Sep 18 11:08:52 2024 07 - G7 (-66) [+16..+18]: (failing low)  f+ = -06 - cumulated node count           11
+Wed Sep 18 11:08:52 2024 08 - E8 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count           12
+Wed Sep 18 11:08:52 2024 09 - F8 (-66) [+16..+18]: (failing low)  f+ = +04 - cumulated node count           13
+Wed Sep 18 11:08:52 2024 #### finish .01. Best move and game value: [A1:+16] - nc =           13 - Time [REAL][PROC]: [     0.   150973][     0.   152189]
+Wed Sep 18 11:08:52 2024 #### start  .05. Iterative deepening search depth = 5
+Wed Sep 18 11:08:52 2024 00 - A1 (+16) [+14..+16]: (failing low)  f+ = +14 - cumulated node count          101
+Wed Sep 18 11:08:52 2024 01 - H2 (+08) [+14..+16]: (failing low)  f+ = -12 - cumulated node count          165
+Wed Sep 18 11:08:52 2024 02 - F8 (+04) [+14..+16]: (failing low)  f+ = -10 - cumulated node count          199
+Wed Sep 18 11:08:52 2024 03 - G2 (+00) [+14..+16]: (failing low)  f+ = +06 - cumulated node count          262
+Wed Sep 18 11:08:52 2024 04 - G6 (+00) [+14..+16]: (failing low)  f+ = -10 - cumulated node count          304
+Wed Sep 18 11:08:52 2024 05 - E8 (+00) [+14..+16]: (failing low)  f+ = -12 - cumulated node count          334
+Wed Sep 18 11:08:52 2024 06 - F7 (-04) [+14..+16]: (failing low)  f+ = -22 - cumulated node count          347
+Wed Sep 18 11:08:52 2024 07 - G7 (-06) [+14..+16]: (failing low)  f+ = -16 - cumulated node count          379
+Wed Sep 18 11:08:52 2024 08 - G1 (-10) [+14..+16]: (failing low)  f+ = -18 - cumulated node count          447
+Wed Sep 18 11:08:52 2024 09 - B2 (-14) [+14..+16]: (failing low)  f+ = -26 - cumulated node count          512
+Wed Sep 18 11:08:52 2024 00 - A1 (+14) [+12..+14]: (failing low)  f+ = +10 - cumulated node count          538
+Wed Sep 18 11:08:52 2024 01 - G2 (+06) [+12..+14]: (failing low)  f+ = +06 - cumulated node count          539
+Wed Sep 18 11:08:52 2024 02 - F8 (-10) [+12..+14]: (failing low)  f+ = -10 - cumulated node count          540
+Wed Sep 18 11:08:52 2024 03 - G6 (-10) [+12..+14]: (failing low)  f+ = -10 - cumulated node count          541
+Wed Sep 18 11:08:52 2024 04 - H2 (-12) [+12..+14]: (failing low)  f+ = -12 - cumulated node count          542
+Wed Sep 18 11:08:52 2024 05 - E8 (-12) [+12..+14]: (failing low)  f+ = -12 - cumulated node count          543
+Wed Sep 18 11:08:52 2024 06 - G7 (-16) [+12..+14]: (failing low)  f+ = -16 - cumulated node count          544
+Wed Sep 18 11:08:52 2024 07 - G1 (-18) [+12..+14]: (failing low)  f+ = -18 - cumulated node count          545
+Wed Sep 18 11:08:52 2024 08 - F7 (-22) [+12..+14]: (failing low)  f+ = -22 - cumulated node count          546
+Wed Sep 18 11:08:52 2024 09 - B2 (-26) [+12..+14]: (failing low)  f+ = -26 - cumulated node count          547
+Wed Sep 18 11:08:52 2024 00 - A1 (+10) [+08..+10]: (failing high) f- = +10 - cumulated node count          611
+Wed Sep 18 11:08:52 2024 #### finish .05. Best move and game value: [A1:+10] - nc =          598 - Time [REAL][PROC]: [     0.  1882662][     0.  2020587]
+Wed Sep 18 11:08:52 2024 #### start  .08. Iterative deepening search depth = 8
+Wed Sep 18 11:08:52 2024 00 - A1 (+10) [+08..+10]: (failing low)  f+ = +08 - cumulated node count         1508
+Wed Sep 18 11:08:52 2024 01 - G2 (+06) [+08..+10]: (failing low)  f+ = +04 - cumulated node count         1958
+Wed Sep 18 11:08:52 2024 02 - F8 (-10) [+08..+10]: (failing low)  f+ = -08 - cumulated node count         2223
+Wed Sep 18 11:08:52 2024 03 - G6 (-10) [+08..+10]: (failing low)  f+ = -10 - cumulated node count         2503
+Wed Sep 18 11:08:52 2024 04 - H2 (-12) [+08..+10]: (failing low)  f+ = -08 - cumulated node count         2936
+Wed Sep 18 11:08:52 2024 05 - E8 (-12) [+08..+10]: (failing low)  f+ = -10 - cumulated node count         3129
+Wed Sep 18 11:08:52 2024 06 - G7 (-16) [+08..+10]: (failing low)  f+ = -20 - cumulated node count         3306
+Wed Sep 18 11:08:52 2024 07 - G1 (-18) [+08..+10]: (failing low)  f+ = -14 - cumulated node count         3830
+Wed Sep 18 11:08:52 2024 08 - F7 (-22) [+08..+10]: (failing low)  f+ = -16 - cumulated node count         3866
+Wed Sep 18 11:08:52 2024 09 - B2 (-26) [+08..+10]: (failing low)  f+ = -20 - cumulated node count         4192
+Wed Sep 18 11:08:52 2024 00 - A1 (+08) [+06..+08]: (failing high) f- = +08 - cumulated node count         5272
+Wed Sep 18 11:08:52 2024 #### finish .08. Best move and game value: [A1:+08] - nc =         4661 - Time [REAL][PROC]: [     0. 16667104][     0. 16794211]
+Wed Sep 18 11:08:52 2024 #### start  .10. Iterative deepening search depth = 10
+Wed Sep 18 11:08:52 2024 00 - A1 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       857431
+Wed Sep 18 11:08:52 2024 01 - G2 (+04) [+06..+08]: (failing high) f- = +08 - cumulated node count      1144680
+Wed Sep 18 11:08:52 2024 00 - G2 (+08) [+08..+10]: (failing high) f- = +10 - cumulated node count      1318091
+Wed Sep 18 11:08:52 2024 00 - G2 (+10) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1722734
+Wed Sep 18 11:08:52 2024 01 - A1 (+06) [+10..+12]: (failing low)  f+ = +06 - cumulated node count      1722735
+Wed Sep 18 11:08:52 2024 02 - F8 (-08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1772060
+Wed Sep 18 11:08:52 2024 03 - H2 (-08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1839556
+Wed Sep 18 11:08:52 2024 04 - G6 (-10) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1897444
+Wed Sep 18 11:08:52 2024 05 - E8 (-10) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1923653
+Wed Sep 18 11:08:52 2024 06 - G1 (-14) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1965081
+Wed Sep 18 11:08:52 2024 07 - F7 (-16) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1965521
+Wed Sep 18 11:08:52 2024 08 - G7 (-20) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      2004150
+Wed Sep 18 11:08:52 2024 09 - B2 (-20) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      2029884
+Wed Sep 18 11:08:52 2024 #### finish .10. Best move and game value: [G2:+10] - nc =      2024612 - Time [REAL][PROC]: [     0.124889207][     0.125015853]
+MTD(f) evaluation [REAL][PROCESS] time: [     0.143723166][     0.144132052]
+Transposition Table pointer: 0x56c719779600
+  max_n_item:            268435456  -  Number of items that could be stored in the table
+  items:            0x7908bfc00010  -  Array of items
+  next_item:        0x790cbfb2cf50  -  Next item to be used when inserting
+  n_item:                    13506  -  The number of item currently held in the table
+  ht:               0x56c719779640  -  Hashtable containing <Key:item , Item:item>
+  pq:               0x56c719779690  -  Priority queue
+  ht.size:                67108859  -  Hashtable size
+  ht.length:                 13506  -  Hashtable length
+TT hashtable stats:
+ ELEMENTS_X_BUCKET; ELEMENT_CNT
+                 0;    67095353
+
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+[node_count=2029884, leaf_count=404069]
+Final outcome: best move=G2, position value=10
+
+------code-end--------
+
+Now the evaluation flips the best move to G2, valued +10, after A1 assessed as <= +6.
+Checking all moves with window being [+10..+12] all fail low, but no search give back a more constraining lower boud.
+
+PLY | Best move | Value | Second estimated best move
+ 10 |        G2 |    10 |                Many <= +10
+
+Any search at a deeper level gives the same result.
+This is expected given that the parameter id_min_empty_count is set to value 12. It means that from depth 10 on the
+search is doing exactly the same actions.
+
+Run a new estimation at depth equal to 20 using a different configuration file having different parameter values for key entries:
+
+  id_min_empty_count=3
+  id_step=1
+
+Now we can have an estimation cycle, with resorting the moves at each ply.
+
+------code-begin------
+
+$ ./build/bin/endgame_solver -f db/gpdb-ffo.txt -q ffo-29 -s gve -c cfg/game_value_estimator_testing.cfg -p 20
+Entry id: ffo-29
+Description:  G2:+10. A1:+4. G6:-10. H2:-12. F8:-12. E8:-12. G7:-24. G1:-24. B2:-30. F7:-34
+Game Position:
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+Solving game position ffo-29, from source db/gpdb-ffo.txt, using solver gve (game value estimator) ...
+Node Level 0: estimated game value = +12
+Wed Sep 18 12:24:23 2024 #### start  .01. Iterative deepening search depth = 1
+Wed Sep 18 12:24:23 2024 00 - A1 (+16) [+10..+12]: (failing high) f- = +16 - cumulated node count            2
+Wed Sep 18 12:24:23 2024 00 - A1 (+16) [+16..+18]: (failing low)  f+ = +16 - cumulated node count            4
+Wed Sep 18 12:24:23 2024 01 - G1 (-66) [+16..+18]: (failing low)  f+ = -10 - cumulated node count            5
+Wed Sep 18 12:24:23 2024 02 - B2 (-66) [+16..+18]: (failing low)  f+ = -14 - cumulated node count            6
+Wed Sep 18 12:24:23 2024 03 - G2 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count            7
+Wed Sep 18 12:24:23 2024 04 - H2 (-66) [+16..+18]: (failing low)  f+ = +08 - cumulated node count            8
+Wed Sep 18 12:24:23 2024 05 - G6 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count            9
+Wed Sep 18 12:24:23 2024 06 - F7 (-66) [+16..+18]: (failing low)  f+ = -04 - cumulated node count           10
+Wed Sep 18 12:24:23 2024 07 - G7 (-66) [+16..+18]: (failing low)  f+ = -06 - cumulated node count           11
+Wed Sep 18 12:24:23 2024 08 - E8 (-66) [+16..+18]: (failing low)  f+ = +00 - cumulated node count           12
+Wed Sep 18 12:24:23 2024 09 - F8 (-66) [+16..+18]: (failing low)  f+ = +04 - cumulated node count           13
+Wed Sep 18 12:24:23 2024 #### finish .01. Best move and game value: [A1:+16] - nc =           13 - Time [REAL][PROC]: [     0.   144070][     0.   145036]
+Wed Sep 18 12:24:23 2024 #### start  .02. Iterative deepening search depth = 2
+Wed Sep 18 12:24:23 2024 00 - A1 (+16) [+14..+16]: (failing low)  f+ = +10 - cumulated node count           16
+Wed Sep 18 12:24:23 2024 01 - H2 (+08) [+14..+16]: (failing low)  f+ = -08 - cumulated node count           18
+Wed Sep 18 12:24:23 2024 02 - F8 (+04) [+14..+16]: (failing low)  f+ = -08 - cumulated node count           20
+Wed Sep 18 12:24:23 2024 03 - G2 (+00) [+14..+16]: (failing low)  f+ = +02 - cumulated node count           22
+Wed Sep 18 12:24:23 2024 04 - G6 (+00) [+14..+16]: (failing low)  f+ = -12 - cumulated node count           24
+Wed Sep 18 12:24:23 2024 05 - E8 (+00) [+14..+16]: (failing low)  f+ = -08 - cumulated node count           26
+Wed Sep 18 12:24:23 2024 06 - F7 (-04) [+14..+16]: (failing low)  f+ = -18 - cumulated node count           28
+Wed Sep 18 12:24:23 2024 07 - G7 (-06) [+14..+16]: (failing low)  f+ = -16 - cumulated node count           30
+Wed Sep 18 12:24:23 2024 08 - G1 (-10) [+14..+16]: (failing low)  f+ = -22 - cumulated node count           32
+Wed Sep 18 12:24:23 2024 09 - B2 (-14) [+14..+16]: (failing low)  f+ = -22 - cumulated node count           34
+Wed Sep 18 12:24:23 2024 00 - A1 (+10) [+08..+10]: (failing high) f- = +10 - cumulated node count           42
+Wed Sep 18 12:24:23 2024 #### finish .02. Best move and game value: [A1:+10] - nc =           29 - Time [REAL][PROC]: [     0.   248125][     0.   249013]
+Wed Sep 18 12:24:23 2024 #### start  .03. Iterative deepening search depth = 3
+Wed Sep 18 12:24:23 2024 00 - A1 (+10) [+08..+10]: (failing low)  f+ = +08 - cumulated node count           54
+Wed Sep 18 12:24:23 2024 01 - G2 (+02) [+08..+10]: (failing low)  f+ = +00 - cumulated node count           64
+Wed Sep 18 12:24:23 2024 02 - H2 (-08) [+08..+10]: (failing low)  f+ = -08 - cumulated node count           74
+Wed Sep 18 12:24:23 2024 03 - F8 (-08) [+08..+10]: (failing low)  f+ = -08 - cumulated node count           82
+Wed Sep 18 12:24:23 2024 04 - E8 (-08) [+08..+10]: (failing low)  f+ = -12 - cumulated node count           90
+Wed Sep 18 12:24:23 2024 05 - G6 (-12) [+08..+10]: (failing low)  f+ = -12 - cumulated node count           99
+Wed Sep 18 12:24:23 2024 06 - G7 (-16) [+08..+10]: (failing low)  f+ = -16 - cumulated node count          108
+Wed Sep 18 12:24:23 2024 07 - F7 (-18) [+08..+10]: (failing low)  f+ = -16 - cumulated node count          113
+Wed Sep 18 12:24:23 2024 08 - G1 (-22) [+08..+10]: (failing low)  f+ = -20 - cumulated node count          123
+Wed Sep 18 12:24:23 2024 09 - B2 (-22) [+08..+10]: (failing low)  f+ = -22 - cumulated node count          133
+Wed Sep 18 12:24:23 2024 00 - A1 (+08) [+06..+08]: (failing high) f- = +08 - cumulated node count          147
+Wed Sep 18 12:24:23 2024 #### finish .03. Best move and game value: [A1:+08] - nc =          105 - Time [REAL][PROC]: [     0.   317657][     0.   392355]
+Wed Sep 18 12:24:23 2024 #### start  .04. Iterative deepening search depth = 4
+Wed Sep 18 12:24:23 2024 00 - A1 (+08) [+06..+08]: (failing high) f- = +08 - cumulated node count          190
+Wed Sep 18 12:24:23 2024 00 - A1 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count          211
+Wed Sep 18 12:24:23 2024 01 - G2 (+00) [+08..+10]: (failing low)  f+ = -02 - cumulated node count          229
+Wed Sep 18 12:24:23 2024 02 - H2 (-08) [+08..+10]: (failing low)  f+ = -10 - cumulated node count          247
+Wed Sep 18 12:24:23 2024 03 - F8 (-08) [+08..+10]: (failing low)  f+ = -10 - cumulated node count          260
+Wed Sep 18 12:24:23 2024 04 - E8 (-12) [+08..+10]: (failing low)  f+ = -12 - cumulated node count          273
+Wed Sep 18 12:24:23 2024 05 - G6 (-12) [+08..+10]: (failing low)  f+ = -14 - cumulated node count          287
+Wed Sep 18 12:24:23 2024 06 - G7 (-16) [+08..+10]: (failing low)  f+ = -22 - cumulated node count          300
+Wed Sep 18 12:24:23 2024 07 - F7 (-16) [+08..+10]: (failing low)  f+ = -18 - cumulated node count          307
+Wed Sep 18 12:24:23 2024 08 - G1 (-20) [+08..+10]: (failing low)  f+ = -22 - cumulated node count          325
+Wed Sep 18 12:24:23 2024 09 - B2 (-22) [+08..+10]: (failing low)  f+ = -26 - cumulated node count          343
+Wed Sep 18 12:24:23 2024 #### finish .04. Best move and game value: [A1:+08] - nc =          196 - Time [REAL][PROC]: [     0.   700756][     0.   734204]
+Wed Sep 18 12:24:23 2024 #### start  .05. Iterative deepening search depth = 5
+Wed Sep 18 12:24:23 2024 00 - A1 (+08) [+06..+08]: (failing high) f- = +10 - cumulated node count          410
+Wed Sep 18 12:24:23 2024 00 - A1 (+10) [+10..+12]: (failing low)  f+ = +10 - cumulated node count          496
+Wed Sep 18 12:24:23 2024 01 - G2 (-02) [+10..+12]: (failing low)  f+ = +06 - cumulated node count          559
+Wed Sep 18 12:24:23 2024 02 - H2 (-10) [+10..+12]: (failing low)  f+ = -12 - cumulated node count          623
+Wed Sep 18 12:24:23 2024 03 - F8 (-10) [+10..+12]: (failing low)  f+ = -10 - cumulated node count          657
+Wed Sep 18 12:24:23 2024 04 - E8 (-12) [+10..+12]: (failing low)  f+ = -12 - cumulated node count          691
+Wed Sep 18 12:24:23 2024 05 - G6 (-14) [+10..+12]: (failing low)  f+ = -10 - cumulated node count          729
+Wed Sep 18 12:24:23 2024 06 - F7 (-18) [+10..+12]: (failing low)  f+ = -22 - cumulated node count          742
+Wed Sep 18 12:24:23 2024 07 - G7 (-22) [+10..+12]: (failing low)  f+ = -16 - cumulated node count          774
+Wed Sep 18 12:24:23 2024 08 - G1 (-22) [+10..+12]: (failing low)  f+ = -18 - cumulated node count          842
+Wed Sep 18 12:24:23 2024 09 - B2 (-26) [+10..+12]: (failing low)  f+ = -26 - cumulated node count          907
+Wed Sep 18 12:24:23 2024 #### finish .05. Best move and game value: [A1:+10] - nc =          564 - Time [REAL][PROC]: [     0.   840295][     0.   851226]
+Wed Sep 18 12:24:23 2024 #### start  .06. Iterative deepening search depth = 6
+Wed Sep 18 12:24:23 2024 00 - A1 (+10) [+08..+10]: (failing low)  f+ = +08 - cumulated node count         1154
+Wed Sep 18 12:24:23 2024 01 - G2 (+06) [+08..+10]: (failing low)  f+ = +06 - cumulated node count         1274
+Wed Sep 18 12:24:23 2024 02 - F8 (-10) [+08..+10]: (failing low)  f+ = -10 - cumulated node count         1341
+Wed Sep 18 12:24:23 2024 03 - G6 (-10) [+08..+10]: (failing low)  f+ = -12 - cumulated node count         1409
+Wed Sep 18 12:24:23 2024 04 - H2 (-12) [+08..+10]: (failing low)  f+ = -12 - cumulated node count         1504
+Wed Sep 18 12:24:23 2024 05 - E8 (-12) [+08..+10]: (failing low)  f+ = -10 - cumulated node count         1552
+Wed Sep 18 12:24:23 2024 06 - G7 (-16) [+08..+10]: (failing low)  f+ = -20 - cumulated node count         1601
+Wed Sep 18 12:24:23 2024 07 - G1 (-18) [+08..+10]: (failing low)  f+ = -14 - cumulated node count         1719
+Wed Sep 18 12:24:23 2024 08 - F7 (-22) [+08..+10]: (failing low)  f+ = -20 - cumulated node count         1737
+Wed Sep 18 12:24:23 2024 09 - B2 (-26) [+08..+10]: (failing low)  f+ = -26 - cumulated node count         1840
+Wed Sep 18 12:24:23 2024 00 - A1 (+08) [+06..+08]: (failing high) f- = +08 - cumulated node count         1924
+Wed Sep 18 12:24:23 2024 #### finish .06. Best move and game value: [A1:+08] - nc =         1017 - Time [REAL][PROC]: [     0.  3005647][     0.  3093675]
+Wed Sep 18 12:24:23 2024 #### start  .07. Iterative deepening search depth = 7
+Wed Sep 18 12:24:23 2024 00 - A1 (+08) [+06..+08]: (failing high) f- = +08 - cumulated node count         2148
+Wed Sep 18 12:24:23 2024 00 - A1 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count         2568
+Wed Sep 18 12:24:23 2024 01 - G2 (+06) [+08..+10]: (failing low)  f+ = +04 - cumulated node count         2912
+Wed Sep 18 12:24:23 2024 02 - F8 (-10) [+08..+10]: (failing low)  f+ = -10 - cumulated node count         3079
+Wed Sep 18 12:24:23 2024 03 - E8 (-10) [+08..+10]: (failing low)  f+ = -12 - cumulated node count         3261
+Wed Sep 18 12:24:23 2024 04 - G6 (-12) [+08..+10]: (failing low)  f+ = -08 - cumulated node count         3419
+Wed Sep 18 12:24:23 2024 05 - H2 (-12) [+08..+10]: (failing low)  f+ = -04 - cumulated node count         3653
+Wed Sep 18 12:24:23 2024 06 - G1 (-14) [+08..+10]: (failing low)  f+ = -16 - cumulated node count         3978
+Wed Sep 18 12:24:23 2024 07 - G7 (-20) [+08..+10]: (failing low)  f+ = -18 - cumulated node count         4092
+Wed Sep 18 12:24:23 2024 08 - F7 (-20) [+08..+10]: (failing low)  f+ = -18 - cumulated node count         4119
+Wed Sep 18 12:24:23 2024 09 - B2 (-26) [+08..+10]: (failing low)  f+ = -20 - cumulated node count         4339
+Wed Sep 18 12:24:23 2024 #### finish .07. Best move and game value: [A1:+08] - nc =         2415 - Time [REAL][PROC]: [     0.  2730270][     0.  2817812]
+Wed Sep 18 12:24:23 2024 #### start  .08. Iterative deepening search depth = 8
+Wed Sep 18 12:24:23 2024 00 - A1 (+08) [+06..+08]: (failing high) f- = +08 - cumulated node count         5668
+Wed Sep 18 12:24:23 2024 00 - A1 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count         6346
+Wed Sep 18 12:24:23 2024 01 - G2 (+04) [+08..+10]: (failing low)  f+ = +04 - cumulated node count         6888
+Wed Sep 18 12:24:23 2024 02 - H2 (-04) [+08..+10]: (failing low)  f+ = -08 - cumulated node count         7395
+Wed Sep 18 12:24:23 2024 03 - G6 (-08) [+08..+10]: (failing low)  f+ = -10 - cumulated node count         7704
+Wed Sep 18 12:24:23 2024 04 - F8 (-10) [+08..+10]: (failing low)  f+ = -08 - cumulated node count         7866
+Wed Sep 18 12:24:23 2024 05 - E8 (-12) [+08..+10]: (failing low)  f+ = -10 - cumulated node count         8059
+Wed Sep 18 12:24:23 2024 06 - G1 (-16) [+08..+10]: (failing low)  f+ = -14 - cumulated node count         8583
+Wed Sep 18 12:24:23 2024 07 - G7 (-18) [+08..+10]: (failing low)  f+ = -20 - cumulated node count         8760
+Wed Sep 18 12:24:23 2024 08 - F7 (-18) [+08..+10]: (failing low)  f+ = -16 - cumulated node count         8796
+Wed Sep 18 12:24:23 2024 09 - B2 (-20) [+08..+10]: (failing low)  f+ = -20 - cumulated node count         9122
+Wed Sep 18 12:24:23 2024 #### finish .08. Best move and game value: [A1:+08] - nc =         4783 - Time [REAL][PROC]: [     0. 12164473][     0. 12263633]
+Wed Sep 18 12:24:23 2024 #### start  .09. Iterative deepening search depth = 9
+Wed Sep 18 12:24:23 2024 00 - A1 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        10740
+Wed Sep 18 12:24:23 2024 01 - G2 (+04) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        12505
+Wed Sep 18 12:24:23 2024 02 - H2 (-08) [+06..+08]: (failing low)  f+ = -04 - cumulated node count        13678
+Wed Sep 18 12:24:23 2024 03 - F8 (-08) [+06..+08]: (failing low)  f+ = -04 - cumulated node count        14079
+Wed Sep 18 12:24:23 2024 04 - G6 (-10) [+06..+08]: (failing low)  f+ = -06 - cumulated node count        14695
+Wed Sep 18 12:24:23 2024 05 - E8 (-10) [+06..+08]: (failing low)  f+ = -10 - cumulated node count        15111
+Wed Sep 18 12:24:23 2024 06 - G1 (-14) [+06..+08]: (failing low)  f+ = -06 - cumulated node count        16207
+Wed Sep 18 12:24:23 2024 07 - F7 (-16) [+06..+08]: (failing low)  f+ = -16 - cumulated node count        16260
+Wed Sep 18 12:24:23 2024 08 - G7 (-20) [+06..+08]: (failing low)  f+ = -12 - cumulated node count        16620
+Wed Sep 18 12:24:23 2024 09 - B2 (-20) [+06..+08]: (failing low)  f+ = -20 - cumulated node count        17242
+Wed Sep 18 12:24:23 2024 00 - A1 (+06) [+04..+06]: (failing high) f- = +06 - cumulated node count        18329
+Wed Sep 18 12:24:23 2024 #### finish .09. Best move and game value: [A1:+06] - nc =         9207 - Time [REAL][PROC]: [     0. 13294819][     0. 13390613]
+Wed Sep 18 12:24:23 2024 #### start  .10. Iterative deepening search depth = 10
+Wed Sep 18 12:24:23 2024 00 - A1 (+06) [+04..+06]: (failing high) f- = +06 - cumulated node count        21763
+Wed Sep 18 12:24:23 2024 00 - A1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        26189
+Wed Sep 18 12:24:23 2024 01 - G2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        28704
+Wed Sep 18 12:24:23 2024 02 - H2 (-04) [+06..+08]: (failing low)  f+ = -02 - cumulated node count        30494
+Wed Sep 18 12:24:23 2024 03 - F8 (-04) [+06..+08]: (failing low)  f+ = -04 - cumulated node count        31090
+Wed Sep 18 12:24:23 2024 04 - G6 (-06) [+06..+08]: (failing low)  f+ = -04 - cumulated node count        32029
+Wed Sep 18 12:24:23 2024 05 - G1 (-06) [+06..+08]: (failing low)  f+ = -02 - cumulated node count        33682
+Wed Sep 18 12:24:23 2024 06 - E8 (-10) [+06..+08]: (failing low)  f+ = -04 - cumulated node count        34310
+Wed Sep 18 12:24:23 2024 07 - G7 (-12) [+06..+08]: (failing low)  f+ = -16 - cumulated node count        34840
+Wed Sep 18 12:24:23 2024 08 - F7 (-16) [+06..+08]: (failing low)  f+ = -18 - cumulated node count        34910
+Wed Sep 18 12:24:23 2024 09 - B2 (-20) [+06..+08]: (failing low)  f+ = -20 - cumulated node count        35815
+Wed Sep 18 12:24:23 2024 #### finish .10. Best move and game value: [A1:+06] - nc =        17486 - Time [REAL][PROC]: [     0. 43205900][     0. 43331853]
+Wed Sep 18 12:24:23 2024 #### start  .11. Iterative deepening search depth = 11
+Wed Sep 18 12:24:23 2024 00 - A1 (+06) [+04..+06]: (failing high) f- = +06 - cumulated node count        38998
+Wed Sep 18 12:24:23 2024 00 - A1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        44086
+Wed Sep 18 12:24:23 2024 01 - G2 (+06) [+06..+08]: (failing high) f- = +08 - cumulated node count        48076
+Wed Sep 18 12:24:23 2024 00 - G2 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count        51541
+Wed Sep 18 12:24:23 2024 01 - A1 (+06) [+08..+10]: (failing low)  f+ = +06 - cumulated node count        51542
+Wed Sep 18 12:24:23 2024 02 - H2 (-02) [+08..+10]: (failing low)  f+ = +06 - cumulated node count        54975
+Wed Sep 18 12:24:23 2024 03 - G1 (-02) [+08..+10]: (failing low)  f+ = -02 - cumulated node count        57913
+Wed Sep 18 12:24:23 2024 04 - F8 (-04) [+08..+10]: (failing low)  f+ = +08 - cumulated node count        58986
+Wed Sep 18 12:24:23 2024 05 - G6 (-04) [+08..+10]: (failing low)  f+ = +08 - cumulated node count        60713
+Wed Sep 18 12:24:23 2024 06 - E8 (-04) [+08..+10]: (failing low)  f+ = +06 - cumulated node count        61920
+Wed Sep 18 12:24:23 2024 07 - G7 (-16) [+08..+10]: (failing low)  f+ = -08 - cumulated node count        62850
+Wed Sep 18 12:24:23 2024 08 - F7 (-18) [+08..+10]: (failing low)  f+ = -18 - cumulated node count        62949
+Wed Sep 18 12:24:23 2024 09 - B2 (-20) [+08..+10]: (failing low)  f+ = -12 - cumulated node count        64589
+Wed Sep 18 12:24:23 2024 #### finish .11. Best move and game value: [G2:+08] - nc =        28774 - Time [REAL][PROC]: [     0. 42027863][     0. 42164265]
+Wed Sep 18 12:24:23 2024 #### start  .12. Iterative deepening search depth = 12
+Wed Sep 18 12:24:23 2024 00 - G2 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        69722
+Wed Sep 18 12:24:24 2024 01 - F8 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        72033
+Wed Sep 18 12:24:24 2024 02 - G6 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        74641
+Wed Sep 18 12:24:24 2024 03 - A1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        81644
+Wed Sep 18 12:24:24 2024 04 - H2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        85666
+Wed Sep 18 12:24:24 2024 05 - E8 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        87390
+Wed Sep 18 12:24:24 2024 06 - G1 (-02) [+06..+08]: (failing low)  f+ = +06 - cumulated node count        91543
+Wed Sep 18 12:24:24 2024 07 - G7 (-08) [+06..+08]: (failing low)  f+ = -06 - cumulated node count        92851
+Wed Sep 18 12:24:24 2024 08 - B2 (-12) [+06..+08]: (failing low)  f+ = -08 - cumulated node count        95151
+Wed Sep 18 12:24:24 2024 09 - F7 (-18) [+06..+08]: (failing low)  f+ = -16 - cumulated node count        95275
+Wed Sep 18 12:24:24 2024 00 - G2 (+06) [+04..+06]: (failing high) f- = +06 - cumulated node count       101255
+Wed Sep 18 12:24:24 2024 #### finish .12. Best move and game value: [G2:+06] - nc =        36666 - Time [REAL][PROC]: [     0. 64152114][     0. 64278727]
+Wed Sep 18 12:24:24 2024 #### start  .13. Iterative deepening search depth = 13
+Wed Sep 18 12:24:24 2024 00 - G2 (+06) [+04..+06]: (failing high) f- = +06 - cumulated node count       109076
+Wed Sep 18 12:24:24 2024 00 - G2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       127134
+Wed Sep 18 12:24:24 2024 01 - F8 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       131120
+Wed Sep 18 12:24:24 2024 02 - G6 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       135340
+Wed Sep 18 12:24:24 2024 03 - A1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       147771
+Wed Sep 18 12:24:24 2024 04 - H2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       154229
+Wed Sep 18 12:24:24 2024 05 - E8 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       157104
+Wed Sep 18 12:24:24 2024 06 - G1 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       163516
+Wed Sep 18 12:24:24 2024 07 - G7 (-06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       165508
+Wed Sep 18 12:24:24 2024 08 - B2 (-08) [+06..+08]: (failing low)  f+ = -02 - cumulated node count       169169
+Wed Sep 18 12:24:24 2024 09 - F7 (-16) [+06..+08]: (failing low)  f+ = -10 - cumulated node count       169328
+Wed Sep 18 12:24:24 2024 #### finish .13. Best move and game value: [G2:+06] - nc =        68073 - Time [REAL][PROC]: [     0. 95968086][     0. 96097572]
+Wed Sep 18 12:24:24 2024 #### start  .14. Iterative deepening search depth = 14
+Wed Sep 18 12:24:24 2024 00 - G2 (+06) [+04..+06]: (failing high) f- = +06 - cumulated node count       183477
+Wed Sep 18 12:24:24 2024 00 - G2 (+06) [+06..+08]: (failing high) f- = +08 - cumulated node count       187827
+Wed Sep 18 12:24:24 2024 00 - G2 (+08) [+08..+10]: (failing high) f- = +10 - cumulated node count       190003
+Wed Sep 18 12:24:24 2024 00 - G2 (+10) [+10..+12]: (failing low)  f+ = +10 - cumulated node count       210182
+Wed Sep 18 12:24:24 2024 01 - F8 (+06) [+10..+12]: (failing low)  f+ = +08 - cumulated node count       215162
+Wed Sep 18 12:24:24 2024 02 - G6 (+06) [+10..+12]: (failing low)  f+ = +10 - cumulated node count       221153
+Wed Sep 18 12:24:24 2024 03 - A1 (+06) [+10..+12]: (failing low)  f+ = +10 - cumulated node count       237558
+Wed Sep 18 12:24:24 2024 04 - H2 (+06) [+10..+12]: (failing low)  f+ = +10 - cumulated node count       246197
+Wed Sep 18 12:24:24 2024 05 - E8 (+06) [+10..+12]: (failing low)  f+ = +08 - cumulated node count       250088
+Wed Sep 18 12:24:24 2024 06 - G1 (+06) [+10..+12]: (failing low)  f+ = +10 - cumulated node count       258537
+Wed Sep 18 12:24:24 2024 07 - G7 (+06) [+10..+12]: (failing low)  f+ = +08 - cumulated node count       261179
+Wed Sep 18 12:24:24 2024 08 - B2 (-02) [+10..+12]: (failing low)  f+ = -06 - cumulated node count       266104
+Wed Sep 18 12:24:24 2024 09 - F7 (-10) [+10..+12]: (failing low)  f+ = -06 - cumulated node count       266294
+Wed Sep 18 12:24:24 2024 #### finish .14. Best move and game value: [G2:+10] - nc =        96966 - Time [REAL][PROC]: [     0.150269625][     0.150826601]
+Wed Sep 18 12:24:24 2024 #### start  .15. Iterative deepening search depth = 15
+Wed Sep 18 12:24:24 2024 00 - G2 (+10) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       300337
+Wed Sep 18 12:24:24 2024 01 - G6 (+10) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       310767
+Wed Sep 18 12:24:24 2024 02 - A1 (+10) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       337406
+Wed Sep 18 12:24:24 2024 03 - H2 (+10) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       353092
+Wed Sep 18 12:24:24 2024 04 - G1 (+10) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       365026
+Wed Sep 18 12:24:24 2024 05 - F8 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       368478
+Wed Sep 18 12:24:24 2024 06 - E8 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       374114
+Wed Sep 18 12:24:24 2024 07 - G7 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       377728
+Wed Sep 18 12:24:24 2024 08 - B2 (-06) [+08..+10]: (failing low)  f+ = -04 - cumulated node count       385056
+Wed Sep 18 12:24:24 2024 09 - F7 (-06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       385287
+Wed Sep 18 12:24:24 2024 00 - G2 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       391523
+Wed Sep 18 12:24:24 2024 01 - G6 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       392120
+Wed Sep 18 12:24:24 2024 02 - A1 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       394598
+Wed Sep 18 12:24:24 2024 03 - H2 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       394796
+Wed Sep 18 12:24:24 2024 04 - G1 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       394980
+Wed Sep 18 12:24:24 2024 05 - F8 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       395178
+Wed Sep 18 12:24:24 2024 06 - E8 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       395305
+Wed Sep 18 12:24:24 2024 07 - G7 (+08) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       395558
+Wed Sep 18 12:24:24 2024 08 - F7 (+08) [+06..+08]: (failing low)  f+ = +00 - cumulated node count       395563
+Wed Sep 18 12:24:24 2024 09 - B2 (-04) [+06..+08]: (failing low)  f+ = -04 - cumulated node count       395564
+Wed Sep 18 12:24:24 2024 00 - G2 (+06) [+04..+06]: (failing low)  f+ = +04 - cumulated node count       397899
+Wed Sep 18 12:24:24 2024 01 - G6 (+06) [+04..+06]: (failing low)  f+ = +04 - cumulated node count       401357
+Wed Sep 18 12:24:24 2024 02 - A1 (+06) [+04..+06]: (failing low)  f+ = +04 - cumulated node count       415061
+Wed Sep 18 12:24:24 2024 03 - H2 (+06) [+04..+06]: (failing low)  f+ = +04 - cumulated node count       415269
+Wed Sep 18 12:24:24 2024 04 - G1 (+06) [+04..+06]: (failing low)  f+ = +04 - cumulated node count       415311
+Wed Sep 18 12:24:24 2024 05 - F8 (+06) [+04..+06]: (failing low)  f+ = +04 - cumulated node count       415376
+Wed Sep 18 12:24:24 2024 06 - E8 (+06) [+04..+06]: (failing low)  f+ = +04 - cumulated node count       415661
+Wed Sep 18 12:24:24 2024 07 - G7 (+06) [+04..+06]: (failing low)  f+ = +04 - cumulated node count       415796
+Wed Sep 18 12:24:24 2024 08 - F7 (+00) [+04..+06]: (failing low)  f+ = +00 - cumulated node count       415797
+Wed Sep 18 12:24:24 2024 09 - B2 (-04) [+04..+06]: (failing low)  f+ = -04 - cumulated node count       415798
+Wed Sep 18 12:24:24 2024 00 - G2 (+04) [+02..+04]: (failing high) f- = +04 - cumulated node count       430482
+Wed Sep 18 12:24:24 2024 #### finish .15. Best move and game value: [G2:+04] - nc =       164188 - Time [REAL][PROC]: [     0.194208803][     0.194407295]
+Wed Sep 18 12:24:24 2024 #### start  .16. Iterative deepening search depth = 16
+Wed Sep 18 12:24:24 2024 00 - G2 (+04) [+02..+04]: (failing high) f- = +04 - cumulated node count       453554
+Wed Sep 18 12:24:24 2024 00 - G2 (+04) [+04..+06]: (failing high) f- = +06 - cumulated node count       453991
+Wed Sep 18 12:24:24 2024 00 - G2 (+06) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       506348
+Wed Sep 18 12:24:24 2024 01 - G6 (+04) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       519850
+Wed Sep 18 12:24:24 2024 02 - A1 (+04) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       556914
+Wed Sep 18 12:24:24 2024 03 - H2 (+04) [+06..+08]: (failing low)  f+ = +04 - cumulated node count       576526
+Wed Sep 18 12:24:24 2024 04 - G1 (+04) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       591315
+Wed Sep 18 12:24:24 2024 05 - F8 (+04) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       595701
+Wed Sep 18 12:24:24 2024 06 - E8 (+04) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       602703
+Wed Sep 18 12:24:24 2024 07 - G7 (+04) [+06..+08]: (failing low)  f+ = +06 - cumulated node count       610357
+Wed Sep 18 12:24:24 2024 08 - F7 (+00) [+06..+08]: (failing low)  f+ = +00 - cumulated node count       610627
+Wed Sep 18 12:24:24 2024 09 - B2 (-04) [+06..+08]: (failing low)  f+ = -02 - cumulated node count       620258
+Wed Sep 18 12:24:24 2024 #### finish .16. Best move and game value: [G2:+06] - nc =       189776 - Time [REAL][PROC]: [     0.232924293][     0.233311527]
+Wed Sep 18 12:24:24 2024 #### start  .17. Iterative deepening search depth = 17
+Wed Sep 18 12:24:24 2024 00 - G2 (+06) [+04..+06]: (failing high) f- = +06 - cumulated node count       646520
+Wed Sep 18 12:24:24 2024 00 - G2 (+06) [+06..+08]: (failing high) f- = +08 - cumulated node count       647117
+Wed Sep 18 12:24:24 2024 00 - G2 (+08) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       709518
+Wed Sep 18 12:24:24 2024 01 - G6 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       727096
+Wed Sep 18 12:24:24 2024 02 - A1 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       780199
+Wed Sep 18 12:24:24 2024 03 - G1 (+06) [+08..+10]: (failing low)  f+ = +06 - cumulated node count       799231
+Wed Sep 18 12:24:24 2024 04 - F8 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       809815
+Wed Sep 18 12:24:24 2024 05 - E8 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       822271
+Wed Sep 18 12:24:24 2024 06 - G7 (+06) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       834195
+Wed Sep 18 12:24:24 2024 07 - H2 (+04) [+08..+10]: (failing low)  f+ = +08 - cumulated node count       847659
+Wed Sep 18 12:24:24 2024 08 - F7 (+00) [+08..+10]: (failing low)  f+ = +02 - cumulated node count       847968
+Wed Sep 18 12:24:24 2024 09 - B2 (-02) [+08..+10]: (failing low)  f+ = +02 - cumulated node count       861447
+Wed Sep 18 12:24:24 2024 #### finish .17. Best move and game value: [G2:+08] - nc =       241189 - Time [REAL][PROC]: [     0.208161707][     0.208311143]
+Wed Sep 18 12:24:24 2024 #### start  .20. Iterative deepening search depth = 20
+Wed Sep 18 12:24:24 2024 00 - G2 (+08) [+06..+08]: (failing high) f- = +08 - cumulated node count       957008
+Wed Sep 18 12:24:25 2024 00 - G2 (+08) [+08..+10]: (failing high) f- = +10 - cumulated node count       995569
+Wed Sep 18 12:24:25 2024 00 - G2 (+10) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1135486
+Wed Sep 18 12:24:25 2024 01 - G6 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1173235
+Wed Sep 18 12:24:25 2024 02 - A1 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1304431
+Wed Sep 18 12:24:25 2024 03 - F8 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1326643
+Wed Sep 18 12:24:25 2024 04 - E8 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1350984
+Wed Sep 18 12:24:25 2024 05 - G7 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1375252
+Wed Sep 18 12:24:25 2024 06 - H2 (+08) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1402106
+Wed Sep 18 12:24:25 2024 07 - G1 (+06) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1439106
+Wed Sep 18 12:24:25 2024 08 - F7 (+02) [+10..+12]: (failing low)  f+ = -04 - cumulated node count      1439585
+Wed Sep 18 12:24:25 2024 09 - B2 (+02) [+10..+12]: (failing low)  f+ = +10 - cumulated node count      1470621
+Wed Sep 18 12:24:25 2024 #### finish .20. Best move and game value: [G2:+10] - nc =       609174 - Time [REAL][PROC]: [     0.377011254][     0.377191285]
+MTD(f) evaluation [REAL][PROCESS] time: [     1.441757766][     1.444356212]
+Transposition Table pointer: 0x5b4434932610
+  max_n_item:            268435456  -  Number of items that could be stored in the table
+  items:            0x705421800010  -  Array of items
+  next_item:        0x70581fdf1cd0  -  Next item to be used when inserting
+  n_item:                   426892  -  The number of item currently held in the table
+  ht:               0x5b4434932650  -  Hashtable containing <Key:item , Item:item>
+  pq:               0x5b44349326a0  -  Priority queue
+  ht.size:                67108859  -  Hashtable size
+  ht.length:                426892  -  Hashtable length
+TT hashtable stats:
+ ELEMENTS_X_BUCKET; ELEMENT_CNT
+                 0;    66683308
+                 1;      424215
+                 2;        1331
+
+    a b c d e f g h 
+ 1  . O @ @ @ @ . . 
+ 2  . . O @ @ O . . 
+ 3  @ @ O O @ O O O 
+ 4  @ @ @ O O @ O O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . @ 
+ 7  @ . @ @ O . . . 
+ 8  . . . . . . . . 
+Player to move: BLACK
+
+[node_count=1470621, leaf_count=84060]
+Final outcome: best move=G2, position value=10
+
+------code-end--------
+
+The general picture is not changing. We can see that G2 is overtaking A1 at 11 ply, and from there it is always the
+best move.
+
+PLY | Best move | Value | Second estimated best move
+  0 |        NA |   +12 |                         NA
+  1 |        A1 |   +16 |                  H2 <= +08
+  2 |        A1 |   +10 |                  G2 <= +02
+  3 |        A1 |   +08 |                  G2 <= +00
+  4 |        A1 |   +08 |                  G2 <= -02
+  5 |        A1 |   +10 |                  G2 <= +06
+  6 |        A1 |   +08 |                  G2 <= +06
+  7 |        A1 |   +08 |                  G2 <= +04
+  8 |        A1 |   +08 |                  G2 <= +04
+  9 |        A1 |   +06 |                  G2 <= +06
+ 10 |        A1 |   +06 |                  G2 <= +06
+ 11 |        G2 |   +08 |                  A1 == +06
+ 12 |        G2 |   +06 |                Many <= +06
+ 13 |        G2 |   +06 |                Many <= +06
+ 14 |        G2 |   +10 |                Many <= +10
+ 15 |        G2 |   +04 |                Many <= +04
+ 16 |        G2 |   +06 |                Many <= +06
+ 17 |        G2 |   +08 |                Many <= +08
+ 20 |        G2 |   +10 |                Many <= +10
+
+------code-begin------
+------code-end--------
