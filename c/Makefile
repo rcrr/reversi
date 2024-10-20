@@ -98,7 +98,7 @@ MODULES := arch binary_heap bit_works board board_pattern board_trans cfg distri
            rglm_data_files rglm_solver rglm_utils sha3 sort_utils time_utils \
            transposition_table unit_test
 
-S_MODULES := kogge_stone kogge_stone_avx512
+S_MODULES := kogge_stone
 
 #
 # Add all the unit tests that will be compiled and linked.
@@ -107,8 +107,7 @@ UTEST_MAINS := ut_binary_heap ut_bit_works ut_board ut_board_pattern ut_board_tr
                ut_endgame_utils ut_es_pv ut_file_utils ut_flame ut_game_position ut_game_position_db \
                ut_game_tree_utils ut_hashtable ut_isqrt ut_linear_algebra ut_linked_list ut_main_option_parse \
                ut_math_works ut_memory_object_pool ut_prng ut_red_black_tree ut_rglm_data_files ut_rglm_utils \
-               ut_sha3 ut_sort_utils ut_transposition_table ut_trsm ut_utest ut_prefetch ut_kogge_stone \
-               ut_kogge_stone_avx512
+               ut_sha3 ut_sort_utils ut_transposition_table ut_trsm ut_utest ut_prefetch ut_kogge_stone
 
 MAINS_AND_MODULES := $(sort $(MAINS) $(MODULES))
 
@@ -332,9 +331,6 @@ SRC_PRNG_DEP := $(SRC_PRNG) $(sort $(HDR_PRNG_DEP) $(HDR_TIME_UTILS_DEP) $(HDR_B
 
 HDR_KOGGE_STONE_DEP := $(sort $(HDR_KOGGE_STONE))
 SRC_KOGGE_STONE_DEP := $(SRC_KOGGE_STONE) $(sort $(HDR_KOGGE_STONE_DEP))
-
-HDR_KOGGE_STONE_AVX512_DEP := $(sort $(HDR_KOGGE_STONE_AVX512))
-SRC_KOGGE_STONE_AVX512_DEP := $(SRC_KOGGE_STONE_AVX512) $(sort $(HDR_KOGGE_STONE_AVX512_DEP))
 
 HDR_BOARD_DEP := $(sort $(HDR_BOARD) $(HDR_BIT_WORKS_DEP) $(HDR_PRNG_DEP))
 SRC_BOARD_DEP := $(SRC_BOARD) $(sort $(HDR_BOARD_DEP) $(HDR_ARCH_DEP))
@@ -685,35 +681,6 @@ UTE_KOGGE_STONE_OBJ_DEPENDENCIES := \
 $(UTE_KOGGE_STONE): $(UTO_KOGGE_STONE) $(UTE_KOGGE_STONE_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
 	@printf "Test suite: linking executable $@\n"
 	@$(CC) $(LDFLAGS_TEST) $< $(UTE_KOGGE_STONE_OBJ_DEPENDENCIES) -o $@
-
-
-
-##
-## kogge_stone_avx512
-##
-## kogge_stone_avx512.h    : (null)
-## kogge_stone_avx512.s    : (null)
-## ut_kogge_stone_avx512.c : unit_test.h kogge_stone_avx512.h
-##
-kogge_stone_avx512: $(OBJ_KOGGE_STONE_AVX512)
-
-$(OBJ_KOGGE_STONE_AVX512): $(SRC_KOGGE_STONE_AVX512_DEP) Makefile $(OBJDIR)/.dir_sentinel
-	@printf "Compiling $< into $@\n"
-	@$(CC) $(ASFLAGS) $< -o $@
-
-ut_kogge_stone_avx512: $(UTE_KOGGE_STONE_AVX512)
-
-$(UTO_KOGGE_STONE_AVX512): $(UTS_KOGGE_STONE_AVX512) $(OBJ_UNIT_TEST) $(OBJ_KOGGE_STONE_AVX512) Makefile $(TEST_OBJDIR)/.dir_sentinel
-	@printf "Test suite: compiling $< into $@\n"
-	@$(CC) $(CFLAGS_TEST) -c $< -o $@ $(TEST_INCLUDE)
-
-UTE_KOGGE_STONE_AVX512_OBJ_DEPENDENCIES := \
-  $(OBJ_LINKED_LIST) $(OBJ_UNIT_TEST) $(OBJ_TIME_UTILS) $(OBJ_MAIN_OPTION_PARSE) \
-  $(OBJ_KOGGE_STONE_AVX512)
-
-$(UTE_KOGGE_STONE_AVX512): $(UTO_KOGGE_STONE_AVX512) $(UTE_KOGGE_STONE_AVX512_OBJ_DEPENDENCIES) Makefile $(TEST_BINDIR)/.dir_sentinel
-	@printf "Test suite: linking executable $@\n"
-	@$(CC) $(LDFLAGS_TEST) $< $(UTE_KOGGE_STONE_AVX512_OBJ_DEPENDENCIES) -o $@
 
 
 

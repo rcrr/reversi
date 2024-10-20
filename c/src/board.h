@@ -408,6 +408,16 @@ game_position_x_set_initial_position (GamePositionX *const gpx);
 extern int
 game_position_x_empty_count (const GamePositionX *const gpx);
 
+extern uint64_t
+kogge_stone_lms (const uint64_t generator,
+                 const uint64_t propagator,
+                 const uint64_t blocker);
+
+extern uint64_t
+kogge_stone_mm (const uint64_t generator,
+                const uint64_t propagator,
+                const uint64_t blocker);
+
 
 
 #endif /* BOARD_H */

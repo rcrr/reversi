@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2022 Roberto Corradini. All rights reserved.
+ * @copyright 2022, 2024 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -38,7 +38,28 @@
 
 #include "unit_test.h"
 #include "kogge_stone.h"
+#include "board.h"
 
+
+
+/* Function prototypes. */
+typedef uint64_t (*lms_f) (uint64_t mover, uint64_t opponent, uint64_t empties);
+typedef uint64_t (*mm_f) (uint64_t move, uint64_t opponent, uint64_t mover);
+
+/* Legal Move Set */
+const lms_f c_impl_kogge_stone_lms = kogge_stone_lms;
+const lms_f asm_impl_kogge_stone_lms = kost_lms;
+const lms_f lms_f_a[] = {c_impl_kogge_stone_lms, asm_impl_kogge_stone_lms};
+const size_t lenght_lms_f_array = sizeof lms_f_a / sizeof lms_f_a[0];
+
+/* Make Move */
+const mm_f c_impl_kogge_stone_mm = kogge_stone_mm;
+const mm_f asm_impl_kogge_stone_mm = kost_mm;
+const mm_f mm_f_a[] = {c_impl_kogge_stone_mm, asm_impl_kogge_stone_mm};
+const size_t lenght_mm_f_array = sizeof mm_f_a / sizeof mm_f_a[0];
+
+/* Performance iterations. */
+const int perf_iterations = 1000000000;
 
 
 /*
@@ -52,7 +73,7 @@
  */
 
 static void
-kost_lms_t (ut_test_t *const t)
+lms_t (ut_test_t *const t)
 {
 
   struct unit {
@@ -190,26 +211,32 @@ kost_lms_t (ut_test_t *const t)
      { { 0x000002160e0e123d , 0x000d1d2931712d00 }, 0x1f306040c080c042 }, // 120 : ffo-39
     };
 
-  const size_t lenght = sizeof data / sizeof data[0];
+  const size_t test_data_lenght = sizeof data / sizeof data[0];
 
-  for (int i = 0; i < lenght; i++) {
-    struct unit *u = &data[i];
-    const uint64_t mover = u->board[0];
-    const uint64_t opponent = u->board[1];
-    const uint64_t empties = ~(mover | opponent);
-    const uint64_t lms = kost_lms(mover, opponent, empties);
+  for (int j = 0; j < lenght_lms_f_array; j++) {
+    const lms_f f = lms_f_a[j];
+    for (int i = 0; i < test_data_lenght; i++) {
+      struct unit *u = &data[i];
+      const uint64_t mover = u->board[0];
+      const uint64_t opponent = u->board[1];
+      const uint64_t empties = ~(mover | opponent);
+      const uint64_t expected = u->lms;
+      const uint64_t lms = f(mover, opponent, empties);
 
-    if (data[i].lms != lms) {
-      printf("\n");
-      printf("[%d]: board = { 0x%016lx , 0x%016lx }, expected = 0x%016lx, computed = 0x%016lx\n",
-             i, data[i].board[0], data[i].board[1], data[i].lms, lms );
-      ut_assert(t, false);
+      if (expected != lms) {
+        printf("\n");
+        printf("j = %d [Index j identifies the function tested.]\n", j);
+        printf("[%d]: board = { 0x%016lx , 0x%016lx }, expected = 0x%016lx, computed = 0x%016lx\n",
+               i, data[i].board[0], data[i].board[1], data[i].lms, lms );
+        ut_assert(t, false);
+      }
+
     }
   }
 }
 
 static void
-kost_mm_t (ut_test_t *const t)
+mm_t (ut_test_t *const t)
 {
   struct unit {
     uint64_t board[2];
@@ -264,58 +291,85 @@ kost_mm_t (ut_test_t *const t)
      { { 0xFF0315CBE5713900 , 0x00FC6A341A0E067F }, 0x0000800000000000 , 0x00C0600000000000 }, // 041
     };
 
-  const size_t lenght = sizeof data / sizeof data[0];
+  const size_t test_data_lenght = sizeof data / sizeof data[0];
 
-  for (int i = 0; i < lenght; i++) {
-    struct unit *u = &data[i];
-    const uint64_t mover = u->board[0];
-    const uint64_t opponent = u->board[1];
-    const uint64_t move = u->move;
-    const uint64_t expected_flips = u->flips;
-    const uint64_t flips = kost_mm(move, opponent, mover);
+  for (int j = 0; j < lenght_mm_f_array; j++) {
+    const mm_f f = mm_f_a[j];
+    for (int i = 0; i < test_data_lenght; i++) {
+      struct unit *u = &data[i];
+      const uint64_t mover = u->board[0];
+      const uint64_t opponent = u->board[1];
+      const uint64_t move = u->move;
+      const uint64_t expected_flips = u->flips;
+      const uint64_t flips = f(move, opponent, mover);
 
-    ut_assert(t, (mover & opponent) == 0ULL);
-    ut_assert(t, ((mover | opponent) & move) == 0ULL);
+      ut_assert(t, (mover & opponent) == 0ULL);
+      ut_assert(t, ((mover | opponent) & move) == 0ULL);
 
-    if (expected_flips != flips) {
-      printf("\n");
-      printf("[unit test number %d]:\n", i);
-      printf("  board           = { 0x%016lx , 0x%016lx }\n", mover, opponent);
-      printf("  move            =   0x%016lx\n", move);
-      printf("  expected_flips  =   0x%016lx\n", expected_flips);
-      printf("  computed        =   0x%016lx\n", flips);
-      ut_assert(t, false);
+      if (expected_flips != flips) {
+        printf("\n");
+        printf("j = %d [Index j identifies the function tested.]\n", j);
+        printf("[unit test number %d]:\n", i);
+        printf("  board           = { 0x%016lx , 0x%016lx }\n", mover, opponent);
+        printf("  move            =   0x%016lx\n", move);
+        printf("  expected_flips  =   0x%016lx\n", expected_flips);
+        printf("  computed        =   0x%016lx\n", flips);
+        ut_assert(t, false);
+      }
     }
   }
 }
 
 static void
-kost_lms_perf_t (ut_test_t *const t)
+aux_lms_perf (ut_test_t *const t, lms_f f)
 {
   /* game position: ffo-33 */
   const uint64_t mover        = 0x00a0cac0d8c804fe;
   const uint64_t opponent     = 0x3c08303e26343800;
   const uint64_t empties      = ~(mover | opponent);
   const uint64_t expected_lms = 0x0050050101034200;
-  for (int i = 0; i < 1000000000; i++) {
-    const uint64_t lms = kost_lms(mover, opponent, empties);
+  for (int i = 0; i < perf_iterations; i++) {
+    const uint64_t lms = f(mover, opponent, empties);
     if (lms != expected_lms) ut_assert(t, false);
   }
 }
 
 static void
-kost_mm_perf_t (ut_test_t *const t)
+kogge_stone_lms_perf_t (ut_test_t *const t)
+{
+  aux_lms_perf(t, c_impl_kogge_stone_lms);
+}
+
+static void
+kost_lms_perf_t (ut_test_t *const t)
+{
+  aux_lms_perf(t, asm_impl_kogge_stone_lms);
+}
+
+static void
+aux_mm_perf (ut_test_t *const t, mm_f f)
 {
   const uint64_t mover          = 0x0829322CF850401C;
   const uint64_t opponent       = 0x06068D52022C3C20;
   const uint64_t move           = 0x0000000100000000;
   const uint64_t expected_flips = 0x0000010202040800;
-  for (int i = 0; i < 1000000000; i++) {
-    const uint64_t flips = kost_mm(move, opponent, mover);
+  for (int i = 0; i < perf_iterations; i++) {
+    const uint64_t flips = f(move, opponent, mover);
     if (flips != expected_flips) ut_assert(t, false);
   }
 }
 
+static void
+kogge_stone_mm_perf_t (ut_test_t *const t)
+{
+  aux_mm_perf(t, c_impl_kogge_stone_mm);
+}
+
+static void
+kost_mm_perf_t (ut_test_t *const t)
+{
+  aux_mm_perf(t, asm_impl_kogge_stone_mm);
+}
 
 
 /**
@@ -330,10 +384,13 @@ main (int argc,
 
   ut_suite_t *const s = ut_suite_new(&config, "kogge_stone");
 
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "kost_lms", kost_lms_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "kost_mm", kost_mm_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "lms", lms_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "mm", mm_t);
 
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_10,   "kogge_stone_lms_perf", kogge_stone_lms_perf_t);
   ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_10,   "kost_lms_perf", kost_lms_perf_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_10,   "kogge_stone_mm_perf", kogge_stone_mm_perf_t);
   ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_10,   "kost_mm_perf", kost_mm_perf_t);
 
   int failure_count = ut_suite_run(s);
