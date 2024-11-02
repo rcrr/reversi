@@ -1,7 +1,7 @@
 
   README-SQL
 
-  Copyright (c) 2015, 2018, 2019, 2020 Roberto Corradini. All rights reserved.
+  Copyright (c) 2015, 2018, 2019, 2020, 2024 Roberto Corradini. All rights reserved.
 
   This file is part of the reversi program
   http://github.com/rcrr/reversi
@@ -26,8 +26,8 @@ the REVERSI program.
 
 Software components being used are:
 
- - Ubuntu 20.04 LTS (focal) (kernel 5.4) (x86_64)
- - postgres (PostgreSQL) 12.3 (Ubuntu 12.3-1.pgdg20.04+1)
+ - Debian GNU/Linux 12 (bookworm) - Linux kernel 6.1.0-26-amd64
+ - PostgreSQL 16.4 (Debian 16.4-1.pgdg120+2)
 
 A few useful commands:
 
@@ -283,3 +283,319 @@ postgres=# \l
 -- Upgrade postgresql from 12.6 to 13.2 - DONE
 --
 
+--
+--
+--
+--
+--
+
+--
+--
+-- 2024-10-31
+--
+-- Upgrade postgresql from 16.4 to 17.0
+--
+--
+
+$ psql -p 5432
+psql (17.0 (Debian 17.0-1.pgdg120+1), server 16.4 (Debian 16.4-1.pgdg120+2))
+Type "help" for help.
+
+postgres=# \l+
+                                                                                         List of databases
+   Name    |   Owner   | Encoding | Locale Provider |   Collate   |    Ctype    | Locale | ICU Rules |    Access privileges    |  Size   | Tablespace |                Description                 
+-----------+-----------+----------+-----------------+-------------+-------------+--------+-----------+-------------------------+---------+------------+--------------------------------------------
+ es        | es        | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           | =Tc/es                 +| 6192 MB | es         | 
+           |           |          |                 |             |             |        |           | es=CTc/es               |         |            | 
+ postgres  | postgres  | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           |                         | 7492 kB | pg_default | default administrative connection database
+ prd_regab | prd_regab | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           | =Tc/prd_regab          +| 249 GB  | prd_regab  | 
+           |           |          |                 |             |             |        |           | prd_regab=CTc/prd_regab |         |            | 
+ qty_regab | qty_regab | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           |                         | 249 GB  | qty_regab  | 
+ template0 | postgres  | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           | =c/postgres            +| 7337 kB | pg_default | unmodifiable empty database
+           |           |          |                 |             |             |        |           | postgres=CTc/postgres   |         |            | 
+ template1 | postgres  | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           | =c/postgres            +| 7556 kB | pg_default | default template for new databases
+           |           |          |                 |             |             |        |           | postgres=CTc/postgres   |         |            | 
+ tst_regab | tst_regab | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           | =Tc/tst_regab          +| 249 GB  | tst_regab  | 
+           |           |          |                 |             |             |        |           | tst_regab=CTc/tst_regab |         |            | 
+(7 rows)
+
+postgres=# 
+\q
+
+$ psql -p 5433
+psql (17.0 (Debian 17.0-1.pgdg120+1))
+Type "help" for help.
+
+postgres=# \l+
+                                                                                       List of databases
+   Name    |  Owner   | Encoding | Locale Provider |   Collate   |    Ctype    | Locale | ICU Rules |   Access privileges   |  Size   | Tablespace |                Description                 
+-----------+----------+----------+-----------------+-------------+-------------+--------+-----------+-----------------------+---------+------------+--------------------------------------------
+ postgres  | postgres | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           |                       | 7475 kB | pg_default | default administrative connection database
+ template0 | postgres | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           | =c/postgres          +| 7321 kB | pg_default | unmodifiable empty database
+           |          |          |                 |             |             |        |           | postgres=CTc/postgres |         |            | 
+ template1 | postgres | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           | =c/postgres          +| 7547 kB | pg_default | default template for new databases
+           |          |          |                 |             |             |        |           | postgres=CTc/postgres |         |            | 
+(3 rows)
+
+-
+- First thing is to take a BACKUP of the production database
+-
+
+$ DATE=`date '+%Y%m%d%H%M'
+$ nohup time pg_dump -d backup_db_name -h backup_host_name -p 5432 -U postgres -v -Fc -Z2 -f $DATE-backup_host_name-prd_regab.dump > $DATE-backup_host_name-prd_regab.log 2>&1&
+
+-
+- Configure postgresql server ...
+-
+
+- Add this line to file /etc/postgresql/17/main/pg_hba.conf
+
+# rcrr 2024-11-01
+host    all             all             10.101.37.0/24          md5
+
+- Edit file /etc/postgresql/17/main/postgresql.conf adding/modifying:
+
+listen_addresses = '*'
+max_connections = 200
+shared_buffers = 4GB
+work_mem = 16GB
+maintenance_work_mem = 64MB
+effective_io_concurrency = 400
+max_worker_processes = 8
+max_parallel_maintenance_workers = 8
+max_parallel_workers_per_gather = 2
+parallel_leader_participation = on
+max_parallel_workers = 8
+wal_buffers = 64MB
+max_wal_size = 8GB
+min_wal_size = 4GB
+random_page_cost = 1.1
+effective_cache_size = 48GB
+
+- Run as root:
+
+# systemctl status postgresql
+
+# systemctl restart postgresql
+
+-
+- Now should be possible to login remotly. But for testing it we need an user ...
+-
+- Create the directory for the TABLESPACE
+- As user postgres create the directory es ....
+-
+
+$ ls -l /data/postgres/17/es/
+
+-
+- As user postgres connect to the database version 17:
+-
+
+$ psql -p 5433
+
+postgres=# CREATE ROLE es LOGIN;
+CREATE ROLE
+postgres=# ALTER ROLE es WITH PASSWORD 'es';
+ALTER ROLE
+postgres=# ALTER ROLE es VALID UNTIL 'infinity';
+ALTER ROLE
+postgres=# CREATE TABLESPACE es LOCATION '/data/postgres/17/es';
+CREATE TABLESPACE
+postgres=# CREATE DATABASE es WITH OWNER es ENCODING 'UTF8' TABLESPACE es;
+CREATE DATABASE
+postgres=# GRANT ALL PRIVILEGES ON DATABASE es TO es;
+GRANT
+
+-
+- Connect from another system to our database-server:
+-
+
+$ psql -h database_host -p 5433 -U es -d es
+Password for user es: 
+psql (17.0 (Debian 17.0-1.pgdg120+1))
+SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, compression: off, ALPN: postgresql)
+Type "help" for help.
+
+es=>
+
+- Adding the proper entry to file .pgpass in your home directory is avoiding to have to enter the password:
+
+database_host:5433:*:es:es
+
+-
+- We can connect to the new db by:
+-
+
+$ psql -U es -d es -h database_host -p 5433
+
+-
+- Everything works well.
+-
+- Be sure to have prepated needed files by running from the REVERSI_HOME folder:
+-
+
+$ make endgame_pv_files
+$ make endgame_log_files
+$ make dat2csv
+
+-
+- In order to have the following procedure to run properly, unfortunately is required to add
+- to HOME/.pgpass an entry with the IP ADDRESS of the database_host.
+-
+- Then run:
+-
+
+$ time psql -U es -d es -h database_host -p 5433 -c "\i reload_everything.sql"
+$ time psql -U es -d es -h database_host -p 5433 -c "\i 0100_up_regab_create_schema.sql"
+$ time psql -U es -d es -h database_host -p 5433 -c "\i 0101_up_migrations.sql"
+$ time psql -U es -d es -h database_host -p 5433 -c "\i 0102_up_gp_ext.sql"
+$ time psql -U es -d es -h database_host -p 5433 -c "\i 0103_up_patterns.sql"
+$ time psql -U es -d es -h database_host -p 5433 -c "\i 0104_up_pattern_functions.sql"
+$ time psql -U es -d es -h database_host -p 5433 -c "\i 0107_up_pattern_data.sql"
+$ time psql -U es -d es -h database_host -p 5433 -c "\i 0109_up_action_extract.sql"
+$ time psql -U es -d es -h database_host -p 5433 -c "\i 0110_up_gp_solver.sql "
+
+--
+-- The es database is completed.
+--
+
+--
+-- Load the tst_regab database ....
+--
+-- Prepare the tablespace directory
+-- add the proper entries to .pgpass
+--
+
+postgres=# CREATE ROLE tst_regab LOGIN;
+CREATE ROLE
+postgres=# ALTER ROLE tst_regab WITH PASSWORD 'tst_regab';
+ALTER ROLE
+postgres=# ALTER ROLE tst_regab VALID UNTIL 'infinity';
+ALTER ROLE
+postgres=# CREATE TABLESPACE tst_regab LOCATION '/data/postgres/17/tst_regab';
+CREATE TABLESPACE
+postgres=# CREATE DATABASE tst_regab WITH OWNER tst_regab ENCODING 'UTF8' TABLESPACE tst_regab;
+CREATE DATABASE
+postgres=# GRANT ALL PRIVILEGES ON DATABASE tst_regab TO tst_regab;
+GRANT
+
+--
+-- Add an entry, if missing, on the database_host .pgpass file:
+--
+
+localhost:5433:*:tst_regab:tst_regab
+
+--
+-- On the database_host load the dump file.
+--
+
+$ pg_restore --no-acl --no-owner -v -d tst_regab -p 5433 -h localhost -U tst_regab regab_database_backup_from_production.dump
+
+--
+-- When completed, connect and test it. It works!
+--
+
+postgres=# SELECT version();
+                                                       version                                                       
+---------------------------------------------------------------------------------------------------------------------
+ PostgreSQL 17.0 (Debian 17.0-1.pgdg120+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 12.2.0-14) 12.2.0, 64-bit
+(1 row)
+
+postgres=# \l+
+                                                                                         List of databases
+   Name    |   Owner   | Encoding | Locale Provider |   Collate   |    Ctype    | Locale | ICU Rules |    Access privileges    |  Size   | Tablespace |                Description                 
+-----------+-----------+----------+-----------------+-------------+-------------+--------+-----------+-------------------------+---------+------------+--------------------------------------------
+ es        | es        | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           | =Tc/es                 +| 6191 MB | es         | 
+           |           |          |                 |             |             |        |           | es=CTc/es               |         |            | 
+ postgres  | postgres  | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           |                         | 7483 kB | pg_default | default administrative connection database
+ template0 | postgres  | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           | =c/postgres            +| 7321 kB | pg_default | unmodifiable empty database
+           |           |          |                 |             |             |        |           | postgres=CTc/postgres   |         |            | 
+ template1 | postgres  | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           | =c/postgres            +| 7547 kB | pg_default | default template for new databases
+           |           |          |                 |             |             |        |           | postgres=CTc/postgres   |         |            | 
+ tst_regab | tst_regab | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           | =Tc/tst_regab          +| 249 GB  | tst_regab  | 
+           |           |          |                 |             |             |        |           | tst_regab=CTc/tst_regab |         |            | 
+(5 rows)
+
+--
+
+postgres=# SELECT version();
+                                                       version                                                       
+---------------------------------------------------------------------------------------------------------------------
+ PostgreSQL 16.4 (Debian 16.4-1.pgdg120+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 12.2.0-14) 12.2.0, 64-bit
+(1 row)
+
+postgres=# \l+
+                                                                                         List of databases
+   Name    |   Owner   | Encoding | Locale Provider |   Collate   |    Ctype    | Locale | ICU Rules |    Access privileges    |  Size   | Tablespace |                Description                 
+-----------+-----------+----------+-----------------+-------------+-------------+--------+-----------+-------------------------+---------+------------+--------------------------------------------
+ es        | es        | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           | =Tc/es                 +| 6192 MB | es         | 
+           |           |          |                 |             |             |        |           | es=CTc/es               |         |            | 
+ postgres  | postgres  | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           |                         | 7492 kB | pg_default | default administrative connection database
+ prd_regab | prd_regab | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           | =Tc/prd_regab          +| 249 GB  | prd_regab  | 
+           |           |          |                 |             |             |        |           | prd_regab=CTc/prd_regab |         |            | 
+ qty_regab | qty_regab | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           |                         | 249 GB  | qty_regab  | 
+ template0 | postgres  | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           | =c/postgres            +| 7337 kB | pg_default | unmodifiable empty database
+           |           |          |                 |             |             |        |           | postgres=CTc/postgres   |         |            | 
+ template1 | postgres  | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           | =c/postgres            +| 7556 kB | pg_default | default template for new databases
+           |           |          |                 |             |             |        |           | postgres=CTc/postgres   |         |            | 
+ tst_regab | tst_regab | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           | =Tc/tst_regab          +| 249 GB  | tst_regab  | 
+           |           |          |                 |             |             |        |           | tst_regab=CTc/tst_regab |         |            | 
+(7 rows)
+
+--
+-- We have 2 databases on version 17.0: es and tst_regab
+--
+-- Now that we have the latest production database restored into our test env on v17.0, we can start removing
+-- databases from the postgresql v16.4 installation.
+--
+
+postgres=# SELECT version();
+                                                       version                                                       
+---------------------------------------------------------------------------------------------------------------------
+ PostgreSQL 16.4 (Debian 16.4-1.pgdg120+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 12.2.0-14) 12.2.0, 64-bit
+(1 row)
+
+postgres=# DROP DATABASE es;
+DROP DATABASE
+postgres=# DROP DATABASE tst_regab;
+DROP DATABASE
+postgres=# DROP DATABASE qty_regab;
+DROP DATABASE
+postgres=# DROP DATABASE prd_regab;
+DROP DATABASE
+postgres=# \l+
+                                                                                       List of databases
+   Name    |  Owner   | Encoding | Locale Provider |   Collate   |    Ctype    | Locale | ICU Rules |   Access privileges   |  Size   | Tablespace |                Description                 
+-----------+----------+----------+-----------------+-------------+-------------+--------+-----------+-----------------------+---------+------------+--------------------------------------------
+ postgres  | postgres | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           |                       | 7492 kB | pg_default | default administrative connection database
+ template0 | postgres | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           | =c/postgres          +| 7337 kB | pg_default | unmodifiable empty database
+           |          |          |                 |             |             |        |           | postgres=CTc/postgres |         |            | 
+ template1 | postgres | UTF8     | libc            | en_GB.UTF-8 | en_GB.UTF-8 |        |           | =c/postgres          +| 7556 kB | pg_default | default template for new databases
+           |          |          |                 |             |             |        |           | postgres=CTc/postgres |         |            | 
+(3 rows)
+
+--
+-- Done!
+--
+-- Follow the same procedure done for tst_regab and create also qty_regab and prd_regab databases.
+--
+
+
+-- Stop the postgres service.
+-- Remove the postgres 16 software.
+-- Run as root:
+
+# systemctl status postgresql
+
+# systemctl stop postgresql
+
+# apt remove postgresql-16 postgresql-client-16 postgresql-doc-16
+
+-- Change listening port from 5433 to 5432.
+-- Restart postgresql.
+
+# systemctl start postgresql
+
+--
+-- Upgrade postgresql from 16.4 to 17.0 - DONE
+--
