@@ -367,7 +367,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2018, 2019, 2020, 2021 Roberto Corradini. All rights reserved.
+ * @copyright 2018, 2019, 2020, 2021, 2025 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -810,6 +810,7 @@ main (int argc,
 
     if (verbose) {
       printf("Dumping factor for the diagonal of the Hessian matrix (Levemberg-Marquardt): lambda = %e\n", lambda);
+      printf("Ridge regularization coefficient: ridge_reg_param = %e\n", ridge_reg_param);
       printf("Max number of Newton-Raphson algorithm iterations = %zu\n", max_newton_iter);
       printf("Termination criteria:\n");
       printf("   Epsilon on modulus of gradient: %e\n", epsilon_on_gradient_modulus);
