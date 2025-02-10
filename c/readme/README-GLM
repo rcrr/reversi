@@ -1,7 +1,7 @@
 
   README-GLM
 
-  Copyright (c) 2018, 2019, 2020, 2021, 2023 Roberto Corradini. All rights reserved.
+  Copyright (c) 2018, 2019, 2020, 2021, 2023, 2024, 2025 Roberto Corradini. All rights reserved.
 
   This file is part of the reversi program
   http://github.com/rcrr/reversi
@@ -23,7 +23,7 @@
 
 
 
-This file describes how to use the REGAB (REversi GAme Base) program, database, and procedures in section 1.
+This file describes how to use the REGAB (REversi GAme Base) program, database, and procedures in section one.
 The procedure to compose and solve the GLM (Generalized Linear Model) problem in section two, and how to add
 new Patterns and Features (or GLM covariates) to the program in section three ( see also the README-ADD-NEW-PATTERN ).
 
@@ -370,4 +370,653 @@ rcrr@acheron:~/base/prj/reversi/c$ find ./sql | grep "\.sql$" | sort | xargs gre
 ### How to create a new Feature for the GLM model
 ###
 
-TO BE COMPLETED
+See readme file: README-ADDING-NEW-PATTERN
+
+###
+### Section --5--
+###
+### How to PROCESS entries into the REGAB database that are computed but not yet ready to be used.
+###
+
+prd_regab=> SELECT * FROM regab_prng_gp_h ORDER BY ngames;
+ seq |          ins_time          | status | prng_seed | ngames  | npositions 
+-----+----------------------------+--------+-----------+---------+------------
+   1 | 2017-12-17 18:19:16.440571 | CMP    |     97531 |       1 |         61
+   7 | 2018-01-03 16:38:51.097299 | CMP    |       277 |      10 |        614
+   8 | 2018-01-03 16:39:24.466546 | CMP    |       607 |     100 |       6140
+   4 | 2018-01-03 16:25:52.05024  | CMP    |         0 |    1000 |      61356
+   5 | 2018-01-03 16:27:08.188697 | CMP    |      5577 |   10000 |     614283
+   6 | 2018-01-03 16:30:24.238143 | CMP    |       881 |  100000 |    6142003
+  10 | 2021-07-24 17:58:18.845845 | CMP    |     25487 |  200000 |   12281722
+  11 | 2021-07-25 20:51:04.829293 | CMP    |     40132 |  400000 |   24566078
+   3 | 2017-12-17 18:42:13.782953 | CMP    |     13579 | 1000000 |   61412190
+   9 | 2020-12-20 18:02:16.47252  | CMP    |     77357 | 2000000 |  122829157
+  12 | 2021-08-21 17:55:04.407724 | CMP    |     33057 | 4000000 |  245656852
+(11 rows)
+
+prd_regab=> SELECT empty_count, status, count(1) FROM regab_prng_gp WHERE empty_count > 22 AND empty_count < 28 GROUP BY empty_count, status ORDER BY empty_count, status;
+ empty_count | status |  count  
+-------------+--------+---------
+          23 | CMR    | 7707842
+          23 | CMS    | 7707838
+          24 | CMR    |     542
+          24 | CMS    | 7707819
+          25 | CMP    | 7223851
+          25 | INS    |  483839
+          25 | WIP    |      48
+          26 | CMP    |   28847
+          26 | INS    | 7678929
+          27 | INS    | 7707667
+(10 rows)
+
+Empty-count 23 is all set. EC 24 is done, but we are missing CMR entries coming from processing EC 25.
+EC 25 has a substantial count into CMP status that need to be processed. There are also a residual number of
+entries having INS status. Them are currently in the queue to be resolved ... at a speed of 20,000 per day on
+average, it will take 24 days.
+EC 26 has a few thousands entries resolved, but it is mostly to be worked out. EC 27 is virgin.
+
+prd_regab=> SELECT empty_count, status, batch_id, count(1) FROM regab_prng_gp WHERE empty_count = 25 GROUP BY empty_count, status, batch_id ORDER BY empty_count, status, batch_id;
+ empty_count | status | batch_id |  count  
+-------------+--------+----------+---------
+          25 | CMP    |        1 |       1
+          25 | CMP    |        3 |  999538
+          25 | CMP    |        4 |     999
+          25 | CMP    |        5 |    9998
+          25 | CMP    |        6 |   99966
+          25 | CMP    |        7 |      10
+          25 | CMP    |        8 |     100
+          25 | CMP    |        9 | 1999180
+          25 | CMP    |       10 |  199899
+          25 | CMP    |       11 |  399832
+          25 | CMP    |       12 | 3514455
+          25 | INS    |       12 |  483712
+          25 | WIP    |       12 |      48
+(13 rows)
+
+prd_regab=> UPDATE regab_prng_gp SET status = 'CMQ', cst_time = now() WHERE status = 'CMP' AND empty_count = 25 AND batch_id = 1;
+UPDATE 1
+
+prd_regab=> SELECT empty_count, status, batch_id, count(1) FROM regab_prng_gp WHERE empty_count = 25 GROUP BY empty_count, status, batch_id ORDER BY empty_count, status, batch_id;
+ empty_count | status | batch_id |  count  
+-------------+--------+----------+---------
+          25 | CMP    |        3 |  999538
+          25 | CMP    |        4 |     999
+          25 | CMP    |        5 |    9998
+          25 | CMP    |        6 |   99966
+          25 | CMP    |        7 |      10
+          25 | CMP    |        8 |     100
+          25 | CMP    |        9 | 1999180
+          25 | CMP    |       10 |  199899
+          25 | CMP    |       11 |  399832
+          25 | CMP    |       12 | 3514519
+          25 | CMQ    |        1 |       1
+          25 | INS    |       12 |  483648
+          25 | WIP    |       12 |      48
+(13 rows)
+
+$ ./build/bin/regab -v -a offspring -c cfg/regab.cfg -e production -b 1 -y 25 -n 1
+
+-----------------------------------------------------------
+--- Last entries from the regab database connection log ---
+-----------------------------------------------------------
+seq                           con_time                      
+11291                         2024-11-03 08:00:31.33982     
+11292                         2024-11-03 08:00:31.352177    
+11293                         2024-11-04 14:05:36.885741    
+-----------------------------------------------------------
+
+Selecting game position to process: 1 of 1 ... selected record [seq = 36, best_move = A8, game_value = +60]
+
+prd_regab=> SELECT empty_count, status, batch_id, count(1) FROM regab_prng_gp WHERE empty_count = 25 GROUP BY empty_count, status, batch_id ORDER BY empty_count, status, batch_id;
+ empty_count | status | batch_id |  count  
+-------------+--------+----------+---------
+          25 | CMP    |        3 |  999538
+          25 | CMP    |        4 |     999
+          25 | CMP    |        5 |    9998
+          25 | CMP    |        6 |   99966
+          25 | CMP    |        7 |      10
+          25 | CMP    |        8 |     100
+          25 | CMP    |        9 | 1999180
+          25 | CMP    |       10 |  199899
+          25 | CMP    |       11 |  399832
+          25 | CMP    |       12 | 3516921
+          25 | CMS    |        1 |       1
+          25 | INS    |       12 |  481246
+          25 | WIP    |       12 |      48
+(13 rows)
+
+prd_regab=> SELECT empty_count, status, count(1) FROM regab_prng_gp WHERE empty_count = 24 GROUP BY empty_count, status ORDER BY empty_count, status;
+ empty_count | status |  count  
+-------------+--------+---------
+          24 | CMR    |     543
+          24 | CMS    | 7707819
+(2 rows)
+
+Running regab -a offspring on batch_id=1 and empty_count=25 we trasform the one CMP record into one CMS having EC=25 and one CMR having EC=24.
+We can check that the count of CMR records at EC=24 increase from 542 to 543.
+
+We repeat this process for batch_id 7, 8, 4, 5, 6, 10, 11, 3, 9, 12 ...
+We are almost done, but a few more position have to be resolved ...
+
+prd_regab=> SELECT empty_count, status, batch_id, count(1) FROM regab_prng_gp WHERE empty_count = 25 GROUP BY empty_count, status, batch_id ORDER BY empty_count, status, batch_id;
+ empty_count | status | batch_id |  count  
+-------------+--------+----------+---------
+          25 | CMP    |       12 |    2476
+          25 | CMR    |        3 |      58
+          25 | CMR    |        6 |       7
+          25 | CMR    |        9 |     125
+          25 | CMR    |       10 |      16
+          25 | CMR    |       11 |      31
+          25 | CMR    |       12 |     212
+          25 | CMS    |        1 |       1
+          25 | CMS    |        3 |  999538
+          25 | CMS    |        4 |     999
+          25 | CMS    |        5 |    9998
+          25 | CMS    |        6 |   99966
+          25 | CMS    |        7 |      10
+          25 | CMS    |        8 |     100
+          25 | CMS    |        9 | 1999180
+          25 | CMS    |       10 |  199899
+          25 | CMS    |       11 |  399832
+          25 | CMS    |       12 | 3730831
+          25 | INS    |       12 |  264860
+          25 | WIP    |       12 |      48
+(20 rows)
+
+We are solving now, 48 position have WIP status, 264,860 are still to be resolved (INS), and 2,476 (CMP) have been just resolved and not yet moved to CMMQ status.
+Waiting for completion is going to take sensible time, given the actual average speed of resolving around 20,000 position per day.
+
+
+###
+### Section --6--
+###
+### How to CLASSIFY positions.
+###
+
+In order to classify position we use the SQL function regab_gp_populate_pattern_class_table.
+It has as arguments:
+   - batch_id
+   - minimum empty_count
+   - maximum empty_count
+   - status
+   - verbose flag
+   - simulation flag
+
+We start to check if we have to classify positions having empty_count=23.
+
+prd_regab=> SELECT t1.batch_id, t1.empty_count, count(1) FROM regab_prng_gp AS t1 LEFT JOIN regab_prng_gp_pattern_class AS t2 ON t1.seq = t2.gp_id WHERE t2.gp_id IS NULL AND t1.status IN('CMS','CMR') AND t1.empty_count = 23 GROUP BY t1.batch_id, t1.empty_count;
+ batch_id | empty_count | count 
+----------+-------------+-------
+(0 rows)
+
+No position to classify.
+Let's check empty_count=24.
+
+prd_regab=> SELECT t1.batch_id, t1.empty_count, count(1) FROM regab_prng_gp AS t1 LEFT JOIN regab_prng_gp_pattern_class AS t2 ON t1.seq = t2.gp_id WHERE t2.gp_id IS NULL AND t1.status IN('CMS','CMR') AND t1.empty_count = 24 GROUP BY t1.batch_id, t1.empty_count;
+ batch_id | empty_count |  count  
+----------+-------------+---------
+        1 |          24 |       1
+        3 |          24 |  999480
+        4 |          24 |     999
+        5 |          24 |    9998
+        6 |          24 |   99959
+        7 |          24 |      10
+        8 |          24 |     100
+        9 |          24 | 1999055
+       10 |          24 |  199883
+       11 |          24 |  399801
+       12 |          24 | 3730619
+(11 rows)
+
+Here we have many ...let's start with batch_id=1, and classify the positions:
+
+prd_regab=> SELECT * FROM regab_gp_populate_pattern_class_table(1, 24, 24, '{CMR,CMS}', FALSE, FALSE);
+ rec_selected_cnt | rec_create_cnt | rec_update_cnt 
+------------------+----------------+----------------
+                2 |              1 |              1
+(1 row)
+
+Done. Let's check it:
+
+prd_regab=> SELECT t1.batch_id, t1.empty_count, count(1) FROM regab_prng_gp AS t1 LEFT JOIN regab_prng_gp_pattern_class AS t2 ON t1.seq = t2.gp_id WHERE t2.gp_id IS NULL AND t1.status IN('CMS','CMR') AND t1.empty_count = 24 AND t1.batch_id = 1 GROUP BY t1.batch_id, t1.empty_count;
+ batch_id | empty_count | count 
+----------+-------------+-------
+(0 rows)
+
+All positions having empty_count=24 and batch_id=1 are classified. Now do the same for batch_id equal to 7,8,4,5,6 anc check again the status:
+
+prd_regab=> SELECT t1.batch_id, t1.empty_count, count(1) FROM regab_prng_gp AS t1 LEFT JOIN regab_prng_gp_pattern_class AS t2 ON t1.seq = t2.gp_id WHERE t2.gp_id IS NULL AND t1.status IN('CMS','CMR') AND t1.empty_count = 24 GROUP BY t1.batch_id, t1.empty_count;
+ batch_id | empty_count |  count  
+----------+-------------+---------
+        3 |          24 |  999480
+        9 |          24 | 1999055
+       10 |          24 |  199883
+       11 |          24 |  399801
+       12 |          24 | 3730619
+(5 rows)
+
+Good. Now proceed with batch_id 10,11,3,9 .... and finally 12.
+
+To check what is missing overall we can run:
+
+prd_regab=> SELECT t1.batch_id, t1.empty_count, t1.status, count(1) FROM regab_prng_gp AS t1 LEFT JOIN regab_prng_gp_pattern_class AS t2 ON t1.seq = t2.gp_id WHERE t2.gp_id IS NULL AND t1.status IN('CMS','CMR') GROUP BY t1.batch_id, t1.empty_count, t1.status ORDER BY t1.empty_count, t1.batch_id, t1.status;
+ batch_id | empty_count | status |  count  
+----------+-------------+--------+---------
+       12 |          24 | CMR    | 3752210
+        1 |          25 | CMS    |       1
+        3 |          25 | CMR    |      58
+        3 |          25 | CMS    |  999538
+        4 |          25 | CMS    |     999
+        5 |          25 | CMS    |    9998
+        6 |          25 | CMR    |       7
+        6 |          25 | CMS    |   99966
+        7 |          25 | CMS    |      10
+        8 |          25 | CMS    |     100
+        9 |          25 | CMR    |     125
+        9 |          25 | CMS    | 1999180
+       10 |          25 | CMR    |      16
+       10 |          25 | CMS    |  199899
+       11 |          25 | CMR    |      31
+       11 |          25 | CMS    |  399832
+       12 |          25 | CMR    |     213
+       12 |          25 | CMS    | 3752423
+(18 rows)
+
+All positions in CMS/CMR status have been classified:
+
+prd_regab=> SELECT t1.batch_id, t1.empty_count, t1.status, count(1) FROM regab_prng_gp AS t1 LEFT JOIN regab_prng_gp_pattern_class AS t2 ON t1.seq = t2.gp_id WHERE t2.gp_id IS NULL AND t1.status IN('CMS','CMR') GROUP BY t1.batch_id, t1.empty_count, t1.status ORDER BY t1.empty_count, t1.batch_id, t1.status;
+ batch_id | empty_count | status | count 
+----------+-------------+--------+-------
+(0 rows)
+
+###
+### Section --7--
+###
+### How to SOLVE the RGLM (Regab Generalized Linear Model) and generate the WEIGHTS for model parameters.
+###
+
+The archetype is given by A2050 where:
+
+ -  A : stands for a data set based on batch_id = 3
+ - 20 : stands for empy_count = 20
+ - 50 : stands for a model based on feature=INTERCEPT,MOBILITY3 , pattern=XEDGE,CORNER,R2,R3,R4,DIAG3,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR
+
+Look into the c/script/rglm.sh script for documentation.
+It runs a sequence of commands that are doing the job.
+Do it for the ec=23 ....
+
+$ ./script/rglm.sh 23 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A2350 3 6 production check_sentinel
+The REGAB command is: "./build/bin/regab -v --action extract --config-file cfg/regab.cfg --env production --batch-id 3 --position-status CMS,CMR --empty-count 23 --feature INTERCEPT,MOBILITY3 --pattern XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR --out-file ./rglmdata/A2350_00.dat 2>&1 | tee ./rglmdata/A2350_00.log"
+Output file "./rglmdata/A2350_00.dat" has been overwritten.
+
+-----------------------------------------------------------
+--- Last entries from the regab database connection log ---
+-----------------------------------------------------------
+seq                           con_time                      
+11985                         2025-01-14 21:36:57.061808    
+11986                         2025-01-14 21:36:57.062769    
+11987                         2025-01-22 11:47:31.371835    
+-----------------------------------------------------------
+
+Time saved to file is Wed Jan 22 11:47:31 2025
+_____________________________________
+
+Searched batch_ids: 3
+Batch ids found matching the query
+_____________________________________
+      |          |        |          
+ ---- | batch_id | status |   ngames 
+______|__________|________|__________
+ 0000 |        3 |   CMP  |  1000000
+
+Searched position statuses: CMR, CMS
+
+____________________________________________________
+
+Searched patterns: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+Patterns found matching the query
+____________________________________________________
+      |            |        |            |          
+ ---- | pattern_id |  name  | ninstances | nsquares 
+______|____________|________|____________|__________
+ 0000 |          1 | CORNER |          4 |        9
+ 0001 |          2 | XEDGE  |          4 |       10
+ 0002 |          3 | R2     |          4 |        8
+ 0003 |          4 | R3     |          4 |        8
+ 0004 |          5 | R4     |          4 |        8
+ 0005 |          6 | DIAG4  |          4 |        4
+ 0006 |          7 | DIAG5  |          4 |        5
+ 0007 |          8 | DIAG6  |          4 |        6
+ 0008 |          9 | DIAG7  |          4 |        7
+ 0009 |         10 | DIAG8  |          2 |        8
+ 0010 |         11 | 2X5COR |          8 |       10
+
+Procedure regab_action_extract_count_positions() executed succesfully.
+
+   ----------------------------
+      Position Summary Table   
+   ----------------------------
+________________________________________________________
+      |          |        |            |                
+ rec  | batch_id | status |   gp_cnt   | classified_cnt 
+______|__________|________|____________|________________
+ 0000 |        3 |   CMR  |     999551 |         999551
+ 0001 |        3 |   CMS  |     999552 |         999552
+
+Procedure regab_action_extract_count_pattern_freqs() executed succesfully.
+GLM variables are 76632, given by features are 4, and by patterns are 76628.
+Procedure do_action_extract_game_pos_prepare_cursor() executed succesfully.
+Total count of Game Position Records is 1999103.
+Database transaction has been closed.
+Binary output file written to ./rglmdata/A2350_00.dat, computed SHA3-256 digest, written to file ./rglmdata/A2350_00.dat.sha3-256.
+The REGAB command is: "./build/bin/regab -v --action extract --config-file cfg/regab.cfg --env production --batch-id 6 --position-status CMS,CMR --empty-count 23 --game-positions --out-file ./rglmdata/A2350_positions_check.dat 2>&1 | tee ./rglmdata/A2350_positions_check.log"
+Output file "./rglmdata/A2350_positions_check.dat" has been overwritten.
+
+-----------------------------------------------------------
+--- Last entries from the regab database connection log ---
+-----------------------------------------------------------
+seq                           con_time                      
+11986                         2025-01-14 21:36:57.062769    
+11987                         2025-01-22 11:47:31.371835    
+11988                         2025-01-22 11:53:17.77448     
+-----------------------------------------------------------
+
+Time saved to file is Wed Jan 22 11:53:17 2025
+_____________________________________
+
+Searched batch_ids: 6
+Batch ids found matching the query
+_____________________________________
+      |          |        |          
+ ---- | batch_id | status |   ngames 
+______|__________|________|__________
+ 0000 |        6 |   CMP  |   100000
+
+Searched position statuses: CMR, CMS
+
+Procedure regab_action_extract_count_positions() executed succesfully.
+
+   ----------------------------
+      Position Summary Table   
+   ----------------------------
+________________________________________________________
+      |          |        |            |                
+ rec  | batch_id | status |   gp_cnt   | classified_cnt 
+______|__________|________|____________|________________
+ 0000 |        6 |   CMR  |      99971 |          99971
+ 0001 |        6 |   CMS  |      99971 |          99971
+
+Procedure do_action_extract_game_pos_prepare_cursor() executed succesfully.
+Total count of Game Position Records is 199942.
+Database transaction has been closed.
+Binary output file written to ./rglmdata/A2350_positions_check.dat, computed SHA3-256 digest, written to file ./rglmdata/A2350_positions_check.dat.sha3-256.
+The RGLM command is: "./build/bin/rglm --verbose --solve --input-file ./rglmdata/A2350_00.dat --output-file ./rglmdata/A2350_01.dat 2>&1 | tee ./rglmdata/A2350_01.log"
+Opening RGLM general data binary file: "./rglmdata/A2350_00.dat" - SHA3-256 file digest: 0097fa4e76ab5b203b72c0fc50eb22ffa1ee280c5460c4a487056b80102ec30f
+Input file started to be written on (UTC) Wed Jan 22 11:47:31 2025
+The format of the binary data file is: GENERAL
+Selected batch_id values: 3
+Selected empty_count value: 23
+Selected position_statuses values: CMS, CMR
+Selected feature values: INTERCEPT, MOBILITY3
+Selected pattern values: CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR
+Position Summary Table: number of tuples = 2; game position count = 1999103
+Feature and Pattern Frequency Summary Table: number of tuples = 76632
+  Feature id:  0 [ INTERCEPT][     1][F_000:F_000], total_cnt =  1999103
+  Feature id:  3 [ MOBILITY3][     3][F_001:F_003], total_cnt =  5997309
+  Pattern id:  1     [CORNER][  5133][I_000:I_003], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  2     [ XEDGE][ 23131][I_004:I_007], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.9993
+  Pattern id:  3     [    R2][  3321][I_008:I_011], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  4     [    R3][  3318][I_012:I_015], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  5     [    R4][  1485][I_016:I_019], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  6     [ DIAG4][    45][I_020:I_023], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  7     [ DIAG5][   135][I_024:I_027], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  8     [ DIAG6][   378][I_028:I_031], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  9     [ DIAG7][   756][I_032:I_035], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id: 10     [ DIAG8][  1432][I_036:I_037], total_cnt =  3998206, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id: 11     [2X5COR][ 37494][I_038:I_045], total_cnt = 15992824, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.9999
+The reverse map "(entity_class, entity_id, principal_index_value) --> glm_variable_id" has been computed.
+All 1999103 solved and classified game positions has been read succesfully.
+Dumping factor for the diagonal of the Hessian matrix (Levemberg-Marquardt): lambda = 1.000000e-09
+Max number of Newton-Raphson algorithm iterations = 12
+Termination criteria:
+   Epsilon on modulus of gradient: 1.000000e-09
+Iteration[000]:
+   Residual: mean =  0.011000403525, variance =  0.042669675877, standard deviation =  0.206566395807 (26.98) [26]
+   Effe             =       42771.471797463229449932
+   Residual modulus =         292.477253123942034563; abs min = [    0.000000000000000000,      25]; abs max = [    0.489999999999999991,     350]
+   Gradient modulus =       32860.822839799322537147; abs min = [    0.000000000000000000,     213]; abs max = [ 9786.388352592191949952,       1]
+   Function, Gradient, Hessian, and Residual evaluation CPU time: [   152.691761247][   153.268701744]
+   Cholesky Factorization ok, CPU time:                           [  3643.871684211][   923.558837386]
+   Cholesky Solution CPU time:                                    [     7.391383000][     7.370765535]
+   Delta w modulus  =          30.526304161939293635; abs min = [    0.000000302073299660,   22263]; abs max = [    2.042296164157041183,       1]
+   Delta Effe       =       39452.351806321486947127
+Iteration[001]:
+   Residual: mean =  0.000915562403, variance =  0.003315111321, standard deviation =  0.057577003407 ( 7.52) [ 8]
+   Effe             =        3319.119991141744776542
+   Residual modulus =          81.418188568805788918; abs min = [    0.000000022726045268,  518788]; abs max = [    0.780524069349788685,  877586]
+   Gradient modulus =        2499.743184293831745890; abs min = [    0.000000000005451421,   15496]; abs max = [  758.909810347628308591,       1]
+   Function, Gradient, Hessian, and Residual evaluation CPU time: [    38.682345691][    38.687996657]
+   Cholesky Factorization ok, CPU time:                           [  3696.925742853][   932.643581578]
+   Cholesky Solution CPU time:                                    [     7.212586852][     7.199948312]
+   Delta w modulus  =           8.573601740856950926; abs min = [    0.000000048823662082,   42410]; abs max = [    4.189774965166042087,       2]
+   Delta Effe       =         443.977651561255242996
+Iteration[002]:
+   Residual: mean = -0.000234157277, variance =  0.002870251397, standard deviation =  0.053574727225 ( 7.00) [ 6]
+   Effe             =        2875.142339580489533546
+   Residual modulus =          75.749817946280401770; abs min = [    0.000000081241238181, 1456741]; abs max = [    0.821956321900462306,  877586]
+   Gradient modulus =         257.732656240207745668; abs min = [    0.000000000000415977,   25000]; abs max = [   78.448213243336454070,       1]
+   Function, Gradient, Hessian, and Residual evaluation CPU time: [    38.924432563][    38.950081460]
+   Cholesky Factorization ok, CPU time:                           [  4079.968229202][  1029.285522884]
+   Cholesky Solution CPU time:                                    [     7.219509362][     7.206821571]
+   Delta w modulus  =           2.742976010860856739; abs min = [    0.000000042373005285,   43462]; abs max = [    1.348427368410243465,       2]
+   Delta Effe       =           7.082110281032782950
+Iteration[003]:
+   Residual: mean = -0.000345631262, variance =  0.002862692009, standard deviation =  0.053504130763 ( 6.99) [ 6]
+   Effe             =        2868.060229299456750596
+   Residual modulus =          75.650856801711398703; abs min = [    0.000000026775723638,  230413]; abs max = [    0.828822855335550446,  877586]
+   Gradient modulus =           5.105522671020739978; abs min = [    0.000000000000001362,    6737]; abs max = [    1.478603679580924535,       1]
+   Function, Gradient, Hessian, and Residual evaluation CPU time: [    39.358241397][    39.393464974]
+   Cholesky Factorization ok, CPU time:                           [  3763.431496344][   949.657771126]
+   Cholesky Solution CPU time:                                    [     7.236551685][     7.227482112]
+   Delta w modulus  =           0.291007745572929077; abs min = [    0.000000001365383715,   71732]; abs max = [    0.083205211161206910,   14792]
+   Delta Effe       =           0.006294238393365958
+Iteration[004]:
+   Residual: mean = -0.000346075940, variance =  0.002862662628, standard deviation =  0.053503856197 ( 6.99) [ 6]
+   Effe             =        2868.053935061063384637
+   Residual modulus =          75.650472665127253435; abs min = [    0.000000008217271474,  172501]; abs max = [    0.829049832300329248,  877586]
+   Gradient modulus =           0.005487889956092047; abs min = [    0.000000000000000280,   10197]; abs max = [    0.001578933249720887,       1]
+   Function, Gradient, Hessian, and Residual evaluation CPU time: [    40.989835027][    40.995008976]
+   Cholesky Factorization ok, CPU time:                           [  4077.310261849][  1028.553728018]
+   Cholesky Solution CPU time:                                    [     6.984219482][     6.972713640]
+   Delta w modulus  =           0.009690441769106025; abs min = [    0.000000000004338237,   58578]; abs max = [    0.005691967676367531,   14811]
+   Delta Effe       =           0.000001610137587704
+Iteration[005]:
+   Residual: mean = -0.000346078102, variance =  0.002862662399, standard deviation =  0.053503854057 ( 6.99) [ 6]
+   Effe             =        2868.053933450925796933
+   Residual modulus =          75.650469659125462840; abs min = [    0.000000019088207071, 1822177]; abs max = [    0.829050085966902661,  877586]
+   Gradient modulus =           0.000004874982499452; abs min = [    0.000000000000000000,   15399]; abs max = [    0.000001422289223235,       0]
+   Function, Gradient, Hessian, and Residual evaluation CPU time: [    38.200352945][    38.210432735]
+   Cholesky Factorization ok, CPU time:                           [  3770.751626717][   951.191380788]
+   Cholesky Solution CPU time:                                    [     7.345171102][     7.337503779]
+   Delta w modulus  =           0.000029776552902608; abs min = [    0.000000000000061096,   17197]; abs max = [    0.000024373688498584,   14811]
+   Delta Effe       =          -0.000000000054569682
+Termination criteria reached:
+   Residual: mean = -0.000346078109, variance =  0.002862662399, standard deviation =  0.053503854054 ( 6.99) [ 6]
+   Effe             =        2868.053933450980366615
+   Residual modulus =          75.650469655274974912; abs min = [    0.000000019138678586, 1822177]; abs max = [    0.829050085958777272,  877586]
+   Gradient modulus =           0.000000000136222420; abs min = [    0.000000000000000000,    6029]; abs max = [    0.000000000106075948,       0]
+Binary output file written to ./rglmdata/A2350_01.dat, computed SHA3-256 digest, written to file ./rglmdata/A2350_01.dat.sha3-256.
+The RGLM extraction command is: "./build/bin/rglm --verbose --input-file ./rglmdata/A2350_01.dat -A ./rglmdata/A2350_01.A.csv -B ./rglmdata/A2350_01.B.csv -P ./rglmdata/A2350_01.P.csv -w ./rglmdata/A2350_01.w.dat 2>&1 | tee ./rglmdata/A2350_01.ABPw.log"
+Opening RGLM general data binary file: "./rglmdata/A2350_01.dat" - SHA3-256 file digest: e9cfc41959f7fa5ab91c2f363fecd274662c3cecc74660c559c076084ad99e3c
+Input file started to be written on (UTC) Wed Jan 22 13:36:58 2025
+The format of the binary data file is: GENERAL
+Selected batch_id values: 3
+Selected empty_count value: 23
+Selected position_statuses values: CMS, CMR
+Selected feature values: INTERCEPT, MOBILITY3
+Selected pattern values: CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR
+Position Summary Table: number of tuples = 2; game position count = 1999103
+Feature and Pattern Frequency Summary Table: number of tuples = 76632
+  Feature id:  0 [ INTERCEPT][     1][F_000:F_000], total_cnt =  1999103
+  Feature id:  3 [ MOBILITY3][     3][F_001:F_003], total_cnt =  5997309
+  Pattern id:  1     [CORNER][  5133][I_000:I_003], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  2     [ XEDGE][ 23131][I_004:I_007], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.9993
+  Pattern id:  3     [    R2][  3321][I_008:I_011], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  4     [    R3][  3318][I_012:I_015], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  5     [    R4][  1485][I_016:I_019], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  6     [ DIAG4][    45][I_020:I_023], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  7     [ DIAG5][   135][I_024:I_027], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  8     [ DIAG6][   378][I_028:I_031], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  9     [ DIAG7][   756][I_032:I_035], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id: 10     [ DIAG8][  1432][I_036:I_037], total_cnt =  3998206, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id: 11     [2X5COR][ 37494][I_038:I_045], total_cnt = 15992824, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.9999
+The reverse map "(entity_class, entity_id, principal_index_value) --> glm_variable_id" has been computed.
+All 1999103 solved and classified game positions has been read succesfully.
+Position summary table dumped to CSV file: "./rglmdata/A2350_01.A.csv".
+Feature and pattern frequencies summary table dumped to CSV file: "./rglmdata/A2350_01.B.csv".
+Game positions dumped to CSV file: "./rglmdata/A2350_01.P.csv".
+RGLM model weights binary file written to ./rglmdata/A2350_01.w.dat
+The RGLMW weights extraction command is: "./build/bin/rglmw --verbose --weights-file ./rglmdata/A2350_01.w.dat --extract-weights ./rglmdata/A2350_01.w.W.csv 2>&1 | tee ./rglmdata/A2350_01.w.WPP_check.log"
+Opening RGLM model weights binary file: "./rglmdata/A2350_01.w.dat" - SHA3-256 file digest: 66a7e6ca9a0dbbfdc2c1cf0c3806cf01e8a0e80bee1437ff3805d3a36d1ca926
+Input file started to be written on (UTC) Wed Jan 22 13:38:05 2025
+General data checksum (SHA3-256 file digest): e9cfc41959f7fa5ab91c2f363fecd274662c3cecc74660c559c076084ad99e3c
+Game position sample size: 1999103
+Empty count: 23
+Feature count: 2
+Features: INTERCEPT, MOBILITY3
+Pattern count: 11
+Patterns: CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR
+Weight array size: 167269
+Read 167269 weight records.
+File: "./rglmdata/A2350_01.w.dat" read and closed succesfully.
+Reverse map computed succesfully.
+RGLM model weights data structure loaded and ready.
+RGLM model weights table exported to CSV file: "./rglmdata/A2350_01.w.W.csv".
+The RGLMW positions extraction command is: "./build/bin/rglmw --verbose --weights-file ./rglmdata/A2350_01.w.dat --positions-file ./rglmdata/A2350_01.dat --extract-positions ./rglmdata/A2350_01.w.P.csv 2>&1 | tee -a ./rglmdata/A2350_01.w.WPP_check.log"
+Opening RGLM model weights binary file: "./rglmdata/A2350_01.w.dat" - SHA3-256 file digest: 66a7e6ca9a0dbbfdc2c1cf0c3806cf01e8a0e80bee1437ff3805d3a36d1ca926
+Input file started to be written on (UTC) Wed Jan 22 13:38:05 2025
+General data checksum (SHA3-256 file digest): e9cfc41959f7fa5ab91c2f363fecd274662c3cecc74660c559c076084ad99e3c
+Game position sample size: 1999103
+Empty count: 23
+Feature count: 2
+Features: INTERCEPT, MOBILITY3
+Pattern count: 11
+Patterns: CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR
+Weight array size: 167269
+Read 167269 weight records.
+File: "./rglmdata/A2350_01.w.dat" read and closed succesfully.
+Reverse map computed succesfully.
+RGLM model weights data structure loaded and ready.
+Opening RGLM general data binary file: "./rglmdata/A2350_01.dat" - SHA3-256 file digest: e9cfc41959f7fa5ab91c2f363fecd274662c3cecc74660c559c076084ad99e3c
+Input file started to be written on (UTC) Wed Jan 22 13:36:58 2025
+The format of the binary data file is: GENERAL
+Selected batch_id values: 3
+Selected empty_count value: 23
+Selected position_statuses values: CMS, CMR
+Selected feature values: INTERCEPT, MOBILITY3
+Selected pattern values: CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR
+Position Summary Table: number of tuples = 2; game position count = 1999103
+Feature and Pattern Frequency Summary Table: number of tuples = 76632
+  Feature id:  0 [ INTERCEPT][     1][F_000:F_000], total_cnt =  1999103
+  Feature id:  3 [ MOBILITY3][     3][F_001:F_003], total_cnt =  5997309
+  Pattern id:  1     [CORNER][  5133][I_000:I_003], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  2     [ XEDGE][ 23131][I_004:I_007], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.9993
+  Pattern id:  3     [    R2][  3321][I_008:I_011], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  4     [    R3][  3318][I_012:I_015], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  5     [    R4][  1485][I_016:I_019], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  6     [ DIAG4][    45][I_020:I_023], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  7     [ DIAG5][   135][I_024:I_027], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  8     [ DIAG6][   378][I_028:I_031], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id:  9     [ DIAG7][   756][I_032:I_035], total_cnt =  7996412, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id: 10     [ DIAG8][  1432][I_036:I_037], total_cnt =  3998206, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 1.0000
+  Pattern id: 11     [2X5COR][ 37494][I_038:I_045], total_cnt = 15992824, gp_cnt =  1999103, cumulated relative frequency = 1.0000, cumulated theoretical probability = 0.9999
+The reverse map "(entity_class, entity_id, principal_index_value) --> glm_variable_id" has been computed.
+All 1999103 solved and classified game positions has been read succesfully.
+RGLM general data format transformed from GENERAL to POSITIONS.
+empty_count_w = 23
+empty_count_p = 23
+eval_depth    = 0
+f_flag        = 0
+Game positions dumped to CSV file: "./rglmdata/A2350_01.w.P.csv".
+The RGLMW residual check command is: "./build/bin/rglmw --verbose --weights-file ./rglmdata/A2350_01.w.dat --positions-file ./rglmdata/A2350_positions_check.dat --extract-positions ./rglmdata/A2350_01.w.P_check.csv 2>&1 | tee -a ./rglmdata/A2350_01.w.WPP_check.log"
+Opening RGLM model weights binary file: "./rglmdata/A2350_01.w.dat" - SHA3-256 file digest: 66a7e6ca9a0dbbfdc2c1cf0c3806cf01e8a0e80bee1437ff3805d3a36d1ca926
+Input file started to be written on (UTC) Wed Jan 22 13:38:05 2025
+General data checksum (SHA3-256 file digest): e9cfc41959f7fa5ab91c2f363fecd274662c3cecc74660c559c076084ad99e3c
+Game position sample size: 1999103
+Empty count: 23
+Feature count: 2
+Features: INTERCEPT, MOBILITY3
+Pattern count: 11
+Patterns: CORNER, XEDGE, R2, R3, R4, DIAG4, DIAG5, DIAG6, DIAG7, DIAG8, 2X5COR
+Weight array size: 167269
+Read 167269 weight records.
+File: "./rglmdata/A2350_01.w.dat" read and closed succesfully.
+Reverse map computed succesfully.
+RGLM model weights data structure loaded and ready.
+Opening RGLM general data binary file: "./rglmdata/A2350_positions_check.dat" - SHA3-256 file digest: a3c5713c1eb2361ffbece25cfc69712dd2ab2d2305b160f099f58d387ac2f389
+Input file started to be written on (UTC) Wed Jan 22 11:53:17 2025
+The format of the binary data file is: POSITIONS
+Selected batch_id values: 6
+Selected empty_count value: 23
+Selected position_statuses values: CMS, CMR
+Selected feature values: --
+Selected pattern values: --
+Position Summary Table: number of tuples = 2; game position count = 199942
+Feature and Pattern Frequency Summary Table: number of tuples = 0
+The reverse map "(entity_class, entity_id, principal_index_value) --> glm_variable_id" has been computed.
+All 199942 solved and classified game positions has been read succesfully.
+empty_count_w = 23
+empty_count_p = 23
+eval_depth    = 0
+f_flag        = 0
+Game positions dumped to CSV file: "./rglmdata/A2350_01.w.P_check.csv".
+Touching file: "./rglmdata/A2350.sentinel"
+
+This list of files that has been created:
+
+./rglmdata/A2350_00.dat
+./rglmdata/A2350_00.dat.SHA3-256
+./rglmdata/A2350_00.log
+./rglmdata/A2350_01.ABPw.log
+./rglmdata/A2350_01.A.csv
+./rglmdata/A2350_01.B.csv
+./rglmdata/A2350_01.dat
+./rglmdata/A2350_01.dat.SHA3-256
+./rglmdata/A2350_01.log
+./rglmdata/A2350_01.P.csv
+./rglmdata/A2350_01.w.dat
+./rglmdata/A2350_01.w.dat.SHA3-256
+./rglmdata/A2350_01.w.P_check.csv
+./rglmdata/A2350_01.w.P.csv
+./rglmdata/A2350_01.w.W.csv
+./rglmdata/A2350_01.w.WPP_check.log
+./rglmdata/A2350_positions_check.dat
+./rglmdata/A2350_positions_check.dat.SHA3-256
+./rglmdata/A2350_positions_check.log
+./rglmdata/A2350.sentinel
+
+$ ./script/rglm.sh 24 INTERCEPT,MOBILITY3 XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR A2450 3 6 production check_sentinel
+...
+...
+...
+$ ls -1 ./rglmdata/A2450*
+./rglmdata/A2450_00.dat
+./rglmdata/A2450_00.dat.SHA3-256
+./rglmdata/A2450_00.log
+./rglmdata/A2450_01.ABPw.log
+./rglmdata/A2450_01.A.csv
+./rglmdata/A2450_01.B.csv
+./rglmdata/A2450_01.dat
+./rglmdata/A2450_01.dat.SHA3-256
+./rglmdata/A2450_01.log
+./rglmdata/A2450_01.P.csv
+./rglmdata/A2450_01.w.dat
+./rglmdata/A2450_01.w.dat.SHA3-256
+./rglmdata/A2450_01.w.P_check.csv
+./rglmdata/A2450_01.w.P.csv
+./rglmdata/A2450_01.w.W.csv
+./rglmdata/A2450_01.w.WPP_check.log
+./rglmdata/A2450_positions_check.dat
+./rglmdata/A2450_positions_check.dat.SHA3-256
+./rglmdata/A2450_positions_check.log
+./rglmdata/A2450.sentinel
