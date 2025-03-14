@@ -867,9 +867,12 @@ m = m.validate()                                                                
 ###
 ### 2024-04-07 : COMMENTI
 ###
-### -0- Manca da testare se questi modelli con nuovi PATTERN sono USABILI da endgame_solver ...
+### -0- [Done] Manca da testare se questi modelli con nuovi PATTERN sono USABILI da endgame_solver ...
+###     endgame_solver funziona con i modelli creaty da optimizer Python con patterns a 12 elementi.
 ###
-### -1- Sarebbe utile rifare il codice delle analisi sviluppate con R in Python ...
+### -1- [Done] Sarebbe utile rifare il codice delle analisi sviluppate con R in Python ...
+###     Il codice in Python è abbastanza semplice ed è documentato in README-GLM
+###     Ho anche inserito il modello G2098 nel file di Calc RGLM.ods
 ###
 ### -2- Sarebbe utile avere la possibilita' di costruire il modello, scriverlo su file.
 ###     Rileggerlo.
@@ -877,4 +880,17 @@ m = m.validate()                                                                
 ###     Come fatto in Newton/Cholesky/C
 ###
 ### -3- Testare nuovi PATTERN da 12 ...
+###
+
+###
+### 2025-03-14 : NOTA
+###
+### Non è stato aggiornato il DATABASE di Produzione con le nuove parti necessarie a gestire il pattern 6X2COR
+### In realtà funziona tutto ....
+###
+### Come procediamo:
+###
+### - Eseguiamo gli aggiornamenti selettivamente con un nuovo SQL di "migrazione" usa e getta ...
+### - Creiamo poi un nuovo pattern da 12 ( vorrei testare il BBELL il barbell che sostituisca il DIAG8 ) e questa volta
+###   non creiamo le classificazioni .... vediamo come possibile procedere ....
 ###

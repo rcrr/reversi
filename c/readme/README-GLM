@@ -1054,7 +1054,7 @@ m = m.validate()                                                                
 # The Object is a python dictionary
 #
 
->>> prod_run_a2050
+>>> test_run_a2050
 {'cfg_fname': 'cfg/regab.cfg', 'env': 'test', 'ec': 20, 'batches': [3], 'vld_batches': [5], 'statuses': 'CMR,CMS', 'vld_statuses': 'CMR,CMS', 'features': 'INTERCEPT,MOBILITY3', 'patterns': 'XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR', 'ridge_reg_param': 0.01, 'l_bfgs_b_options': {'disp': True, 'maxcor': 50, 'ftol': 1e-08, 'gtol': 1e-05, 'eps': 1e-08, 'maxfun': 5000, 'maxiter': 5000, 'iprint': 1, 'maxls': 20, 'finite_diff_rel_step': None}}
 
 #
@@ -1497,7 +1497,7 @@ SEQ
 #
 # VALIDATION_SD
 #
-# It is the Standard deviation (SD) of the RESIDUAL from the check (validation) data set of game positions.
+# It is the Standard Deviation (SD) of the RESIDUAL from the check (validation) data set of game positions.
 #
 
 >>> VALIDATION_SD = data_check['RESIDUAL'].std()
@@ -1507,9 +1507,16 @@ SEQ
 #
 # WEIGHT_COUNT
 #
-#
+# It is the count of model variables.
 #
 
 >>> WEIGHT_COUNT = weights['GLM_VARIABLE_ID'].loc[lambda x : x >= 0].nunique()
 >>> WEIGHT_COUNT
 76632
+
+###
+###
+### Now we are ready to see the process with 12 square patterns.
+###
+###
+
