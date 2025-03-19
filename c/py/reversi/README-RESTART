@@ -894,3 +894,19 @@ m = m.validate()                                                                
 ### - Creiamo poi un nuovo pattern da 12 ( vorrei testare il BBELL il barbell che sostituisca il DIAG8 ) e questa volta
 ###   non creiamo le classificazioni .... vediamo come possibile procedere ....
 ###
+
+#
+# Create le due procedure SQL up/down 0111 ...
+#
+
+tst_regab=> \i 0111_up_fix_pattern_2X6COR.sql
+SET
+BEGIN
+INSERT 0 1
+COMMIT
+tst_regab=> \i 0111_down_fix_pattern_2X6COR.sql
+SET
+BEGIN
+DELETE 1
+COMMIT
+
