@@ -27,26 +27,27 @@ Re-init everything by issuing the command:
 
 # running unit tests ( run from the $(REVERSI_HOME)/c folder )
 
-$ python -m unittest discover -s ./py
+$ source py/.reversi_venv/bin/activate
+$ python3 -m unittest discover -s ./py
 
 ######
 ###### Install python packages using apt ...
 ######
 
-root@legolas:~# apt install python3-full
-root@legolas:~# apt install python3-numpy
-root@legolas:~# apt install python3-pandas
-root@legolas:~# apt install python3-psycopg2
+# apt install python3-full
+# apt install python3-numpy
+# apt install python3-pandas
+# apt install python3-psycopg2
 
-rcrr@legolas:~$ pip install --break-system-packages duckdb
+$ pip install --break-system-packages duckdb
 
 ###
 ### How to start the new pytorch testing ....
 ###
 
-rcrr@melian:~/base/prj/reversi/c$ source py/.reversi_venv/bin/activate
+$ source py/.reversi_venv/bin/activate
 
-(.reversi_venv) rcrr@melian:~/base/prj/reversi/c$ python3
+(.reversi_venv) $ python3
 
 >>> exec(open("py/reversi/start.py").read())
 

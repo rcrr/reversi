@@ -11,7 +11,7 @@
 # Start a simulation ... test_run_0
 #
 
-rcrr@legolas:~/base/prj/reversi/c$ python3
+$(HOME_REVERSI)/c$ python3
 Python 3.11.2 (main, Mar 13 2023, 12:18:29) [GCC 12.2.0] on linux
 Type "help", "copyright", "credits" or "license" for more information.
 >>> 
@@ -56,12 +56,12 @@ m = m.validate()                                                                
 <reversi.rglm._RglmdfGeneralDataCTHelper object at 0x7f201355f770>
 >>> m.write_to_binary_file("./tmp/test_run_0_model.dat")
 
-rcrr@legolas:~/base/prj/reversi/c$ ls -l tmp/
+$(HOME_REVERSI)/c$ ls -l tmp/
 total 22016
 -rw-r--r-- 1 rcrr rcrr 22538962 Feb 19 11:20 test_run_0_model.dat
 -rw-r--r-- 1 rcrr rcrr       93 Feb 19 11:20 test_run_0_model.dat.SHA3-256
 
-rcrr@legolas:~/base/prj/reversi/c$ ./build/bin/rglm -v -i tmp/test_run_0_model.dat -B tmp/test_run_0_model.dat.B.csv
+$(HOME_REVERSI)/c$ ./build/bin/rglm -v -i tmp/test_run_0_model.dat -B tmp/test_run_0_model.dat.B.csv
 Opening RGLM general data binary file: "tmp/test_run_0_model.dat" - SHA3-256 file digest: 2bb6852f2e75169244c09f7bb098fb6fe4f1d9ee3204f80bf5d13228d0cfd50e
 Input file started to be written on (UTC) Mon Feb 19 11:20:14 2024
 The format of the binary data file is: GENERAL
@@ -80,7 +80,7 @@ The reverse map "(entity_class, entity_id, principal_index_value) --> glm_variab
 All 199952 solved and classified game positions has been read succesfully.
 Feature and pattern frequencies summary table dumped to CSV file: "tmp/test_run_0_model.dat.B.csv".
 
-rcrr@legolas:~/base/prj/reversi/c$ ls -la tmp/
+$(HOME_REVERSI)/c$ ls -la tmp/
 total 22480
 drwxr-xr-x  2 rcrr rcrr     4096 Feb 19 15:23 .
 drwxr-xr-x 17 rcrr rcrr     4096 Feb 19 11:10 ..
@@ -88,7 +88,7 @@ drwxr-xr-x 17 rcrr rcrr     4096 Feb 19 11:10 ..
 -rw-r--r--  1 rcrr rcrr   465816 Feb 19 15:23 test_run_0_model.dat.B.csv
 -rw-r--r--  1 rcrr rcrr       93 Feb 19 11:20 test_run_0_model.dat.SHA3-256
 
-rcrr@legolas:~/base/prj/reversi/c$ head tmp/test_run_0_model.dat.B.csv 
+$(HOME_REVERSI)/c$ head tmp/test_run_0_model.dat.B.csv 
      SEQ; GLM_VARIABLE_ID;   ENTITY_CLASS;  ENTITY_ID; PRINCIPAL_INDEX_VALUE;   TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_PROBABILITY;              WEIGHT
 00000000;               0;              0;          0;                     0;      199952;           1.000000;                1.000000;  -0.652123969886748
 00000001;               1;              0;          3;                     0;      199952;           1.000000;                1.000000;  +3.751198067211907
@@ -100,7 +100,7 @@ rcrr@legolas:~/base/prj/reversi/c$ head tmp/test_run_0_model.dat.B.csv
 00000007;               7;              1;          0;                     3;        6683;           0.008356;                0.007751;  -0.227637596370059
 00000008;               8;              1;          0;                     4;         992;           0.001240;                0.001163;  +0.193080912657796
 
-rcrr@legolas:~/base/prj/reversi/c$ ./build/bin/rglm -v -i tmp/test_run_0_model.dat -w tmp/test_run_0_model.dat.w.dat
+$(HOME_REVERSI)/c$ ./build/bin/rglm -v -i tmp/test_run_0_model.dat -w tmp/test_run_0_model.dat.w.dat
 Opening RGLM general data binary file: "tmp/test_run_0_model.dat" - SHA3-256 file digest: 2bb6852f2e75169244c09f7bb098fb6fe4f1d9ee3204f80bf5d13228d0cfd50e
 Input file started to be written on (UTC) Mon Feb 19 11:20:14 2024
 The format of the binary data file is: GENERAL
@@ -119,7 +119,7 @@ The reverse map "(entity_class, entity_id, principal_index_value) --> glm_variab
 All 199952 solved and classified game positions has been read succesfully.
 RGLM model weights binary file written to tmp/test_run_0_model.dat.w.dat
 
-rcrr@legolas:~/base/prj/reversi/c$ ./build/bin/rglmw -v -w tmp/test_run_0_model.dat.w.dat -W tmp/test_run_0_model.dat.w.dat.W.csv
+$(HOME_REVERSI)/c$ ./build/bin/rglmw -v -w tmp/test_run_0_model.dat.w.dat -W tmp/test_run_0_model.dat.w.dat.W.csv
 Opening RGLM model weights binary file: "tmp/test_run_0_model.dat.w.dat" - SHA3-256 file digest: a2b18d72e4dd0938fb27ea44784ee6009cb43f47de4ad39ff5302e5bbf95d9cd
 Input file started to be written on (UTC) Mon Feb 19 15:26:23 2024
 General data checksum (SHA3-256 file digest): 2bb6852f2e75169244c09f7bb098fb6fe4f1d9ee3204f80bf5d13228d0cfd50e
@@ -136,7 +136,7 @@ Reverse map computed succesfully.
 RGLM model weights data structure loaded and ready.
 RGLM model weights table exported to CSV file: "tmp/test_run_0_model.dat.w.dat.W.csv".
 
-rcrr@legolas:~/base/prj/reversi/c$ head tmp/test_run_0_model.dat.w.dat.W.csv 
+$(HOME_REVERSI)/c$ head tmp/test_run_0_model.dat.w.dat.W.csv 
    SEQ; ENTITY_CLASS; ENTITY_ID; INDEX_VALUE; PRINCIPAL_INDEX_VALUE; GLM_VARIABLE_ID;  TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_PROBABILITY;                  WEIGHT
 000000;            0;         0;           0;                     0;               0;     199952;  1.000000000000000;       1.000000000000000;      -0.652123969886748
 000001;            0;         3;           0;                     0;               1;     199952;  1.000000000000000;       1.000000000000000;      +3.751198067211907
@@ -403,7 +403,7 @@ Aborted
 # >>> m.write_to_binary_file("./tmp/test_run_a2050_0_model.dat")
 #
 
-rcrr@legolas:~/base/prj/reversi/c$ ls -la tmp/
+$(HOME_REVERSI)/c$ ls -la tmp/
 total 773804
 drwxr-xr-x  2 rcrr rcrr      4096 Mar 30 16:57 .
 drwxr-xr-x 17 rcrr rcrr      4096 Feb 19 11:10 ..
@@ -418,7 +418,7 @@ drwxr-xr-x 17 rcrr rcrr      4096 Feb 19 11:10 ..
 -rw-r--r--  1 rcrr rcrr 236385096 Feb 22 17:47 test_run_t2099_model.dat
 -rw-r--r--  1 rcrr rcrr        97 Feb 22 17:47 test_run_t2099_model.dat.SHA3-256
 
-rcrr@legolas:~/base/prj/reversi/c$ ./build/bin/rglm -v -i tmp/test_run_a2050_0_model.dat -B tmp/test_run_a2050_0_model.dat.B.csv
+$(HOME_REVERSI)/c$ ./build/bin/rglm -v -i tmp/test_run_a2050_0_model.dat -B tmp/test_run_a2050_0_model.dat.B.csv
 Opening RGLM general data binary file: "tmp/test_run_a2050_0_model.dat" - SHA3-256 file digest: c35a8909790bf281927599076047abaaa688fb1af83ed94d0e0aefae32de23e0
 Input file started to be written on (UTC) Sat Mar 30 16:57:47 2024
 The format of the binary data file is: GENERAL
@@ -458,7 +458,7 @@ Feature and pattern frequencies summary table dumped to CSV file: "tmp/test_run_
 # Chiaramente mi piace piu' il nuovo.
 #
 
-rcrr@legolas:~/base/prj/reversi/c$ ./build/bin/rglm -v -i tmp/test_run_a2050_0_model.dat -w tmp/test_run_a2050_0_model.dat.w.dat
+$(HOME_REVERSI)/c$ ./build/bin/rglm -v -i tmp/test_run_a2050_0_model.dat -w tmp/test_run_a2050_0_model.dat.w.dat
 Opening RGLM general data binary file: "tmp/test_run_a2050_0_model.dat" - SHA3-256 file digest: c35a8909790bf281927599076047abaaa688fb1af83ed94d0e0aefae32de23e0
 Input file started to be written on (UTC) Sat Mar 30 16:57:47 2024
 The format of the binary data file is: GENERAL
@@ -486,7 +486,7 @@ The reverse map "(entity_class, entity_id, principal_index_value) --> glm_variab
 All 1999179 solved and classified game positions has been read succesfully.
 RGLM model weights binary file written to tmp/test_run_a2050_0_model.dat.w.dat
 
-rcrr@legolas:~/base/prj/reversi/c$ ./build/bin/rglmw -v -w tmp/test_run_a2050_0_model.dat.w.dat -W tmp/test_run_a2050_0_model.dat.w.dat.W.csv
+$(HOME_REVERSI)/c$ ./build/bin/rglmw -v -w tmp/test_run_a2050_0_model.dat.w.dat -W tmp/test_run_a2050_0_model.dat.w.dat.W.csv
 Opening RGLM model weights binary file: "tmp/test_run_a2050_0_model.dat.w.dat" - SHA3-256 file digest: 19f3b1fcc3a4843e1c3b58ab2c3805c773aaef58a8fc9b6a9694e3d4b4689adf
 Input file started to be written on (UTC) Sat Mar 30 17:25:16 2024
 General data checksum (SHA3-256 file digest): c35a8909790bf281927599076047abaaa688fb1af83ed94d0e0aefae32de23e0
@@ -503,7 +503,7 @@ Reverse map computed succesfully.
 RGLM model weights data structure loaded and ready.
 RGLM model weights table exported to CSV file: "tmp/test_run_a2050_0_model.dat.w.dat.W.csv".
 
-rcrr@legolas:~/base/prj/reversi/c$ head tmp/test_run_a2050_0_model.dat.w.dat.W.csv
+$(HOME_REVERSI)/c$ head tmp/test_run_a2050_0_model.dat.w.dat.W.csv
    SEQ; ENTITY_CLASS; ENTITY_ID; INDEX_VALUE; PRINCIPAL_INDEX_VALUE; GLM_VARIABLE_ID;  TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_PROBABILITY;                  WEIGHT
 000000;            0;         0;           0;                     0;               0;    1999179;  1.000000000000000;       1.000000000000000;      -0.608710627648839
 000001;            0;         3;           0;                     0;               1;    1999179;  1.000000000000000;       1.000000000000000;      +3.795333860969805
@@ -534,7 +534,7 @@ rcrr@legolas:~/base/prj/reversi/c$ head tmp/test_run_a2050_0_model.dat.w.dat.W.c
  'opt_function_value': 20839.557834551688,
  'vld_function_value': 30.138202276513276}
 
-rcrr@legolas:~/base/prj/reversi/c$ ls -la tmp/
+$(HOME_REVERSI)/c$ ls -la tmp/
 total 4432664
 drwxr-xr-x  2 rcrr rcrr       4096 Mar 31 18:24 .
 drwxr-xr-x 17 rcrr rcrr       4096 Feb 19 11:10 ..
@@ -555,7 +555,7 @@ drwxr-xr-x 17 rcrr rcrr       4096 Feb 19 11:10 ..
 -rw-r--r--  1 rcrr rcrr  236385096 Feb 22 17:47 test_run_t2099_model.dat
 -rw-r--r--  1 rcrr rcrr         97 Feb 22 17:47 test_run_t2099_model.dat.SHA3-256
 
-rcrr@legolas:~/base/prj/reversi/c$ ./build/bin/rglm -v -i tmp/test_run_g2050_0_model.dat -B tmp/test_run_g2050_0_model.dat.B.csv
+$(HOME_REVERSI)/c$ ./build/bin/rglm -v -i tmp/test_run_g2050_0_model.dat -B tmp/test_run_g2050_0_model.dat.B.csv
 Opening RGLM general data binary file: "tmp/test_run_g2050_0_model.dat" - SHA3-256 file digest: 5560572a1b33ed0b78785157093b617b5c4ef3891b472cc828be671a1648a539
 Input file started to be written on (UTC) Sun Mar 31 17:24:07 2024
 The format of the binary data file is: GENERAL
@@ -699,7 +699,7 @@ m = m.validate()                                                                
 >>> m.populate_cthelper()
 >>> m.write_to_binary_file("./tmp/test_run_g2099_0_model.dat")
 
-rcrr@legolas:~/base/prj/reversi/c$ ./build/bin/rglm -v -i tmp/test_run_g2099_0_model.dat -w tmp/test_run_g2099_0_model.dat.w.dat
+$(HOME_REVERSI)/c$ ./build/bin/rglm -v -i tmp/test_run_g2099_0_model.dat -w tmp/test_run_g2099_0_model.dat.w.dat
 Opening RGLM general data binary file: "tmp/test_run_g2099_0_model.dat" - SHA3-256 file digest: 1e6ca37b6595bf2b1815d14c495613ee34aee1359c5de451ceb93c5f5c8e5c10
 Input file started to be written on (UTC) Tue Apr  2 16:15:24 2024
 The format of the binary data file is: GENERAL
@@ -717,7 +717,7 @@ The reverse map "(entity_class, entity_id, principal_index_value) --> glm_variab
 All 13994613 solved and classified game positions has been read succesfully.
 RGLM model weights binary file written to tmp/test_run_g2099_0_model.dat.w.dat
 
-rcrr@legolas:~/base/prj/reversi/c$ ./build/bin/rglm -v -i tmp/test_run_g2099_0_model.dat -B tmp/test_run_g2099_0_model.dat.B.csv
+$(HOME_REVERSI)/c$ ./build/bin/rglm -v -i tmp/test_run_g2099_0_model.dat -B tmp/test_run_g2099_0_model.dat.B.csv
 Opening RGLM general data binary file: "tmp/test_run_g2099_0_model.dat" - SHA3-256 file digest: 1e6ca37b6595bf2b1815d14c495613ee34aee1359c5de451ceb93c5f5c8e5c10
 Input file started to be written on (UTC) Tue Apr  2 16:15:24 2024
 The format of the binary data file is: GENERAL
@@ -735,7 +735,7 @@ The reverse map "(entity_class, entity_id, principal_index_value) --> glm_variab
 All 13994613 solved and classified game positions has been read succesfully.
 Feature and pattern frequencies summary table dumped to CSV file: "tmp/test_run_g2099_0_model.dat.B.csv".
 
-rcrr@legolas:~/base/prj/reversi/c$ head tmp/test_run_g2099_0_model.dat.B.csv 
+$(HOME_REVERSI)/c$ head tmp/test_run_g2099_0_model.dat.B.csv 
      SEQ; GLM_VARIABLE_ID;   ENTITY_CLASS;  ENTITY_ID; PRINCIPAL_INDEX_VALUE;   TOTAL_CNT; RELATIVE_FREQUENCY; THEORETICAL_PROBABILITY;              WEIGHT
 00000000;               0;              0;          0;                     0;    13994613;           1.000000;                1.000000;  -1.029027048895044
 00000001;               1;              0;          3;                     0;    13994613;           1.000000;                1.000000;  +4.359482771676625
