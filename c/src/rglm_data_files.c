@@ -1771,14 +1771,14 @@ rglmdf_entity_freq_summary_cnt_to_text_stream (const rglmdf_general_data_t *cons
         const char *feature_name = board_features[entity_id].name;
         const int first_index = f_index_cnt;
         f_index_cnt += board_features[entity_id].field_cnt;
-        fprintf(stream, "  Feature id: %2d [%10s][%6d][F_%03d:F_%03d], total_cnt = %8ld\n",
+        fprintf(stream, "  Feature id: %2d [%10s][%6d][F_%03d:F_%03d], total_cnt = %10ld\n",
                 entity_id, feature_name, v_cnt, first_index, f_index_cnt - 1, total_cnt);
       } else if (entity_class == BOARD_ENTITY_CLASS_PATTERN) {
         const char *pattern_name = board_patterns[entity_id].name;
         const int64_t gp_cnt = total_cnt / board_patterns[entity_id].n_instances;
         const int first_index = p_index_cnt;
         p_index_cnt += board_patterns[entity_id].n_instances;
-        fprintf(stream, "  Pattern id: %2d     [%6s][%6d][I_%03d:I_%03d], total_cnt = %8ld, gp_cnt = %8ld, cumulated relative frequency = %1.4f, cumulated theoretical probability = %1.4f\n",
+        fprintf(stream, "  Pattern id: %2d     [%6s][%6d][I_%03d:I_%03d], total_cnt = %10ld, gp_cnt = %8ld, cumulated relative frequency = %1.4f, cumulated theoretical probability = %1.4f\n",
                 entity_id, pattern_name, v_cnt, first_index, p_index_cnt - 1, total_cnt, gp_cnt, relative_frequency, theoretical_probability);
       } else {
         fprintf(stream, "Invalid entity_class value %d, it must be in the range [0..1]. Aborting ...\n", entity_class);

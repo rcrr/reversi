@@ -910,3 +910,16 @@ BEGIN
 DELETE 1
 COMMIT
 
+#
+# Fatto. E caricate in produzione.
+#
+
+rcrr@legolas:~/base/prj/reversi/c$ python3
+Python 3.11.2 (main, Nov 30 2024, 21:22:50) [GCC 12.2.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> exec(open("py/reversi/start.py").read())
+>>> from copy import deepcopy
+>>> G2098 = deepcopy(test_run_g2050)
+>>> G2098.update({'env': 'production', 'ec':20, 'patterns': 'XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X6COR'})
+>>> G2098
+{'cfg_fname': 'cfg/regab.cfg', 'env': 'production', 'ec': 20, 'batches': [3, 9, 12], 'vld_batches': [5], 'statuses': 'CMR,CMS', 'vld_statuses': 'CMR,CMS', 'features': 'INTERCEPT,MOBILITY3', 'patterns': 'XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X6COR', 'ridge_reg_param': 0.01, 'l_bfgs_b_options': {'disp': True, 'maxcor': 50, 'ftol': 1e-08, 'gtol': 1e-05, 'eps': 1e-08, 'maxfun': 5000, 'maxiter': 5000, 'iprint': 1, 'maxls': 20, 'finite_diff_rel_step': None}}
