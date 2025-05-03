@@ -1,0 +1,39 @@
+
+  README-VENV-PYTHON
+
+  Copyright (c) 2024 Roberto Corradini. All rights reserved.
+
+  This file is part of the reversi program
+  http://github.com/rcrr/reversi
+
+  This program is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by the
+  Free Software Foundation; either version 3, or (at your option) any
+  later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+  or visit the site <http://www.gnu.org/licenses/>.
+
+This file describes the configuration and settings done to prepare the PYTHON environment used to develop and execute
+the REVERSI program.
+
+Change directory to $REVERSI_HOME/c:
+
+  $ cd $REVERSI_HOME/c
+
+Then run to activate the VENV, start PYTHON, and load the REVESI libraries:
+
+  $ source py/.reversi_venv/bin/activate
+  $ python3
+  >>> exec(open("py/reversi/start.py").read())
+
+In order to compute a simple sample model execute:
+
+  >>> m = rglm_workflow(test_run_0)
