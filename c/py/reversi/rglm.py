@@ -5,7 +5,7 @@
 # http://github.com/rcrr/reversi
 # 
 # Aauthor Roberto Corradini mailto:rob_corradini@yahoo.it
-# Copyright 2022, 2023, 2024 Roberto Corradini. All rights reserved.
+# Copyright 2022, 2023, 2024, 2025 Roberto Corradini. All rights reserved.
 #
 # License
 # 
@@ -32,11 +32,13 @@ import reversi.board
 import reversi.pattern
 import reversi.cfg
 import reversi.regab
+import reversi.optimization
 
 from reversi.board import *
 from reversi.pattern import *
 from reversi.cfg import *
 from reversi.regab import *
+from reversi.optimization import *
 
 import numpy as np
 import pandas as pd
@@ -1601,8 +1603,55 @@ class Rglm:
         self.r = self.y - self.yh
 
         self.vmap['weight'] = self.w
+        
+        return self
 
-        # HERE
+    def optimize2(self, c=None, options=None) -> Rglm:
+        """
+        Finds the minimum of the objective function, optimizing the values
+        assigned to weights.
+        Argument c is the Ridge regularization coefficient defaulted to 0.0.
+
+        """
+        if c is None:
+            c = 0.
+        if options is None:
+            options = {'disp': False,
+                       'maxcor': 50,
+                       'ftol': 1e-08,
+                       'gtol': 1e-05,
+                       'eps': 1e-08,
+                       'maxfun': 5000,
+                       'maxiter': 5000,
+                       'iprint': 1,
+                       'maxls': 20,
+                       'finite_diff_rel_step': None}
+        
+        def fg(w):
+            linear_predictor = self.x @ w
+            self.yh = rglm_sigmoid(linear_predictor)
+            self.r = self.y - self.yh
+            f = 0.5 * (sum(self.r**2) + c * sum(w**2))
+            g = - self.xt @ ((self.yh * (1. - self.yh)) * self.r) + c * w
+            return f, g
+
+        fun = lambda w : [z for z in fg(w)][0]
+        jac = lambda w : [z for z in fg(w)][1]
+        x0 = copy.deepcopy(self.w)
+        algo = 'conjugate_gradient'
+        #algo = 'steepest_descent'
+        lsm = 'strong_wolfe'
+        #lsm = 'backtrack'
+        opt = Optimization(x0, fun, jac, algorithm=algo, line_search_method=lsm, verbosity=1, max_iters=3000, c1=0.01, c2=0.1,
+                           min_grad=(4.e-1, 13), min_p_fun_decrease=(1.e-12, 13))
+        self.w = opt.minimize()
+        
+        if True: opt.print()
+        
+        self.yh = rglm_sigmoid(self.x @ self.w)
+        self.r = self.y - self.yh
+
+        self.vmap['weight'] = self.w
         
         return self
 
@@ -2053,7 +2102,7 @@ def rglm_workflow(kvargs: dict):
     m = timed_run(m.compute_y, "m = m.compute_y()")
     m = timed_run(m.compute_analytics, "m = m.compute_analytics()")
     m = timed_run(m.retrieve_expected_probabilities_from_regab_db, "m = m.retrieve_expected_probabilities_from_regab_db()")
-    m = timed_run(m.optimize, "m = m.optimize({}, {{...}})", ridge_reg_param, l_bfgs_b_options)
+    m = timed_run(m.optimize2, "m = m.optimize2({}, {{...}})", ridge_reg_param, l_bfgs_b_options)
     if l_bfgs_b_options is not None:
         print("   l_bfgs_b_options = {}".format(l_bfgs_b_options))
     m = timed_run(m.compute_wmean_for_patterns, "m = m.compute_wmean_for_patterns()")

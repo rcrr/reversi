@@ -94,7 +94,7 @@ class TestOptimizationBaseFunction(unittest.TestCase):
 
     def test_c_optimization(self):
         x0 = np.array([0.0, 0.0])
-        opt = Optimization(x0, self.fun, self.jacobian, algorithm='conjugate_gradient', line_search_method='strong_wolfe')
+        opt = Optimization(x0, self.fun, self.jacobian, algorithm='conjugate_gradient', line_search_method='strong_wolfe', verbosity=0)
         actual_x_min = opt.minimize()
         np.testing.assert_allclose(actual_x_min, self.x_min, atol=1.e-6)
 
@@ -118,7 +118,8 @@ class TestOptimizationBaseFunction(unittest.TestCase):
             for algo in algos:
                 for x0 in x0s:
                     opt = Optimization(x0, self.fun, self.jacobian,
-                                       algorithm=algo, line_search_method=ls)
+                                       algorithm=algo, line_search_method=ls,
+                                       max_iters=1000)
                     actual_x_min = opt.minimize()
                     np.testing.assert_allclose(actual_x_min, self.x_min, atol=1.e-6)
 
@@ -164,7 +165,7 @@ class TestOptimizationRosenbrockFunction(unittest.TestCase):
 
     def test_b_optimization(self):
         x0 = np.array([-1.0, -1.0])
-        opt = Optimization(x0, self.fun, self.jacobian, algorithm='conjugate_gradient', line_search_method='backtrack', max_iters=300, verbosity=0)
+        opt = Optimization(x0, self.fun, self.jacobian, algorithm='conjugate_gradient', line_search_method='backtrack', max_iters=1000, verbosity=0)
         actual_x_min = opt.minimize()
         np.testing.assert_allclose(actual_x_min, self.x_min, atol=1.e-5)
 
@@ -182,7 +183,7 @@ class TestOptimizationRosenbrockFunction(unittest.TestCase):
 
     def test_z_optimization(self):
         x0 = np.array([-1.0, -1.0])
-        opt = Optimization(x0, self.fun, self.jacobian, algorithm='conjugate_gradient', line_search_method='backtrack', max_iters=1000, verbosity=0)
+        opt = Optimization(x0, self.fun, self.jacobian, algorithm='conjugate_gradient', line_search_method='backtrack', c1=1e-4, max_iters=1000, verbosity=0)
         actual_x_min = opt.minimize()
         n_iter = opt.i
         actual_fun_min_value = opt.fun(actual_x_min)

@@ -45,6 +45,14 @@ from copy import deepcopy
 # >>> exec(open("py/reversi/optimization.py").read())
 #
 
+
+# Golden ratio.
+golden_ratio = 1.618033988749
+
+# Inverse of golden ratio.
+inverse_golden_ratio = 0.618033988749
+
+
 class Optimization:
     """
     Wraps the model to be minimized, starting condition, parameters, solver, and result in a single object.
@@ -77,7 +85,7 @@ class Optimization:
     x0: [0. 0.]
     function: <function <lambda> at 0x77d1deb8d3a0>
     gradient: <function <lambda> at 0x77d1e1778d60>
-    c1=0.001, c2=0.49, eps=1e-06, max_iters=100, verbosity=0
+    c1=0.001, c2=0.49, min_grad=(1e-06, 5), max_iters=100, verbosity=0
     algorithm: conjugate_gradient
     line search method: strong_wolfe
     iterations=3, function_call_count=6, gradient_call_count=8
@@ -86,11 +94,12 @@ class Optimization:
     Attributes:
     ----------
       x0:                  the starting position vector
-      fun:                 function f(x) to be minimized
+      fun:                 function f(x) to be minimized, also named loss
       grad_fun:            the gradient of f(x) 
       c1:                  sufficient decrease parameter
       c2:                  curvature condition parameter
-      eps:                 stopping tolerance such that ||grad f(x)|| < eps
+      min_grad:            stopping tolerance such that ||grad f(x)|| < min_grad_v
+      min_p_fun_decrease:  minimum percentage acceptable loss decrease between two steps
       max_iters:           maximum number of iterations
       line_search_method:  must be in ['strong_wolfe', 'backtrack']
       algorithm:           must be in ['steepest_descent', 'conjugate_gradient']
@@ -112,7 +121,8 @@ class Optimization:
                  grad_fun: Callable, 
                  c1: float =1e-3,
                  c2: float =0.49,
-                 eps: float =1e-6, 
+                 min_grad: tuple =(1.e-6, 5),
+                 min_p_fun_decrease: tuple =(1.e-14, 5),
                  max_iters: int =100,
                  line_search_method: str ='strong_wolfe',
                  algorithm: str ='steepest_descent',
@@ -142,7 +152,8 @@ class Optimization:
         self.grad_fun = grad_fun
         self.c1 = c1
         self.c2 = c2
-        self.eps = eps
+        self.min_grad = min_grad
+        self.min_p_fun_decrease = min_p_fun_decrease
         self.max_iters = max_iters
         self.line_search_method = line_search_method
         self.algorithm = algorithm
@@ -171,7 +182,7 @@ class Optimization:
         print("x0: {}".format(self.x0))
         print("function: {}".format(self.fun))
         print("gradient: {}".format(self.grad_fun))
-        print("c1={}, c2={}, eps={}, max_iters={}, verbosity={}".format(self.c1, self.c2, self.eps, self.max_iters, self.verbosity))
+        print("c1={}, c2={}, min_grad={}, max_iters={}, verbosity={}".format(self.c1, self.c2, self.min_grad, self.max_iters, self.verbosity))
         print("algorithm: {}".format(self.algorithm))
         print("line search method: {}".format(self.line_search_method))
         print("iterations={}, function_call_count={}, gradient_call_count={}".format(self.i, self.function_call_count, self.gradient_call_count))
@@ -190,7 +201,7 @@ class Optimization:
         line_search = self.line_search
         c1 = self.c1
         c2 = self.c2
-        eps = self.eps
+        min_grad_v, min_grad_c = self.min_grad
         max_iters = self.max_iters
         verbosity = self.verbosity
         
@@ -198,7 +209,7 @@ class Optimization:
         
             grad = grad_fun(x)
             grad_norm = np.sqrt(np.dot(grad, grad))
-            if grad_norm < eps:
+            if grad_norm < min_grad_v:
                 break
             p = - grad
             alpha = line_search(x, fun, grad_fun, p, c1=c1, c2=c2, verbosity=verbosity)
@@ -209,7 +220,7 @@ class Optimization:
                 print("sd iter: [{:n}/{:n}], ".format(i, max_iters - 1), end='')
                 print("fun value: {:.6f}, ".format(fun_value), end='')
                 print("alpha: {:.8f}, ".format(alpha), end='')
-                print("grad_norm: {:.6f}, eps={:.6f}, ".format(grad_norm, eps), end='')
+                print("grad_norm: {:.6f}, min_grad={:.6f}, ".format(grad_norm, min_grad), end='')
                 print("x: {}".format(x))
 
         self.i += i
@@ -230,13 +241,18 @@ class Optimization:
         Returns an x array that minimize the f(x) function.
         """
 
+        low_progres_count_d = 0
+        low_progres_count_g = 0
+
         x = self.x
         fun = self.func
         grad_fun = self.grad_func
         line_search = self.line_search
         c1 = self.c1
         c2 = self.c2
-        eps = self.eps
+        min_grad = self.min_grad
+        min_grad_v, min_grad_c = self.min_grad
+        min_p_fun_decrease_v, min_p_fun_decrease_c = self.min_p_fun_decrease
         max_iters = self.max_iters
         verbosity = self.verbosity
     
@@ -244,22 +260,63 @@ class Optimization:
 
         # Iteration 0
         i = 0
+        alpha=1.0
         fun_value = fun(x)
         grad = grad_fun(x)
         grad_grad = np.dot(grad, grad)
         p = - grad
+        grad_p = np.dot(grad, p)
+        fun_value_prev = fun_value * 1.20
+        p_diff = None
 
         for i in range(1, max_iters):
             grad_norm = np.sqrt(grad_grad)
-            if grad_norm < eps:
+            if grad_norm == 0.:
+                break
+            
+            if grad_norm < min_grad_v:
+                low_progres_count_g += 1
+            else:
+                low_progres_count_g = 0
+
+            if low_progres_count_g >= min_grad_c:
+                break
+
+            if fun_value != 0.:
+                if fun_value < fun_value_prev:
+                    diff = fun_value_prev - fun_value
+                    p_diff = diff / np.fabs(fun_value)
+                    if p_diff < min_p_fun_decrease_v:
+                        low_progres_count_d += 1
+                    else:
+                        low_progres_count_d = 0
+                else:
+                    low_progres_count_d += 1
+            if low_progres_count_d >= min_p_fun_decrease_c:
                 break
 
             grad_grad_prev = grad_grad
             p_prev[:] = p[:]
-                        
-            alpha = line_search(x, fun, grad_fun, p, c1=c1, c2=c2, verbosity=verbosity)
+            grad_p_prev = grad_p
+            alpha_p = alpha
+
+            #
+            # Jorge Nocedal - Stephen J. Wright
+            # Numerical Optimization - Second Edition
+            #
+            # - INITIAL STEP LENGTH
+            #   Page 59
+            # - Formula 3.60
+            #
+            grad_p = np.dot(grad, p)
+            initial_alpha = alpha_p * grad_p_prev / grad_p
+            if verbosity > 2:
+                print("_cg: initial_alpha={}, alpha_p={}, grad_p_prev={}, grad_p{}".format(initial_alpha, alpha_p, grad_p_prev, grad_p))
+            alpha = line_search(x, fun, grad_fun, p, alpha=initial_alpha, c1=c1, c2=c2, verbosity=verbosity, iteration=i)
             x += alpha * p
-            
+
+            fun_value_prev = fun_value
+            fun_value = fun(x)
             grad = grad_fun(x)
             grad_grad = np.dot(grad, grad)
 
@@ -274,11 +331,11 @@ class Optimization:
                 p = - grad
             
             if verbosity > 0:
-                fun_value = fun(x)
                 print("cg iter: [{:n}/{:n}], ".format(i, max_iters), end='')
-                print("fun value: {:.10f}, ".format(fun_value), end='')
-                print("alpha: {:.8f}, ".format(alpha), end='')
-                print("grad_norm: {:.6f}, eps={:.8f}, ".format(grad_norm, eps), end='')
+                print("F: {:.10f}, ".format(fun_value), end='')
+                print("a: {:.8f}, ".format(alpha), end='')
+                print("grad_norm: {:.6f}, min_grad={}, ".format(grad_norm, min_grad), end='')
+                print("p_diff={}, low_progres_count_d: {}, ".format(p_diff, low_progres_count_d), end='')
                 print("x: {}".format(x))
 
         self.i += i
@@ -305,9 +362,11 @@ def strong_wolfe(x: numpy.ndarray,
                  c1:float =1e-3,
                  c2: float =0.49,
                  alpha: float =1.0,
+                 alpha_min: float =0.001,
                  alpha_max: float =2.0,
-                 max_iters: int =10,
-                 verbosity: int=0) -> float:
+                 max_iters: int =12,
+                 verbosity: int =0,
+                 iteration: int =0) -> float:
     """
     Returns the alpha step length satisfying the strong Wolfe conditions.
     
@@ -325,55 +384,73 @@ def strong_wolfe(x: numpy.ndarray,
       c1:        sufficient decrease parameter
       c2:        curvature condition parameter
       alpha:     initial estimate for the step length
-      alpha_max: maximum value of alpha
+      alpha_min: minimum value of alpha returned
+      alpha_max: maximum value of alpha returned
       max_iters: maximum number of iterations
       verbosity: verbosity level
+      iteration: used for logging and debugging
     """
 
-    # Golden Ratio.
-    gr = 1.618033988749
+    # Returned value.
+    alpha_star = 0.
 
-    # Used to report the condition found for termination.
-    condition = -1
-
-    # phi(alpha)
+    # Collable function phi(alpha)
     phi = lambda alpha : fun(x + alpha * p)
-    # phi'(alpha)
+    # Callable function phi'(alpha)
     phi_d1 = lambda alpha : np.dot(grad_fun(x + alpha * p), p)
+
+    ###### for debugging: It show the phi function. Arrange limits and step ...
+    #if False:
+    #    verbosity=4
+    #    print("strong_wolfe: initial alpha value = {}".format(alpha))
+    #    import matplotlib.pyplot as plt
+    #    t = np.arange(0., 0.0002, 0.00001)
+    #    plt.plot(t, [phi(y) for y in t], 'bs')
+    #    plt.show()
+    ######
+
+    # tuples are in the form:
+    #
+    # ( alpha, phi(alpha), phi'(alpha) )
+    #
+    # v0   : values at alpha=0
+    # vi   : values at iteration i
+    # vim1 : values at iteration i - 1
+    # lo   : calling zoom, the low values
+    # hi   : calling zoom, the high values
     
     # alpha_im1 is the alpha value at alpha(i-1)
-    phi_0 = phi(0.)
-    phi_im1 = phi_0
-    phi_d1_0 = phi_d1(0.)
-    phi_d1_im1 = phi_d1_0
-    i = 1
-    alpha_im1 = 0.
-    alpha_i = alpha
+
+    v0 = 0., phi(0.), phi_d1(0.)
+    vim1 = v0
+    vi = alpha, phi(alpha), phi_d1(alpha)
+
+    zoom = lambda lo, hi : zoom_hat(phi, phi_d1, v0, lo, hi, c1, c2, verbosity=verbosity)
+    
     if verbosity > 1:
         print("strong_wolfe: header. c1, c2: {}, {}".format(c1, c2))
-        print("strong_wolfe: alpha_im1, alpha, alpha_max: {}, {}, {}".format(alpha_im1, alpha, alpha_max))
-        print("strong_wolfe: phi_0: {}, phi_d1_0: {}".format(phi_0, phi_d1_0))
+        print("strong_wolfe: v0={}, vim1={}, vi={}".format(v0, vim1, vi))
 
     for i in range(max_iters):
-        phi_i = phi(alpha_i)
-        phi_d1_i = phi_d1(alpha_i)
         if verbosity > 2:
-            print("strong_wolfe, iter: {:d}, alpha_i={}, phi_i={}, phi_d1_i={}, phi_im1={}".format(i, alpha_i, phi_i, phi_d1_i, phi_im1))
+            print("strong_wolfe, iter: {:d}, vim1={}, vi={}".format(i, vim1, vi))
             
-        if phi_i > phi_0 + c1 * alpha_i * phi_d1_0 or (i > 0 and phi_i >= phi_im1):
-            condition = 1
-            alpha_star = zoom(phi, phi_d1, phi_0, phi_d1_0, alpha_im1, alpha_i, phi_im1, phi_i, phi_d1_im1, phi_d1_i, c1, c2)
+        if vi[1] > v0[1] + c1 * vi[0] * v0[2] or (i > 0 and vi[1] >= vim1[1]):
+            if (vi[1] > vim1[1]):
+                alpha_star = zoom(vim1, vi)
+            else:
+                alpha_star = zoom(vi, vim1)
             break
-        if np.fabs(phi_d1_i) <= - c2 * phi_d1_0:
-            condition = 2
-            alpha_star = alpha_i
+        if np.fabs(vi[2]) <= - c2 * v0[2]:
+            alpha_star = vi[0]
             break
-        if phi_d1_i >= 0.:
-            condition = 3
-            alpha_star = zoom(phi, phi_d1, phi_0, phi_d1_0, alpha_i, alpha_im1, phi_i, phi_im1, phi_d1_i, phi_d1_im1, c1, c2)
+        if vi[2] >= 0.:
+            alpha_star = zoom(vi, vim1)
             break
         
-        alpha_i = gr * alpha_i
+        vim1 = vi
+        
+        alpha_i = golden_ratio * vi[0]
         if alpha_i >= alpha_max:
             # Line search failed. Returning alpha_max.
             if verbosity > 1:
@@ -381,13 +458,14 @@ def strong_wolfe(x: numpy.ndarray,
                       .format(alpha_i, alpha_max))
             alpha_star = alpha_max
             break
+        vi = alpha_i, phi(alpha_i), phi_d1(alpha_i)
 
-        alpha_im1 = alpha_i
-        phi_im1 = phi_i
-        phi_d1_im1 = phi_d1_i
     
+    if alpha_star == 0.:
+        alpha_star = alpha_min
+        
     if verbosity > 1:
-        print("strong_wolfe: iterations={}, condition={:d}, returning alpha_star: {}".format(i + 1, condition, alpha_star))
+        print("strong_wolfe: iterations={}, returning alpha_star: {}".format(i + 1, alpha_star))
     return alpha_star
 
 #
@@ -398,19 +476,15 @@ def strong_wolfe(x: numpy.ndarray,
 #   Page 61
 # - Algorithm 3.6 (zoom)
 #
-def zoom(phi: Callable,
-         phi_d1: Callable,
-         phi_0: float,
-         phi_d1_0: float,
-         alpha_lo: float,
-         alpha_hi: float,
-         phi_lo: float,
-         phi_hi: float,
-         phi_d1_lo: float,
-         phi_d1_hi: float,
-         c1: float,
-         c2: float,
-         max_iters: int =20) -> float:
+def zoom_hat(phi: Callable,
+             phi_d1: Callable,
+             v0: tuple,
+             lo: tuple,
+             hi: tuple,
+             c1: float,
+             c2: float,
+             max_iters: int =20,
+             verbosity: int =0) -> float:
     """
     Returns a step length alpha between alpha_lo and alpha_hi
     that satisfies the strong Wolfe conditions.
@@ -428,46 +502,38 @@ def zoom(phi: Callable,
     Arguments:
       phi:       function phi(alpha)
       phi_d1:    first derivative of function phi(alpha), phi'(alpha)
-      phi_0:     value phi(alpha=0)
-      phi_d1_0:  value of the first derivative phi' when alpha=0
-      alpha_lo:  the bound of the interval giving the lesser value of phi
-      alpha_hi:  the other bound of the interval 
-      phi_lo:    value of phi(alpha) at alpha_lo
-      phi_hi:    value of phi(alpha) at alpha_hi
-      phi_d1_lo: value of the derivative of phi(alpha) at alpha_lo
-      phi_d1_hi: value of the derivative of phi(alpha) at alpha_hi
+      v0:        a tuple having: alpha=0., phi(0.), phi'(0.)
+      lo:        a tuple having: alpha, phi(alpha), phi'(alpha), where alpha is the bound of the interval giving the lesser value of phi
+      hi:        a tuple having: alpha, phi(alpha), phi'(alpha), where alpha is the other bound of the interval
       c1:        sufficient decrease parameter
       c2:        curvature condition parameter
       max_iters: maximum number of iterations
+      verbosity: vebosity level
     """
-
-    if (phi_lo > phi_hi):
-        raise ValueError("Zoom: phi_lo must be lesser than phi_hi. alpha_lo={}, phi_lo={}, alpha_hi={}, phi_hi{}"
-                         .format(alpha_lo, phi_lo, alpha_hi, phi_hi))
+    
+    if (lo[1] > hi[1]):
+        print("zoom: v0={}, lo={}, hi={}".format(v0, lo, hi))
+        print("zoom: c1={}, c2={}, max_iters={}".format(c1, c2, max_iters))
+        raise ValueError("zoom: lo[1] must be lesser than hi[1].")
     
     for j in range(max_iters):
-        alpha_j = interpolate(alpha_lo, phi_lo, phi_d1_lo, alpha_hi, phi_hi, phi_d1_hi)
-        phi_j = phi(alpha_j)
-        phi_d1_j = phi_d1(alpha_j)
-        if phi_j > phi_0 + c1 * alpha_j * phi_d1_0 or phi_j >= phi_lo:
-            alpha_hi = alpha_j
-            phi_hi = phi_j
-            phi_d1_hi = phi_d1_j
+        if verbosity > 2:
+            print("zoom: j={}, lo={}, hi={}".format(j, lo, hi))
+        alpha_j = interpolate(lo, hi)
+        vj = alpha_j, phi(alpha_j), phi_d1(alpha_j)
+        if vj[1] > v0[1] + c1 * vj[0] * v0[2] or vj[1] >= lo[1]:
+            hi = vj
         else:
-            if np.fabs(phi_d1_j) <= - c2 * phi_d1_0:
-                return alpha_j
-            if phi_d1_j * (alpha_hi - alpha_lo) >= 0.:
-                alpha_hi = alpha_lo
-                phi_hi = phi_lo
-                phi_d1_hi = phi_d1_lo
-            alpha_lo = alpha_j
-            phi_lo = phi_j
-            phi_d1_lo = phi_d1_j
+            if np.fabs(vj[2]) <= - c2 * v0[2]:
+                return vj[0]
+            if vj[2] * (hi[0] - lo[0]) >= 0.:
+                hi = lo
+            lo = vj
     
     # It happens only if the algorithm is exceeding the max iterations threshold.
     # The textbook doesn't cover this occurrence.
     # Here we take a conservative approach by returning the lower bound for alpha.
-    return alpha_lo
+    return lo[0]
 
 #
 # Jorge Nocedal - Stephen J. Wright
@@ -477,33 +543,29 @@ def zoom(phi: Callable,
 #   Page 59
 # - Formula 3.59
 #
-def interpolate(x0: float,
-                y0: float,
-                dy0: float,
-                x1: float,
-                y1: float,
-                dy1: float) -> float:
+def interpolate(a: tuple,
+                b: tuple,
+                min_delta_x: float=1.e-12) -> float:
     """
-    Returns the x coordinate of the estimated minimum of f(x) in the range [x0,x1].
-    Cubic interpolation of function f(x) is adopted.
+    Returns the x coordinate of the estimated minimum of f(x) in the range [xa,xb].
+    Cubic interpolation of function f(x) is adopted if possible, othervise bisection
+    is adopted.
         
     Arguments:
-      x0:  x coordinates at bound a
-      y0:  y coordinates at bound a
-      dy0: first derivative of y at bound a
-      x1:  x coordinates at bound b
-      y1:  y coordinates at bound b
-      dy1: first derivative of y at bound b
+      a: a tuple in the form (x, y, y') for the a bound
+      b: a similar tuple for the b bound
     """
-    #print("interpolate. x0, y0, dy0, x1, y1, dy1: {}, {}, {}, {}, {}, {}".format(x0, y0, dy0, x1, y1, dy1))
-
-    d1 = dy0 + dy1 - 3. * ( y0 - y1 ) / ( x0 - x1 )
-    d2a = d1**2 - dy0 * dy1
+    xa, ya, dya = a
+    xb, yb, dyb = b
+    xm = 0.5 * ( xa + xb )
+    if xa - xb < min_delta_x:
+        return xm
+    d1 = dya + dyb - 3. * ( ya - yb ) / ( xa - xb )
+    d2a = d1**2 - dya * dyb
     if d2a < 0.:
-        x = 0.5 * ( x0 + x1 )
-        return x
-    d2 = np.sign( x1 - x0 ) * np.sqrt( d2a )
-    x = x1 - ( x1 - x0 ) * ( ( dy1 + d2 - d1 ) / ( dy1 - dy0 + 2. * d2 ) )
+        return xm
+    d2 = np.sign( xb - xa ) * np.sqrt( d2a )
+    x = xb - ( xb - xa ) * ( ( dyb + d2 - d1 ) / ( dyb - dya + 2. * d2 ) )
     return x
 
 
@@ -519,13 +581,14 @@ def backtrack(x: numpy.ndarray,
               fun: Callable,
               grad_fun: Callable,
               p: numpy.ndarray,
-              ro: float =.618033988749,
+              ro: float =inverse_golden_ratio,
               alpha: float =1.0,
               c1: float =1e-3,
               c2: float = None,
-              max_iters: int =10,
+              max_iters: int =30,
               alpha_min: float =0.0001,
-              verbosity: int=0):
+              verbosity: int=0,
+              iteration: int =0):
     """
     Returns a step length alpha that satisfies the sufficient decrease conditions.
     
@@ -559,6 +622,9 @@ def backtrack(x: numpy.ndarray,
                          .format(fun0, grad0, p, gradp0))
     
     for k in range(max_iters):
+        if alpha < alpha_min:
+            break
+        
         # Evaluate the function at the new point
         xk = x + alpha * p
         fk = fun(xk)
