@@ -35,16 +35,30 @@ from copy import deepcopy
 #
 # How to use the optimization module.
 #
-# -0- Open the python console.
+# Change directory into $(REVERSI_HOME)/c
+#
+# -0- Activate the environmeant.
 #
 # $ source py/.reversi_venv/bin/activate
+#
+# -1- Run the tests.
+#
+# PYTHONPATH="./py" python3 -m unittest test.test_optimization
+#
+# -2- Open the python console.
+#
 # $ python3
 #
-# -1- Load the python module
+# -3- In case of changes to the code, reload the python module.
 #
 # >>> exec(open("py/reversi/optimization.py").read())
 #
 
+#
+# TODO - optimization.py
+#
+# 
+#
 
 # Golden ratio.
 golden_ratio = 1.618033988749

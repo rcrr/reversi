@@ -142,7 +142,7 @@ class TestOptimizationBaseFunction(unittest.TestCase):
 #   conjugate_gradient + backtrack    :    300
 #   steepest_descent   + strong_wolfe :  9,000
 #   steepest_descent   + backtrack    : 50,000
-#                   
+#
 class TestOptimizationRosenbrockFunction(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
@@ -190,3 +190,50 @@ class TestOptimizationRosenbrockFunction(unittest.TestCase):
         np.testing.assert_allclose(actual_x_min, self.x_min, atol=1.e-5)
         self.assertAlmostEqual(self.fun_min_value, actual_fun_min_value, delta=1.e-7)
         if False: opt.print()
+
+#
+# Zakharov Function.
+#
+#
+class TestOptimizationZakharovFunction(unittest.TestCase):
+
+    def __init__(self, *args, **kwargs):
+        super(TestOptimizationZakharovFunction, self).__init__(*args, **kwargs)
+        self.fun_min_value = 0.0
+
+    def fun(self, x):
+        d = self.d
+        sum1 = 0.
+        sum2 = 0.
+        for i in range(0, d):
+            xi = x[i]
+            sum1 += xi * xi
+            sum2 += 0.5 * (i + 1) * xi
+        sum22 = sum2 * sum2
+        y = sum1 + sum22 + sum22 * sum22
+        return y
+
+    def jacobian(self, x):
+        d = self.d
+        sum2 = 0.
+        a = np.array([x for x in range(1, 1 + d)], dtype=np.double)
+        for i in range(0, d):
+            xi = x[i]
+            sum2 += 0.5 * (i + 1) * xi
+        sum22 = sum2 * sum2
+        y = 2. * x + ( 1. + 2. * sum22 ) * sum2 * a
+        return y
+
+    def test_a_optimization(self, d=10):
+        self.d = d
+        self.x_min = np.zeros((d,), dtype=np.double)
+        x0 = np.random.uniform(low=-5., high=5., size=(d,))
+
+        opt = Optimization(x0, self.fun, self.jacobian,
+                           algorithm='conjugate_gradient', line_search_method='strong_wolfe',
+                           min_grad=(1.e-6, 3),
+                           min_p_fun_decrease=(1.e-8, 3),
+                           max_iters=100, verbosity=0)
+        actual_x_min = opt.minimize()
+        np.testing.assert_allclose(actual_x_min, self.x_min, atol=1.e-5)
+
