@@ -57,7 +57,52 @@ from copy import deepcopy
 #
 # TODO - optimization.py
 #
+# - Rewrite the class keeping just CG with strong Wolfe linear search.
+# - Move to a single call for FUN & GRAD.
+# - Test other CG beta formulas.
+#   The beta parameter in conjugate gradient (CG) algorithms dictates how the new search direction is formed.
+#   Different formulas for calculating beta lead to distinct CG methods, each with its own properties
+#   and performance characteristics. Instead of the common Fletcher-Reeves, Polak-Ribière, and Hestenes-Stiefel methods,
+#   alternatives like Dai-Yuan, Liu-Storey, and modified versions of existing methods offer potential improvements
+#   in convergence and robustness.
+#
+#   Common CG Methods and their Beta Formulas:
+#
+#    * Fletcher-Reeves (FR): βk = ||g_{k+1}||² / ||g_k||². 
+#    * Polak-Ribière-Polyak (PRP): βk = g_{k+1}^T y_k / ||g_k||². 
+#    * Hestenes-Stiefel (HS): βk = g_{k+1}^T y_k / d_k^T y_k. 
+#
+#   Other Beta Formulas:
+#
+#    * Dai-Yuan (DY): βk = ||g_{k+1}||² / d_k^T y_k. 
+#    * Liu-Storey (LS): βk = g_{k+1}^T y_k / -d_k^T g_k.
+#
+# - Compare with L-BFGS.
+# - Revrite it using pytorch tensors.
+#
+
+#
+# General Nonlinear Conjugate Gradient
+#
+# Evaluate:
+#    g_0 = grad(x_0)
+#
+# Initialize:
+#    d_0 = - g_0
+#    k = 1
+#
+# while: g_(k-1) != 0; do
+#
+#    compute: alpha_(k-1);
+#    x_(k) = x_(k-1) + alpha_(k-1) * d_(k-1);
+#    evaluate g_(k) = grad(x_(k));
+#    compute beta_(k);
+#    d_(k) = - g_(k) + beta_(k) * d_(k-1);
+#    k += 1
+#
+# end while;
 # 
+# return x_(k-1);
 #
 
 # Golden ratio.
@@ -66,6 +111,339 @@ golden_ratio = 1.618033988749
 # Inverse of golden ratio.
 inverse_golden_ratio = 0.618033988749
 
+class CurrentPrevious:
+    def __init__(self):
+        self.current = None
+        self.previous = None
+
+    def set(self, current, previous) -> None:
+        self.current = current
+        self.previous = previous
+
+    def push(self, new) -> None:
+        self.previous = self.current
+        self.current = new
+
+    def print(self) -> None:
+        print("current={}, previous{}".format(self.current, self.previous))
+
+class GNCG:
+    def __init__(self,
+                 x0: numpy.ndarray,
+                 fg: Callable,
+                 c1: float =1e-3,
+                 c2: float =0.49,
+                 alpha_min: float =1.e-3,
+                 min_grad: tuple =(1.e-6, 5),
+                 min_p_fun_decrease: tuple =(1.e-14, 5),
+                 max_iters: int =10,
+                 verbosity: int=0):
+        
+        if not isinstance(x0, np.ndarray):
+            raise TypeError('Argument x0 is not an instance of numpy.ndarray')
+        if not x0.dtype == 'float64':
+            raise TypeError('Argument x0 must be an array having dtype equal to float64')
+        if not callable(fg):
+            raise TypeError('Argument fun is not callable')
+
+        self.x0 = x0
+        self.fg = fg
+        self.c1 = c1
+        self.c2 = c2
+        self.alpha_min = alpha_min
+        self.min_grad = min_grad
+        self.min_p_fun_decrease = min_p_fun_decrease
+        self.max_iters = max_iters
+        self.verbosity = verbosity
+        
+        self.i = 0
+        self.n = len(x0)
+        self.x = deepcopy(x0)
+
+        self.function_call_count = 0
+
+    def fgc(self, x: numpy.ndarray) -> (float, numpy.ndarray):
+        self.function_call_count += 1
+        return self.fg(x)
+    
+    def print(self) -> None:
+        print("General Nonlinear Conjugate Gradient (GNCG) object: {}".format(self))
+        print("x0: {}".format(self.x0))
+        print("function/gradient: {}".format(self.fg))
+        print("c1={}, c2={}, min_grad={}, max_iters={}, verbosity={}".format(self.c1, self.c2, self.min_grad, self.max_iters, self.verbosity))
+        print("iterations={}, function_call_count={}".format(self.i, self.function_call_count))
+        print("x: {}".format(self.x))
+
+    def minimize(self) -> numpy.ndarray:
+
+        def evaluate(x, f, g):
+            _f, _g = self.fgc(x)
+            f.push(_f)
+            g.push(_g)
+            return
+        
+        x = self.x
+        fg = self.fgc
+        verbosity = self.verbosity
+        max_iters = self.max_iters
+        min_grad = self.min_grad
+        min_grad_v, min_grad_c = self.min_grad
+        min_p_fun_decrease_v, min_p_fun_decrease_c = self.min_p_fun_decrease
+
+        low_progres_count_f = 0
+        low_progres_count_g = 0
+
+        line_search = lambda x, d, initial_alpha, i : gncg_strong_wolfe(x, fg, d, alpha=initial_alpha,
+                                                                        c1=self.c1, c2=self.c2, alpha_min=self.alpha_min,
+                                                                        verbosity=self.verbosity, iteration=i)
+
+        # Initialization
+        g = CurrentPrevious()  # gradient : array
+        f = CurrentPrevious()  # function : scalar
+        gg = CurrentPrevious() # gradient * gradient dot product : scalar
+        d = CurrentPrevious()  # direction : array
+        gd = CurrentPrevious() # gradient * direction dot product : scalar
+        
+        # Iteration 0
+        alpha = 1.0
+        _f, _g = fg(x)
+        g.set(_g, _g)
+        f.set(_f, _f)
+        _gg = np.dot(_g, _g)
+        gg.set(_gg, _gg)
+        d.set(- _g, - _g)
+        gd.set(1., 1.)
+
+        for i in range(1, max_iters):
+            if gg.current == 0.:
+                break
+            
+            if gg.current < min_grad_v:
+                low_progres_count_g += 1
+            else:
+                low_progres_count_g = 0
+                
+            if low_progres_count_g >= min_grad_c:
+                break
+
+            p_diff = 0.
+            if f.current != 0.:
+                if f.current < f.previous:
+                    diff = f.previous - f.current
+                    p_diff = diff / np.fabs(f.current)
+                    if p_diff < min_p_fun_decrease_v:
+                        low_progres_count_f += 1
+                    else:
+                        low_progres_count_f = 0
+                else:
+                    low_progres_count_f += 1
+                
+            if low_progres_count_f >= min_p_fun_decrease_c:
+                break
+            
+            #
+            # Jorge Nocedal - Stephen J. Wright
+            # Numerical Optimization - Second Edition
+            #
+            # - INITIAL STEP LENGTH
+            #   Page 59
+            # - Formula 3.60
+            #
+            gd.push(np.dot(g.current, d.current))
+            initial_alpha = alpha * gd.previous / gd.current
+            alpha = line_search(x, d.current, initial_alpha, i)
+            x += alpha * d.current
+            evaluate(x, f, g)
+            gg.push(np.dot(g.current, g.current))
+            beta = gg.current / gg.previous
+            d.push(- g.current + beta * d.current)
+
+            if verbosity > 0:
+                print("minimize iter: [{:n}/{:n}], ".format(i, max_iters), end='')
+                print("f: {:.10f}, ".format(f.current), end='')
+                print("a: {:.8f}, ".format(alpha), end='')
+                print("gg: {:.8f}, ".format(gg.current), end='')
+                print("p_diff={:.4f}, low_progres_count_f: {}, low_progres_count_g: {}, ".format(p_diff, low_progres_count_f, low_progres_count_g), end='')
+                print("x: {}".format(x))
+
+        self.i += i
+        return x
+
+#
+# Jorge Nocedal - Stephen J. Wright
+# Numerical Optimization - Second Edition
+#
+# - A LINE SEARCH ALGORITHM FOR THE WOLFE CONDITIONS
+#   Page 60
+# - Algorithm 3.5 (Line Search Algorithm)
+#
+def gncg_strong_wolfe(x: numpy.ndarray,
+                      fg: Callable,
+                      p: numpy.ndarray,
+                      c1:float =1e-3,
+                      c2: float =0.49,
+                      alpha: float =1.0,
+                      alpha_min: float =1.e-3,
+                      alpha_max: float =2.0,
+                      max_iters: int =12,
+                      verbosity: int =0,
+                      iteration: int =0) -> float:
+    """
+    Returns the alpha step length satisfying the strong Wolfe conditions.
+    
+    The strong Wolfe conditions are among the most widely applicable and useful termination conditions.
+    Parameters c1 and c2 must satisfy the condition: 0 < c1 < c2 < 1
+    We assume that pk is a descent direction and that fun is bounded below along the direction pk.
+
+    Arguments alpha and alpha_max must satisfy the conditions: 0 < alpha < alpha_max
+
+    Arguments:
+      x:         independent variable array
+      fg:        function f(x), grad(x) to be minimized
+      p:         search direction
+      c1:        sufficient decrease parameter
+      c2:        curvature condition parameter
+      alpha:     initial estimate for the step length
+      alpha_min: minimum value of alpha returned
+      alpha_max: maximum value of alpha returned
+      max_iters: maximum number of iterations
+      verbosity: verbosity level
+      iteration: used for logging and debugging
+    """
+
+    # Returned value.
+    alpha_star = 0.
+
+    # Returns a tuple having : (alpha, phi(alpha), phi'(alpha))
+    def xyy1(alpha: float) -> (float, float, float):
+        f, g = fg(x + alpha * p)
+        return alpha, f, np.dot(g, p)
+
+    # tuples are in the form:
+    #
+    # ( alpha, phi(alpha), phi'(alpha) )
+    #
+    # v0   : values at alpha=0
+    # vi   : values at iteration i
+    # vim1 : values at iteration i - 1
+    # lo   : calling zoom, the low values
+    # hi   : calling zoom, the high values
+    
+    # alpha_im1 is the alpha value at alpha(i-1)
+
+    v0 = xyy1(0.)
+    vim1 = v0
+    vi = xyy1(alpha)
+
+    zoom = lambda lo, hi : gncg_zoom_hat(xyy1, v0, lo, hi, c1, c2, verbosity=verbosity)
+    
+    if verbosity > 1:
+        print("gncg_strong_wolfe: header. c1={}, c2={}, alpha={}".format(c1, c2, alpha))
+        print("gncg_strong_wolfe: v0={}, vim1={}, vi={}".format(v0, vim1, vi))
+
+    for i in range(max_iters):
+        if verbosity > 2:
+            print("gncg_strong_wolfe, iter: {:d}, vim1={}, vi={}".format(i, vim1, vi))
+            
+        if vi[1] > v0[1] + c1 * vi[0] * v0[2] or (i > 0 and vi[1] >= vim1[1]):
+            if (vi[1] > vim1[1]):
+                alpha_star = zoom(vim1, vi)
+            else:
+                alpha_star = zoom(vi, vim1)
+            break
+        if np.fabs(vi[2]) <= - c2 * v0[2]:
+            alpha_star = vi[0]
+            break
+        if vi[2] >= 0.:
+            alpha_star = zoom(vi, vim1)
+            break
+        
+        vim1 = vi
+        
+        alpha_i = golden_ratio * vi[0]
+        if alpha_i >= alpha_max:
+            # Line search failed. Returning alpha_max.
+            if verbosity > 1:
+                print("gncg_strong_wolfe: alpha_i is grown beyond alpha_max. alpha_i={}, alpha_max={}. Returning alpha_max."
+                      .format(alpha_i, alpha_max))
+            alpha_star = alpha_max
+            break
+        vi = xyy1(alpha_i)
+
+    
+    if alpha_star == 0.:
+        alpha_star = alpha_min
+        
+    if verbosity > 1:
+        print("gncg_strong_wolfe: iterations={}, returning alpha_star: {}".format(i + 1, alpha_star))
+    return alpha_star
+
+#
+# Jorge Nocedal - Stephen J. Wright
+# Numerical Optimization - Second Edition
+#
+# - A LINE SEARCH ALGORITHM FOR THE WOLFE CONDITIONS
+#   Page 61
+# - Algorithm 3.6 (zoom)
+#
+def gncg_zoom_hat(xyy1: Callable,
+                  v0: tuple,
+                  lo: tuple,
+                  hi: tuple,
+                  c1: float,
+                  c2: float,
+                  max_iters: int =20,
+                  verbosity: int =0) -> float:
+    """
+    Returns a step length alpha between alpha_lo and alpha_hi
+    that satisfies the strong Wolfe conditions.
+
+    Explanation, the following three properties must be satisfied:
+
+      (a) the interval bounded by alpha_lo and alpha_hi contains step lengths that satisfy the strong Wolfe conditions;
+      (b) alpha_lo is, among all step lengths generated so far and satisfying the sufficient decrease condition,
+          the one giving the smallest function value;
+      (c) alpha_hi is chosen so that phi'(alpha_lo) * (alpha_hi − alpha_lo) < 0.
+
+    Each iteration of zoom generates an iterate alpha_j between alpha_lo and alpha_hi, and then replaces one of
+    these endpoints by alpha_j in such a way that the properties (a), (b), and (c) continue to hold.
+    
+    Arguments:
+      phi:       callable function returning alpha, phi(alpha), phi'(alpha)
+      v0:        a tuple having: alpha=0., phi(0.), phi'(0.)
+      lo:        a tuple having: alpha, phi(alpha), phi'(alpha), where alpha is the bound of the interval giving the lesser value of phi
+      hi:        a tuple having: alpha, phi(alpha), phi'(alpha), where alpha is the other bound of the interval
+      c1:        sufficient decrease parameter
+      c2:        curvature condition parameter
+      max_iters: maximum number of iterations
+      verbosity: vebosity level
+    """
+    
+    if (lo[1] > hi[1]):
+        print("gncg_zoom: v0={}, lo={}, hi={}".format(v0, lo, hi))
+        print("gncg_zoom: c1={}, c2={}, max_iters={}".format(c1, c2, max_iters))
+        raise ValueError("zoom: lo[1] must be lesser than hi[1].")
+    
+    for j in range(max_iters):
+        if verbosity > 2:
+            print("gncg_zoom: j={}, lo={}, hi={}".format(j, lo, hi))
+        alpha_j = interpolate(lo, hi)
+        vj = xyy1(alpha_j)
+        if vj[1] > v0[1] + c1 * vj[0] * v0[2] or vj[1] >= lo[1]:
+            hi = vj
+        else:
+            if np.fabs(vj[2]) <= - c2 * v0[2]:
+                return vj[0]
+            if vj[2] * (hi[0] - lo[0]) >= 0.:
+                hi = lo
+            lo = vj
+    
+    # It happens only if the algorithm is exceeding the max iterations threshold.
+    # The textbook doesn't cover this occurrence.
+    # Here we take a conservative approach by returning the lower bound for alpha.
+    return lo[0]
+
+# -- -- --
 
 class Optimization:
     """
@@ -132,7 +510,7 @@ class Optimization:
     def __init__(self,
                  x0: numpy.ndarray,
                  fun: Callable,
-                 grad_fun: Callable, 
+                 grad_fun: Callable,
                  c1: float =1e-3,
                  c2: float =0.49,
                  min_grad: tuple =(1.e-6, 5),
@@ -272,6 +650,9 @@ class Optimization:
     
         p_prev = np.zeros(len(x))
 
+        # PRP
+        grad_prev = np.zeros(len(x))
+
         # Iteration 0
         i = 0
         alpha=1.0
@@ -309,6 +690,9 @@ class Optimization:
             if low_progres_count_d >= min_p_fun_decrease_c:
                 break
 
+            # PRP
+            grad_prev[:] = grad[:]
+            
             grad_grad_prev = grad_grad
             p_prev[:] = p[:]
             grad_p_prev = grad_p
@@ -334,8 +718,18 @@ class Optimization:
             grad = grad_fun(x)
             grad_grad = np.dot(grad, grad)
 
+            # Fletcher-Reeves (FR) beta formula.
             beta = grad_grad / grad_grad_prev
+            
+            # Polak-Ribiere-Polyak (PRP) beta formula.
+            #beta_prp = np.dot(grad, grad - grad_prev) / grad_grad
+            
+            # PRP
+            #print("beta: FR={}, PRP={}".format(beta, beta_prp))
+
+            # [711/3000], F: 907.1538947882
             p = - grad + beta * p_prev
+            #p = - grad + beta_prp * p_prev
 
             # This is an improvement over base FR algorithm.
             # When the direction p is not a descent direction then beta is set to 0.
