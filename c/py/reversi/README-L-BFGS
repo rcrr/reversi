@@ -1,0 +1,18 @@
+
+test_run_a2050
+
+CG-FR          2999 2887.59 64348 10:37:33
+CG-PR          2999 2885.86 55016  9:15:04
+CG-HS          2999 2884.36 55613  8:45:39
+CG-DY
+CG-HZ
+L-BFGS-rcrr_83  500 2887.12 .....    16:50
+L-BFGS-scipy    500 2888.60 .....     5:53
+L-BFGS-rcrr_19  500 2892.94 .....    16:52
+L-BFGS-rcrr_97  500 2886.13 .....    10.20 (final optimization c2=0.3)
+L-BFGS-rcrr_97  500 2887.10 .....     5.56 (final optimization c2=0.9)
+
+In practice using c2=0.3 forces almost always a second step into the line-search.
+The second step, using the cubic interpolation almost always drives to the optimum point.
+So each L-BFGS step is more effective but at the cost of 2 function evaluation vs 1.
+The pay off is negative. Better to have a less productive L-BFGS step but costing just one evaluation.

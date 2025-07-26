@@ -1,0 +1,1607 @@
+
+
+With **cProfile**, you can do exactly that by controlling when profiling starts and stops in your Python console session.
+Here’s how you can do it:
+
+1. **Import and create a profiler instance:**
+
+```python
+import cProfile
+pr = cProfile.Profile()
+```
+
+2. **Load your classes and do all the initialization BEFORE starting the profiler:**
+
+```python
+# load classes, import modules, setup stuff here
+```
+
+3. **Enable profiling right before running your use case code:**
+
+```python
+pr.enable()
+# run your use case code here
+pr.disable()
+```
+
+4. **Print or analyze the profiling results:**
+
+```python
+import pstats
+from pstats import SortKey
+ps = pstats.Stats(pr).sort_stats(SortKey.CUMULATIVE)
+ps.print_stats()
+```
+
+This way, **only the code executed between `pr.enable()` and `pr.disable()` will be profiled**, excluding the initialization phase you don't care about[1].
+
+You can also use the `cProfile.Profile` object as a context manager (Python 3.8+), which makes this cleaner:
+
+```python
+import cProfile
+from pstats import SortKey
+
+with cProfile.Profile() as pr:
+    # run your use case code here
+
+ps = pstats.Stats(pr).sort_stats(SortKey.CUMULATIVE)
+ps.print_stats()
+```
+
+This approach profiles just the block inside the `with` statement.
+
+### Additional tips:
+
+- Sort the output by **cumulative time** (`SortKey.CUMULATIVE`) to see which functions and their subcalls take the most total time.
+- Use `print_stats(n)` to limit output to top `n` functions if the output is too verbose.
+- You can save the stats to a file and analyze them later using tools like `snakeviz` or `gprof2dot` for visualization.
+
+This method lets you focus profiling exclusively on the parts of your code that matter for your use cases, avoiding noise from initialization[1][2][3].
+
+[1] https://docs.python.org/3/library/profile.html
+[2] https://www.admin-magazine.com/HPC/Articles/Profiling-Python-Code
+[3] https://data-ai.theodo.com/en/technical-blog/surgical-time-tracking-python
+[4] https://dev.to/usooldatascience/optimizing-python-code-using-cprofile-and-pypy-module-a-complete-guide-4779
+[5] https://nyu-cds.github.io/python-performance-tuning/02-cprofile/
+[6] https://stackoverflow.com/questions/69265100/python-cprofile-shows-lot-of-information-can-it-be-limited-to-only-my-code
+[7] https://www.turing.com/kb/python-code-with-cprofile
+[8] https://stackoverflow.com/questions/47564771/how-to-make-cprofile-print-only-significant-functions/53554934
+
+
+This is optime4 ... the version using L-BFGS by rcrr ....
+Everything more than 1s:
+
+>>> ps.print_stats()
+         708008623 function calls (707996959 primitive calls) in 2003.267 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000 2003.267 2003.267 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:2138(rglm_workflow)
+       31    0.771    0.025 2003.246   64.621 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:2166(timed_run)
+        1    0.002    0.002 1034.103 1034.103 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:1712(optimize4)
+        1    3.150    3.150 1033.925 1033.925 /home/rcrr/base/prj/reversi/c/py/reversi/opt_lbfgs.py:114(lbfgs)
+     1625   18.617    0.011  993.749    0.612 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:1733(fg)
+      500    0.008    0.000  690.930    1.382 /home/rcrr/base/prj/reversi/c/py/reversi/opt_lbfgs.py:39(strong_wolfe_line_search)
+     1124    3.065    0.003  690.920    0.615 /home/rcrr/base/prj/reversi/c/py/reversi/opt_lbfgs.py:54(phi)
+        2    0.488    0.244  643.138  321.569 /home/rcrr/base/prj/reversi/c/py/reversi/regab.py:102(compute_indexes_on_df)
+        5    0.000    0.000  642.440  128.488 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/frame.py:10170(apply)
+        5    0.056    0.011  642.439  128.488 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/apply.py:864(apply)
+        5    0.000    0.000  642.383  128.477 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/apply.py:1061(apply_standard)
+        5    7.620    1.524  640.871  128.174 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/apply.py:1070(apply_series_generator)
+        1    0.000    0.000  636.758  636.758 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:1093(compute_indexes)
+  2019179   17.707    0.000  513.108    0.000 /home/rcrr/base/prj/reversi/c/py/reversi/regab.py:142(compute_indexes)
+  2019179   35.917    0.000  451.329    0.000 /home/rcrr/base/prj/reversi/c/py/reversi/pattern.py:1061(_compute_patternlist_principal_indexes)
+ 22210969  300.157    0.000  395.525    0.000 /home/rcrr/base/prj/reversi/c/py/reversi/pattern.py:1042(_compute_pattern_principal_indexes)
+     3253    0.025    0.000  368.835    0.113 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_base.py:597(_matmul_dispatch)
+     3252    0.018    0.000  368.807    0.113 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_base.py:728(__matmul__)
+     3253    0.064    0.000  368.805    0.113 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_compressed.py:518(_matmul_vector)
+     3960  352.341    0.089  352.344    0.089 {built-in method builtins.sum}
+     1625  183.421    0.113  223.702    0.138 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_data.py:49(__neg__)
+     1626  199.563    0.123  199.563    0.123 {built-in method scipy.sparse._sparsetools.csc_matvec}
+     1627  167.847    0.103  167.847    0.103 {built-in method scipy.sparse._sparsetools.csr_matvec}
+        1    3.504    3.504  133.685  133.685 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:1319(compute_gpxpidf)
+       55    0.001    0.000  115.919    2.108 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/frame.py:694(__init__)
+       21    3.573    0.170  115.773    5.513 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/internals/construction.py:506(nested_data_to_arrays)
+       23   18.201    0.791  112.200    4.878 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/internals/construction.py:793(to_arrays)
+        2    0.354    0.177  110.621   55.311 /home/rcrr/base/prj/reversi/c/py/reversi/regab.py:43(compute_feature_values_on_df)
+        1    0.000    0.000  109.536  109.536 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:1027(compute_feature_values)
+       21    0.001    0.000   91.577    4.361 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/internals/construction.py:928(_finalize_columns_and_data)
+       21    0.001    0.000   91.576    4.361 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/internals/construction.py:1006(convert_object_array)
+      273   91.561    0.335   91.575    0.335 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/internals/construction.py:1028(convert)
+  2019179    8.002    0.000   89.086    0.000 /home/rcrr/base/prj/reversi/c/py/reversi/regab.py:76(compute_values)
+       36    0.001    0.000   77.267    2.146 /home/rcrr/base/prj/reversi/c/py/reversi/opt_lbfgs.py:82(zoom)
+121476452   33.170    0.000   64.475    0.000 {built-in method builtins.isinstance}
+  8310483   14.931    0.000   58.016    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/series.py:1095(__getitem__)
+        1    2.336    2.336   52.126   52.126 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:1418(compute_analytics)
+   157467    0.373    0.000   48.011    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_compressed.py:1341(_with_data)
+     1671    0.347    0.000   45.303    0.027 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/construction.py:517(sanitize_array)
+      379   39.444    0.104   44.642    0.118 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/dtypes/cast.py:123(maybe_convert_platform)
+      133    0.174    0.001   44.247    0.333 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/frame.py:5095(insert)
+      235    0.176    0.001   44.125    0.188 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/frame.py:5242(_sanitize_column)
+  2019179    8.567    0.000   43.167    0.000 /home/rcrr/base/prj/reversi/c/py/reversi/pattern.py:1099(_compute_featurelist_values)
+   160553   41.398    0.000   41.398    0.000 {method 'copy' of 'numpy.ndarray' objects}
+       70    0.008    0.000   39.653    0.566 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/reshape/merge.py:135(merge)
+       70    0.002    0.000   39.624    0.566 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/reshape/merge.py:882(get_result)
+       70    0.000    0.000   37.953    0.542 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/reshape/merge.py:1129(_get_join_info)
+ 48460296   36.154    0.000   36.154    0.000 {built-in method numpy.frombuffer}
+       23    0.000    0.000   35.855    1.559 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/frame.py:10813(merge)
+       23    0.000    0.000   34.917    1.518 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/groupby/groupby.py:3082(sum)
+       23    0.000    0.000   34.916    1.518 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/groupby/groupby.py:1896(_agg_general)
+       23    0.000    0.000   34.916    1.518 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/groupby/groupby.py:1957(_cython_agg_general)
+       23    0.000    0.000   34.914    1.518 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/internals/base.py:365(grouped_reduce)
+       23    0.000    0.000   34.912    1.518 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/groupby/groupby.py:1971(array_func)
+       23    0.001    0.000   34.912    1.518 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/groupby/ops.py:812(_cython_operation)
+       22    0.000    0.000   34.731    1.579 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/indexes/base.py:269(join)
+       22    0.001    0.000   34.730    1.579 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/indexes/base.py:4557(join)
+       22    0.045    0.002   32.831    1.492 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/indexes/base.py:4812(_join_non_unique)
+     1627   30.669    0.019   30.669    0.019 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:2211(rglm_sigmoid)
+      500   30.607    0.061   30.635    0.061 /home/rcrr/base/prj/reversi/c/py/reversi/opt_lbfgs.py:3(two_loop_recursion)
+  4038358    3.126    0.000   29.856    0.000 /home/rcrr/base/prj/reversi/c/py/reversi/pattern.py:1092(_compute_feature_values)
+       25    0.001    0.000   29.801    1.192 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/groupby/ops.py:743(group_info)
+       25    0.308    0.012   29.800    1.192 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/groupby/ops.py:758(_get_compressed_codes)
+       23    0.051    0.002   29.717    1.292 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/groupby/ops.py:735(has_dropped_na)
+ 52505927   12.573    0.000   26.933    0.000 <frozen abc>:117(__instancecheck__)
+  8310485   10.526    0.000   26.630    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/series.py:1220(_get_value)
+  4038358   17.963    0.000   23.086    0.000 /home/rcrr/base/prj/reversi/c/py/reversi/pattern.py:131(feature_values)
+       24   17.005    0.709   22.807    0.950 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/sorting.py:687(compress_group_index)
+  4116288   11.157    0.000   22.561    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/apply.py:1247(series_generator)
+133600372   21.607    0.000   21.607    0.000 {built-in method _ctypes.POINTER}
+ 97255144   21.572    0.000   21.572    0.000 {built-in method _ctypes.byref}
+  8076716   17.180    0.000   18.197    0.000 /home/rcrr/base/prj/reversi/c/py/reversi/board.py:186(new_from_signed_int)
+       24    2.870    0.120   16.660    0.694 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/reshape/merge.py:1770(get_join_indexers_non_unique)
+       24   14.844    0.619   15.408    0.642 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/indexes/multi.py:758(_values)
+       76   14.614    0.192   14.678    0.193 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/reshape/merge.py:2398(_factorize_keys)
+ 52505927   14.360    0.000   14.360    0.000 {built-in method _abc._abc_instancecheck}
+   235394    1.521    0.000   13.326    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_compressed.py:29(__init__)
+      131    0.001    0.000   12.028    0.092 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/reshape/concat.py:157(concat)
+      131    0.003    0.000   11.727    0.090 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/reshape/concat.py:622(get_result)
+  8311204    6.010    0.000   11.266    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/indexing.py:2765(check_dict_or_set_indexers)
+    77922    0.609    0.000   11.190    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:4067(percentile)
+  8311012    9.484    0.000   10.500    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/indexes/base.py:3777(get_loc)
+    77922    0.145    0.000   10.350    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:4541(_quantile_unchecked)
+    77922    0.241    0.000   10.204    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:3834(_ureduce)
+    77922    0.170    0.000    9.913    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:4697(_quantile_ureduce_func)
+    77922    1.301    0.000    9.633    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:4771(_quantile)
+        2    0.016    0.008    8.954    4.477 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:981(_retrieve_game_positions)
+        1    0.082    0.082    8.928    8.928 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:996(retrieve_game_positions)
+    77921    0.225    0.000    8.753    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_data.py:69(astype)
+        2    0.430    0.215    8.715    4.358 /home/rcrr/base/prj/reversi/c/py/reversi/regab.py:287(regab_gp_as_df)
+        1    0.731    0.731    8.652    8.652 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:1222(compute_vmaps)
+    77921    0.298    0.000    8.650    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_index.py:29(__getitem__)
+      165    0.020    0.000    8.597    0.052 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/algorithms.py:610(factorize)
+  4372910    6.385    0.000    7.377    0.000 /home/rcrr/base/prj/reversi/c/py/reversi/board.py:383(__init__)
+      348    0.128    0.000    6.984    0.020 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/internals/managers.py:1782(_consolidate_inplace)
+       32    0.000    0.000    6.853    0.214 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/internals/managers.py:2259(_consolidate)
+       43    3.350    0.078    6.850    0.159 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/internals/managers.py:2276(_merge_blocks)
+   323118    6.530    0.000    6.530    0.000 {built-in method builtins.min}
+  4116283    5.805    0.000    6.494    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/internals/managers.py:2065(set_values)
+   313784    6.395    0.000    6.395    0.000 {built-in method builtins.max}
+    77921    0.096    0.000    6.393    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_csc.py:126(_get_sliceXint)
+        1    0.000    0.000    6.380    6.380 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:1161(compute_vld_indexes)
+    77921    0.456    0.000    6.296    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_compressed.py:877(_get_submatrix)
+      389    6.277    0.016    6.277    0.016 {method 'argsort' of 'numpy.ndarray' objects}
+      165    5.862    0.036    5.904    0.036 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/algorithms.py:548(factorize_array)
+      185    0.000    0.000    5.839    0.032 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/groupby/grouper.py:689(codes)
+       93    0.000    0.000    5.838    0.063 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/groupby/grouper.py:777(_codes_and_uniques)
+       48    0.000    0.000    5.837    0.122 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/groupby/ops.py:687(codes)
+       24    0.112    0.005    5.797    0.242 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/sorting.py:718(_reorder_by_uniques)
+  8310868    3.161    0.000    5.607    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/series.py:831(_values)
+      380    4.854    0.013    5.185    0.014 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/dtypes/cast.py:1579(construct_1d_object_array_from_listlike)
+        1    0.003    0.003    5.085    5.085 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:1762(compute_evmap)
+       11    0.000    0.000    5.032    0.457 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2517(__call__)
+       11    0.003    0.000    5.032    0.457 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2487(_call_as_normal)
+       11    0.056    0.005    5.029    0.457 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2593(_vectorize_call)
+   167276    0.167    0.000    4.961    0.000 /home/rcrr/base/prj/reversi/c/py/reversi/pattern.py:268(principal_index)
+   167276    0.564    0.000    4.740    0.000 /home/rcrr/base/prj/reversi/c/py/reversi/pattern.py:256(mirror_index)
+      130    4.029    0.031    4.668    0.036 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/internals/concat.py:94(concatenate_managers)
+        6    4.381    0.730    4.381    0.730 {method 'execute' of 'psycopg2.extensions.cursor' objects}
+  4133379    1.871    0.000    4.373    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/dtypes/generic.py:42(_instancecheck)
+   235399    0.599    0.000    4.122    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_base.py:1369(_get_index_dtype)
+     1022    0.004    0.000    4.046    0.004 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/array_algos/take.py:59(take_nd)
+  4118788    4.035    0.000    4.041    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/generic.py:6301(__setattr__)
+     1022    3.624    0.004    4.041    0.004 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/array_algos/take.py:120(_take_nd_ndarray)
+       35    3.498    0.100    3.498    0.100 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/shape_base.py:220(vstack)
+  8311306    2.307    0.000    3.401    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/common.py:372(apply_if_callable)
+   235399    2.138    0.000    3.242    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_sputils.py:264(get_index_dtype)
+       46    2.318    0.050    3.193    0.069 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/reshape/merge.py:2370(_left_join_on_index)
+   235394    0.848    0.000    3.191    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_compressed.py:165(check_format)
+        1    0.011    0.011    3.139    3.139 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:1367(compute_x)
+     1003    0.013    0.000    3.123    0.003 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/linalg/_linalg.py:2575(norm)
+     1003    3.106    0.003    3.106    0.003 {method 'dot' of 'numpy.ndarray' objects}
+       24    0.000    0.000    2.931    0.122 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/indexes/multi.py:687(from_frame)
+       24    0.000    0.000    2.926    0.122 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/indexes/multi.py:474(from_arrays)
+       24    0.000    0.000    2.923    0.122 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/arrays/categorical.py:3048(factorize_from_iterables)
+       96    0.000    0.000    2.923    0.030 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/arrays/categorical.py:3069(<genexpr>)
+       72    0.019    0.000    2.923    0.041 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/arrays/categorical.py:3005(factorize_from_iterable)
+       72    0.002    0.000    2.902    0.040 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/arrays/categorical.py:371(__init__)
+    77922    0.073    0.000    2.899    0.000 {method 'std' of 'numpy.ndarray' objects}
+    77925    0.296    0.000    2.832    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/_methods.py:221(_std)
+       23    0.022    0.001    2.827    0.123 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/groupby/ops.py:771(ngroups)
+       25    0.001    0.000    2.805    0.112 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/groupby/ops.py:782(result_index)
+      165    0.002    0.000    2.669    0.016 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/algorithms.py:1452(safe_sort)
+       24    0.000    0.000    2.640    0.110 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/groupby/ops.py:776(reconstructed_codes)
+       24    0.005    0.000    2.639    0.110 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/sorting.py:268(decons_obs_group_ids)
+       24    2.634    0.110    2.634    0.110 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/sorting.py:246(_decons_group_index)
+   469265    2.631    0.000    2.631    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+       46    2.580    0.056    2.580    0.056 {method 'update' of 'set' objects}
+  4133379    1.707    0.000    2.501    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/dtypes/generic.py:37(_check)
+    77925    1.593    0.000    2.498    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/_methods.py:151(_var)
+  8310868    2.446    0.000    2.446    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/internals/managers.py:2004(internal_values)
+       23    0.000    0.000    2.368    0.103 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/groupby/ops.py:523(cython_operation)
+       23    0.004    0.000    2.367    0.103 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/groupby/ops.py:310(_cython_op_ndim_compat)
+       23    2.340    0.102    2.363    0.103 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/groupby/ops.py:354(_call_cython_op)
+       20    2.299    0.115    2.299    0.115 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/internals/construction.py:849(_list_to_arrays)
+   235394    0.843    0.000    2.041    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_compressed.py:1284(prune)
+    77922    1.974    0.000    1.974    0.000 {method 'partition' of 'numpy.ndarray' objects}
+      228    0.002    0.000    1.946    0.009 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/internals/managers.py:623(reindex_indexer)
+      369    0.002    0.000    1.923    0.005 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/internals/blocks.py:1287(take_nd)
+    77922    0.828    0.000    1.869    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:4736(_get_indexes)
+    77921    0.808    0.000    1.834    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_index.py:212(_validate_indices)
+        1    0.051    0.051    1.752    1.752 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:1820(compute_vld_gpxpidf)
+      549    0.582    0.001    1.725    0.003 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/indexes/base.py:2313(is_unique)
+       70    0.054    0.001    1.665    0.024 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/reshape/merge.py:825(_reindex_and_concat)
+    48/36    0.071    0.001    1.516    0.042 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/series.py:389(__init__)
+        5    0.000    0.000    1.513    0.303 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/apply.py:1102(wrap_results)
+        4    0.000    0.000    1.485    0.371 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/apply.py:1337(wrap_results_for_axis)
+    77925    0.029    0.000    1.481    0.000 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:1539(<lambda>)
+       12    0.077    0.006    1.470    0.123 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/series.py:607(_init_dict)
+    77925    0.099    0.000    1.453    0.000 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:1528(get_n_instances)
+   235396    0.750    0.000    1.448    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_sputils.py:429(check_shape)
+       22    0.005    0.000    1.446    0.066 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/series.py:1624(reset_index)
+       22    0.011    0.001    1.437    0.065 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/frame.py:6239(reset_index)
+  9011486    1.406    0.000    1.413    0.000 {built-in method builtins.len}
+       46    1.384    0.030    1.384    0.030 {method 'tolist' of 'numpy.ndarray' objects}
+        3    1.372    0.457    1.372    0.457 {method 'fetchall' of 'psycopg2.extensions.cursor' objects}
+    77922    0.081    0.000    1.338    0.000 {method 'mean' of 'numpy.ndarray' objects}
+   706897    1.311    0.000    1.311    0.000 {built-in method numpy.array}
+     3813    1.307    0.000    1.307    0.000 {built-in method numpy.zeros}
+      700    1.284    0.002    1.284    0.002 {method 'take' of 'numpy.ndarray' objects}
+    77925    0.414    0.000    1.259    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/_methods.py:118(_mean)
+   167276    0.939    0.000    1.242    0.000 /home/rcrr/base/prj/reversi/c/py/reversi/pattern.py:1083(board_pattern_index_to_packed)
+        2    0.000    0.000    1.185    0.592 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_coo.py:381(_coo_to_compressed)
+        2    1.185    0.592    1.185    0.592 {built-in method scipy.sparse._sparsetools.coo_tocsr}
+    77922    1.137    0.000    1.149    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:4639(_lerp)
+       22    0.752    0.034    1.135    0.052 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/indexes/multi.py:1193(_engine)
+      661    0.007    0.000    1.125    0.002 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/frame.py:4062(__getitem__)
+    77922    0.152    0.000    1.124    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/lib/_arraysetops_impl.py:145(unique)
+     1108    0.027    0.000    1.107    0.001 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/indexes/base.py:475(__new__)
+      418    0.233    0.001    1.106    0.003 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/algorithms.py:1131(take)
+  8311939    1.094    0.000    1.094    0.000 {built-in method builtins.callable}
+        1    0.000    0.000    1.086    1.086 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:1080(compute_vld_feature_values)
+     2255    0.002    0.000    1.053    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/indexes/base.py:7593(ensure_index)
+      127    0.001    0.000    1.026    0.008 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/generic.py:4142(_take_with_is_copy)
+  8155503    1.025    0.000    1.025    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/multiarray.py:180(concatenate)
+      127    0.001    0.000    1.024    0.008 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/generic.py:4027(take)
+      162    0.007    0.000    1.023    0.006 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/internals/managers.py:708(_slice_take_blocks_ax0)
+      127    0.001    0.000    1.020    0.008 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/internals/managers.py:869(take)
+      297    0.002    0.000    1.017    0.003 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/internals/managers.py:317(apply)
+  8311012    1.016    0.000    1.016    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/pandas/core/indexes/base.py:6672(_maybe_cast_indexer)
+  4040315    0.988    0.000    0.997    0.000 {built-in method builtins.all}
+
+
+
+###---### Optimize 4
+
+>>> m = rglm_workflow(test_run_a2050)
+m = Rglm()                                                                       0 days 00:00:00.000035999
+m = m.set_conn(<reversi.regab.RegabDBConnection object at 0x7c74dd7e07d0>)       0 days 00:00:00.000002955
+m = m.set_empty_count(20)                                                        0 days 00:00:00.000003346
+m = m.set_batches([3])                                                           0 days 00:00:00.000004819
+m = m.set_vld_batches([5])                                                       0 days 00:00:00.000002726
+m = m.set_statuses(CMR,CMS)                                                      0 days 00:00:00.000009369
+m = m.set_vld_statuses(CMR,CMS)                                                  0 days 00:00:00.000004238
+m = m.retrieve_game_positions()                                                  0 days 00:00:08.259772126
+m = m.retrieve_vld_game_positions()                                              0 days 00:00:00.098230888
+m = m.set_features(INTERCEPT,MOBILITY3)                                          0 days 00:00:00.000016661
+m = m.set_patterns(XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR)   0 days 00:00:00.000023105
+m = m.compute_feature_values()                                                   0 days 00:00:57.093301361
+m = m.compute_vld_feature_values()                                               0 days 00:00:00.576691864
+m = m.compute_indexes()                                                          0 days 00:07:25.619480386
+m = m.compute_vld_indexes()                                                      0 days 00:00:04.480445272
+m = m.combine_gps_features_patterns()                                            0 days 00:00:00.037011975
+m = m.combine_vld_gps_features_patterns()                                        0 days 00:00:00.000874751
+m = m.compute_vmaps()                                                            0 days 00:00:08.538673688
+m = m.compute_gpxpidf()                                                          0 days 00:02:15.828110205
+m = m.compute_x()                                                                0 days 00:00:03.223170700
+m = m.compute_y()                                                                0 days 00:00:00.005028823
+m = m.compute_analytics()                                                        0 days 00:00:37.203969900
+m = m.retrieve_expected_probabilities_from_regab_db()                            0 days 00:00:00.608228880
+/home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:2223: RuntimeWarning: overflow encountered in exp
+  
+Iter 1: f = 28058.447365, ||g|| = 3.116e+04, alpha = 6.104e-05, m = [01/19]
+Iter 2: f = 25776.744493, ||g|| = 1.398e+04, alpha = 2.500e-01, m = [02/19]
+Iter 3: f = 23064.452938, ||g|| = 1.100e+04, alpha = 1.000e+00, m = [03/19]
+Iter 4: f = 18564.740100, ||g|| = 5.906e+03, alpha = 1.000e+00, m = [04/19]
+Iter 5: f = 15475.424067, ||g|| = 5.228e+03, alpha = 1.000e+00, m = [05/19]
+Iter 6: f = 12106.438033, ||g|| = 5.257e+03, alpha = 1.000e+00, m = [06/19]
+Iter 7: f = 11457.151979, ||g|| = 8.250e+03, alpha = 1.000e+00, m = [07/19]
+Iter 8: f = 9979.666138, ||g|| = 2.959e+03, alpha = 1.000e+00, m = [08/19]
+Iter 9: f = 9451.491612, ||g|| = 2.285e+03, alpha = 1.000e+00, m = [09/19]
+Iter 10: f = 8632.924204, ||g|| = 2.965e+03, alpha = 1.000e+00, m = [10/19]
+Iter 11: f = 7773.153344, ||g|| = 2.636e+03, alpha = 1.000e+00, m = [11/19]
+Iter 12: f = 7034.769836, ||g|| = 4.177e+03, alpha = 1.000e+00, m = [12/19]
+Iter 13: f = 6451.222891, ||g|| = 2.180e+03, alpha = 1.000e+00, m = [13/19]
+Iter 14: f = 6218.105803, ||g|| = 1.181e+03, alpha = 1.000e+00, m = [14/19]
+Iter 15: f = 6018.977142, ||g|| = 1.092e+03, alpha = 1.000e+00, m = [15/19]
+Iter 16: f = 5737.657241, ||g|| = 1.409e+03, alpha = 1.000e+00, m = [16/19]
+Iter 17: f = 5469.462689, ||g|| = 2.230e+03, alpha = 1.000e+00, m = [17/19]
+Iter 18: f = 5197.544960, ||g|| = 1.081e+03, alpha = 1.000e+00, m = [18/19]
+Iter 19: f = 5045.702045, ||g|| = 8.788e+02, alpha = 1.000e+00, m = [19/19]
+Iter 20: f = 4873.859555, ||g|| = 1.069e+03, alpha = 1.000e+00, m = [19/19]
+Iter 21: f = 4741.291016, ||g|| = 1.750e+03, alpha = 1.000e+00, m = [19/19]
+Iter 22: f = 4596.689771, ||g|| = 1.332e+03, alpha = 1.000e+00, m = [19/19]
+Iter 23: f = 4570.931034, ||g|| = 2.667e+03, alpha = 2.500e-01, m = [19/19]
+Iter 24: f = 4510.460228, ||g|| = 9.372e+02, alpha = 1.000e+00, m = [19/19]
+Iter 25: f = 4484.005314, ||g|| = 8.938e+02, alpha = 1.000e+00, m = [19/19]
+Iter 26: f = 4434.193162, ||g|| = 1.006e+03, alpha = 1.000e+00, m = [19/19]
+Iter 27: f = 4356.252079, ||g|| = 9.903e+02, alpha = 1.000e+00, m = [19/19]
+Iter 28: f = 4224.448153, ||g|| = 1.081e+03, alpha = 1.000e+00, m = [19/19]
+Iter 29: f = 4184.156104, ||g|| = 1.554e+03, alpha = 5.000e-01, m = [19/19]
+Iter 30: f = 4099.069802, ||g|| = 6.239e+02, alpha = 1.000e+00, m = [19/19]
+Iter 31: f = 4057.845159, ||g|| = 5.518e+02, alpha = 1.000e+00, m = [19/19]
+Iter 32: f = 4006.109618, ||g|| = 6.474e+02, alpha = 1.000e+00, m = [19/19]
+Iter 33: f = 3935.305215, ||g|| = 1.237e+03, alpha = 1.000e+00, m = [19/19]
+Iter 34: f = 3869.455403, ||g|| = 7.133e+02, alpha = 1.000e+00, m = [19/19]
+Iter 35: f = 3832.573648, ||g|| = 4.504e+02, alpha = 1.000e+00, m = [19/19]
+Iter 36: f = 3788.774720, ||g|| = 5.351e+02, alpha = 1.000e+00, m = [19/19]
+Iter 37: f = 3751.747073, ||g|| = 7.283e+02, alpha = 1.000e+00, m = [19/19]
+Iter 38: f = 3702.471759, ||g|| = 5.860e+02, alpha = 1.000e+00, m = [19/19]
+Iter 39: f = 3666.674473, ||g|| = 5.477e+02, alpha = 1.000e+00, m = [19/19]
+Iter 40: f = 3635.726297, ||g|| = 4.635e+02, alpha = 1.000e+00, m = [19/19]
+Iter 41: f = 3602.418518, ||g|| = 4.747e+02, alpha = 1.000e+00, m = [19/19]
+Iter 42: f = 3585.423552, ||g|| = 1.158e+03, alpha = 1.000e+00, m = [19/19]
+Iter 43: f = 3555.224467, ||g|| = 1.676e+03, alpha = 1.000e+00, m = [19/19]
+Iter 44: f = 3541.432390, ||g|| = 9.058e+02, alpha = 1.000e+00, m = [19/19]
+Iter 45: f = 3532.970511, ||g|| = 3.977e+02, alpha = 1.000e+00, m = [19/19]
+Iter 46: f = 3525.048561, ||g|| = 5.159e+02, alpha = 1.000e+00, m = [19/19]
+Iter 47: f = 3515.271602, ||g|| = 6.128e+02, alpha = 1.000e+00, m = [19/19]
+Iter 48: f = 3493.783637, ||g|| = 5.781e+02, alpha = 1.000e+00, m = [19/19]
+Iter 49: f = 3457.346140, ||g|| = 5.635e+02, alpha = 1.000e+00, m = [19/19]
+Iter 50: f = 3448.577930, ||g|| = 9.058e+02, alpha = 1.000e+00, m = [19/19]
+Iter 51: f = 3413.783386, ||g|| = 3.144e+02, alpha = 1.000e+00, m = [19/19]
+Iter 52: f = 3403.142257, ||g|| = 2.958e+02, alpha = 1.000e+00, m = [19/19]
+Iter 53: f = 3382.114969, ||g|| = 3.782e+02, alpha = 1.000e+00, m = [19/19]
+Iter 54: f = 3375.396670, ||g|| = 7.981e+02, alpha = 5.000e-01, m = [19/19]
+Iter 55: f = 3354.899063, ||g|| = 3.222e+02, alpha = 1.000e+00, m = [19/19]
+Iter 56: f = 3345.160448, ||g|| = 2.607e+02, alpha = 1.000e+00, m = [19/19]
+Iter 57: f = 3331.815631, ||g|| = 3.419e+02, alpha = 1.000e+00, m = [19/19]
+Iter 58: f = 3314.743222, ||g|| = 4.593e+02, alpha = 1.000e+00, m = [19/19]
+Iter 59: f = 3304.409981, ||g|| = 6.280e+02, alpha = 1.000e+00, m = [19/19]
+Iter 60: f = 3292.347873, ||g|| = 3.135e+02, alpha = 1.000e+00, m = [19/19]
+Iter 61: f = 3282.457028, ||g|| = 2.523e+02, alpha = 1.000e+00, m = [19/19]
+Iter 62: f = 3275.512358, ||g|| = 3.410e+02, alpha = 1.000e+00, m = [19/19]
+Iter 63: f = 3262.174342, ||g|| = 4.872e+02, alpha = 1.000e+00, m = [19/19]
+Iter 64: f = 3260.827530, ||g|| = 6.187e+02, alpha = 1.250e-01, m = [19/19]
+Iter 65: f = 3252.027699, ||g|| = 2.481e+02, alpha = 1.000e+00, m = [19/19]
+Iter 66: f = 3247.463848, ||g|| = 2.459e+02, alpha = 1.000e+00, m = [19/19]
+Iter 67: f = 3242.023643, ||g|| = 3.856e+02, alpha = 1.000e+00, m = [19/19]
+Iter 68: f = 3233.788280, ||g|| = 2.797e+02, alpha = 1.000e+00, m = [19/19]
+Iter 69: f = 3225.553038, ||g|| = 2.322e+02, alpha = 1.000e+00, m = [19/19]
+Iter 70: f = 3207.745578, ||g|| = 1.965e+02, alpha = 1.000e+00, m = [19/19]
+Iter 71: f = 3196.856692, ||g|| = 4.333e+02, alpha = 1.000e+00, m = [19/19]
+Iter 72: f = 3185.495903, ||g|| = 2.175e+02, alpha = 1.000e+00, m = [19/19]
+Iter 73: f = 3179.012007, ||g|| = 1.700e+02, alpha = 1.000e+00, m = [19/19]
+Iter 74: f = 3171.248414, ||g|| = 2.649e+02, alpha = 1.000e+00, m = [19/19]
+Iter 75: f = 3164.927128, ||g|| = 3.215e+02, alpha = 1.000e+00, m = [19/19]
+Iter 76: f = 3158.610248, ||g|| = 2.063e+02, alpha = 1.000e+00, m = [19/19]
+Iter 77: f = 3148.727214, ||g|| = 1.936e+02, alpha = 1.000e+00, m = [19/19]
+Iter 78: f = 3144.115070, ||g|| = 3.071e+02, alpha = 1.000e+00, m = [19/19]
+Iter 79: f = 3137.728292, ||g|| = 2.507e+02, alpha = 1.000e+00, m = [19/19]
+Iter 80: f = 3129.623062, ||g|| = 3.948e+02, alpha = 1.000e+00, m = [19/19]
+Iter 81: f = 3123.191155, ||g|| = 2.274e+02, alpha = 1.000e+00, m = [19/19]
+Iter 82: f = 3120.359448, ||g|| = 1.663e+02, alpha = 1.000e+00, m = [19/19]
+Iter 83: f = 3114.090810, ||g|| = 1.412e+02, alpha = 1.000e+00, m = [19/19]
+Iter 84: f = 3113.511215, ||g|| = 4.677e+02, alpha = 1.250e-01, m = [19/19]
+Iter 85: f = 3111.420691, ||g|| = 3.076e+02, alpha = 1.000e+00, m = [19/19]
+Iter 86: f = 3108.864325, ||g|| = 1.909e+02, alpha = 1.000e+00, m = [19/19]
+Iter 87: f = 3106.582464, ||g|| = 2.075e+02, alpha = 1.000e+00, m = [19/19]
+Iter 88: f = 3103.164671, ||g|| = 2.595e+02, alpha = 1.000e+00, m = [19/19]
+Iter 89: f = 3099.854304, ||g|| = 2.627e+02, alpha = 1.000e+00, m = [19/19]
+Iter 90: f = 3095.818349, ||g|| = 1.947e+02, alpha = 1.000e+00, m = [19/19]
+Iter 91: f = 3092.032793, ||g|| = 1.515e+02, alpha = 1.000e+00, m = [19/19]
+Iter 92: f = 3084.989932, ||g|| = 1.688e+02, alpha = 1.000e+00, m = [19/19]
+Iter 93: f = 3081.536536, ||g|| = 2.499e+02, alpha = 1.000e+00, m = [19/19]
+Iter 94: f = 3077.255800, ||g|| = 1.478e+02, alpha = 1.000e+00, m = [19/19]
+Iter 95: f = 3072.688918, ||g|| = 1.443e+02, alpha = 1.000e+00, m = [19/19]
+Iter 96: f = 3068.151001, ||g|| = 1.742e+02, alpha = 1.000e+00, m = [19/19]
+Iter 97: f = 3063.129090, ||g|| = 2.117e+02, alpha = 1.000e+00, m = [19/19]
+Iter 98: f = 3059.302946, ||g|| = 1.493e+02, alpha = 1.000e+00, m = [19/19]
+Iter 99: f = 3056.366291, ||g|| = 1.286e+02, alpha = 1.000e+00, m = [19/19]
+Iter 100: f = 3053.347100, ||g|| = 1.532e+02, alpha = 1.000e+00, m = [19/19]
+Iter 101: f = 3050.129459, ||g|| = 2.215e+02, alpha = 1.000e+00, m = [19/19]
+Iter 102: f = 3046.663929, ||g|| = 1.593e+02, alpha = 1.000e+00, m = [19/19]
+Iter 103: f = 3043.994575, ||g|| = 1.207e+02, alpha = 1.000e+00, m = [19/19]
+Iter 104: f = 3043.225535, ||g|| = 5.245e+02, alpha = 5.000e-01, m = [19/19]
+Iter 105: f = 3041.627685, ||g|| = 1.880e+02, alpha = 1.000e+00, m = [19/19]
+Iter 106: f = 3040.204049, ||g|| = 1.580e+02, alpha = 1.000e+00, m = [19/19]
+Iter 107: f = 3038.661047, ||g|| = 2.477e+02, alpha = 1.000e+00, m = [19/19]
+Iter 108: f = 3036.856704, ||g|| = 1.965e+02, alpha = 1.000e+00, m = [19/19]
+Iter 109: f = 3036.528738, ||g|| = 4.318e+02, alpha = 1.000e+00, m = [19/19]
+Iter 110: f = 3033.403776, ||g|| = 2.716e+02, alpha = 1.000e+00, m = [19/19]
+Iter 111: f = 3032.031487, ||g|| = 1.757e+02, alpha = 1.000e+00, m = [19/19]
+Iter 112: f = 3030.030600, ||g|| = 9.500e+01, alpha = 1.000e+00, m = [19/19]
+Iter 113: f = 3027.360842, ||g|| = 1.222e+02, alpha = 1.000e+00, m = [19/19]
+Iter 114: f = 3024.900008, ||g|| = 1.353e+02, alpha = 1.000e+00, m = [19/19]
+Iter 115: f = 3021.189764, ||g|| = 2.372e+02, alpha = 1.000e+00, m = [19/19]
+Iter 116: f = 3017.778258, ||g|| = 1.451e+02, alpha = 1.000e+00, m = [19/19]
+Iter 117: f = 3016.055278, ||g|| = 8.866e+01, alpha = 1.000e+00, m = [19/19]
+Iter 118: f = 3014.072944, ||g|| = 1.104e+02, alpha = 1.000e+00, m = [19/19]
+Iter 119: f = 3012.233215, ||g|| = 1.316e+02, alpha = 1.000e+00, m = [19/19]
+Iter 120: f = 3009.829778, ||g|| = 3.372e+02, alpha = 1.000e+00, m = [19/19]
+Iter 121: f = 3006.607544, ||g|| = 1.336e+02, alpha = 1.000e+00, m = [19/19]
+Iter 122: f = 3005.180763, ||g|| = 9.234e+01, alpha = 1.000e+00, m = [19/19]
+Iter 123: f = 3003.584765, ||g|| = 1.076e+02, alpha = 1.000e+00, m = [19/19]
+Iter 124: f = 3002.414892, ||g|| = 3.656e+02, alpha = 1.000e+00, m = [19/19]
+Iter 125: f = 3002.192530, ||g|| = 5.454e+02, alpha = 1.000e+00, m = [19/19]
+Iter 126: f = 3000.818732, ||g|| = 1.767e+02, alpha = 1.000e+00, m = [19/19]
+Iter 127: f = 3000.041341, ||g|| = 1.030e+02, alpha = 1.000e+00, m = [19/19]
+Iter 128: f = 2999.453439, ||g|| = 1.020e+02, alpha = 1.000e+00, m = [19/19]
+Iter 129: f = 2997.957162, ||g|| = 1.183e+02, alpha = 1.000e+00, m = [19/19]
+Iter 130: f = 2996.978136, ||g|| = 2.508e+02, alpha = 5.000e-01, m = [19/19]
+Iter 131: f = 2994.842061, ||g|| = 1.478e+02, alpha = 1.000e+00, m = [19/19]
+Iter 132: f = 2993.959207, ||g|| = 9.270e+01, alpha = 1.000e+00, m = [19/19]
+Iter 133: f = 2992.764245, ||g|| = 8.042e+01, alpha = 1.000e+00, m = [19/19]
+Iter 134: f = 2991.167053, ||g|| = 1.053e+02, alpha = 1.000e+00, m = [19/19]
+Iter 135: f = 2989.286394, ||g|| = 1.457e+02, alpha = 1.000e+00, m = [19/19]
+Iter 136: f = 2987.738269, ||g|| = 1.501e+02, alpha = 1.000e+00, m = [19/19]
+Iter 137: f = 2986.467657, ||g|| = 1.019e+02, alpha = 1.000e+00, m = [19/19]
+Iter 138: f = 2984.754057, ||g|| = 1.065e+02, alpha = 1.000e+00, m = [19/19]
+Iter 139: f = 2983.634783, ||g|| = 1.070e+02, alpha = 1.000e+00, m = [19/19]
+Iter 140: f = 2981.641761, ||g|| = 2.026e+02, alpha = 1.000e+00, m = [19/19]
+Iter 141: f = 2979.715707, ||g|| = 9.927e+01, alpha = 1.000e+00, m = [19/19]
+Iter 142: f = 2978.621614, ||g|| = 8.782e+01, alpha = 1.000e+00, m = [19/19]
+Iter 143: f = 2977.549318, ||g|| = 1.138e+02, alpha = 1.000e+00, m = [19/19]
+Iter 144: f = 2976.855571, ||g|| = 2.136e+02, alpha = 1.000e+00, m = [19/19]
+Iter 145: f = 2975.966206, ||g|| = 3.172e+02, alpha = 1.000e+00, m = [19/19]
+Iter 146: f = 2975.156063, ||g|| = 1.402e+02, alpha = 1.000e+00, m = [19/19]
+Iter 147: f = 2974.360455, ||g|| = 1.072e+02, alpha = 1.000e+00, m = [19/19]
+Iter 148: f = 2973.869875, ||g|| = 1.356e+02, alpha = 1.000e+00, m = [19/19]
+Iter 149: f = 2972.751913, ||g|| = 1.377e+02, alpha = 1.000e+00, m = [19/19]
+Iter 150: f = 2971.724245, ||g|| = 1.890e+02, alpha = 1.000e+00, m = [19/19]
+Iter 151: f = 2970.814000, ||g|| = 1.032e+02, alpha = 1.000e+00, m = [19/19]
+Iter 152: f = 2970.083323, ||g|| = 9.310e+01, alpha = 1.000e+00, m = [19/19]
+Iter 153: f = 2968.877921, ||g|| = 1.053e+02, alpha = 1.000e+00, m = [19/19]
+Iter 154: f = 2967.252279, ||g|| = 1.692e+02, alpha = 1.000e+00, m = [19/19]
+Iter 155: f = 2965.829166, ||g|| = 9.300e+01, alpha = 1.000e+00, m = [19/19]
+Iter 156: f = 2965.102183, ||g|| = 7.154e+01, alpha = 1.000e+00, m = [19/19]
+Iter 157: f = 2964.113791, ||g|| = 7.881e+01, alpha = 1.000e+00, m = [19/19]
+Iter 158: f = 2962.973162, ||g|| = 1.140e+02, alpha = 1.000e+00, m = [19/19]
+Iter 159: f = 2961.919607, ||g|| = 8.387e+01, alpha = 1.000e+00, m = [19/19]
+Iter 160: f = 2961.060573, ||g|| = 6.872e+01, alpha = 1.000e+00, m = [19/19]
+Iter 161: f = 2959.828237, ||g|| = 9.422e+01, alpha = 1.000e+00, m = [19/19]
+Iter 162: f = 2958.814941, ||g|| = 1.112e+02, alpha = 1.000e+00, m = [19/19]
+Iter 163: f = 2957.801108, ||g|| = 7.744e+01, alpha = 1.000e+00, m = [19/19]
+Iter 164: f = 2956.725686, ||g|| = 9.959e+01, alpha = 1.000e+00, m = [19/19]
+Iter 165: f = 2956.643445, ||g|| = 1.868e+02, alpha = 1.250e-01, m = [19/19]
+Iter 166: f = 2956.386704, ||g|| = 9.778e+01, alpha = 1.000e+00, m = [19/19]
+Iter 167: f = 2956.019906, ||g|| = 9.359e+01, alpha = 1.000e+00, m = [19/19]
+Iter 168: f = 2955.694349, ||g|| = 1.343e+02, alpha = 1.000e+00, m = [19/19]
+Iter 169: f = 2955.209799, ||g|| = 1.119e+02, alpha = 1.000e+00, m = [19/19]
+Iter 170: f = 2954.949643, ||g|| = 2.208e+02, alpha = 5.000e-01, m = [19/19]
+Iter 171: f = 2954.324415, ||g|| = 8.408e+01, alpha = 1.000e+00, m = [19/19]
+Iter 172: f = 2954.021123, ||g|| = 8.973e+01, alpha = 1.000e+00, m = [19/19]
+Iter 173: f = 2953.371674, ||g|| = 1.011e+02, alpha = 1.000e+00, m = [19/19]
+Iter 174: f = 2952.564772, ||g|| = 1.008e+02, alpha = 1.000e+00, m = [19/19]
+Iter 175: f = 2951.310749, ||g|| = 1.683e+02, alpha = 1.000e+00, m = [19/19]
+Iter 176: f = 2950.701947, ||g|| = 1.111e+02, alpha = 5.000e-01, m = [19/19]
+Iter 177: f = 2950.246054, ||g|| = 7.669e+01, alpha = 1.000e+00, m = [19/19]
+Iter 178: f = 2949.662491, ||g|| = 5.847e+01, alpha = 1.000e+00, m = [19/19]
+Iter 179: f = 2949.075533, ||g|| = 6.268e+01, alpha = 1.000e+00, m = [19/19]
+Iter 180: f = 2948.328873, ||g|| = 1.202e+02, alpha = 1.000e+00, m = [19/19]
+Iter 181: f = 2947.542945, ||g|| = 9.201e+01, alpha = 1.000e+00, m = [19/19]
+Iter 182: f = 2946.948365, ||g|| = 6.607e+01, alpha = 1.000e+00, m = [19/19]
+Iter 183: f = 2946.064802, ||g|| = 6.415e+01, alpha = 1.000e+00, m = [19/19]
+Iter 184: f = 2945.453720, ||g|| = 9.568e+01, alpha = 1.000e+00, m = [19/19]
+Iter 185: f = 2945.107336, ||g|| = 2.753e+02, alpha = 1.000e+00, m = [19/19]
+Iter 186: f = 2944.522893, ||g|| = 6.475e+01, alpha = 1.000e+00, m = [19/19]
+Iter 187: f = 2944.310448, ||g|| = 7.876e+01, alpha = 1.000e+00, m = [19/19]
+Iter 188: f = 2944.043151, ||g|| = 8.624e+01, alpha = 1.000e+00, m = [19/19]
+Iter 189: f = 2943.516572, ||g|| = 2.043e+02, alpha = 1.000e+00, m = [19/19]
+Iter 190: f = 2943.137999, ||g|| = 1.164e+02, alpha = 1.000e+00, m = [19/19]
+Iter 191: f = 2942.744974, ||g|| = 6.962e+01, alpha = 1.000e+00, m = [19/19]
+Iter 192: f = 2942.526710, ||g|| = 6.370e+01, alpha = 1.000e+00, m = [19/19]
+Iter 193: f = 2942.170711, ||g|| = 1.292e+02, alpha = 1.000e+00, m = [19/19]
+Iter 194: f = 2941.677435, ||g|| = 7.287e+01, alpha = 1.000e+00, m = [19/19]
+Iter 195: f = 2941.209816, ||g|| = 8.090e+01, alpha = 1.000e+00, m = [19/19]
+Iter 196: f = 2940.816694, ||g|| = 6.736e+01, alpha = 1.000e+00, m = [19/19]
+Iter 197: f = 2940.483284, ||g|| = 1.611e+02, alpha = 1.000e+00, m = [19/19]
+Iter 198: f = 2939.900516, ||g|| = 6.403e+01, alpha = 1.000e+00, m = [19/19]
+Iter 199: f = 2939.555697, ||g|| = 6.787e+01, alpha = 1.000e+00, m = [19/19]
+Iter 200: f = 2939.157697, ||g|| = 7.216e+01, alpha = 1.000e+00, m = [19/19]
+Iter 201: f = 2938.481866, ||g|| = 7.053e+01, alpha = 1.000e+00, m = [19/19]
+Iter 202: f = 2938.322833, ||g|| = 2.205e+02, alpha = 1.000e+00, m = [19/19]
+Iter 203: f = 2937.032450, ||g|| = 6.320e+01, alpha = 1.000e+00, m = [19/19]
+Iter 204: f = 2936.718021, ||g|| = 5.357e+01, alpha = 1.000e+00, m = [19/19]
+Iter 205: f = 2936.185084, ||g|| = 8.250e+01, alpha = 1.000e+00, m = [19/19]
+Iter 206: f = 2936.059625, ||g|| = 1.324e+02, alpha = 2.500e-01, m = [19/19]
+Iter 207: f = 2935.687857, ||g|| = 7.883e+01, alpha = 1.000e+00, m = [19/19]
+Iter 208: f = 2935.301269, ||g|| = 6.145e+01, alpha = 1.000e+00, m = [19/19]
+Iter 209: f = 2934.845057, ||g|| = 6.745e+01, alpha = 1.000e+00, m = [19/19]
+Iter 210: f = 2934.342755, ||g|| = 8.076e+01, alpha = 1.000e+00, m = [19/19]
+Iter 211: f = 2934.112365, ||g|| = 1.601e+02, alpha = 1.000e+00, m = [19/19]
+Iter 212: f = 2933.652785, ||g|| = 5.839e+01, alpha = 1.000e+00, m = [19/19]
+Iter 213: f = 2933.437789, ||g|| = 7.460e+01, alpha = 1.000e+00, m = [19/19]
+Iter 214: f = 2933.159059, ||g|| = 7.978e+01, alpha = 1.000e+00, m = [19/19]
+Iter 215: f = 2932.520590, ||g|| = 1.869e+02, alpha = 1.000e+00, m = [19/19]
+Iter 216: f = 2931.963599, ||g|| = 7.186e+01, alpha = 1.000e+00, m = [19/19]
+Iter 217: f = 2931.675718, ||g|| = 5.064e+01, alpha = 1.000e+00, m = [19/19]
+Iter 218: f = 2931.244959, ||g|| = 4.941e+01, alpha = 1.000e+00, m = [19/19]
+Iter 219: f = 2931.030341, ||g|| = 1.443e+02, alpha = 1.000e+00, m = [19/19]
+Iter 220: f = 2930.577091, ||g|| = 5.352e+01, alpha = 1.000e+00, m = [19/19]
+Iter 221: f = 2930.344687, ||g|| = 5.059e+01, alpha = 1.000e+00, m = [19/19]
+Iter 222: f = 2929.994251, ||g|| = 5.808e+01, alpha = 1.000e+00, m = [19/19]
+Iter 223: f = 2929.255726, ||g|| = 6.706e+01, alpha = 1.000e+00, m = [19/19]
+Iter 224: f = 2928.919982, ||g|| = 1.386e+02, alpha = 5.000e-01, m = [19/19]
+Iter 225: f = 2928.227664, ||g|| = 5.602e+01, alpha = 1.000e+00, m = [19/19]
+Iter 226: f = 2927.958355, ||g|| = 1.249e+02, alpha = 1.000e+00, m = [19/19]
+Iter 227: f = 2927.849024, ||g|| = 2.033e+02, alpha = 1.000e+00, m = [19/19]
+Iter 228: f = 2927.611825, ||g|| = 6.405e+01, alpha = 1.000e+00, m = [19/19]
+Iter 229: f = 2927.461688, ||g|| = 6.250e+01, alpha = 1.000e+00, m = [19/19]
+Iter 230: f = 2927.198659, ||g|| = 1.068e+02, alpha = 1.000e+00, m = [19/19]
+Iter 231: f = 2926.921991, ||g|| = 9.763e+01, alpha = 1.000e+00, m = [19/19]
+Iter 232: f = 2926.267993, ||g|| = 1.253e+02, alpha = 1.000e+00, m = [19/19]
+Iter 233: f = 2925.999479, ||g|| = 1.201e+02, alpha = 5.000e-01, m = [19/19]
+Iter 234: f = 2925.651526, ||g|| = 5.256e+01, alpha = 1.000e+00, m = [19/19]
+Iter 235: f = 2925.473566, ||g|| = 4.647e+01, alpha = 1.000e+00, m = [19/19]
+Iter 236: f = 2925.083572, ||g|| = 6.652e+01, alpha = 1.000e+00, m = [19/19]
+Iter 237: f = 2924.863404, ||g|| = 1.722e+02, alpha = 5.000e-01, m = [19/19]
+Iter 238: f = 2924.482932, ||g|| = 7.764e+01, alpha = 1.000e+00, m = [19/19]
+Iter 239: f = 2924.293053, ||g|| = 5.199e+01, alpha = 1.000e+00, m = [19/19]
+Iter 240: f = 2924.093871, ||g|| = 5.756e+01, alpha = 1.000e+00, m = [19/19]
+Iter 241: f = 2923.745288, ||g|| = 6.903e+01, alpha = 1.000e+00, m = [19/19]
+Iter 242: f = 2923.548693, ||g|| = 1.621e+02, alpha = 1.000e+00, m = [19/19]
+Iter 243: f = 2923.017649, ||g|| = 6.895e+01, alpha = 1.000e+00, m = [19/19]
+Iter 244: f = 2922.749739, ||g|| = 4.921e+01, alpha = 1.000e+00, m = [19/19]
+Iter 245: f = 2922.351162, ||g|| = 8.624e+01, alpha = 1.000e+00, m = [19/19]
+Iter 246: f = 2922.001950, ||g|| = 9.974e+01, alpha = 1.000e+00, m = [19/19]
+Iter 247: f = 2921.407075, ||g|| = 9.873e+01, alpha = 1.000e+00, m = [19/19]
+Iter 248: f = 2921.148081, ||g|| = 1.383e+02, alpha = 5.000e-01, m = [19/19]
+Iter 249: f = 2920.953982, ||g|| = 5.319e+01, alpha = 1.000e+00, m = [19/19]
+Iter 250: f = 2920.837698, ||g|| = 5.999e+01, alpha = 1.000e+00, m = [19/19]
+Iter 251: f = 2920.741671, ||g|| = 7.438e+01, alpha = 1.000e+00, m = [19/19]
+Iter 252: f = 2920.427365, ||g|| = 8.449e+01, alpha = 1.000e+00, m = [19/19]
+Iter 253: f = 2919.913717, ||g|| = 9.710e+01, alpha = 1.000e+00, m = [19/19]
+Iter 254: f = 2919.562259, ||g|| = 9.968e+01, alpha = 5.000e-01, m = [19/19]
+Iter 255: f = 2919.228989, ||g|| = 1.185e+02, alpha = 1.000e+00, m = [19/19]
+Iter 256: f = 2918.957997, ||g|| = 4.956e+01, alpha = 1.000e+00, m = [19/19]
+Iter 257: f = 2918.809406, ||g|| = 5.722e+01, alpha = 1.000e+00, m = [19/19]
+Iter 258: f = 2918.714730, ||g|| = 1.751e+02, alpha = 1.000e+00, m = [19/19]
+Iter 259: f = 2918.398808, ||g|| = 5.405e+01, alpha = 1.000e+00, m = [19/19]
+Iter 260: f = 2918.263970, ||g|| = 4.713e+01, alpha = 1.000e+00, m = [19/19]
+Iter 261: f = 2918.062290, ||g|| = 5.343e+01, alpha = 1.000e+00, m = [19/19]
+Iter 262: f = 2917.686006, ||g|| = 5.679e+01, alpha = 1.000e+00, m = [19/19]
+Iter 263: f = 2917.257630, ||g|| = 7.290e+01, alpha = 1.000e+00, m = [19/19]
+Iter 264: f = 2916.987890, ||g|| = 7.508e+01, alpha = 5.000e-01, m = [19/19]
+Iter 265: f = 2916.750953, ||g|| = 4.715e+01, alpha = 1.000e+00, m = [19/19]
+Iter 266: f = 2916.434022, ||g|| = 4.706e+01, alpha = 1.000e+00, m = [19/19]
+Iter 267: f = 2916.161873, ||g|| = 5.099e+01, alpha = 1.000e+00, m = [19/19]
+Iter 268: f = 2916.041581, ||g|| = 1.524e+02, alpha = 2.500e-01, m = [19/19]
+Iter 269: f = 2915.671615, ||g|| = 5.733e+01, alpha = 1.000e+00, m = [19/19]
+Iter 270: f = 2915.532098, ||g|| = 4.156e+01, alpha = 1.000e+00, m = [19/19]
+Iter 271: f = 2915.347530, ||g|| = 4.790e+01, alpha = 1.000e+00, m = [19/19]
+Iter 272: f = 2915.086696, ||g|| = 5.513e+01, alpha = 1.000e+00, m = [19/19]
+Iter 273: f = 2914.676773, ||g|| = 6.613e+01, alpha = 1.000e+00, m = [19/19]
+Iter 274: f = 2914.387493, ||g|| = 8.469e+01, alpha = 1.000e+00, m = [19/19]
+Iter 275: f = 2914.207795, ||g|| = 6.386e+01, alpha = 1.000e+00, m = [19/19]
+Iter 276: f = 2914.091602, ||g|| = 8.130e+01, alpha = 1.000e+00, m = [19/19]
+Iter 277: f = 2913.887417, ||g|| = 5.660e+01, alpha = 1.000e+00, m = [19/19]
+Iter 278: f = 2913.657139, ||g|| = 6.775e+01, alpha = 1.000e+00, m = [19/19]
+Iter 279: f = 2913.517421, ||g|| = 8.062e+01, alpha = 5.000e-01, m = [19/19]
+Iter 280: f = 2913.364974, ||g|| = 5.546e+01, alpha = 1.000e+00, m = [19/19]
+Iter 281: f = 2913.155053, ||g|| = 4.033e+01, alpha = 1.000e+00, m = [19/19]
+Iter 282: f = 2912.905678, ||g|| = 4.073e+01, alpha = 1.000e+00, m = [19/19]
+Iter 283: f = 2912.541046, ||g|| = 6.203e+01, alpha = 1.000e+00, m = [19/19]
+Iter 284: f = 2912.418617, ||g|| = 9.030e+01, alpha = 1.000e+00, m = [19/19]
+Iter 285: f = 2912.151010, ||g|| = 4.299e+01, alpha = 1.000e+00, m = [19/19]
+Iter 286: f = 2912.042197, ||g|| = 3.643e+01, alpha = 1.000e+00, m = [19/19]
+Iter 287: f = 2911.832762, ||g|| = 4.651e+01, alpha = 1.000e+00, m = [19/19]
+Iter 288: f = 2911.709813, ||g|| = 1.815e+02, alpha = 1.000e+00, m = [19/19]
+Iter 289: f = 2911.444171, ||g|| = 4.676e+01, alpha = 1.000e+00, m = [19/19]
+Iter 290: f = 2911.335928, ||g|| = 3.927e+01, alpha = 1.000e+00, m = [19/19]
+Iter 291: f = 2911.144095, ||g|| = 5.113e+01, alpha = 1.000e+00, m = [19/19]
+Iter 292: f = 2910.977946, ||g|| = 8.605e+01, alpha = 1.000e+00, m = [19/19]
+Iter 293: f = 2910.661200, ||g|| = 4.722e+01, alpha = 1.000e+00, m = [19/19]
+Iter 294: f = 2910.513247, ||g|| = 2.999e+01, alpha = 1.000e+00, m = [19/19]
+Iter 295: f = 2910.460872, ||g|| = 1.275e+02, alpha = 1.000e+00, m = [19/19]
+Iter 296: f = 2910.329316, ||g|| = 4.157e+01, alpha = 1.000e+00, m = [19/19]
+Iter 297: f = 2910.242437, ||g|| = 4.326e+01, alpha = 1.000e+00, m = [19/19]
+Iter 298: f = 2910.126043, ||g|| = 6.036e+01, alpha = 1.000e+00, m = [19/19]
+Iter 299: f = 2909.986294, ||g|| = 5.606e+01, alpha = 1.000e+00, m = [19/19]
+Iter 300: f = 2909.923857, ||g|| = 1.438e+02, alpha = 1.000e+00, m = [19/19]
+Iter 301: f = 2909.701493, ||g|| = 1.064e+02, alpha = 1.000e+00, m = [19/19]
+Iter 302: f = 2909.541895, ||g|| = 4.586e+01, alpha = 1.000e+00, m = [19/19]
+Iter 303: f = 2909.453110, ||g|| = 2.944e+01, alpha = 1.000e+00, m = [19/19]
+Iter 304: f = 2909.291541, ||g|| = 3.788e+01, alpha = 1.000e+00, m = [19/19]
+Iter 305: f = 2909.100766, ||g|| = 4.569e+01, alpha = 1.000e+00, m = [19/19]
+Iter 306: f = 2909.014701, ||g|| = 1.276e+02, alpha = 1.000e+00, m = [19/19]
+Iter 307: f = 2908.668853, ||g|| = 4.786e+01, alpha = 1.000e+00, m = [19/19]
+Iter 308: f = 2908.509291, ||g|| = 3.109e+01, alpha = 1.000e+00, m = [19/19]
+Iter 309: f = 2908.344435, ||g|| = 4.884e+01, alpha = 1.000e+00, m = [19/19]
+Iter 310: f = 2908.296662, ||g|| = 8.578e+01, alpha = 2.500e-01, m = [19/19]
+Iter 311: f = 2908.202227, ||g|| = 4.515e+01, alpha = 1.000e+00, m = [19/19]
+Iter 312: f = 2908.095527, ||g|| = 4.180e+01, alpha = 1.000e+00, m = [19/19]
+Iter 313: f = 2907.995897, ||g|| = 4.920e+01, alpha = 1.000e+00, m = [19/19]
+Iter 314: f = 2907.780588, ||g|| = 4.778e+01, alpha = 1.000e+00, m = [19/19]
+Iter 315: f = 2907.525818, ||g|| = 8.601e+01, alpha = 1.000e+00, m = [19/19]
+Iter 316: f = 2907.393748, ||g|| = 1.045e+02, alpha = 1.000e+00, m = [19/19]
+Iter 317: f = 2907.253628, ||g|| = 3.363e+01, alpha = 1.000e+00, m = [19/19]
+Iter 318: f = 2907.197070, ||g|| = 3.436e+01, alpha = 1.000e+00, m = [19/19]
+Iter 319: f = 2907.008327, ||g|| = 4.727e+01, alpha = 1.000e+00, m = [19/19]
+Iter 320: f = 2906.900099, ||g|| = 1.021e+02, alpha = 1.000e+00, m = [19/19]
+Iter 321: f = 2906.655079, ||g|| = 7.196e+01, alpha = 1.000e+00, m = [19/19]
+Iter 322: f = 2906.542558, ||g|| = 2.840e+01, alpha = 1.000e+00, m = [19/19]
+Iter 323: f = 2906.468569, ||g|| = 2.900e+01, alpha = 1.000e+00, m = [19/19]
+Iter 324: f = 2906.331868, ||g|| = 4.112e+01, alpha = 1.000e+00, m = [19/19]
+Iter 325: f = 2906.121958, ||g|| = 3.793e+01, alpha = 1.000e+00, m = [19/19]
+Iter 326: f = 2905.993480, ||g|| = 8.375e+01, alpha = 5.000e-01, m = [19/19]
+Iter 327: f = 2905.831873, ||g|| = 3.894e+01, alpha = 1.000e+00, m = [19/19]
+Iter 328: f = 2905.719418, ||g|| = 3.078e+01, alpha = 1.000e+00, m = [19/19]
+Iter 329: f = 2905.622810, ||g|| = 4.003e+01, alpha = 1.000e+00, m = [19/19]
+Iter 330: f = 2905.473439, ||g|| = 8.886e+01, alpha = 1.000e+00, m = [19/19]
+Iter 331: f = 2905.382855, ||g|| = 8.902e+01, alpha = 1.000e+00, m = [19/19]
+Iter 332: f = 2905.283119, ||g|| = 2.878e+01, alpha = 1.000e+00, m = [19/19]
+Iter 333: f = 2905.239784, ||g|| = 2.823e+01, alpha = 1.000e+00, m = [19/19]
+Iter 334: f = 2905.156772, ||g|| = 2.950e+01, alpha = 1.000e+00, m = [19/19]
+Iter 335: f = 2904.948151, ||g|| = 6.449e+01, alpha = 1.000e+00, m = [19/19]
+Iter 336: f = 2904.896377, ||g|| = 1.070e+02, alpha = 1.000e+00, m = [19/19]
+Iter 337: f = 2904.720717, ||g|| = 4.696e+01, alpha = 1.000e+00, m = [19/19]
+Iter 338: f = 2904.658999, ||g|| = 3.810e+01, alpha = 1.000e+00, m = [19/19]
+Iter 339: f = 2904.530081, ||g|| = 3.844e+01, alpha = 1.000e+00, m = [19/19]
+Iter 340: f = 2904.464518, ||g|| = 1.048e+02, alpha = 1.000e+00, m = [19/19]
+Iter 341: f = 2904.245455, ||g|| = 4.506e+01, alpha = 1.000e+00, m = [19/19]
+Iter 342: f = 2904.139593, ||g|| = 3.084e+01, alpha = 1.000e+00, m = [19/19]
+Iter 343: f = 2903.957151, ||g|| = 6.611e+01, alpha = 1.000e+00, m = [19/19]
+Iter 344: f = 2903.796270, ||g|| = 3.783e+01, alpha = 1.000e+00, m = [19/19]
+Iter 345: f = 2903.666825, ||g|| = 3.357e+01, alpha = 1.000e+00, m = [19/19]
+Iter 346: f = 2903.488322, ||g|| = 3.307e+01, alpha = 1.000e+00, m = [19/19]
+Iter 347: f = 2903.284206, ||g|| = 6.881e+01, alpha = 1.000e+00, m = [19/19]
+Iter 348: f = 2903.202542, ||g|| = 1.154e+02, alpha = 1.000e+00, m = [19/19]
+Iter 349: f = 2903.035353, ||g|| = 3.376e+01, alpha = 1.000e+00, m = [19/19]
+Iter 350: f = 2902.975682, ||g|| = 2.823e+01, alpha = 1.000e+00, m = [19/19]
+Iter 351: f = 2902.927272, ||g|| = 3.132e+01, alpha = 1.000e+00, m = [19/19]
+Iter 352: f = 2902.848341, ||g|| = 1.027e+02, alpha = 1.000e+00, m = [19/19]
+Iter 353: f = 2902.709014, ||g|| = 3.268e+01, alpha = 1.000e+00, m = [19/19]
+Iter 354: f = 2902.644681, ||g|| = 2.758e+01, alpha = 1.000e+00, m = [19/19]
+Iter 355: f = 2902.499047, ||g|| = 2.645e+01, alpha = 1.000e+00, m = [19/19]
+Iter 356: f = 2902.375439, ||g|| = 5.738e+01, alpha = 1.000e+00, m = [19/19]
+Iter 357: f = 2902.323390, ||g|| = 5.763e+01, alpha = 5.000e-01, m = [19/19]
+Iter 358: f = 2902.268478, ||g|| = 4.123e+01, alpha = 1.000e+00, m = [19/19]
+Iter 359: f = 2902.162019, ||g|| = 2.861e+01, alpha = 1.000e+00, m = [19/19]
+Iter 360: f = 2902.046360, ||g|| = 3.220e+01, alpha = 1.000e+00, m = [19/19]
+Iter 361: f = 2901.877566, ||g|| = 3.726e+01, alpha = 1.000e+00, m = [19/19]
+Iter 362: f = 2901.825611, ||g|| = 7.461e+01, alpha = 2.500e-01, m = [19/19]
+Iter 363: f = 2901.700326, ||g|| = 3.691e+01, alpha = 1.000e+00, m = [19/19]
+Iter 364: f = 2901.609308, ||g|| = 2.450e+01, alpha = 1.000e+00, m = [19/19]
+Iter 365: f = 2901.522432, ||g|| = 3.623e+01, alpha = 1.000e+00, m = [19/19]
+Iter 366: f = 2901.400273, ||g|| = 3.940e+01, alpha = 1.000e+00, m = [19/19]
+Iter 367: f = 2901.361687, ||g|| = 1.219e+02, alpha = 1.000e+00, m = [19/19]
+Iter 368: f = 2901.174316, ||g|| = 3.278e+01, alpha = 1.000e+00, m = [19/19]
+Iter 369: f = 2901.105259, ||g|| = 3.730e+01, alpha = 1.000e+00, m = [19/19]
+Iter 370: f = 2901.023134, ||g|| = 4.400e+01, alpha = 1.000e+00, m = [19/19]
+Iter 371: f = 2900.920486, ||g|| = 6.938e+01, alpha = 1.000e+00, m = [19/19]
+Iter 372: f = 2900.899324, ||g|| = 1.038e+02, alpha = 5.000e-01, m = [19/19]
+Iter 373: f = 2900.803714, ||g|| = 2.769e+01, alpha = 1.000e+00, m = [19/19]
+Iter 374: f = 2900.773705, ||g|| = 3.081e+01, alpha = 1.000e+00, m = [19/19]
+Iter 375: f = 2900.705499, ||g|| = 3.458e+01, alpha = 1.000e+00, m = [19/19]
+Iter 376: f = 2900.594711, ||g|| = 6.997e+01, alpha = 1.000e+00, m = [19/19]
+Iter 377: f = 2900.548676, ||g|| = 6.282e+01, alpha = 5.000e-01, m = [19/19]
+Iter 378: f = 2900.489257, ||g|| = 4.435e+01, alpha = 1.000e+00, m = [19/19]
+Iter 379: f = 2900.399072, ||g|| = 2.996e+01, alpha = 1.000e+00, m = [19/19]
+Iter 380: f = 2900.325082, ||g|| = 2.955e+01, alpha = 1.000e+00, m = [19/19]
+Iter 381: f = 2900.178783, ||g|| = 3.771e+01, alpha = 1.000e+00, m = [19/19]
+Iter 382: f = 2900.066427, ||g|| = 3.981e+01, alpha = 1.000e+00, m = [19/19]
+Iter 383: f = 2899.969808, ||g|| = 5.793e+01, alpha = 5.000e-01, m = [19/19]
+Iter 384: f = 2899.872549, ||g|| = 3.159e+01, alpha = 1.000e+00, m = [19/19]
+Iter 385: f = 2899.802687, ||g|| = 2.768e+01, alpha = 1.000e+00, m = [19/19]
+Iter 386: f = 2899.732082, ||g|| = 3.450e+01, alpha = 1.000e+00, m = [19/19]
+Iter 387: f = 2899.594624, ||g|| = 3.988e+01, alpha = 1.000e+00, m = [19/19]
+Iter 388: f = 2899.401789, ||g|| = 3.502e+01, alpha = 1.000e+00, m = [19/19]
+Iter 389: f = 2899.389721, ||g|| = 1.209e+02, alpha = 2.500e-01, m = [19/19]
+Iter 390: f = 2899.207953, ||g|| = 3.099e+01, alpha = 1.000e+00, m = [19/19]
+Iter 391: f = 2899.158385, ||g|| = 2.359e+01, alpha = 1.000e+00, m = [19/19]
+Iter 392: f = 2899.108069, ||g|| = 4.325e+01, alpha = 1.000e+00, m = [19/19]
+Iter 393: f = 2899.071845, ||g|| = 5.051e+01, alpha = 1.000e+00, m = [19/19]
+Iter 394: f = 2899.012501, ||g|| = 3.281e+01, alpha = 1.000e+00, m = [19/19]
+Iter 395: f = 2898.965165, ||g|| = 3.419e+01, alpha = 1.000e+00, m = [19/19]
+Iter 396: f = 2898.845262, ||g|| = 3.445e+01, alpha = 1.000e+00, m = [19/19]
+Iter 397: f = 2898.677022, ||g|| = 4.337e+01, alpha = 1.000e+00, m = [19/19]
+Iter 398: f = 2898.613246, ||g|| = 7.140e+01, alpha = 5.000e-01, m = [19/19]
+Iter 399: f = 2898.527236, ||g|| = 2.900e+01, alpha = 1.000e+00, m = [19/19]
+Iter 400: f = 2898.476045, ||g|| = 2.318e+01, alpha = 1.000e+00, m = [19/19]
+Iter 401: f = 2898.401821, ||g|| = 2.571e+01, alpha = 1.000e+00, m = [19/19]
+Iter 402: f = 2898.247339, ||g|| = 2.756e+01, alpha = 1.000e+00, m = [19/19]
+Iter 403: f = 2898.199456, ||g|| = 5.843e+01, alpha = 5.000e-01, m = [19/19]
+Iter 404: f = 2898.106023, ||g|| = 2.331e+01, alpha = 1.000e+00, m = [19/19]
+Iter 405: f = 2898.058298, ||g|| = 2.149e+01, alpha = 1.000e+00, m = [19/19]
+Iter 406: f = 2897.999820, ||g|| = 2.662e+01, alpha = 1.000e+00, m = [19/19]
+Iter 407: f = 2897.897644, ||g|| = 2.751e+01, alpha = 1.000e+00, m = [19/19]
+Iter 408: f = 2897.846980, ||g|| = 6.412e+01, alpha = 1.000e+00, m = [19/19]
+Iter 409: f = 2897.724976, ||g|| = 2.203e+01, alpha = 1.000e+00, m = [19/19]
+Iter 410: f = 2897.667010, ||g|| = 2.328e+01, alpha = 1.000e+00, m = [19/19]
+Iter 411: f = 2897.611647, ||g|| = 5.378e+01, alpha = 1.000e+00, m = [19/19]
+Iter 412: f = 2897.555774, ||g|| = 2.796e+01, alpha = 1.000e+00, m = [19/19]
+Iter 413: f = 2897.516207, ||g|| = 3.372e+01, alpha = 1.000e+00, m = [19/19]
+Iter 414: f = 2897.478663, ||g|| = 3.017e+01, alpha = 1.000e+00, m = [19/19]
+Iter 415: f = 2897.461131, ||g|| = 2.468e+01, alpha = 1.000e+00, m = [19/19]
+Iter 416: f = 2897.397992, ||g|| = 2.281e+01, alpha = 1.000e+00, m = [19/19]
+Iter 417: f = 2897.317908, ||g|| = 2.622e+01, alpha = 1.000e+00, m = [19/19]
+Iter 418: f = 2897.205472, ||g|| = 2.840e+01, alpha = 1.000e+00, m = [19/19]
+Iter 419: f = 2897.178905, ||g|| = 9.412e+01, alpha = 5.000e-01, m = [19/19]
+Iter 420: f = 2897.104850, ||g|| = 2.529e+01, alpha = 1.000e+00, m = [19/19]
+Iter 421: f = 2897.073547, ||g|| = 2.195e+01, alpha = 1.000e+00, m = [19/19]
+Iter 422: f = 2897.041730, ||g|| = 2.945e+01, alpha = 1.000e+00, m = [19/19]
+Iter 423: f = 2896.968750, ||g|| = 3.217e+01, alpha = 1.000e+00, m = [19/19]
+Iter 424: f = 2896.814768, ||g|| = 4.559e+01, alpha = 1.000e+00, m = [19/19]
+Iter 425: f = 2896.738021, ||g|| = 3.568e+01, alpha = 5.000e-01, m = [19/19]
+Iter 426: f = 2896.644152, ||g|| = 2.501e+01, alpha = 1.000e+00, m = [19/19]
+Iter 427: f = 2896.574561, ||g|| = 2.468e+01, alpha = 1.000e+00, m = [19/19]
+Iter 428: f = 2896.507619, ||g|| = 2.566e+01, alpha = 1.000e+00, m = [19/19]
+Iter 429: f = 2896.383188, ||g|| = 3.501e+01, alpha = 1.000e+00, m = [19/19]
+Iter 430: f = 2896.285296, ||g|| = 3.346e+01, alpha = 1.000e+00, m = [19/19]
+Iter 431: f = 2896.205069, ||g|| = 2.089e+01, alpha = 1.000e+00, m = [19/19]
+Iter 432: f = 2896.087241, ||g|| = 2.149e+01, alpha = 1.000e+00, m = [19/19]
+Iter 433: f = 2896.054695, ||g|| = 1.159e+02, alpha = 1.000e+00, m = [19/19]
+Iter 434: f = 2895.989833, ||g|| = 2.980e+01, alpha = 1.000e+00, m = [19/19]
+Iter 435: f = 2895.965987, ||g|| = 3.059e+01, alpha = 1.000e+00, m = [19/19]
+Iter 436: f = 2895.923480, ||g|| = 2.876e+01, alpha = 1.000e+00, m = [19/19]
+Iter 437: f = 2895.863931, ||g|| = 2.752e+01, alpha = 1.000e+00, m = [19/19]
+Iter 438: f = 2895.833048, ||g|| = 5.154e+01, alpha = 5.000e-01, m = [19/19]
+Iter 439: f = 2895.745471, ||g|| = 2.300e+01, alpha = 1.000e+00, m = [19/19]
+Iter 440: f = 2895.690499, ||g|| = 2.339e+01, alpha = 1.000e+00, m = [19/19]
+Iter 441: f = 2895.660362, ||g|| = 5.810e+01, alpha = 5.000e-01, m = [19/19]
+Iter 442: f = 2895.605944, ||g|| = 3.255e+01, alpha = 1.000e+00, m = [19/19]
+Iter 443: f = 2895.556117, ||g|| = 2.624e+01, alpha = 1.000e+00, m = [19/19]
+Iter 444: f = 2895.491270, ||g|| = 2.972e+01, alpha = 1.000e+00, m = [19/19]
+Iter 445: f = 2895.414420, ||g|| = 2.937e+01, alpha = 1.000e+00, m = [19/19]
+Iter 446: f = 2895.310744, ||g|| = 4.665e+01, alpha = 1.000e+00, m = [19/19]
+Iter 447: f = 2895.263799, ||g|| = 4.588e+01, alpha = 1.000e+00, m = [19/19]
+Iter 448: f = 2895.180550, ||g|| = 1.819e+01, alpha = 1.000e+00, m = [19/19]
+Iter 449: f = 2895.139322, ||g|| = 1.650e+01, alpha = 1.000e+00, m = [19/19]
+Iter 450: f = 2895.064850, ||g|| = 2.280e+01, alpha = 1.000e+00, m = [19/19]
+Iter 451: f = 2895.033039, ||g|| = 5.953e+01, alpha = 1.000e+00, m = [19/19]
+Iter 452: f = 2894.935489, ||g|| = 2.084e+01, alpha = 1.000e+00, m = [19/19]
+Iter 453: f = 2894.886726, ||g|| = 1.987e+01, alpha = 1.000e+00, m = [19/19]
+Iter 454: f = 2894.840496, ||g|| = 4.424e+01, alpha = 1.000e+00, m = [19/19]
+Iter 455: f = 2894.827344, ||g|| = 1.012e+02, alpha = 1.000e+00, m = [19/19]
+Iter 456: f = 2894.771505, ||g|| = 2.425e+01, alpha = 1.000e+00, m = [19/19]
+Iter 457: f = 2894.746263, ||g|| = 2.468e+01, alpha = 1.000e+00, m = [19/19]
+Iter 458: f = 2894.723314, ||g|| = 3.095e+01, alpha = 1.000e+00, m = [19/19]
+Iter 459: f = 2894.676383, ||g|| = 3.114e+01, alpha = 1.000e+00, m = [19/19]
+Iter 460: f = 2894.585029, ||g|| = 3.378e+01, alpha = 1.000e+00, m = [19/19]
+Iter 461: f = 2894.521299, ||g|| = 2.499e+01, alpha = 1.000e+00, m = [19/19]
+Iter 462: f = 2894.479567, ||g|| = 2.397e+01, alpha = 1.000e+00, m = [19/19]
+Iter 463: f = 2894.436253, ||g|| = 6.943e+01, alpha = 5.000e-01, m = [19/19]
+Iter 464: f = 2894.393593, ||g|| = 2.434e+01, alpha = 1.000e+00, m = [19/19]
+Iter 465: f = 2894.367987, ||g|| = 2.593e+01, alpha = 1.000e+00, m = [19/19]
+Iter 466: f = 2894.340131, ||g|| = 3.351e+01, alpha = 1.000e+00, m = [19/19]
+Iter 467: f = 2894.283279, ||g|| = 3.324e+01, alpha = 1.000e+00, m = [19/19]
+Iter 468: f = 2894.186894, ||g|| = 3.829e+01, alpha = 1.000e+00, m = [19/19]
+Iter 469: f = 2894.129316, ||g|| = 3.641e+01, alpha = 1.000e+00, m = [19/19]
+Iter 470: f = 2894.077204, ||g|| = 1.726e+01, alpha = 1.000e+00, m = [19/19]
+Iter 471: f = 2894.036270, ||g|| = 1.915e+01, alpha = 1.000e+00, m = [19/19]
+Iter 472: f = 2893.988545, ||g|| = 2.448e+01, alpha = 1.000e+00, m = [19/19]
+Iter 473: f = 2893.946408, ||g|| = 4.411e+01, alpha = 1.000e+00, m = [19/19]
+Iter 474: f = 2893.891532, ||g|| = 3.780e+01, alpha = 1.000e+00, m = [19/19]
+Iter 475: f = 2893.854195, ||g|| = 1.808e+01, alpha = 1.000e+00, m = [19/19]
+Iter 476: f = 2893.817192, ||g|| = 3.462e+01, alpha = 1.000e+00, m = [19/19]
+Iter 477: f = 2893.811653, ||g|| = 7.338e+01, alpha = 1.000e+00, m = [19/19]
+Iter 478: f = 2893.781547, ||g|| = 2.772e+01, alpha = 1.000e+00, m = [19/19]
+Iter 479: f = 2893.761391, ||g|| = 1.795e+01, alpha = 1.000e+00, m = [19/19]
+Iter 480: f = 2893.736625, ||g|| = 2.369e+01, alpha = 1.000e+00, m = [19/19]
+Iter 481: f = 2893.695577, ||g|| = 2.206e+01, alpha = 1.000e+00, m = [19/19]
+Iter 482: f = 2893.636976, ||g|| = 2.711e+01, alpha = 1.000e+00, m = [19/19]
+Iter 483: f = 2893.588516, ||g|| = 3.329e+01, alpha = 1.000e+00, m = [19/19]
+Iter 484: f = 2893.562192, ||g|| = 5.287e+01, alpha = 1.000e+00, m = [19/19]
+Iter 485: f = 2893.531847, ||g|| = 2.092e+01, alpha = 1.000e+00, m = [19/19]
+Iter 486: f = 2893.510825, ||g|| = 1.986e+01, alpha = 1.000e+00, m = [19/19]
+Iter 487: f = 2893.485030, ||g|| = 2.382e+01, alpha = 1.000e+00, m = [19/19]
+Iter 488: f = 2893.428835, ||g|| = 2.771e+01, alpha = 1.000e+00, m = [19/19]
+Iter 489: f = 2893.358934, ||g|| = 2.423e+01, alpha = 1.000e+00, m = [19/19]
+Iter 490: f = 2893.317461, ||g|| = 2.854e+01, alpha = 1.000e+00, m = [19/19]
+Iter 491: f = 2893.270362, ||g|| = 1.555e+01, alpha = 1.000e+00, m = [19/19]
+Iter 492: f = 2893.232099, ||g|| = 1.634e+01, alpha = 1.000e+00, m = [19/19]
+Iter 493: f = 2893.177539, ||g|| = 2.047e+01, alpha = 1.000e+00, m = [19/19]
+Iter 494: f = 2893.154918, ||g|| = 5.775e+01, alpha = 1.000e+00, m = [19/19]
+Iter 495: f = 2893.082209, ||g|| = 2.573e+01, alpha = 1.000e+00, m = [19/19]
+Iter 496: f = 2893.047656, ||g|| = 1.620e+01, alpha = 1.000e+00, m = [19/19]
+Iter 497: f = 2893.018851, ||g|| = 4.615e+01, alpha = 1.000e+00, m = [19/19]
+Iter 498: f = 2892.992376, ||g|| = 2.597e+01, alpha = 1.000e+00, m = [19/19]
+Iter 499: f = 2892.967071, ||g|| = 1.859e+01, alpha = 1.000e+00, m = [19/19]
+Iter 500: f = 2892.945168, ||g|| = 2.090e+01, alpha = 1.000e+00, m = [19/19]
+         247364 function calls in 1023.758 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    2.944    2.944 1023.758 1023.758 /home/rcrr/base/prj/reversi/c/py/reversi/opt_lbfgs.py:114(lbfgs)
+     1625   18.626    0.011  988.408    0.608 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:1733(fg)
+      500    0.008    0.000  685.942    1.372 /home/rcrr/base/prj/reversi/c/py/reversi/opt_lbfgs.py:39(strong_wolfe_line_search)
+     1124    2.475    0.002  685.933    0.610 /home/rcrr/base/prj/reversi/c/py/reversi/opt_lbfgs.py:54(phi)
+     3250    0.015    0.000  370.550    0.114 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_base.py:728(__matmul__)
+     3250    0.019    0.000  370.467    0.114 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_base.py:597(_matmul_dispatch)
+     3250    0.060    0.000  370.444    0.114 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_compressed.py:518(_matmul_vector)
+     3250  348.964    0.107  348.964    0.107 {built-in method builtins.sum}
+     1625  180.041    0.111  219.778    0.135 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_data.py:49(__neg__)
+     1625  202.571    0.125  202.571    0.125 {built-in method scipy.sparse._sparsetools.csc_matvec}
+     1625  166.508    0.102  166.508    0.102 {built-in method scipy.sparse._sparsetools.csr_matvec}
+       36    0.001    0.000   75.760    2.104 /home/rcrr/base/prj/reversi/c/py/reversi/opt_lbfgs.py:82(zoom)
+     1625    0.037    0.000   39.733    0.024 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_compressed.py:1341(_with_data)
+     3751   39.461    0.011   39.461    0.011 {method 'copy' of 'numpy.ndarray' objects}
+     1625   30.490    0.019   30.490    0.019 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:2219(rglm_sigmoid)
+      500   26.892    0.054   26.915    0.054 /home/rcrr/base/prj/reversi/c/py/reversi/opt_lbfgs.py:3(two_loop_recursion)
+     1000    0.013    0.000    2.833    0.003 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/linalg/_linalg.py:2575(norm)
+     1000    2.817    0.003    2.817    0.003 {method 'dot' of 'numpy.ndarray' objects}
+     3750    1.267    0.000    1.267    0.000 {built-in method numpy.zeros}
+     1625    0.031    0.000    0.251    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_compressed.py:29(__init__)
+      500    0.170    0.000    0.170    0.000 {built-in method builtins.print}
+     1625    0.021    0.000    0.104    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_base.py:1369(_get_index_dtype)
+     1625    0.053    0.000    0.078    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_sputils.py:264(get_index_dtype)
+     3250    0.015    0.000    0.069    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_sputils.py:345(isscalarlike)
+     3250    0.020    0.000    0.050    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/numeric.py:1927(isscalar)
+     1625    0.016    0.000    0.045    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_compressed.py:165(check_format)
+    17875    0.028    0.000    0.042    0.000 {built-in method builtins.isinstance}
+     1625    0.012    0.000    0.024    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_compressed.py:1284(prune)
+     1625    0.013    0.000    0.022    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_sputils.py:429(check_shape)
+     3250    0.018    0.000    0.018    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/getlimits.py:697(__init__)
+     1625    0.004    0.000    0.017    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_data.py:21(__init__)
+     1625    0.016    0.000    0.016    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_sputils.py:112(getdtype)
+     3250    0.004    0.000    0.014    0.000 <frozen abc>:117(__instancecheck__)
+     1625    0.005    0.000    0.013    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_base.py:114(__init__)
+     3250    0.009    0.000    0.013    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_base.py:70(ndim)
+    37252    0.013    0.000    0.013    0.000 {built-in method builtins.len}
+     3250    0.010    0.000    0.010    0.000 {built-in method _abc._abc_instancecheck}
+     3250    0.010    0.000    0.010    0.000 {built-in method builtins.getattr}
+     3250    0.004    0.000    0.009    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_sputils.py:59(upcast_char)
+     9750    0.006    0.000    0.008    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_base.py:74(_shape_as_2d)
+     6500    0.003    0.000    0.007    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_base.py:341(nnz)
+     4875    0.007    0.000    0.007    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_data.py:24(dtype)
+    22242    0.005    0.000    0.005    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/multiarray.py:761(dot)
+     1625    0.003    0.000    0.005    0.000 <frozen importlib._bootstrap>:645(parent)
+     4875    0.003    0.000    0.005    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_sputils.py:457(<genexpr>)
+     3250    0.005    0.000    0.005    0.000 {method 'get' of 'dict' objects}
+     6500    0.004    0.000    0.004    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_compressed.py:117(_getnnz)
+     1625    0.004    0.000    0.004    0.000 {built-in method builtins.max}
+     4875    0.004    0.000    0.004    0.000 {built-in method numpy.array}
+     1625    0.002    0.000    0.004    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_sputils.py:372(isshape)
+     3250    0.003    0.000    0.004    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_sputils.py:402(isdense)
+     3250    0.003    0.000    0.003    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_base.py:361(format)
+     3250    0.003    0.000    0.003    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/_lib/_util.py:229(_prune_array)
+     1625    0.002    0.000    0.003    0.000 {built-in method builtins.any}
+     1625    0.003    0.000    0.003    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/getlimits.py:708(min)
+     4250    0.002    0.000    0.002    0.000 {built-in method numpy.asarray}
+     1625    0.002    0.000    0.002    0.000 {method 'rpartition' of 'str' objects}
+     1625    0.002    0.000    0.002    0.000 {method 'astype' of 'numpy.ndarray' objects}
+     1625    0.002    0.000    0.002    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_matrix.py:65(get_shape)
+     1625    0.001    0.000    0.002    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_base.py:1401(issparse)
+     3250    0.001    0.000    0.001    0.000 {built-in method _operator.index}
+     1625    0.001    0.000    0.001    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/getlimits.py:721(max)
+     1000    0.001    0.000    0.001    0.000 {method 'ravel' of 'numpy.ndarray' objects}
+     1443    0.001    0.000    0.001    0.000 {method 'pop' of 'list' objects}
+     4875    0.001    0.000    0.001    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_sputils.py:462(<genexpr>)
+     3250    0.001    0.000    0.001    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_csc.py:145(_swap)
+     2000    0.001    0.000    0.001    0.000 {built-in method builtins.issubclass}
+     2000    0.001    0.000    0.001    0.000 {method 'append' of 'list' objects}
+     1000    0.000    0.000    0.001    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/linalg/_linalg.py:128(isComplexType)
+     3250    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/multiarray.py:580(can_cast)
+      504    0.000    0.000    0.000    0.000 {built-in method builtins.abs}
+     1000    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/linalg/_linalg.py:2571(_norm_dispatcher)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.12/warnings.py:97(_showwarnmsg)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.12/warnings.py:20(_showwarnmsg_impl)
+        1    0.000    0.000    0.000    0.000 {method 'write' of '_io.TextIOWrapper' objects}
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.12/cProfile.py:119(__exit__)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.12/warnings.py:118(_formatwarnmsg)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.12/warnings.py:35(_formatwarnmsg_impl)
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.12/linecache.py:26(getline)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.12/linecache.py:36(getlines)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.12/warnings.py:419(__init__)
+        1    0.000    0.000    0.000    0.000 {method 'strip' of 'str' objects}
+
+
+m = m.optimize4(0.01, {...})                                                     0 days 00:17:03.942091203
+   l_bfgs_b_options = {'disp': True, 'maxcor': 50, 'ftol': 1e-08, 'gtol': 1e-05, 'eps': 1e-08, 'maxfun': 5000, 'maxiter': 500, 'iprint': 1, 'maxls': 20, 'finite_diff_rel_step': None}
+m = m.compute_wmean_for_patterns()                                               0 days 00:00:00.008419936
+m = m.compute_evmap()                                                            0 days 00:00:03.656149789
+m = m.compute_ievmap()                                                           0 days 00:00:00.011211833
+m = m.compute_vld_gpxpidf()                                                      0 days 00:00:01.751476318
+m = m.compute_vld_x()                                                            0 days 00:00:00.026185036
+m = m.compute_vld_y()                                                            0 days 00:00:00.001946730
+m = m.validate()                                                                 0 days 00:00:00.239152897
+>>>
+
+###---### Optimize lib shipy
+
+>>> m = rglm_workflow(test_run_a2050)
+m = Rglm()                                                                       0 days 00:00:00.000023254
+m = m.set_conn(<reversi.regab.RegabDBConnection object at 0x7c7500f13710>)       0 days 00:00:00.000002775
+m = m.set_empty_count(20)                                                        0 days 00:00:00.000003616
+m = m.set_batches([3])                                                           0 days 00:00:00.000005300
+m = m.set_vld_batches([5])                                                       0 days 00:00:00.000003056
+m = m.set_statuses(CMR,CMS)                                                      0 days 00:00:00.000008445
+m = m.set_vld_statuses(CMR,CMS)                                                  0 days 00:00:00.000004809
+m = m.retrieve_game_positions()                                                  0 days 00:00:08.151189926
+m = m.retrieve_vld_game_positions()                                              0 days 00:00:00.103252817
+m = m.set_features(INTERCEPT,MOBILITY3)                                          0 days 00:00:00.000017573
+m = m.set_patterns(XEDGE,CORNER,R2,R3,R4,DIAG4,DIAG5,DIAG6,DIAG7,DIAG8,2X5COR)   0 days 00:00:00.000024387
+m = m.compute_feature_values()                                                   0 days 00:00:57.837186813
+m = m.compute_vld_feature_values()                                               0 days 00:00:00.584210509
+m = m.compute_indexes()                                                          0 days 00:07:26.131751055
+m = m.compute_vld_indexes()                                                      0 days 00:00:04.493328617
+m = m.combine_gps_features_patterns()                                            0 days 00:00:00.025786869
+m = m.combine_vld_gps_features_patterns()                                        0 days 00:00:00.000867327
+m = m.compute_vmaps()                                                            0 days 00:00:08.605255668
+m = m.compute_gpxpidf()                                                          0 days 00:02:20.808214720
+m = m.compute_x()                                                                0 days 00:00:03.244974887
+m = m.compute_y()                                                                0 days 00:00:00.005357088
+m = m.compute_analytics()                                                        0 days 00:00:37.355982648
+m = m.retrieve_expected_probabilities_from_regab_db()                            0 days 00:00:00.593412974
+i=0001, f=2.47393340e+04
+i=0002, f=2.34371244e+04
+i=0003, f=2.28653878e+04
+i=0004, f=2.07049968e+04
+i=0005, f=1.60343435e+04
+i=0006, f=1.27948950e+04
+i=0007, f=1.14644650e+04
+i=0008, f=9.72694970e+03
+i=0009, f=9.11648635e+03
+i=0010, f=8.26351368e+03
+i=0011, f=7.55487134e+03
+i=0012, f=6.90682681e+03
+i=0013, f=6.59055200e+03
+i=0014, f=6.26284058e+03
+i=0015, f=5.94261173e+03
+i=0016, f=5.63482562e+03
+i=0017, f=5.43056520e+03
+i=0018, f=5.19699284e+03
+i=0019, f=5.01204028e+03
+i=0020, f=4.82143314e+03
+i=0021, f=4.68745650e+03
+i=0022, f=4.59186825e+03
+i=0023, f=4.44459768e+03
+i=0024, f=4.32042727e+03
+i=0025, f=4.23450038e+03
+i=0026, f=4.14582925e+03
+i=0027, f=4.05573335e+03
+i=0028, f=3.98528067e+03
+i=0029, f=3.90812092e+03
+i=0030, f=3.87325918e+03
+i=0031, f=3.80674250e+03
+i=0032, f=3.77044368e+03
+i=0033, f=3.71755410e+03
+i=0034, f=3.67469801e+03
+i=0035, f=3.63354462e+03
+i=0036, f=3.60219096e+03
+i=0037, f=3.56561960e+03
+i=0038, f=3.53594337e+03
+i=0039, f=3.51322722e+03
+i=0040, f=3.47753912e+03
+i=0041, f=3.44467429e+03
+i=0042, f=3.42659922e+03
+i=0043, f=3.40138379e+03
+i=0044, f=3.38544658e+03
+i=0045, f=3.36638801e+03
+i=0046, f=3.34040563e+03
+i=0047, f=3.32854465e+03
+i=0048, f=3.30890516e+03
+i=0049, f=3.28934273e+03
+i=0050, f=3.27966719e+03
+i=0051, f=3.26286793e+03
+i=0052, f=3.25348058e+03
+i=0053, f=3.23870460e+03
+i=0054, f=3.23611925e+03
+i=0055, f=3.22881183e+03
+i=0056, f=3.22555689e+03
+i=0057, f=3.21931053e+03
+i=0058, f=3.20817021e+03
+i=0059, f=3.20182127e+03
+i=0060, f=3.19089736e+03
+i=0061, f=3.18329064e+03
+i=0062, f=3.17639098e+03
+i=0063, f=3.16966778e+03
+i=0064, f=3.16205186e+03
+i=0065, f=3.15596890e+03
+i=0066, f=3.14829741e+03
+i=0067, f=3.14296602e+03
+i=0068, f=3.13727425e+03
+i=0069, f=3.12878246e+03
+i=0070, f=3.12424609e+03
+i=0071, f=3.11940315e+03
+i=0072, f=3.11242064e+03
+i=0073, f=3.10841241e+03
+i=0074, f=3.10262274e+03
+i=0075, f=3.09634771e+03
+i=0076, f=3.09275401e+03
+i=0077, f=3.08777051e+03
+i=0078, f=3.08261058e+03
+i=0079, f=3.07689614e+03
+i=0080, f=3.07272391e+03
+i=0081, f=3.06805240e+03
+i=0082, f=3.06435464e+03
+i=0083, f=3.06086003e+03
+i=0084, f=3.05522117e+03
+i=0085, f=3.05202121e+03
+i=0086, f=3.04880732e+03
+i=0087, f=3.04409992e+03
+i=0088, f=3.04151857e+03
+i=0089, f=3.03718297e+03
+i=0090, f=3.03511222e+03
+i=0091, f=3.03094625e+03
+i=0092, f=3.02847342e+03
+i=0093, f=3.02627078e+03
+i=0094, f=3.02277558e+03
+i=0095, f=3.02040471e+03
+i=0096, f=3.01643886e+03
+i=0097, f=3.01388949e+03
+i=0098, f=3.01100438e+03
+i=0099, f=3.00868447e+03
+i=0100, f=3.00658493e+03
+i=0101, f=3.00354542e+03
+i=0102, f=3.00190591e+03
+i=0103, f=2.99982035e+03
+i=0104, f=2.99688634e+03
+i=0105, f=2.99629151e+03
+i=0106, f=2.99538627e+03
+i=0107, f=2.99421281e+03
+i=0108, f=2.99326856e+03
+i=0109, f=2.99206949e+03
+i=0110, f=2.99064431e+03
+i=0111, f=2.98899836e+03
+i=0112, f=2.98862778e+03
+i=0113, f=2.98638520e+03
+i=0114, f=2.98571269e+03
+i=0115, f=2.98455890e+03
+i=0116, f=2.98316847e+03
+i=0117, f=2.98077562e+03
+i=0118, f=2.97937852e+03
+i=0119, f=2.97816981e+03
+i=0120, f=2.97692737e+03
+i=0121, f=2.97570915e+03
+i=0122, f=2.97461813e+03
+i=0123, f=2.97302890e+03
+i=0124, f=2.97214601e+03
+i=0125, f=2.97112176e+03
+i=0126, f=2.96936457e+03
+i=0127, f=2.96899627e+03
+i=0128, f=2.96638372e+03
+i=0129, f=2.96554582e+03
+i=0130, f=2.96441317e+03
+i=0131, f=2.96302317e+03
+i=0132, f=2.96177405e+03
+i=0133, f=2.96042473e+03
+i=0134, f=2.95961986e+03
+i=0135, f=2.95859752e+03
+i=0136, f=2.95807679e+03
+i=0137, f=2.95656670e+03
+i=0138, f=2.95595355e+03
+i=0139, f=2.95521859e+03
+i=0140, f=2.95381076e+03
+i=0141, f=2.95306492e+03
+i=0142, f=2.95169567e+03
+i=0143, f=2.95079354e+03
+i=0144, f=2.94983565e+03
+i=0145, f=2.94896806e+03
+i=0146, f=2.94808859e+03
+i=0147, f=2.94710664e+03
+i=0148, f=2.94624504e+03
+i=0149, f=2.94543585e+03
+i=0150, f=2.94439700e+03
+i=0151, f=2.94370732e+03
+i=0152, f=2.94288750e+03
+i=0153, f=2.94184278e+03
+i=0154, f=2.94096568e+03
+i=0155, f=2.94041304e+03
+i=0156, f=2.93952720e+03
+i=0157, f=2.93935906e+03
+i=0158, f=2.93913571e+03
+i=0159, f=2.93872061e+03
+i=0160, f=2.93835763e+03
+i=0161, f=2.93813734e+03
+i=0162, f=2.93727345e+03
+i=0163, f=2.93696114e+03
+i=0164, f=2.93665125e+03
+i=0165, f=2.93627868e+03
+i=0166, f=2.93602387e+03
+i=0167, f=2.93529289e+03
+i=0168, f=2.93482239e+03
+i=0169, f=2.93434515e+03
+i=0170, f=2.93382758e+03
+i=0171, f=2.93328179e+03
+i=0172, f=2.93234435e+03
+i=0173, f=2.93197994e+03
+i=0174, f=2.93150843e+03
+i=0175, f=2.93088360e+03
+i=0176, f=2.93069207e+03
+i=0177, f=2.92978565e+03
+i=0178, f=2.92953434e+03
+i=0179, f=2.92904978e+03
+i=0180, f=2.92833994e+03
+i=0181, f=2.92813359e+03
+i=0182, f=2.92735576e+03
+i=0183, f=2.92707070e+03
+i=0184, f=2.92663689e+03
+i=0185, f=2.92610001e+03
+i=0186, f=2.92549866e+03
+i=0187, f=2.92503236e+03
+i=0188, f=2.92453960e+03
+i=0189, f=2.92409657e+03
+i=0190, f=2.92355149e+03
+i=0191, f=2.92313031e+03
+i=0192, f=2.92261411e+03
+i=0193, f=2.92224708e+03
+i=0194, f=2.92184616e+03
+i=0195, f=2.92122336e+03
+i=0196, f=2.92093072e+03
+i=0197, f=2.92056057e+03
+i=0198, f=2.91980639e+03
+i=0199, f=2.91938669e+03
+i=0200, f=2.91906068e+03
+i=0201, f=2.91876405e+03
+i=0202, f=2.91835383e+03
+i=0203, f=2.91796675e+03
+i=0204, f=2.91749157e+03
+i=0205, f=2.91716886e+03
+i=0206, f=2.91676293e+03
+i=0207, f=2.91638167e+03
+i=0208, f=2.91633874e+03
+i=0209, f=2.91585993e+03
+i=0210, f=2.91573379e+03
+i=0211, f=2.91565839e+03
+i=0212, f=2.91542487e+03
+i=0213, f=2.91522377e+03
+i=0214, f=2.91488513e+03
+i=0215, f=2.91471179e+03
+i=0216, f=2.91451111e+03
+i=0217, f=2.91410743e+03
+i=0218, f=2.91389128e+03
+i=0219, f=2.91355062e+03
+i=0220, f=2.91336666e+03
+i=0221, f=2.91310308e+03
+i=0222, f=2.91273372e+03
+i=0223, f=2.91244775e+03
+i=0224, f=2.91213642e+03
+i=0225, f=2.91187508e+03
+i=0226, f=2.91167528e+03
+i=0227, f=2.91139873e+03
+i=0228, f=2.91119738e+03
+i=0229, f=2.91093646e+03
+i=0230, f=2.91058732e+03
+i=0231, f=2.91038377e+03
+i=0232, f=2.91019934e+03
+i=0233, f=2.90996309e+03
+i=0234, f=2.90945429e+03
+i=0235, f=2.90935423e+03
+i=0236, f=2.90899422e+03
+i=0237, f=2.90887223e+03
+i=0238, f=2.90870630e+03
+i=0239, f=2.90845720e+03
+i=0240, f=2.90827339e+03
+i=0241, f=2.90791153e+03
+i=0242, f=2.90767364e+03
+i=0243, f=2.90745936e+03
+i=0244, f=2.90732434e+03
+i=0245, f=2.90711229e+03
+i=0246, f=2.90686892e+03
+i=0247, f=2.90670959e+03
+i=0248, f=2.90639519e+03
+i=0249, f=2.90622267e+03
+i=0250, f=2.90589452e+03
+i=0251, f=2.90564957e+03
+i=0252, f=2.90543921e+03
+i=0253, f=2.90524619e+03
+i=0254, f=2.90509053e+03
+i=0255, f=2.90487033e+03
+i=0256, f=2.90470293e+03
+i=0257, f=2.90452300e+03
+i=0258, f=2.90431259e+03
+i=0259, f=2.90424285e+03
+i=0260, f=2.90420084e+03
+i=0261, f=2.90405503e+03
+i=0262, f=2.90395160e+03
+i=0263, f=2.90385823e+03
+i=0264, f=2.90379104e+03
+i=0265, f=2.90357531e+03
+i=0266, f=2.90348172e+03
+i=0267, f=2.90324092e+03
+i=0268, f=2.90312054e+03
+i=0269, f=2.90296699e+03
+i=0270, f=2.90280327e+03
+i=0271, f=2.90273450e+03
+i=0272, f=2.90260707e+03
+i=0273, f=2.90247732e+03
+i=0274, f=2.90236640e+03
+i=0275, f=2.90216251e+03
+i=0276, f=2.90194918e+03
+i=0277, f=2.90174283e+03
+i=0278, f=2.90160981e+03
+i=0279, f=2.90146943e+03
+i=0280, f=2.90136169e+03
+i=0281, f=2.90121543e+03
+i=0282, f=2.90099646e+03
+i=0283, f=2.90092435e+03
+i=0284, f=2.90082616e+03
+i=0285, f=2.90061632e+03
+i=0286, f=2.90049527e+03
+i=0287, f=2.90036873e+03
+i=0288, f=2.90022267e+03
+i=0289, f=2.90013388e+03
+i=0290, f=2.90002759e+03
+i=0291, f=2.89986820e+03
+i=0292, f=2.89967311e+03
+i=0293, f=2.89956829e+03
+i=0294, f=2.89946601e+03
+i=0295, f=2.89931901e+03
+i=0296, f=2.89920693e+03
+i=0297, f=2.89905697e+03
+i=0298, f=2.89893878e+03
+i=0299, f=2.89881490e+03
+i=0300, f=2.89869321e+03
+i=0301, f=2.89856243e+03
+i=0302, f=2.89841983e+03
+i=0303, f=2.89830992e+03
+i=0304, f=2.89816674e+03
+i=0305, f=2.89808497e+03
+i=0306, f=2.89795153e+03
+i=0307, f=2.89785150e+03
+i=0308, f=2.89774637e+03
+i=0309, f=2.89767428e+03
+i=0310, f=2.89752731e+03
+i=0311, f=2.89751607e+03
+i=0312, f=2.89744215e+03
+i=0313, f=2.89741704e+03
+i=0314, f=2.89738509e+03
+i=0315, f=2.89733392e+03
+i=0316, f=2.89730910e+03
+i=0317, f=2.89720932e+03
+i=0318, f=2.89713089e+03
+i=0319, f=2.89705273e+03
+i=0320, f=2.89697134e+03
+i=0321, f=2.89682545e+03
+i=0322, f=2.89679778e+03
+i=0323, f=2.89666074e+03
+i=0324, f=2.89662118e+03
+i=0325, f=2.89653618e+03
+i=0326, f=2.89648173e+03
+i=0327, f=2.89639561e+03
+i=0328, f=2.89629519e+03
+i=0329, f=2.89621672e+03
+i=0330, f=2.89613549e+03
+i=0331, f=2.89606005e+03
+i=0332, f=2.89596230e+03
+i=0333, f=2.89585679e+03
+i=0334, f=2.89576398e+03
+i=0335, f=2.89568704e+03
+i=0336, f=2.89562185e+03
+i=0337, f=2.89555126e+03
+i=0338, f=2.89543625e+03
+i=0339, f=2.89535126e+03
+i=0340, f=2.89528833e+03
+i=0341, f=2.89519318e+03
+i=0342, f=2.89513017e+03
+i=0343, f=2.89504222e+03
+i=0344, f=2.89498376e+03
+i=0345, f=2.89492532e+03
+i=0346, f=2.89486027e+03
+i=0347, f=2.89476827e+03
+i=0348, f=2.89470068e+03
+i=0349, f=2.89463497e+03
+i=0350, f=2.89453929e+03
+i=0351, f=2.89450654e+03
+i=0352, f=2.89440324e+03
+i=0353, f=2.89436589e+03
+i=0354, f=2.89430597e+03
+i=0355, f=2.89422105e+03
+i=0356, f=2.89413020e+03
+i=0357, f=2.89406570e+03
+i=0358, f=2.89397378e+03
+i=0359, f=2.89391774e+03
+i=0360, f=2.89384708e+03
+i=0361, f=2.89377401e+03
+i=0362, f=2.89372729e+03
+i=0363, f=2.89371141e+03
+i=0364, f=2.89368093e+03
+i=0365, f=2.89362687e+03
+i=0366, f=2.89358791e+03
+i=0367, f=2.89354259e+03
+i=0368, f=2.89348414e+03
+i=0369, f=2.89342805e+03
+i=0370, f=2.89337605e+03
+i=0371, f=2.89332980e+03
+i=0372, f=2.89327461e+03
+i=0373, f=2.89318079e+03
+i=0374, f=2.89311708e+03
+i=0375, f=2.89306647e+03
+i=0376, f=2.89301772e+03
+i=0377, f=2.89296943e+03
+i=0378, f=2.89289990e+03
+i=0379, f=2.89284876e+03
+i=0380, f=2.89280223e+03
+i=0381, f=2.89273781e+03
+i=0382, f=2.89268805e+03
+i=0383, f=2.89264904e+03
+i=0384, f=2.89261361e+03
+i=0385, f=2.89256374e+03
+i=0386, f=2.89248863e+03
+i=0387, f=2.89242673e+03
+i=0388, f=2.89239010e+03
+i=0389, f=2.89234562e+03
+i=0390, f=2.89230059e+03
+i=0391, f=2.89223487e+03
+i=0392, f=2.89218023e+03
+i=0393, f=2.89212797e+03
+i=0394, f=2.89208347e+03
+i=0395, f=2.89202858e+03
+i=0396, f=2.89199605e+03
+i=0397, f=2.89195185e+03
+i=0398, f=2.89191033e+03
+i=0399, f=2.89186755e+03
+i=0400, f=2.89181607e+03
+i=0401, f=2.89176085e+03
+i=0402, f=2.89172376e+03
+i=0403, f=2.89166972e+03
+i=0404, f=2.89161793e+03
+i=0405, f=2.89156034e+03
+i=0406, f=2.89151351e+03
+i=0407, f=2.89146156e+03
+i=0408, f=2.89141865e+03
+i=0409, f=2.89136213e+03
+i=0410, f=2.89131374e+03
+i=0411, f=2.89127632e+03
+i=0412, f=2.89122716e+03
+i=0413, f=2.89117469e+03
+i=0414, f=2.89114023e+03
+i=0415, f=2.89111668e+03
+i=0416, f=2.89109926e+03
+i=0417, f=2.89108451e+03
+i=0418, f=2.89106982e+03
+i=0419, f=2.89103393e+03
+i=0420, f=2.89098839e+03
+i=0421, f=2.89095065e+03
+i=0422, f=2.89091406e+03
+i=0423, f=2.89087873e+03
+i=0424, f=2.89084845e+03
+i=0425, f=2.89077995e+03
+i=0426, f=2.89074460e+03
+i=0427, f=2.89069135e+03
+i=0428, f=2.89065405e+03
+i=0429, f=2.89062920e+03
+i=0430, f=2.89059584e+03
+i=0431, f=2.89057081e+03
+i=0432, f=2.89054885e+03
+i=0433, f=2.89052269e+03
+i=0434, f=2.89048956e+03
+i=0435, f=2.89044357e+03
+i=0436, f=2.89042201e+03
+i=0437, f=2.89038340e+03
+i=0438, f=2.89034448e+03
+i=0439, f=2.89031274e+03
+i=0440, f=2.89027501e+03
+i=0441, f=2.89025068e+03
+i=0442, f=2.89020937e+03
+i=0443, f=2.89017427e+03
+i=0444, f=2.89013597e+03
+i=0445, f=2.89010637e+03
+i=0446, f=2.89008433e+03
+i=0447, f=2.89004617e+03
+i=0448, f=2.89000410e+03
+i=0449, f=2.88997186e+03
+i=0450, f=2.88994783e+03
+i=0451, f=2.88991176e+03
+i=0452, f=2.88990381e+03
+i=0453, f=2.88983669e+03
+i=0454, f=2.88981949e+03
+i=0455, f=2.88979284e+03
+i=0456, f=2.88975436e+03
+i=0457, f=2.88971878e+03
+i=0458, f=2.88967779e+03
+i=0459, f=2.88965074e+03
+i=0460, f=2.88962233e+03
+i=0461, f=2.88959690e+03
+i=0462, f=2.88956144e+03
+i=0463, f=2.88953749e+03
+i=0464, f=2.88951068e+03
+i=0465, f=2.88948865e+03
+i=0466, f=2.88947631e+03
+i=0467, f=2.88945897e+03
+i=0468, f=2.88944217e+03
+i=0469, f=2.88943426e+03
+i=0470, f=2.88941762e+03
+i=0471, f=2.88939225e+03
+i=0472, f=2.88938135e+03
+i=0473, f=2.88935867e+03
+i=0474, f=2.88934109e+03
+i=0475, f=2.88932803e+03
+i=0476, f=2.88930429e+03
+i=0477, f=2.88925742e+03
+i=0478, f=2.88923329e+03
+i=0479, f=2.88918389e+03
+i=0480, f=2.88915752e+03
+i=0481, f=2.88912127e+03
+i=0482, f=2.88911409e+03
+i=0483, f=2.88908261e+03
+i=0484, f=2.88906490e+03
+i=0485, f=2.88903923e+03
+i=0486, f=2.88899808e+03
+i=0487, f=2.88897563e+03
+i=0488, f=2.88894477e+03
+i=0489, f=2.88892304e+03
+i=0490, f=2.88889848e+03
+i=0491, f=2.88887031e+03
+i=0492, f=2.88884228e+03
+i=0493, f=2.88881851e+03
+i=0494, f=2.88879174e+03
+i=0495, f=2.88875734e+03
+i=0496, f=2.88872300e+03
+i=0497, f=2.88870047e+03
+i=0498, f=2.88867136e+03
+i=0499, f=2.88865153e+03
+i=0500, f=2.88862436e+03
+         100394 function calls in 356.519 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000  356.519  356.519 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_minimize.py:53(minimize)
+        1    0.018    0.018  356.519  356.519 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_lbfgsb_py.py:290(_minimize_lbfgsb)
+     1058    0.063    0.000  321.885    0.304 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_optimize.py:71(_compute_if_needed)
+      530    0.003    0.000  321.878    0.607 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_differentiable_functions.py:293(_update_fun)
+      529    0.012    0.000  321.874    0.608 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_differentiable_functions.py:16(wrapped)
+      529    0.003    0.000  321.840    0.608 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_optimize.py:78(__call__)
+      529    5.981    0.011  321.773    0.608 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:1601(fg)
+      529    0.009    0.000  321.468    0.608 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_differentiable_functions.py:341(fun_and_grad)
+     1058    0.006    0.000  119.753    0.113 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_base.py:728(__matmul__)
+     1058    0.006    0.000  119.726    0.113 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_base.py:597(_matmul_dispatch)
+     1058    0.021    0.000  119.719    0.113 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_compressed.py:518(_matmul_vector)
+     1058  113.414    0.107  113.414    0.107 {built-in method builtins.sum}
+      529   59.638    0.113   72.897    0.138 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_data.py:49(__neg__)
+      529   66.198    0.125   66.198    0.125 {built-in method scipy.sparse._sparsetools.csc_matvec}
+      529   52.986    0.100   52.986    0.100 {built-in method scipy.sparse._sparsetools.csr_matvec}
+     1030   34.270    0.033   34.270    0.033 {built-in method scipy.optimize._lbfgsb.setulb}
+      529    0.012    0.000   13.258    0.025 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_compressed.py:1341(_with_data)
+     1587   13.180    0.008   13.180    0.008 {method 'copy' of 'numpy.ndarray' objects}
+      529    9.727    0.018    9.727    0.018 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:2226(rglm_sigmoid)
+        1    0.000    0.000    0.610    0.610 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_optimize.py:203(_prepare_scalar_function)
+        1    0.000    0.000    0.610    0.610 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_differentiable_functions.py:166(__init__)
+     1069    0.505    0.000    0.505    0.000 {built-in method numpy.zeros}
+      500    0.001    0.000    0.112    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/_lib/_util.py:1061(_call_callback_maybe_halt)
+      500    0.001    0.000    0.111    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_optimize.py:96(wrapped_callback)
+      500    0.002    0.000    0.110    0.000 /home/rcrr/base/prj/reversi/c/py/reversi/rglm.py:1594(callback_log)
+      500    0.098    0.000    0.098    0.000 {built-in method builtins.print}
+      530    0.003    0.000    0.093    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_differentiable_functions.py:303(_update_grad)
+      529    0.008    0.000    0.090    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_differentiable_functions.py:39(wrapped)
+      529    0.010    0.000    0.085    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_compressed.py:29(__init__)
+      529    0.044    0.000    0.059    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/numeric.py:2475(array_equal)
+     2088    0.057    0.000    0.057    0.000 {method 'astype' of 'numpy.ndarray' objects}
+     3177    0.055    0.000    0.057    0.000 {built-in method numpy.array}
+     1059    0.002    0.000    0.052    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:898(copy)
+      529    0.001    0.000    0.049    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_optimize.py:83(derivative)
+      528    0.005    0.000    0.039    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_differentiable_functions.py:270(_update_x)
+      529    0.007    0.000    0.035    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_base.py:1369(_get_index_dtype)
+     1058    0.005    0.000    0.029    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:2589(all)
+      529    0.018    0.000    0.026    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_sputils.py:264(get_index_dtype)
+     1588    0.026    0.000    0.026    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+     1059    0.008    0.000    0.024    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:89(_wrapreduction_any_all)
+      529    0.001    0.000    0.023    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/_lib/array_api_compat/common/_aliases.py:236(astype)
+     1058    0.005    0.000    0.021    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_sputils.py:345(isscalarlike)
+     1587    0.007    0.000    0.017    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/numeric.py:1927(isscalar)
+      529    0.005    0.000    0.016    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_compressed.py:165(check_format)
+     6892    0.010    0.000    0.015    0.000 {built-in method builtins.isinstance}
+      529    0.002    0.000    0.014    0.000 {method 'all' of 'numpy.ndarray' objects}
+      529    0.001    0.000    0.012    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/_methods.py:67(_all)
+      529    0.004    0.000    0.010    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/_lib/array_api_compat/numpy/_aliases.py:78(asarray)
+      500    0.009    0.000    0.009    0.000 {method 'format' of 'str' objects}
+      529    0.004    0.000    0.008    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_compressed.py:1284(prune)
+      529    0.004    0.000    0.007    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_sputils.py:429(check_shape)
+     1058    0.006    0.000    0.006    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/getlimits.py:697(__init__)
+      529    0.001    0.000    0.006    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_data.py:21(__init__)
+      529    0.005    0.000    0.005    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_sputils.py:112(getdtype)
+    12170    0.005    0.000    0.005    0.000 {built-in method builtins.len}
+     1058    0.003    0.000    0.005    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_base.py:70(ndim)
+     1058    0.001    0.000    0.005    0.000 <frozen abc>:117(__instancecheck__)
+      529    0.002    0.000    0.004    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_base.py:114(__init__)
+     1058    0.003    0.000    0.003    0.000 {built-in method _abc._abc_instancecheck}
+     1063    0.003    0.000    0.003    0.000 {built-in method builtins.getattr}
+     3174    0.002    0.000    0.003    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_base.py:74(_shape_as_2d)
+     1058    0.001    0.000    0.003    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_sputils.py:59(upcast_char)
+     2116    0.001    0.000    0.002    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_base.py:341(nnz)
+     1587    0.002    0.000    0.002    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_data.py:24(dtype)
+        1    0.000    0.000    0.002    0.002 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_lbfgsb_py.py:511(__init__)
+      530    0.002    0.000    0.002    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/shape_base.py:21(atleast_1d)
+        1    0.000    0.000    0.002    0.002 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/einsumfunc.py:1057(einsum)
+        1    0.002    0.002    0.002    0.002 {built-in method numpy._core._multiarray_umath.c_einsum}
+      529    0.001    0.000    0.002    0.000 <frozen importlib._bootstrap>:645(parent)
+     1587    0.001    0.000    0.002    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_sputils.py:457(<genexpr>)
+     1063    0.001    0.000    0.001    0.000 {method 'get' of 'dict' objects}
+     2116    0.001    0.000    0.001    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_compressed.py:117(_getnnz)
+      529    0.001    0.000    0.001    0.000 {built-in method builtins.max}
+      530    0.001    0.000    0.001    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_sputils.py:372(isshape)
+      529    0.001    0.000    0.001    0.000 /usr/lib/python3.12/enum.py:202(__get__)
+     1058    0.001    0.000    0.001    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_base.py:361(format)
+     2650    0.001    0.000    0.001    0.000 {built-in method numpy.asarray}
+     1058    0.001    0.000    0.001    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/_lib/_util.py:229(_prune_array)
+     1058    0.001    0.000    0.001    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_sputils.py:402(isdense)
+      529    0.001    0.000    0.001    0.000 {built-in method builtins.any}
+     1059    0.001    0.000    0.001    0.000 {method 'items' of 'dict' objects}
+      529    0.001    0.000    0.001    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/getlimits.py:708(min)
+     1060    0.001    0.000    0.001    0.000 {built-in method numpy.asanyarray}
+      530    0.001    0.000    0.001    0.000 {built-in method builtins.hasattr}
+      500    0.001    0.000    0.001    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/_lib/_util.py:1089(__getattr__)
+      529    0.001    0.000    0.001    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_matrix.py:65(get_shape)
+      529    0.001    0.000    0.001    0.000 {method 'rpartition' of 'str' objects}
+      530    0.000    0.000    0.001    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_base.py:1401(issparse)
+     1060    0.001    0.000    0.001    0.000 {built-in method _operator.index}
+      529    0.001    0.000    0.001    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/getlimits.py:721(max)
+      529    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/_lib/array_api_extra/_funcs.py:12(atleast_nd)
+      529    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/numeric.py:2456(_array_equal_dispatcher)
+     1058    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:2584(_all_dispatcher)
+      501    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_differentiable_functions.py:258(nfev)
+     1587    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_sputils.py:462(<genexpr>)
+      529    0.000    0.000    0.000    0.000 /usr/lib/python3.12/enum.py:1292(value)
+     1058    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_csc.py:145(_swap)
+     1059    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:894(_copy_dispatcher)
+     1058    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/multiarray.py:580(can_cast)
+        1    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_optimize.py:88(_wrap_callback)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.12/inspect.py:3308(signature)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.12/inspect.py:3050(from_callable)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.12/inspect.py:2470(_signature_from_callable)
+        1    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_differentiable_functions.py:55(_wrapper_hess)
+      530    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/shape_base.py:17(_atleast_1d_dispatcher)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.12/inspect.py:2366(_signature_from_function)
+        1    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/linalg/_interface.py:169(__init__)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.12/cProfile.py:119(__exit__)
+        1    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:2477(any)
+        2    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/_sputils.py:350(isintlike)
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.12/inspect.py:2712(__init__)
+        1    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/shape_base.py:80(atleast_2d)
+        1    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/numerictypes.py:381(isdtype)
+        2    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:3523(ndim)
+        1    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/sparse/linalg/_interface.py:154(__new__)
+        3    0.000    0.000    0.000    0.000 {method 'reshape' of 'numpy.ndarray' objects}
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.12/inspect.py:2998(__init__)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.12/inspect.py:747(unwrap)
+        1    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/numerictypes.py:368(_preprocess_dtype)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.12/enum.py:726(__call__)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.12/inspect.py:175(get_annotations)
+        1    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_minimize.py:1066(standardize_constraints)
+        1    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_differentiable_functions.py:35(_wrapper_grad)
+        1    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/getlimits.py:493(__new__)
+        1    0.000    0.000    0.000    0.000 {built-in method builtins.min}
+       10    0.000    0.000    0.000    0.000 {built-in method builtins.callable}
+        5    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/einsumfunc.py:1049(_einsum_dispatcher)
+        2    0.000    0.000    0.000    0.000 /usr/lib/python3.12/inspect.py:3045(<genexpr>)
+        1    0.000    0.000    0.000    0.000 {built-in method __new__ of type object at 0xa44b40}
+        1    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/_lib/_array_api.py:114(array_namespace)
+        2    0.000    0.000    0.000    0.000 /usr/lib/python3.12/inspect.py:371(isfunction)
+        1    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_differentiable_functions.py:13(_wrapper_fun)
+        1    0.000    0.000    0.000    0.000 {method 'update' of 'set' objects}
+        1    0.000    0.000    0.000    0.000 {method 'ravel' of 'numpy.ndarray' objects}
+        2    0.000    0.000    0.000    0.000 {method 'append' of 'list' objects}
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.12/enum.py:1129(__new__)
+        1    0.000    0.000    0.000    0.000 {method 'isidentifier' of 'str' objects}
+        1    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_differentiable_functions.py:262(ngev)
+        1    0.000    0.000    0.000    0.000 {method 'lower' of 'str' objects}
+        1    0.000    0.000    0.000    0.000 {method '__contains__' of 'frozenset' objects}
+        1    0.000    0.000    0.000    0.000 {method 'values' of 'dict' objects}
+        1    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_optimize.py:65(__init__)
+        1    0.000    0.000    0.000    0.000 {built-in method sys.getrecursionlimit}
+        2    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:3519(_ndim_dispatcher)
+        1    0.000    0.000    0.000    0.000 {built-in method builtins.id}
+        1    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_optimize.py:175(_check_unknown_options)
+        1    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/scipy/optimize/_optimize.py:283(hess)
+        1    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:2472(_any_dispatcher)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.12/inspect.py:2765(name)
+        1    0.000    0.000    0.000    0.000 /home/rcrr/base/prj/reversi/c/py/.reversi_venv/lib/python3.12/site-packages/numpy/_core/shape_base.py:76(_atleast_2d_dispatcher)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.12/inspect.py:3058(parameters)
+
+
+m = m.optimize(0.01, {...})                                                      0 days 00:05:56.645844196
+   l_bfgs_b_options = {'disp': True, 'maxcor': 50, 'ftol': 1e-08, 'gtol': 1e-05, 'eps': 1e-08, 'maxfun': 5000, 'maxiter': 500, 'iprint': 1, 'maxls': 20, 'finite_diff_rel_step': None}
+m = m.compute_wmean_for_patterns()                                               0 days 00:00:00.007795681
+m = m.compute_evmap()                                                            0 days 00:00:03.498336468
+m = m.compute_ievmap()                                                           0 days 00:00:00.010804808
+m = m.compute_vld_gpxpidf()                                                      0 days 00:00:01.752551943
+m = m.compute_vld_x()                                                            0 days 00:00:00.025462858
+m = m.compute_vld_y()                                                            0 days 00:00:00.002036479
+m = m.validate()                                                                 0 days 00:00:00.244197292
+>>> 

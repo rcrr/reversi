@@ -53,6 +53,10 @@ from copy import deepcopy
 #
 # >>> exec(open("py/reversi/optimization.py").read())
 #
+# -4- In case of need to reload the reversi code, reload all modules.
+#
+# >>> exec(open("py/reversi/start.py").read())
+#
 
 #
 # TODO - optimization.py
@@ -131,13 +135,14 @@ class GNCG:
     def __init__(self,
                  x0: numpy.ndarray,
                  fg: Callable,
-                 c1: float =1e-3,
-                 c2: float =0.49,
+                 c1: float =1e-2,
+                 c2: float =0.3,
                  alpha_min: float =1.e-3,
-                 min_grad: tuple =(1.e-6, 5),
-                 min_p_fun_decrease: tuple =(1.e-14, 5),
-                 max_iters: int =10,
-                 verbosity: int=0):
+                 min_grad: tuple =(1.e-6, 7),
+                 min_p_fun_decrease: tuple =(1.e-14, 7),
+                 max_iters: int =100,
+                 beta_algo: str ="FR",
+                 verbosity: int =0):
         
         if not isinstance(x0, np.ndarray):
             raise TypeError('Argument x0 is not an instance of numpy.ndarray')
@@ -155,6 +160,7 @@ class GNCG:
         self.min_p_fun_decrease = min_p_fun_decrease
         self.max_iters = max_iters
         self.verbosity = verbosity
+        self.beta_algo = beta_algo
         
         self.i = 0
         self.n = len(x0)
@@ -181,6 +187,65 @@ class GNCG:
             f.push(_f)
             g.push(_g)
             return
+
+        def beta_fr(d, g, gg) -> float:
+            """
+            Fletcher-Reeves (FR)
+            """
+            beta = gg.current / gg.previous
+            return beta
+
+        def beta_pr(d, g, gg) -> float:
+            """
+            Polak-Ribiere (PR)
+            """
+            y = g.current - g.previous
+            beta = np.dot(g.current, y) / gg.previous
+            return beta
+
+        def beta_hs(d, g, gg) -> float:
+            """
+            Hestenes-Steifel(HS)
+            """
+            eps = 1.e-18
+            y = g.current - g.previous
+            num = np.dot(g.current, y)
+            if num == 0.:
+                return 0.
+            div = np.dot(d.current, y)
+            if div <= eps:
+                return 0.
+            beta = num / div
+            return beta
+
+        def beta_dy(d, g, gg) -> float:
+            """
+            Dai-Yuan (DY)
+            """
+            eps = 1.e-18
+            y = g.current - g.previous
+            div = np.dot(d.current, y)
+            if div <= eps:
+                return 0.
+            beta = gg.current / div
+            return beta
+
+        def beta_hz(d, g, gg) -> float:
+            """
+            Hager-Zhang (hz)
+            """
+            eps = 1.e-18
+            y = g.current - g.previous
+            beta_d = np.dot(d.current, y)
+            if beta_d <= eps:
+                return 0.
+            beta_c = np.dot(y, y) / beta_d
+            beta_a =  y - 2. * d.current * beta_c
+            beta_n = np.dot(beta_a, g.current)
+            beta = beta_n / beta_d
+            if beta_n == 0.:
+                return 0.
+            return beta
         
         x = self.x
         fg = self.fgc
@@ -190,19 +255,32 @@ class GNCG:
         min_grad_v, min_grad_c = self.min_grad
         min_p_fun_decrease_v, min_p_fun_decrease_c = self.min_p_fun_decrease
 
+        compute_beta_algos = {
+            "FR": beta_fr,
+            "PR": beta_pr,
+            "HS": beta_hs,
+            "DY": beta_dy,
+            "HZ": beta_hz,                              }
+        
+        compute_beta = compute_beta_algos.get(self.beta_algo)
+        if not compute_beta:
+            raise RuntimeError('beta_algo is not found. Choose among: {}'.format(compute_beta_algos.keys()))
+
+
         low_progres_count_f = 0
         low_progres_count_g = 0
 
         line_search = lambda x, d, initial_alpha, i : gncg_strong_wolfe(x, fg, d, alpha=initial_alpha,
                                                                         c1=self.c1, c2=self.c2, alpha_min=self.alpha_min,
                                                                         verbosity=self.verbosity, iteration=i)
-
+        
         # Initialization
         g = CurrentPrevious()  # gradient : array
         f = CurrentPrevious()  # function : scalar
         gg = CurrentPrevious() # gradient * gradient dot product : scalar
         d = CurrentPrevious()  # direction : array
         gd = CurrentPrevious() # gradient * direction dot product : scalar
+        y = CurrentPrevious()  # y.previus = g.current - g.previous
         
         # Iteration 0
         alpha = 1.0
@@ -212,7 +290,7 @@ class GNCG:
         _gg = np.dot(_g, _g)
         gg.set(_gg, _gg)
         d.set(- _g, - _g)
-        gd.set(1., 1.)
+        gd.set(-1., -1.)
 
         for i in range(1, max_iters):
             if gg.current == 0.:
@@ -251,19 +329,24 @@ class GNCG:
             #
             gd.push(np.dot(g.current, d.current))
             initial_alpha = alpha * gd.previous / gd.current
+            if verbosity > 1:
+                print("minimize: alpha={:.3e}, initial_alpha={:.3e}, gd.previous={:.3e}, gd.current={:.3e}".format(alpha, initial_alpha, gd.previous, gd.current))
+            if initial_alpha < self.alpha_min or initial_alpha > 1.: initial_alpha = 1.
             alpha = line_search(x, d.current, initial_alpha, i)
             x += alpha * d.current
             evaluate(x, f, g)
             gg.push(np.dot(g.current, g.current))
-            beta = gg.current / gg.previous
-            d.push(- g.current + beta * d.current)
+            beta = compute_beta(d, g, gg)
+            tentative_d = - g.current + beta * d.current
+            d.push(tentative_d)
 
             if verbosity > 0:
                 print("minimize iter: [{:n}/{:n}], ".format(i, max_iters), end='')
-                print("f: {:.10f}, ".format(f.current), end='')
-                print("a: {:.8f}, ".format(alpha), end='')
-                print("gg: {:.8f}, ".format(gg.current), end='')
-                print("p_diff={:.4f}, low_progres_count_f: {}, low_progres_count_g: {}, ".format(p_diff, low_progres_count_f, low_progres_count_g), end='')
+                print("f: {:.5e}, ".format(f.current), end='')
+                print("a: {:.3e}, ".format(alpha), end='')
+                print("b: {:.3e}, ".format(beta), end='')
+                print("gg: {:.3e}, ".format(gg.current), end='')
+                print("p_diff_prev: {:.3e}, low_pcf: {}, low_pcg: {}, ".format(p_diff, low_progres_count_f, low_progres_count_g), end='')
                 print("x: {}".format(x))
 
         self.i += i
@@ -285,7 +368,7 @@ def gncg_strong_wolfe(x: numpy.ndarray,
                       alpha: float =1.0,
                       alpha_min: float =1.e-3,
                       alpha_max: float =2.0,
-                      max_iters: int =12,
+                      max_iters: int =23,
                       verbosity: int =0,
                       iteration: int =0) -> float:
     """
@@ -319,6 +402,16 @@ def gncg_strong_wolfe(x: numpy.ndarray,
         f, g = fg(x + alpha * p)
         return alpha, f, np.dot(g, p)
 
+    ###### for debugging: It show the phi function. Arrange limits and step ...
+    if False:
+        verbosity=4
+        print("gncg_strong_wolfe: initial alpha value = {}".format(alpha))
+        import matplotlib.pyplot as plt
+        t = np.arange(0., 0.00002, 0.0000005)
+        plt.plot(t, [xyy1(y)[1] for y in t], 'bs')
+        plt.show()
+    ######
+
     # tuples are in the form:
     #
     # ( alpha, phi(alpha), phi'(alpha) )
@@ -339,11 +432,11 @@ def gncg_strong_wolfe(x: numpy.ndarray,
     
     if verbosity > 1:
         print("gncg_strong_wolfe: header. c1={}, c2={}, alpha={}".format(c1, c2, alpha))
-        print("gncg_strong_wolfe: v0={}, vim1={}, vi={}".format(v0, vim1, vi))
+        print("gncg_strong_wolfe: v0=({:.3e}, {:.3e}, {:.3e}), vim1=({:.3e}, {:.3e}, {:.3e}), vi=({:.3e}, {:.3e}, {:.3e})".format(v0[0], v0[1], v0[2], vim1[0], vim1[1], vim1[2], vi[0], vi[1], vi[2]))
 
     for i in range(max_iters):
         if verbosity > 2:
-            print("gncg_strong_wolfe, iter: {:d}, vim1={}, vi={}".format(i, vim1, vi))
+            print("gncg_strong_wolfe, iter: {:d}, vim1=({:.3e}, {:.3e}, {:.3e}), vi=({:.3e}, {:.3e}, {:.3e})".format(i, vim1[0], vim1[1], vim1[2], vi[0], vi[1], vi[2]))
             
         if vi[1] > v0[1] + c1 * vi[0] * v0[2] or (i > 0 and vi[1] >= vim1[1]):
             if (vi[1] > vim1[1]):
@@ -392,7 +485,7 @@ def gncg_zoom_hat(xyy1: Callable,
                   hi: tuple,
                   c1: float,
                   c2: float,
-                  max_iters: int =20,
+                  max_iters: int =30,
                   verbosity: int =0) -> float:
     """
     Returns a step length alpha between alpha_lo and alpha_hi
@@ -420,13 +513,13 @@ def gncg_zoom_hat(xyy1: Callable,
     """
     
     if (lo[1] > hi[1]):
-        print("gncg_zoom: v0={}, lo={}, hi={}".format(v0, lo, hi))
+        print("gncg_zoom: v0=({:.3e}, {:.3e}, {:.3e}), lo=({:.3e}, {:.3e}, {:.3e}), hi=({:.3e}, {:.3e}, {:.3e})".format(*v0, *lo, *hi))
         print("gncg_zoom: c1={}, c2={}, max_iters={}".format(c1, c2, max_iters))
         raise ValueError("zoom: lo[1] must be lesser than hi[1].")
     
     for j in range(max_iters):
         if verbosity > 2:
-            print("gncg_zoom: j={}, lo={}, hi={}".format(j, lo, hi))
+            print("gncg_zoom: j={:02d}, lo=({:.3e}, {:.3e}, {:.3e}), hi=({:.3e}, {:.3e}, {:.3e})".format(j, *lo, *hi))
         alpha_j = interpolate(lo, hi)
         vj = xyy1(alpha_j)
         if vj[1] > v0[1] + c1 * vj[0] * v0[2] or vj[1] >= lo[1]:

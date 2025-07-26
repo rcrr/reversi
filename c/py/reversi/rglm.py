@@ -33,18 +33,22 @@ import reversi.pattern
 import reversi.cfg
 import reversi.regab
 import reversi.optimization
+import reversi.opt_lbfgs
 
 from reversi.board import *
 from reversi.pattern import *
 from reversi.cfg import *
 from reversi.regab import *
 from reversi.optimization import *
+from reversi.opt_lbfgs import *
 
 import numpy as np
 import pandas as pd
 
 from scipy.sparse import csr_matrix
 from scipy.optimize import minimize
+from scipy.special import expit
+
 import datetime
 
 import ctypes as ct
@@ -1577,7 +1581,7 @@ class Rglm:
         if c is None:
             c = 0.
         if options is None:
-            options = {'disp': False,
+            options = {'disp': True,
                        'maxcor': 50,
                        'ftol': 1e-08,
                        'gtol': 1e-05,
@@ -1587,7 +1591,15 @@ class Rglm:
                        'iprint': 1,
                        'maxls': 20,
                        'finite_diff_rel_step': None}
-        
+
+        nit = 0
+        def callback_log(intermediate_result: OptimizeResult):
+            nonlocal nit
+            nit += 1
+            f = intermediate_result.fun
+            print("i={:04d}, f={:.8e}".format(nit, f))
+            return
+            
         def fg(w):
             linear_predictor = self.x @ w
             self.yh = rglm_sigmoid(linear_predictor)
@@ -1595,8 +1607,15 @@ class Rglm:
             f = 0.5 * (sum(self.r**2) + c * sum(w**2))
             g = - self.xt @ ((self.yh * (1. - self.yh)) * self.r) + c * w
             return f, g
-        
-        self.opt_res = minimize(fg, self.w, jac=True, method='L-BFGS-B', options=options)
+
+        import cProfile
+        import pstats
+        from pstats import SortKey
+        with cProfile.Profile() as pr:
+            self.opt_res = minimize(fg, self.w, jac=True, method='L-BFGS-B', options=options, callback=callback_log)
+
+        ps = pstats.Stats(pr).sort_stats(SortKey.CUMULATIVE)
+        ps.print_stats()
 
         self.w = self.opt_res.x
         self.yh = rglm_sigmoid(self.x @ self.w)
@@ -1647,6 +1666,97 @@ class Rglm:
         self.w = opt.minimize()
         
         if True: opt.print()
+        
+        self.yh = rglm_sigmoid(self.x @ self.w)
+        self.r = self.y - self.yh
+
+        self.vmap['weight'] = self.w
+        
+        return self
+
+    def optimize3(self, c=None, options=None) -> Rglm:
+        """
+        Finds the minimum of the objective function, optimizing the values
+        assigned to weights.
+        Argument c is the Ridge regularization coefficient defaulted to 0.0.
+
+        """
+        if c is None:
+            c = 0.
+        if options is None:
+            options = {'disp': False,
+                       'maxcor': 50,
+                       'ftol': 1e-08,
+                       'gtol': 1e-05,
+                       'eps': 1e-08,
+                       'maxfun': 5000,
+                       'maxiter': 5000,
+                       'iprint': 1,
+                       'maxls': 20,
+                       'finite_diff_rel_step': None}
+        
+        def fg(w):
+            linear_predictor = self.x @ w
+            self.yh = rglm_sigmoid(linear_predictor)
+            self.r = self.y - self.yh
+            f = 0.5 * (sum(self.r**2) + c * sum(w**2))
+            g = - self.xt @ ((self.yh * (1. - self.yh)) * self.r) + c * w
+            return f, g
+
+        x0 = copy.deepcopy(self.w)
+        opt = GNCG(x0, fg, c1=0.01, c2=0.3, alpha_min=1.e-3, beta_algo='PR',
+                   min_grad=(4.e-1, 13), min_p_fun_decrease=(1.e-12, 13),
+                   max_iters=3000, verbosity=1)
+        self.w = opt.minimize()
+        
+        if True: opt.print()
+        
+        self.yh = rglm_sigmoid(self.x @ self.w)
+        self.r = self.y - self.yh
+
+        self.vmap['weight'] = self.w
+        
+        return self
+
+    def optimize4(self, c=None, options=None) -> Rglm:
+        """
+        Finds the minimum of the objective function, optimizing the values
+        assigned to weights.
+        Argument c is the Ridge regularization coefficient defaulted to 0.0.
+
+        """
+        if c is None:
+            c = 0.
+        if options is None:
+            options = {'disp': False,
+                       'maxcor': 50,
+                       'ftol': 1e-08,
+                       'gtol': 1e-05,
+                       'eps': 1e-08,
+                       'maxfun': 5000,
+                       'maxiter': 5000,
+                       'iprint': 1,
+                       'maxls': 20,
+                       'finite_diff_rel_step': None}
+        
+        def fg(w):
+            linear_predictor = self.x @ w
+            self.yh = rglm_sigmoid(linear_predictor)
+            self.r = self.y - self.yh
+            f = 0.5 * (sum(self.r**2) + c * sum(w**2))
+            g = - self.xt @ ((self.yh * (1. - self.yh)) * self.r) + c * w
+            return f, g
+
+        x0 = copy.deepcopy(self.w)
+
+        import cProfile
+        import pstats
+        from pstats import SortKey
+        with cProfile.Profile() as pr:
+            self.w = lbfgs(fg, x0, max_iters=500, m=97, tol=1e-2, verbosity=1)
+
+        ps = pstats.Stats(pr).sort_stats(SortKey.CUMULATIVE)
+        ps.print_stats()
         
         self.yh = rglm_sigmoid(self.x @ self.w)
         self.r = self.y - self.yh
@@ -1876,7 +1986,7 @@ test_run_0 = {'cfg_fname': 'cfg/regab.cfg',
               'features': 'INTERCEPT,MOBILITY3',
               'patterns': 'EDGE,DIAG3',
               'ridge_reg_param': 0.1,
-              'l_bfgs_b_options': {'disp': False,
+              'l_bfgs_b_options': {'disp': True,
                                    'maxcor': 50,
                                    'ftol': 1e-08,
                                    'gtol': 1e-05,
@@ -1904,7 +2014,7 @@ test_run_a2050 = {'cfg_fname': 'cfg/regab.cfg',
                                        'gtol': 1e-05,
                                        'eps': 1e-08,
                                        'maxfun': 5000,
-                                       'maxiter': 5000,
+                                       'maxiter': 500,
                                        'iprint': 1,
                                        'maxls': 20,
                                        'finite_diff_rel_step': None},
@@ -2102,7 +2212,7 @@ def rglm_workflow(kvargs: dict):
     m = timed_run(m.compute_y, "m = m.compute_y()")
     m = timed_run(m.compute_analytics, "m = m.compute_analytics()")
     m = timed_run(m.retrieve_expected_probabilities_from_regab_db, "m = m.retrieve_expected_probabilities_from_regab_db()")
-    m = timed_run(m.optimize2, "m = m.optimize2({}, {{...}})", ridge_reg_param, l_bfgs_b_options)
+    m = timed_run(m.optimize4, "m = m.optimize4({}, {{...}})", ridge_reg_param, l_bfgs_b_options)
     if l_bfgs_b_options is not None:
         print("   l_bfgs_b_options = {}".format(l_bfgs_b_options))
     m = timed_run(m.compute_wmean_for_patterns, "m = m.compute_wmean_for_patterns()")
@@ -2118,8 +2228,11 @@ def rglm_workflow(kvargs: dict):
 def rglm_sigmoid(x: np.ndarray) -> np.ndarray:
     """
     Computes the sigmoid (logistic) function on the given array of float values.
+    It was computed as:
+      return 1. / (1. + np.exp(-x))
+    The expit funxtion from scipy provide more numerical stability for very small values of x.
     """
-    return 1. / (1. + np.exp(-x))
+    return expit(x)
 
 def rglm_gv_to_gvt(gv: np.ndarray) -> np.ndarray:
     """

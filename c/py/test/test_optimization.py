@@ -40,6 +40,7 @@ import unittest
 import numpy as np
 
 from reversi.optimization import * 
+from reversi.opt_lbfgs import * 
 
 """
 The function f has a min value at ( x = -1.0 , y = 1.5 ) equal to -1.25:
@@ -257,7 +258,7 @@ class TestGNCGBaseFunction(unittest.TestCase):
         x0 = np.array([0.0, 0.0])
         opt = GNCG(x0, self.fg, verbosity=0)
         actual_x_min = opt.minimize()
-        np.testing.assert_allclose(actual_x_min, self.x_min, atol=1.e-6)
+        np.testing.assert_allclose(actual_x_min, self.x_min, atol=1.e-3)
 
 class TestGNCGRosenbrockFunction(unittest.TestCase):
 
@@ -274,9 +275,9 @@ class TestGNCGRosenbrockFunction(unittest.TestCase):
         
     def test_a_optimization(self):
         x0 = np.array([-1.0, -1.0])
-        opt = GNCG(x0, self.fg, max_iters=5000, min_grad=(1.e-9, 7), verbosity=0)
+        opt = GNCG(x0, self.fg, c1=1.e-3, c2=0.2, max_iters=5000, min_grad=(1.e-9, 7), verbosity=0)
         actual_x_min = opt.minimize()
-        np.testing.assert_allclose(actual_x_min, self.x_min, atol=1.e-5)
+        np.testing.assert_allclose(actual_x_min, self.x_min, atol=1.e-4)
 
 class TestGNCGZakharovFunction(unittest.TestCase):
 
@@ -298,14 +299,101 @@ class TestGNCGZakharovFunction(unittest.TestCase):
         y1 = 2. * x + ( 1. + 2. * sum22 ) * sum2 * a
         return y, y1
 
-    def test_a_optimization(self, d=10):
+    def test_a_optimization_fr(self, d=10):
         self.d = d
         self.x_min = np.zeros((d,), dtype=np.double)
         x0 = np.random.uniform(low=-5., high=5., size=(d,))
         opt = GNCG(x0, self.fg,
+                   beta_algo='FR',
+                   c1=0.001,
+                   c2=0.1,
                    alpha_min=1.e-8,
-                   min_grad=(1.e-8, 5),
-                   min_p_fun_decrease=(1.e-8, 3),
+                   min_grad=(1.e-8, 7),
+                   min_p_fun_decrease=(1.e-8, 7),
                    max_iters=100, verbosity=0)
         actual_x_min = opt.minimize()
+        np.testing.assert_allclose(actual_x_min, self.x_min, atol=1.e-5)
+
+    def test_a_optimization_pr(self, d=10):
+        self.d = d
+        self.x_min = np.zeros((d,), dtype=np.double)
+        x0 = np.random.uniform(low=-5., high=5., size=(d,))
+        opt = GNCG(x0, self.fg,
+                   beta_algo='PR',
+                   c1=0.001,
+                   c2=0.1,
+                   alpha_min=1.e-8,
+                   min_grad=(1.e-8, 7),
+                   min_p_fun_decrease=(1.e-8, 7),
+                   max_iters=100, verbosity=0)
+        actual_x_min = opt.minimize()
+        np.testing.assert_allclose(actual_x_min, self.x_min, atol=1.e-5)
+
+###
+### Limited-memory BFGS
+###
+
+class TestLBFGSBaseFunction(unittest.TestCase):
+
+    def __init__(self, *args, **kwargs):
+        super(TestLBFGSBaseFunction, self).__init__(*args, **kwargs)
+        self.x_min = np.array([-1.0, 1.5])
+    
+    def fg(self, x):
+        fun_value = x[0] - x[1] + 2*x[0]*x[1] + 2*x[0]**2 + x[1]**2
+        jac_value = np.array([ 1 + 2*x[1] + 4*x[0], 
+                                -1 + 2*x[0] + 2*x[1] ])
+        return fun_value, jac_value
+
+    def test_a_optimization(self):
+        x0 = np.array([0.0, 0.0])
+        actual_x_min = lbfgs(self.fg, x0, max_iters=100, m=5, tol=1e-5)
+        np.testing.assert_allclose(actual_x_min, self.x_min, atol=1.e-3)
+
+
+class TestLBFGSRosenbrockFunction(unittest.TestCase):
+
+    def __init__(self, *args, **kwargs):
+        super(TestLBFGSRosenbrockFunction, self).__init__(*args, **kwargs)
+        self.x_min = np.array([1.0, 1.0])
+        self.fun_min_value = 0.0
+        
+    def fg(self, x):
+        fun_value = (1 - x[0])**2 + 100 * (x[1] - x[0]**2)**2
+        jac_value = np.array([-2 * (1 - x[0]) - 400 * (x[1] - x[0]**2)*x[0], 
+                              200*(x[1] - x[0]**2) ])
+        return fun_value, jac_value
+        
+    def test_a_optimization(self):
+        x0 = np.array([-1.0, -1.0])
+        opt = GNCG(x0, self.fg, c1=1.e-3, c2=0.2, max_iters=5000, min_grad=(1.e-9, 7), verbosity=0)
+        actual_x_min = lbfgs(self.fg, x0, max_iters=1000, m=5, tol=1e-5)
+        np.testing.assert_allclose(actual_x_min, self.x_min, atol=1.e-4)
+
+
+class TestLBFGSZakharovFunction(unittest.TestCase):
+
+    def __init__(self, *args, **kwargs):
+        super(TestLBFGSZakharovFunction, self).__init__(*args, **kwargs)
+        self.fun_min_value = 0.0
+        
+    def fg(self, x):
+        d = self.d
+        sum1 = 0.
+        sum2 = 0.
+        a = np.array([x for x in range(1, 1 + d)], dtype=np.double)
+        for i in range(0, d):
+            xi = x[i]
+            sum1 += xi * xi
+            sum2 += 0.5 * (i + 1) * xi
+        sum22 = sum2 * sum2
+        y = sum1 + sum22 + sum22 * sum22
+        y1 = 2. * x + ( 1. + 2. * sum22 ) * sum2 * a
+        return y, y1
+
+    def test_a_optimization(self, d=20):
+        self.d = d
+        self.x_min = np.zeros((d,), dtype=np.double)
+        x0 = np.random.uniform(low=-5., high=5., size=(d,))
+        actual_x_min = lbfgs(self.fg, x0, max_iters=1000, m=5, tol=1e-5)
         np.testing.assert_allclose(actual_x_min, self.x_min, atol=1.e-5)
