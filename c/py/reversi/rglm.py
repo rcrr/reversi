@@ -56,6 +56,10 @@ import ctypes as ct
 import inspect
 import copy
 
+import cProfile
+import pstats
+from pstats import SortKey
+
 # time_t is defined as int64_t in the C library.
 c_time_t = ct.c_uint64
 
@@ -896,10 +900,11 @@ class Rglm:
         # The call to compute_analytics:
         #  - self.vmap
         self.compute_analytics()
-        self.retrieve_expected_probabilities_from_rglm_data_file()
+        self.retrieve_w_and_expected_probabilities_from_rglm_data_file()
 
-        # HERE
+        # HERE - WIP ( Work In Progress )
         # We need to avoid to compute again what is already in the rglm data file.
+        # And set up properly all the fields ... like weights ....
 
     def populate_cthelper(self):
         self._CTHelper = _RglmdfGeneralDataCTHelper()
@@ -1560,12 +1565,13 @@ class Rglm:
         self.vmap.loc[self.vmap['etype'] == 0, 'eprobs'] = 1.
         return self
 
-    def retrieve_expected_probabilities_from_rglm_data_file(self) -> Rglm:
+    def retrieve_w_and_expected_probabilities_from_rglm_data_file(self) -> Rglm:
         df = self.extract_rglmdf_entity_freq_summary_table()
         df = df.rename(columns={'entity_class':            'etype',
                                 'entity_id':               'eid',
                                 'principal_index_value':   'idx',
                                 'theoretical_probability': 'eprobs'})
+        self.w = df.weight
         df.drop(columns=['glm_variable_id', 'total_cnt', 'relative_frequency', 'weight'], inplace=True)
         self.vmap = pd.merge(self.vmap, df, how='left', on=['etype', 'eid', 'idx'])
         return self
@@ -1608,9 +1614,6 @@ class Rglm:
             g = - self.xt @ ((self.yh * (1. - self.yh)) * self.r) + c * w
             return f, g
 
-        import cProfile
-        import pstats
-        from pstats import SortKey
         with cProfile.Profile() as pr:
             self.opt_res = minimize(fg, self.w, jac=True, method='L-BFGS-B', options=options, callback=callback_log)
 
@@ -1749,9 +1752,6 @@ class Rglm:
 
         x0 = copy.deepcopy(self.w)
 
-        import cProfile
-        import pstats
-        from pstats import SortKey
         with cProfile.Profile() as pr:
             self.w = lbfgs(fg, x0, max_iters=500, m=97, tol=1e-2, verbosity=1)
 
@@ -1985,7 +1985,7 @@ test_run_0 = {'cfg_fname': 'cfg/regab.cfg',
               'vld_statuses': 'CMR,CMS',
               'features': 'INTERCEPT,MOBILITY3',
               'patterns': 'EDGE,DIAG3',
-              'ridge_reg_param': 0.1,
+              'ridge_reg_param': 0.01,
               'l_bfgs_b_options': {'disp': True,
                                    'maxcor': 50,
                                    'ftol': 1e-08,
@@ -2233,6 +2233,23 @@ def rglm_sigmoid(x: np.ndarray) -> np.ndarray:
     The expit funxtion from scipy provide more numerical stability for very small values of x.
     """
     return expit(x)
+
+def rglm_integral_sigmoid(x: np.ndarray) -> np.ndarray:
+    """
+    Compute the integral of the sigmoid function s(x) = 1 / (1+exp(-x)),
+    i.e. ln(1 + exp(x)), with integration constant = 0.
+    Numerically stable and vectorized version acting as a ufunc.
+    """
+    x = np.asarray(x)  # allow input scalar or array
+    out = np.empty_like(x, dtype=np.float64)
+
+    # When x > 0 we adopt the stable expression x + log1p(exp(-x))
+    mask = x > 0
+    out[mask] = x[mask] + np.log1p(np.exp(-x[mask]))
+    # When x <= 0 is used log1p(exp(x))
+    out[~mask] = np.log1p(np.exp(x[~mask]))
+
+    return out
 
 def rglm_gv_to_gvt(gv: np.ndarray) -> np.ndarray:
     """

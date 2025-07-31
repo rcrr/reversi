@@ -295,9 +295,11 @@ def _strong_wolfe_line_search(fg: Callable[[np.ndarray], FG],
             return alpha1, cache[alpha1]
         alpha_prev = alpha1
         phi_prev = phi_a1
-        #alpha1 = min(alpha1 * 2, alpha_max)
         interpolated_min = _hermite_cubic_interp_min(alpha0, phi0, derphi0, alpha1, phi_a1, derphi_a1)
-        i_alpha, i_phi, i_derphi, i_der2phi = interpolated_min
+        if interpolated_min is not None:
+            i_alpha, i_phi, i_derphi, i_der2phi = interpolated_min
+        else:
+            i_alpha = alpha1 * 2
         alpha1 = min(i_alpha, alpha_max)
         phi_a1, derphi_a1 = phi(alpha1)
 
