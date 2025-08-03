@@ -686,7 +686,7 @@ class _RglmdfGeneralDataCTHelper(ct.Structure):
         p_i2_array = t[p_i2_cols].to_numpy().flatten(order='C')
         ct.memmove(self.positions.i2array, p_i2_array.ctypes.data, parray_size)
 
-        
+
 class Rglm:
     """
     RGLM - Reversi Generalized Linear Model
@@ -1742,18 +1742,12 @@ class Rglm:
                        'maxls': 20,
                        'finite_diff_rel_step': None}
         
-        def fg(w):
-            linear_predictor = self.x @ w
-            self.yh = rglm_sigmoid(linear_predictor)
-            self.r = self.y - self.yh
-            f = 0.5 * (sum(self.r**2) + c * sum(w**2))
-            g = - self.xt @ ((self.yh * (1. - self.yh)) * self.r) + c * w
-            return f, g
-
+        fg = fg_builder(self.x, self.y, c)
+        
         x0 = copy.deepcopy(self.w)
 
         with cProfile.Profile() as pr:
-            self.w = lbfgs(fg, x0, max_iters=500, m=97, tol=1e-2, verbosity=1)
+            self.w = lbfgs(fg, x0, max_iters=1000, m=97, tol=1e-3, verbosity=1)
 
         ps = pstats.Stats(pr).sort_stats(SortKey.CUMULATIVE)
         ps.print_stats()
@@ -1765,6 +1759,35 @@ class Rglm:
         
         return self
 
+    def optimize5(self, c, options) -> Rglm:
+        """
+        Finds the minimum of the objective function, optimizing the values
+        assigned to weights.
+        Argument c is the Ridge regularization coefficient defaulted to 0.0.
+
+        """
+
+        x32 = self.x.astype(np.float32)
+        y32 = self.y.astype(np.float32)
+        c32 = np.array(c, dtype=np.float32)
+        
+        fg = fg_builder(x32, y32, c32)
+        
+        x0 = copy.deepcopy(self.w.astype(np.float32))
+
+        with cProfile.Profile() as pr:
+            self.w = lbfgs(fg, x0, max_iters=500, m=97, tol=1e-3, verbosity=1)
+
+        ps = pstats.Stats(pr).sort_stats(SortKey.CUMULATIVE)
+        ps.print_stats()
+        
+        self.yh = rglm_sigmoid(self.x @ self.w)
+        self.r = self.y - self.yh
+
+        self.vmap['weight'] = self.w
+        
+        return self
+    
     def compute_wmean_for_patterns(self):
         self.wmeans = dict.fromkeys([p.id for p in self.patterns])
         df = self.vmap[self.vmap['etype'] == 1][['eid','oprobs','weight']]
@@ -2212,7 +2235,7 @@ def rglm_workflow(kvargs: dict):
     m = timed_run(m.compute_y, "m = m.compute_y()")
     m = timed_run(m.compute_analytics, "m = m.compute_analytics()")
     m = timed_run(m.retrieve_expected_probabilities_from_regab_db, "m = m.retrieve_expected_probabilities_from_regab_db()")
-    m = timed_run(m.optimize4, "m = m.optimize4({}, {{...}})", ridge_reg_param, l_bfgs_b_options)
+    m = timed_run(m.optimize5, "m = m.optimize5({}, {{...}})", ridge_reg_param, l_bfgs_b_options)
     if l_bfgs_b_options is not None:
         print("   l_bfgs_b_options = {}".format(l_bfgs_b_options))
     m = timed_run(m.compute_wmean_for_patterns, "m = m.compute_wmean_for_patterns()")
@@ -2361,3 +2384,28 @@ def unix_time_now() -> int:
     unix_timestamp = datetime.datetime.timestamp(presentDate)*1000
     unix_timestamp_int = int(unix_timestamp)
     return unix_timestamp_int
+
+
+def fg_builder(x: scipy.sparse._csr.csr_matrix,
+               y: np.ndarray,
+               c: float) -> Callable[[np.ndaray], (float, np.ndarray)]:
+    """
+    Returns the function_gradient (fg) Callable.
+    """
+    xt = x.transpose()
+
+    def fg(w: np.ndarray) -> tuple(float, np.ndarray):
+        linear_predictor = x @ w
+        yh = rglm_sigmoid(linear_predictor)
+        dyh = yh * (1. - yh)
+        rn = yh - y
+        norm_rn = np.dot(rn, rn)
+        norm_w = np.dot(w, w)
+        f = 0.5 * (norm_rn + c * norm_w)
+        dyh_rn = dyh * rn
+        g0 = xt @ dyh_rn
+        g1 = c * w
+        g = g0 + g1
+        return f, g
+        
+    return fg

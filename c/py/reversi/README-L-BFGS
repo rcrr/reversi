@@ -16,3 +16,16 @@ In practice using c2=0.3 forces almost always a second step into the line-search
 The second step, using the cubic interpolation almost always drives to the optimum point.
 So each L-BFGS step is more effective but at the cost of 2 function evaluation vs 1.
 The pay off is negative. Better to have a less productive L-BFGS step but costing just one evaluation.
+
+L-BFGS-rcrr_97  500 2887.11 .....     2.53 (with newer optimized fg)
+
+L-BFGS-rcrr_97  310 2893.73 .....     1.20 ( 32bit)
+The minimum value possible using 32bit optimization is 2885.27
+The value is rached after 660 iterations.
+
+L-BFGS-rcrr_97  500 2886.90 .....     2.27 ( 32bit)
+lbfgs call spend 146 sec ( 2,26 correct ).
+531 calls to fg ha a cumulative time of 134 sec ... 0.25s per call.
+fg is consuming 92% of time spent by lbfgs.
+The a2050 has 77.925 weights and 1.999.179 training records.
+Round it to 80k parameters and 2M samples.
