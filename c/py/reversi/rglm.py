@@ -1776,7 +1776,8 @@ class Rglm:
         x0 = copy.deepcopy(self.w.astype(np.float32))
 
         with cProfile.Profile() as pr:
-            self.w = lbfgs(fg, x0, max_iters=500, m=97, tol=1e-3, verbosity=1)
+            self.w = lbfgs(fg, x0, max_iters=500, m=97,
+                           min_grad=(3e-1, 3), min_p_fun_decrease=(1e-7, 7), verbosity=1)
 
         ps = pstats.Stats(pr).sort_stats(SortKey.CUMULATIVE)
         ps.print_stats()

@@ -236,8 +236,8 @@ def _strong_wolfe_line_search(fg: Callable[[np.ndarray], FG],
                               x: np.ndarray,
                               p: np.ndarray,
                               fgv0: FG,
-                              c1: float =1e-4,
-                              c2: float =0.9,
+                              c1: float,
+                              c2: float,
                               alpha_max: float =10.0,
                               max_iters: int =3) -> (float, FG):
     """
@@ -364,11 +364,14 @@ def _zoom(phi: Callable[[float], (float, float)],
     # If no suitable alpha found, return midpoint and cached values
     return alpha, cache[alpha]
 
-def lbfgs(fg: Collable[[np.ndarray], (float, np.ndarray)],
+def lbfgs(fg: Collable[[np.ndarray], Tuple[float, np.ndarray]],
           x0: np.ndarray,
+          c1: float =1e-4,
+          c2: float =0.9,
+          min_grad: tuple =(1.e-5, 3),
+          min_p_fun_decrease: tuple =(1.e-14, 7),
           max_iters: int =100,
           m: int =10,
-          tol: float =1e-5,
           verbosity: int =0) -> np.ndarray:
     """
     Limited-memory BFGS optimizer with strong Wolfe line search and restart logic.
@@ -376,19 +379,38 @@ def lbfgs(fg: Collable[[np.ndarray], (float, np.ndarray)],
     Parameters:
     - fg: function that takes x and returns (function_value, gradient)
     - x0: initial guess (numpy array)
+    - c1, c2: Wolfe condition constants (0 < c1 < c2 < 1)
+    - min_grad: stopping tolerance such that ||grad f(x)|| < min_grad[1]
+    - min_p_fun_decrease: minimum percentage acceptable loss decrease between two steps
     - max_iters: maximum number of iterations
     - m: memory size (number of stored vector pairs)
-    - tol: tolerance for gradient norm to stop optimization
     - verbosity: 0="no messages", 1 or more means an increasing verbosity
 
     Returns:
     - x: optimized parameters
     """
     
+    if not isinstance(x0, np.ndarray):
+        raise TypeError('L-BFGS - Error: argument x0 is not an instance of numpy.ndarray')
+    
+    supported_type_list = [np.float32, np.float64]
+    if not any(x0.dtype == dt for dt in supported_type_list):
+        raise TypeError('L-BFGS - Error: argument x0 has an unsupported dtype')    
+    
+    if not callable(fg):
+        raise TypeError('L-BFGS - Error: argument fun is not callable')
+    
     CURVATURE_THRESHOLD = 1.e-10
+    
+    min_grad_value, min_grad_count = min_grad
+    min_p_fun_decrease_value, min_p_fun_decrease_count = min_p_fun_decrease
 
     fg_call_count = 0
     fg_call_count_last = 0
+    
+    low_progres_count_f = 0
+    low_progres_count_g = 0
+
     
     def fgc(x: np.ndarray) -> FG:
         """
@@ -404,12 +426,31 @@ def lbfgs(fg: Collable[[np.ndarray], (float, np.ndarray)],
     yl = []
     rho = []
     fgv = fgc(x) # fgv : function gradient value at x
+    fgv_fun_prev = fgv.fun + np.fabs(fgv.fun)
 
     for k in range(max_iters):
+        
+        # Stopping criteria
         g_norm = np.linalg.norm(fgv.grad)
-        if g_norm < tol:
+        if g_norm < min_grad_value:
+            low_progres_count_g += 1
+        else:
+            low_progres_count_g = 0
+        if low_progres_count_g >= min_grad_count:
             if verbosity > 0:
-                print(f"Converged at iteration {k}, gradient norm {g_norm:.3e}")
+                print(f"L-BFGS - Converged at iteration {k}, gradient norm {g_norm:.3e}")
+            break
+        if fgv.fun != 0.:
+            if fgv.fun < fgv_fun_prev:
+                diff = fgv_fun_prev - fgv.fun
+                p_diff = diff / np.fabs(fgv.fun)
+                if p_diff < min_p_fun_decrease_value:
+                    low_progres_count_f += 1
+                else:
+                    low_progres_count_f = 0
+            else:
+                low_progres_count_f += 1
+        if low_progres_count_f >= min_p_fun_decrease_count:
             break
 
         # Compute search direction using two-loop recursion
@@ -418,14 +459,14 @@ def lbfgs(fg: Collable[[np.ndarray], (float, np.ndarray)],
         # Restart if direction is not descent
         if np.dot(p, fgv.grad) >= 0.:
             if verbosity > 0:
-                print(f"Restart at iteration {k}: direction not descent, resetting memory")
+                print(f"L-BFGS - Restart at iteration {k}: direction not descent, resetting memory")
             sl.clear()
             yl.clear()
             rho.clear()
             p = -fgv.grad  # steepest descent direction
 
         # Strong Wolfe line search, pass current function and gradient
-        alpha, fgv_new = _strong_wolfe_line_search(fgc, x, p, fgv)
+        alpha, fgv_new = _strong_wolfe_line_search(fgc, x, p, fgv, c1, c2)
 
         x_new = x + alpha * p
 
@@ -443,13 +484,16 @@ def lbfgs(fg: Collable[[np.ndarray], (float, np.ndarray)],
             rho.append(1.0 / np.dot(y, s))
 
         x = x_new
+        fgv_fun_prev = fgv.fun
         fgv = fgv_new
 
         if verbosity > 0:
             count = fg_call_count - fg_call_count_last
-            print(f"[{k:04d}/{max_iters:04d}]: f = {fgv.fun:.8e}, ||g|| = {np.linalg.norm(fgv.grad):.3e}, "
+            print(f"L-BFGS - [{k:04d}/{max_iters:04d}]: f = {fgv.fun:.8e}, ||g|| = {np.linalg.norm(fgv.grad):.3e}, "
                   f"alpha = {alpha:.3e}, m = [{len(sl):02d}/{m:02d}], fgc = {count:d}")
             fg_call_count_last = fg_call_count
 
-    print("fgc (count of call to fg function) = {:d}".format(fg_call_count))
+    if verbosity > 0:
+        print("L-BFGS - fgc (count of call to fg function) = {:d}".format(fg_call_count))
+    
     return x

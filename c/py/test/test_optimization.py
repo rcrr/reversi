@@ -347,7 +347,7 @@ class TestLBFGSBaseFunction(unittest.TestCase):
 
     def test_a_optimization(self):
         x0 = np.array([0.0, 0.0])
-        actual_x_min = lbfgs(self.fg, x0, max_iters=100, m=5, tol=1e-5)
+        actual_x_min = lbfgs(self.fg, x0, max_iters=100, m=5, min_grad=(1e-5, 1))
         np.testing.assert_allclose(actual_x_min, self.x_min, atol=1.e-3)
 
 
@@ -367,7 +367,7 @@ class TestLBFGSRosenbrockFunction(unittest.TestCase):
     def test_a_optimization(self):
         x0 = np.array([-1.0, -1.0])
         opt = GNCG(x0, self.fg, c1=1.e-3, c2=0.2, max_iters=5000, min_grad=(1.e-9, 7), verbosity=0)
-        actual_x_min = lbfgs(self.fg, x0, max_iters=1000, m=5, tol=1e-5)
+        actual_x_min = lbfgs(self.fg, x0, max_iters=1000, m=5, min_grad=(1e-5, 1))
         np.testing.assert_allclose(actual_x_min, self.x_min, atol=1.e-4)
 
 
@@ -395,5 +395,5 @@ class TestLBFGSZakharovFunction(unittest.TestCase):
         self.d = d
         self.x_min = np.zeros((d,), dtype=np.double)
         x0 = np.random.uniform(low=-5., high=5., size=(d,))
-        actual_x_min = lbfgs(self.fg, x0, max_iters=1000, m=5, tol=1e-5)
+        actual_x_min = lbfgs(self.fg, x0, max_iters=1000, m=5, min_grad=(1e-5, 1))
         np.testing.assert_allclose(actual_x_min, self.x_min, atol=1.e-5)
