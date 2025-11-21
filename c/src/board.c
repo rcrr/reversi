@@ -1065,6 +1065,112 @@ game_position_x_to_string (const GamePositionX *gpx,
 }
 
 /**
+ * @brief Assigns to the game position the string representation.
+ *
+ * @details The function overwrites the game position with the data taken from the string.
+ *
+ * A sample call is here exemplified:
+ *
+ * @code
+ * GamePositionX gpx;
+ * char *str = "bbbbbbbbwwwwwwww........................................wwwwwwwww";
+ *
+ * game_position_x_from_string(&gpx, str);
+ *
+ * ut_assert(t, gpx.blacks == 0x00000000000000FF);
+ * ut_assert(t, gpx.whites == 0xFF0000000000FF00);
+ * ut_assert(t, gpx.player == WHITE_PLAYER);
+ * @endcode
+ *
+ * @invariant Parameters `gpx` and `str` must be not `NULL`.
+ * The invariants are guarded by assertions.
+ * Moreover it is responsibility of the caller to garantee that the `str`
+ * pointer refers to a well formed `char` vector.
+ *
+ * @param [out] gpx the resulting game position written by the function
+ * @param [in]  str the given string
+ */
+void
+game_position_x_from_string (GamePositionX *const gpx,
+                             const char *const str)
+{
+  assert(gpx);
+  assert(str);
+
+  gpx->blacks = 0L;
+  gpx->whites = 0L;
+  gpx->player = BLACK_PLAYER;
+
+  for (int pos = 0; pos < 64; pos++) {
+    const SquareSet sq = (SquareSet) 1 << pos;
+    const char c = str[pos];
+    if (c == 'b') {
+      gpx->blacks += sq;
+    } else if (c == 'w') {
+      gpx->whites += sq;
+    } else if (c == '.') {
+      ;
+    } else {
+      assert(false);
+    }
+  }
+  const char p = str[64];
+  if (p == 'b') {
+    gpx->player = BLACK_PLAYER;
+  } else if (p == 'w') {
+    gpx->player = WHITE_PLAYER;
+  } else {
+    assert(false);
+  }
+}
+
+/**
+ * @brief Validates the string representation of the game position.
+ *
+ * @details The function validates the format of the string.
+ *
+ * A sample call is here exemplified:
+ *
+ * @code
+ * @endcode
+ *
+ * @invariant Parameter `str` must be not `NULL`.
+ * The invariants are guarded by assertions.
+ * Moreover it is responsibility of the caller to garantee that the `str`
+ * pointer refers to a well formed `char` vector.
+ *
+ * @param [in] str the given string
+ */
+int
+game_position_x_validate_string (const char *const str)
+{
+  assert(str);
+  const size_t len = strlen(str);
+  if (len != 65) return 1;
+  for (int pos = 0; pos < 64; pos++) {
+    const char c = str[pos];
+    if (c == 'b') {
+      ;
+    } else if (c == 'w') {
+      ;
+    } else if (c == '.') {
+      ;
+    } else {
+      return 2;
+    }
+  }
+  const char p = str[64];
+  if (p == 'b') {
+    ;
+  } else if (p == 'w') {
+    ;
+  } else {
+    return 3;
+  }
+  return 0;
+}
+
+/**
  * @brief Compares game positions `a` and `b`.
  *
  * When the two game position are equal it returns `0`, when `a` is greather then `b` it

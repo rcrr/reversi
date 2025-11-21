@@ -331,7 +331,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014, 2015, 2016, 2017, 2018, 2021, 2023, 2024 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2015, 2016, 2017, 2018, 2021, 2023, 2024, 2025 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -373,15 +373,6 @@
 
 #include "game_value_estimator.h"
 
-static void
-print_position_and_lms (GamePositionX *gpx)
-{
-  const SquareSet mover = gpx->player == BLACK_PLAYER ? gpx->blacks : gpx->whites;
-  const SquareSet opponent = gpx->player == BLACK_PLAYER ? gpx->whites : gpx->blacks;
-  const SquareSet lms = game_position_x_legal_moves(gpx);
-  printf("{ {mover , opponent}, lms}: { { 0x%016lx , 0x%016lx }, 0x%016lx },\n", mover, opponent, lms);
-  exit(0);
-}
 
 
 /**
@@ -409,6 +400,7 @@ static const mop_options_long_t olist[] = {
   {"help",              'h', MOP_NONE},
   {"file",              'f', MOP_REQUIRED},
   {"lookup-entry",      'q', MOP_REQUIRED},
+  {"game-position",     'g', MOP_REQUIRED},
   {"solver",            's', MOP_REQUIRED},
   {"repeats",           'n', MOP_REQUIRED},
   {"prng-seed",         'r', MOP_REQUIRED},
@@ -433,6 +425,7 @@ static const char *documentation_0 =
   "  -h, --help             Show help options\n"
   "  -f, --file             Input file name          - Mandatory.\n"
   "  -q, --lookup-entry     Lookup entry             - Mandatory.\n"
+  "  -g, --game-position    Game position string     - Could be given as an alternative to --file and --lookup-entry.\n"
   "  -s, --solver           Solver                   - Mandatory - Must be in [es|ifes|rand|minimax|ab|rab|rglm|gve].\n"
   "  -n, --repeats          N. of repetitions        - Used with the rand/rab solvers.\n"
   "  -r, --prng-seed        random generator seed    - Used with rand/rab solvers.\n"
@@ -495,7 +488,7 @@ static const char *documentation_1 =
   "Author:\n"
   "  Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
   "\n"
-  "Copyright (c) 2013, 2014, 2015, 2016, 2017, 2018, 2021, 2023, 2024 Roberto Corradini. All rights reserved.\n"
+  "Copyright (c) 2013, 2014, 2015, 2016, 2017, 2018, 2021, 2023, 2024, 2025 Roberto Corradini. All rights reserved.\n"
   "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
   "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n"
   ;
@@ -527,6 +520,9 @@ static char *f_arg = NULL;
 
 static int q_flag = false;
 static char *q_arg = NULL;
+
+static int g_flag = false;
+static char *g_arg = NULL;
 
 static int s_flag = false;
 static char *s_arg = NULL;
@@ -563,6 +559,7 @@ static char *c_arg = NULL;
 
 static char *input_file = NULL;
 static char *lookup_entry = NULL;
+static char *game_position_string = NULL;
 static int solver_index = -1;
 static unsigned long long int repeats = 0;
 static char *log_file = NULL;
@@ -591,6 +588,14 @@ egs_select_pattern (const char *const name);
 static void
 egs_parse_ab (int *alpha, int *beta, char *arg, int *err);
 
+static int
+egs_get_game_position_from_string (const char *const str,
+                                   GamePositionX *const gpx);
+
+static int
+egs_get_game_position_from_db (const char *const input_file,
+                               const char *const lookup_entry,
+                               GamePositionX *const gpx);
 
 /**
  * @endcond
@@ -624,6 +629,10 @@ main (int argc,
     case 'q':
       q_flag = true;
       q_arg = options.optarg;
+      break;
+    case 'g':
+      g_flag = true;
+      g_arg = options.optarg;
       break;
     case 's':
       s_flag = true;
@@ -696,11 +705,29 @@ main (int argc,
    * Checks command line options for consistency.
    */
 
-  if (!f_flag) {
-    fprintf(stderr, "Option -f, --file is mandatory.\n");
+  /*
+   * Having a game position is mandatory.
+   * It can be obtained giving -f and -q flags, or via -p one.
+   */
+  bool gp_defined_properly = false;
+  if ((f_flag && q_flag) && !g_flag) {
+    gp_defined_properly = true;
+  } else if (g_flag && (!f_flag) && (!q_flag)) {
+    gp_defined_properly = true;
+  }
+  if (!gp_defined_properly) {
+    fprintf(stderr, "The game position is not defined properly.\n");
+    fprintf(stderr, "Options -f, --file, and -q, --lookup-entry, are mandatory.\n");
+    fprintf(stderr, "As an alternative, options -g, --game-position, can be assigned.\n");
+    fprintf(stderr, "The two choices are mutually exclusive.\n");
     return -2;
+  }
+
+  if (g_flag) {
+    game_position_string = g_arg;
   } else {
     input_file = f_arg;
+    lookup_entry = q_arg;
   }
 
   if (!s_flag) {
@@ -714,13 +741,6 @@ main (int argc,
     }
   }
   const endgame_solver_t *const solver = &solvers[solver_index];
-
-  if (!q_flag) {
-    fprintf(stderr, "Option -q, --lookup-entry is mandatory.\n");
-    return -6;
-  } else {
-    lookup_entry = q_arg;
-  }
 
   if (n_flag) {
     if ((strcmp("rand", solver->id) != 0) && (strcmp("rab", solver->id) != 0)) { // solver is not rab or rand ...
@@ -887,24 +907,46 @@ main (int argc,
     }
   }
 
-  /* Verifies that the database input file is available for reading. */
-  FILE *fp = fopen(input_file, "r");
-  if (!fp) {
-    fprintf(stderr, "Unable to open database resource for reading, file \"%s\" does not exist.\n", input_file);
-    return -18;
-  }
-  fclose(fp);
-
   /*
    * Checks on command line options ends here.
    */
 
-
-
-  gpdb_dictionary_t *db;
-  gpdb_syntax_err_log_t *syntax_error_log;
-
-  gpdb_entry_t *entry = NULL;
+  /*
+   * Get the game position.
+   */
+  GamePositionX gpxs;
+  GamePositionX *gpx;
+  gpx = &gpxs;
+  int ret;
+  if (g_flag) {
+    ret = egs_get_game_position_from_string(game_position_string, gpx);
+    if (ret == 1) {
+      fprintf(stderr, "The game position string has a wrong format, it has not the right length.\n");
+      return -20;
+    } else if (ret == 2) {
+      fprintf(stderr, "The game position string has a wrong format, one or more squares are invalid.\n");
+      return -20;
+    } else if (ret == 3) {
+      fprintf(stderr, "The game position string has a wrong format, the player is invalid.\n");
+      return -20;
+    } else if (ret != 0) {
+      fprintf(stderr, "The game position string has a problem.\n");
+      return -20;
+    }
+  } else {
+    /* Verifies that the database input file is available for reading. */
+    FILE *fp = fopen(input_file, "r");
+    if (!fp) {
+      fprintf(stderr, "Unable to open database resource for reading, file \"%s\" does not exist.\n", input_file);
+      return -18;
+    }
+    fclose(fp);
+    ret = egs_get_game_position_from_db(input_file, lookup_entry, gpx);
+    if (ret != 0) {
+      fprintf(stderr, "Unable to find the given game position.\n");
+      return -7;
+    }
+  }
 
   endgame_solver_env_t env =
     { .log_file = NULL,
@@ -923,33 +965,6 @@ main (int argc,
       .cfg = cfg,
     };
 
-  /* Loads the game position database. */
-  db = gpdb_dictionary_new(input_file);
-  syntax_error_log = gpdb_syntax_err_log_new();
-  gpdb_dictionary_load(db, syntax_error_log, input_file, true, false, true);
-
-  /* Compute the number of errors logged. */
-  const int number_of_errors = gpdb_syntax_err_log_length(syntax_error_log);
-  gpdb_syntax_err_log_free(syntax_error_log);
-  if (number_of_errors != 0) {
-    fprintf(stderr, "The database resource, file \"%s\" contains errors, debug it using the gpdb_verify utility.\n", input_file);
-    return -4;
-  }
-
-  /* Lookup for a given key. */
-  if (lookup_entry) {
-    entry = gpdb_dictionary_find_entry(db, lookup_entry);
-    if (entry) {
-      gpdb_entry_print(entry, stdout, true);
-    } else {
-      fprintf(stderr, "Entry %s not found in file %s.\n", lookup_entry, input_file);
-      return -6;
-    }
-  } else {
-    printf("No entry provided.\n");
-    return -7;
-  }
-
   /* Initializes the board module. */
   board_module_init();
 
@@ -962,10 +977,8 @@ main (int argc,
   env.pv_no_print = pv_no_print;
 
   /* Solves the position. */
-  GamePositionX *gpx = gpdb_entry_get_gpx(entry);
-  if (false) print_position_and_lms(gpx);
   ExactSolution *solution = NULL;
-  fprintf(stdout, "Solving game position %s, from source %s, using solver %s (%s) ...\n", entry->id, input_file, solver->id, solver->description);
+  if (!g_flag) fprintf(stdout, "Solving game position %s, from source %s, using solver %s (%s) ...\n", lookup_entry, input_file, solver->id, solver->description);
   solution = solver->fn(gpx, &env);
 
   /* Prints results. */
@@ -974,7 +987,6 @@ main (int argc,
   printf("\n");
 
   /* Frees the resources. */
-  gpdb_dictionary_free(db);
   exact_solution_free(solution);
   cfg_free(env.cfg);
 
@@ -990,6 +1002,59 @@ main (int argc,
 /*
  * Internal functions.
  */
+
+static int
+egs_get_game_position_from_db (const char *const input_file,
+                               const char *const lookup_entry,
+                               GamePositionX *const gpx)
+{
+  gpdb_dictionary_t *db;
+  gpdb_syntax_err_log_t *syntax_error_log;
+
+  gpdb_entry_t *entry = NULL;
+
+  /* Loads the game position database. */
+  db = gpdb_dictionary_new(input_file);
+  syntax_error_log = gpdb_syntax_err_log_new();
+  gpdb_dictionary_load(db, syntax_error_log, input_file, true, false, true);
+
+  /* Compute the number of errors logged. */
+  const int number_of_errors = gpdb_syntax_err_log_length(syntax_error_log);
+  gpdb_syntax_err_log_free(syntax_error_log);
+  if (number_of_errors != 0) {
+    fprintf(stderr, "The database resource, file \"%s\" contains errors, debug it using the gpdb_verify utility.\n", input_file);
+    return -1;
+  }
+
+  /* Lookup for a given key. */
+  if (lookup_entry) {
+    entry = gpdb_dictionary_find_entry(db, lookup_entry);
+    if (entry) {
+      gpdb_entry_print(entry, stdout, true);
+    } else {
+      fprintf(stderr, "Entry %s not found in file %s.\n", lookup_entry, input_file);
+      return -2;
+    }
+  } else {
+    printf("No entry provided.\n");
+    return -3;
+  }
+  GamePositionX *gpx0 = gpdb_entry_get_gpx(entry);
+  game_position_x_copy(gpx0, gpx);
+  gpdb_dictionary_free(db);
+
+  return 0;
+}
+
+static int
+egs_get_game_position_from_string (const char *const str,
+                                   GamePositionX *const gpx)
+{
+  int ret = game_position_x_validate_string(str);
+  if (ret != 0) return ret;
+  game_position_x_from_string(gpx, str);
+  return 0;
+}
 
 /**
  * @brief Ruturns the index in the solvers array of the endgame solver identified by `id`.

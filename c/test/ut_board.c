@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2017 Roberto Corradini. All rights reserved.
+ * @copyright 2017, 2025 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -406,6 +406,54 @@ game_position_x_to_string_t (ut_test_t *const t)
 }
 
 static void
+game_position_x_from_string_t (ut_test_t *const t)
+{
+  GamePositionX gpx;
+  char *str = "bbbbbbbbwwwwwwww........................................wwwwwwwww";
+
+  game_position_x_from_string(&gpx, str);
+
+  ut_assert(t, gpx.blacks == 0x00000000000000FF);
+  ut_assert(t, gpx.whites == 0xFF0000000000FF00);
+  ut_assert(t, gpx.player == WHITE_PLAYER);
+}
+
+static void
+game_position_x_validate_string_t (ut_test_t *const t)
+{
+  const char *const valid_str             = "bbbbbbbbwwwwwwww........................................wwwwwwwww";
+  const char *const unvalid_long_str      = "bbbbbbbbwwwwwwww........................................wwwwwwwwww";
+  const char *const unvalid_short_str     = "bbbbbbbbwwwwwwww........................................wwwwwwww";
+  const char *const unvalid_square_00_str = "xbbbbbbbwwwwwwww........................................wwwwwwwww";
+  const char *const unvalid_square_20_str = "bbbbbbbbwwwwwwww....x...................................wwwwwwwww";
+  const char *const unvalid_square_63_str = "bbbbbbbbwwwwwwww........................................wwwwwwwxw";
+  const char *const unvalid_player_str    = "bbbbbbbbwwwwwwww........................................wwwwwwwwx";
+
+  int ret = 0;
+
+  ret = game_position_x_validate_string(valid_str);
+  ut_assert(t, ret == 0);
+
+  ret = game_position_x_validate_string(unvalid_long_str);
+  ut_assert(t, ret == 1);
+
+  ret = game_position_x_validate_string(unvalid_short_str);
+  ut_assert(t, ret == 1);
+
+  ret = game_position_x_validate_string(unvalid_square_00_str);
+  ut_assert(t, ret == 2);
+
+  ret = game_position_x_validate_string(unvalid_square_20_str);
+  ut_assert(t, ret == 2);
+
+  ret = game_position_x_validate_string(unvalid_square_63_str);
+  ut_assert(t, ret == 2);
+
+  ret = game_position_x_validate_string(unvalid_player_str);
+  ut_assert(t, ret == 3);
+}
+
+static void
 game_position_x_get_square_t (ut_test_t *const t)
 {
   GamePositionX gpx;
@@ -784,6 +832,8 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_legal_moves", game_position_x_legal_moves_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_count_difference", game_position_x_count_difference_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_to_string", game_position_x_to_string_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_from_string", game_position_x_from_string_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_validate_string", game_position_x_validate_string_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_get_square", game_position_x_get_square_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_compare", game_position_x_compare_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_clone", game_position_x_clone_t);

@@ -12,7 +12,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014, 2017 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2017, 2025 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -322,6 +322,13 @@ game_position_x_count_difference (const GamePositionX *const gpx);
 extern void
 game_position_x_to_string (const GamePositionX *gpx,
                            char *out);
+
+extern void
+game_position_x_from_string (GamePositionX *const gpx,
+                             const char *const str);
+
+extern int
+game_position_x_validate_string (const char *const str);
 
 extern int
 game_position_x_compare (const GamePositionX *const a,
