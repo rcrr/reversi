@@ -51,7 +51,7 @@ from line_profiler import LineProfiler
 # From the $(REVERSI_HOME)/c directory run this test module doing:
 #
 # $ source py/.reversi_venv/bin/activate
-# $ PYTHONPATH="./py" python3 py/perf/load_rglm_model.py --filename abc.txt
+# $ PYTHONPATH="./py" python3 py/perf/load_rglm_model.py --filename rglmdata/A2050_01.dat
 #
 
 # 01-08-2025
@@ -94,36 +94,21 @@ c = 0.01
 iterations = 1
 
 def fg_builder(x, y, c):
-    print("x = {}".format(x))
-    print("y = {}".format(y))
-    print("c = {}".format(c))
-
+    
     xt = x.transpose()
-    print("xt = {}".format(xt))
 
     def fg(w):
         linear_predictor = x @ w
-        print("linear_predictor = {}".format(linear_predictor))
         yh = rglm_sigmoid(linear_predictor)
-        print("yh = {}".format(yh))
         dyh = yh * (1. - yh)
-        print("dyh = {}".format(dyh))
         rn = yh - y
-        print("rn = {}".format(rn))
         norm_rn = np.dot(rn, rn)
-        print("norm_rn = {}".format(norm_rn))
         norm_w = np.dot(w, w)
-        print("norm_w = {}".format(norm_w))
         f = 0.5 * (norm_rn + c * norm_w)
-        print("f = {}".format(f))
         dyh_rn = dyh * rn
-        print("dyh_rn = {}".format(dyh_rn))        
         g0 = xt @ dyh_rn
-        print("g0 = {}".format(g0))
         g1 = c * w
-        print("g1 = {}".format(g1))
         g = g0 + g1
-        print("g = {}".format(g))
         return f, g
 
     return fg

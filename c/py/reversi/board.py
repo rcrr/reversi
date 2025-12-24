@@ -233,8 +233,8 @@ class SquareSet(np.uint64):
         When the position is already empty the returned configuration is unchanged.
 
         Example:
-          sb = SquareSet(3)                  # sa is '0000000000000003'
-          sa = sb.fill_square_at_position(0) # sb is '0000000000000002'
+          sb = SquareSet(3)                    # sa is '0000000000000003'
+          sa = sb.remove_square_at_position(0) # sb is '0000000000000002'
         """
         return SquareSet(self & ~(np.uint64(1) << np.uint64(ct.c_ulong(pos))))
 

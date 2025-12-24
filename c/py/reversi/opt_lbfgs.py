@@ -32,6 +32,9 @@ import numpy as np
 from collections import namedtuple
 import matplotlib.pyplot as plt
 
+import torch
+import scipy.sparse
+
 # FG : Function , Gradient named tuple
 FG = namedtuple('FG', ['fun', 'grad'])
 
@@ -364,7 +367,7 @@ def _zoom(phi: Callable[[float], (float, float)],
     # If no suitable alpha found, return midpoint and cached values
     return alpha, cache[alpha]
 
-def lbfgs(fg: Collable[[np.ndarray], Tuple[float, np.ndarray]],
+def lbfgs(fg: Callable,
           x0: np.ndarray,
           c1: float =1e-4,
           c2: float =0.9,
@@ -372,7 +375,8 @@ def lbfgs(fg: Collable[[np.ndarray], Tuple[float, np.ndarray]],
           min_p_fun_decrease: tuple =(1.e-14, 7),
           max_iters: int =100,
           m: int =10,
-          verbosity: int =0) -> np.ndarray:
+          verbosity: int =0.,
+          torch_backend: bool =False) -> np.ndarray:
     """
     Limited-memory BFGS optimizer with strong Wolfe line search and restart logic.
 
@@ -388,6 +392,9 @@ def lbfgs(fg: Collable[[np.ndarray], Tuple[float, np.ndarray]],
 
     Returns:
     - x: optimized parameters
+
+    When torch is false the signature of fg is fg: Collable[[np.ndarray], Tuple[float, np.ndarray]],
+    when torch is true the signature expected is fg: Collable[[torch.Tensor], Tuple[torch.Tensor, torch.Tensor]]
     """
     
     if not isinstance(x0, np.ndarray):
@@ -411,8 +418,9 @@ def lbfgs(fg: Collable[[np.ndarray], Tuple[float, np.ndarray]],
     low_progres_count_f = 0
     low_progres_count_g = 0
 
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    def fgc(x: np.ndarray) -> FG:
+    def fgc_plain(x: np.ndarray) -> FG:
         """
         Compute FG namedtuple (fun, grad) at x and increment call count.
         """
@@ -420,6 +428,21 @@ def lbfgs(fg: Collable[[np.ndarray], Tuple[float, np.ndarray]],
         fg_call_count += 1
         fgv = fg(x)
         return FG(*fgv)
+    
+    def fgc_torch(x: np.ndarray) -> FG:
+        """
+        Compute FG namedtuple (fun, grad) at x and increment call count.
+        """
+        nonlocal fg_call_count
+        fg_call_count += 1
+        x = torch.from_numpy(x).float().to(device)
+        f_t, g_t = fg(x)
+        f = f_t.detach().cpu().numpy()
+        g = g_t.detach().cpu().numpy()
+        fgv = f, g
+        return FG(*fgv)
+
+    fgc = fgc_torch if torch_backend else fgc_plain
     
     x = x0.copy()
     sl = []

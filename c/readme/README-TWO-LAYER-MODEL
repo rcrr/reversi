@@ -1,0 +1,205 @@
+
+  README-TWO-LAYER-MODEL
+
+  Copyright (c) 2025 Roberto Corradini. All rights reserved.
+
+  This file is part of the reversi program
+  http://github.com/rcrr/reversi
+
+  This program is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by the
+  Free Software Foundation; either version 3, or (at your option) any
+  later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+  or visit the site <http://www.gnu.org/licenses/>.
+
+#
+# apt install texlive-full
+#
+
+This file describe the design of an enhanced RGLM model, being realized with two layers instead of a single one.
+The work in progress of this activity is written in Italian.
+Today, doing the translation into English using an AI Agent is quite trivial.
+
+2025.11.14 - Notes
+
+La BOARD Reversi è composta da 64 celle. Numerate da 0 ( in alto a sinistra, NW ) a 63 ( in basso a destra ).
+La configurazione della BOARD è rappresentata con due interi a 64 bit.
+Il primo rappresenta le celle del GIOCATORE che deve effetuare la mossa, il secondo le celle dell'OPPOSITORE.
+Con due int64 viene quindi rappresentata la POSIZIONE.
+Unica invariante è che : PLAYER & OPPONENT == 0 , quindi non vi è overlap tra i bit del giocatore e dell'avversario.
+Quando una cella ha zero sia per il giocatore che per l'avversario e' vuota.
+
+Una posizione è taggata dal VALORE dell'end-game ottenuto risolvendo la posizione in maniera esatta con l'algoritmo MINIMAX ( o ALPHA-BETA ).
+I VALORI possibili di una posizione sono i numeri interi pari [-64..+64].
+Zero significa pareggio, valori negativi una sconfitta, valori positivi una vittoria.
+
+Prendiamo una posizione dal database SQL dove vengono registrati i game risolti:
+
+tst_regab=> SELECT seq, mover, opponent, player, batch_id, game_id, empty_count, legal_move_count, game_value, best_move, game_position_to_string((mover, opponent, player)), game_position_pp_mop(mover, opponent, player) FROM regab_prng_gp WHERE batch_id = 7 AND empty_count = 20 AND status = 'CMS' LIMIT 1;
+   seq    |        mover        |       opponent       | player | batch_id | game_id | empty_count | legal_move_count | game_value | best_move |                      game_position_to_string                      | game_position_pp_mop  
+----------+---------------------+----------------------+--------+----------+---------+-------------+------------------+------------+-----------+-------------------------------------------------------------------+-----------------------
+ 68230056 | 4611717676283199524 | -7855295674223658936 |      0 |        7 |       0 |          20 |               13 |         10 | F8        | ..bw.bw....wwww...wwwwb.bbwbwbbb.bwbwwbb.wbbbww...wwwwww.w..w.bwb |    a b c d e f g h   +
+          |                     |                      |        |          |         |             |                  |            |           |                                                                   | 1  . . @ O . @ O .   +
+          |                     |                      |        |          |         |             |                  |            |           |                                                                   | 2  . . . O O O O .   +
+          |                     |                      |        |          |         |             |                  |            |           |                                                                   | 3  . . O O O O @ .   +
+          |                     |                      |        |          |         |             |                  |            |           |                                                                   | 4  @ @ O @ O @ @ @   +
+          |                     |                      |        |          |         |             |                  |            |           |                                                                   | 5  . @ O @ O O @ @   +
+          |                     |                      |        |          |         |             |                  |            |           |                                                                   | 6  . O @ @ @ O O .   +
+          |                     |                      |        |          |         |             |                  |            |           |                                                                   | 7  . . O O O O O O   +
+          |                     |                      |        |          |         |             |                  |            |           |                                                                   | 8  . O . . O . @ O   +
+          |                     |                      |        |          |         |             |                  |            |           |                                                                   | Player to move: BLACK
+(1 row)
+
+Ai fini del MACHINE LEARNING (ML) un record posizione di esempio con header e' rappresentato come segue:
+
+             PLAYER ;             OPPONENT ; GAME_VALUE
+4611717676283199524 ; -7855295674223658936 ;         10
+
+Dove:
+  PLAYER     : e' la configurazione della board dei dischi occupati dal giocatore che deve muovere, in formato int64 con segno. Il bit meno significativo è la casella A1, in alto a sinistra, CORNER NW, si procede per righe.
+  OPPONENT   : e' la configurazione della board dei dischi occupati dall'opponente, stesso formato usato per PLAYER.
+  GAME_VALUE : e' il valore esatto del game
+
+Il valore del GAME_VALUE e' ottenuto con un software di soluzione esatta della posizione.
+Il database contiene milioni di record posizione risolti.
+Le posizioni sono generate eseguendo delle mosse legali scelte a random a partire dalle condizione iniziali.
+
+In una rappresentazione della board in due dimensioni (2D) dove usiamo il smbolo '@' per rappresentare il PLAYER e 'O' per l'OPPONENTE, e '.' per le caselle vuote,
+la posizione e' cosi' raffigurata:
+
+    a b c d e f g h
+ 1  . . @ O . @ O .
+ 2  . . . O O O O .
+ 3  . . O O O O @ .
+ 4  @ @ O @ O @ @ @
+ 5  . @ O @ O O @ @
+ 6  . O @ @ @ O O .
+ 7  . . O O O O O O
+ 8  . O . . O . @ O
+
+In alternativa, con una stringa di 65 caratteri la posizione prende la forma:
+
+'..bw.bw....wwww...wwwwb.bbwbwbbb.bwbwwbb.wbbbww...wwwwww.w..w.bwb'
+
+Dove 'b' significa BLACK, 'w' WHITE '.' EMPTY. L'ultimo, 65 esimo carattere indica quale colore deve muovere.
+
+
+### Rotazioni della BOARD
+
+Allo scopo di calcolare correttamente i valori degli indici dei pattern e' opportuno poter routare la BOARD di zero gradi, 90, 180, 270 gradi e viceversa.
+La rotazione fondamentale è quella di 90 gradi, perchè quelle di 180 e 270 si ottengono ruotando rispettivaemnte due o tre volte di 90 gradi.
+
+La BOARD:
+
+A1 B1 C1 D1 E1 F1 G1 H1
+A2 B2 C2 D2 E2 F2 G2 H2
+A3 B3 C3 D3 E3 F3 G3 H3
+A4 B4 C4 D4 E4 F4 G4 H4
+A5 B5 C5 D5 E5 F5 G5 H5
+A6 B6 C6 D6 E6 F6 G6 H6
+A7 B7 C7 D7 E7 F7 G7 H7
+A8 B8 C8 D8 E8 F8 G8 H8
+
+ruotata in senso orario di 90 gradi diventa:
+
+A8 A7 A6 A5 A4 A3 A2 A1
+B8 B7 B6 B5 B4 B3 B2 B1
+C8 C7 C6 C5 C4 C3 C2 C1
+D8 D7 D6 D5 D4 D3 D2 D1
+E8 E7 E6 E5 E4 E3 E2 E1
+F8 F7 F6 F5 F4 F3 F2 F1
+G8 G7 G6 G5 G4 G3 G2 G1
+H8 H7 H6 H5 H4 H3 H2 H1
+
+
+### Estrazione dei PATTERN
+
+Un PATTERN è un gruppo di celle. Ad esempio EDGE è il nome assegnato alle otto caselle di un bordo della board. Ci sono quattro EDGE in una board, ottenuti ruotando di 0, 90, 180, 270 gradi
+il patetrn di base, per convenzione quello sul bordo a nord.
+Il patetrn EDGE è quindi definito dalle caselle A1, B1, C1, D1, E1, F1, G1, H1 .... ruotandolo di 90 gradi si ottiene: H1, H2, H3, H4, H5, H6, H7, H8 ... e cosi' via per gli altri due.
+La configurazione del pattern puo' anche essere rappresentata con la maschera dei bit sulla bit-board. In esadecimale sarebbe 0x00000000000000FF.
+Un secondo pattern che prendiamo in considerazione e' R2, definito in esadecimale come 0x000000000000FF00.
+
+I pattern sono potenzialmente tantissimi, ma per ora soffermiamoci su questi due EDGE ed R2, sono sufficienti ad introdurre tutta la complessita' che dobbiamo affrontare.
+
+Il pattern EDGE, ed analogamente R2, e' caratterizzato da otto celle. Ogni cella ha tre configurazioni possibili: vuota, occupata da un disco nero, occupata da un disco bianco.
+Diamoci la convenzione che BLACK significa PLAYER, e WHITE OPPONENT. Le configurazioni che un EDGE puo' assumere sono quindi tre elevato alla otto quindi 3^8=6561, seimilacinquecentosessantuno.
+Dobbiamo definire un encoding di queste configurazioni, in maniera da assegnare un nome univoco a ciascuna configurazione.
+Questo nome lo chiamiamo INDICE. Assegnamo il valore zero alla cella vuota. il valore uno alla cella occupata dal nero, ed il valore due a quella occupata dal bianco.
+Assegnamo un ordine univoco alle celle di un pattern. Dalla meno significativa alla più significativa. Quindi per l'EDGE la casella A1 e' la zero, B1 e' la uno, e la H1 e' la sette.
+L'indice di una configutazione e' realizzato sommando il contributo di ciascuna cella del pattern, con valore [0..2] a secondo del colore ( empty=0, black=1, white=2 )
+moltiplicato per tre elevato all'esponente ottenuto dalla posizione ordinale della cella nel pattern.
+
+  INDEX = sum ( C * 3^p )
+
+Facciamo un esempio:
+
+    a b c d e f g h
+ 1  . . @ O . @ O .
+ 2  . . . O O O O .
+ 3  . . O O O O @ .
+ 4  @ @ O @ O @ @ @
+ 5  . @ O @ O O @ @
+ 6  . O @ @ @ O O .
+ 7  . . O O O O O O
+ 8  . O . . O . @ O
+
+L'INDEX del PATTERN EDGE sul bordo NORD ( l'EDGE ruotato di zero gradi ) vale:
+
+A1 : . = 0 * 3^0 = 0 *    1 =    0
+B1 : . = 0 * 3^1 = 0 *    3 =    0
+C1 : @ = 1 * 3^2 = 1 *    9 =    9
+D1 : O = 2 * 3^3 = 2 *   27 =   54
+E1 : . = 0 * 3^4 = 0 *   81 =    0
+F1 : @ = 1 * 3^5 = 1 *  243 =  243
+G1 : O = 2 * 3^6 = 2 *  729 = 1458
+H1 : . = 0 * 3^7 = 0 * 2187 =    0
+
+INDEX = 0 + 0 + 9 + 54 + 0 + 243 + 1458 = 1764
+
+I pattern RUOTANO di 90 gradi in senso orario. E dal pattern NORTH_EDGE (edge_0) otteniamo prima EAST_EDGE (edge_1), poi SOUTH_EDGE (edge_2) ed infine WEST_EDGE (edge_3).
+  NORTH : edge_0 : A1,B1,C1,D1,E1,F1,G1,H1
+  EAST  : edge_1 : H1,H2,H3,H4,H5,H6,H7,H8
+  SOUTH : edge_2 : H8,G8,F8,E8,D8,C8,B8,A8
+  WEST  : edge_3 : A8,A7,A6,A5,A4,A3,A2,A1
+
+Quindi per mappare il quarto , i_edge_3 per l'appunto, su quello base i_edge_0 bisogna ruotarlo 3 volte di 90 gradi indiero, quindi in senso antiorario.
+IL MAPPING delle CELLE diventa :
+  A8 => A1
+  A7 => B1
+  A6 => C1
+  ....
+  A1 => H1
+
+Chiamo questo indice, del patetrn edge, ruotato di 90 gradi zero volte i_edge_0. E per analogia gli altri tre i_edge_1, i_edge_2, i_edge_3.
+Per la posizione di esempio usata in precedenza i valori degli indici dei quattro edge sono:
+  i_edge_0 = 1764
+  i_edge_1 = 5940
+  i_edge_2 = 1517
+  i_edge_3 = 81
+
+Sviluppiamo ora i valori di R2.
+Dove R2 è definito da : A2,B2,C2,D2,E2,F2,G2,H2 o in forma compatta 0x000000000000FF00
+Quindi:
+
+i_r2_0 : A2,B2,C2,D2,E2,F2,G2,H2
+i_r2_1 : G1,G2,G3,G4,G5,G6,G7,G8
+i_r2_2 : H7,G7,F7,E7,D7,C7,B7,A7
+i_r2_3 : B8,B7,B6,B5,B4,B3,B2,B1
+
+i_r2_0 = 2160
+i_r2_1 = 4256
+i_r2_2 =  728
+i_r2_3 =  128
+
+
+### La funzione di valutazione della posizione ( evaluation function )

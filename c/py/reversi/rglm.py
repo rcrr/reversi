@@ -45,6 +45,11 @@ from reversi.opt_lbfgs import *
 import numpy as np
 import pandas as pd
 
+import torch
+import torch.profiler
+from torch.profiler import profile, record_function, ProfilerActivity
+import scipy.sparse
+
 from scipy.sparse import csr_matrix
 from scipy.optimize import minimize
 from scipy.special import expit
@@ -1788,6 +1793,72 @@ class Rglm:
         self.vmap['weight'] = self.w
         
         return self
+
+    def optimize6(self, c, options) -> Rglm:
+        """
+        Finds the minimum of the objective function, optimizing the values
+        assigned to weights.
+
+        """
+                
+        x0 = copy.deepcopy(self.w.astype(np.float32))
+
+        torch.cuda.empty_cache()
+
+        torch.cuda.memory._record_memory_history(max_entries=100000)
+        
+        with profile(activities=[torch.profiler.ProfilerActivity.CPU,
+                                 ProfilerActivity.CUDA],
+                     profile_memory=True, record_shapes=True) as prof:
+        
+            with record_function("function_gradient_prepatation"):
+                fg = fg_builder_torch(self.x, self.y, c)
+                
+            with record_function("model_inference"):
+        
+                self.w = lbfgs(fg, x0, max_iters=2000, m=97,
+                               min_grad=(3e-1, 3), min_p_fun_decrease=(1e-7, 7),
+                               torch_backend=True, verbosity=1)
+
+        # Dump snapshot to a file
+        torch.cuda.memory._dump_snapshot("profile.pkl")
+
+        # Stop recording
+        torch.cuda.memory._record_memory_history(enabled=None)
+
+        torch.cuda.empty_cache()
+
+        print(prof.key_averages().table(sort_by="self_cuda_memory_usage", row_limit=20))
+        
+        self.yh = rglm_sigmoid(self.x @ self.w)
+        self.r = self.y - self.yh
+
+        self.vmap['weight'] = self.w
+        
+        return self
+
+    def optimize7(self, c, options) -> Rglm:
+        """
+        Finds the minimum of the objective function, optimizing the values
+        assigned to weights.
+
+        """
+                
+        x0 = copy.deepcopy(self.w.astype(np.float32))
+        
+        fg = fg_builder_torch_blockwise(self.x, self.y, c)
+        self.w = lbfgs(fg, x0, max_iters=2000, m=97,
+                       min_grad=(3e-1, 3), min_p_fun_decrease=(1e-7, 7),
+                       torch_backend=True, verbosity=1)
+
+        torch.cuda.empty_cache()
+        
+        self.yh = rglm_sigmoid(self.x @ self.w)
+        self.r = self.y - self.yh
+
+        self.vmap['weight'] = self.w
+        
+        return self
     
     def compute_wmean_for_patterns(self):
         self.wmeans = dict.fromkeys([p.id for p in self.patterns])
@@ -2236,7 +2307,7 @@ def rglm_workflow(kvargs: dict):
     m = timed_run(m.compute_y, "m = m.compute_y()")
     m = timed_run(m.compute_analytics, "m = m.compute_analytics()")
     m = timed_run(m.retrieve_expected_probabilities_from_regab_db, "m = m.retrieve_expected_probabilities_from_regab_db()")
-    m = timed_run(m.optimize5, "m = m.optimize5({}, {{...}})", ridge_reg_param, l_bfgs_b_options)
+    m = timed_run(m.optimize6, "m = m.optimize6({}, {{...}})", ridge_reg_param, l_bfgs_b_options)
     if l_bfgs_b_options is not None:
         print("   l_bfgs_b_options = {}".format(l_bfgs_b_options))
     m = timed_run(m.compute_wmean_for_patterns, "m = m.compute_wmean_for_patterns()")
@@ -2409,4 +2480,181 @@ def fg_builder(x: scipy.sparse._csr.csr_matrix,
         g = g0 + g1
         return f, g
         
+    return fg
+
+def fg_builder_torch(x_np: scipy.sparse._csr.csr_matrix,
+                     y_np: np.ndarray,
+                     ridge_regularization: float) -> Callable[[torch.Tensor], (torch.Tensor, torch.Tensor)]:
+    
+    def csr_to_torch_sparse_csr(csr_mat: scipy.sparse._csr.csr_matrix):
+        csr_mat = csr_mat.astype('float32')
+        crow_indices = torch.tensor(csr_mat.indptr, dtype=torch.int64)
+        col_indices = torch.tensor(csr_mat.indices, dtype=torch.int64)
+        values = torch.tensor(csr_mat.data, dtype=torch.float32)
+        shape = csr_mat.shape
+        sparse_tensor = torch.sparse_csr_tensor(crow_indices, col_indices, values, size=shape)
+        return sparse_tensor
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    x = csr_to_torch_sparse_csr(x_np).to(device)
+    y = torch.from_numpy(y_np).float().to(device)
+    c = torch.tensor(ridge_regularization).float().to(device)
+
+    xt = x.transpose(0, 1).to_sparse_csr()
+
+    def fg(w: torch.Tensor):
+        linear_predictor = torch.matmul(x, w)
+        yh = torch.sigmoid(linear_predictor)
+        dyh = yh * (1. - yh)
+        rn = yh - y
+        dyh_rn = dyh * rn
+        norm_rn = torch.dot(rn, rn)
+        norm_w = torch.dot(w, w)
+        f = 0.5 * (norm_rn + c * norm_w)
+        g0 = torch.matmul(xt, dyh_rn)
+        g1 = c * w
+        g = g0 + g1
+        return f, g
+
+    return fg
+
+
+def fg_builder_torch_blockwise(x_np: scipy.sparse._csr.csr_matrix,
+                               y_np: np.ndarray,
+                               ridge_regularization: float,
+                               block_size: int = 1000):
+    """
+    Builds the function fg which computes the objective and gradient for ridge logistic regression,
+    with blockwise multiplication for a large sparse CSR matrix on CPU transferred to GPU block by block.
+
+    Args:
+        x_np: Large sparse CSR matrix on CPU (scipy.sparse.csr_matrix).
+        y_np: Dense target vector (numpy.ndarray).
+        ridge_regularization: Float scalar for L2 regularization term.
+        block_size: Number of rows per block to process in GPU.
+
+    Returns:
+        fg: Function that takes parameter vector w (torch.Tensor on CPU or GPU)
+            and returns objective function value and gradient.
+    """
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    # Convert target vector y to torch GPU tensor once (will be used every call)
+    y = torch.from_numpy(y_np).float().to(device)
+    c = torch.tensor(ridge_regularization).float().to(device)
+
+    # Partition the CSR matrix x_np into row blocks stored on CPU in CSR format
+    m = x_np.shape[0]
+
+    # Precompute block slices of CSR matrix as a list of (crow_indices, col_indices, values)
+    # Each block corresponds to a subset of rows [start_row:end_row)
+    blocks_csr = []
+    crow_indices = x_np.indptr
+    col_indices = x_np.indices
+    values = x_np.data
+    n = x_np.shape[1]
+
+    for start_row in range(0, m, block_size):
+        end_row = min(start_row + block_size, m)
+        start_pos = crow_indices[start_row]
+        end_pos = crow_indices[end_row]
+        # Extract CSR components for the block
+        block_crow = crow_indices[start_row:end_row + 1] - start_pos
+        block_col = col_indices[start_pos:end_pos]
+        block_val = values[start_pos:end_pos]
+        blocks_csr.append((block_crow, block_col, block_val, end_row - start_row))
+
+    # Also construct transpose matrix on CPU for gradient computation
+    xt_np = x_np.transpose().tocsr()
+
+    def csr_block_to_torch(crow, col, val, shape_rows):
+        # Convert CSR block slices arrays to torch sparse CSR tensor on CPU
+        return torch.sparse_csr_tensor(
+            torch.tensor(crow, dtype=torch.int64),
+            torch.tensor(col, dtype=torch.int64),
+            torch.tensor(val, dtype=torch.float32),
+            (shape_rows, n)
+        )
+
+    def fg(w: torch.Tensor):
+        """
+        Computes the logistic loss + L2 regularization and gradient
+        for parameters w using blockwise sparse matrix multiplication.
+
+        Args:
+            w: parameter vector (torch.Tensor, shape (n,)).
+
+        Returns:
+            f: scalar loss value (torch.Tensor).
+            g: gradient vector (torch.Tensor, shape (n,)).
+        """
+        w_gpu = w.to(device)  # Move w to GPU once per iteration
+
+        # Compute X @ w blockwise on GPU
+        linear_pred_list = []
+        for block_crow, block_col, block_val, block_rows in blocks_csr:
+            # Convert current block to torch sparse tensor (CPU)
+            X_block_cpu = csr_block_to_torch(block_crow, block_col, block_val, block_rows)
+            # Move block to GPU
+            X_block_gpu = X_block_cpu.to(device)
+            # Sparse matrix-vector multiplication
+            lp_block = torch.sparse.mm(X_block_gpu, w_gpu.unsqueeze(1)).squeeze(1)
+            linear_pred_list.append(lp_block)
+            # Clear GPU cache if needed
+            del X_block_gpu, lp_block
+            torch.cuda.empty_cache()
+
+        # Concatenate partial results across blocks, result on GPU
+        linear_predictor = torch.cat(linear_pred_list, dim=0)
+
+        # Logistic loss and gradient calculations on GPU
+        yh = torch.sigmoid(linear_predictor)
+        dyh = yh * (1. - yh)
+        rn = yh - y
+        dyh_rn = dyh * rn
+
+        norm_rn = torch.dot(rn, rn)
+        norm_w = torch.dot(w_gpu, w_gpu)
+        f = 0.5 * (norm_rn + c * norm_w)
+
+        # Gradient g = X^T (dyh*rn) + c*w
+        # Transpose multiplied vector: blockwise same idea
+
+        # For gradient calculation, do blockwise multiplication of blocks of X^T @ (dyh_rn)
+        # X^T is shape (n, m), dyh_rn is (m,)
+        # We split dyh_rn according to blocks_csr ranges:
+
+        g0 = torch.zeros_like(w_gpu)
+        start_row = 0
+        for block_crow, block_col, block_val, block_rows in blocks_csr:
+            end_row = start_row + block_rows
+            dyh_rn_block = dyh_rn[start_row:end_row]
+            # Convert the transpose block: note x_np transpose was taken: xt_np
+            # Extract corresponding columns (rows in original matrix) for this gradient block:
+            # Actually, transpose blocks correspond to columns in original, so will do same slicing:
+            tile_start_pos = xt_np.indptr[start_row]
+            tile_end_pos = xt_np.indptr[end_row]
+
+            block_crow_t = xt_np.indptr[start_row:end_row+1] - tile_start_pos
+            block_col_t = xt_np.indices[tile_start_pos:tile_end_pos]
+            block_val_t = xt_np.data[tile_start_pos:tile_end_pos]
+
+            X_block_t_cpu = csr_block_to_torch(block_crow_t, block_col_t, block_val_t, block_rows)
+            X_block_t_gpu = X_block_t_cpu.to(device)
+
+            grad_block = torch.sparse.mm(X_block_t_gpu, dyh_rn_block.unsqueeze(1)).squeeze(1)
+            g0 += grad_block
+
+            del X_block_t_gpu, grad_block
+            torch.cuda.empty_cache()
+            start_row = end_row
+
+        g1 = c * w_gpu
+        g = g0 + g1
+
+        # Move back results to CPU (optional, depending on optimizer usage)
+        return f.cpu(), g.cpu()
+
     return fg
