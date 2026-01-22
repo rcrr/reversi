@@ -5,7 +5,7 @@
 # http://github.com/rcrr/reversi
 # 
 # Aauthor Roberto Corradini mailto:rob_corradini@yahoo.it
-# Copyright 2025 Roberto Corradini. All rights reserved.
+# Copyright 2025, 2026 Roberto Corradini. All rights reserved.
 #
 # License
 # 
@@ -27,7 +27,7 @@
 
 #
 #
-# How to use the optimization module.
+# How to use the domain module.
 #
 # Change directory into $(REVERSI_HOME)/c
 #
@@ -340,7 +340,27 @@ class TestSquareSet(unittest.TestCase):
 
     def test_anti_transformations(self):
         s = SquareSet(0x0000000000000107)
-        a = s.anti_transformations()
+        expected = np.array([0x0000000000000107, # 0
+                             0x0301010000000000, # 1
+                             0xE080000000000000, # 2
+                             0x00000000008080C0, # 3
+                             0x00000000000080E0, # 4
+                             0xC080800000000000, # 5
+                             0x0701000000000000, # 6
+                             0x0000000000010103, # 7
+                             ])
+        t = s.anti_transformations()
+        for i, ts in np.ndenumerate(t):
+            e = SquareSet(expected[i])
+            c = SquareSet(ts)
+            if e != c:
+                print("\n")
+                print("The two square set differ at transformation index {}".format(i))
+                print("Computed:")
+                c.print()
+                print("Expected:")
+                e.print()
+                self.assertTrue(False)
         self.assertTrue(True)
 
 
@@ -872,11 +892,36 @@ class TestBoard(unittest.TestCase):
                 self.assertTrue(False)
         self.assertTrue(True)
 
-    #def test_anti_transformations(self):
-    #    mover = SquareSet(0x0000000000000102)
-    #    opponent = SquareSet(0x0000000000000005)
-    #    b = Board(mover, opponent)
-    #    t = b.anti_transformations()
-    #    self.assertTrue(True)
-
-# Now we ned antitrasformations ....
+    def test_anti_transformations(self):
+        mover = SquareSet(0x0000000000000102)
+        opponent = SquareSet(0x0000000000000005)
+        b = Board(mover, opponent)
+        t = b.anti_transformations()
+        em = [0x0000000000000102, # 0
+              0x0201000000000000, # 1
+              0x4080000000000000, # 2
+              0x0000000000008040, # 3
+              0x0000000000008040, # 4
+              0x4080000000000000, # 5
+              0x0201000000000000, # 6
+              0x0000000000000102, # 7
+              ]
+        eo = [0x0000000000000005, # 0
+              0x0100010000000000, # 1
+              0xA000000000000000, # 2
+              0x0000000000800080, # 3
+              0x00000000000000A0, # 4
+              0x8000800000000000, # 5
+              0x0500000000000000, # 6
+              0x0000000000010001, # 7
+              ]
+        e = np.array([Board(SquareSet(m), SquareSet(o)) for m, o in zip(em, eo)])
+        for tb, eb in zip(t, e):
+            if tb != eb:
+                print("\n")
+                print("Anti-transformed:")
+                tb.print()
+                print("Expected:")
+                eb.print()
+                self.assertTrue(False)
+        self.assertTrue(True)

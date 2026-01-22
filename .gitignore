@@ -4,6 +4,8 @@
 *.fasl
 *.class
 build
+**/auto/
+*.el
 lib
 manifest.mf
 nbbuild.xml

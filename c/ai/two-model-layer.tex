@@ -1,0 +1,629 @@
+%
+%  two-model-layer.tex
+%
+%  Copyright (c) 2025, 2026 Roberto Corradini. All rights reserved.
+%
+%  This file is part of the reversi program
+%  http://github.com/rcrr/reversi
+%
+%  This program is free software; you can redistribute it and/or modify it
+%  under the terms of the GNU General Public License as published by the
+%  Free Software Foundation; either version 3, or (at your option) any
+%  later version.
+%
+%  This program is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+%  GNU General Public License for more details.
+%
+%  You should have received a copy of the GNU General Public License
+%  along with this program; if not, write to the Free Software
+%  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+%  or visit the site <http://www.gnu.org/licenses/>.
+%
+
+%
+% The most part of the Reversi source code and documentation is written in English.
+% This file started with the specific intention to experiment new evolutions for the
+% program and for the design of the Machine-Learning Model dealing with the help and the
+% interaction with AI agents.
+% It has become evident that the language of choice is not that relevant for the AI, and
+% it is so easy to get a quality translation from AI today, that you are not minding me
+% to choose Italian here for the seek of my confort instead of English.
+%
+
+%
+% TO-DO
+% - Fare review del documento e portarlo in par con gli sviluppi python del modulo domain.
+% - Manca il codice che esegue la generazione del pattern.
+% - Documentare tutta la evaluation_function.
+% - Codice per la creazione del modello e per il calcolo delle prestazioni.
+% - Definizione del nuovo modello RNNM (Reversi Neural Network Model)
+%
+
+\documentclass{article}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{sfmath}
+
+\usepackage{amsmath}
+\usepackage{othelloboard}
+\usepackage{subcaption}
+\usepackage{graphicx}
+
+\usepackage[a4paper, left=2cm, right=2cm, top=3cm, bottom=3cm]{geometry}
+
+\usepackage{listings}
+\usepackage[dvipsnames]{xcolor}
+\definecolor{mauve}{rgb}{0.88, 0.69, 1.0}
+\usepackage{fancyvrb}
+\usepackage{enumitem}
+
+\usepackage{textcomp}
+\usepackage[T1]{fontenc}
+\usepackage{url}
+
+\lstset{
+  language=SQL,
+  basicstyle=\ttfamily\tiny,
+  keywordstyle=\color{blue},
+  stringstyle=\color{mauve},
+  commentstyle=\color{gray},
+  numbers=none,
+  breaklines=true,
+  showstringspaces=false,
+  frame=single
+}
+
+\lstset{
+  language=bash,
+  basicstyle=\ttfamily\tiny,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  frame=single,
+  showstringspaces=false
+}
+
+\lstset{
+  language=C,
+  basicstyle=\ttfamily\tiny,
+  keywordstyle=\color{blue},
+  stringstyle=\color{mauve},
+  commentstyle=\color{gray},
+  numbers=none,
+  breaklines=true,
+  showstringspaces=false,
+  frame=single,
+  literate={<<}{{$\ll$}}2 {>>}{{$\gg$}}2
+}
+
+% 
+% M-:
+% (setq preview-scale-function (lambda () 1.5))
+%
+
+%
+% Per scrivere le vocali accentate in Italiano:
+%
+% $ setxkbmap -layout us -variant intl
+%
+
+\title{Reversi}
+\author{Roberto Corradini \\[0.2cm]
+\small \texttt{rob\_corradini@yahoo.com} \\[0.1cm]
+\url{https://github.com/rcrr/reversi}}
+\date{\today}
+
+\begin{document}
+\maketitle
+\vspace{1cm}
+\begin{abstract}
+\normalsize
+Reversi è un ecosistema di programmi e strumenti informatici per studiare il gioco da tavolo Othello, anche chiamato Reversi.
+L'intento è studiare, capire, sviluppare algoritmi e modelli che possano progredire nella realizzazione di un agente
+sintetico ed autonomo che sia in grado di giocare una partita in maniera autorevole. E in prospettiva di tendere alla
+risoluzione matematica del gioco, o quantomeno ad una sua approssimazione probabilistica.
+I programmi sono scritti principalmente in ANSI C, Python, SQL, con altri linguaggi come Common Lisp, Java, Clojure, R usati
+per sperimentazioni, ma non rilevanti nella sostanza.
+Il corpo principale del programma è sviluppato in C, e comprende l'endgame solver, il generatore di partite random, il
+solutore integrato con il database REGAB, e le funzioni di risoluzione del modello di ML basato sulla Regressione Logistica.
+Il Database SQL REGAB, sviluppato in PostgreSQL, ed in linguaggio procedurale PL/pgSQL, contiene le posizioni random
+che poi vengono risolte e taggate con il valore vero del game.
+Il codice in C è stato poi portato in Python, per poter operare più agilmente con l'ecosistema attivo del Machine-Learning, AI,
+calcolo scientifico, acceleratori GPU, e tutto quanto serve per la ricerca di frontiera.
+Il codice in C rimane più performante per la risoluzione delle posizioni, il codice in Python è più consono allo sviluppo
+dei Modelli per la definizione di evaluation function più performanti.
+\end{abstract}
+
+\newpage
+
+\section{How-to: istruzioni d'uso}
+Questo documento è la guida per descrivere le basi del modello di Machine-Learning adottato dal
+programma Reversi. Il programma è vasto ed articolato, quì si cerca di sintetizzare al meglio le informazioni
+basilari per ragionare sullo sviluppo di un modello più performante della valutazione del risultato del gioco,
+più sinteticamente chiamata ``evaluation\_function'' o ``ef''.
+\begin{itemize}
+\item Per cominciare a lavorare avviare \texttt{EMACS} e lanciare una shell, quindi posizionarsi
+  nella cartella \texttt{\$REVERSI\_HOME/c/ai} e rigenerare il file PDF con il comando \texttt{``pdflatex two-model-layer.tex''}.
+  Per proseguire nella documentazione del modello aprire ed editare il presente documento \texttt{\$REVERSI\_HOME/c/ai/two-model-layer.tex}.
+\item Sempre su \texttt{EMACS} aprire una seconda shell e posizionarsi nella cartella \texttt{\$REVERSI\_HOME/c}.
+  Qui attivare l'ambiente python con il comando \texttt{``source py/.reversi\_venv/bin/activate''} e di seguito
+  lanciare gli unit test con il comando \texttt{``PYTHONPATH="./py" python3 -m unittest test.test\_domain''}.
+\item Aprire il file \texttt{\$REVERSI\_HOME/c/py/twoml/domain.py} per lavorare sulla logica applicativa, e
+  il file\linebreak \texttt{\$REVERSI\_HOME/c/py/test/test\_domain.py} per aggiornare gli unit test.
+\item Aprire quindi una terza shell, sempre in \texttt{EMACS}, con il comando \texttt{``M-x ansi-term''}, e quì eseguire il comado
+  \texttt{``gemini''} per avviare il collaboratore sintetico, che in questo contesto chiameremo \texttt{Ura}, abbreviazione
+  di Urania, la musa dell'astronomia e della geometria.
+  Con il comando \texttt{``@ai/two-model-layer.tex''} fornire ad Ura il contesto per poi proseguire nei ragionamenti e nello sviluppo
+  del Modello e del Software che lo implementa.
+\end{itemize}
+
+\section{La rappresentazione della board}
+
+La BOARD Reversi è composta da 64 celle, otto righe ed otto colonne, numerate da 0, in alto a sinistra (North-West, NW),
+a 63, in basso a destra (South-East, SE).
+
+La configurazione della BOARD è rappresentata con due interi a 64 bit (indifferentemente senza segno \texttt{uint64} o con segno \texttt{int64}).
+Ognuno dei 64 bit è associato ad una cella. Il bit meno significativo è associato ad \texttt{a1}, quello più significativo ad \texttt{h8},
+procedendo da sinistra verso destra per righe.
+
+Il primo intero rappresenta le celle del \texttt{GIOCATORE (PLAYER)} che deve effetuare la mossa, il secondo le celle dell'\texttt{AVVERSARIO (OPPONENT)}.
+
+Con due valori \texttt{int64} viene quindi rappresentata la \texttt{POSIZIONE (GAME\_POSITION)}, come mostrato in figura~\ref{fig:reversi-bitboard-patterns}.
+
+Unico vincolo, o invariante, della rappresentazione è la formula: \texttt{PLAYER \&\& OPPONENT == 0},
+che formalizza il divieto di avere sia un disco del giocatore che uno dell'avversario contemporaneamente nella stessa cella.
+
+Quando una cella ha zero sia per il giocatore che per l'avversario è vuota.
+
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.7}{
+      \begin{othelloboard}{1}
+        \dotmarkings
+        \othelloarrayfirstrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysecondrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraythirdrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfourthrow  {0}{0}{0}{1}{2}{0}{0}{0}
+        \othelloarrayfifthrow   {0}{0}{0}{2}{1}{0}{0}{0}
+        \othelloarraysixthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayseventhrow {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayeighthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+      \end{othelloboard}
+    }
+    \caption{Initial game position.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.7}{
+      \begin{othelloboard}{1}
+        \dotmarkings
+        \othelloarrayfirstrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysecondrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraythirdrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfourthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfifthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysixthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayseventhrow {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayeighthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        %
+        \posannotation{a1}{\small 00}
+        \posannotation{b1}{\small 01}
+        \posannotation{c1}{\small 02}
+        \posannotation{d1}{\small ...}
+        \posannotation{a2}{\small 08}
+        \posannotation{b2}{\small 09}
+        \posannotation{c2}{\small ...}
+        \posannotation{g8}{\small ...}
+        \posannotation{h8}{\small 63}
+      \end{othelloboard}
+    }
+    \caption{Rappresentazione della bitboard.}
+  \end{subfigure}
+
+  \vskip\baselineskip
+  
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.7}{
+      \begin{othelloboard}{1}
+        \dotmarkings
+        \othelloarrayfirstrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysecondrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraythirdrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfourthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfifthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysixthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayseventhrow {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayeighthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        %
+        \posannotation{a1}{\small 00}
+        \posannotation{b1}{\small 01}
+        \posannotation{c1}{\small 02}
+        \posannotation{d1}{\small 03}
+        \posannotation{e1}{\small 04}
+        \posannotation{f1}{\small 05}
+        \posannotation{g1}{\small 06}
+        \posannotation{h1}{\small 07}
+      \end{othelloboard}
+    }
+    \caption{EDGE pattern.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.7}{
+      \begin{othelloboard}{1}
+        \dotmarkings
+        \othelloarrayfirstrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysecondrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraythirdrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfourthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfifthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysixthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayseventhrow {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayeighthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        %
+        \posannotation{a2}{\small 00}
+        \posannotation{b2}{\small 01}
+        \posannotation{c2}{\small 02}
+        \posannotation{d2}{\small 03}
+        \posannotation{e2}{\small 04}
+        \posannotation{f2}{\small 05}
+        \posannotation{g2}{\small 06}
+        \posannotation{h2}{\small 07}
+      \end{othelloboard}
+    }
+    \caption{R2 pattern.}
+  \end{subfigure}
+
+  \caption{Ordine dei bit per la definizione della bitboard e dei pattern.}
+  \label{fig:reversi-bitboard-patterns}
+\end{figure}
+
+\section{La rappresentazione delle posizioni}
+
+Ogni posizione è descritta dal \texttt{VALORE} dell'end-game ottenuto risolvendo la posizione stessa in maniera esatta con
+apposito programma che applica l'algoritmo \texttt{MINIMAX} (o sue varianti sempre esatte ma più efficienti come \texttt{ALPHA-BETA}).
+
+I \texttt{VALORI} possibili di una posizione sono i numeri interi pari compresi nell'intervallo \texttt{[-64..+64]}, pari alla differenza
+di dischi dei due colori risultante alla fine della partita.
+Zero significa pareggio, valori negativi una sconfitta, valori positivi una vittoria.
+
+Le posizioni random, generate per costituire il dataset per il machine-learning (ML), sono archiviate in un database SQL chiamato REGAB (Reversi End-GAme Base).
+Prendiamo una posizione risolta da REGAB con il comando SQL:
+
+\begin{lstlisting}[language=SQL]
+  SELECT seq, mover, opponent, empty_count, game_value, best_move FROM regab_prng_gp WHERE batch_id = 7 AND empty_count = 20 AND status = 'CMS' LIMIT 1;
+\end{lstlisting}
+
+{\tiny
+\begin{verbatim}
+   seq    |        mover        |       opponent       | empty_count | game_value | best_move 
+----------+---------------------+----------------------+-------------+------------+-----------
+ 68230056 | 4611717676283199524 | -7855295674223658936 |          20 |         10 | F8
+(1 row)
+\end{verbatim}
+}
+
+Possiamo poi ricavare dal database ulteriori informazioni, come una vista 2D della posizione:
+  
+\begin{lstlisting}[language=SQL]
+  SELECT game_position_pp_mop(mover, opponent, player) AS pos_68230056 FROM regab_prng_gp WHERE seq = 68230056;
+\end{lstlisting}
+
+{\tiny
+\begin{verbatim}
+     pos_68230056      
+-----------------------
+    a b c d e f g h   +
+ 1  . . @ O . @ O .   +
+ 2  . . . O O O O .   +
+ 3  . . O O O O @ .   +
+ 4  @ @ O @ O @ @ @   +
+ 5  . @ O @ O O @ @   +
+ 6  . O @ @ @ O O .   +
+ 7  . . O O O O O O   +
+ 8  . O . . O . @ O   +
+ Player to move: BLACK
+(1 row)
+\end{verbatim}
+}
+
+Dove il carattere \texttt{'.'} significa cella vuota, \texttt{'@'} disco nero, e \texttt{'O'} disco bianco.
+In questo caso il ``player to move'' è il \texttt{BLACK} che quindi è il \texttt{PLAYER}, mentre il giocatore bianco
+è l' \texttt{OPPONENT}.
+
+O una rappresentazione come stringa che poi possiamo usare come input per l'eseguibile che calcola il valore del game:
+
+\begin{lstlisting}[language=SQL]
+  SELECT game_position_to_string((mover, opponent, player)) AS pos_as_string_68230056 FROM regab_prng_gp WHERE seq = 68230056;
+\end{lstlisting}
+
+{\tiny
+\begin{verbatim}
+                      pos_as_string_68230056                       
+-------------------------------------------------------------------
+ ..bw.bw....wwww...wwwwb.bbwbwbbb.bwbwwbb.wbbbww...wwwwww.w..w.bwb
+(1 row)
+\end{verbatim}
+}
+
+Dove il carattere \texttt{'.'} significa cella vuota, \texttt{'b'} disco nero, \texttt{'w'} disco bianco. Il carattere più a sinistra
+rappresenta la cella \texttt{00} (a1), muovendosi poi verso destra fino al carattere 64 che rappresenta la cella \texttt{63} (h8);
+l'ultimo carattere a destra rappresenta invece il giocatore che deve muovere, \texttt{'b'} per \texttt{BLACK} e \texttt{'w'} per \texttt{WHITE}.
+
+Eseguiamo il programma \texttt{endgame\_solver} dove il flag \texttt{-s es} richiama l' ``exact solver'':
+
+\begin{lstlisting}[language=bash]
+  ./build/bin/endgame_solver -s es -g ..bw.bw....wwww...wwwwb.bbwbwbbb.bwbwwbb.wbbbww...wwwwww.w..w.bwb
+\end{lstlisting}
+
+{\tiny
+\begin{verbatim}
+    a b c d e f g h 
+ 1  . . @ O . @ O . 
+ 2  . . . O O O O . 
+ 3  . . O O O O @ . 
+ 4  @ @ O @ O @ @ @ 
+ 5  . @ O @ O O @ @ 
+ 6  . O @ @ @ O O . 
+ 7  . . O O O O O O 
+ 8  . O . . O . @ O 
+Player to move: BLACK
+
+[node_count=45798972, leaf_count=8265202]
+Final outcome: best move=F8, position value=10
+\end{verbatim}
+}
+
+Il risultato è la posizione data da risolvere con il conto dei nodi e delle foglie del ``game-tree'' navigati dall'algoritmo.
+Il programma, lanciato in batch mode, ha risolto e quindi taggato le posizioni del database REGAB con il valore esatto del game.
+
+Ai fini del machine learning (ML) un record posizione di esempio con header è rappresentato come segue:
+
+{\tiny
+\begin{verbatim}
+             PLAYER ;             OPPONENT ; GAME_VALUE
+4611717676283199524 ; -7855295674223658936 ;         10
+\end{verbatim}
+}
+
+Dove:
+
+\begin{description}[leftmargin=*,widest=GAME\_VALUE,labelsep=1em]
+\item[PLAYER] è la configurazione della board dei dischi occupati dal giocatore che deve muovere, in formato \texttt{int64} con segno.
+  Il bit meno significativo è la casella \texttt{int64}, si procede per righe, come specificato sopra.
+\item[OPPONENT] è la configurazione della board dei dischi occupati dall'avversario, stesso formato usato per \texttt{PLAYER}.
+\item[GAME\_VALUE] è il valore esatto del game
+\end{description}
+
+Il valore del \texttt{GAME\_VALUE} è ottenuto con un software di soluzione esatta della posizione.
+Il database contiene decine di milioni di record posizione risolti.
+Le posizioni sono generate eseguendo delle mosse legali scelte a random a partire dalle condizione iniziali.
+
+\section{Definizioni in Python degli oggetti Square, Move, SquareSet e Board}
+Il modulo \texttt{domain}, implementato nel file \texttt{\$REVERSI\_HOME/c/py/twoml/domain.py}, definisce gli oggetti di base del dominio applicativo:
+Square, Move, SquareSet e Board.
+
+La classe Square è definita come un sottotipo di numpy.uint8 e definisce pochi metodi di base per convertire stringhe del tipo \texttt{F7} in numeri
+interi, 53 nel caso della casella F7, e vice versa.
+
+La classe Move è derivata da Square, aggiungendo tre valori utili alla definizione della dinamica del gioco ed ai valori trovati nel database.
+Il valore \texttt{PA} indica la mossa di passare all'avversario quando non ci sono mosse legali disponibili, quello \texttt{NA} per non disponibile, è
+usato dal programma quando la mossa non è ancora stata definita, mentre \texttt{UN} è usato quando il valore è indefinito.
+
+La classe SquareSet è definita come sottotipo di numpy.uint64 e definisce il set delle 64 caselle della board, è il componente di base poi per definire
+la classe Board, che è infatti costruita su due attributi, mover ed opponent, definiti come SquareSet.
+Un oggetto di tipo SquareSet può essere costruito da qualsiasi rappresentazione di un intero a 64 bit, e può poi essere convertito in queste all'occorrenza
+con una serie di metodi definiti dalla classe. Altri metodi accessori sono \texttt{bsr}, per calcolare la posizione della ultima casella del set,
+\texttt{to\_square\_list} per avere una lista delle Square del set, \texttt{to\_square\_array} per un array, o \texttt{count} per la conta delle caselle del set.
+La classe inoltre definisce le trasformazioni a cui una board può essere soggetta grazie alle sue molteplici simmetrie, queste trasformazioni sono il focus
+del prossimo paragrafo.
+
+La classe Board è l'implementazione in Reversi del concetto di bitboard, consolida lo stato del game nei suoi due attributi chiamati mover ed opponent,
+ed implementa le regole e la meccanica del gioco. Oltre ai classici metodi di utilità di base quali \texttt{clone} e \texttt{print}, vi sono le funzioni
+caratteristiche quali \texttt{legal\_moves} e \texttt{make\_move}, ed altre accessorie del tipo \texttt{has\_to\_pass}, \texttt{empties}, or \texttt{is\_move\_legal}.
+In aggiunta vi sono poi tutte le trasformazioni definite per gli SquareSet, riportati sulla Board.
+Le funzioni \texttt{legal\_moves}, \texttt{make\_move} e la accessoria \texttt{flips} sono implementate tramite due funzioni interne,
+\texttt{\_kogge\_stone\_lms} e \texttt{\_kogge\_stone\_mm} che sono basate sulla struttura interna della bitboard. Nella versione implementata in Python non tutto
+il parallelismo potenziale delle istruzioni vettoriali è sfruttatto, cosa che invece avviene pienamente nella implementazione in ANSI C.
+
+\section{Rotazioni della bitboard}
+
+Sia gli square set che le board sono passibili di otto differenti trasformazioni, che ruotano rigidamente, oppure specchiano la bitboard rispetto gli assi di simmetria
+naturali. Le trasformazioni sono poi usate per calcolare gli indici delle istanze dei diversi pattern.
+La board può essere ruotata di zero, 90, 180, 270 gradi in senso orario, e può essere specchiata secondo gli assi verticale, orizontale, diagonale NW-SE e diagonale NE-SW.
+Sono poi definite le operazioni delle otto antitrasformazioni che riportano la bitboard nella condizione originale.
+
+A titolo di esempio la board:
+
+{\tiny
+\begin{verbatim}
+A1 B1 C1 D1 E1 F1 G1 H1
+A2 B2 C2 D2 E2 F2 G2 H2
+A3 B3 C3 D3 E3 F3 G3 H3
+A4 B4 C4 D4 E4 F4 G4 H4
+A5 B5 C5 D5 E5 F5 G5 H5
+A6 B6 C6 D6 E6 F6 G6 H6
+A7 B7 C7 D7 E7 F7 G7 H7
+A8 B8 C8 D8 E8 F8 G8 H8
+\end{verbatim}
+}
+
+ruotata in senso orario di 90 gradi diventa:
+
+{\tiny
+\begin{verbatim}
+A8 A7 A6 A5 A4 A3 A2 A1
+B8 B7 B6 B5 B4 B3 B2 B1
+C8 C7 C6 C5 C4 C3 C2 C1
+D8 D7 D6 D5 D4 D3 D2 D1
+E8 E7 E6 E5 E4 E3 E2 E1
+F8 F7 F6 F5 F4 F3 F2 F1
+G8 G7 G6 G5 G4 G3 G2 G1
+H8 H7 H6 H5 H4 H3 H2 H1
+\end{verbatim}
+}
+
+Le otto trasformazioni sono quindi definite dai metodi omonimi nelle due classi SquareSet e Board come
+descritti nella tabella \ref{tab:bitboard_transformations}.
+Inoltre le due classi hanno definiti i metodi \texttt{transformations} ed \texttt{anti\_transformations} che ritornano
+un array di otto posizioni contenente le bitboard trasformate o anti-trasformate.
+
+\begin{table}[h]
+\centering
+\caption{Trasformazioni della bitboard}
+\label{tab:bitboard_transformations}
+\begin{tabular}{|c|l|l|l|}
+\hline
+\textbf{Pos.} & \textbf{Descrizione} & \textbf{Trasformazione} & \textbf{Anti-Trasformazione} \\ \hline
+0 & Rotazione zero gradi oraria  & \texttt{trans\_identity}         & \texttt{trans\_identity}         \\ \hline
+1 & Rotazione 90 gradi oraria    & \texttt{trans\_rotate\_90c}      & \texttt{trans\_rotate\_90a}      \\ \hline
+2 & Rotazione 180 gradi oraria   & \texttt{trans\_rotate\_180}      & \texttt{trans\_rotate\_180}      \\ \hline
+3 & Rotazione 270 gradi oraria   & \texttt{trans\_rotate\_90a}      & \texttt{trans\_rotate\_90c}      \\ \hline
+4 & Specchiatura asse verticale  & \texttt{trans\_flip\_vertical}   & \texttt{trans\_flip\_vertical}   \\ \hline
+5 & Specchiatura diagonale H1-A8 & \texttt{trans\_flip\_diag\_h1a8} & \texttt{trans\_flip\_diag\_h1a8} \\ \hline
+6 & Specchiatura asse orizontale & \texttt{trans\_flip\_horizontal} & \texttt{trans\_flip\_horizontal} \\ \hline
+7 & Specchiatura diagonale A1-H8 & \texttt{trans\_flip\_diag\_a1h8} & \texttt{trans\_flip\_diag\_a1h8} \\ \hline
+\end{tabular}
+\end{table}
+
+\section{Patterns}
+
+Un \texttt{PATTERN} è un insieme di celle.
+Ad esempio \texttt{EDGE} è il nome assegnato alle otto caselle di un bordo della board. Ci sono quattro EDGE in una board,
+ottenuti ruotando di 0, 90, 180, 270 gradi il pattern di base, per convenzione quello sul bordo a nord.
+
+Il pattern \texttt{EDGE} è quindi definito dalle caselle \texttt{\{A1, B1, C1, D1, E1, F1, G1, H1\}}, la seconda istanza del pattern è situata
+sul bordo est \texttt{\{H1, H2, H3, H4, H5, H6, H7, H8\}}, la terza sul bordo sud \texttt{\{H8, G8, F8, E8, D8, C8, B8, A8\}},
+la quarta su quello ovest \texttt{\{A8, A7, A6, A5, A4, A3, A2, A1\}}.
+Le quattro istanze del pattern possono essere portate sulla rappresentazione di base applicando le quattro rotazioni antiorarie.
+Dalla configurazione di base invece posso riportare il pattern alla sua istanza con le rotazioni orarie corrispondenti.
+Il pattern può anche essere definito con la maschera dei bit sulla bitboard, uno \texttt{SquareSet} quindi che
+rappresentato in esadecimale vale \texttt{0x00000000000000FF}.
+
+Un secondo pattern che prendiamo in considerazione è \texttt{R2}, definito in esadecimale come \texttt{0x000000000000FF00}.
+
+I pattern sono potenzialmente tantissimi, per la massima generalità focalizziamoci su un pattern che copra tutte le casistiche di queste
+astrazioni ma che sia al contempo semplice, lo definiamo con il set di quattro elementi \texttt{\{A1, B1, C1, A2\}} equivalente alla maschera
+\texttt{0x0000000000000107} e lo chiamiamo \texttt{ELLE}.
+
+
+I pattern sono potenzialmente tantissimi, ma per ora soffermiamoci su questi due \texttt{EDGE} ed \texttt{R2}, questi infatti sono sufficienti
+ad introdurre tutta la complessità che dobbiamo affrontare, senza perdere di generalità.
+
+Il pattern \texttt{EDGE}, ed analogamente \texttt{R2}, è caratterizzato da otto celle.
+Ogni cella ha tre configurazioni possibili: vuota, occupata da un disco nero, occupata da un disco bianco.
+Diamoci la convenzione che \texttt{BLACK} significa \texttt{PLAYER}, e \texttt{WHITE} \texttt{OPPONENT}.
+Le configurazioni che un \texttt{EDGE} può assumere sono quindi tre elevato alla otto quindi $3^8 = 6561$, seimilacinquecentosessantuno.
+Dobbiamo definire un encoding di queste configurazioni, in maniera da assegnargli un nome univoco.
+Questo nome lo chiamiamo \texttt{INDEX}.
+
+Per calcolare il valore dell'indice $i$ nell'equazione~\ref{eq:calcolo_indice}, quindi procediamo come segue.
+Ognuno dei tre colori che può assumere una cella ha un valore $c$ assegnato.
+Assegniamo il valore zero alla cella vuota, il valore uno alla cella occupata dal nero, ed il valore due a quella occupata dal bianco.
+Assegniamo un ordine univoco alle celle di un pattern, dalla meno significativa alla più significativa, e chiamiamo $p$ l'ordinale di questa posizione.
+Quindi per l'\texttt{EDGE} la casella \texttt{A1} è la zero, \texttt{B1} è la uno, e la \texttt{H1} è la sette, che è l'ultima e quindi la $n-esima$.
+L'indice di una configurazione è realizzato sommando il contributo di ciascuna cella del pattern,
+con valore $[0..2]$ a secondo del colore (empty=0, black=1, white=2)
+moltiplicato per tre elevato all'esponente ottenuto dalla posizione ordinale $p$ della cella nel pattern.
+
+
+\begin{equation}
+  i = \sum_{p=0}^{n} c \cdot 3^p
+  \label{eq:calcolo_indice}
+\end{equation}
+
+Per colcolare i valori dei quattro indici del pattern \texttt{EDGE}, ma anologamente poi per il pattern \texttt{R2} od ogni altro pattern, si procede con questa sequenza
+di operazioni. Viene prima ruotata la board, poi si esegue l'operazione di mask e di pack, quindi viene calcolato l'indice con la~\ref{eq:calcolo_indice}.
+
+Per la massima generalità le istanze di un pattern nella bord possono essere fino ad otto, questo nel caso in cui il pattern non abbia una simmetria rispetto all'asse verticale
+della board. In questo esempio basato sui due pattern \texttt{EDGE} ed \texttt{R2} la condizione non si presenta, non ci espone comunque questa semplificazione a perdere di generalità
+in tutti i passaggi seguenti per la definizione del modello matematico della funzione di valutazione del valore del gioco.
+
+\begin{lstlisting}[language=C]
+
+  SquareSet
+  board_pattern_pack_edge (SquareSet s)
+  {
+    return s & 0x00000000000000ff;
+  }
+
+  SquareSet
+  board_pattern_unpack_edge (SquareSet s)
+  {
+    return s & 0x00000000000000ff;
+  }
+
+  SquareSet
+  board_pattern_pack_r2 (SquareSet s)
+  {
+    return (s >> 8) & 0x00000000000000ff;
+  }
+
+  SquareSet
+  board_pattern_unpack_r2 (SquareSet s)
+  {
+    return (s & 0x00000000000000ff) << 8;
+  }
+  
+\end{lstlisting}
+
+
+\begin{lstlisting}[language=C]
+
+  void
+  board_pattern_compute_indexes (board_pattern_index_t *indexes,
+                                 const board_pattern_t *const p,
+                                 const board_t *const b)
+  {
+    board_t tb[8];
+    SquareSet m, o, c;
+    board_trans_f tf;
+    SquareSet mover_pattern_packed[8];
+    SquareSet opponent_pattern_packed[8];
+
+    /*                       0  1   2   3    4    5     6     7      8      9      10      11      12        13       14        15 */
+    const uint64_t cim[] = { 1, 3,  9, 27,  81, 243,  729, 2187,  6561, 19683,  59049, 177147,  531441, 1594323, 4782969, 14348907 };
+    const uint64_t cio[] = { 2, 6, 18, 54, 162, 486, 1458, 4374, 13122, 39366, 118098, 354294, 1062882, 3188646, 9565938, 28697814 };
+
+    /*
+    * This part should go out of the specific pattern, and done once for all patterns.
+    * For now we focus on EDGE pattern alone.
+    */
+
+    m = board_get_mover_square_set(b);
+    o = board_get_opponent_square_set(b);
+
+    for (int i = 0; i < p->n_instances; i++) {
+      tf = p->trans_to_principal_f[i];
+      board_set_square_sets(tb + i, tf(m), tf(o));
+    }
+
+    for (int i = 0; i < p->n_instances; i++) {
+      mover_pattern_packed[i] = p->pattern_pack_f(board_get_mover_square_set(tb + i));
+      opponent_pattern_packed[i] = p->pattern_pack_f(board_get_opponent_square_set(tb + i));
+    }
+
+    for (int i = 0; i < p->n_instances; i++) {
+      indexes[i] = 0;
+      for (int j = 0; j < p->n_squares; j++) {
+        c = 1ULL << j;
+        indexes[i] += (c & mover_pattern_packed[i]   ) ? cim[j] : 0;
+        indexes[i] += (c & opponent_pattern_packed[i]) ? cio[j] : 0;
+      }
+    }
+    
+\end{lstlisting}
+
+\section{La funzione di valutazione della posizione (evaluation function)}
+
+Questa parte del documento la devo ancora scrivere.
+
+\end{document}

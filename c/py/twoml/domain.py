@@ -5,7 +5,7 @@
 # http://github.com/rcrr/reversi
 # 
 # Aauthor Roberto Corradini mailto:rob_corradini@yahoo.it
-# Copyright 2025 Roberto Corradini. All rights reserved.
+# Copyright 2025, 2026 Roberto Corradini. All rights reserved.
 #
 # License
 # 
@@ -456,11 +456,49 @@ class SquareSet(np.uint64):
 
     def anti_transformations(self):
         """
-        Returns eight square set ...
+        Returns eight square set as an array by transforming the set as follow.
+         - 0 -> 0 : trans_identity
+         - 0 -> 1 : trans_rotate_90a
+         - 0 -> 2 : trans_rotate_180
+         - 0 -> 3 : trans_rotate_90c
+         - 0 -> 4 : trans_flip_vertical
+         - 0 -> 5 : trans_flip_diag_h1a8
+         - 0 -> 6 : trans_flip_horizontal
+         - 0 -> 7 : trans_flip_diag_a1h8
+        These are the anti-transformations as defined by the transformations() method.
         """
+        # ts: transformed square sets
         ts = np.zeros(8, dtype=SquareSet)
+
+        h1a8 = self.trans_flip_diag_h1a8()
+        fh = self.trans_flip_horizontal()
+
+        # - 0 -> 0 : trans_identity
         ts[0] = self
+        
+        # - 0 -> 1 : trans_rotate_90a
+        ts[1] = fh.trans_flip_diag_h1a8()
+
+        # - 0 -> 2 : trans_rotate_180
+        ts[2] = fh.trans_flip_vertical()
+
+        # - 0 -> 3 : trans_rotate_90c
+        ts[3] = h1a8.trans_flip_horizontal()
+
+        # - 0 -> 4 : trans_flip_vertical
+        ts[4] = self.trans_flip_vertical()
+
+        # - 0 -> 5 : trans_flip_diag_h1a8
+        ts[5] = h1a8
+
+        # - 0 -> 6 : trans_flip_horizontal
+        ts[6] = fh
+
+        # - 0 -> 7 : trans_flip_diag_a1h8
+        ts[7] = self.trans_flip_diag_a1h8()
+        
         return ts
+
 
 # kogge-stone functions.
 
@@ -846,4 +884,13 @@ class Board:
         """
         tm = self.mover.transformations()
         to = self.opponent.transformations()
+        return np.array([Board(SquareSet(m), SquareSet(o)) for m, o in zip(tm, to)])
+    
+    def anti_transformations(self) -> np.ndarray:
+        """
+        Returns an array of anti-transformed boards.
+        See the anti_transformation() method defined by SquareSet.
+        """
+        tm = self.mover.anti_transformations()
+        to = self.opponent.anti_transformations()
         return np.array([Board(SquareSet(m), SquareSet(o)) for m, o in zip(tm, to)])

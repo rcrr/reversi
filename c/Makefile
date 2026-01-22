@@ -4,7 +4,7 @@
 #  This file is part of the reversi program
 #  http://github.com/rcrr/reversi
 #
-#  Copyright (c) 2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024 Roberto Corradini. All rights reserved.
+#  Copyright (c) 2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2026 Roberto Corradini. All rights reserved.
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -21,6 +21,24 @@
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 #  or visit the site <http://www.gnu.org/licenses/>.
 #
+
+#
+# Default target
+#
+default: all
+
+#
+# LaTeX AI
+#
+LATEX_AI_DIR  := ai
+LATEX_AI_MAIN := two-model-layer.tex
+
+latex-ai:
+	latexmk -pdf \
+		-outdir=$(LATEX_AI_BUILDDIR) \
+		-interaction=nonstopmode \
+		$(LATEX_AI_DIR)/$(LATEX_AI_MAIN)
+
 
 #
 # Needed for PostgreSQL libpq API
@@ -80,6 +98,8 @@ LIBDIR          := $(BUILDDIR)/lib
 # build/test
 TEST_OBJDIR     := $(BTESTDIR)/obj
 TEST_BINDIR     := $(BTESTDIR)/bin
+# LaTeX AI build dir
+LATEX_AI_BUILDDIR := $(BUILDDIR)/ai
 
 #
 # Add all the programs that has a main and that will be compiled and linked as a bin executable.
@@ -476,7 +496,7 @@ test: $(UTEST_MAINS) $(BIN_UTEST)
 asm: $(ASMS)
 
 build_dirs: $(BUILDDIR) $(OBJDIR) $(BINDIR) $(DOCDIR) $(BTESTDIR) $(ASMDIR) $(TMPDIR) $(LIBDIR) \
-            $(ENDGAME_LOG_DIR) $(TEST_OBJDIR) $(TEST_BINDIR)
+            $(ENDGAME_LOG_DIR) $(TEST_OBJDIR) $(TEST_BINDIR) $(LATEX_AI_BUILDDIR)
 
 $(BUILDDIR): $(BUILDDIR)/.dir_sentinel
 
@@ -537,6 +557,12 @@ $(BTESTDIR): $(BTESTDIR)/.dir_sentinel $(BUILDDIR)/.dir_sentinel
 $(BTESTDIR)/.dir_sentinel:
 	mkdir -p $(BTESTDIR)
 	touch $(BTESTDIR)/.dir_sentinel
+
+$(LATEX_AI_BUILDDIR): $(LATEX_AI_BUILDDIR)/.dir_sentinel
+
+$(LATEX_AI_BUILDDIR)/.dir_sentinel:
+	mkdir -p $(LATEX_AI_BUILDDIR)
+	touch $(LATEX_AI_BUILDDIR)/.dir_sentinel
 
 ##
 ## arch
