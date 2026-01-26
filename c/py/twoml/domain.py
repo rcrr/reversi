@@ -25,12 +25,35 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
+#
+# To use the module interactively do:
+#
+# $ cd $(REVERSI_HOME)/c
+# $ source py/.reversi_venv/bin/activate
+# $ PYTHONPATH="./py" python3
+# >>> from twoml.domain import *
+# >>> ar = SquareSet(0x22120a0e1222221e)
+# >>> ar
+# SquareSet(2455035802420388382)
+# >>> ar.print()
+#   a b c d e f g h
+# 1 . x x x x . . .
+# 2 . x . . . x . .
+# 3 . x . . . x . .
+# 4 . x . . x . . .
+# 5 . x x x . . . .
+# 6 . x . x . . . .
+# 7 . x . . x . . .
+# 8 . x . . . x . .
+#
+
 from __future__ import annotations
 
 import numpy as np
+
 from typing import Self, Callable, Any, Union, TypeVar
 
-__all__ = ['Square', 'Move', 'SquareSet', 'Board']
+__all__ = ['Square', 'Move', 'SquareSet', 'Board', 'Pattern', 'pack_ss', 'unpack_ss']
 
 class Square(np.uint8):
     """
@@ -894,3 +917,162 @@ class Board:
         tm = self.mover.anti_transformations()
         to = self.opponent.anti_transformations()
         return np.array([Board(SquareSet(m), SquareSet(o)) for m, o in zip(tm, to)])
+
+"""
+struct board_pattern_s {
+  board_pattern_id_t id;
+  char name[7];
+  unsigned int n_instances;
+  unsigned int n_squares;
+  unsigned long int n_configurations;
+  SquareSet masks[8];
+  board_trans_f trans_to_principal_f[8]; // array of transformation functions
+  SquareSet (*pattern_pack_f) (SquareSet);
+  SquareSet (*pattern_unpack_f) (SquareSet);
+  SquareSet (*pattern_mirror_f) (SquareSet);
+};
+"""
+class Pattern:
+
+    def __init__(self, pid: int, name: str, mask: SquareSet):
+        if not isinstance(mask, (SquareSet, np.uint64)):
+            raise TypeError('Argument mask is not an instance of SquareSet')
+        if not isinstance(name, str):
+            raise TypeError('Argument name is not an instance of str')
+        if not isinstance(pid, int):
+            raise TypeError('Argument pid is not an instance of int')
+        if pid < 0:
+            raise ValueError('Arguments pid must be equal or greater than zero')
+        self.pid = pid
+        self.name = name
+        self.mask = mask
+        self.tmasks = mask.transformations()
+        self.cells = mask.to_square_list()
+        self.cnames = mask.to_string_list()
+        
+        def _compute_distinct_masks():
+            dms = np.zeros(8, dtype=bool) # all false
+            t = self.tmasks
+            for i in range(8):
+                for j in range(i):
+                    if t[j] == t[i]:
+                        dms[i] = True
+                        break
+            return dms
+        
+        self.dmasks = _compute_distinct_masks()
+        self.n_instances = (~self.dmasks).sum()
+        self.n_squares = mask.count()
+        self.n_configurations = 3 ** self.n_squares
+
+        def _check_mask_is_principal() -> int:
+            instance: int = 0
+            highest_cell_instance_0 = SquareSet(self.tmasks[0]).bsr()
+            for i in range(1, 8):
+                highest_cell = SquareSet(self.tmasks[i]).bsr()
+                if highest_cell < highest_cell_instance_0:
+                    instance = i
+                    break
+            return instance
+
+        principle_instance = _check_mask_is_principal()
+        if principle_instance != 0:
+            mesg = "Argument mask is not principal, check transformations.\nprinciple_instance = {}".format(principle_instance)
+            raise ValueError(mesg)
+
+        def _precompute_pack_plan():
+            empty = np.uint64(0)
+            plan = []
+            mask = np.uint64(self.mask)
+            dest_pos = 0
+            source_pos = 0
+            
+            while source_pos < 64:
+                # 1. Skip zeros to find the start of the next block
+                # We use a bit selector to stay in the 64-bit domain
+                while source_pos < 64:
+                    selector = np.uint64(1) << source_pos
+                    if (mask & selector) != empty:
+                        break
+                    source_pos += 1
+                if source_pos >= 64:
+                    break
+                
+                # 2. Found the start of a block
+                start_source = source_pos
+
+                # 3. Find the end of this contiguous block
+                while source_pos < 64:
+                    selector = np.uint64(1) << source_pos
+                    if (mask & selector) == empty:
+                        break
+                    source_pos += 1
+                block_len = source_pos - start_source
+        
+                # 4. Create the mask for this block
+                block_mask = (np.uint64(0xFFFFFFFFFFFFFFFF) >> (64 - block_len)) << start_source
+        
+                # 5. Calculate the shift required to pack this block
+                shift_amount = start_source - dest_pos
+        
+                # Store in the plan: (mask, shift)
+                plan.append((block_mask, shift_amount))
+        
+                # 6. Increment destination position by the number of bits packed
+                dest_pos += block_len
+
+            return plan
+
+        self.pack_plan = _precompute_pack_plan()
+
+        
+    def print(self) -> None:
+        print("[Pattern: pid = {}, name = {}, mask = 0x{:016x}]".format(self.pid, self.name, self.mask))
+
+def pack_ss(s: SquareSet, p: Pattern) -> SquareSet:
+    """
+    Packs a square set according to the mask defined by pattern p.
+    """
+    s = np.uint64(s)
+    res = np.uint64(0)
+    
+    for block_mask, shift in p.pack_plan:
+        res |= (s & block_mask) >> shift
+        
+    return res
+
+def unpack_ss(packed_val: np.uint64, p: Pattern) -> np.uint64:
+    """
+    Executes the inverse of pack_ss (PDEP simulation).
+    Takes packed bits and distributes them back to their original 
+    positions on the bitboard using the precomputed pack_plan.
+    
+    Args:
+        packed_val: The compressed bits (result of a pack operation).
+        p: The Pattern object containing the pack_plan.
+    """
+    res = np.uint64(0)
+    packed_val = np.uint64(packed_val)
+    all_ones = np.uint64(0xFFFFFFFFFFFFFFFF)
+    
+    # We need to track how many bits we have already 'unpacked' 
+    # to know where to extract them from the packed_val.
+    current_packed_pos = 0
+    
+    for block_mask, shift in p.pack_plan:
+        # 1. Calculate the length of the block from its mask
+        # (Technically, the plan could store block_len, but we can derive it)
+        # Using bit_count is efficient on Zen 3 (native popcount)
+        block_len = int(np.bitwise_count(block_mask))
+        
+        # 2. Create a mask for the bits in their CURRENT packed position
+        extract_mask = (all_ones >> np.uint64(64 - block_len)) << np.uint64(current_packed_pos)
+        
+        # 3. Extract the bits from the packed value and shift them BACK to the source
+        # Since 'shift' was (source - dest), we shift LEFT to go back.
+        res |= (packed_val & extract_mask) << np.uint64(shift)
+        
+        # 4. Advance the pointer in the packed value
+        current_packed_pos += block_len
+        
+    return res

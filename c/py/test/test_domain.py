@@ -41,6 +41,7 @@
 #
 
 import unittest
+import numpy.testing as npt
 
 import twoml
 import twoml.domain
@@ -925,3 +926,422 @@ class TestBoard(unittest.TestCase):
                 eb.print()
                 self.assertTrue(False)
         self.assertTrue(True)
+
+
+class TestPattern(unittest.TestCase):
+
+    def test_dummy(self):
+        self.assertEqual(True, True)
+
+    def test_init(self):
+        p = Pattern(0, 'ELLE', SquareSet(0x0000000000000107))
+        self.assertEqual(p, p)
+
+    def test_init_invalid_type_arg_0_raises_assertion(self):
+        with self.assertRaises(TypeError):
+            p = Pattern('zero', 'ELLE', SquareSet(0x0000000000000107))
+
+    def test_init_invalid_type_arg_1_raises_assertion(self):
+        with self.assertRaises(TypeError):
+            p = Pattern(0, 1, SquareSet(0x0000000000000107))
+
+    def test_init_invalid_type_arg_2_raises_assertion(self):
+        with self.assertRaises(TypeError):
+            p = Pattern(0, 'ELLE', 107)
+
+    def test_init_invalid_value_arg_0_raises_assertion(self):
+        with self.assertRaises(ValueError):
+            p = Pattern(-1, 'ELLE', SquareSet(0x0000000000000107))
+
+    def test_init_invalid_value_arg_2_raises_assertion(self):
+        with self.assertRaises(ValueError):
+            p = Pattern(0, 'ELLE', SquareSet(0x00000000008080C0))
+
+    def test_init_attributes(self):
+        expected_tmasks = np.array([0x0000000000000107, # 0
+                                    0x00000000008080C0, # 1
+                                    0xE080000000000000, # 2
+                                    0x0301010000000000, # 3
+                                    0x00000000000080E0, # 4
+                                    0xC080800000000000, # 5
+                                    0x0701000000000000, # 6
+                                    0x0000000000010103, # 7
+                                    ])
+        p = Pattern(0, 'ELLE', SquareSet(0x0000000000000107))
+        self.assertEqual(p.pid, 0)
+        self.assertEqual(p.name, 'ELLE')
+        self.assertEqual(p.mask, SquareSet(0x0000000000000107))
+        npt.assert_array_equal(p.tmasks, expected_tmasks)
+        self.assertEqual(p.cells, [Square(8), Square(2), Square(1), Square(0)])
+        self.assertEqual(p.cnames, ['A2', 'C1', 'B1', 'A1'])
+        self.assertFalse(any(p.dmasks))
+        self.assertEqual(p.n_instances, 8)
+        self.assertEqual(p.n_squares, 4)
+
+
+class TestPatternPack(unittest.TestCase):
+
+    def setUp(self):
+        empty = SquareSet(0x0000000000000000)
+        full  = SquareSet(0xFFFFFFFFFFFFFFFF)
+        r1    = SquareSet(0x00000000000000FF)
+        r2    = SquareSet(0x000000000000FF00)
+        r3    = SquareSet(0x0000000000FF0000)
+        r4    = SquareSet(0x00000000FF000000)
+        r5    = SquareSet(0x000000FF00000000)
+        r6    = SquareSet(0x0000FF0000000000)
+        r7    = SquareSet(0x00FF000000000000)
+        r8    = SquareSet(0xFF00000000000000)
+        c1    = SquareSet(0x0101010101010101)
+        c2    = SquareSet(0x0202020202020202)
+        c3    = SquareSet(0x0404040404040404)
+        c4    = SquareSet(0x0808080808080808)
+        c5    = SquareSet(0x1010101010101010)
+        c6    = SquareSet(0x2020202020202020)
+        c7    = SquareSet(0x4040404040404040)
+        c8    = SquareSet(0x8080808080808080)
+
+        self.square_set_list = [ empty, full,
+                                 r1, r2, r3, r4, r5, r6, r7, r8,
+                                 c1, c2, c3, c4, c5, c6, c7, c8,
+                                ]
+        
+    def tearDown(self):
+        pass
+
+    def test_elle(self):
+        p = Pattern(0, 'ELLE', SquareSet(0x0000000000000107))
+        pack_plan = p.pack_plan
+        expected_pack_plan = np.array([
+            (0x0000000000000007, 0),
+            (0x0000000000000100, 5)
+        ])
+        npt.assert_array_equal(expected_pack_plan, pack_plan)
+
+        packed = [pack_ss(s, p) for s in self.square_set_list]
+        expected = [
+            SquareSet(0x0000000000000000), # empty
+            SquareSet(0x000000000000000F), # full
+            SquareSet(0x0000000000000007), # r1
+            SquareSet(0x0000000000000008), # r2
+            SquareSet(0x0000000000000000), # r3
+            SquareSet(0x0000000000000000), # r4
+            SquareSet(0x0000000000000000), # r5
+            SquareSet(0x0000000000000000), # r6
+            SquareSet(0x0000000000000000), # r7
+            SquareSet(0x0000000000000000), # r8
+            SquareSet(0x0000000000000009), # c1
+            SquareSet(0x0000000000000002), # c2
+            SquareSet(0x0000000000000004), # c3
+            SquareSet(0x0000000000000000), # c4
+            SquareSet(0x0000000000000000), # c5
+            SquareSet(0x0000000000000000), # c6
+            SquareSet(0x0000000000000000), # c7
+            SquareSet(0x0000000000000000), # c8
+        ]
+        self.assertEqual(packed, expected)
+
+        unpacked = [unpack_ss(s, p) for s in packed]
+        expected_unpacked = [
+            SquareSet(0x0000000000000000), # empty
+            SquareSet(0x0000000000000107), # full
+            SquareSet(0x0000000000000007), # r1
+            SquareSet(0x0000000000000100), # r2
+            SquareSet(0x0000000000000000), # r3
+            SquareSet(0x0000000000000000), # r4
+            SquareSet(0x0000000000000000), # r5
+            SquareSet(0x0000000000000000), # r6
+            SquareSet(0x0000000000000000), # r7
+            SquareSet(0x0000000000000000), # r8
+            SquareSet(0x0000000000000101), # c1
+            SquareSet(0x0000000000000002), # c2
+            SquareSet(0x0000000000000004), # c3
+            SquareSet(0x0000000000000000), # c4
+            SquareSet(0x0000000000000000), # c5
+            SquareSet(0x0000000000000000), # c6
+            SquareSet(0x0000000000000000), # c7
+            SquareSet(0x0000000000000000), # c8
+        ]
+        self.assertEqual(unpacked, expected_unpacked)
+
+    def test_edge(self):
+        p = Pattern(1, 'EDGE', SquareSet(0x00000000000000FF))
+        pack_plan = p.pack_plan
+        expected_pack_plan = np.array([
+            (0x00000000000000FF, 0)
+        ])
+        npt.assert_array_equal(expected_pack_plan, pack_plan)
+
+        packed = [pack_ss(s, p) for s in self.square_set_list]
+        expected = [
+            SquareSet(0x0000000000000000), # empty
+            SquareSet(0x00000000000000FF), # full
+            SquareSet(0x00000000000000FF), # r1
+            SquareSet(0x0000000000000000), # r2
+            SquareSet(0x0000000000000000), # r3
+            SquareSet(0x0000000000000000), # r4
+            SquareSet(0x0000000000000000), # r5
+            SquareSet(0x0000000000000000), # r6
+            SquareSet(0x0000000000000000), # r7
+            SquareSet(0x0000000000000000), # r8
+            SquareSet(0x0000000000000001), # c1
+            SquareSet(0x0000000000000002), # c2
+            SquareSet(0x0000000000000004), # c3
+            SquareSet(0x0000000000000008), # c4
+            SquareSet(0x0000000000000010), # c5
+            SquareSet(0x0000000000000020), # c6
+            SquareSet(0x0000000000000040), # c7
+            SquareSet(0x0000000000000080), # c8
+        ]
+        self.assertEqual(packed, expected)
+
+        unpacked = [unpack_ss(s, p) for s in packed]
+        expected_unpacked = [
+            SquareSet(0x0000000000000000), # empty
+            SquareSet(0x00000000000000FF), # full
+            SquareSet(0x00000000000000FF), # r1
+            SquareSet(0x0000000000000000), # r2
+            SquareSet(0x0000000000000000), # r3
+            SquareSet(0x0000000000000000), # r4
+            SquareSet(0x0000000000000000), # r5
+            SquareSet(0x0000000000000000), # r6
+            SquareSet(0x0000000000000000), # r7
+            SquareSet(0x0000000000000000), # r8
+            SquareSet(0x0000000000000001), # c1
+            SquareSet(0x0000000000000002), # c2
+            SquareSet(0x0000000000000004), # c3
+            SquareSet(0x0000000000000008), # c4
+            SquareSet(0x0000000000000010), # c5
+            SquareSet(0x0000000000000020), # c6
+            SquareSet(0x0000000000000040), # c7
+            SquareSet(0x0000000000000080), # c8
+        ]
+        self.assertEqual(unpacked, expected_unpacked)
+
+    def test_r2(self):
+        p = Pattern(5, 'R2', SquareSet(0x000000000000FF00))
+        pack_plan = p.pack_plan
+        expected_pack_plan = np.array([
+            (0x000000000000FF00, 8)
+        ])
+        npt.assert_array_equal(expected_pack_plan, pack_plan)
+
+        packed = [pack_ss(s, p) for s in self.square_set_list]
+        expected = [
+            SquareSet(0x0000000000000000), # empty
+            SquareSet(0x00000000000000FF), # full
+            SquareSet(0x0000000000000000), # r1
+            SquareSet(0x00000000000000FF), # r2
+            SquareSet(0x0000000000000000), # r3
+            SquareSet(0x0000000000000000), # r4
+            SquareSet(0x0000000000000000), # r5
+            SquareSet(0x0000000000000000), # r6
+            SquareSet(0x0000000000000000), # r7
+            SquareSet(0x0000000000000000), # r8
+            SquareSet(0x0000000000000001), # c1
+            SquareSet(0x0000000000000002), # c2
+            SquareSet(0x0000000000000004), # c3
+            SquareSet(0x0000000000000008), # c4
+            SquareSet(0x0000000000000010), # c5
+            SquareSet(0x0000000000000020), # c6
+            SquareSet(0x0000000000000040), # c7
+            SquareSet(0x0000000000000080), # c8
+        ]
+        self.assertEqual(packed, expected)
+
+        unpacked = [unpack_ss(s, p) for s in packed]
+        expected_unpacked = [
+            SquareSet(0x0000000000000000), # empty
+            SquareSet(0x000000000000FF00), # full
+            SquareSet(0x0000000000000000), # r1
+            SquareSet(0x000000000000FF00), # r2
+            SquareSet(0x0000000000000000), # r3
+            SquareSet(0x0000000000000000), # r4
+            SquareSet(0x0000000000000000), # r5
+            SquareSet(0x0000000000000000), # r6
+            SquareSet(0x0000000000000000), # r7
+            SquareSet(0x0000000000000000), # r8
+            SquareSet(0x0000000000000100), # c1
+            SquareSet(0x0000000000000200), # c2
+            SquareSet(0x0000000000000400), # c3
+            SquareSet(0x0000000000000800), # c4
+            SquareSet(0x0000000000001000), # c5
+            SquareSet(0x0000000000002000), # c6
+            SquareSet(0x0000000000004000), # c7
+            SquareSet(0x0000000000008000), # c8
+        ]
+        self.assertEqual(unpacked, expected_unpacked)
+
+    def test_corner(self):
+        p = Pattern(3, 'CORNER', SquareSet(0x0000000000070707))
+        pack_plan = p.pack_plan
+        expected_pack_plan = np.array([
+            (0x0000000000000007, 0),
+            (0x0000000000000700, 5),
+            (0x0000000000070000,10)
+        ])
+        npt.assert_array_equal(expected_pack_plan, pack_plan)
+
+        packed = [pack_ss(s, p) for s in self.square_set_list]
+        expected = [
+            SquareSet(0x0000000000000000), # empty
+            SquareSet(0x00000000000001FF), # full
+            SquareSet(0x0000000000000007), # r1
+            SquareSet(0x0000000000000038), # r2
+            SquareSet(0x00000000000001C0), # r3
+            SquareSet(0x0000000000000000), # r4
+            SquareSet(0x0000000000000000), # r5
+            SquareSet(0x0000000000000000), # r6
+            SquareSet(0x0000000000000000), # r7
+            SquareSet(0x0000000000000000), # r8
+            SquareSet(0x0000000000000049), # c1
+            SquareSet(0x0000000000000092), # c2
+            SquareSet(0x0000000000000124), # c3
+            SquareSet(0x0000000000000000), # c4
+            SquareSet(0x0000000000000000), # c5
+            SquareSet(0x0000000000000000), # c6
+            SquareSet(0x0000000000000000), # c7
+            SquareSet(0x0000000000000000), # c8
+        ]
+        self.assertEqual(packed, expected)
+
+        unpacked = [unpack_ss(s, p) for s in packed]
+        expected_unpacked = [
+            SquareSet(0x0000000000000000), # empty
+            SquareSet(0x0000000000070707), # full
+            SquareSet(0x0000000000000007), # r1
+            SquareSet(0x0000000000000700), # r2
+            SquareSet(0x0000000000070000), # r3
+            SquareSet(0x0000000000000000), # r4
+            SquareSet(0x0000000000000000), # r5
+            SquareSet(0x0000000000000000), # r6
+            SquareSet(0x0000000000000000), # r7
+            SquareSet(0x0000000000000000), # r8
+            SquareSet(0x0000000000010101), # c1
+            SquareSet(0x0000000000020202), # c2
+            SquareSet(0x0000000000040404), # c3
+            SquareSet(0x0000000000000000), # c4
+            SquareSet(0x0000000000000000), # c5
+            SquareSet(0x0000000000000000), # c6
+            SquareSet(0x0000000000000000), # c7
+            SquareSet(0x0000000000000000), # c8
+        ]
+        self.assertEqual(unpacked, expected_unpacked)
+
+    def test_diag8(self):
+        p = Pattern(2, 'DIAG8',  SquareSet(0x0102040810204080))
+        pack_plan = p.pack_plan
+        expected_pack_plan = np.array([
+            (0x0000000000000080,  7),
+            (0x0000000000004000, 13),
+            (0x0000000000200000, 19),
+            (0x0000000010000000, 25),
+            (0x0000000800000000, 31),
+            (0x0000040000000000, 37),
+            (0x0002000000000000, 43),
+            (0x0100000000000000, 49)
+        ])
+        npt.assert_array_equal(expected_pack_plan, pack_plan)
+
+        packed = [pack_ss(s, p) for s in self.square_set_list]
+        expected = [
+            SquareSet(0x0000000000000000), # empty
+            SquareSet(0x00000000000000FF), # full
+            SquareSet(0x0000000000000001), # r1
+            SquareSet(0x0000000000000002), # r2
+            SquareSet(0x0000000000000004), # r3
+            SquareSet(0x0000000000000008), # r4
+            SquareSet(0x0000000000000010), # r5
+            SquareSet(0x0000000000000020), # r6
+            SquareSet(0x0000000000000040), # r7
+            SquareSet(0x0000000000000080), # r8
+            SquareSet(0x0000000000000080), # c1
+            SquareSet(0x0000000000000040), # c2
+            SquareSet(0x0000000000000020), # c3
+            SquareSet(0x0000000000000010), # c4
+            SquareSet(0x0000000000000008), # c5
+            SquareSet(0x0000000000000004), # c6
+            SquareSet(0x0000000000000002), # c7
+            SquareSet(0x0000000000000001), # c8
+        ]
+        self.assertEqual(packed, expected)
+
+        unpacked = [unpack_ss(s, p) for s in packed]
+        expected_unpacked = [
+            SquareSet(0x0000000000000000), # empty
+            SquareSet(0x0102040810204080), # full
+            SquareSet(0x0000000000000080), # r1
+            SquareSet(0x0000000000004000), # r2
+            SquareSet(0x0000000000200000), # r3
+            SquareSet(0x0000000010000000), # r4
+            SquareSet(0x0000000800000000), # r5
+            SquareSet(0x0000040000000000), # r6
+            SquareSet(0x0002000000000000), # r7
+            SquareSet(0x0100000000000000), # r8
+            SquareSet(0x0100000000000000), # c1
+            SquareSet(0x0002000000000000), # c2
+            SquareSet(0x0000040000000000), # c3
+            SquareSet(0x0000000800000000), # c4
+            SquareSet(0x0000000010000000), # c5
+            SquareSet(0x0000000000200000), # c6
+            SquareSet(0x0000000000004000), # c7
+            SquareSet(0x0000000000000080), # c8
+        ]
+        self.assertEqual(unpacked, expected_unpacked)
+
+    def test_fourc(self):
+        p = Pattern(4, 'FOURC', SquareSet(0x8100000000000081))
+        pack_plan = p.pack_plan
+        expected_pack_plan = np.array([
+            (0x0000000000000001,  0),
+            (0x0000000000000080,  6),
+            (0x0100000000000000, 54),
+            (0x8000000000000000, 60)
+        ])
+        npt.assert_array_equal(expected_pack_plan, pack_plan)
+
+        packed = [pack_ss(s, p) for s in self.square_set_list]
+        expected = [
+            SquareSet(0x0000000000000000), # empty
+            SquareSet(0x000000000000000F), # full
+            SquareSet(0x0000000000000003), # r1
+            SquareSet(0x0000000000000000), # r2
+            SquareSet(0x0000000000000000), # r3
+            SquareSet(0x0000000000000000), # r4
+            SquareSet(0x0000000000000000), # r5
+            SquareSet(0x0000000000000000), # r6
+            SquareSet(0x0000000000000000), # r7
+            SquareSet(0x000000000000000C), # r8
+            SquareSet(0x0000000000000005), # c1
+            SquareSet(0x0000000000000000), # c2
+            SquareSet(0x0000000000000000), # c3
+            SquareSet(0x0000000000000000), # c4
+            SquareSet(0x0000000000000000), # c5
+            SquareSet(0x0000000000000000), # c6
+            SquareSet(0x0000000000000000), # c7
+            SquareSet(0x000000000000000A), # c8
+        ]
+        self.assertEqual(packed, expected)
+
+        unpacked = [unpack_ss(s, p) for s in packed]
+        expected_unpacked = [
+            SquareSet(0x0000000000000000), # empty
+            SquareSet(0x8100000000000081), # full
+            SquareSet(0x0000000000000081), # r1
+            SquareSet(0x0000000000000000), # r2
+            SquareSet(0x0000000000000000), # r3
+            SquareSet(0x0000000000000000), # r4
+            SquareSet(0x0000000000000000), # r5
+            SquareSet(0x0000000000000000), # r6
+            SquareSet(0x0000000000000000), # r7
+            SquareSet(0x8100000000000000), # r8
+            SquareSet(0x0100000000000001), # c1
+            SquareSet(0x0000000000000000), # c2
+            SquareSet(0x0000000000000000), # c3
+            SquareSet(0x0000000000000000), # c4
+            SquareSet(0x0000000000000000), # c5
+            SquareSet(0x0000000000000000), # c6
+            SquareSet(0x0000000000000000), # c7
+            SquareSet(0x8000000000000080), # c8
+        ]
+        self.assertEqual(unpacked, expected_unpacked)
