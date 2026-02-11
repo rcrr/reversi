@@ -34,7 +34,7 @@ LATEX_AI_DIR  := ai
 LATEX_AI_MAIN := two-model-layer.tex
 
 latex-ai:
-	latexmk -pdf \
+	latexmk -pdf\
 		-outdir=$(LATEX_AI_BUILDDIR) \
 		-interaction=nonstopmode \
 		$(LATEX_AI_DIR)/$(LATEX_AI_MAIN)

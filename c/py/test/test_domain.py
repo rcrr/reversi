@@ -50,12 +50,14 @@ from twoml.domain import *
 
 import numpy as np
 
+from collections import namedtuple
+
 
 ar:            SquareSet = SquareSet(0x22120a0e1222221e)
-ar_flip_h:     SquareSet = SquareSet(0x1e2222120e0a1222)
-ar_flip_v:     SquareSet = SquareSet(0x4448507048444478)
-ar_flip_h1a8:  SquareSet = SquareSet(0x00ff888c92610000)
-ar_flip_a1h8:  SquareSet = SquareSet(0x000086493111ff00)
+ar_reflection_h:     SquareSet = SquareSet(0x1e2222120e0a1222)
+ar_reflection_v:     SquareSet = SquareSet(0x4448507048444478)
+ar_reflection_h1a8:  SquareSet = SquareSet(0x00ff888c92610000)
+ar_reflection_a1h8:  SquareSet = SquareSet(0x000086493111ff00)
 ar_rotate_180: SquareSet = SquareSet(0x7844444870504844)
 ar_rotate_90c: SquareSet = SquareSet(0x000061928c88ff00)
 ar_rotate_90a: SquareSet = SquareSet(0x00ff113149860000)
@@ -182,45 +184,45 @@ class TestSquareSet(unittest.TestCase):
         self.assertEqual(full.count(), 64)
         self.assertEqual(ar.count(), 19)
 
-    def test_trans_flip_diag_a1h8(self):
-        self.assertEqual(empty.trans_flip_diag_a1h8(), empty)
-        self.assertEqual(full.trans_flip_diag_a1h8(), full)
-        self.assertEqual(sqa1.trans_flip_diag_a1h8(), sqa1)
-        self.assertEqual(sqh1.trans_flip_diag_a1h8(), sqa8)
-        self.assertEqual(sqa8.trans_flip_diag_a1h8(), sqh1)
-        self.assertEqual(sqh8.trans_flip_diag_a1h8(), sqh8)
-        self.assertEqual(row_1.trans_flip_diag_a1h8(), column_a)
-        self.assertEqual(row_8.trans_flip_diag_a1h8(), column_h)
-        self.assertEqual(column_a.trans_flip_diag_a1h8(), row_1)
-        self.assertEqual(column_h.trans_flip_diag_a1h8(), row_8)
-        self.assertEqual(half_left.trans_flip_diag_a1h8(), half_top)
-        self.assertEqual(half_right.trans_flip_diag_a1h8(), half_bottom)
-        self.assertEqual(half_top.trans_flip_diag_a1h8(), half_left)
-        self.assertEqual(half_bottom.trans_flip_diag_a1h8(), half_right)
+    def test_trans_reflection_diag_a1h8(self):
+        self.assertEqual(empty.trans_reflection_diag_a1h8(), empty)
+        self.assertEqual(full.trans_reflection_diag_a1h8(), full)
+        self.assertEqual(sqa1.trans_reflection_diag_a1h8(), sqa1)
+        self.assertEqual(sqh1.trans_reflection_diag_a1h8(), sqa8)
+        self.assertEqual(sqa8.trans_reflection_diag_a1h8(), sqh1)
+        self.assertEqual(sqh8.trans_reflection_diag_a1h8(), sqh8)
+        self.assertEqual(row_1.trans_reflection_diag_a1h8(), column_a)
+        self.assertEqual(row_8.trans_reflection_diag_a1h8(), column_h)
+        self.assertEqual(column_a.trans_reflection_diag_a1h8(), row_1)
+        self.assertEqual(column_h.trans_reflection_diag_a1h8(), row_8)
+        self.assertEqual(half_left.trans_reflection_diag_a1h8(), half_top)
+        self.assertEqual(half_right.trans_reflection_diag_a1h8(), half_bottom)
+        self.assertEqual(half_top.trans_reflection_diag_a1h8(), half_left)
+        self.assertEqual(half_bottom.trans_reflection_diag_a1h8(), half_right)
 
-    def test_trans_flip_diag_h1a8(self):
-        self.assertEqual(empty.trans_flip_diag_h1a8(), empty)
-        self.assertEqual(full.trans_flip_diag_h1a8(), full)
-        self.assertEqual(sqa1.trans_flip_diag_h1a8(), sqh8)
-        self.assertEqual(sqh1.trans_flip_diag_h1a8(), sqh1)
-        self.assertEqual(sqa8.trans_flip_diag_h1a8(), sqa8)
-        self.assertEqual(sqh8.trans_flip_diag_h1a8(), sqa1)
+    def test_trans_reflection_diag_h1a8(self):
+        self.assertEqual(empty.trans_reflection_diag_h1a8(), empty)
+        self.assertEqual(full.trans_reflection_diag_h1a8(), full)
+        self.assertEqual(sqa1.trans_reflection_diag_h1a8(), sqh8)
+        self.assertEqual(sqh1.trans_reflection_diag_h1a8(), sqh1)
+        self.assertEqual(sqa8.trans_reflection_diag_h1a8(), sqa8)
+        self.assertEqual(sqh8.trans_reflection_diag_h1a8(), sqa1)
 
-    def test_trans_flip_horizontal(self):
-        self.assertEqual(empty.trans_flip_horizontal(), empty)
-        self.assertEqual(full.trans_flip_horizontal(), full)
-        self.assertEqual(sqa1.trans_flip_horizontal(), sqh1)
-        self.assertEqual(sqh1.trans_flip_horizontal(), sqa1)
-        self.assertEqual(sqa8.trans_flip_horizontal(), sqh8)
-        self.assertEqual(sqh8.trans_flip_horizontal(), sqa8)
+    def test_trans_reflection_horizontal(self):
+        self.assertEqual(empty.trans_reflection_horizontal(), empty)
+        self.assertEqual(full.trans_reflection_horizontal(), full)
+        self.assertEqual(sqa1.trans_reflection_horizontal(), sqh1)
+        self.assertEqual(sqh1.trans_reflection_horizontal(), sqa1)
+        self.assertEqual(sqa8.trans_reflection_horizontal(), sqh8)
+        self.assertEqual(sqh8.trans_reflection_horizontal(), sqa8)
 
-    def test_trans_flip_vertical(self):
-        self.assertEqual(empty.trans_flip_vertical(), empty)
-        self.assertEqual(full.trans_flip_vertical(), full)
-        self.assertEqual(sqa1.trans_flip_vertical(), sqa8)
-        self.assertEqual(sqh1.trans_flip_vertical(), sqh8)
-        self.assertEqual(sqa8.trans_flip_vertical(), sqa1)
-        self.assertEqual(sqh8.trans_flip_vertical(), sqh1)
+    def test_trans_reflection_vertical(self):
+        self.assertEqual(empty.trans_reflection_vertical(), empty)
+        self.assertEqual(full.trans_reflection_vertical(), full)
+        self.assertEqual(sqa1.trans_reflection_vertical(), sqa8)
+        self.assertEqual(sqh1.trans_reflection_vertical(), sqh8)
+        self.assertEqual(sqa8.trans_reflection_vertical(), sqa1)
+        self.assertEqual(sqh8.trans_reflection_vertical(), sqh1)
 
     def test_trans_identity(self):
         self.assertEqual(empty.trans_identity(), empty)
@@ -255,10 +257,10 @@ class TestSquareSet(unittest.TestCase):
         self.assertEqual(sqh8.trans_rotate_90a(), sqa8)
 
     def test_ar_transformations(self):
-        self.assertEqual(ar.trans_flip_diag_a1h8(), ar_flip_a1h8)
-        self.assertEqual(ar.trans_flip_diag_h1a8(), ar_flip_h1a8)
-        self.assertEqual(ar.trans_flip_horizontal(), ar_flip_h)
-        self.assertEqual(ar.trans_flip_vertical(), ar_flip_v)
+        self.assertEqual(ar.trans_reflection_diag_a1h8(), ar_reflection_a1h8)
+        self.assertEqual(ar.trans_reflection_diag_h1a8(), ar_reflection_h1a8)
+        self.assertEqual(ar.trans_reflection_horizontal(), ar_reflection_h)
+        self.assertEqual(ar.trans_reflection_vertical(), ar_reflection_v)
         self.assertEqual(ar.trans_identity(), ar)
         self.assertEqual(ar.trans_rotate_180(), ar_rotate_180)
         self.assertEqual(ar.trans_rotate_90c(), ar_rotate_90c)
@@ -787,38 +789,38 @@ class TestBoard(unittest.TestCase):
         move = Move.new_from_str('UN')
         self.assertFalse(b.is_move_legal(move))
 
-    def test_trans_flip_diag_a1h8(self):
+    def test_trans_reflection_diag_a1h8(self):
         mover = SquareSet(0x0000000000000002)
         opponent = SquareSet(0x0000000000000004)
         b = Board(mover, opponent)
-        t = b.trans_flip_diag_a1h8()
+        t = b.trans_reflection_diag_a1h8()
         expected = Board(SquareSet(0x0000000000000100),
                          SquareSet(0x0000000000010000))
         self.assertEqual(t, expected)
 
-    def test_trans_flip_diag_h1a8(self):
+    def test_trans_reflection_diag_h1a8(self):
         mover = SquareSet(0x0000000000000002)
         opponent = SquareSet(0x0000000000000004)
         b = Board(mover, opponent)
-        t = b.trans_flip_diag_h1a8()
+        t = b.trans_reflection_diag_h1a8()
         expected = Board(SquareSet(0x0080000000000000),
                          SquareSet(0x0000800000000000))
         self.assertEqual(t, expected)
 
-    def test_trans_flip_horizontal(self):
+    def test_trans_reflection_horizontal(self):
         mover = SquareSet(0x0000000000000002)
         opponent = SquareSet(0x0000000000000004)
         b = Board(mover, opponent)
-        t = b.trans_flip_horizontal()
+        t = b.trans_reflection_horizontal()
         expected = Board(SquareSet(0x0200000000000000),
                          SquareSet(0x0400000000000000))
         self.assertEqual(t, expected)
 
-    def test_trans_flip_vertical(self):
+    def test_trans_reflection_vertical(self):
         mover = SquareSet(0x0000000000000002)
         opponent = SquareSet(0x0000000000000004)
         b = Board(mover, opponent)
-        t = b.trans_flip_vertical()
+        t = b.trans_reflection_vertical()
         expected = Board(SquareSet(0x0000000000000040),
                          SquareSet(0x0000000000000020))
         self.assertEqual(t, expected)
@@ -934,30 +936,24 @@ class TestPattern(unittest.TestCase):
         self.assertEqual(True, True)
 
     def test_init(self):
-        p = Pattern(0, 'ELLE', SquareSet(0x0000000000000107))
+        p = Pattern('ELLE', SquareSet(0x0000000000000107))
         self.assertEqual(p, p)
-
-    def test_init_invalid_type_arg_0_raises_assertion(self):
-        with self.assertRaises(TypeError):
-            p = Pattern('zero', 'ELLE', SquareSet(0x0000000000000107))
 
     def test_init_invalid_type_arg_1_raises_assertion(self):
         with self.assertRaises(TypeError):
-            p = Pattern(0, 1, SquareSet(0x0000000000000107))
+            p = Pattern(1, SquareSet(0x0000000000000107))
 
     def test_init_invalid_type_arg_2_raises_assertion(self):
         with self.assertRaises(TypeError):
-            p = Pattern(0, 'ELLE', 107)
-
-    def test_init_invalid_value_arg_0_raises_assertion(self):
-        with self.assertRaises(ValueError):
-            p = Pattern(-1, 'ELLE', SquareSet(0x0000000000000107))
+            p = Pattern('ELLE', 107)
 
     def test_init_invalid_value_arg_2_raises_assertion(self):
         with self.assertRaises(ValueError):
-            p = Pattern(0, 'ELLE', SquareSet(0x00000000008080C0))
+            p = Pattern('ELLE', SquareSet(0x00000000008080C0))
 
     def test_init_attributes(self):
+        mask = SquareSet(0x0000000000000107)
+        all_masks = np.full(8, mask, dtype=np.uint64)
         expected_tmasks = np.array([0x0000000000000107, # 0
                                     0x00000000008080C0, # 1
                                     0xE080000000000000, # 2
@@ -967,16 +963,21 @@ class TestPattern(unittest.TestCase):
                                     0x0701000000000000, # 6
                                     0x0000000000010103, # 7
                                     ])
-        p = Pattern(0, 'ELLE', SquareSet(0x0000000000000107))
-        self.assertEqual(p.pid, 0)
+        p = Pattern('ELLE', mask)
         self.assertEqual(p.name, 'ELLE')
-        self.assertEqual(p.mask, SquareSet(0x0000000000000107))
+        self.assertEqual(p.mask, mask)
         npt.assert_array_equal(p.tmasks, expected_tmasks)
-        self.assertEqual(p.cells, [Square(8), Square(2), Square(1), Square(0)])
-        self.assertEqual(p.cnames, ['A2', 'C1', 'B1', 'A1'])
-        self.assertFalse(any(p.dmasks))
+        self.assertEqual(p.squares, [Square(0), Square(1), Square(2), Square(8)])
+        self.assertEqual(p.snames, ['A1', 'B1', 'C1', 'A2'])
         self.assertEqual(p.n_instances, 8)
         self.assertEqual(p.n_squares, 4)
+        self.assertEqual(p.n_configurations, 81)
+        
+        computed_tmasks = [f(SquareSet(s)) for f, s in zip(p.trans_fs, all_masks)]
+        npt.assert_array_equal(computed_tmasks, expected_tmasks)
+        
+        computed_all_masks = [f(SquareSet(s)) for f, s in zip(p.anti_trans_fs, expected_tmasks)]
+        npt.assert_array_equal(computed_all_masks, all_masks)
 
 
 class TestPatternPack(unittest.TestCase):
@@ -1010,7 +1011,7 @@ class TestPatternPack(unittest.TestCase):
         pass
 
     def test_elle(self):
-        p = Pattern(0, 'ELLE', SquareSet(0x0000000000000107))
+        p = Pattern('ELLE', SquareSet(0x0000000000000107))
         pack_plan = p.pack_plan
         expected_pack_plan = np.array([
             (0x0000000000000007, 0),
@@ -1065,7 +1066,7 @@ class TestPatternPack(unittest.TestCase):
         self.assertEqual(unpacked, expected_unpacked)
 
     def test_edge(self):
-        p = Pattern(1, 'EDGE', SquareSet(0x00000000000000FF))
+        p = Pattern('EDGE', SquareSet(0x00000000000000FF))
         pack_plan = p.pack_plan
         expected_pack_plan = np.array([
             (0x00000000000000FF, 0)
@@ -1119,7 +1120,7 @@ class TestPatternPack(unittest.TestCase):
         self.assertEqual(unpacked, expected_unpacked)
 
     def test_r2(self):
-        p = Pattern(5, 'R2', SquareSet(0x000000000000FF00))
+        p = Pattern('R2', SquareSet(0x000000000000FF00))
         pack_plan = p.pack_plan
         expected_pack_plan = np.array([
             (0x000000000000FF00, 8)
@@ -1173,7 +1174,7 @@ class TestPatternPack(unittest.TestCase):
         self.assertEqual(unpacked, expected_unpacked)
 
     def test_corner(self):
-        p = Pattern(3, 'CORNER', SquareSet(0x0000000000070707))
+        p = Pattern('CORNER', SquareSet(0x0000000000070707))
         pack_plan = p.pack_plan
         expected_pack_plan = np.array([
             (0x0000000000000007, 0),
@@ -1229,7 +1230,7 @@ class TestPatternPack(unittest.TestCase):
         self.assertEqual(unpacked, expected_unpacked)
 
     def test_diag8(self):
-        p = Pattern(2, 'DIAG8',  SquareSet(0x0102040810204080))
+        p = Pattern('DIAG8',  SquareSet(0x0102040810204080))
         pack_plan = p.pack_plan
         expected_pack_plan = np.array([
             (0x0000000000000080,  7),
@@ -1290,7 +1291,7 @@ class TestPatternPack(unittest.TestCase):
         self.assertEqual(unpacked, expected_unpacked)
 
     def test_fourc(self):
-        p = Pattern(4, 'FOURC', SquareSet(0x8100000000000081))
+        p = Pattern('FOURC', SquareSet(0x8100000000000081))
         pack_plan = p.pack_plan
         expected_pack_plan = np.array([
             (0x0000000000000001,  0),
@@ -1345,3 +1346,69 @@ class TestPatternPack(unittest.TestCase):
             SquareSet(0x8000000000000080), # c8
         ]
         self.assertEqual(unpacked, expected_unpacked)
+
+
+class TestPatternSymmetries(unittest.TestCase):
+
+    ro90c = SquareSet.trans_rotate_90c
+    ro180 = SquareSet.trans_rotate_180
+    ro90a = SquareSet.trans_rotate_90a
+    rvert = SquareSet.trans_reflection_vertical
+    rh1a8 = SquareSet.trans_reflection_diag_h1a8
+    rhori = SquareSet.trans_reflection_horizontal
+    ra1h8 = SquareSet.trans_reflection_diag_a1h8
+
+    TestCase = namedtuple('TestCase', ['mask', 'name', 'expected'])
+    test_data = [
+        TestCase(0x0000000000000107, 'ELLE',   []),
+        TestCase(0x0000000C30000000, 'ZSHAPE', [ro180]),
+        TestCase(0x00000000000000FF, 'EDGE',   [rvert]),
+        TestCase(0x000000000000FF00, 'R2',     [rvert]),
+        TestCase(0x0000000000FF0000, 'R3',     [rvert]),
+        TestCase(0x00000000FF000000, 'R4',     [rvert]),
+        TestCase(0x00000000000042FF, 'XEDGE',  [rvert]),
+        TestCase(0x0000000000010204, 'DIAG3',  [ra1h8]),
+        TestCase(0x0000000001020408, 'DIAG4',  [ra1h8]),
+        TestCase(0x0000000102040810, 'DIAG5',  [ra1h8]),
+        TestCase(0x0000010204081020, 'DIAG6',  [ra1h8]),
+        TestCase(0x0001020408102040, 'DIAG7',  [ra1h8]),
+        TestCase(0x0102040810204080, 'DIAG8',  [ro180]),
+        TestCase(0x0000000000070707, 'CORNER', [ra1h8]),
+        TestCase(0x0000000000001F1F, '2X5COR', []),
+        TestCase(0x0000000000003F3F, '2X6COR', []),
+        TestCase(0x0000003C3C000000, 'RCT2X4', [ro180, rvert, rhori]),
+        TestCase(0x000000000000C3FF, 'CASTLE', [rvert]),
+        TestCase(0x030304081020C0C0, 'BARBEL', [ro180, rh1a8, ra1h8]),
+        TestCase(0x010204081020C0C0, 'MACE',   [rh1a8]),
+        TestCase(0x8100000000000081, 'FOURC',  [ro90c, ro180, ro90a, rvert, rh1a8, rhori, ra1h8]),
+        TestCase(0x0000001818000000, 'CORE',   [ro90c, ro180, ro90a, rvert, rh1a8, rhori, ra1h8]),
+        TestCase(0x0000241818240000, 'CORED',  [ro90c, ro180, ro90a, rvert, rh1a8, rhori, ra1h8]),
+        TestCase(0x000008381C100000, 'COREA',  [ro90c, ro180, ro90a]),
+    ]
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+    
+    def test_dummy(self):
+        self.assertEqual(True, True)
+    
+    def test_pattern_invariance(self):
+
+        for mask_val, name, expected in self.test_data:
+            with self.subTest(name=name):
+                mask = SquareSet(mask_val)
+                p = Pattern(name, mask)
+
+                if True:
+                    print()
+                    p.print()
+
+                # 1. Verify symmetry function list matches
+                self.assertEqual(
+                    p.symmetry_fs,
+                    expected,
+                    f"Symmetry list mismatch for {name}"
+                )

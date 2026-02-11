@@ -62,6 +62,23 @@
 \usepackage[T1]{fontenc}
 \usepackage{url}
 
+\usepackage{bm}
+\usepackage[utf8]{inputenc}
+
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=true,      % Rimuove i riquadri e colora il testo
+    linkcolor=blue,       % Colore per i riferimenti interni (sezioni, figure, equazioni)
+    citecolor=blue,       % Colore per le citazioni bibliografiche
+    filecolor=magenta,    
+    urlcolor=cyan,
+    pdftitle={Pattern Symmetries in Reversi},
+}
+
+\usepackage{amssymb}
+
 \lstset{
   language=SQL,
   basicstyle=\ttfamily\tiny,
@@ -133,33 +150,34 @@ che poi vengono risolte e taggate con il valore vero del game.
 Il codice in C è stato poi portato in Python, per poter operare più agilmente con l'ecosistema attivo del Machine-Learning, AI,
 calcolo scientifico, acceleratori GPU, e tutto quanto serve per la ricerca di frontiera.
 Il codice in C rimane più performante per la risoluzione delle posizioni, il codice in Python è più consono allo sviluppo
-dei Modelli per la definizione di evaluation function più performanti.
+dei Modelli per la definizione di evaluation function più evolute.
 \end{abstract}
 
 \newpage
 
-\section{How-to: istruzioni d'uso}
+\section{Introduzione e Ambiente di Sviluppo}
 Questo documento è la guida per descrivere le basi del modello di Machine-Learning adottato dal
 programma Reversi. Il programma è vasto ed articolato, quì si cerca di sintetizzare al meglio le informazioni
 basilari per ragionare sullo sviluppo di un modello più performante della valutazione del risultato del gioco,
 più sinteticamente chiamata ``evaluation\_function'' o ``ef''.
 \begin{itemize}
-\item Per cominciare a lavorare avviare \texttt{EMACS} e lanciare una shell, quindi posizionarsi
-  nella cartella \texttt{\$REVERSI\_HOME/c/ai} e rigenerare il file PDF con il comando \texttt{``pdflatex two-model-layer.tex''}.
+\item Per cominciare a lavorare avviare \texttt{EMACS} e lanciare una shell con il comando \texttt{``M-x shell''}, quindi posizionarsi
+  nella cartella \texttt{\$REVERSI\_HOME/c} e rigenerare il file PDF con il comando \texttt{``make latex-ai''}.
   Per proseguire nella documentazione del modello aprire ed editare il presente documento \texttt{\$REVERSI\_HOME/c/ai/two-model-layer.tex}.
-\item Sempre su \texttt{EMACS} aprire una seconda shell e posizionarsi nella cartella \texttt{\$REVERSI\_HOME/c}.
+\item Sempre su \texttt{EMACS} aprire una seconda shell con il comando \texttt{``C-u M-x shell''}e posizionarsi nella cartella \texttt{\$REVERSI\_HOME/c}.
   Qui attivare l'ambiente python con il comando \texttt{``source py/.reversi\_venv/bin/activate''} e di seguito
   lanciare gli unit test con il comando \texttt{``PYTHONPATH="./py" python3 -m unittest test.test\_domain''}.
 \item Aprire il file \texttt{\$REVERSI\_HOME/c/py/twoml/domain.py} per lavorare sulla logica applicativa, e
   il file\linebreak \texttt{\$REVERSI\_HOME/c/py/test/test\_domain.py} per aggiornare gli unit test.
-\item Aprire quindi una terza shell, sempre in \texttt{EMACS}, con il comando \texttt{``M-x ansi-term''}, e quì eseguire il comado
-  \texttt{``gemini''} per avviare il collaboratore sintetico, che in questo contesto chiameremo \texttt{Ura}, abbreviazione
-  di Urania, la musa dell'astronomia e della geometria.
-  Con il comando \texttt{``@ai/two-model-layer.tex''} fornire ad Ura il contesto per poi proseguire nei ragionamenti e nello sviluppo
+\item Aprire quindi una terza riga di comando, sempre in \texttt{EMACS} ma di tipo \texttt{term}, con il comando \texttt{``C-u M-x ansi-term''}, e quì eseguire il comado
+  \texttt{``gemini''} per avviare il collaboratore sintetico, che in questo contesto chiameremo \texttt{Nia}, diminutivo di Urania, la musa dell'astronomia e della geometria.
+  Con il comando \texttt{``@ai/two-model-layer.tex''} fornire a Nia il contesto per poi proseguire nei ragionamenti e nello sviluppo
   del Modello e del Software che lo implementa.
 \end{itemize}
 
-\section{La rappresentazione della board}
+\section{Rappresentazione del Dominio}
+
+\subsection{La scacchiera (Board)}
 
 La BOARD Reversi è composta da 64 celle, otto righe ed otto colonne, numerate da 0, in alto a sinistra (North-West, NW),
 a 63, in basso a destra (South-East, SE).
@@ -286,7 +304,7 @@ Quando una cella ha zero sia per il giocatore che per l'avversario è vuota.
   \label{fig:reversi-bitboard-patterns}
 \end{figure}
 
-\section{La rappresentazione delle posizioni}
+\subsection{Le posizioni (Game Positions)}
 
 Ogni posizione è descritta dal \texttt{VALORE} dell'end-game ottenuto risolvendo la posizione stessa in maniera esatta con
 apposito programma che applica l'algoritmo \texttt{MINIMAX} (o sue varianti sempre esatte ma più efficienti come \texttt{ALPHA-BETA}).
@@ -398,7 +416,7 @@ Dove:
 
 \begin{description}[leftmargin=*,widest=GAME\_VALUE,labelsep=1em]
 \item[PLAYER] è la configurazione della board dei dischi occupati dal giocatore che deve muovere, in formato \texttt{int64} con segno.
-  Il bit meno significativo è la casella \texttt{int64}, si procede per righe, come specificato sopra.
+  Il bit meno significativo è la casella \texttt{a1}, si procede per righe, come specificato sopra.
 \item[OPPONENT] è la configurazione della board dei dischi occupati dall'avversario, stesso formato usato per \texttt{PLAYER}.
 \item[GAME\_VALUE] è il valore esatto del game
 \end{description}
@@ -434,7 +452,9 @@ Le funzioni \texttt{legal\_moves}, \texttt{make\_move} e la accessoria \texttt{f
 \texttt{\_kogge\_stone\_lms} e \texttt{\_kogge\_stone\_mm} che sono basate sulla struttura interna della bitboard. Nella versione implementata in Python non tutto
 il parallelismo potenziale delle istruzioni vettoriali è sfruttatto, cosa che invece avviene pienamente nella implementazione in ANSI C.
 
-\section{Rotazioni della bitboard}
+\section{Geometria della Scacchiera: Il Gruppo Diedrale \texorpdfstring{$\bm{D_4}$}{D4}}
+
+\subsection{Rotazioni della bitboard}
 
 Sia gli square set che le board sono passibili di otto differenti trasformazioni, che ruotano rigidamente, oppure specchiano la bitboard rispetto gli assi di simmetria
 naturali. Le trasformazioni sono poi usate per calcolare gli indici delle istanze dei diversi pattern.
@@ -483,18 +503,276 @@ un array di otto posizioni contenente le bitboard trasformate o anti-trasformate
 \begin{tabular}{|c|l|l|l|}
 \hline
 \textbf{Pos.} & \textbf{Descrizione} & \textbf{Trasformazione} & \textbf{Anti-Trasformazione} \\ \hline
-0 & Rotazione zero gradi oraria  & \texttt{trans\_identity}         & \texttt{trans\_identity}         \\ \hline
-1 & Rotazione 90 gradi oraria    & \texttt{trans\_rotate\_90c}      & \texttt{trans\_rotate\_90a}      \\ \hline
-2 & Rotazione 180 gradi oraria   & \texttt{trans\_rotate\_180}      & \texttt{trans\_rotate\_180}      \\ \hline
-3 & Rotazione 270 gradi oraria   & \texttt{trans\_rotate\_90a}      & \texttt{trans\_rotate\_90c}      \\ \hline
-4 & Specchiatura asse verticale  & \texttt{trans\_flip\_vertical}   & \texttt{trans\_flip\_vertical}   \\ \hline
-5 & Specchiatura diagonale H1-A8 & \texttt{trans\_flip\_diag\_h1a8} & \texttt{trans\_flip\_diag\_h1a8} \\ \hline
-6 & Specchiatura asse orizontale & \texttt{trans\_flip\_horizontal} & \texttt{trans\_flip\_horizontal} \\ \hline
-7 & Specchiatura diagonale A1-H8 & \texttt{trans\_flip\_diag\_a1h8} & \texttt{trans\_flip\_diag\_a1h8} \\ \hline
+0 & Rotazione zero gradi oraria  & \texttt{trans\_identity}               & \texttt{trans\_identity}               \\ \hline
+1 & Rotazione 90 gradi oraria    & \texttt{trans\_rotate\_90c}            & \texttt{trans\_rotate\_90a}            \\ \hline
+2 & Rotazione 180 gradi oraria   & \texttt{trans\_rotate\_180}            & \texttt{trans\_rotate\_180}            \\ \hline
+3 & Rotazione 270 gradi oraria   & \texttt{trans\_rotate\_90a}            & \texttt{trans\_rotate\_90c}            \\ \hline
+4 & Specchiatura asse verticale  & \texttt{trans\_reflection\_vertical}   & \texttt{trans\_reflection\_vertical}   \\ \hline
+5 & Specchiatura diagonale H1-A8 & \texttt{trans\_reflection\_diag\_h1a8} & \texttt{trans\_reflection\_diag\_h1a8} \\ \hline
+6 & Specchiatura asse orizontale & \texttt{trans\_reflection\_horizontal} & \texttt{trans\_reflection\_horizontal} \\ \hline
+7 & Specchiatura diagonale A1-H8 & \texttt{trans\_reflection\_diag\_a1h8} & \texttt{trans\_reflection\_diag\_a1h8} \\ \hline
 \end{tabular}
 \end{table}
 
-\section{Patterns}
+\subsection{Definizione e Composizione del Gruppo}
+\label{sec:gruppo_diedrale}
+
+Le trasformazioni geometriche che agiscono sulla scacchiera del Reversi formano un gruppo matematico
+noto come \textbf{Gruppo Diedrale di ordine 8}, indicato con il simbolo $\bm{D_4}$.
+Questo gruppo rappresenta l'insieme completo delle simmetrie di un quadrato.
+
+\subsection{Composizione del Gruppo}
+Il gruppo $G = \{T_0, T_1, \dots, T_7\}$ è composto da 8 elementi fondamentali:
+\begin{itemize}
+    \item \textbf{4 Rotazioni:} $0^\circ$ (l'elemento \textit{Identità} $e$), $90^\circ$, $180^\circ$ e $270^\circ$.
+    \item \textbf{4 Riflessioni:} Orizzontale, Verticale e le due Diagonali.
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\caption{Elementi del Gruppo Diedrale $D_4$ e relative Anti-trasformazioni.}
+\label{tab:d4_inverses}
+\begin{tabular}{@{}clllc@{}}
+\hline
+\textbf{Indice} & \textbf{Operatore} & \textbf{Descrizione Geometrica} & \textbf{Inverso ($T^{-1}$)} & \textbf{Ordine} \\ \hline
+0 & $e$      & Identità ($0^\circ$)          & $T_0$ & 1 \\
+1 & $r$      & Rotazione $90^\circ$ (CW)     & $T_3$ & 4 \\
+2 & $r^2$    & Rotazione $180^\circ$         & $T_2$ & 2 \\
+3 & $r^3$    & Rotazione $270^\circ$ (CW)    & $T_1$ & 4 \\
+4 & $s$      & Riflessione Orizzontale       & $T_4$ & 2 \\
+5 & $sr$     & Riflessione Diagonale (P)     & $T_5$ & 2 \\
+6 & $sr^2$   & Riflessione Verticale         & $T_6$ & 2 \\
+7 & $sr^3$   & Riflessione Diagonale (A)     & $T_7$ & 2 \\ \hline
+\end{tabular}
+\end{table}
+
+L'ordine di un elemento \(T\in D_{4}\) rappresenta il ciclo di ripetizione della trasformazione geometrica.
+Gli elementi di ordine 2, detti involuzioni, sono auto-inversi (\(T=T^{-1}\)), semplificando la logica di mappatura tra istanze simmetriche.
+
+\subsection{Struttura Algebrica e Generatori}
+
+Il gruppo diedrale $D_4$ può essere descritto in modo compatto attraverso i suoi \textbf{generatori}. Invece di considerare le otto trasformazioni come elementi isolati, le definiamo come combinazioni di due operazioni fondamentali.
+
+\subsection{I Generatori: Rotazione e Riflessione}
+Il gruppo $D_4$ è generato da due elementi fondamentali:
+\begin{itemize}
+    \item $r$: una rotazione di $90^\circ$ in senso orario (ordine 4, per cui $r^4 = e$).
+    \item $s$: una riflessione rispetto all'asse orizzontale (ordine 2, per cui $s^2 = e$).
+\end{itemize}
+
+\subsection{Relazioni Fondamentali e Proprietà Non-Abeliana}
+La struttura del gruppo è determinata dalla relazione di interazione tra questi due generatori. In $D_4$, vale la seguente relazione fondamentale:
+\begin{equation}
+    rs = sr^{-1} \quad (\text{ovvero } rs = sr^3)
+\end{equation}
+Questa uguaglianza dimostra formalmente che il gruppo \textbf{non è abeliano}: applicare una rotazione seguita da una riflessione ($rs$) non equivale ad applicare una riflessione seguita dalla stessa rotazione ($sr$). 
+
+\subsection{Scomposizione degli Elementi}
+Grazie ai generatori $r$ e $s$, l'insieme degli otto elementi di $D_4$ può essere ripartito in due sottoinsiemi disgiunti:
+\begin{enumerate}
+    \item \textbf{Sottogruppo delle Rotazioni (Ciclico):} 
+    \begin{equation}
+        R = \{e, r, r^2, r^3\}
+    \end{equation}
+    Questi elementi mantengono l'orientamento (chirale) originale della scacchiera.
+    
+    \item \textbf{Insieme delle Riflessioni (Classe Laterale):}
+    \begin{equation}
+        S = \{s, sr, sr^2, sr^3\}
+    \end{equation}
+    Ogni elemento di questo insieme rappresenta una riflessione. Algebricamente, una riflessione ``composta'' (come quella diagonale) è vista come l'atto di ribaltare la scacchiera ($s$) e successivamente ruotarla per raggiungere l'asse di simmetria desiderato.
+\end{enumerate}
+
+\subsection{Interpretazione Geometrica}
+La notazione $sr^k$ spiega la natura delle simmetrie speculari:
+\begin{itemize}
+    \item $s$: Riflessione Orizzontale.
+    \item $sr$: Riflessione rispetto alla Diagonale Principale.
+    \item $sr^2$: Riflessione Verticale.
+    \item $sr^3$: Riflessione rispetto alla Diagonale Anti-principale.
+\end{itemize}
+Questa classificazione è di fondamentale importanza per il software: permette di mappare ogni possibile simmetria della scacchiera utilizzando solo due funzioni atomiche (\textit{rotate} e \textit{reflection}) e le loro composizioni.
+
+\subsection{Implementazione Computazionale (Parallel Bit Manipulation)}
+
+Dal punto di vista dell'efficienza algoritmica, le trasformazioni del gruppo $D_4$ non sono implementate come rotazioni geometriche classiche, ma come sequenze di \textit{Parallel Bit Manipulation} (tecnica nota come \textit{Delta Swap}). Questa scelta permette di eseguire ogni simmetria in tempo costante $O(1)$ senza l'ausilio di cicli o tabelle di lookup pesanti.
+
+\subsection{Composizione delle Trasformazioni}
+Sebbene algebricamente il gruppo sia generato da rotazioni e riflessioni, nel software è più efficiente utilizzare le riflessioni assiali e diagonali come primitive atomiche. Le rotazioni vengono quindi derivate dalla composizione di queste ultime, come illustrato nella Tabella \ref{tab:code_mapping}.
+
+\begin{table}[h]
+\centering
+\caption{Mappatura delle funzioni del software sugli elementi di $D_4$.}
+\label{tab:code_mapping}
+\begin{tabular}{lll}
+\hline
+\textbf{Elemento Algebrico} & \textbf{Funzione nel Software} & \textbf{Composizione Logica} \\ \hline
+$e$ (Identità) & \texttt{trans\_identity} & - \\
+$s$ (Riflessione Orizzontale) & \texttt{trans\_reflection\_horizontal} & Primitive \\
+$sr^2$ (Riflessione Verticale) & \texttt{trans\_reflection\_vertical} & Primitive \\
+$sr$ (Riflessione Diagonale) & \texttt{trans\_reflection\_diag\_h1a8} & Primitive \\
+$r$ (Rotazione $90^\circ$ CW) & \texttt{trans\_rotate\_90c} & \texttt{refl\_diag\_h1a8} $\circ$ \texttt{refl\_horiz} \\
+$r^2$ (Rotazione $180^\circ$) & \texttt{trans\_rotate\_180} & \texttt{refl\_horiz} $\circ$ \texttt{refl\_vert} \\
+$r^3$ (Rotazione $90^\circ$ ACW) & \texttt{trans\_rotate\_90a} & \texttt{refl\_horiz} $\circ$ \texttt{refl\_diag\_h1a8} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Analisi dell'Efficienza}
+L'approccio utilizzato riduce il \textit{branching} della CPU. Operazioni come \texttt{trans\_reflection\_diag\_h1a8} utilizzano maschere costanti (\textit{k1, k2, k4}) e operazioni di \textit{shift} e \textit{XOR} per scambiare interi blocchi di bit simultaneamente. Questo garantisce che la valutazione dei pattern rimanga performante anche durante ricerche profonde nell'albero di gioco.
+
+
+\section{Teoria dei Pattern e Canonizzazione}
+
+\subsection{Proprietà Algebriche e Simmetrie del Pattern}
+Sebbene il sottogruppo delle sole rotazioni sia \textit{Abeliano} (commutativo), l'intero gruppo $D_4$ \textbf{non è Abeliano}. L'ordine con cui vengono applicate le trasformazioni è determinante: ad esempio, ruotare la scacchiera e poi rifletterla produce un risultato differente rispetto a rifletterla e poi ruotarla ($a \cdot b \neq b \cdot a$).
+
+Per la corretta catalogazione dei pattern e la riduzione dei parametri nel modello di Machine Learning, è necessario utilizzare il vocabolario della \textit{Teoria dei Gruppi}:
+
+\begin{enumerate}
+    \item \textbf{Azione del Gruppo (Group Action):} Rappresenta l'applicazione di una trasformazione $T \in G$ alla maschera binaria $\mathcal{M}$ di un pattern $\mathcal{P}$.
+    \item \textbf{Orbita ($\text{Orb}$):} L'insieme di tutte le configurazioni uniche che il pattern assume sotto l'azione di $G$. Nel software, questo corrisponde alle istanze fisiche distinte sulla scacchiera.
+    \item \textbf{Stabilizzatore ($\text{Stab}$):} Il sottogruppo di trasformazioni che lasciano la maschera del pattern bitwise identica ($T(\mathcal{M}) = \mathcal{M}$). Questi elementi definiscono le invarianze geometriche del pattern.
+    \item \textbf{Automorfismo:} Una trasformazione appartenente allo stabilizzatore che, pur mantenendo invariata la maschera, permuta l'ordine interno delle celle del pattern.
+\end{enumerate}
+
+\subsection{Il Teorema Orbita-Stabilizzatore}
+La relazione tra il numero di istanze di un pattern e le sue simmetrie è governata dal \textbf{Teorema Orbita-Stabilizzatore}:
+\begin{equation}
+    |G| = |\text{Orb}(\mathcal{P})| \times |\text{Stab}(\mathcal{P})|
+\end{equation}
+Poiché l'ordine del gruppo $|G|$ è esattamente 8, la cardinalità dell'orbita (ovvero il numero di istanze uniche) deve essere necessariamente un divisore di 8. Di conseguenza, un pattern può possedere solo \textbf{1, 2, 4 o 8 istanze} sulla scacchiera.
+
+\subsection{Classificazione Geometrica e Molteplicità dei Pattern}
+
+Il Teorema Orbita-Stabilizzatore non definisce solo il numero di istanze, ma permette di classificare ogni pattern in categorie di simmetria basate sui sottogruppi di $D_4$. Poiché l'ordine del gruppo è $|G|=8$, la cardinalità dell'orbita (le istanze fisiche) è vincolata dalla relazione:
+\begin{equation}
+    |\text{Orb}(\mathcal{P})| = \frac{8}{|\text{Stab}(\mathcal{P})|}
+\end{equation}
+
+In base alla geometria della maschera $\mathcal{M}$, i pattern possono essere raggruppati in quattro classi fondamentali di molteplicità:
+
+\begin{enumerate}
+    \item \textbf{Pattern Asimmetrici ($|\text{Orb}|=8$):} Lo stabilizzatore contiene solo l'identità ($|\text{Stab}|=1$). Il pattern non possiede simmetrie interne; ogni trasformazione genera un'istanza distinta. È il caso più comune per pattern irregolari.
+    
+    \item \textbf{Pattern a Simmetria Singola ($|\text{Orb}|=4$):} Lo stabilizzatore ha ordine 2. Il pattern è invariante rispetto a una sola trasformazione (es. solo riflessione orizzontale, o solo rotazione di $180^\circ$). Esistono 4 istanze distinte sulla scacchiera.
+    
+    \item \textbf{Pattern a Simmetria Doppia ($|\text{Orb}|=2$):} Lo stabilizzatore ha ordine 4. È il caso dei pattern con simmetria bi-assiale o rotazionale di $90^\circ$ (come il pattern \texttt{DIAG8} analizzato precedentemente).
+    
+    \item \textbf{Pattern Totalmente Simmetrici ($|\text{Orb}|=1$):} Lo stabilizzatore coincide con l'intero gruppo $D_4$ ($|\text{Stab}|=8$). Il pattern è invariante rispetto a tutte le rotazioni e riflessioni (es. un quadrato centrale $2\times2$ o la croce centrale).
+\end{enumerate}
+
+\subsection{Lo Spazio degli Stati e Riduzione Parametrica}
+Se consideriamo un pattern di ordine $k$ con uno stabilizzatore di ordine $S$, il numero totale di configurazioni teoriche $3^k$ può essere ridotto drasticamente. Il numero di configurazioni \textit{effettive} da memorizzare nel PDB è approssimativamente:
+\begin{equation}
+    N_{eff} \approx \frac{3^k}{|\text{Stab}(\mathcal{P})|}
+\end{equation}
+Questa scomposizione in classi di equivalenza non solo ottimizza l'occupazione di memoria (riducendo le cache misses), ma accelera la convergenza durante la fase di apprendimento dei pesi, poiché la simmetria geometrica agisce come un regolarizzatore naturale del modello.
+
+\subsection{Normalizzazione e Identificatori Canonici}
+Per garantire l'univocità della rappresentazione dei pattern, il sistema adotta una regola di \textbf{normalizzazione canonica}. Data un'orbita $\text{Orb}(\mathcal{M})$, l'identificatore univoco del pattern $\mathcal{M}_{id}$ è definito come:
+\begin{equation}
+    \mathcal{M}_{id} = \min_{T \in D_4} \{ T(\mathcal{M}) \}
+\end{equation}
+dove l'operatore di minimo è calcolato sul valore numerico della bitmask (priorità al bit meno significativo).
+
+Questa scelta metodologica riduce i 10 sottogruppi teorici di $D_4$ a \textbf{8 classi di equivalenza} effettive. In particolare, le distinzioni tra simmetrie puramente orizzontali e verticali (o tra le due diagonali) vengono eliminate, poiché i pattern appartenenti a tali classi vengono ricondotti allo stesso rappresentante canonico. Tale approccio garantisce che non esistano nel database due pattern che siano l'uno la rotazione o la riflessione dell'altro, ottimizzando lo spazio di ricerca e la coerenza dei dati.
+\subsection{Classificazione e Normalizzazione}
+
+Come discusso, la regola di normalizzazione canonica riduce le 10 classi teoriche a 8 classi effettive gestite dal software. Ad esempio, i pattern con simmetria orizzontale (Tipo 3) vengono mappati sulla classe verticale (Tipo 4). La Tabella \ref{tab:pattern_classification} riassume questa mappatura completa.
+
+\begin{table}[h]
+\centering
+\caption{Classificazione Completa dei Pattern: dai 10 Tipi Teorici alle Classi Effettive.}
+\label{tab:pattern_classification}
+\begin{tabular}{llcccll}
+\hline
+\textbf{Tipo} & \textbf{Simmetria} & \textbf{$|Stab|$} & \textbf{$|Orb|$} & \textbf{Effettiva} & \textbf{Note} & \textbf{Pattern} \\ \hline
+1 & Asimmetrico & 1 & 8 & Sì & - & \texttt{ELLE}, \texttt{2X5COR} \\
+2 & Rotazionale $180^\circ$ & 2 & 4 & Sì & - & \texttt{ZSHAPE} \\
+3 & Assiale Orizz. & 2 & 4 & No & $\to$ Tipo 4 & - \\
+4 & Assiale Vert. & 2 & 4 & Sì & Canonica & \texttt{EDGE}, \texttt{CASTLE} \\
+5 & Diagonale P & 2 & 4 & Sì & Canonica & \texttt{MACE} \\
+6 & Diagonale A & 2 & 4 & No & $\to$ Tipo 5 & (\texttt{DIAG3}, \texttt{CORNER}) \\
+7 & Bi-assiale & 4 & 2 & Sì & - & \texttt{RCT2X4} \\
+8 & Bi-diagonale & 4 & 2 & Sì & - & \texttt{BARBEL}, \texttt{DIAG8} \\
+9 & Rotazionale $90^\circ$ & 4 & 2 & Sì & - & \texttt{COREA} \\
+10 & Totale ($D_4$) & 8 & 1 & Sì & - & \texttt{FOURC}, \texttt{CORE} \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Definizione Algebrica di Pattern e Istanza}
+
+Per formalizzare il concetto di pattern nel gioco del Reversi, dobbiamo distinguere tra l'operatore geometrico e l'oggetto su cui esso agisce.
+
+\subsection{Lo Spazio della Scacchiera}
+Sia $X = \{0, 1, \dots, 63\}$ l'insieme degli indici delle celle di una scacchiera $8 \times 8$. Definiamo una \textbf{Maschera} $\mathcal{M}$ come un sottoinsieme di $X$ (o equivalentemente come un elemento dello spazio dei bit $\mathbb{B}^{64}$):
+\begin{equation}
+    \mathcal{M} = \{s_1, s_2, \dots, s_k\} \subseteq X
+\end{equation}
+dove $k$ è il numero di quadrati (celle) che compongono il pattern.
+
+\subsection{Azione del Gruppo e Orbita}
+Il Gruppo Diedrale $D_4$ agisce sullo spazio $X$ attraverso le trasformazioni $T \in G$. L'azione del gruppo sulla maschera $\mathcal{M}$ genera un insieme di nuove maschere, definito come \textbf{Orbita}:
+\begin{equation}
+    \text{Orb}(\mathcal{M}) = \{ T(\mathcal{M}) \mid T \in D_4 \}
+\end{equation}
+In questo contesto:
+\begin{itemize}
+    \item Il \textbf{Pattern} è l'oggetto astratto definito dall'intera orbita $\text{Orb}(\mathcal{M})$. Due maschere appartengono allo stesso pattern se e solo se esiste una trasformazione $T \in D_4$ che le rende sovrapponibili.
+    \item Un' \textbf{Istanza} (o \textit{Instance}) è un singolo elemento $m \in \text{Orb}(\mathcal{M})$. Rappresenta una specifica disposizione fisica del pattern sulla scacchiera.
+\end{itemize}
+
+\subsection{Classi di Equivalenza}
+L'azione di $D_4$ definisce una \textbf{relazione di equivalenza} $\sim$ sullo spazio delle maschere. Diciamo che $\mathcal{M}_a \sim \mathcal{M}_b$ se esse appartengono alla stessa orbita. 
+Questa scomposizione è fondamentale per l'efficienza computazionale: invece di apprendere i parametri per ogni possibile disposizione di celle, il modello apprende le caratteristiche del \textit{Pattern} (la classe di equivalenza) e le applica a tutte le sue \textit{Istanze} (gli elementi dell'orbita).
+
+\subsection{Lo Stabilizzatore e le Invarianze}
+Per ogni maschera $\mathcal{M}$, esiste un sottogruppo di $D_4$ che non ne muta la configurazione spaziale, chiamato \textbf{Stabilizzatore}:
+\begin{equation}
+    \text{Stab}(\mathcal{M}) = \{ T \in D_4 \mid T(\mathcal{M}) = \mathcal{M} \}
+\end{equation}
+Gli elementi dello stabilizzatore (esclusa l'identità) sono gli \textbf{Automorfismi} del pattern. Essi indicano che il pattern possiede simmetrie intrinseche (ad esempio, una riflessione speculare che lo lascia invariato). Tali simmetrie permettono una ulteriore riduzione dei parametri del modello attraverso vincoli di uguaglianza sui pesi delle celle simmetriche.
+
+\subsection{Spazio delle Configurazioni}
+Data una maschera $\mathcal{M}$ di ordine $k = |\mathcal{M}|$, definiamo \textbf{Configurazione} $\mathcal{C}$ una funzione che associa ogni cella della maschera a uno stato $s \in \{0, 1, 2\}$ (rappresentanti rispettivamente cella vuota, disco nero o disco bianco). 
+
+L'insieme di tutte le possibili configurazioni $\mathcal{S}$ ha cardinalità:
+\begin{equation}
+    |\mathcal{S}| = 3^k
+\end{equation}
+
+\subsection{Symmetries of Geometry vs. Symmetries of State}
+È fondamentale distinguere tra l'azione del gruppo $D_4$ sulla geometria e sulla configurazione:
+\begin{enumerate}
+    \item \textbf{Invarianza Geometrica:} Si verifica quando $T(\mathcal{M}) = \mathcal{M}$. Lo stabilizzatore $\text{Stab}(\mathcal{M})$ definisce quali trasformazioni mantengono il pattern nella stessa posizione fisica, pur permutandone le celle interne.
+    \item \textbf{Invarianza di Configurazione (Simmetria di Stato):} Una configurazione $\mathcal{C}$ si dice simmetrica sotto l'azione di $T \in \text{Stab}(\mathcal{M})$ se, dopo la permutazione delle celle operata da $T$, lo stato risultante rimane invariato. 
+\end{enumerate}
+
+Questa distinzione permette di implementare la \textbf{riduzione dei parametri}: se due diverse configurazioni $\mathcal{C}_1$ e $\mathcal{C}_2$ sono collegate da un automorfismo geometrico (cioè $\mathcal{C}_2 = T(\mathcal{C}_1)$ con $T \in \text{Stab}(\mathcal{M})$), esse devono necessariamente condividere lo stesso valore di valutazione nel database dei pattern (PDB).
+\subsection{Mappatura delle Celle e Anti-trasformazioni}
+
+Per ogni istanza del pattern nell'orbita $\text{Orb}(\mathcal{M})$, è necessario definire una corrispondenza biunivoca tra le celle dell'istanza trasformata e quelle della maschera principale $\mathcal{M}_0$.
+
+\subsection{L'Inversa Geometrica}
+Sia $T_i \in D_4$ la trasformazione che genera l'istanza $i$-esima: $\mathcal{M}_i = T_i(\mathcal{M}_0)$. Per recuperare l'informazione semantica corretta durante la fase di valutazione, definiamo l'operatore di \textbf{Anti-trasformazione} $T_i^{-1}$. 
+
+L'azione di $T_i^{-1}$ garantisce che ogni cella $s \in \mathcal{M}_i$ venga mappata nuovamente nella sua posizione originale in $\mathcal{M}_0$:
+\begin{equation}
+    T_i^{-1}(\mathcal{M}_i) = \mathcal{M}_0
+\end{equation}
+
+\subsection{Recupero della Configurazione Canonica}
+Sia $V$ un vettore di valori (stati delle celle) estratti dalla scacchiera in corrispondenza della maschera $\mathcal{M}_i$. L'indice di accesso al Pattern Database (PDB) deve essere calcolato sulla \textbf{configurazione normalizzata} $\mathcal{C}_{norm}$:
+\begin{equation}
+    \mathcal{C}_{norm} = \text{Pack}(T_i^{-1}(\text{Unpack}(V)))
+\end{equation}
+dove l'operazione di \textit{Unpack} distribuisce i bit sulla scacchiera e \textit{Pack} li ricompatta secondo l'ordine canonico definito dai quadrati della maschera principale. 
+
+\subsection{Efficienza Computazionale}
+Nella pratica del software, le funzioni di Anti-trasformazione sono pre-calcolate e memorizzate in una tabella di lookup. Questo permette di trasformare l'estrazione di un pattern da un'operazione geometrica complessa a una semplice permutazione di bit, mantenendo le prestazioni necessarie per l'esplorazione dell'albero di ricerca.
+
+\section{Definizione e Calcolo dei Pattern}
 
 Un \texttt{PATTERN} è un insieme di celle.
 Ad esempio \texttt{EDGE} è il nome assegnato alle otto caselle di un bordo della board. Ci sono quattro EDGE in una board,
@@ -625,6 +903,477 @@ in tutti i passaggi seguenti per la definizione del modello matematico della fun
 
 \section{La funzione di valutazione della posizione (evaluation function)}
 
-Questa parte del documento la devo ancora scrivere.
+L'obiettivo della funzione di valutazione (Ef) è fornire una stima del risultato finale della partita a partire da una posizione non terminale. Nell'ecosistema Reversi, questo viene ottenuto attraverso un modello di apprendimento supervisionato che mappa le configurazioni della board su un valore atteso del game.
+
+\subsection{Il Modello Additivo a Pattern}
+
+Il modello adottato si basa sull'ipotesi che il valore di una posizione possa essere approssimato dalla somma dei contributi locali di diverse porzioni della scacchiera, chiamate pattern. Dato un insieme di pattern definiti $\mathcal{P}$ (come \texttt{EDGE}, \texttt{CORNER}, \texttt{DIAG8}), il valore di valutazione $V(B)$ di una board $B$ è calcolato come:
+
+\begin{equation}
+    V(B) = \sum_{P \in \mathcal{P}} \sum_{j=1}^{N_P} w_{P, i_{P,j}(B)}
+\end{equation}
+
+Dove:
+\begin{itemize}
+    \item $N_P$ è il numero di istanze uniche del pattern $P$ sulla scacchiera (es. 4 per \texttt{EDGE}).
+    \item $i_{P,j}(B)$ è l'indice della configurazione della $j$-esima istanza del pattern $P$, calcolato in base 3 come descritto nella sezione precedente.
+    \item $w_{P, k}$ è il peso (parametro del modello) associato alla $k$-esima configurazione del pattern $P$.
+\end{itemize}
+
+\subsection{Apprendimento dei Pesi e Regressione Logistica}
+
+I pesi $w$ sono i parametri che il modello deve apprendere. Questo processo avviene utilizzando il dataset REGAB, che contiene milioni di posizioni risolte esattamente. 
+
+Il modello può essere interpretato in due modi:
+\begin{enumerate}
+    \item \textbf{Regressione Lineare:} Il valore $V(B)$ predice direttamente il differenziale di dischi finale $[-64, +64]$.
+    \item \textbf{Regressione Logistica:} La somma dei pesi rappresenta il \textit{logit} di un modello logistico che predice la probabilità di vittoria $P(vittoria) = \sigma(V(B))$, dove $\sigma$ è la funzione sigmoide.
+\end{enumerate}
+
+L'approccio logistico è particolarmente efficace nel Reversi, poiché la natura del gioco è fortemente non lineare: piccoli vantaggi posizionali possono tradursi in vittorie schiaccianti o sconfitte improvvise (specialmente nelle fasi finali).
+
+\subsection{Riduzione Parametrica e Generalizzazione}
+
+Grazie alla teoria dei gruppi discussa nel Capitolo \ref{sec:gruppo_diedrale}, il numero di parametri da apprendere è drasticamente ridotto. Se un pattern ha uno stabilizzatore di ordine $S$, il numero di configurazioni uniche è $3^k/S$. 
+
+Inoltre, applicando la \textbf{normalizzazione canonica}, tutte le istanze simmetriche di un pattern condividono la stessa tabella di pesi (Pattern Database - PDB). Questo non solo riduce l'occupazione di memoria, ma garantisce una migliore generalizzazione del modello: l'esperienza appresa su un angolo della scacchiera viene automaticamente applicata a tutti e quattro gli angoli grazie alla simmetria del gruppo $D_4$.
+
+\subsection{Verso il Modello Neural Network (RNNM)}
+
+L'attuale architettura a "Two-Layer Model" prevede un primo livello di estrazione di feature (gli indici dei pattern) e un secondo livello di combinazione lineare (la Ef). L'evoluzione naturale di questo sistema è il \textbf{Reversi Neural Network Model (RNNM)}, dove i contributi dei pattern non vengono semplicemente sommati, ma processati attraverso strati nascosti (hidden layers) per catturare interazioni di ordine superiore tra diverse zone della scacchiera.
+
+\newpage
+\appendix
+\section{Catalogo dei Pattern}
+
+In questa appendice vengono visualizzati i pattern principali utilizzati dal sistema. Per ogni pattern sono mostrate le 8 trasformazioni del gruppo $D_4$. I numeri all'interno delle celle indicano l'indice di packing progressivo (0, 1, 2, ...) all'interno del pattern, permettendo di tracciare visivamente la permutazione delle celle sotto ogni trasformazione.
+
+\subsection{Pattern ELLE}
+
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+[Pattern: name = ELLE, mask = 0x0000000000000107]
+  [n_squares = 4, n_configurations = 81, n_instances = 8, n_stabilizer = 1]
+  Cells:               [A1, B1, C1, A2]
+  Transformed masks:   
+    0x0000000000000107, 0x00000000008080C0, 0xE080000000000000, 0x0301010000000000, 
+    0x00000000000080E0, 0xC080800000000000, 0x0701000000000000, 0x0000000000010103
+  Mask indexes:        [0, 1, 2, 3, 4, 5, 6, 7]
+  Unique masks:        
+    0x0000000000000107, 0x00000000008080C0, 0xE080000000000000, 0x0301010000000000, 
+    0x00000000000080E0, 0xC080800000000000, 0x0701000000000000, 0x0000000000010103
+  Unique mask indexes: [0, 1, 2, 3, 4, 5, 6, 7]
+  Transf. functions:   [Id, Rot90, Vert, DiagP]
+  Anti-transf. f.:     [Id, Rot270, Vert, DiagP]
+  Symmetry functions:  []
+\end{lstlisting}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a1}{0} \posannotation{b1}{1} \posannotation{c1}{2} \posannotation{a2}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_0$ : Id \\ \fontsize{3}{4}\selectfont \texttt{0000000000000107}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{h1}{0} \posannotation{h2}{1} \posannotation{h3}{2} \posannotation{g1}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_1$ : Rot90 \\ \fontsize{3}{4}\selectfont \texttt{00000000008080C0}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{h8}{0} \posannotation{g8}{1} \posannotation{f8}{2} \posannotation{h7}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_2$ : Rot180 \\ \fontsize{3}{4}\selectfont \texttt{E080000000000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a8}{0} \posannotation{a7}{1} \posannotation{a6}{2} \posannotation{b8}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_3$ : Rot270 \\ \fontsize{3}{4}\selectfont \texttt{0301010000000000}}
+    \end{subfigure}
+
+    \vspace{0.3cm}
+
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{h1}{0} \posannotation{g1}{1} \posannotation{f1}{2} \posannotation{h2}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_4$ : Vert \\ \fontsize{3}{4}\selectfont \texttt{00000000000080E0}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{h8}{0} \posannotation{h7}{1} \posannotation{h6}{2} \posannotation{g8}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_5$ : DiagP \\ \fontsize{3}{4}\selectfont \texttt{C080800000000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a8}{0} \posannotation{b8}{1} \posannotation{c8}{2} \posannotation{a7}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_6$ : Horiz \\ \fontsize{3}{4}\selectfont \texttt{0701000000000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a1}{0} \posannotation{a2}{1} \posannotation{a3}{2} \posannotation{b1}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_7$ : DiagA \\ \fontsize{3}{4}\selectfont \texttt{0000000000010103}}
+    \end{subfigure}
+    \caption{Istanze e indici di permutazione del pattern ELLE.}
+\end{figure}
+
+\newpage
+\subsection{Pattern EDGE}
+
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+[Pattern: name = EDGE, mask = 0x00000000000000ff]
+  [n_squares = 8, n_configurations = 6561, n_instances = 4, n_stabilizer = 2]
+  Cells:               [A1, B1, C1, D1, E1, F1, G1, H1]
+  Transformed masks:   
+    0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000, 0x0101010101010101, 
+    0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000, 0x0101010101010101
+  Mask indexes:        [0, 1, 2, 3, 0, 1, 2, 3]
+  Unique masks:        
+    0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000, 0x0101010101010101
+  Unique mask indexes: [0, 1, 2, 3]
+  Transf. functions:   [Id, Rot90, Rot180, Rot270]
+  Anti-transf. f.:     [Id, Rot270, Rot180, Rot90]
+  Symmetry functions:  [Vert]
+\end{lstlisting}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a1}{0} \posannotation{b1}{1} \posannotation{c1}{2} \posannotation{d1}{3} \posannotation{e1}{4} \posannotation{f1}{5} \posannotation{g1}{6} \posannotation{h1}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_0$ : Id \\ \fontsize{3}{4}\selectfont \texttt{00000000000000FF}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{h1}{0} \posannotation{h2}{1} \posannotation{h3}{2} \posannotation{h4}{3} \posannotation{h5}{4} \posannotation{h6}{5} \posannotation{h7}{6} \posannotation{h8}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_1$ : Rot90 \\ \fontsize{3}{4}\selectfont \texttt{8080808080808080}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{h8}{0} \posannotation{g8}{1} \posannotation{f8}{2} \posannotation{e8}{3} \posannotation{d8}{4} \posannotation{c8}{5} \posannotation{b8}{6} \posannotation{a8}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_2$ : Rot180 \\ \fontsize{3}{4}\selectfont \texttt{FF00000000000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a8}{0} \posannotation{a7}{1} \posannotation{a6}{2} \posannotation{a5}{3} \posannotation{a4}{4} \posannotation{a3}{5} \posannotation{a2}{6} \posannotation{a1}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_3$ : Rot270 \\ \fontsize{3}{4}\selectfont \texttt{0101010101010101}}
+    \end{subfigure}
+
+    \vspace{0.3cm}
+
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{h1}{0} \posannotation{g1}{1} \posannotation{f1}{2} \posannotation{e1}{3} \posannotation{d1}{4} \posannotation{c1}{5} \posannotation{b1}{6} \posannotation{a1}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_4$ : Vert \\ \fontsize{3}{4}\selectfont \texttt{00000000000000FF}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{h8}{0} \posannotation{h7}{1} \posannotation{h6}{2} \posannotation{h5}{3} \posannotation{h4}{4} \posannotation{h3}{5} \posannotation{h2}{6} \posannotation{h1}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_5$ : DiagP \\ \fontsize{3}{4}\selectfont \texttt{8080808080808080}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a8}{0} \posannotation{b8}{1} \posannotation{c8}{2} \posannotation{d8}{3} \posannotation{e8}{4} \posannotation{f8}{5} \posannotation{g8}{6} \posannotation{h8}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_6$ : Horiz \\ \fontsize{3}{4}\selectfont \texttt{FF00000000000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a1}{0} \posannotation{a2}{1} \posannotation{a3}{2} \posannotation{a4}{3} \posannotation{a5}{4} \posannotation{a6}{5} \posannotation{a7}{6} \posannotation{a8}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_7$ : DiagA \\ \fontsize{3}{4}\selectfont \texttt{0101010101010101}}
+    \end{subfigure}
+    \caption{Istanze e indici di permutazione del pattern EDGE.}
+\end{figure}
+
+\newpage
+\subsection{Pattern ZSHAPE}
+
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+[Pattern: name = ZSHAPE, mask = 0x0000000c30000000]
+  [n_squares = 4, n_configurations = 81, n_instances = 4, n_stabilizer = 2]
+  Cells:               [E4, F4, C5, D5]
+  Transformed masks:   
+    0x0000000C30000000, 0x0000101008080000, 0x0000000C30000000, 0x0000101008080000, 
+    0x000000300C000000, 0x0000080810100000, 0x000000300C000000, 0x0000080810100000
+  Mask indexes:        [0, 1, 0, 1, 4, 5, 4, 5]
+  Unique masks:        
+    0x0000000C30000000, 0x0000101008080000, 0x000000300C000000, 0x0000080810100000
+  Unique mask indexes: [0, 1, 4, 5]
+  Transf. functions:   [Id, Rot90, Vert, DiagP]
+  Anti-transf. f.:     [Id, Rot270, Vert, DiagP]
+  Symmetry functions:  [Rot180]
+\end{lstlisting}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{e4}{0} \posannotation{f4}{1} \posannotation{c5}{2} \posannotation{d5}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_0$ : Id \\ \fontsize{3}{4}\selectfont \texttt{0000000C30000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{e5}{0} \posannotation{e6}{1} \posannotation{d3}{2} \posannotation{d4}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_1$ : Rot90 \\ \fontsize{3}{4}\selectfont \texttt{0000101008080000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{d5}{0} \posannotation{c5}{1} \posannotation{f4}{2} \posannotation{e4}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_2$ : Rot180 \\ \fontsize{3}{4}\selectfont \texttt{0000000C30000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{d4}{0} \posannotation{d3}{1} \posannotation{e6}{2} \posannotation{e5}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_3$ : Rot270 \\ \fontsize{3}{4}\selectfont \texttt{0000101008080000}}
+    \end{subfigure}
+
+    \vspace{0.3cm}
+
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{d4}{0} \posannotation{c4}{1} \posannotation{f5}{2} \posannotation{e5}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_4$ : Vert \\ \fontsize{3}{4}\selectfont \texttt{000000300C000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{e4}{0} \posannotation{e3}{1} \posannotation{d6}{2} \posannotation{d5}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_5$ : DiagP \\ \fontsize{3}{4}\selectfont \texttt{0000080810100000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{e5}{0} \posannotation{f5}{1} \posannotation{c4}{2} \posannotation{d4}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_6$ : Horiz \\ \fontsize{3}{4}\selectfont \texttt{000000300C000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{d5}{0} \posannotation{d6}{1} \posannotation{e3}{2} \posannotation{e4}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_7$ : DiagA \\ \fontsize{3}{4}\selectfont \texttt{0000080810100000}}
+    \end{subfigure}
+    \caption{Istanze e indici di permutazione del pattern ZSHAPE.}
+\end{figure}
+
+\newpage
+\subsection{Pattern RCT2X4}
+
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+[Pattern: name = RCT2X4, mask = 0x0000003c3c000000]
+  [n_squares = 8, n_configurations = 6561, n_instances = 2, n_stabilizer = 4]
+  Cells:               [C4, D4, E4, F4, C5, D5, E5, F5]
+  Transformed masks:   
+    0x0000003C3C000000, 0x0000181818180000, 0x0000003C3C000000, 0x0000181818180000, 
+    0x0000003C3C000000, 0x0000181818180000, 0x0000003C3C000000, 0x0000181818180000
+  Mask indexes:        [0, 1, 0, 1, 0, 1, 0, 1]
+  Unique masks:        
+    0x0000003C3C000000, 0x0000181818180000
+  Unique mask indexes: [0, 1]
+  Transf. functions:   [Id, Rot90]
+  Anti-transf. f.:     [Id, Rot270]
+  Symmetry functions:  [Rot180, Vert, Horiz]
+\end{lstlisting}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{c4}{0} \posannotation{d4}{1} \posannotation{e4}{2} \posannotation{f4}{3} 
+                \posannotation{c5}{4} \posannotation{d5}{5} \posannotation{e5}{6} \posannotation{f5}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_0$ : Id \\ \fontsize{3}{4}\selectfont \texttt{0000003C3C000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{e3}{0} \posannotation{e4}{1} \posannotation{e5}{2} \posannotation{e6}{3} 
+                \posannotation{d3}{4} \posannotation{d4}{5} \posannotation{d5}{6} \posannotation{d6}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_1$ : Rot90 \\ \fontsize{3}{4}\selectfont \texttt{0000181818180000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{f5}{0} \posannotation{e5}{1} \posannotation{d5}{2} \posannotation{c5}{3} 
+                \posannotation{f4}{4} \posannotation{e4}{5} \posannotation{d4}{6} \posannotation{c4}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_2$ : Rot180 \\ \fontsize{3}{4}\selectfont \texttt{0000003C3C000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{d6}{0} \posannotation{d5}{1} \posannotation{d4}{2} \posannotation{d3}{3} 
+                \posannotation{e6}{4} \posannotation{e5}{5} \posannotation{e4}{6} \posannotation{e3}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_3$ : Rot270 \\ \fontsize{3}{4}\selectfont \texttt{0000181818180000}}
+    \end{subfigure}
+
+    \vspace{0.3cm}
+
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{f4}{0} \posannotation{e4}{1} \posannotation{d4}{2} \posannotation{c4}{3} 
+                \posannotation{f5}{4} \posannotation{e5}{5} \posannotation{d5}{6} \posannotation{c5}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_4$ : Vert \\ \fontsize{3}{4}\selectfont \texttt{0000003C3C000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{e6}{0} \posannotation{e5}{1} \posannotation{e4}{2} \posannotation{e3}{3} 
+                \posannotation{d6}{4} \posannotation{d5}{5} \posannotation{d4}{6} \posannotation{d3}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_5$ : DiagP \\ \fontsize{3}{4}\selectfont \texttt{0000181818180000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{c5}{0} \posannotation{d5}{1} \posannotation{e5}{2} \posannotation{f5}{3} 
+                \posannotation{c4}{4} \posannotation{d4}{5} \posannotation{e4}{6} \posannotation{f4}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_6$ : Horiz \\ \fontsize{3}{4}\selectfont \texttt{0000003C3C000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{d3}{0} \posannotation{d4}{1} \posannotation{d5}{2} \posannotation{d6}{3} 
+                \posannotation{e3}{4} \posannotation{e4}{5} \posannotation{e5}{6} \posannotation{e6}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_7$ : DiagA \\ \fontsize{3}{4}\selectfont \texttt{0000181818180000}}
+    \end{subfigure}
+    \caption{Istanze e indici di permutazione del pattern RCT2X4.}
+\end{figure}
 
 \end{document}

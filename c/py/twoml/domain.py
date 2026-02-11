@@ -72,7 +72,7 @@ class Square(np.uint8):
     ]
 
     __max_value__ = len(__names__)
-
+    
     @classmethod
     def new_from_str(cls: type[Self], name: str) -> Self:
         try:
@@ -111,6 +111,28 @@ class SquareSet(np.uint64):
 
     It is implemented as a bit-board of 64 bit using numpy.uint64 as parent type.
     """
+
+    transformation_labels = np.array(
+        ['trans_identity',
+         'trans_rotate_90c',
+         'trans_rotate_180',
+         'trans_rotate_90a',
+         'trans_reflection_vertical',
+         'trans_reflection_diag_h1a8',
+         'trans_reflection_horizontal',
+         'trans_reflection_diag_a1h8',
+         ])
+
+    anti_transformation_labels = np.array(
+        ['trans_identity',
+         'trans_rotate_90a',
+         'trans_rotate_180',
+         'trans_rotate_90c',
+         'trans_reflection_vertical',
+         'trans_reflection_diag_h1a8',
+         'trans_reflection_horizontal',
+         'trans_reflection_diag_a1h8',
+         ])
 
     @classmethod
     def new_from_signed_int(cls, i: np.int64) -> Self:
@@ -221,9 +243,9 @@ class SquareSet(np.uint64):
             print()
         return
 
-    def trans_flip_diag_a1h8(self) -> Self:
+    def trans_reflection_diag_a1h8(self) -> Self:
         """
-        Flips a square set on the diagonal a1-h8.
+        Reflects a square set on the diagonal a1-h8.
         Square h1 is mapped to a8 and vice versa.
         
         .    ---- input ----    ---- output ---
@@ -252,9 +274,9 @@ class SquareSet(np.uint64):
         s = s ^       (t ^ (t >> 7))
         return SquareSet(s)
 
-    def trans_flip_diag_h1a8(self) -> Self:
+    def trans_reflection_diag_h1a8(self) -> Self:
         """
-        Flips a square set on the diagonal h1-a8.
+        Reflects a square set on the diagonal h1-a8.
         Square h1 is mapped to a8 and vice versa.
         
         .    ---- input ----    ---- output ---
@@ -283,9 +305,9 @@ class SquareSet(np.uint64):
         s = s ^       (t ^ (t >> 9))
         return SquareSet(s)
 
-    def trans_flip_horizontal(self) -> Self:
+    def trans_reflection_horizontal(self) -> Self:
         """
-        Flips the square set horizontally (on the horizontal axis).
+        Reflects the square set horizontally (on the horizontal axis).
         Row 1 is mapped to row 8 and vice versa.
         
         .    ---- input ----    ---- output ---
@@ -321,9 +343,9 @@ class SquareSet(np.uint64):
              ((s >> 56) & mask00))
         return SquareSet(s)
 
-    def trans_flip_vertical(self) -> Self:
+    def trans_reflection_vertical(self) -> Self:
         """
-        Flips the square set vertically (on the vertical axis).
+        Reflects the square set vertically (on the vertical axis).
         Column a is mapped to column h and vice versa.
         
         .    ---- input ----    ---- output ---
@@ -389,7 +411,7 @@ class SquareSet(np.uint64):
         . 8  . 1 . . . 1 . .    . . . 1 1 1 1 .
         
         """
-        return self.trans_flip_horizontal().trans_flip_vertical()
+        return self.trans_reflection_horizontal().trans_reflection_vertical()
 
     def trans_rotate_90c(self) -> Self:
         """
@@ -410,7 +432,7 @@ class SquareSet(np.uint64):
         . 8  . 1 . . . 1 . .    . . . . . . . .
 
         """
-        return self.trans_flip_diag_h1a8().trans_flip_horizontal()
+        return self.trans_reflection_diag_h1a8().trans_reflection_horizontal()
 
     def trans_rotate_90a(self) -> Self:
         """
@@ -431,7 +453,7 @@ class SquareSet(np.uint64):
         . 8  . 1 . . . 1 . .    . . . . . . . .
 
         """
-        return self.trans_flip_horizontal().trans_flip_diag_h1a8()
+        return self.trans_reflection_horizontal().trans_reflection_diag_h1a8()
 
     def transformations(self) -> np.ndarray:
         """
@@ -440,40 +462,40 @@ class SquareSet(np.uint64):
          - 0 -> 1 : trans_rotate_90c
          - 0 -> 2 : trans_rotate_180
          - 0 -> 3 : trans_rotate_90a
-         - 0 -> 4 : trans_flip_vertical
-         - 0 -> 5 : trans_flip_diag_h1a8
-         - 0 -> 6 : trans_flip_horizontal
-         - 0 -> 7 : trans_flip_diag_a1h8
+         - 0 -> 4 : trans_reflection_vertical
+         - 0 -> 5 : trans_reflection_diag_h1a8
+         - 0 -> 6 : trans_reflection_horizontal
+         - 0 -> 7 : trans_reflection_diag_a1h8
         """
         # ts: transformed square sets
         ts = np.zeros(8, dtype=SquareSet)
 
-        h1a8 = self.trans_flip_diag_h1a8()
-        fh = self.trans_flip_horizontal()
+        h1a8 = self.trans_reflection_diag_h1a8()
+        fh = self.trans_reflection_horizontal()
 
         # - 0 -> 0 : trans_identity
         ts[0] = self
 
         # - 0 -> 1 : trans_rotate_90c
-        ts[1] = h1a8.trans_flip_horizontal()
+        ts[1] = h1a8.trans_reflection_horizontal()
 
         # - 0 -> 2 : trans_rotate_180
-        ts[2] = fh.trans_flip_vertical()
+        ts[2] = fh.trans_reflection_vertical()
 
         # - 0 -> 3 : trans_rotate_90a
-        ts[3] = fh.trans_flip_diag_h1a8()
+        ts[3] = fh.trans_reflection_diag_h1a8()
 
-        # - 0 -> 4 : trans_flip_vertical
-        ts[4] = self.trans_flip_vertical()
+        # - 0 -> 4 : trans_reflection_vertical
+        ts[4] = self.trans_reflection_vertical()
 
-        # - 0 -> 5 : trans_flip_diag_h1a8
+        # - 0 -> 5 : trans_reflection_diag_h1a8
         ts[5] = h1a8
 
-        # - 0 -> 6 : trans_flip_horizontal
+        # - 0 -> 6 : trans_reflection_horizontal
         ts[6] = fh
 
-        # - 0 -> 7 : trans_flip_diag_a1h8
-        ts[7] = self.trans_flip_diag_a1h8()
+        # - 0 -> 7 : trans_reflection_diag_a1h8
+        ts[7] = self.trans_reflection_diag_a1h8()
 
         return ts
 
@@ -484,43 +506,65 @@ class SquareSet(np.uint64):
          - 0 -> 1 : trans_rotate_90a
          - 0 -> 2 : trans_rotate_180
          - 0 -> 3 : trans_rotate_90c
-         - 0 -> 4 : trans_flip_vertical
-         - 0 -> 5 : trans_flip_diag_h1a8
-         - 0 -> 6 : trans_flip_horizontal
-         - 0 -> 7 : trans_flip_diag_a1h8
+         - 0 -> 4 : trans_reflection_vertical
+         - 0 -> 5 : trans_reflection_diag_h1a8
+         - 0 -> 6 : trans_reflection_horizontal
+         - 0 -> 7 : trans_reflection_diag_a1h8
         These are the anti-transformations as defined by the transformations() method.
         """
         # ts: transformed square sets
         ts = np.zeros(8, dtype=SquareSet)
 
-        h1a8 = self.trans_flip_diag_h1a8()
-        fh = self.trans_flip_horizontal()
+        h1a8 = self.trans_reflection_diag_h1a8()
+        fh = self.trans_reflection_horizontal()
 
         # - 0 -> 0 : trans_identity
         ts[0] = self
         
         # - 0 -> 1 : trans_rotate_90a
-        ts[1] = fh.trans_flip_diag_h1a8()
+        ts[1] = fh.trans_reflection_diag_h1a8()
 
         # - 0 -> 2 : trans_rotate_180
-        ts[2] = fh.trans_flip_vertical()
+        ts[2] = fh.trans_reflection_vertical()
 
         # - 0 -> 3 : trans_rotate_90c
-        ts[3] = h1a8.trans_flip_horizontal()
+        ts[3] = h1a8.trans_reflection_horizontal()
 
-        # - 0 -> 4 : trans_flip_vertical
-        ts[4] = self.trans_flip_vertical()
+        # - 0 -> 4 : trans_reflection_vertical
+        ts[4] = self.trans_reflection_vertical()
 
-        # - 0 -> 5 : trans_flip_diag_h1a8
+        # - 0 -> 5 : trans_reflection_diag_h1a8
         ts[5] = h1a8
 
-        # - 0 -> 6 : trans_flip_horizontal
+        # - 0 -> 6 : trans_reflection_horizontal
         ts[6] = fh
 
-        # - 0 -> 7 : trans_flip_diag_a1h8
-        ts[7] = self.trans_flip_diag_a1h8()
+        # - 0 -> 7 : trans_reflection_diag_a1h8
+        ts[7] = self.trans_reflection_diag_a1h8()
         
         return ts
+
+    trans_fs = np.array(
+        [trans_identity,
+         trans_rotate_90c,
+         trans_rotate_180,
+         trans_rotate_90a,
+         trans_reflection_vertical,
+         trans_reflection_diag_h1a8,
+         trans_reflection_horizontal,
+         trans_reflection_diag_a1h8,
+         ])
+
+    anti_trans_fs = np.array(
+        [trans_identity,
+         trans_rotate_90a,
+         trans_rotate_180,
+         trans_rotate_90c,
+         trans_reflection_vertical,
+         trans_reflection_diag_h1a8,
+         trans_reflection_horizontal,
+         trans_reflection_diag_a1h8,
+         ])
 
 
 # kogge-stone functions.
@@ -644,6 +688,9 @@ def _kogge_stone_mm(generator: SquareSet,
 
 
 class Board:
+
+    transformation_labels = SquareSet.transformation_labels
+    anti_transformation_labels = SquareSet.anti_transformation_labels
 
     def __init__(self, mover: SquareSet, opponent: SquareSet):
         if not isinstance(mover, (SquareSet, np.uint64)):
@@ -839,39 +886,39 @@ class Board:
         if move > 64: return False
         lms = self.legal_moves()
         mss = move.as_square_set()
-        if mss == 0x8000000000000000 and mss == lms: # Pass move
+        if mss == 0x0000000000000000 and mss == lms: # Pass move
             return True
         if (mss & lms) == mss:
             return True
         return False
 
-    def trans_flip_diag_a1h8(self) -> Board:
+    def trans_reflection_diag_a1h8(self) -> Board:
         """
-        Flips the board on the diagonal a1-h8.
+        Reflects the board on the diagonal a1-h8.
         """
-        return Board(self.mover.trans_flip_diag_a1h8(),
-                     self.opponent.trans_flip_diag_a1h8())
+        return Board(self.mover.trans_reflection_diag_a1h8(),
+                     self.opponent.trans_reflection_diag_a1h8())
 
-    def trans_flip_diag_h1a8(self) -> Board:
+    def trans_reflection_diag_h1a8(self) -> Board:
         """
-        Flips the board on the diagonal h1-a8.
+        Reflects the board on the diagonal h1-a8.
         """
-        return Board(self.mover.trans_flip_diag_h1a8(),
-                     self.opponent.trans_flip_diag_h1a8())
+        return Board(self.mover.trans_reflection_diag_h1a8(),
+                     self.opponent.trans_reflection_diag_h1a8())
 
-    def trans_flip_horizontal(self) -> Board:
+    def trans_reflection_horizontal(self) -> Board:
         """
-        Flips the board horizontally (on the horizontal axis).
+        Reflects the board horizontally (on the horizontal axis).
         """
-        return Board(self.mover.trans_flip_horizontal(),
-                     self.opponent.trans_flip_horizontal())
+        return Board(self.mover.trans_reflection_horizontal(),
+                     self.opponent.trans_reflection_horizontal())
 
-    def trans_flip_vertical(self) -> Board:
+    def trans_reflection_vertical(self) -> Board:
         """
-        Flips the board vertically (on the vertical axis).
+        Reflects the board vertically (on the vertical axis).
         """
-        return Board(self.mover.trans_flip_vertical(),
-                     self.opponent.trans_flip_vertical())
+        return Board(self.mover.trans_reflection_vertical(),
+                     self.opponent.trans_reflection_vertical())
 
     def trans_identity(self) -> Board:
         """
@@ -918,52 +965,77 @@ class Board:
         to = self.opponent.anti_transformations()
         return np.array([Board(SquareSet(m), SquareSet(o)) for m, o in zip(tm, to)])
 
-"""
-struct board_pattern_s {
-  board_pattern_id_t id;
-  char name[7];
-  unsigned int n_instances;
-  unsigned int n_squares;
-  unsigned long int n_configurations;
-  SquareSet masks[8];
-  board_trans_f trans_to_principal_f[8]; // array of transformation functions
-  SquareSet (*pattern_pack_f) (SquareSet);
-  SquareSet (*pattern_unpack_f) (SquareSet);
-  SquareSet (*pattern_mirror_f) (SquareSet);
-};
-"""
-class Pattern:
 
-    def __init__(self, pid: int, name: str, mask: SquareSet):
+class Pattern:
+    """
+    The Pattern class represents a specific spatial configuration of squares (a "pattern") on a Reversi bitboard.
+    It encapsulates the logic for bit manipulation, symmetry detection, and canonical form validation,
+    which are essential for building Pattern Databases (PDB) or training evaluation functions.
+
+    Attributes
+    
+    1. Basic Metadata
+    name (str): A human-readable label for the pattern (e.g., "EDG8", "DIAG8", "CORNER").
+    mask (SquareSet): The primary 64-bit mask defining the squares belonging to this pattern.
+
+    2. Geometric & Complexity Properties
+    n_squares (int): The number of bits set in the mask (dimensions of the pattern).
+    n_configurations (int): The total state space size, representing all possible combinations of Empty, Black, and White discs within the pattern.
+    squares (list): A list of the bit indices (0-63) of the pattern squares, sorted in descending priority.
+    snames (list): Coordinate names (e.g., "A1", "B2") of the squares in the pattern.
+
+    3. Transformation & Instance Logic
+    tmasks (list): A list of 8 bitmasks generated by applying all Reversi symmetries (rotations and reflections) to the original mask.
+    unique_masks (list): The subset of tmasks containing only unique bitmasks. Used to identify distinct instances of the pattern on the board.
+    mask_indexes (np.ndarray, uint8): An array of 8 indices mapping each of the 8 possible transformations to its "first seen" index in tmasks.
+                                      This identifies which symmetries produce identical masks.
+    unique_mask_indexes (list): The indices of the transformations that produce unique masks.
+    n_instances (int): The number of unique physical locations/orientations this pattern occupies (cardinality of the orbit |Orb|).
+    n_stabilizer (int): The number of transformations that leave the mask bitwise identical (order of the stabilizer |Stab|).
+
+    4. Transformation Functions
+    trans_fs (list): The set of functions used to transform the pattern squares.
+    anti_trans_fs (list): The inverse functions used to map transformed squares back to the original configuration.
+
+    5. Symmetry & Automorphism Logic
+    unique_symmetric_instance_indexes (list): Indices of transformations that leave the mask bitwise identical but might permute the internal order of the squares.
+                                              These represent the Automorphism Group of the pattern.
+    symmetry_fs (list): The specific transformation functions that result in a bitwise identical mask, used to reduce parameters in the regression model or neural network.
+
+    6. Optimization Plans
+    pack_plan (list): A precomputed sequence of bitwise operations (masks and shifts) used to "pack" the scattered bits of a 64-bit board into a contiguous integer index.
+                      This is critical for high-speed evaluation.
+                      Detailed breakdown of each tuple:
+                      np.uint64: The first element of the tuple is the block_mask.
+                      int: The second element is the shift_amount.
+                           It is the result of the subtraction of (source_pos - dest_pos), it defaults to the standard Python int type.
+    """
+
+    def __init__(self, name: str, mask: SquareSet):
         if not isinstance(mask, (SquareSet, np.uint64)):
             raise TypeError('Argument mask is not an instance of SquareSet')
         if not isinstance(name, str):
             raise TypeError('Argument name is not an instance of str')
-        if not isinstance(pid, int):
-            raise TypeError('Argument pid is not an instance of int')
-        if pid < 0:
-            raise ValueError('Arguments pid must be equal or greater than zero')
-        self.pid = pid
+
         self.name = name
         self.mask = mask
-        self.tmasks = mask.transformations()
-        self.cells = mask.to_square_list()
-        self.cnames = mask.to_string_list()
-        
-        def _compute_distinct_masks():
-            dms = np.zeros(8, dtype=bool) # all false
-            t = self.tmasks
-            for i in range(8):
-                for j in range(i):
-                    if t[j] == t[i]:
-                        dms[i] = True
-                        break
-            return dms
-        
-        self.dmasks = _compute_distinct_masks()
-        self.n_instances = (~self.dmasks).sum()
         self.n_squares = mask.count()
-        self.n_configurations = 3 ** self.n_squares
+        self.n_configurations = 3 ** int(self.n_squares)
+        self.tmasks = mask.transformations()
+        self.squares = mask.to_square_list()[::-1]
+        self.snames = mask.to_string_list()[::-1]
+        self.unique_masks = list(dict.fromkeys(self.tmasks))
+        self.mask_to_index = {m: i for i, m in reversed(list(enumerate(self.tmasks)))}
+        self.mask_indexes = np.zeros(8, dtype=np.uint8)
+        for i, tmask in enumerate(self.tmasks):
+            self.mask_indexes[i] = self.mask_to_index[tmask]
+        self.unique_mask_indexes = list(dict.fromkeys(self.mask_indexes))
+        # n_instances corresponds to the cardinality of the orbit |Orb(P)|
+        self.n_instances = len(self.unique_masks)
+        # n_stabilizer corresponds to the order of the stabilizer |Stab(P)|
+        self.n_stabilizer = 8 // self.n_instances
+        self.trans_fs = [SquareSet.trans_fs[i] for i in self.unique_mask_indexes]
+        self.anti_trans_fs = [SquareSet.anti_trans_fs[i] for i in self.unique_mask_indexes]
 
         def _check_mask_is_principal() -> int:
             instance: int = 0
@@ -975,12 +1047,16 @@ class Pattern:
                     break
             return instance
 
-        principle_instance = _check_mask_is_principal()
-        if principle_instance != 0:
-            mesg = "Argument mask is not principal, check transformations.\nprinciple_instance = {}".format(principle_instance)
+        principal_instance = _check_mask_is_principal()
+        if principal_instance != 0:
+            mesg = (
+                "Argument mask is not principal, check transformations.\n"
+                f"  Transformed masks: [{', '.join(f'0x{x:016X}' for x in self.tmasks)}]\n"
+                f"  Principal instance is: #{principal_instance}, value: {self.tmasks[principal_instance]:016x}"
+            )
             raise ValueError(mesg)
-
-        def _precompute_pack_plan():
+        
+        def _precompute_pack_plan() -> list[tuple[np.uint64, int]]:
             empty = np.uint64(0)
             plan = []
             mask = np.uint64(self.mask)
@@ -1025,11 +1101,89 @@ class Pattern:
 
         self.pack_plan = _precompute_pack_plan()
 
+        # - Symmetries ...
+
+        def _get_position_mapping(symms) -> list[int]:
+            seen = {}
+            res = []
+            for i, arr in enumerate(symms):
+                content = tuple(arr)
+                if content not in seen:
+                    seen[content] = i
+                res.append(seen[content])
+            return res
+
+        symmetric_instance_indexes = np.where(self.mask_indexes == 0)[0]
+
+        symms = []
+        for i, instance_idx in enumerate(symmetric_instance_indexes):
+            tfn = SquareSet.trans_fs[instance_idx]
+            atfn = SquareSet.anti_trans_fs[instance_idx]
+            exchanges = np.zeros(self.n_squares, dtype=np.uint8)
+            for j in range(self.n_squares):
+                sq = Square(j)
+                sqm = SquareSet(SquareSet(1) << sq)
+                sqm_up = SquareSet(unpack_ss(sqm, self))
+                m = SquareSet(tfn(sqm_up))
+                e = SquareSet(pack_ss(m, self))
+                idx = e.bsr()
+                exchanges[j] = idx
+            symms.append(exchanges)
+        pos_map = _get_position_mapping(symms)
+        unique_pos_map = set(pos_map)
+        unique_pos_map.discard(0)
+        self.unique_symmetric_instance_indexes = [int(x) for i, x in enumerate(symmetric_instance_indexes) if i in unique_pos_map]
+        self.symmetry_fs = [SquareSet.trans_fs[idx] for idx in self.unique_symmetric_instance_indexes]
+
+        # - Symmetries.
+
+        # Invariance check
+        self._check_invariances()
+
+    def _check_invariances(self) -> None:
+        """
+        Performs internal consistency checks on symmetry mappings and pack/unpack logic.
+        Raises AssertionError if any invariance is violated.
+        """
+        # 1. Check consistency between mask_indexes and unique_masks
+        # The number of unique values in mask_indexes must match len(unique_masks)
+        if len(set(self.mask_indexes)) != self.n_instances:
+            raise AssertionError("Inconsistency between mask_indexes and n_instances.")
+        
+        # 2. Check that unique_mask_indexes points to the correct unique masks
+        for i, m_idx in enumerate(self.unique_mask_indexes):
+            if self.tmasks[m_idx] != self.unique_masks[i]:
+                raise AssertionError(f"Unique mask mismatch at index {m_idx}.")
+
+        # 3. Check Symmetry Functions (Automorphisms)
+        # For each symmetry_f, transforming the principal mask must yield the same mask
+        for i, f_idx in enumerate(self.unique_symmetric_instance_indexes):
+            f = self.symmetry_fs[i]
+            transformed_mask = f(self.mask)
+            if transformed_mask != self.mask:
+                raise AssertionError(f"Symmetry function at index {f_idx} does not preserve the mask.")
+
+        # 4. Check Mapping logic: symmetry_fs must be a subset of the first 8 transformations
+        if not set(self.symmetry_fs).issubset(set(SquareSet.trans_fs)):
+             raise AssertionError("symmetry_fs contains unknown transformation functions.")
+
         
     def print(self) -> None:
-        print("[Pattern: pid = {}, name = {}, mask = 0x{:016x}]".format(self.pid, self.name, self.mask))
+        trans_fs_labels = [SquareSet.transformation_labels[i] for i in self.unique_mask_indexes]
+        a_trans_fs_labels = [SquareSet.anti_transformation_labels[i] for i in self.unique_mask_indexes]
+        symmetry_fs_labels = [SquareSet.transformation_labels[i] for i in self.unique_symmetric_instance_indexes]
+        print("[Pattern: name = {}, mask = 0x{:016x}]".format(self.name, self.mask))
+        print(f"  [n_squares = {self.n_squares}, n_configurations = {self.n_configurations}, n_instances = {self.n_instances}, n_stabilizer = {self.n_stabilizer}]")
+        print(f"  Cells:               [{', '.join(f'{cn}' for cn in self.snames)}]")
+        print(f"  Transformed masks:   [{', '.join(f'0x{x:016X}' for x in self.tmasks)}]")
+        print(f"  Mask indexes:        [{', '.join(f'{x}' for x in self.mask_indexes)}]")
+        print(f"  Unique masks:        [{', '.join(f'0x{x:016X}' for x in self.unique_masks)}]")
+        print(f"  Unique mask indexes: [{', '.join(f'{x}' for x in self.unique_mask_indexes)}]")
+        print(f"  Transf. functions:   [{', '.join(f'{fn}' for fn in trans_fs_labels)}]")
+        print(f"  Anti-transf. f.:     [{', '.join(f'{fn}' for fn in a_trans_fs_labels)}]")
+        print(f"  Symmetry functions:  [{', '.join(f'{fn}' for fn in symmetry_fs_labels)}]")
 
-def pack_ss(s: SquareSet, p: Pattern) -> SquareSet:
+def pack_ss(s: np.uint64, p: Pattern) -> np.uint64:
     """
     Packs a square set according to the mask defined by pattern p.
     """
