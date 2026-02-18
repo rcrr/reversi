@@ -1,0 +1,175 @@
+%
+%  tlm_teoria_dei_pattern.tex
+%
+%  Copyright (c) 2026 Roberto Corradini. All rights reserved.
+%
+%  This file is part of the reversi program
+%  http://github.com/rcrr/reversi
+%
+%  This program is free software; you can redistribute it and/or modify it
+%  under the terms of the GNU General Public License as published by the
+%  Free Software Foundation; either version 3, or (at your option) any
+%  later version.
+%
+%  This program is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+%  GNU General Public License for more details.
+%
+%  You should have received a copy of the GNU General Public License
+%  along with this program; if not, write to the Free Software
+%  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+%  or visit the site <http://www.gnu.org/licenses/>.
+%
+
+
+\section{Teoria dei Pattern e Canonizzazione}
+
+\subsection{Proprietà Algebriche e Simmetrie del Pattern}
+Sebbene il sottogruppo delle sole rotazioni sia \textit{Abeliano} (commutativo), l'intero gruppo $D_4$ \textbf{non è Abeliano}. L'ordine con cui vengono applicate le trasformazioni è determinante: ad esempio, ruotare la scacchiera e poi rifletterla produce un risultato differente rispetto a rifletterla e poi ruotarla ($a \cdot b \neq b \cdot a$).
+
+Per la corretta catalogazione dei pattern e la riduzione dei parametri nel modello di Machine Learning, è necessario utilizzare il vocabolario della \textit{Teoria dei Gruppi}:
+
+\begin{enumerate}
+    \item \textbf{Azione del Gruppo (Group Action):} Rappresenta l'applicazione di una trasformazione $T \in G$ alla maschera binaria $\mathcal{M}$ di un pattern $\mathcal{P}$.
+    \item \textbf{Orbita ($\text{Orb}$):} L'insieme di tutte le configurazioni uniche che il pattern assume sotto l'azione di $G$. Nel software, questo corrisponde alle istanze fisiche distinte sulla scacchiera.
+    \item \textbf{Stabilizzatore ($\text{Stab}$):} Il sottogruppo di trasformazioni che lasciano la maschera del pattern bitwise identica ($T(\mathcal{M}) = \mathcal{M}$). Questi elementi definiscono le invarianze geometriche del pattern.
+    \item \textbf{Automorfismo:} Una trasformazione appartenente allo stabilizzatore che, pur mantenendo invariata la maschera, permuta l'ordine interno delle celle del pattern.
+\end{enumerate}
+
+\subsection{Il Teorema Orbita-Stabilizzatore}
+La relazione tra il numero di istanze di un pattern e le sue simmetrie è governata dal \textbf{Teorema Orbita-Stabilizzatore}:
+\begin{equation}
+    |G| = |\text{Orb}(\mathcal{P})| \times |\text{Stab}(\mathcal{P})|
+\end{equation}
+Poiché l'ordine del gruppo $|G|$ è esattamente 8, la cardinalità dell'orbita (ovvero il numero di istanze uniche) deve essere necessariamente un divisore di 8. Di conseguenza, un pattern può possedere solo \textbf{1, 2, 4 o 8 istanze} sulla scacchiera.
+
+\subsection{Classificazione Geometrica e Molteplicità dei Pattern}
+
+Il Teorema Orbita-Stabilizzatore non definisce solo il numero di istanze, ma permette di classificare ogni pattern in categorie di simmetria basate sui sottogruppi di $D_4$. Poiché l'ordine del gruppo è $|G|=8$, la cardinalità dell'orbita (le istanze fisiche) è vincolata dalla relazione:
+\begin{equation}
+    |\text{Orb}(\mathcal{P})| = \frac{8}{|\text{Stab}(\mathcal{P})|}
+\end{equation}
+
+In base alla geometria della maschera $\mathcal{M}$, i pattern possono essere raggruppati in quattro classi fondamentali di molteplicità:
+
+\begin{enumerate}
+    \item \textbf{Pattern Asimmetrici ($|\text{Orb}|=8$):} Lo stabilizzatore contiene solo l'identità ($|\text{Stab}|=1$). Il pattern non possiede simmetrie interne; ogni trasformazione genera un'istanza distinta. È il caso più comune per pattern irregolari.
+    
+    \item \textbf{Pattern a Simmetria Singola ($|\text{Orb}|=4$):} Lo stabilizzatore ha ordine 2. Il pattern è invariante rispetto a una sola trasformazione (es. solo riflessione orizzontale, o solo rotazione di $180^\circ$). Esistono 4 istanze distinte sulla scacchiera.
+    
+    \item \textbf{Pattern a Simmetria Doppia ($|\text{Orb}|=2$):} Lo stabilizzatore ha ordine 4. È il caso dei pattern con simmetria bi-assiale o rotazionale di $90^\circ$ (come il pattern \texttt{DIAG8} analizzato precedentemente).
+    
+    \item \textbf{Pattern Totalmente Simmetrici ($|\text{Orb}|=1$):} Lo stabilizzatore coincide con l'intero gruppo $D_4$ ($|\text{Stab}|=8$). Il pattern è invariante rispetto a tutte le rotazioni e riflessioni (es. un quadrato centrale $2\times2$ o la croce centrale).
+\end{enumerate}
+
+\subsection{Lo Spazio degli Stati e Riduzione Parametrica}
+Se consideriamo un pattern di ordine $k$ con uno stabilizzatore di ordine $S$, il numero totale di configurazioni teoriche $3^k$ può essere ridotto drasticamente. Il numero di configurazioni \textit{effettive} da memorizzare nel PDB è approssimativamente:
+\begin{equation}
+    N_{eff} \approx \frac{3^k}{|\text{Stab}(\mathcal{P})|}
+\end{equation}
+Questa scomposizione in classi di equivalenza non solo ottimizza l'occupazione di memoria (riducendo le cache misses), ma accelera la convergenza durante la fase di apprendimento dei pesi, poiché la simmetria geometrica agisce come un regolarizzatore naturale del modello.
+
+\subsection{Normalizzazione e Identificatori Canonici}
+Per garantire l'univocità della rappresentazione dei pattern, il sistema adotta una regola di \textbf{normalizzazione canonica}. Data un'orbita $\text{Orb}(\mathcal{M})$, l'identificatore univoco del pattern $\mathcal{M}_{id}$ è definito come:
+\begin{equation}
+    \mathcal{M}_{id} = \min_{T \in D_4} \{ T(\mathcal{M}) \}
+\end{equation}
+dove l'operatore di minimo è calcolato sul valore numerico della bitmask (priorità al bit meno significativo).
+
+Questa scelta metodologica riduce i 10 sottogruppi teorici di $D_4$ a \textbf{8 classi di equivalenza} effettive. In particolare, le distinzioni tra simmetrie puramente orizzontali e verticali (o tra le due diagonali) vengono eliminate, poiché i pattern appartenenti a tali classi vengono ricondotti allo stesso rappresentante canonico. Tale approccio garantisce che non esistano nel database due pattern che siano l'uno la rotazione o la riflessione dell'altro, ottimizzando lo spazio di ricerca e la coerenza dei dati.
+\subsection{Classificazione e Normalizzazione}
+
+Come discusso, la regola di normalizzazione canonica riduce le 10 classi teoriche a 8 classi effettive gestite dal software. Ad esempio, i pattern con simmetria orizzontale (Tipo 3) vengono mappati sulla classe verticale (Tipo 4). La Tabella \ref{tab:pattern_classification} riassume questa mappatura completa.
+
+\begin{table}[h]
+\centering
+\caption{Classificazione Completa dei Pattern: dai 10 Tipi Teorici alle Classi Effettive.}
+\label{tab:pattern_classification}
+\begin{tabular}{llcccll}
+\hline
+\textbf{Tipo} & \textbf{Simmetria} & \textbf{$|Stab|$} & \textbf{$|Orb|$} & \textbf{Effettiva} & \textbf{Note} & \textbf{Pattern} \\ \hline
+1 & Asimmetrico & 1 & 8 & Sì & - & \texttt{ELLE}, \texttt{2X5COR} \\
+2 & Rotazionale $180^\circ$ & 2 & 4 & Sì & - & \texttt{ZSHAPE} \\
+3 & Assiale Orizz. & 2 & 4 & No & $\to$ Tipo 4 & - \\
+4 & Assiale Vert. & 2 & 4 & Sì & Canonica & \texttt{EDGE}, \texttt{CASTLE} \\
+5 & Diagonale P & 2 & 4 & Sì & Canonica & \texttt{MACE} \\
+6 & Diagonale A & 2 & 4 & No & $\to$ Tipo 5 & (\texttt{DIAG3}, \texttt{CORNER}) \\
+7 & Bi-assiale & 4 & 2 & Sì & - & \texttt{RCT2X4} \\
+8 & Bi-diagonale & 4 & 2 & Sì & - & \texttt{BARBEL}, \texttt{DIAG8} \\
+9 & Rotazionale $90^\circ$ & 4 & 2 & Sì & - & \texttt{COREA} \\
+10 & Totale ($D_4$) & 8 & 1 & Sì & - & \texttt{FOURC}, \texttt{CORE} \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Definizione Algebrica di Pattern e Istanza}
+
+Per formalizzare il concetto di pattern nel gioco del Reversi, dobbiamo distinguere tra l'operatore geometrico e l'oggetto su cui esso agisce.
+
+\subsection{Lo Spazio della Scacchiera}
+Sia $X = \{0, 1, \dots, 63\}$ l'insieme degli indici delle celle di una scacchiera $8 \times 8$. Definiamo una \textbf{Maschera} $\mathcal{M}$ come un sottoinsieme di $X$ (o equivalentemente come un elemento dello spazio dei bit $\mathbb{B}^{64}$):
+\begin{equation}
+    \mathcal{M} = \{s_1, s_2, \dots, s_k\} \subseteq X
+\end{equation}
+dove $k$ è il numero di quadrati (celle) che compongono il pattern.
+
+\subsection{Azione del Gruppo e Orbita}
+Il Gruppo Diedrale $D_4$ agisce sullo spazio $X$ attraverso le trasformazioni $T \in G$. L'azione del gruppo sulla maschera $\mathcal{M}$ genera un insieme di nuove maschere, definito come \textbf{Orbita}:
+\begin{equation}
+    \text{Orb}(\mathcal{M}) = \{ T(\mathcal{M}) \mid T \in D_4 \}
+\end{equation}
+In questo contesto:
+\begin{itemize}
+    \item Il \textbf{Pattern} è l'oggetto astratto definito dall'intera orbita $\text{Orb}(\mathcal{M})$. Due maschere appartengono allo stesso pattern se e solo se esiste una trasformazione $T \in D_4$ che le rende sovrapponibili.
+    \item Un' \textbf{Istanza} (o \textit{Instance}) è un singolo elemento $m \in \text{Orb}(\mathcal{M})$. Rappresenta una specifica disposizione fisica del pattern sulla scacchiera.
+\end{itemize}
+
+\subsection{Classi di Equivalenza}
+L'azione di $D_4$ definisce una \textbf{relazione di equivalenza} $\sim$ sullo spazio delle maschere. Diciamo che $\mathcal{M}_a \sim \mathcal{M}_b$ se esse appartengono alla stessa orbita. 
+Questa scomposizione è fondamentale per l'efficienza computazionale: invece di apprendere i parametri per ogni possibile disposizione di celle, il modello apprende le caratteristiche del \textit{Pattern} (la classe di equivalenza) e le applica a tutte le sue \textit{Istanze} (gli elementi dell'orbita).
+
+\subsection{Lo Stabilizzatore e le Invarianze}
+Per ogni maschera $\mathcal{M}$, esiste un sottogruppo di $D_4$ che non ne muta la configurazione spaziale, chiamato \textbf{Stabilizzatore}:
+\begin{equation}
+    \text{Stab}(\mathcal{M}) = \{ T \in D_4 \mid T(\mathcal{M}) = \mathcal{M} \}
+\end{equation}
+Gli elementi dello stabilizzatore (esclusa l'identità) sono gli \textbf{Automorfismi} del pattern. Essi indicano che il pattern possiede simmetrie intrinseche (ad esempio, una riflessione speculare che lo lascia invariato). Tali simmetrie permettono una ulteriore riduzione dei parametri del modello attraverso vincoli di uguaglianza sui pesi delle celle simmetriche.
+
+\subsection{Spazio delle Configurazioni}
+Data una maschera $\mathcal{M}$ di ordine $k = |\mathcal{M}|$, definiamo \textbf{Configurazione} $\mathcal{C}$ una funzione che associa ogni cella della maschera a uno stato $s \in \{0, 1, 2\}$ (rappresentanti rispettivamente cella vuota, disco nero o disco bianco). 
+
+L'insieme di tutte le possibili configurazioni $\mathcal{S}$ ha cardinalità:
+\begin{equation}
+    |\mathcal{S}| = 3^k
+\end{equation}
+
+\subsection{Symmetries of Geometry vs. Symmetries of State}
+È fondamentale distinguere tra l'azione del gruppo $D_4$ sulla geometria e sulla configurazione:
+\begin{enumerate}
+    \item \textbf{Invarianza Geometrica:} Si verifica quando $T(\mathcal{M}) = \mathcal{M}$. Lo stabilizzatore $\text{Stab}(\mathcal{M})$ definisce quali trasformazioni mantengono il pattern nella stessa posizione fisica, pur permutandone le celle interne.
+    \item \textbf{Invarianza di Configurazione (Simmetria di Stato):} Una configurazione $\mathcal{C}$ si dice simmetrica sotto l'azione di $T \in \text{Stab}(\mathcal{M})$ se, dopo la permutazione delle celle operata da $T$, lo stato risultante rimane invariato. 
+\end{enumerate}
+
+Questa distinzione permette di implementare la \textbf{riduzione dei parametri}: se due diverse configurazioni $\mathcal{C}_1$ e $\mathcal{C}_2$ sono collegate da un automorfismo geometrico (cioè $\mathcal{C}_2 = T(\mathcal{C}_1)$ con $T \in \text{Stab}(\mathcal{M})$), esse devono necessariamente condividere lo stesso valore di valutazione nel database dei pattern (PDB).
+\subsection{Mappatura delle Celle e Anti-trasformazioni}
+
+Per ogni istanza del pattern nell'orbita $\text{Orb}(\mathcal{M})$, è necessario definire una corrispondenza biunivoca tra le celle dell'istanza trasformata e quelle della maschera principale $\mathcal{M}_0$.
+
+\subsection{L'Inversa Geometrica}
+Sia $T_i \in D_4$ la trasformazione che genera l'istanza $i$-esima: $\mathcal{M}_i = T_i(\mathcal{M}_0)$. Per recuperare l'informazione semantica corretta durante la fase di valutazione, definiamo l'operatore di \textbf{Anti-trasformazione} $T_i^{-1}$. 
+
+L'azione di $T_i^{-1}$ garantisce che ogni cella $s \in \mathcal{M}_i$ venga mappata nuovamente nella sua posizione originale in $\mathcal{M}_0$:
+\begin{equation}
+    T_i^{-1}(\mathcal{M}_i) = \mathcal{M}_0
+\end{equation}
+
+\subsection{Recupero della Configurazione Canonica}
+Sia $V$ un vettore di valori (stati delle celle) estratti dalla scacchiera in corrispondenza della maschera $\mathcal{M}_i$. L'indice di accesso al Pattern Database (PDB) deve essere calcolato sulla \textbf{configurazione normalizzata} $\mathcal{C}_{norm}$:
+\begin{equation}
+    \mathcal{C}_{norm} = \text{Pack}(T_i^{-1}(\text{Unpack}(V)))
+\end{equation}
+dove l'operazione di \textit{Unpack} distribuisce i bit sulla scacchiera e \textit{Pack} li ricompatta secondo l'ordine canonico definito dai quadrati della maschera principale. 
+
+\subsection{Efficienza Computazionale}
+Nella pratica del software, le funzioni di Anti-trasformazione sono pre-calcolate e memorizzate in una tabella di lookup. Questo permette di trasformare l'estrazione di un pattern da un'operazione geometrica complessa a una semplice permutazione di bit, mantenendo le prestazioni necessarie per l'esplorazione dell'albero di ricerca.

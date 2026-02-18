@@ -1,0 +1,44 @@
+%
+%  tlm_intro.tex
+%
+%  Copyright (c) 2026 Roberto Corradini. All rights reserved.
+%
+%  This file is part of the reversi program
+%  http://github.com/rcrr/reversi
+%
+%  This program is free software; you can redistribute it and/or modify it
+%  under the terms of the GNU General Public License as published by the
+%  Free Software Foundation; either version 3, or (at your option) any
+%  later version.
+%
+%  This program is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+%  GNU General Public License for more details.
+%
+%  You should have received a copy of the GNU General Public License
+%  along with this program; if not, write to the Free Software
+%  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+%  or visit the site <http://www.gnu.org/licenses/>.
+%
+
+
+\section{Introduzione e Ambiente di Sviluppo}
+Questo documento è la guida per descrivere le basi del modello di Machine-Learning adottato dal
+programma Reversi. Il programma è vasto ed articolato, quì si cerca di sintetizzare al meglio le informazioni
+basilari per ragionare sullo sviluppo di un modello più performante della valutazione del risultato del gioco,
+più sinteticamente chiamata ``evaluation\_function'' o ``ef''.
+\begin{itemize}
+\item Per cominciare a lavorare avviare \texttt{EMACS} e lanciare una shell con il comando \texttt{``M-x shell''}, quindi posizionarsi
+  nella cartella \texttt{\$REVERSI\_HOME/c} e rigenerare il file PDF con il comando \texttt{``make latex-ai''}.
+  Per proseguire nella documentazione del modello aprire ed editare il presente documento \texttt{\$REVERSI\_HOME/c/ai/two-model-layer.tex}.
+\item Sempre su \texttt{EMACS} aprire una seconda shell con il comando \texttt{``C-u M-x shell''}e posizionarsi nella cartella \texttt{\$REVERSI\_HOME/c}.
+  Qui attivare l'ambiente python con il comando \texttt{``source py/.reversi\_venv/bin/activate''} e di seguito
+  lanciare gli unit test con il comando \texttt{``PYTHONPATH="./py" python3 -m unittest test.test\_domain''}.
+\item Aprire il file \texttt{\$REVERSI\_HOME/c/py/twoml/domain.py} per lavorare sulla logica applicativa, e
+  il file\linebreak \texttt{\$REVERSI\_HOME/c/py/test/test\_domain.py} per aggiornare gli unit test.
+\item Aprire quindi una terza riga di comando, sempre in \texttt{EMACS} ma di tipo \texttt{term}, con il comando \texttt{``C-u M-x ansi-term''}, e quì eseguire il comado
+  \texttt{``gemini''} per avviare il collaboratore sintetico, che in questo contesto chiameremo \texttt{Nia}, diminutivo di Urania, la musa dell'astronomia e della geometria.
+  Con il comando \texttt{``@ai/two-model-layer.tex''} fornire a Nia il contesto per poi proseguire nei ragionamenti e nello sviluppo
+  del Modello e del Software che lo implementa.
+\end{itemize}

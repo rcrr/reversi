@@ -1,0 +1,170 @@
+%
+%  two-layer-model.tex
+%
+%  Copyright (c) 2025, 2026 Roberto Corradini. All rights reserved.
+%
+%  This file is part of the reversi program
+%  http://github.com/rcrr/reversi
+%
+%  This program is free software; you can redistribute it and/or modify it
+%  under the terms of the GNU General Public License as published by the
+%  Free Software Foundation; either version 3, or (at your option) any
+%  later version.
+%
+%  This program is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+%  GNU General Public License for more details.
+%
+%  You should have received a copy of the GNU General Public License
+%  along with this program; if not, write to the Free Software
+%  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+%  or visit the site <http://www.gnu.org/licenses/>.
+%
+
+%
+% The most part of the Reversi source code and documentation is written in English.
+% This file started with the specific intention to experiment new evolutions for the
+% program and for the design of the Machine-Learning Model dealing with the help and the
+% interaction with AI agents.
+% It has become evident that the language of choice is not that relevant for the AI, and
+% it is so easy to get a quality translation from AI today, that you are not minding me
+% to choose Italian here for the seek of my confort instead of English.
+%
+
+%
+% TO-DO
+% - Completare la definizione dei Pattern.
+% - Documentare tutta la evaluation_function.
+% - Codice per la creazione del modello e per il calcolo delle prestazioni.
+% - Definizione del nuovo modello RNNM (Reversi Neural Network Model)
+%
+
+
+\documentclass{article}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{sfmath}
+
+\usepackage{amsmath}
+\usepackage{othelloboard}
+\usepackage{subcaption}
+\usepackage{graphicx}
+
+\usepackage[a4paper, left=2cm, right=2cm, top=3cm, bottom=3cm]{geometry}
+
+\usepackage{listings}
+\usepackage[dvipsnames]{xcolor}
+\definecolor{mauve}{rgb}{0.88, 0.69, 1.0}
+\usepackage{fancyvrb}
+\usepackage{enumitem}
+
+\usepackage{textcomp}
+\usepackage[T1]{fontenc}
+\usepackage{url}
+
+\usepackage{bm}
+\usepackage[utf8]{inputenc}
+
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=true,      % Rimuove i riquadri e colora il testo
+    linkcolor=blue,       % Colore per i riferimenti interni (sezioni, figure, equazioni)
+    citecolor=blue,       % Colore per le citazioni bibliografiche
+    filecolor=magenta,    
+    urlcolor=cyan,
+    pdftitle={Pattern Symmetries in Reversi},
+}
+
+\usepackage{amssymb}
+
+\lstset{
+  language=SQL,
+  basicstyle=\ttfamily\tiny,
+  keywordstyle=\color{blue},
+  stringstyle=\color{mauve},
+  commentstyle=\color{gray},
+  numbers=none,
+  breaklines=true,
+  showstringspaces=false,
+  frame=single
+}
+
+\lstset{
+  language=bash,
+  basicstyle=\ttfamily\tiny,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  frame=single,
+  showstringspaces=false
+}
+
+\lstset{
+  language=C,
+  basicstyle=\ttfamily\tiny,
+  keywordstyle=\color{blue},
+  stringstyle=\color{mauve},
+  commentstyle=\color{gray},
+  numbers=none,
+  breaklines=true,
+  showstringspaces=false,
+  frame=single,
+  literate={<<}{{$\ll$}}2 {>>}{{$\gg$}}2
+}
+
+% 
+% M-:
+% (setq preview-scale-function (lambda () 1.5))
+%
+
+%
+% Per scrivere le vocali accentate in Italiano:
+%
+% $ setxkbmap -layout us -variant intl
+%
+ 
+\title{Reversi}
+\author{Roberto Corradini \\[0.2cm]
+\small \texttt{rob\_corradini@yahoo.com} \\[0.1cm]
+\url{https://github.com/rcrr/reversi}}
+\date{\today}
+
+\begin{document}
+\maketitle
+\vspace{1cm}
+\begin{abstract}
+\normalsize
+Reversi è un ecosistema di programmi e strumenti informatici per studiare il gioco da tavolo Othello, anche chiamato Reversi.
+L'intento è studiare, capire, sviluppare algoritmi e modelli che possano progredire nella realizzazione di un agente
+sintetico ed autonomo che sia in grado di giocare una partita in maniera autorevole. E in prospettiva di tendere alla
+risoluzione matematica del gioco, o quantomeno ad una sua approssimazione probabilistica.
+I programmi sono scritti principalmente in ANSI C, Python, SQL, con altri linguaggi come Common Lisp, Java, Clojure, R usati
+per sperimentazioni, ma non rilevanti nella sostanza.
+Il corpo principale del programma è sviluppato in C, e comprende l'endgame solver, il generatore di partite random, il
+solutore integrato con il database REGAB, e le funzioni di risoluzione del modello di ML basato sulla Regressione Logistica.
+Il Database SQL REGAB, sviluppato in PostgreSQL, ed in linguaggio procedurale PL/pgSQL, contiene le posizioni random
+che poi vengono risolte e taggate con il valore vero del game.
+Il codice in C è stato poi portato in Python, per poter operare più agilmente con l'ecosistema attivo del Machine-Learning, AI,
+calcolo scientifico, acceleratori GPU, e tutto quanto serve per la ricerca di frontiera.
+Il codice in C rimane più performante per la risoluzione delle posizioni, il codice in Python è più consono allo sviluppo
+dei Modelli per la definizione di evaluation function più evolute.
+\end{abstract}
+
+\include{tlm_intro}
+\include{tlm_rappresentazione_del_dominio}
+\include{tlm_game_positions}
+\include{tlm_definizioni_python}
+\include{tlm_geometria_della_board}
+\include{tlm_teoria_dei_pattern}
+\include{tlm_definizione_e_calcolo_dei_pattern}
+\include{tlm_evaluation_function}
+
+\appendix
+
+\include{tlm_appendix_catalogo_dei_pattern}
+
+\end{document}
+

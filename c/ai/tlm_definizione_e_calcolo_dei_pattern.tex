@@ -1,0 +1,154 @@
+%
+%  tlm_definizione_e_calcolo_dei_pattern.tex
+%
+%  Copyright (c) 2026 Roberto Corradini. All rights reserved.
+%
+%  This file is part of the reversi program
+%  http://github.com/rcrr/reversi
+%
+%  This program is free software; you can redistribute it and/or modify it
+%  under the terms of the GNU General Public License as published by the
+%  Free Software Foundation; either version 3, or (at your option) any
+%  later version.
+%
+%  This program is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+%  GNU General Public License for more details.
+%
+%  You should have received a copy of the GNU General Public License
+%  along with this program; if not, write to the Free Software
+%  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+%  or visit the site <http://www.gnu.org/licenses/>.
+%
+
+
+\section{Definizione e Calcolo dei Pattern}
+
+Un \texttt{PATTERN} è un insieme di celle.
+Ad esempio \texttt{EDGE} è il nome assegnato alle otto caselle di un bordo della board. Ci sono quattro EDGE in una board,
+ottenuti ruotando di 0, 90, 180, 270 gradi il pattern di base, per convenzione quello sul bordo a nord.
+
+Il pattern \texttt{EDGE} è quindi definito dalle caselle \texttt{\{A1, B1, C1, D1, E1, F1, G1, H1\}}, la seconda istanza del pattern è situata
+sul bordo est \texttt{\{H1, H2, H3, H4, H5, H6, H7, H8\}}, la terza sul bordo sud \texttt{\{H8, G8, F8, E8, D8, C8, B8, A8\}},
+la quarta su quello ovest \texttt{\{A8, A7, A6, A5, A4, A3, A2, A1\}}.
+Le quattro istanze del pattern possono essere portate sulla rappresentazione di base applicando le quattro rotazioni antiorarie.
+Dalla configurazione di base invece posso riportare il pattern alla sua istanza con le rotazioni orarie corrispondenti.
+Il pattern può anche essere definito con la maschera dei bit sulla bitboard, uno \texttt{SquareSet} quindi che
+rappresentato in esadecimale vale \texttt{0x00000000000000FF}.
+
+Un secondo pattern che prendiamo in considerazione è \texttt{R2}, definito in esadecimale come \texttt{0x000000000000FF00}.
+
+I pattern sono potenzialmente tantissimi, per la massima generalità focalizziamoci su un pattern che copra tutte le casistiche di queste
+astrazioni ma che sia al contempo semplice, lo definiamo con il set di quattro elementi \texttt{\{A1, B1, C1, A2\}} equivalente alla maschera
+\texttt{0x0000000000000107} e lo chiamiamo \texttt{ELLE}.
+
+% WE ARE HERE
+
+I pattern sono potenzialmente tantissimi, ma per ora soffermiamoci su questi due \texttt{EDGE} ed \texttt{R2}, questi infatti sono sufficienti
+ad introdurre tutta la complessità che dobbiamo affrontare, senza perdere di generalità.
+
+Il pattern \texttt{EDGE}, ed analogamente \texttt{R2}, è caratterizzato da otto celle.
+Ogni cella ha tre configurazioni possibili: vuota, occupata da un disco nero, occupata da un disco bianco.
+Diamoci la convenzione che \texttt{BLACK} significa \texttt{PLAYER}, e \texttt{WHITE} \texttt{OPPONENT}.
+Le configurazioni che un \texttt{EDGE} può assumere sono quindi tre elevato alla otto quindi $3^8 = 6561$, seimilacinquecentosessantuno.
+Dobbiamo definire un encoding di queste configurazioni, in maniera da assegnargli un nome univoco.
+Questo nome lo chiamiamo \texttt{INDEX}.
+
+Per calcolare il valore dell'indice $i$ nell'equazione~\ref{eq:calcolo_indice}, quindi procediamo come segue.
+Ognuno dei tre colori che può assumere una cella ha un valore $c$ assegnato.
+Assegniamo il valore zero alla cella vuota, il valore uno alla cella occupata dal nero, ed il valore due a quella occupata dal bianco.
+Assegniamo un ordine univoco alle celle di un pattern, dalla meno significativa alla più significativa, e chiamiamo $p$ l'ordinale di questa posizione.
+Quindi per l'\texttt{EDGE} la casella \texttt{A1} è la zero, \texttt{B1} è la uno, e la \texttt{H1} è la sette, che è l'ultima e quindi la $n-esima$.
+L'indice di una configurazione è realizzato sommando il contributo di ciascuna cella del pattern,
+con valore $[0..2]$ a secondo del colore (empty=0, black=1, white=2)
+moltiplicato per tre elevato all'esponente ottenuto dalla posizione ordinale $p$ della cella nel pattern.
+
+
+\begin{equation}
+  i = \sum_{p=0}^{n} c \cdot 3^p
+  \label{eq:calcolo_indice}
+\end{equation}
+
+Per colcolare i valori dei quattro indici del pattern \texttt{EDGE}, ma anologamente poi per il pattern \texttt{R2} od ogni altro pattern, si procede con questa sequenza
+di operazioni. Viene prima ruotata la board, poi si esegue l'operazione di mask e di pack, quindi viene calcolato l'indice con la~\ref{eq:calcolo_indice}.
+
+Per la massima generalità le istanze di un pattern nella bord possono essere fino ad otto, questo nel caso in cui il pattern non abbia una simmetria rispetto all'asse verticale
+della board. In questo esempio basato sui due pattern \texttt{EDGE} ed \texttt{R2} la condizione non si presenta, non ci espone comunque questa semplificazione a perdere di generalità
+in tutti i passaggi seguenti per la definizione del modello matematico della funzione di valutazione del valore del gioco.
+
+\begin{lstlisting}[language=C]
+
+  SquareSet
+  board_pattern_pack_edge (SquareSet s)
+  {
+    return s & 0x00000000000000ff;
+  }
+
+  SquareSet
+  board_pattern_unpack_edge (SquareSet s)
+  {
+    return s & 0x00000000000000ff;
+  }
+
+  SquareSet
+  board_pattern_pack_r2 (SquareSet s)
+  {
+    return (s >> 8) & 0x00000000000000ff;
+  }
+
+  SquareSet
+  board_pattern_unpack_r2 (SquareSet s)
+  {
+    return (s & 0x00000000000000ff) << 8;
+  }
+  
+\end{lstlisting}
+
+
+\begin{lstlisting}[language=C]
+
+  void
+  board_pattern_compute_indexes (board_pattern_index_t *indexes,
+                                 const board_pattern_t *const p,
+                                 const board_t *const b)
+  {
+    board_t tb[8];
+    SquareSet m, o, c;
+    board_trans_f tf;
+    SquareSet mover_pattern_packed[8];
+    SquareSet opponent_pattern_packed[8];
+
+    /*                       0  1   2   3    4    5     6     7      8      9      10      11      12        13       14        15 */
+    const uint64_t cim[] = { 1, 3,  9, 27,  81, 243,  729, 2187,  6561, 19683,  59049, 177147,  531441, 1594323, 4782969, 14348907 };
+    const uint64_t cio[] = { 2, 6, 18, 54, 162, 486, 1458, 4374, 13122, 39366, 118098, 354294, 1062882, 3188646, 9565938, 28697814 };
+
+    /*
+    * This part should go out of the specific pattern, and done once for all patterns.
+    * For now we focus on EDGE pattern alone.
+    */
+
+    m = board_get_mover_square_set(b);
+    o = board_get_opponent_square_set(b);
+
+    for (int i = 0; i < p->n_instances; i++) {
+      tf = p->trans_to_principal_f[i];
+      board_set_square_sets(tb + i, tf(m), tf(o));
+    }
+
+    for (int i = 0; i < p->n_instances; i++) {
+      mover_pattern_packed[i] = p->pattern_pack_f(board_get_mover_square_set(tb + i));
+      opponent_pattern_packed[i] = p->pattern_pack_f(board_get_opponent_square_set(tb + i));
+    }
+
+    for (int i = 0; i < p->n_instances; i++) {
+      indexes[i] = 0;
+      for (int j = 0; j < p->n_squares; j++) {
+        c = 1ULL << j;
+        indexes[i] += (c & mover_pattern_packed[i]   ) ? cim[j] : 0;
+        indexes[i] += (c & opponent_pattern_packed[i]) ? cio[j] : 0;
+      }
+    }
+    
+\end{lstlisting}
+

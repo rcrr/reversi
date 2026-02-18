@@ -1,0 +1,193 @@
+%
+%  tlm_geometria_della_board.tex
+%
+%  Copyright (c) 2026 Roberto Corradini. All rights reserved.
+%
+%  This file is part of the reversi program
+%  http://github.com/rcrr/reversi
+%
+%  This program is free software; you can redistribute it and/or modify it
+%  under the terms of the GNU General Public License as published by the
+%  Free Software Foundation; either version 3, or (at your option) any
+%  later version.
+%
+%  This program is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+%  GNU General Public License for more details.
+%
+%  You should have received a copy of the GNU General Public License
+%  along with this program; if not, write to the Free Software
+%  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+%  or visit the site <http://www.gnu.org/licenses/>.
+%
+
+
+\section{Geometria della Scacchiera: Il Gruppo Diedrale \texorpdfstring{$\bm{D_4}$}{D4}}
+
+\subsection{Rotazioni della bitboard}
+
+Sia gli square set che le board sono passibili di otto differenti trasformazioni, che ruotano rigidamente, oppure specchiano la bitboard rispetto gli assi di simmetria
+naturali. Le trasformazioni sono poi usate per calcolare gli indici delle istanze dei diversi pattern.
+La board può essere ruotata di zero, 90, 180, 270 gradi in senso orario, e può essere specchiata secondo gli assi verticale, orizontale, diagonale NW-SE e diagonale NE-SW.
+Sono poi definite le operazioni delle otto antitrasformazioni che riportano la bitboard nella condizione originale.
+
+A titolo di esempio la board:
+
+{\tiny
+\begin{verbatim}
+A1 B1 C1 D1 E1 F1 G1 H1
+A2 B2 C2 D2 E2 F2 G2 H2
+A3 B3 C3 D3 E3 F3 G3 H3
+A4 B4 C4 D4 E4 F4 G4 H4
+A5 B5 C5 D5 E5 F5 G5 H5
+A6 B6 C6 D6 E6 F6 G6 H6
+A7 B7 C7 D7 E7 F7 G7 H7
+A8 B8 C8 D8 E8 F8 G8 H8
+\end{verbatim}
+}
+
+ruotata in senso orario di 90 gradi diventa:
+
+{\tiny
+\begin{verbatim}
+A8 A7 A6 A5 A4 A3 A2 A1
+B8 B7 B6 B5 B4 B3 B2 B1
+C8 C7 C6 C5 C4 C3 C2 C1
+D8 D7 D6 D5 D4 D3 D2 D1
+E8 E7 E6 E5 E4 E3 E2 E1
+F8 F7 F6 F5 F4 F3 F2 F1
+G8 G7 G6 G5 G4 G3 G2 G1
+H8 H7 H6 H5 H4 H3 H2 H1
+\end{verbatim}
+}
+
+Le otto trasformazioni sono quindi definite dai metodi omonimi nelle due classi SquareSet e Board come
+descritti nella tabella \ref{tab:bitboard_transformations}.
+Inoltre le due classi hanno definiti i metodi \texttt{transformations} ed \texttt{anti\_transformations} che ritornano
+un array di otto posizioni contenente le bitboard trasformate o anti-trasformate.
+
+\begin{table}[h]
+\centering
+\caption{Trasformazioni della bitboard}
+\label{tab:bitboard_transformations}
+\begin{tabular}{|c|l|l|l|}
+\hline
+\textbf{Pos.} & \textbf{Descrizione} & \textbf{Trasformazione} & \textbf{Anti-Trasformazione} \\ \hline
+0 & Rotazione zero gradi oraria  & \texttt{trans\_identity}               & \texttt{trans\_identity}               \\ \hline
+1 & Rotazione 90 gradi oraria    & \texttt{trans\_rotate\_90c}            & \texttt{trans\_rotate\_90a}            \\ \hline
+2 & Rotazione 180 gradi oraria   & \texttt{trans\_rotate\_180}            & \texttt{trans\_rotate\_180}            \\ \hline
+3 & Rotazione 270 gradi oraria   & \texttt{trans\_rotate\_90a}            & \texttt{trans\_rotate\_90c}            \\ \hline
+4 & Specchiatura asse verticale  & \texttt{trans\_reflection\_vertical}   & \texttt{trans\_reflection\_vertical}   \\ \hline
+5 & Specchiatura diagonale H1-A8 & \texttt{trans\_reflection\_diag\_h1a8} & \texttt{trans\_reflection\_diag\_h1a8} \\ \hline
+6 & Specchiatura asse orizontale & \texttt{trans\_reflection\_horizontal} & \texttt{trans\_reflection\_horizontal} \\ \hline
+7 & Specchiatura diagonale A1-H8 & \texttt{trans\_reflection\_diag\_a1h8} & \texttt{trans\_reflection\_diag\_a1h8} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Definizione e Composizione del Gruppo}
+\label{sec:gruppo_diedrale}
+
+Le trasformazioni geometriche che agiscono sulla scacchiera del Reversi formano un gruppo matematico
+noto come \textbf{Gruppo Diedrale di ordine 8}, indicato con il simbolo $\bm{D_4}$.
+Questo gruppo rappresenta l'insieme completo delle simmetrie di un quadrato.
+
+\subsection{Composizione del Gruppo}
+Il gruppo $G = \{T_0, T_1, \dots, T_7\}$ è composto da 8 elementi fondamentali:
+\begin{itemize}
+    \item \textbf{4 Rotazioni:} $0^\circ$ (l'elemento \textit{Identità} $e$), $90^\circ$, $180^\circ$ e $270^\circ$.
+    \item \textbf{4 Riflessioni:} Orizzontale, Verticale e le due Diagonali.
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\caption{Elementi del Gruppo Diedrale $D_4$ e relative Anti-trasformazioni.}
+\label{tab:d4_inverses}
+\begin{tabular}{@{}clllc@{}}
+\hline
+\textbf{Indice} & \textbf{Operatore} & \textbf{Descrizione Geometrica} & \textbf{Inverso ($T^{-1}$)} & \textbf{Ordine} \\ \hline
+0 & $e$      & Identità ($0^\circ$)          & $T_0$ & 1 \\
+1 & $r$      & Rotazione $90^\circ$ (CW)     & $T_3$ & 4 \\
+2 & $r^2$    & Rotazione $180^\circ$         & $T_2$ & 2 \\
+3 & $r^3$    & Rotazione $270^\circ$ (CW)    & $T_1$ & 4 \\
+4 & $s$      & Riflessione Orizzontale       & $T_4$ & 2 \\
+5 & $sr$     & Riflessione Diagonale (P)     & $T_5$ & 2 \\
+6 & $sr^2$   & Riflessione Verticale         & $T_6$ & 2 \\
+7 & $sr^3$   & Riflessione Diagonale (A)     & $T_7$ & 2 \\ \hline
+\end{tabular}
+\end{table}
+
+L'ordine di un elemento \(T\in D_{4}\) rappresenta il ciclo di ripetizione della trasformazione geometrica.
+Gli elementi di ordine 2, detti involuzioni, sono auto-inversi (\(T=T^{-1}\)), semplificando la logica di mappatura tra istanze simmetriche.
+
+\subsection{Struttura Algebrica e Generatori}
+
+Il gruppo diedrale $D_4$ può essere descritto in modo compatto attraverso i suoi \textbf{generatori}. Invece di considerare le otto trasformazioni come elementi isolati, le definiamo come combinazioni di due operazioni fondamentali.
+
+\subsection{I Generatori: Rotazione e Riflessione}
+Il gruppo $D_4$ è generato da due elementi fondamentali:
+\begin{itemize}
+    \item $r$: una rotazione di $90^\circ$ in senso orario (ordine 4, per cui $r^4 = e$).
+    \item $s$: una riflessione rispetto all'asse orizzontale (ordine 2, per cui $s^2 = e$).
+\end{itemize}
+
+\subsection{Relazioni Fondamentali e Proprietà Non-Abeliana}
+La struttura del gruppo è determinata dalla relazione di interazione tra questi due generatori. In $D_4$, vale la seguente relazione fondamentale:
+\begin{equation}
+    rs = sr^{-1} \quad (\text{ovvero } rs = sr^3)
+\end{equation}
+Questa uguaglianza dimostra formalmente che il gruppo \textbf{non è abeliano}: applicare una rotazione seguita da una riflessione ($rs$) non equivale ad applicare una riflessione seguita dalla stessa rotazione ($sr$). 
+
+\subsection{Scomposizione degli Elementi}
+Grazie ai generatori $r$ e $s$, l'insieme degli otto elementi di $D_4$ può essere ripartito in due sottoinsiemi disgiunti:
+\begin{enumerate}
+    \item \textbf{Sottogruppo delle Rotazioni (Ciclico):} 
+    \begin{equation}
+        R = \{e, r, r^2, r^3\}
+    \end{equation}
+    Questi elementi mantengono l'orientamento (chirale) originale della scacchiera.
+    
+    \item \textbf{Insieme delle Riflessioni (Classe Laterale):}
+    \begin{equation}
+        S = \{s, sr, sr^2, sr^3\}
+    \end{equation}
+    Ogni elemento di questo insieme rappresenta una riflessione. Algebricamente, una riflessione ``composta'' (come quella diagonale) è vista come l'atto di ribaltare la scacchiera ($s$) e successivamente ruotarla per raggiungere l'asse di simmetria desiderato.
+\end{enumerate}
+
+\subsection{Interpretazione Geometrica}
+La notazione $sr^k$ spiega la natura delle simmetrie speculari:
+\begin{itemize}
+    \item $s$: Riflessione Orizzontale.
+    \item $sr$: Riflessione rispetto alla Diagonale Principale.
+    \item $sr^2$: Riflessione Verticale.
+    \item $sr^3$: Riflessione rispetto alla Diagonale Anti-principale.
+\end{itemize}
+Questa classificazione è di fondamentale importanza per il software: permette di mappare ogni possibile simmetria della scacchiera utilizzando solo due funzioni atomiche (\textit{rotate} e \textit{reflection}) e le loro composizioni.
+
+\subsection{Implementazione Computazionale (Parallel Bit Manipulation)}
+
+Dal punto di vista dell'efficienza algoritmica, le trasformazioni del gruppo $D_4$ non sono implementate come rotazioni geometriche classiche, ma come sequenze di \textit{Parallel Bit Manipulation} (tecnica nota come \textit{Delta Swap}). Questa scelta permette di eseguire ogni simmetria in tempo costante $O(1)$ senza l'ausilio di cicli o tabelle di lookup pesanti.
+
+\subsection{Composizione delle Trasformazioni}
+Sebbene algebricamente il gruppo sia generato da rotazioni e riflessioni, nel software è più efficiente utilizzare le riflessioni assiali e diagonali come primitive atomiche. Le rotazioni vengono quindi derivate dalla composizione di queste ultime, come illustrato nella Tabella \ref{tab:code_mapping}.
+
+\begin{table}[h]
+\centering
+\caption{Mappatura delle funzioni del software sugli elementi di $D_4$.}
+\label{tab:code_mapping}
+\begin{tabular}{lll}
+\hline
+\textbf{Elemento Algebrico} & \textbf{Funzione nel Software} & \textbf{Composizione Logica} \\ \hline
+$e$ (Identità) & \texttt{trans\_identity} & - \\
+$s$ (Riflessione Orizzontale) & \texttt{trans\_reflection\_horizontal} & Primitive \\
+$sr^2$ (Riflessione Verticale) & \texttt{trans\_reflection\_vertical} & Primitive \\
+$sr$ (Riflessione Diagonale) & \texttt{trans\_reflection\_diag\_h1a8} & Primitive \\
+$r$ (Rotazione $90^\circ$ CW) & \texttt{trans\_rotate\_90c} & \texttt{refl\_diag\_h1a8} $\circ$ \texttt{refl\_horiz} \\
+$r^2$ (Rotazione $180^\circ$) & \texttt{trans\_rotate\_180} & \texttt{refl\_horiz} $\circ$ \texttt{refl\_vert} \\
+$r^3$ (Rotazione $90^\circ$ ACW) & \texttt{trans\_rotate\_90a} & \texttt{refl\_horiz} $\circ$ \texttt{refl\_diag\_h1a8} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Analisi dell'Efficienza}
+L'approccio utilizzato riduce il \textit{branching} della CPU. Operazioni come \texttt{trans\_reflection\_diag\_h1a8} utilizzano maschere costanti (\textit{k1, k2, k4}) e operazioni di \textit{shift} e \textit{XOR} per scambiare interi blocchi di bit simultaneamente. Questo garantisce che la valutazione dei pattern rimanga performante anche durante ricerche profonde nell'albero di gioco.
+

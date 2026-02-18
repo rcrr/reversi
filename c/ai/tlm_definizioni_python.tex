@@ -1,0 +1,51 @@
+%
+%  tlm_definizioni_python.tex
+%
+%  Copyright (c) 2026 Roberto Corradini. All rights reserved.
+%
+%  This file is part of the reversi program
+%  http://github.com/rcrr/reversi
+%
+%  This program is free software; you can redistribute it and/or modify it
+%  under the terms of the GNU General Public License as published by the
+%  Free Software Foundation; either version 3, or (at your option) any
+%  later version.
+%
+%  This program is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+%  GNU General Public License for more details.
+%
+%  You should have received a copy of the GNU General Public License
+%  along with this program; if not, write to the Free Software
+%  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+%  or visit the site <http://www.gnu.org/licenses/>.
+%
+
+
+\section{Definizioni in Python degli oggetti Square, Move, SquareSet e Board}
+Il modulo \texttt{domain}, implementato nel file \texttt{\$REVERSI\_HOME/c/py/twoml/domain.py}, definisce gli oggetti di base del dominio applicativo:
+Square, Move, SquareSet e Board.
+
+La classe Square è definita come un sottotipo di numpy.uint8 e definisce pochi metodi di base per convertire stringhe del tipo \texttt{F7} in numeri
+interi, 53 nel caso della casella F7, e vice versa.
+
+La classe Move è derivata da Square, aggiungendo tre valori utili alla definizione della dinamica del gioco ed ai valori trovati nel database.
+Il valore \texttt{PA} indica la mossa di passare all'avversario quando non ci sono mosse legali disponibili, quello \texttt{NA} per non disponibile, è
+usato dal programma quando la mossa non è ancora stata definita, mentre \texttt{UN} è usato quando il valore è indefinito.
+
+La classe SquareSet è definita come sottotipo di numpy.uint64 e definisce il set delle 64 caselle della board, è il componente di base poi per definire
+la classe Board, che è infatti costruita su due attributi, mover ed opponent, definiti come SquareSet.
+Un oggetto di tipo SquareSet può essere costruito da qualsiasi rappresentazione di un intero a 64 bit, e può poi essere convertito in queste all'occorrenza
+con una serie di metodi definiti dalla classe. Altri metodi accessori sono \texttt{bsr}, per calcolare la posizione della ultima casella del set,
+\texttt{to\_square\_list} per avere una lista delle Square del set, \texttt{to\_square\_array} per un array, o \texttt{count} per la conta delle caselle del set.
+La classe inoltre definisce le trasformazioni a cui una board può essere soggetta grazie alle sue molteplici simmetrie, queste trasformazioni sono il focus
+del prossimo paragrafo.
+
+La classe Board è l'implementazione in Reversi del concetto di bitboard, consolida lo stato del game nei suoi due attributi chiamati mover ed opponent,
+ed implementa le regole e la meccanica del gioco. Oltre ai classici metodi di utilità di base quali \texttt{clone} e \texttt{print}, vi sono le funzioni
+caratteristiche quali \texttt{legal\_moves} e \texttt{make\_move}, ed altre accessorie del tipo \texttt{has\_to\_pass}, \texttt{empties}, or \texttt{is\_move\_legal}.
+In aggiunta vi sono poi tutte le trasformazioni definite per gli SquareSet, riportati sulla Board.
+Le funzioni \texttt{legal\_moves}, \texttt{make\_move} e la accessoria \texttt{flips} sono implementate tramite due funzioni interne,
+\texttt{\_kogge\_stone\_lms} e \texttt{\_kogge\_stone\_mm} che sono basate sulla struttura interna della bitboard. Nella versione implementata in Python non tutto
+il parallelismo potenziale delle istruzioni vettoriali è sfruttatto, cosa che invece avviene pienamente nella implementazione in ANSI C.

@@ -1,0 +1,153 @@
+%
+%  tlm_rappresentazione_del_dominio.tex
+%
+%  Copyright (c) 2026 Roberto Corradini. All rights reserved.
+%
+%  This file is part of the reversi program
+%  http://github.com/rcrr/reversi
+%
+%  This program is free software; you can redistribute it and/or modify it
+%  under the terms of the GNU General Public License as published by the
+%  Free Software Foundation; either version 3, or (at your option) any
+%  later version.
+%
+%  This program is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+%  GNU General Public License for more details.
+%
+%  You should have received a copy of the GNU General Public License
+%  along with this program; if not, write to the Free Software
+%  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+%  or visit the site <http://www.gnu.org/licenses/>.
+%
+
+
+\section{Rappresentazione del Dominio}
+
+\subsection{La scacchiera (Board)}
+
+La BOARD Reversi è composta da 64 celle, otto righe ed otto colonne, numerate da 0, in alto a sinistra (North-West, NW),
+a 63, in basso a destra (South-East, SE).
+
+La configurazione della BOARD è rappresentata con due interi a 64 bit (indifferentemente senza segno \texttt{uint64} o con segno \texttt{int64}).
+Ognuno dei 64 bit è associato ad una cella. Il bit meno significativo è associato ad \texttt{a1}, quello più significativo ad \texttt{h8},
+procedendo da sinistra verso destra per righe.
+
+Il primo intero rappresenta le celle del \texttt{GIOCATORE (PLAYER)} che deve effetuare la mossa, il secondo le celle dell'\texttt{AVVERSARIO (OPPONENT)}.
+
+Con due valori \texttt{int64} viene quindi rappresentata la \texttt{POSIZIONE (GAME\_POSITION)}, come mostrato in figura~\ref{fig:reversi-bitboard-patterns}.
+
+Unico vincolo, o invariante, della rappresentazione è la formula: \texttt{PLAYER \&\& OPPONENT == 0},
+che formalizza il divieto di avere sia un disco del giocatore che uno dell'avversario contemporaneamente nella stessa cella.
+
+Quando una cella ha zero sia per il giocatore che per l'avversario è vuota.
+
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.7}{
+      \begin{othelloboard}{1}
+        \dotmarkings
+        \othelloarrayfirstrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysecondrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraythirdrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfourthrow  {0}{0}{0}{1}{2}{0}{0}{0}
+        \othelloarrayfifthrow   {0}{0}{0}{2}{1}{0}{0}{0}
+        \othelloarraysixthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayseventhrow {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayeighthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+      \end{othelloboard}
+    }
+    \caption{Initial game position.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.7}{
+      \begin{othelloboard}{1}
+        \dotmarkings
+        \othelloarrayfirstrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysecondrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraythirdrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfourthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfifthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysixthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayseventhrow {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayeighthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        %
+        \posannotation{a1}{\small 00}
+        \posannotation{b1}{\small 01}
+        \posannotation{c1}{\small 02}
+        \posannotation{d1}{\small ...}
+        \posannotation{a2}{\small 08}
+        \posannotation{b2}{\small 09}
+        \posannotation{c2}{\small ...}
+        \posannotation{g8}{\small ...}
+        \posannotation{h8}{\small 63}
+      \end{othelloboard}
+    }
+    \caption{Rappresentazione della bitboard.}
+  \end{subfigure}
+
+  \vskip\baselineskip
+  
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.7}{
+      \begin{othelloboard}{1}
+        \dotmarkings
+        \othelloarrayfirstrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysecondrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraythirdrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfourthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfifthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysixthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayseventhrow {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayeighthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        %
+        \posannotation{a1}{\small 00}
+        \posannotation{b1}{\small 01}
+        \posannotation{c1}{\small 02}
+        \posannotation{d1}{\small 03}
+        \posannotation{e1}{\small 04}
+        \posannotation{f1}{\small 05}
+        \posannotation{g1}{\small 06}
+        \posannotation{h1}{\small 07}
+      \end{othelloboard}
+    }
+    \caption{EDGE pattern.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.7}{
+      \begin{othelloboard}{1}
+        \dotmarkings
+        \othelloarrayfirstrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysecondrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraythirdrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfourthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfifthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysixthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayseventhrow {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayeighthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        %
+        \posannotation{a2}{\small 00}
+        \posannotation{b2}{\small 01}
+        \posannotation{c2}{\small 02}
+        \posannotation{d2}{\small 03}
+        \posannotation{e2}{\small 04}
+        \posannotation{f2}{\small 05}
+        \posannotation{g2}{\small 06}
+        \posannotation{h2}{\small 07}
+      \end{othelloboard}
+    }
+    \caption{R2 pattern.}
+  \end{subfigure}
+
+  \caption{Ordine dei bit per la definizione della bitboard e dei pattern.}
+  \label{fig:reversi-bitboard-patterns}
+\end{figure}

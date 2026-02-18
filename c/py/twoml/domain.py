@@ -4,7 +4,7 @@
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
 # 
-# Aauthor Roberto Corradini mailto:rob_corradini@yahoo.it
+# Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2025, 2026 Roberto Corradini. All rights reserved.
 #
 # License
@@ -1172,7 +1172,7 @@ class Pattern:
         trans_fs_labels = [SquareSet.transformation_labels[i] for i in self.unique_mask_indexes]
         a_trans_fs_labels = [SquareSet.anti_transformation_labels[i] for i in self.unique_mask_indexes]
         symmetry_fs_labels = [SquareSet.transformation_labels[i] for i in self.unique_symmetric_instance_indexes]
-        print("[Pattern: name = {}, mask = 0x{:016x}]".format(self.name, self.mask))
+        print(f"[Pattern: name = {self.name}, mask = 0x{self.mask:016x}]")
         print(f"  [n_squares = {self.n_squares}, n_configurations = {self.n_configurations}, n_instances = {self.n_instances}, n_stabilizer = {self.n_stabilizer}]")
         print(f"  Cells:               [{', '.join(f'{cn}' for cn in self.snames)}]")
         print(f"  Transformed masks:   [{', '.join(f'0x{x:016X}' for x in self.tmasks)}]")

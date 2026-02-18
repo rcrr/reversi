@@ -31,11 +31,11 @@ default: all
 # LaTeX AI
 #
 LATEX_AI_DIR  := ai
-LATEX_AI_MAIN := two-model-layer.tex
+LATEX_AI_MAIN := two-layer-model.tex
 
 latex-ai:
-	latexmk -pdf\
-		-outdir=$(LATEX_AI_BUILDDIR) \
+	latexmk -pdf -cd \
+		-outdir=../$(LATEX_AI_BUILDDIR) \
 		-interaction=nonstopmode \
 		$(LATEX_AI_DIR)/$(LATEX_AI_MAIN)
 

@@ -1,0 +1,684 @@
+%
+%  tlm_appendix_catalogo_dei_pattern.tex
+%
+%  Copyright (c) 2026 Roberto Corradini. All rights reserved.
+%
+%  This file is part of the reversi program
+%  http://github.com/rcrr/reversi
+%
+%  This program is free software; you can redistribute it and/or modify it
+%  under the terms of the GNU General Public License as published by the
+%  Free Software Foundation; either version 3, or (at your option) any
+%  later version.
+%
+%  This program is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+%  GNU General Public License for more details.
+%
+%  You should have received a copy of the GNU General Public License
+%  along with this program; if not, write to the Free Software
+%  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+%  or visit the site <http://www.gnu.org/licenses/>.
+%
+
+
+\section{Catalogo dei Pattern}
+
+In questa appendice vengono visualizzati i pattern principali utilizzati dal sistema. Per ogni pattern sono mostrate le 8 trasformazioni del gruppo $D_4$. I numeri all'interno delle celle indicano l'indice di packing progressivo (0, 1, 2, ...) all'interno del pattern, permettendo di tracciare visivamente la permutazione delle celle sotto ogni trasformazione.
+
+\subsection{Pattern ELLE}
+
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+[Pattern: name = ELLE, mask = 0x0000000000000107]
+  [n_squares = 4, n_configurations = 81, n_instances = 8, n_stabilizer = 1]
+  Cells:               [A1, B1, C1, A2]
+  Transformed masks:   
+    0x0000000000000107, 0x00000000008080C0, 0xE080000000000000, 0x0301010000000000, 
+    0x00000000000080E0, 0xC080800000000000, 0x0701000000000000, 0x0000000000010103
+  Mask indexes:        [0, 1, 2, 3, 4, 5, 6, 7]
+  Unique masks:        
+    0x0000000000000107, 0x00000000008080C0, 0xE080000000000000, 0x0301010000000000, 
+    0x00000000000080E0, 0xC080800000000000, 0x0701000000000000, 0x0000000000010103
+  Unique mask indexes: [0, 1, 2, 3, 4, 5, 6, 7]
+  Transf. functions:   [Id, Rot90, Vert, DiagP]
+  Anti-transf. f.:     [Id, Rot270, Vert, DiagP]
+  Symmetry functions:  []
+\end{lstlisting}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a1}{0} \posannotation{b1}{1} \posannotation{c1}{2} \posannotation{a2}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_0$ : Id \\ \fontsize{3}{4}\selectfont \texttt{0000000000000107}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{h1}{0} \posannotation{h2}{1} \posannotation{h3}{2} \posannotation{g1}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_1$ : Rot90 \\ \fontsize{3}{4}\selectfont \texttt{00000000008080C0}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{h8}{0} \posannotation{g8}{1} \posannotation{f8}{2} \posannotation{h7}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_2$ : Rot180 \\ \fontsize{3}{4}\selectfont \texttt{E080000000000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a8}{0} \posannotation{a7}{1} \posannotation{a6}{2} \posannotation{b8}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_3$ : Rot270 \\ \fontsize{3}{4}\selectfont \texttt{0301010000000000}}
+    \end{subfigure}
+
+    \vspace{0.3cm}
+
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{h1}{0} \posannotation{g1}{1} \posannotation{f1}{2} \posannotation{h2}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_4$ : Vert \\ \fontsize{3}{4}\selectfont \texttt{00000000000080E0}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{h8}{0} \posannotation{h7}{1} \posannotation{h6}{2} \posannotation{g8}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_5$ : DiagP \\ \fontsize{3}{4}\selectfont \texttt{C080800000000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a8}{0} \posannotation{b8}{1} \posannotation{c8}{2} \posannotation{a7}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_6$ : Horiz \\ \fontsize{3}{4}\selectfont \texttt{0701000000000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a1}{0} \posannotation{a2}{1} \posannotation{a3}{2} \posannotation{b1}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_7$ : DiagA \\ \fontsize{3}{4}\selectfont \texttt{0000000000010103}}
+    \end{subfigure}
+    \caption{Istanze e indici di permutazione del pattern ELLE.}
+\end{figure}
+
+\newpage
+\subsection{Pattern EDGE}
+
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+[Pattern: name = EDGE, mask = 0x00000000000000ff]
+  [n_squares = 8, n_configurations = 6561, n_instances = 4, n_stabilizer = 2]
+  Cells:               [A1, B1, C1, D1, E1, F1, G1, H1]
+  Transformed masks:   
+    0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000, 0x0101010101010101, 
+    0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000, 0x0101010101010101
+  Mask indexes:        [0, 1, 2, 3, 0, 1, 2, 3]
+  Unique masks:        
+    0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000, 0x0101010101010101
+  Unique mask indexes: [0, 1, 2, 3]
+  Transf. functions:   [Id, Rot90, Rot180, Rot270]
+  Anti-transf. f.:     [Id, Rot270, Rot180, Rot90]
+  Symmetry functions:  [Vert]
+\end{lstlisting}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a1}{0} \posannotation{b1}{1} \posannotation{c1}{2} \posannotation{d1}{3} \posannotation{e1}{4} \posannotation{f1}{5} \posannotation{g1}{6} \posannotation{h1}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_0$ : Id \\ \fontsize{3}{4}\selectfont \texttt{00000000000000FF}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{h1}{0} \posannotation{h2}{1} \posannotation{h3}{2} \posannotation{h4}{3} \posannotation{h5}{4} \posannotation{h6}{5} \posannotation{h7}{6} \posannotation{h8}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_1$ : Rot90 \\ \fontsize{3}{4}\selectfont \texttt{8080808080808080}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{h8}{0} \posannotation{g8}{1} \posannotation{f8}{2} \posannotation{e8}{3} \posannotation{d8}{4} \posannotation{c8}{5} \posannotation{b8}{6} \posannotation{a8}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_2$ : Rot180 \\ \fontsize{3}{4}\selectfont \texttt{FF00000000000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a8}{0} \posannotation{a7}{1} \posannotation{a6}{2} \posannotation{a5}{3} \posannotation{a4}{4} \posannotation{a3}{5} \posannotation{a2}{6} \posannotation{a1}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_3$ : Rot270 \\ \fontsize{3}{4}\selectfont \texttt{0101010101010101}}
+    \end{subfigure}
+
+    \vspace{0.3cm}
+
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{h1}{0} \posannotation{g1}{1} \posannotation{f1}{2} \posannotation{e1}{3} \posannotation{d1}{4} \posannotation{c1}{5} \posannotation{b1}{6} \posannotation{a1}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_4$ : Vert \\ \fontsize{3}{4}\selectfont \texttt{00000000000000FF}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{h8}{0} \posannotation{h7}{1} \posannotation{h6}{2} \posannotation{h5}{3} \posannotation{h4}{4} \posannotation{h3}{5} \posannotation{h2}{6} \posannotation{h1}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_5$ : DiagP \\ \fontsize{3}{4}\selectfont \texttt{8080808080808080}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a8}{0} \posannotation{b8}{1} \posannotation{c8}{2} \posannotation{d8}{3} \posannotation{e8}{4} \posannotation{f8}{5} \posannotation{g8}{6} \posannotation{h8}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_6$ : Horiz \\ \fontsize{3}{4}\selectfont \texttt{FF00000000000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a1}{0} \posannotation{a2}{1} \posannotation{a3}{2} \posannotation{a4}{3} \posannotation{a5}{4} \posannotation{a6}{5} \posannotation{a7}{6} \posannotation{a8}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_7$ : DiagA \\ \fontsize{3}{4}\selectfont \texttt{0101010101010101}}
+    \end{subfigure}
+    \caption{Istanze e indici di permutazione del pattern EDGE.}
+\end{figure}
+
+\newpage
+\subsection{Pattern ZSHAPE}
+
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+[Pattern: name = ZSHAPE, mask = 0x0000000c30000000]
+  [n_squares = 4, n_configurations = 81, n_instances = 4, n_stabilizer = 2]
+  Cells:               [E4, F4, C5, D5]
+  Transformed masks:   
+    0x0000000C30000000, 0x0000101008080000, 0x0000000C30000000, 0x0000101008080000, 
+    0x000000300C000000, 0x0000080810100000, 0x000000300C000000, 0x0000080810100000
+  Mask indexes:        [0, 1, 0, 1, 4, 5, 4, 5]
+  Unique masks:        
+    0x0000000C30000000, 0x0000101008080000, 0x000000300C000000, 0x0000080810100000
+  Unique mask indexes: [0, 1, 4, 5]
+  Transf. functions:   [Id, Rot90, Vert, DiagP]
+  Anti-transf. f.:     [Id, Rot270, Vert, DiagP]
+  Symmetry functions:  [Rot180]
+\end{lstlisting}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{e4}{0} \posannotation{f4}{1} \posannotation{c5}{2} \posannotation{d5}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_0$ : Id \\ \fontsize{3}{4}\selectfont \texttt{0000000C30000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{e5}{0} \posannotation{e6}{1} \posannotation{d3}{2} \posannotation{d4}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_1$ : Rot90 \\ \fontsize{3}{4}\selectfont \texttt{0000101008080000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{d5}{0} \posannotation{c5}{1} \posannotation{f4}{2} \posannotation{e4}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_2$ : Rot180 \\ \fontsize{3}{4}\selectfont \texttt{0000000C30000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{d4}{0} \posannotation{d3}{1} \posannotation{e6}{2} \posannotation{e5}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_3$ : Rot270 \\ \fontsize{3}{4}\selectfont \texttt{0000101008080000}}
+    \end{subfigure}
+
+    \vspace{0.3cm}
+
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{d4}{0} \posannotation{c4}{1} \posannotation{f5}{2} \posannotation{e5}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_4$ : Vert \\ \fontsize{3}{4}\selectfont \texttt{000000300C000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{e4}{0} \posannotation{e3}{1} \posannotation{d6}{2} \posannotation{d5}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_5$ : DiagP \\ \fontsize{3}{4}\selectfont \texttt{0000080810100000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{e5}{0} \posannotation{f5}{1} \posannotation{c4}{2} \posannotation{d4}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_6$ : Horiz \\ \fontsize{3}{4}\selectfont \texttt{000000300C000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{d5}{0} \posannotation{d6}{1} \posannotation{e3}{2} \posannotation{e4}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_7$ : DiagA \\ \fontsize{3}{4}\selectfont \texttt{0000080810100000}}
+    \end{subfigure}
+    \caption{Istanze e indici di permutazione del pattern ZSHAPE.}
+\end{figure}
+
+\newpage
+\subsection{Pattern RCT2X4}
+
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+[Pattern: name = RCT2X4, mask = 0x0000003c3c000000]
+  [n_squares = 8, n_configurations = 6561, n_instances = 2, n_stabilizer = 4]
+  Cells:               [C4, D4, E4, F4, C5, D5, E5, F5]
+  Transformed masks:   
+    0x0000003C3C000000, 0x0000181818180000, 0x0000003C3C000000, 0x0000181818180000, 
+    0x0000003C3C000000, 0x0000181818180000, 0x0000003C3C000000, 0x0000181818180000
+  Mask indexes:        [0, 1, 0, 1, 0, 1, 0, 1]
+  Unique masks:        
+    0x0000003C3C000000, 0x0000181818180000
+  Unique mask indexes: [0, 1]
+  Transf. functions:   [Id, Rot90]
+  Anti-transf. f.:     [Id, Rot270]
+  Symmetry functions:  [Rot180, Vert, Horiz]
+\end{lstlisting}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{c4}{0} \posannotation{d4}{1} \posannotation{e4}{2} \posannotation{f4}{3} 
+                \posannotation{c5}{4} \posannotation{d5}{5} \posannotation{e5}{6} \posannotation{f5}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_0$ : Id \\ \fontsize{3}{4}\selectfont \texttt{0000003C3C000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{e3}{0} \posannotation{e4}{1} \posannotation{e5}{2} \posannotation{e6}{3} 
+                \posannotation{d3}{4} \posannotation{d4}{5} \posannotation{d5}{6} \posannotation{d6}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_1$ : Rot90 \\ \fontsize{3}{4}\selectfont \texttt{0000181818180000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{f5}{0} \posannotation{e5}{1} \posannotation{d5}{2} \posannotation{c5}{3} 
+                \posannotation{f4}{4} \posannotation{e4}{5} \posannotation{d4}{6} \posannotation{c4}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_2$ : Rot180 \\ \fontsize{3}{4}\selectfont \texttt{0000003C3C000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{d6}{0} \posannotation{d5}{1} \posannotation{d4}{2} \posannotation{d3}{3} 
+                \posannotation{e6}{4} \posannotation{e5}{5} \posannotation{e4}{6} \posannotation{e3}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_3$ : Rot270 \\ \fontsize{3}{4}\selectfont \texttt{0000181818180000}}
+    \end{subfigure}
+
+    \vspace{0.3cm}
+
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{f4}{0} \posannotation{e4}{1} \posannotation{d4}{2} \posannotation{c4}{3} 
+                \posannotation{f5}{4} \posannotation{e5}{5} \posannotation{d5}{6} \posannotation{c5}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_4$ : Vert \\ \fontsize{3}{4}\selectfont \texttt{0000003C3C000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{e6}{0} \posannotation{e5}{1} \posannotation{e4}{2} \posannotation{e3}{3} 
+                \posannotation{d6}{4} \posannotation{d5}{5} \posannotation{d4}{6} \posannotation{d3}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_5$ : DiagP \\ \fontsize{3}{4}\selectfont \texttt{0000181818180000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{c5}{0} \posannotation{d5}{1} \posannotation{e5}{2} \posannotation{f5}{3} 
+                \posannotation{c4}{4} \posannotation{d4}{5} \posannotation{e4}{6} \posannotation{f4}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_6$ : Horiz \\ \fontsize{3}{4}\selectfont \texttt{0000003C3C000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{d3}{0} \posannotation{d4}{1} \posannotation{d5}{2} \posannotation{d6}{3} 
+                \posannotation{e3}{4} \posannotation{e4}{5} \posannotation{e5}{6} \posannotation{e6}{7}
+            \end{othelloboard}
+        }
+        \caption{$T_7$ : DiagA \\ \fontsize{3}{4}\selectfont \texttt{0000181818180000}}
+    \end{subfigure}
+    \caption{Istanze e indici di permutazione del pattern RCT2X4.}
+\end{figure}
+
+\newpage
+\subsection{Pattern BARBEL}
+
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+[Pattern: name = BARBEL, mask = 0x030304081020C0C0]
+  [n_squares = 12, n_configurations = 531441, n_instances = 2, n_stabilizer = 4]
+  Cells:               [G1, H1, G2, H2, F3, E4, D5, C6, A7, B7, A8, B8]
+  Transformed masks:   
+    0x030304081020C0C0, 0xC0C0201008040303, 0x030304081020C0C0, 0xC0C0201008040303,
+    0xC0C0201008040303, 0x030304081020C0C0, 0xC0C0201008040303, 0x030304081020C0C0
+  Mask indexes:        [0, 1, 0, 1, 1, 0, 1, 0]
+  Unique masks:        
+    0x030304081020C0C0, 0xC0C0201008040303
+  Unique mask indexes: [0, 1]
+  Transf. functions:   [Id, Rot90]
+  Anti-transf. f.:     [Id, Rot270]
+  Symmetry functions:  [Rot180, DiagP, DiagA]
+\end{lstlisting}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{g1}{0} \posannotation{h1}{1} \posannotation{g2}{2} \posannotation{h2}{3}
+                \posannotation{f3}{4} \posannotation{e4}{5} \posannotation{d5}{6} \posannotation{c6}{7}
+                \posannotation{a7}{8} \posannotation{b7}{9} \posannotation{a8}{10} \posannotation{b8}{11}
+            \end{othelloboard}
+        }
+        \caption{$T_0$ : Id \\ \fontsize{3}{4}\selectfont \texttt{030304081020C0C0}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a1}{10} \posannotation{b1}{8} \posannotation{a2}{11} \posannotation{b2}{9}
+                \posannotation{c3}{7} \posannotation{d4}{6} \posannotation{e5}{5} \posannotation{f6}{4}
+                \posannotation{g7}{2} \posannotation{h7}{0} \posannotation{g8}{3} \posannotation{h8}{1}
+            \end{othelloboard}
+        }
+        \caption{$T_1$ : Rot90 \\ \fontsize{3}{4}\selectfont \texttt{C0C0201008040303}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{g1}{11} \posannotation{h1}{10} \posannotation{g2}{9} \posannotation{h2}{8}
+                \posannotation{f3}{7} \posannotation{e4}{6} \posannotation{d5}{5} \posannotation{c6}{4}
+                \posannotation{a7}{3} \posannotation{b7}{2} \posannotation{a8}{1} \posannotation{b8}{0}
+            \end{othelloboard}
+        }
+        \caption{$T_2$ : Rot180 \\ \fontsize{3}{4}\selectfont \texttt{030304081020C0C0}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a1}{1} \posannotation{b1}{3} \posannotation{a2}{0} \posannotation{b2}{2}
+                \posannotation{c3}{4} \posannotation{d4}{5} \posannotation{e5}{6} \posannotation{f6}{7}
+                \posannotation{g7}{9} \posannotation{h7}{11} \posannotation{g8}{8} \posannotation{h8}{10}
+            \end{othelloboard}
+        }
+        \caption{$T_3$ : Rot270 \\ \fontsize{3}{4}\selectfont \texttt{C0C0201008040303}}
+    \end{subfigure}
+
+    \vspace{0.3cm}
+    
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a1}{1} \posannotation{b1}{0} \posannotation{a2}{3} \posannotation{b2}{2}
+                \posannotation{c3}{4} \posannotation{d4}{5} \posannotation{e5}{6} \posannotation{f6}{7}
+                \posannotation{g7}{9} \posannotation{h7}{8} \posannotation{g8}{11} \posannotation{h8}{10}
+            \end{othelloboard}
+        }
+        \caption{$T_4$ : Vert \\ \fontsize{3}{4}\selectfont \texttt{C0C0201008040303}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{g1}{3} \posannotation{h1}{1} \posannotation{g2}{2} \posannotation{h2}{0}
+                \posannotation{f3}{4} \posannotation{e4}{5} \posannotation{d5}{6} \posannotation{c6}{7}
+                \posannotation{a7}{11} \posannotation{b7}{9} \posannotation{a8}{10} \posannotation{b8}{8}
+            \end{othelloboard}
+        }
+        \caption{$T_5$ : DiagP \\ \fontsize{3}{4}\selectfont \texttt{030304081020C0C0}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a1}{10} \posannotation{b1}{11} \posannotation{a2}{8} \posannotation{b2}{9}
+                \posannotation{c3}{7} \posannotation{d4}{6} \posannotation{e5}{5} \posannotation{f6}{4}
+                \posannotation{g7}{2} \posannotation{h7}{3} \posannotation{g8}{0} \posannotation{h8}{1}
+            \end{othelloboard}
+        }
+        \caption{$T_6$ : Horiz \\ \fontsize{3}{4}\selectfont \texttt{C0C0201008040303}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{g1}{8} \posannotation{h1}{10} \posannotation{g2}{9} \posannotation{h2}{11}
+                \posannotation{f3}{7} \posannotation{e4}{6} \posannotation{d5}{5} \posannotation{c6}{4}
+                \posannotation{a7}{0} \posannotation{b7}{2} \posannotation{a8}{1} \posannotation{b8}{3}
+            \end{othelloboard}
+        }
+        \caption{$T_7$ : DiagA \\ \fontsize{3}{4}\selectfont \texttt{030304081020C0C0}}
+    \end{subfigure}
+    
+    \caption{Istanze e indici di permutazione del pattern BARBEL.}
+  \end{figure}
+  
+\newpage
+\subsection{Pattern DIAG3}
+
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+[Pattern: name = DIAG3, mask = 0x0000000000010204]
+  [n_squares = 3, n_configurations = 27, n_instances = 4, n_stabilizer = 2]
+  Cells:               [C1, B2, A3]
+  Transformed masks:   
+    0x0000000000010204, 0x0000000000804020, 0x2040800000000000, 0x0402010000000000, 
+    0x0000000000804020, 0x2040800000000000, 0x0402010000000000, 0x0000000000010204
+  Mask indexes:        [0, 1, 2, 3, 1, 2, 3, 0]
+  Unique masks:        
+    0x0000000000010204, 0x0000000000804020, 0x2040800000000000, 0x0402010000000000
+  Unique mask indexes: [0, 1, 2, 3]
+  Transf. functions:   [Id, Rot90, Rot180, Rot270]
+  Anti-transf. f.:     [Id, Rot270, Rot180, Rot90]
+  Symmetry functions:  [DiagP]
+\end{lstlisting}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{c1}{0} \posannotation{b2}{1} \posannotation{a3}{2}
+            \end{othelloboard}
+        }
+        \caption{$T_0$ : Id \\ \fontsize{3}{4}\selectfont \texttt{0000000000010204}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{f1}{2} \posannotation{g2}{1} \posannotation{h3}{0}
+            \end{othelloboard}
+        }
+        \caption{$T_1$ : Rot90 \\ \fontsize{3}{4}\selectfont \texttt{0000000000804020}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{h6}{2} \posannotation{g7}{1} \posannotation{f8}{0}
+            \end{othelloboard}
+        }
+        \caption{$T_2$ : Rot180 \\ \fontsize{3}{4}\selectfont \texttt{2040800000000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a6}{0} \posannotation{b7}{1} \posannotation{c8}{2}
+            \end{othelloboard}
+        }
+        \caption{$T_3$ : Rot270 \\ \fontsize{3}{4}\selectfont \texttt{0402010000000000}}
+    \end{subfigure}
+
+    \vspace{0.3cm}
+
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{f1}{0} \posannotation{g2}{1} \posannotation{h3}{2}
+            \end{othelloboard}
+        }
+        \caption{$T_4$ : Vert \\ \fontsize{3}{4}\selectfont \texttt{0000000000804020}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{h6}{0} \posannotation{g7}{1} \posannotation{f8}{2}
+            \end{othelloboard}
+        }
+        \caption{$T_5$ : DiagP \\ \fontsize{3}{4}\selectfont \texttt{2040800000000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{a6}{2} \posannotation{b7}{1} \posannotation{c8}{0}
+            \end{othelloboard}
+        }
+        \caption{$T_6$ : Horiz \\ \fontsize{3}{4}\selectfont \texttt{0402010000000000}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \scalebox{0.45}{
+            \begin{othelloboard}{1}
+                \posannotation{c1}{2} \posannotation{b2}{1} \posannotation{a3}{0}
+            \end{othelloboard}
+        }
+        \caption{$T_6$ : DiagA \\ \fontsize{3}{4}\selectfont \texttt{0402010000000000}}
+    \end{subfigure}
+    
+    \caption{Istanze e indici di permutazione del pattern DIAG3.}
+\end{figure}

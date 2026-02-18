@@ -1,0 +1,65 @@
+%
+%  tlm_evaluation_function.tex
+%
+%  Copyright (c) 2026 Roberto Corradini. All rights reserved.
+%
+%  This file is part of the reversi program
+%  http://github.com/rcrr/reversi
+%
+%  This program is free software; you can redistribute it and/or modify it
+%  under the terms of the GNU General Public License as published by the
+%  Free Software Foundation; either version 3, or (at your option) any
+%  later version.
+%
+%  This program is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+%  GNU General Public License for more details.
+%
+%  You should have received a copy of the GNU General Public License
+%  along with this program; if not, write to the Free Software
+%  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+%  or visit the site <http://www.gnu.org/licenses/>.
+%
+
+
+\section{La funzione di valutazione della posizione (evaluation function)}
+
+L'obiettivo della funzione di valutazione (Ef) è fornire una stima del risultato finale della partita a partire da una posizione non terminale. Nell'ecosistema Reversi, questo viene ottenuto attraverso un modello di apprendimento supervisionato che mappa le configurazioni della board su un valore atteso del game.
+
+\subsection{Il Modello Additivo a Pattern}
+
+Il modello adottato si basa sull'ipotesi che il valore di una posizione possa essere approssimato dalla somma dei contributi locali di diverse porzioni della scacchiera, chiamate pattern. Dato un insieme di pattern definiti $\mathcal{P}$ (come \texttt{EDGE}, \texttt{CORNER}, \texttt{DIAG8}), il valore di valutazione $V(B)$ di una board $B$ è calcolato come:
+
+\begin{equation}
+    V(B) = \sum_{P \in \mathcal{P}} \sum_{j=1}^{N_P} w_{P, i_{P,j}(B)}
+\end{equation}
+
+Dove:
+\begin{itemize}
+    \item $N_P$ è il numero di istanze uniche del pattern $P$ sulla scacchiera (es. 4 per \texttt{EDGE}).
+    \item $i_{P,j}(B)$ è l'indice della configurazione della $j$-esima istanza del pattern $P$, calcolato in base 3 come descritto nella sezione precedente.
+    \item $w_{P, k}$ è il peso (parametro del modello) associato alla $k$-esima configurazione del pattern $P$.
+\end{itemize}
+
+\subsection{Apprendimento dei Pesi e Regressione Logistica}
+
+I pesi $w$ sono i parametri che il modello deve apprendere. Questo processo avviene utilizzando il dataset REGAB, che contiene milioni di posizioni risolte esattamente. 
+
+Il modello può essere interpretato in due modi:
+\begin{enumerate}
+    \item \textbf{Regressione Lineare:} Il valore $V(B)$ predice direttamente il differenziale di dischi finale $[-64, +64]$.
+    \item \textbf{Regressione Logistica:} La somma dei pesi rappresenta il \textit{logit} di un modello logistico che predice la probabilità di vittoria $P(vittoria) = \sigma(V(B))$, dove $\sigma$ è la funzione sigmoide.
+\end{enumerate}
+
+L'approccio logistico è particolarmente efficace nel Reversi, poiché la natura del gioco è fortemente non lineare: piccoli vantaggi posizionali possono tradursi in vittorie schiaccianti o sconfitte improvvise (specialmente nelle fasi finali).
+
+\subsection{Riduzione Parametrica e Generalizzazione}
+
+Grazie alla teoria dei gruppi discussa nel Capitolo \ref{sec:gruppo_diedrale}, il numero di parametri da apprendere è drasticamente ridotto. Se un pattern ha uno stabilizzatore di ordine $S$, il numero di configurazioni uniche è $3^k/S$. 
+
+Inoltre, applicando la \textbf{normalizzazione canonica}, tutte le istanze simmetriche di un pattern condividono la stessa tabella di pesi (Pattern Database - PDB). Questo non solo riduce l'occupazione di memoria, ma garantisce una migliore generalizzazione del modello: l'esperienza appresa su un angolo della scacchiera viene automaticamente applicata a tutti e quattro gli angoli grazie alla simmetria del gruppo $D_4$.
+
+\subsection{Verso il Modello Neural Network (RNNM)}
+
+L'attuale architettura a "Two-Layer Model" prevede un primo livello di estrazione di feature (gli indici dei pattern) e un secondo livello di combinazione lineare (la Ef). L'evoluzione naturale di questo sistema è il \textbf{Reversi Neural Network Model (RNNM)}, dove i contributi dei pattern non vengono semplicemente sommati, ma processati attraverso strati nascosti (hidden layers) per catturare interazioni di ordine superiore tra diverse zone della scacchiera.

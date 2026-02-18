@@ -1,0 +1,145 @@
+%
+%  tlm_game_positions.tex
+%
+%  Copyright (c) 2026 Roberto Corradini. All rights reserved.
+%
+%  This file is part of the reversi program
+%  http://github.com/rcrr/reversi
+%
+%  This program is free software; you can redistribute it and/or modify it
+%  under the terms of the GNU General Public License as published by the
+%  Free Software Foundation; either version 3, or (at your option) any
+%  later version.
+%
+%  This program is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+%  GNU General Public License for more details.
+%
+%  You should have received a copy of the GNU General Public License
+%  along with this program; if not, write to the Free Software
+%  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+%  or visit the site <http://www.gnu.org/licenses/>.
+%
+
+
+\subsection{Le posizioni (Game Positions)}
+
+Ogni posizione è descritta dal \texttt{VALORE} dell'end-game ottenuto risolvendo la posizione stessa in maniera esatta con
+apposito programma che applica l'algoritmo \texttt{MINIMAX} (o sue varianti sempre esatte ma più efficienti come \texttt{ALPHA-BETA}).
+
+I \texttt{VALORI} possibili di una posizione sono i numeri interi pari compresi nell'intervallo \texttt{[-64..+64]}, pari alla differenza
+di dischi dei due colori risultante alla fine della partita.
+Zero significa pareggio, valori negativi una sconfitta, valori positivi una vittoria.
+
+Le posizioni random, generate per costituire il dataset per il machine-learning (ML), sono archiviate in un database SQL chiamato REGAB (Reversi End-GAme Base).
+Prendiamo una posizione risolta da REGAB con il comando SQL:
+
+\begin{lstlisting}[language=SQL]
+  SELECT seq, mover, opponent, empty_count, game_value, best_move FROM regab_prng_gp WHERE batch_id = 7 AND empty_count = 20 AND status = 'CMS' LIMIT 1;
+\end{lstlisting}
+
+{\tiny
+\begin{verbatim}
+   seq    |        mover        |       opponent       | empty_count | game_value | best_move 
+----------+---------------------+----------------------+-------------+------------+-----------
+ 68230056 | 4611717676283199524 | -7855295674223658936 |          20 |         10 | F8
+(1 row)
+\end{verbatim}
+}
+
+Possiamo poi ricavare dal database ulteriori informazioni, come una vista 2D della posizione:
+  
+\begin{lstlisting}[language=SQL]
+  SELECT game_position_pp_mop(mover, opponent, player) AS pos_68230056 FROM regab_prng_gp WHERE seq = 68230056;
+\end{lstlisting}
+
+{\tiny
+\begin{verbatim}
+     pos_68230056      
+-----------------------
+    a b c d e f g h   +
+ 1  . . @ O . @ O .   +
+ 2  . . . O O O O .   +
+ 3  . . O O O O @ .   +
+ 4  @ @ O @ O @ @ @   +
+ 5  . @ O @ O O @ @   +
+ 6  . O @ @ @ O O .   +
+ 7  . . O O O O O O   +
+ 8  . O . . O . @ O   +
+ Player to move: BLACK
+(1 row)
+\end{verbatim}
+}
+
+Dove il carattere \texttt{'.'} significa cella vuota, \texttt{'@'} disco nero, e \texttt{'O'} disco bianco.
+In questo caso il ``player to move'' è il \texttt{BLACK} che quindi è il \texttt{PLAYER}, mentre il giocatore bianco
+è l' \texttt{OPPONENT}.
+
+O una rappresentazione come stringa che poi possiamo usare come input per l'eseguibile che calcola il valore del game:
+
+\begin{lstlisting}[language=SQL]
+  SELECT game_position_to_string((mover, opponent, player)) AS pos_as_string_68230056 FROM regab_prng_gp WHERE seq = 68230056;
+\end{lstlisting}
+
+{\tiny
+\begin{verbatim}
+                      pos_as_string_68230056                       
+-------------------------------------------------------------------
+ ..bw.bw....wwww...wwwwb.bbwbwbbb.bwbwwbb.wbbbww...wwwwww.w..w.bwb
+(1 row)
+\end{verbatim}
+}
+
+Dove il carattere \texttt{'.'} significa cella vuota, \texttt{'b'} disco nero, \texttt{'w'} disco bianco. Il carattere più a sinistra
+rappresenta la cella \texttt{00} (a1), muovendosi poi verso destra fino al carattere 64 che rappresenta la cella \texttt{63} (h8);
+l'ultimo carattere a destra rappresenta invece il giocatore che deve muovere, \texttt{'b'} per \texttt{BLACK} e \texttt{'w'} per \texttt{WHITE}.
+
+Eseguiamo il programma \texttt{endgame\_solver} dove il flag \texttt{-s es} richiama l' ``exact solver'':
+
+\begin{lstlisting}[language=bash]
+  ./build/bin/endgame_solver -s es -g ..bw.bw....wwww...wwwwb.bbwbwbbb.bwbwwbb.wbbbww...wwwwww.w..w.bwb
+\end{lstlisting}
+
+{\tiny
+\begin{verbatim}
+    a b c d e f g h 
+ 1  . . @ O . @ O . 
+ 2  . . . O O O O . 
+ 3  . . O O O O @ . 
+ 4  @ @ O @ O @ @ @ 
+ 5  . @ O @ O O @ @ 
+ 6  . O @ @ @ O O . 
+ 7  . . O O O O O O 
+ 8  . O . . O . @ O 
+Player to move: BLACK
+
+[node_count=45798972, leaf_count=8265202]
+Final outcome: best move=F8, position value=10
+\end{verbatim}
+}
+
+Il risultato è la posizione data da risolvere con il conto dei nodi e delle foglie del ``game-tree'' navigati dall'algoritmo.
+Il programma, lanciato in batch mode, ha risolto e quindi taggato le posizioni del database REGAB con il valore esatto del game.
+
+Ai fini del machine learning (ML) un record posizione di esempio con header è rappresentato come segue:
+
+{\tiny
+\begin{verbatim}
+             PLAYER ;             OPPONENT ; GAME_VALUE
+4611717676283199524 ; -7855295674223658936 ;         10
+\end{verbatim}
+}
+
+Dove:
+
+\begin{description}[leftmargin=*,widest=GAME\_VALUE,labelsep=1em]
+\item[PLAYER] è la configurazione della board dei dischi occupati dal giocatore che deve muovere, in formato \texttt{int64} con segno.
+  Il bit meno significativo è la casella \texttt{a1}, si procede per righe, come specificato sopra.
+\item[OPPONENT] è la configurazione della board dei dischi occupati dall'avversario, stesso formato usato per \texttt{PLAYER}.
+\item[GAME\_VALUE] è il valore esatto del game
+\end{description}
+
+Il valore del \texttt{GAME\_VALUE} è ottenuto con un software di soluzione esatta della posizione.
+Il database contiene decine di milioni di record posizione risolti.
+Le posizioni sono generate eseguendo delle mosse legali scelte a random a partire dalle condizione iniziali.
