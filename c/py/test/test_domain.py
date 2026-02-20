@@ -43,10 +43,10 @@
 import unittest
 import numpy.testing as npt
 
-import twoml
-import twoml.domain
+import twolm
+import twolm.domain
 
-from twoml.domain import *
+from twolm.domain import *
 
 import numpy as np
 

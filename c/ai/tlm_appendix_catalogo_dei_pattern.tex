@@ -27,6 +27,15 @@
 
 In questa appendice vengono visualizzati i pattern principali utilizzati dal sistema. Per ogni pattern sono mostrate le 8 trasformazioni del gruppo $D_4$. I numeri all'interno delle celle indicano l'indice di packing progressivo (0, 1, 2, ...) all'interno del pattern, permettendo di tracciare visivamente la permutazione delle celle sotto ogni trasformazione.
 
+% Inizia il ciclo per ogni riga del CSV mdp.csv
+\DTLforeach{master_data_patterns}{
+  \mpdName=Name,
+  \mpdMask=Mask}{
+  
+  [Pattern: name = \mpdName, mask = \mpdMask]
+  \newpage
+}
+
 \subsection{Pattern ELLE}
 
 \begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]

@@ -31,7 +31,7 @@
 # $ cd $(REVERSI_HOME)/c
 # $ source py/.reversi_venv/bin/activate
 # $ PYTHONPATH="./py" python3
-# >>> from twoml.domain import *
+# >>> from twolm.domain import *
 # >>> ar = SquareSet(0x22120a0e1222221e)
 # >>> ar
 # SquareSet(2455035802420388382)

@@ -115,6 +115,13 @@
   literate={<<}{{$\ll$}}2 {>>}{{$\gg$}}2
 }
 
+\usepackage{datatool}
+% Carichiamo il database dei dati dei pattern
+\DTLloaddb{master_data_patterns}{mdp.csv}
+
+% Commentare la riga per avere il PDF completo.
+\includeonly{tlm_intro,tlm_appendix_catalogo_dei_pattern}
+
 % 
 % M-:
 % (setq preview-scale-function (lambda () 1.5))
@@ -125,7 +132,7 @@
 %
 % $ setxkbmap -layout us -variant intl
 %
- 
+
 \title{Reversi}
 \author{Roberto Corradini \\[0.2cm]
 \small \texttt{rob\_corradini@yahoo.com} \\[0.1cm]

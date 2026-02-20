@@ -31,14 +31,14 @@ più sinteticamente chiamata ``evaluation\_function'' o ``ef''.
 \begin{itemize}
 \item Per cominciare a lavorare avviare \texttt{EMACS} e lanciare una shell con il comando \texttt{``M-x shell''}, quindi posizionarsi
   nella cartella \texttt{\$REVERSI\_HOME/c} e rigenerare il file PDF con il comando \texttt{``make latex-ai''}.
-  Per proseguire nella documentazione del modello aprire ed editare il presente documento \texttt{\$REVERSI\_HOME/c/ai/two-model-layer.tex}.
+  Per proseguire nella documentazione del modello aprire ed editare il presente documento \texttt{\$REVERSI\_HOME/c/ai/two-layer-model.tex}.
 \item Sempre su \texttt{EMACS} aprire una seconda shell con il comando \texttt{``C-u M-x shell''}e posizionarsi nella cartella \texttt{\$REVERSI\_HOME/c}.
   Qui attivare l'ambiente python con il comando \texttt{``source py/.reversi\_venv/bin/activate''} e di seguito
   lanciare gli unit test con il comando \texttt{``PYTHONPATH="./py" python3 -m unittest test.test\_domain''}.
-\item Aprire il file \texttt{\$REVERSI\_HOME/c/py/twoml/domain.py} per lavorare sulla logica applicativa, e
+\item Aprire il file \texttt{\$REVERSI\_HOME/c/py/twolm/domain.py} per lavorare sulla logica applicativa, e
   il file\linebreak \texttt{\$REVERSI\_HOME/c/py/test/test\_domain.py} per aggiornare gli unit test.
 \item Aprire quindi una terza riga di comando, sempre in \texttt{EMACS} ma di tipo \texttt{term}, con il comando \texttt{``C-u M-x ansi-term''}, e quì eseguire il comado
   \texttt{``gemini''} per avviare il collaboratore sintetico, che in questo contesto chiameremo \texttt{Nia}, diminutivo di Urania, la musa dell'astronomia e della geometria.
-  Con il comando \texttt{``@ai/two-model-layer.tex''} fornire a Nia il contesto per poi proseguire nei ragionamenti e nello sviluppo
+  Con il comando \texttt{``@ai/two-layer-model.tex''} fornire a Nia il contesto per poi proseguire nei ragionamenti e nello sviluppo
   del Modello e del Software che lo implementa.
 \end{itemize}
