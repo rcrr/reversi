@@ -115,6 +115,13 @@
   literate={<<}{{$\ll$}}2 {>>}{{$\gg$}}2
 }
 
+\usepackage[T1]{fontenc} % Use 8-bit encoding for better font handling
+\usepackage{lmodern}      % Allow fonts to scale to any size (like 3pt)
+
+%\usepackage{stackengine}
+\usepackage{etoolbox}
+\usepackage[most]{tcolorbox}
+
 \usepackage{datatool}
 % Carichiamo il database dei dati dei pattern
 \DTLloaddb{master_data_patterns}{mdp.csv}

@@ -22,17 +22,33 @@
 %  or visit the site <http://www.gnu.org/licenses/>.
 %
 
+\captionsetup[subfigure]{justification=centering} % Forza tutte le subcaption a essere centrate
 
+\newrobustcmd{\hexmask}[1]{%
+    \\[0.5ex] % Va a capo
+    \makebox[\textwidth][c]{% Centra perfettamente
+        \fontsize{6}{7.2}\selectfont\texttt{0x#1}%
+    }
+}
+  
 \section{Catalogo dei Pattern}
 
 In questa appendice vengono visualizzati i pattern principali utilizzati dal sistema. Per ogni pattern sono mostrate le 8 trasformazioni del gruppo $D_4$. I numeri all'interno delle celle indicano l'indice di packing progressivo (0, 1, 2, ...) all'interno del pattern, permettendo di tracciare visivamente la permutazione delle celle sotto ogni trasformazione.
+\newpage
 
 % Inizia il ciclo per ogni riga del CSV mdp.csv
 \DTLforeach{master_data_patterns}{
-  \mpdName=Name,
-  \mpdMask=Mask}{
+  \mdpName=name,
+  \mdpMask=mask}{
   
-  [Pattern: name = \mpdName, mask = \mpdMask]
+  \subsection{Pattern \mdpName}
+  [Pattern: name = \mdpName, mask = \mdpMask]
+  
+  %\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+  %\end{lstlisting}
+  \begin{tcolorbox}[sharp corners, fontupper=\ttfamily\tiny, colback=gray!10]
+    \mdpMask
+  \end{tcolorbox}
   \newpage
 }
 
@@ -64,7 +80,8 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{a1}{0} \posannotation{b1}{1} \posannotation{c1}{2} \posannotation{a2}{3}
             \end{othelloboard}
         }
-        \caption{$T_0$ : Id \\ \fontsize{3}{4}\selectfont \texttt{0000000000000107}}
+        %\caption{$T_0$ : Id \\ \fontsize{5}{6}\selectfont \texttt{0000000000000107}}
+        \caption{$T_0$ : Id \hexmask{0000000000000107}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -74,7 +91,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{h1}{0} \posannotation{h2}{1} \posannotation{h3}{2} \posannotation{g1}{3}
             \end{othelloboard}
         }
-        \caption{$T_1$ : Rot90 \\ \fontsize{3}{4}\selectfont \texttt{00000000008080C0}}
+        \caption{$T_1$ : Rot90 \hexmask{00000000008080C0}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -84,7 +101,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{h8}{0} \posannotation{g8}{1} \posannotation{f8}{2} \posannotation{h7}{3}
             \end{othelloboard}
         }
-        \caption{$T_2$ : Rot180 \\ \fontsize{3}{4}\selectfont \texttt{E080000000000000}}
+        \caption{$T_2$ : Rot180 \hexmask{E080000000000000}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -94,7 +111,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{a8}{0} \posannotation{a7}{1} \posannotation{a6}{2} \posannotation{b8}{3}
             \end{othelloboard}
         }
-        \caption{$T_3$ : Rot270 \\ \fontsize{3}{4}\selectfont \texttt{0301010000000000}}
+        \caption{$T_3$ : Rot270 \hexmask{0301010000000000}}
     \end{subfigure}
 
     \vspace{0.3cm}
@@ -106,7 +123,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{h1}{0} \posannotation{g1}{1} \posannotation{f1}{2} \posannotation{h2}{3}
             \end{othelloboard}
         }
-        \caption{$T_4$ : Vert \\ \fontsize{3}{4}\selectfont \texttt{00000000000080E0}}
+        \caption{$T_4$ : Vert \hexmask{00000000000080E0}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -116,7 +133,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{h8}{0} \posannotation{h7}{1} \posannotation{h6}{2} \posannotation{g8}{3}
             \end{othelloboard}
         }
-        \caption{$T_5$ : DiagP \\ \fontsize{3}{4}\selectfont \texttt{C080800000000000}}
+        \caption{$T_5$ : DiagP \hexmask{C080800000000000}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -126,7 +143,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{a8}{0} \posannotation{b8}{1} \posannotation{c8}{2} \posannotation{a7}{3}
             \end{othelloboard}
         }
-        \caption{$T_6$ : Horiz \\ \fontsize{3}{4}\selectfont \texttt{0701000000000000}}
+        \caption{$T_6$ : Horiz \hexmask{0701000000000000}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -136,7 +153,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{a1}{0} \posannotation{a2}{1} \posannotation{a3}{2} \posannotation{b1}{3}
             \end{othelloboard}
         }
-        \caption{$T_7$ : DiagA \\ \fontsize{3}{4}\selectfont \texttt{0000000000010103}}
+        \caption{$T_7$ : DiagA \hexmask{0000000000010103}}
     \end{subfigure}
     \caption{Istanze e indici di permutazione del pattern ELLE.}
 \end{figure}
@@ -169,7 +186,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{a1}{0} \posannotation{b1}{1} \posannotation{c1}{2} \posannotation{d1}{3} \posannotation{e1}{4} \posannotation{f1}{5} \posannotation{g1}{6} \posannotation{h1}{7}
             \end{othelloboard}
         }
-        \caption{$T_0$ : Id \\ \fontsize{3}{4}\selectfont \texttt{00000000000000FF}}
+        \caption{$T_0$ : Id \\ \fontsize{5}{6}\selectfont \texttt{00000000000000FF}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -179,7 +196,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{h1}{0} \posannotation{h2}{1} \posannotation{h3}{2} \posannotation{h4}{3} \posannotation{h5}{4} \posannotation{h6}{5} \posannotation{h7}{6} \posannotation{h8}{7}
             \end{othelloboard}
         }
-        \caption{$T_1$ : Rot90 \\ \fontsize{3}{4}\selectfont \texttt{8080808080808080}}
+        \caption{$T_1$ : Rot90 \\ \fontsize{5}{6}\selectfont \texttt{8080808080808080}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -189,7 +206,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{h8}{0} \posannotation{g8}{1} \posannotation{f8}{2} \posannotation{e8}{3} \posannotation{d8}{4} \posannotation{c8}{5} \posannotation{b8}{6} \posannotation{a8}{7}
             \end{othelloboard}
         }
-        \caption{$T_2$ : Rot180 \\ \fontsize{3}{4}\selectfont \texttt{FF00000000000000}}
+        \caption{$T_2$ : Rot180 \\ \fontsize{5}{6}\selectfont \texttt{FF00000000000000}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -199,7 +216,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{a8}{0} \posannotation{a7}{1} \posannotation{a6}{2} \posannotation{a5}{3} \posannotation{a4}{4} \posannotation{a3}{5} \posannotation{a2}{6} \posannotation{a1}{7}
             \end{othelloboard}
         }
-        \caption{$T_3$ : Rot270 \\ \fontsize{3}{4}\selectfont \texttt{0101010101010101}}
+        \caption{$T_3$ : Rot270 \\ \fontsize{5}{6}\selectfont \texttt{0101010101010101}}
     \end{subfigure}
 
     \vspace{0.3cm}
@@ -211,7 +228,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{h1}{0} \posannotation{g1}{1} \posannotation{f1}{2} \posannotation{e1}{3} \posannotation{d1}{4} \posannotation{c1}{5} \posannotation{b1}{6} \posannotation{a1}{7}
             \end{othelloboard}
         }
-        \caption{$T_4$ : Vert \\ \fontsize{3}{4}\selectfont \texttt{00000000000000FF}}
+        \caption{$T_4$ : Vert \\ \fontsize{5}{6}\selectfont \texttt{00000000000000FF}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -221,7 +238,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{h8}{0} \posannotation{h7}{1} \posannotation{h6}{2} \posannotation{h5}{3} \posannotation{h4}{4} \posannotation{h3}{5} \posannotation{h2}{6} \posannotation{h1}{7}
             \end{othelloboard}
         }
-        \caption{$T_5$ : DiagP \\ \fontsize{3}{4}\selectfont \texttt{8080808080808080}}
+        \caption{$T_5$ : DiagP \\ \fontsize{5}{6}\selectfont \texttt{8080808080808080}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -231,7 +248,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{a8}{0} \posannotation{b8}{1} \posannotation{c8}{2} \posannotation{d8}{3} \posannotation{e8}{4} \posannotation{f8}{5} \posannotation{g8}{6} \posannotation{h8}{7}
             \end{othelloboard}
         }
-        \caption{$T_6$ : Horiz \\ \fontsize{3}{4}\selectfont \texttt{FF00000000000000}}
+        \caption{$T_6$ : Horiz \\ \fontsize{5}{6}\selectfont \texttt{FF00000000000000}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -241,7 +258,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{a1}{0} \posannotation{a2}{1} \posannotation{a3}{2} \posannotation{a4}{3} \posannotation{a5}{4} \posannotation{a6}{5} \posannotation{a7}{6} \posannotation{a8}{7}
             \end{othelloboard}
         }
-        \caption{$T_7$ : DiagA \\ \fontsize{3}{4}\selectfont \texttt{0101010101010101}}
+        \caption{$T_7$ : DiagA \\ \fontsize{5}{6}\selectfont \texttt{0101010101010101}}
     \end{subfigure}
     \caption{Istanze e indici di permutazione del pattern EDGE.}
 \end{figure}
@@ -274,7 +291,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{e4}{0} \posannotation{f4}{1} \posannotation{c5}{2} \posannotation{d5}{3}
             \end{othelloboard}
         }
-        \caption{$T_0$ : Id \\ \fontsize{3}{4}\selectfont \texttt{0000000C30000000}}
+        \caption{$T_0$ : Id \\ \fontsize{5}{6}\selectfont \texttt{0000000C30000000}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -284,7 +301,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{e5}{0} \posannotation{e6}{1} \posannotation{d3}{2} \posannotation{d4}{3}
             \end{othelloboard}
         }
-        \caption{$T_1$ : Rot90 \\ \fontsize{3}{4}\selectfont \texttt{0000101008080000}}
+        \caption{$T_1$ : Rot90 \\ \fontsize{5}{6}\selectfont \texttt{0000101008080000}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -294,7 +311,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{d5}{0} \posannotation{c5}{1} \posannotation{f4}{2} \posannotation{e4}{3}
             \end{othelloboard}
         }
-        \caption{$T_2$ : Rot180 \\ \fontsize{3}{4}\selectfont \texttt{0000000C30000000}}
+        \caption{$T_2$ : Rot180 \\ \fontsize{5}{6}\selectfont \texttt{0000000C30000000}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -304,7 +321,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{d4}{0} \posannotation{d3}{1} \posannotation{e6}{2} \posannotation{e5}{3}
             \end{othelloboard}
         }
-        \caption{$T_3$ : Rot270 \\ \fontsize{3}{4}\selectfont \texttt{0000101008080000}}
+        \caption{$T_3$ : Rot270 \\ \fontsize{5}{6}\selectfont \texttt{0000101008080000}}
     \end{subfigure}
 
     \vspace{0.3cm}
@@ -316,7 +333,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{d4}{0} \posannotation{c4}{1} \posannotation{f5}{2} \posannotation{e5}{3}
             \end{othelloboard}
         }
-        \caption{$T_4$ : Vert \\ \fontsize{3}{4}\selectfont \texttt{000000300C000000}}
+        \caption{$T_4$ : Vert \\ \fontsize{5}{6}\selectfont \texttt{000000300C000000}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -326,7 +343,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{e4}{0} \posannotation{e3}{1} \posannotation{d6}{2} \posannotation{d5}{3}
             \end{othelloboard}
         }
-        \caption{$T_5$ : DiagP \\ \fontsize{3}{4}\selectfont \texttt{0000080810100000}}
+        \caption{$T_5$ : DiagP \\ \fontsize{5}{6}\selectfont \texttt{0000080810100000}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -336,7 +353,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{e5}{0} \posannotation{f5}{1} \posannotation{c4}{2} \posannotation{d4}{3}
             \end{othelloboard}
         }
-        \caption{$T_6$ : Horiz \\ \fontsize{3}{4}\selectfont \texttt{000000300C000000}}
+        \caption{$T_6$ : Horiz \\ \fontsize{5}{6}\selectfont \texttt{000000300C000000}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -346,7 +363,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{d5}{0} \posannotation{d6}{1} \posannotation{e3}{2} \posannotation{e4}{3}
             \end{othelloboard}
         }
-        \caption{$T_7$ : DiagA \\ \fontsize{3}{4}\selectfont \texttt{0000080810100000}}
+        \caption{$T_7$ : DiagA \\ \fontsize{5}{6}\selectfont \texttt{0000080810100000}}
     \end{subfigure}
     \caption{Istanze e indici di permutazione del pattern ZSHAPE.}
 \end{figure}
@@ -380,7 +397,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{c5}{4} \posannotation{d5}{5} \posannotation{e5}{6} \posannotation{f5}{7}
             \end{othelloboard}
         }
-        \caption{$T_0$ : Id \\ \fontsize{3}{4}\selectfont \texttt{0000003C3C000000}}
+        \caption{$T_0$ : Id \\ \fontsize{5}{6}\selectfont \texttt{0000003C3C000000}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -391,7 +408,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{d3}{4} \posannotation{d4}{5} \posannotation{d5}{6} \posannotation{d6}{7}
             \end{othelloboard}
         }
-        \caption{$T_1$ : Rot90 \\ \fontsize{3}{4}\selectfont \texttt{0000181818180000}}
+        \caption{$T_1$ : Rot90 \\ \fontsize{5}{6}\selectfont \texttt{0000181818180000}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -402,7 +419,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{f4}{4} \posannotation{e4}{5} \posannotation{d4}{6} \posannotation{c4}{7}
             \end{othelloboard}
         }
-        \caption{$T_2$ : Rot180 \\ \fontsize{3}{4}\selectfont \texttt{0000003C3C000000}}
+        \caption{$T_2$ : Rot180 \\ \fontsize{5}{6}\selectfont \texttt{0000003C3C000000}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -413,7 +430,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{e6}{4} \posannotation{e5}{5} \posannotation{e4}{6} \posannotation{e3}{7}
             \end{othelloboard}
         }
-        \caption{$T_3$ : Rot270 \\ \fontsize{3}{4}\selectfont \texttt{0000181818180000}}
+        \caption{$T_3$ : Rot270 \\ \fontsize{5}{6}\selectfont \texttt{0000181818180000}}
     \end{subfigure}
 
     \vspace{0.3cm}
@@ -426,7 +443,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{f5}{4} \posannotation{e5}{5} \posannotation{d5}{6} \posannotation{c5}{7}
             \end{othelloboard}
         }
-        \caption{$T_4$ : Vert \\ \fontsize{3}{4}\selectfont \texttt{0000003C3C000000}}
+        \caption{$T_4$ : Vert \\ \fontsize{5}{6}\selectfont \texttt{0000003C3C000000}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -437,7 +454,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{d6}{4} \posannotation{d5}{5} \posannotation{d4}{6} \posannotation{d3}{7}
             \end{othelloboard}
         }
-        \caption{$T_5$ : DiagP \\ \fontsize{3}{4}\selectfont \texttt{0000181818180000}}
+        \caption{$T_5$ : DiagP \\ \fontsize{5}{6}\selectfont \texttt{0000181818180000}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -448,7 +465,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{c4}{4} \posannotation{d4}{5} \posannotation{e4}{6} \posannotation{f4}{7}
             \end{othelloboard}
         }
-        \caption{$T_6$ : Horiz \\ \fontsize{3}{4}\selectfont \texttt{0000003C3C000000}}
+        \caption{$T_6$ : Horiz \\ \fontsize{5}{6}\selectfont \texttt{0000003C3C000000}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -459,7 +476,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{e3}{4} \posannotation{e4}{5} \posannotation{e5}{6} \posannotation{e6}{7}
             \end{othelloboard}
         }
-        \caption{$T_7$ : DiagA \\ \fontsize{3}{4}\selectfont \texttt{0000181818180000}}
+        \caption{$T_7$ : DiagA \\ \fontsize{5}{6}\selectfont \texttt{0000181818180000}}
     \end{subfigure}
     \caption{Istanze e indici di permutazione del pattern RCT2X4.}
 \end{figure}
@@ -494,7 +511,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{a7}{8} \posannotation{b7}{9} \posannotation{a8}{10} \posannotation{b8}{11}
             \end{othelloboard}
         }
-        \caption{$T_0$ : Id \\ \fontsize{3}{4}\selectfont \texttt{030304081020C0C0}}
+        \caption{$T_0$ : Id \\ \fontsize{5}{6}\selectfont \texttt{030304081020C0C0}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -506,7 +523,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{g7}{2} \posannotation{h7}{0} \posannotation{g8}{3} \posannotation{h8}{1}
             \end{othelloboard}
         }
-        \caption{$T_1$ : Rot90 \\ \fontsize{3}{4}\selectfont \texttt{C0C0201008040303}}
+        \caption{$T_1$ : Rot90 \\ \fontsize{5}{6}\selectfont \texttt{C0C0201008040303}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -518,7 +535,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{a7}{3} \posannotation{b7}{2} \posannotation{a8}{1} \posannotation{b8}{0}
             \end{othelloboard}
         }
-        \caption{$T_2$ : Rot180 \\ \fontsize{3}{4}\selectfont \texttt{030304081020C0C0}}
+        \caption{$T_2$ : Rot180 \\ \fontsize{5}{6}\selectfont \texttt{030304081020C0C0}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -530,7 +547,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{g7}{9} \posannotation{h7}{11} \posannotation{g8}{8} \posannotation{h8}{10}
             \end{othelloboard}
         }
-        \caption{$T_3$ : Rot270 \\ \fontsize{3}{4}\selectfont \texttt{C0C0201008040303}}
+        \caption{$T_3$ : Rot270 \\ \fontsize{5}{6}\selectfont \texttt{C0C0201008040303}}
     \end{subfigure}
 
     \vspace{0.3cm}
@@ -544,7 +561,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{g7}{9} \posannotation{h7}{8} \posannotation{g8}{11} \posannotation{h8}{10}
             \end{othelloboard}
         }
-        \caption{$T_4$ : Vert \\ \fontsize{3}{4}\selectfont \texttt{C0C0201008040303}}
+        \caption{$T_4$ : Vert \\ \fontsize{5}{6}\selectfont \texttt{C0C0201008040303}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -556,7 +573,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{a7}{11} \posannotation{b7}{9} \posannotation{a8}{10} \posannotation{b8}{8}
             \end{othelloboard}
         }
-        \caption{$T_5$ : DiagP \\ \fontsize{3}{4}\selectfont \texttt{030304081020C0C0}}
+        \caption{$T_5$ : DiagP \\ \fontsize{5}{6}\selectfont \texttt{030304081020C0C0}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -568,7 +585,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{g7}{2} \posannotation{h7}{3} \posannotation{g8}{0} \posannotation{h8}{1}
             \end{othelloboard}
         }
-        \caption{$T_6$ : Horiz \\ \fontsize{3}{4}\selectfont \texttt{C0C0201008040303}}
+        \caption{$T_6$ : Horiz \\ \fontsize{5}{6}\selectfont \texttt{C0C0201008040303}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -580,7 +597,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{a7}{0} \posannotation{b7}{2} \posannotation{a8}{1} \posannotation{b8}{3}
             \end{othelloboard}
         }
-        \caption{$T_7$ : DiagA \\ \fontsize{3}{4}\selectfont \texttt{030304081020C0C0}}
+        \caption{$T_7$ : DiagA \\ \fontsize{5}{6}\selectfont \texttt{030304081020C0C0}}
     \end{subfigure}
     
     \caption{Istanze e indici di permutazione del pattern BARBEL.}
@@ -614,7 +631,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{c1}{0} \posannotation{b2}{1} \posannotation{a3}{2}
             \end{othelloboard}
         }
-        \caption{$T_0$ : Id \\ \fontsize{3}{4}\selectfont \texttt{0000000000010204}}
+        \caption{$T_0$ : Id \\ \fontsize{5}{6}\selectfont \texttt{0000000000010204}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -624,7 +641,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{f1}{2} \posannotation{g2}{1} \posannotation{h3}{0}
             \end{othelloboard}
         }
-        \caption{$T_1$ : Rot90 \\ \fontsize{3}{4}\selectfont \texttt{0000000000804020}}
+        \caption{$T_1$ : Rot90 \\ \fontsize{5}{6}\selectfont \texttt{0000000000804020}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -634,7 +651,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{h6}{2} \posannotation{g7}{1} \posannotation{f8}{0}
             \end{othelloboard}
         }
-        \caption{$T_2$ : Rot180 \\ \fontsize{3}{4}\selectfont \texttt{2040800000000000}}
+        \caption{$T_2$ : Rot180 \\ \fontsize{5}{6}\selectfont \texttt{2040800000000000}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -644,7 +661,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{a6}{0} \posannotation{b7}{1} \posannotation{c8}{2}
             \end{othelloboard}
         }
-        \caption{$T_3$ : Rot270 \\ \fontsize{3}{4}\selectfont \texttt{0402010000000000}}
+        \caption{$T_3$ : Rot270 \\ \fontsize{5}{6}\selectfont \texttt{0402010000000000}}
     \end{subfigure}
 
     \vspace{0.3cm}
@@ -656,7 +673,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{f1}{0} \posannotation{g2}{1} \posannotation{h3}{2}
             \end{othelloboard}
         }
-        \caption{$T_4$ : Vert \\ \fontsize{3}{4}\selectfont \texttt{0000000000804020}}
+        \caption{$T_4$ : Vert \\ \fontsize{5}{6}\selectfont \texttt{0000000000804020}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -666,7 +683,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{h6}{0} \posannotation{g7}{1} \posannotation{f8}{2}
             \end{othelloboard}
         }
-        \caption{$T_5$ : DiagP \\ \fontsize{3}{4}\selectfont \texttt{2040800000000000}}
+        \caption{$T_5$ : DiagP \\ \fontsize{5}{6}\selectfont \texttt{2040800000000000}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -676,7 +693,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{a6}{2} \posannotation{b7}{1} \posannotation{c8}{0}
             \end{othelloboard}
         }
-        \caption{$T_6$ : Horiz \\ \fontsize{3}{4}\selectfont \texttt{0402010000000000}}
+        \caption{$T_6$ : Horiz \\ \fontsize{5}{6}\selectfont \texttt{0402010000000000}}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
@@ -686,7 +703,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
                 \posannotation{c1}{2} \posannotation{b2}{1} \posannotation{a3}{0}
             \end{othelloboard}
         }
-        \caption{$T_6$ : DiagA \\ \fontsize{3}{4}\selectfont \texttt{0402010000000000}}
+        \caption{$T_6$ : DiagA \\ \fontsize{5}{6}\selectfont \texttt{0402010000000000}}
     \end{subfigure}
     
     \caption{Istanze e indici di permutazione del pattern DIAG3.}
