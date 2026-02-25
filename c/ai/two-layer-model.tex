@@ -126,8 +126,15 @@
 % Carichiamo il database dei dati dei pattern
 \DTLloaddb{master_data_patterns}{mdp.csv}
 
+\usepackage{etoolbox} % Necessario per \patchcmd o \StrSubstitute
+\usepackage[strings]{underscore} % Gestisce automaticamente gli underscore ovunque
+
+\usepackage{tabularx}
+\usepackage{pgffor}
+\usepackage{expl3}
+
 % Commentare la riga per avere il PDF completo.
-\includeonly{tlm_intro,tlm_appendix_catalogo_dei_pattern}
+\includeonly{tlm_00_intro,tlm_08_appendix_catalogo_dei_pattern}
 
 % 
 % M-:
@@ -167,18 +174,18 @@ Il codice in C rimane più performante per la risoluzione delle posizioni, il co
 dei Modelli per la definizione di evaluation function più evolute.
 \end{abstract}
 
-\include{tlm_intro}
-\include{tlm_rappresentazione_del_dominio}
-\include{tlm_game_positions}
-\include{tlm_definizioni_python}
-\include{tlm_geometria_della_board}
-\include{tlm_teoria_dei_pattern}
-\include{tlm_definizione_e_calcolo_dei_pattern}
-\include{tlm_evaluation_function}
+\include{tlm_00_intro}
+\include{tlm_01_rappresentazione_del_dominio}
+\include{tlm_02_game_positions}
+\include{tlm_03_definizioni_python}
+\include{tlm_04_geometria_della_board}
+\include{tlm_05_teoria_dei_pattern}
+\include{tlm_06_definizione_e_calcolo_dei_pattern}
+\include{tlm_07_evaluation_function}
 
 \appendix
 
-\include{tlm_appendix_catalogo_dei_pattern}
+\include{tlm_08_appendix_catalogo_dei_pattern}
 
 \end{document}
 

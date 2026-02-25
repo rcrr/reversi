@@ -112,6 +112,28 @@ class SquareSet(np.uint64):
     It is implemented as a bit-board of 64 bit using numpy.uint64 as parent type.
     """
 
+    tr = np.array(
+        ['ro000',
+         'ro090',
+         'ro180',
+         'ro270',
+         'fvert',
+         'fh1a8',
+         'fhori',
+         'fa1h8',
+        ])
+
+    at = np.array(
+        ['ro000',
+         'ro270',
+         'ro180',
+         'ro090',
+         'fvert',
+         'fh1a8',
+         'fhori',
+         'fa1h8',
+        ])
+
     transformation_labels = np.array(
         ['trans_identity',
          'trans_rotate_90c',

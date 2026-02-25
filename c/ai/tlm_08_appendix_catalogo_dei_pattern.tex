@@ -30,7 +30,71 @@
         \fontsize{6}{7.2}\selectfont\texttt{0x#1}%
     }
 }
-  
+
+\newcounter{myhexcount}
+
+\def\extracthexvalues#1{%
+  \setcounter{myhexcount}{0}%
+  \foreach \hex in {#1} {%
+    \ifnum\value{myhexcount}=0 \xdef\hexA{\hex}\fi
+    \ifnum\value{myhexcount}=1 \xdef\hexB{\hex}\fi
+    \ifnum\value{myhexcount}=2 \xdef\hexC{\hex}\fi
+    \ifnum\value{myhexcount}=3 \xdef\hexD{\hex}\fi
+    \ifnum\value{myhexcount}=4 \xdef\hexE{\hex}\fi
+    \ifnum\value{myhexcount}=5 \xdef\hexF{\hex}\fi
+    \ifnum\value{myhexcount}=6 \xdef\hexG{\hex}\fi
+    \ifnum\value{myhexcount}=7 \xdef\hexH{\hex}\fi
+    \stepcounter{myhexcount}%
+  }%
+}%
+
+\ExplSyntaxOn
+
+\NewDocumentCommand{\formatPositions}{m}
+{
+  \user_regex_format:n { #1 }
+}
+
+% Variabili di supporto
+\seq_new:N \l_pos_matches_seq
+\int_new:N \l_pos_counter_int
+
+\cs_new_protected:Nn \user_regex_format:n
+{
+  % 1. Resetta il contatore a zero
+  \int_zero:N \l_pos_counter_int
+
+  % 2. Trova tutti i match del pattern [a-h][1-8]
+  % e salvali nella sequenza \l_pos_matches_seq
+  \regex_extract_all:nnN { [a-h][1-8] } { #1 } \l_pos_matches_seq
+
+  % 3. Cicla su ogni elemento trovato
+  \seq_map_inline:Nn \l_pos_matches_seq
+  {
+    % Stampa il comando desiderato con il valore attuale del contatore
+    \posannotation{##1}{\int_use:N \l_pos_counter_int}
+    % Incrementa il contatore per il prossimo elemento
+    \int_incr:N \l_pos_counter_int
+    % Aggiungi un piccolo spazio tra i comandi (opzionale)
+    \space
+  }
+}
+
+\ExplSyntaxOff
+
+\newcommand{\drawSubfigure}[4]{% 
+  \begin{subfigure}[b]{0.23\textwidth}
+    \centering
+    \scalebox{0.45}{
+      \begin{othelloboard}{1}
+        \expandafter\formatPositions\expandafter{#4}%
+      \end{othelloboard}
+    }
+    \caption{$T_{#1}$ : #2 \hexmask{#3}}
+  \end{subfigure}
+}
+
+
 \section{Catalogo dei Pattern}
 
 In questa appendice vengono visualizzati i pattern principali utilizzati dal sistema. Per ogni pattern sono mostrate le 8 trasformazioni del gruppo $D_4$. I numeri all'interno delle celle indicano l'indice di packing progressivo (0, 1, 2, ...) all'interno del pattern, permettendo di tracciare visivamente la permutazione delle celle sotto ogni trasformazione.
@@ -39,21 +103,91 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
 % Inizia il ciclo per ogni riga del CSV mdp.csv
 \DTLforeach{master_data_patterns}{
   \mdpName=name,
-  \mdpMask=mask}{
+  \mdpMask=mask,
+  \mdpNSquares=n_squares,
+  \mdpNConfigurations=n_configurations,
+  \mdpNInstances=n_instances,
+  \mdpNStabilizer=n_stabilizer,
+  \mdpCells=cells,
+  \mdpTMasks=tmasks,
+  \mdpMaskIndexes=mask_indexes,
+  \mdpUniqueMasks=unique_masks,
+  \mdpUniqueMaskIndexes=unique_mask_indexes,
+  \mdpTr=tr,
+  \mdpAt=at,
+  \mdpSf=sf,
+  \mdpCellsTA=cells_t0,
+  \mdpCellsTB=cells_t1,
+  \mdpCellsTC=cells_t2,
+  \mdpCellsTD=cells_t3,
+  \mdpCellsTE=cells_t4,
+  \mdpCellsTF=cells_t5,
+  \mdpCellsTG=cells_t6,
+  \mdpCellsTH=cells_t7}{%
+
+  \StrSubstitute{\mdpCells}{:}{, }[\mdpCellsCleaned]
+  \StrSubstitute{\mdpTMasks}{:}{, }[\mdpTMasksCleaned]
+  \StrSubstitute{\mdpMaskIndexes}{:}{, }[\mdpMaskIndexesCleaned]
+  \StrSubstitute{\mdpUniqueMasks}{:}{, }[\mdpUniqueMasksCleaned]
+  \StrSubstitute{\mdpUniqueMaskIndexes}{:}{, }[\mdpUniqueMaskIndexesCleaned]
+  \StrSubstitute{\mdpTr}{:}{, }[\mdpTrCleaned]
+  \StrSubstitute{\mdpAt}{:}{, }[\mdpAtCleaned]
+  \StrSubstitute{\mdpSf}{:}{, }[\mdpSfCleaned]
+  
+  \StrSubstitute{\mdpTMasks}{:}{,}[\mdpTMasksComma]
+  \expandafter\extracthexvalues\expandafter{\mdpTMasksComma}
   
   \subsection{Pattern \mdpName}
-  [Pattern: name = \mdpName, mask = \mdpMask]
   
-  %\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
-  %\end{lstlisting}
-  \begin{tcolorbox}[sharp corners, fontupper=\ttfamily\tiny, colback=gray!10]
-    \mdpMask
+  \begin{tcolorbox}[sharp corners, fontupper=\ttfamily\small, colback=white]
+    \noindent Pattern: name = \mdpName, mask = 0x\mdpMask\\
+    {[} n\_squares = \mdpNSquares, n\_configurations = \mdpNConfigurations,
+    n\_instances = \mdpNInstances, n\_stabilizer = \mdpNStabilizer { ]}\\[1.0ex]
+    \begin{tabularx}{\textwidth}{@{} p{3.5cm} X @{}}
+      Cells:               & {[}\mdpCellsCleaned{]}\\[0.5ex]
+      Transformed masks:   & \mdpTMasksCleaned\\[0.5ex]
+      Mask indexes:        & {[}\mdpMaskIndexesCleaned{]}\\[0.5ex]
+      Unique masks:        & \mdpUniqueMasksCleaned\\[0.5ex]
+      Unique mask indexes: & {[}\mdpUniqueMaskIndexesCleaned{]}\\[0.5ex]
+      Transf. functions:   & {[}\mdpTrCleaned{]}\\[0.5ex]
+      Anti-transf. f.:     & {[}\mdpAtCleaned{]}\\[0.5ex]
+      Symmetry functions:  & {[}\mdpSfCleaned{]}\\[0.5ex]
+    \end{tabularx}
   \end{tcolorbox}
+
+  \begin{figure}[htbp]
+    \centering
+    \drawSubfigure{0}{ro000}{\hexA}{\mdpCellsTA} \hfill
+    \drawSubfigure{1}{ro090}{\hexB}{\mdpCellsTB} \hfill
+    \drawSubfigure{2}{ro180}{\hexC}{\mdpCellsTC} \hfill
+    \drawSubfigure{3}{ro270}{\hexD}{\mdpCellsTD}
+    \vspace{0.3cm}
+    \drawSubfigure{4}{fvert}{\hexE}{\mdpCellsTE} \hfill
+    \drawSubfigure{5}{fh1a8}{\hexF}{\mdpCellsTF} \hfill
+    \drawSubfigure{6}{fhori}{\hexG}{\mdpCellsTG} \hfill
+    \drawSubfigure{7}{fa1h8}{\hexH}{\mdpCellsTH}
+    \caption{Istanze e indici di permutazione del pattern \mdpName.}
+  \end{figure}
+  
   \newpage
 }
 
-\subsection{Pattern ELLE}
+\subsection{Pattern ZSHAPE}
 
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+[Pattern: name = ZSHAPE, mask = 0x0000000c30000000]
+  [n_squares = 4, n_configurations = 81, n_instances = 4, n_stabilizer = 2]
+  Cells:               [E4, F4, C5, D5]
+  Transformed masks:   
+    0x0000000C30000000, 0x0000101008080000, 0x0000000C30000000, 0x0000101008080000, 
+    0x000000300C000000, 0x0000080810100000, 0x000000300C000000, 0x0000080810100000
+  Mask indexes:        [0, 1, 0, 1, 4, 5, 4, 5]
+  Unique masks:        
+    0x0000000C30000000, 0x0000101008080000, 0x000000300C000000, 0x0000080810100000
+  Unique mask indexes: [0, 1, 4, 5]
+  Transf. functions:   [Id, Rot90, Vert, DiagP]
+  Anti-transf. f.:     [Id, Rot270, Vert, DiagP]
+  Symmetry functions:  [Rot1
 \begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
 [Pattern: name = ELLE, mask = 0x0000000000000107]
   [n_squares = 4, n_configurations = 81, n_instances = 8, n_stabilizer = 1]
