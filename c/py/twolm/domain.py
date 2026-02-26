@@ -1031,6 +1031,12 @@ class Pattern:
                       np.uint64: The first element of the tuple is the block_mask.
                       int: The second element is the shift_amount.
                            It is the result of the subtraction of (source_pos - dest_pos), it defaults to the standard Python int type.
+
+    7. Transformed Cell Names
+    snames_t (list[list[str]]): A 2D array of shape (8, n_squares) containing the coordinate names of pattern squares
+                                after applying each of the 8 possible transformations.
+                                Each row snames_t[i] contains the names of the squares as they appear in the pattern
+                                after transformation i, preserving the original ordering of squares within the pattern.
     """
 
     def __init__(self, name: str, mask: SquareSet):
@@ -1192,7 +1198,6 @@ class Pattern:
         if not set(self.symmetry_fs).issubset(set(SquareSet.trans_fs)):
              raise AssertionError("symmetry_fs contains unknown transformation functions.")
 
-
     def _compute_transformed_cells(self) -> None:
         """
         Computes the ordered cell names for each transformation instance.
@@ -1200,15 +1205,8 @@ class Pattern:
         # Get the original cell names in order
         original_cells = self.snames
         
-        # Initialize lists for each transformation
-        self.snames_t0 = []
-        self.snames_t1 = []
-        self.snames_t2 = []
-        self.snames_t3 = []
-        self.snames_t4 = []
-        self.snames_t5 = []
-        self.snames_t6 = []
-        self.snames_t7 = []
+        # Initialize list for each transformation
+        self.snames_t = [[] for _ in range(8)]
         
         # Apply each transformation to the entire pattern mask
         transformed_masks = self.mask.transformations()
@@ -1221,7 +1219,6 @@ class Pattern:
             sq_set = SquareSet(SquareSet(1) << sq)
             
             # For each transformation, find where this square maps to
-            transformed_positions = []
             for j in range(8):
                 # Apply transformation to the square
                 transformed_sq = SquareSet.trans_fs[j](sq_set)
@@ -1230,19 +1227,10 @@ class Pattern:
                     # Find the bit position
                     pos = SquareSet(transformed_sq).bsr()
                     # Convert back to square name
-                    transformed_positions.append(Square(pos).to_str().lower())
+                    transformed_cell = Square(pos).to_str().lower()
                 else:
-                    transformed_positions.append("")
-            
-            # Store in respective lists
-            self.snames_t0.append(transformed_positions[0])
-            self.snames_t1.append(transformed_positions[1])
-            self.snames_t2.append(transformed_positions[2])
-            self.snames_t3.append(transformed_positions[3])
-            self.snames_t4.append(transformed_positions[4])
-            self.snames_t5.append(transformed_positions[5])
-            self.snames_t6.append(transformed_positions[6])
-            self.snames_t7.append(transformed_positions[7])
+                    transformed_cell = ""
+                self.snames_t[j].append(transformed_cell)
 
     def mdp_record(self) -> str:
         """
@@ -1262,8 +1250,7 @@ class Pattern:
             f",{':'.join(f'{fn}' for fn in trans_fs_labels)}"
             f",{':'.join(f'{fn}' for fn in anti_trans_fs_labels)}"
             f",{':'.join(f'{fn}' for fn in symmetry_fs_labels)}"
-            f",{':'.join(self.snames_t0)},{':'.join(self.snames_t1)},{':'.join(self.snames_t2)},{':'.join(self.snames_t3)}"
-            f",{':'.join(self.snames_t4)},{':'.join(self.snames_t5)},{':'.join(self.snames_t6)},{':'.join(self.snames_t7)}"
+            f",{','.join(':'.join(self.snames_t[i]) for i in range(8))}"
         )
 
     def print(self) -> None:
