@@ -74,14 +74,14 @@ un array di otto posizioni contenente le bitboard trasformate o anti-trasformate
 \begin{tabular}{|c|l|l|l|}
 \hline
 \textbf{Pos.} & \textbf{Descrizione} & \textbf{Trasformazione} & \textbf{Anti-Trasformazione} \\ \hline
-0 & Rotazione zero gradi oraria  & \texttt{trans\_identity}               & \texttt{trans\_identity}               \\ \hline
-1 & Rotazione 90 gradi oraria    & \texttt{trans\_rotate\_90c}            & \texttt{trans\_rotate\_90a}            \\ \hline
-2 & Rotazione 180 gradi oraria   & \texttt{trans\_rotate\_180}            & \texttt{trans\_rotate\_180}            \\ \hline
-3 & Rotazione 270 gradi oraria   & \texttt{trans\_rotate\_90a}            & \texttt{trans\_rotate\_90c}            \\ \hline
-4 & Specchiatura asse verticale  & \texttt{trans\_reflection\_vertical}   & \texttt{trans\_reflection\_vertical}   \\ \hline
-5 & Specchiatura diagonale H1-A8 & \texttt{trans\_reflection\_diag\_h1a8} & \texttt{trans\_reflection\_diag\_h1a8} \\ \hline
-6 & Specchiatura asse orizontale & \texttt{trans\_reflection\_horizontal} & \texttt{trans\_reflection\_horizontal} \\ \hline
-7 & Specchiatura diagonale A1-H8 & \texttt{trans\_reflection\_diag\_a1h8} & \texttt{trans\_reflection\_diag\_a1h8} \\ \hline
+0 & Rotazione zero gradi oraria  & \texttt{ro000} & \texttt{ro000} \\ \hline
+1 & Rotazione 90 gradi oraria    & \texttt{ro090} & \texttt{ro270} \\ \hline
+2 & Rotazione 180 gradi oraria   & \texttt{ro180} & \texttt{ro180} \\ \hline
+3 & Rotazione 270 gradi oraria   & \texttt{ro270} & \texttt{ro090} \\ \hline
+4 & Specchiatura asse verticale  & \texttt{fvert} & \texttt{fvert} \\ \hline
+5 & Specchiatura diagonale H1-A8 & \texttt{fh1a8} & \texttt{fh1a8} \\ \hline
+6 & Specchiatura asse orizontale & \texttt{fhori} & \texttt{fhori} \\ \hline
+7 & Specchiatura diagonale A1-H8 & \texttt{fa1h8} & \texttt{fa1h8} \\ \hline
 \end{tabular}
 \end{table}
 
@@ -178,16 +178,19 @@ Sebbene algebricamente il gruppo sia generato da rotazioni e riflessioni, nel so
 \begin{tabular}{lll}
 \hline
 \textbf{Elemento Algebrico} & \textbf{Funzione nel Software} & \textbf{Composizione Logica} \\ \hline
-$e$ (Identità) & \texttt{trans\_identity} & - \\
-$s$ (Riflessione Orizzontale) & \texttt{trans\_reflection\_horizontal} & Primitive \\
-$sr^2$ (Riflessione Verticale) & \texttt{trans\_reflection\_vertical} & Primitive \\
-$sr$ (Riflessione Diagonale) & \texttt{trans\_reflection\_diag\_h1a8} & Primitive \\
-$r$ (Rotazione $90^\circ$ CW) & \texttt{trans\_rotate\_90c} & \texttt{refl\_diag\_h1a8} $\circ$ \texttt{refl\_horiz} \\
-$r^2$ (Rotazione $180^\circ$) & \texttt{trans\_rotate\_180} & \texttt{refl\_horiz} $\circ$ \texttt{refl\_vert} \\
-$r^3$ (Rotazione $90^\circ$ ACW) & \texttt{trans\_rotate\_90a} & \texttt{refl\_horiz} $\circ$ \texttt{refl\_diag\_h1a8} \\ \hline
+$e$ (Identità) & \texttt{ro000} & - \\
+$s$ (Riflessione Orizzontale) & \texttt{fhori} & Primitive \\
+$sr^2$ (Riflessione Verticale) & \texttt{fvert} & Primitive \\
+$sr$ (Riflessione Diagonale) & \texttt{fh1a8} & Primitive \\
+$r$ (Rotazione $90^\circ$ CW) & \texttt{ro090} & \texttt{fh1a8} $\circ$ \texttt{fhori} \\
+$r^2$ (Rotazione $180^\circ$) & \texttt{ro180} & \texttt{fhori} $\circ$ \texttt{fvert} \\
+$r^3$ (Rotazione $90^\circ$ ACW) & \texttt{ro270} & \texttt{fhori} $\circ$ \texttt{fh1a8} \\ \hline
 \end{tabular}
 \end{table}
 
 \subsection{Analisi dell'Efficienza}
-L'approccio utilizzato riduce il \textit{branching} della CPU. Operazioni come \texttt{trans\_reflection\_diag\_h1a8} utilizzano maschere costanti (\textit{k1, k2, k4}) e operazioni di \textit{shift} e \textit{XOR} per scambiare interi blocchi di bit simultaneamente. Questo garantisce che la valutazione dei pattern rimanga performante anche durante ricerche profonde nell'albero di gioco.
+L'approccio utilizzato riduce il \textit{branching} della CPU.
+Operazioni come \texttt{fh1a8} utilizzano maschere costanti (\textit{k1, k2, k4}) e operazioni
+di \textit{shift} e \textit{XOR} per scambiare interi blocchi di bit simultaneamente.
+Questo garantisce che la valutazione dei pattern rimanga performante anche durante ricerche profonde nell'albero di gioco.
 

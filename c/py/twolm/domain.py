@@ -112,28 +112,6 @@ class SquareSet(np.uint64):
     It is implemented as a bit-board of 64 bit using numpy.uint64 as parent type.
     """
 
-    tr = np.array(
-        ['ro000',
-         'ro090',
-         'ro180',
-         'ro270',
-         'fvert',
-         'fh1a8',
-         'fhori',
-         'fa1h8',
-        ])
-
-    at = np.array(
-        ['ro000',
-         'ro270',
-         'ro180',
-         'ro090',
-         'fvert',
-         'fh1a8',
-         'fhori',
-         'fa1h8',
-        ])
-
     transformation_labels = np.array(
         ['ro000',
          'ro090',
@@ -1237,9 +1215,9 @@ class Pattern:
         Returns a string representation of the pattern in CSV format.
         Fields are separated by commas.
         """
-        trans_fs_labels = [SquareSet.tr[i] for i in self.unique_mask_indexes]
-        anti_trans_fs_labels = [SquareSet.at[i] for i in self.unique_mask_indexes]
-        symmetry_fs_labels = [SquareSet.tr[i] for i in self.unique_symmetric_instance_indexes]
+        trans_fs_labels = [SquareSet.transformation_labels[i] for i in self.unique_mask_indexes]
+        anti_trans_fs_labels = [SquareSet.anti_transformation_labels[i] for i in self.unique_mask_indexes]
+        symmetry_fs_labels = [SquareSet.transformation_labels[i] for i in self.unique_symmetric_instance_indexes]
         return (
             f"{self.name},{self.mask:016X},{self.n_squares},{self.n_configurations}"
             f",{self.n_instances},{self.n_stabilizers},{':'.join(self.snames)}"
