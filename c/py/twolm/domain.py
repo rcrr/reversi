@@ -135,25 +135,25 @@ class SquareSet(np.uint64):
         ])
 
     transformation_labels = np.array(
-        ['trans_identity',
-         'trans_rotate_90c',
-         'trans_rotate_180',
-         'trans_rotate_90a',
-         'trans_reflection_vertical',
-         'trans_reflection_diag_h1a8',
-         'trans_reflection_horizontal',
-         'trans_reflection_diag_a1h8',
+        ['ro000',
+         'ro090',
+         'ro180',
+         'ro270',
+         'fvert',
+         'fh1a8',
+         'fhori',
+         'fa1h8',
          ])
 
     anti_transformation_labels = np.array(
-        ['trans_identity',
-         'trans_rotate_90a',
-         'trans_rotate_180',
-         'trans_rotate_90c',
-         'trans_reflection_vertical',
-         'trans_reflection_diag_h1a8',
-         'trans_reflection_horizontal',
-         'trans_reflection_diag_a1h8',
+        ['ro000',
+         'ro270',
+         'ro180',
+         'ro090',
+         'fvert',
+         'fh1a8',
+         'fhori',
+         'fa1h8',
          ])
 
     @classmethod
@@ -265,7 +265,7 @@ class SquareSet(np.uint64):
             print()
         return
 
-    def trans_reflection_diag_a1h8(self) -> Self:
+    def fa1h8(self) -> Self:
         """
         Reflects a square set on the diagonal a1-h8.
         Square h1 is mapped to a8 and vice versa.
@@ -296,7 +296,7 @@ class SquareSet(np.uint64):
         s = s ^       (t ^ (t >> 7))
         return SquareSet(s)
 
-    def trans_reflection_diag_h1a8(self) -> Self:
+    def fh1a8(self) -> Self:
         """
         Reflects a square set on the diagonal h1-a8.
         Square h1 is mapped to a8 and vice versa.
@@ -327,7 +327,7 @@ class SquareSet(np.uint64):
         s = s ^       (t ^ (t >> 9))
         return SquareSet(s)
 
-    def trans_reflection_horizontal(self) -> Self:
+    def fhori(self) -> Self:
         """
         Reflects the square set horizontally (on the horizontal axis).
         Row 1 is mapped to row 8 and vice versa.
@@ -365,7 +365,7 @@ class SquareSet(np.uint64):
              ((s >> 56) & mask00))
         return SquareSet(s)
 
-    def trans_reflection_vertical(self) -> Self:
+    def fvert(self) -> Self:
         """
         Reflects the square set vertically (on the vertical axis).
         Column a is mapped to column h and vice versa.
@@ -393,7 +393,7 @@ class SquareSet(np.uint64):
         s = ((s >> 4) & k4) | ((s & k4) << 4)
         return  SquareSet(s)
 
-    def trans_identity(self) -> Self:
+    def ro000(self) -> Self:
         """
         Returns the square set unchanged, as it is.
         Conceptually it applies a rotation of zero degrees.
@@ -414,7 +414,7 @@ class SquareSet(np.uint64):
         """
         return self
 
-    def trans_rotate_180(self) -> Self:
+    def ro180(self) -> Self:
         """
         Rotates the square set by 180 degrees.
         Square a1 is mapped to h8, and b1 is mapped to g8.
@@ -433,9 +433,9 @@ class SquareSet(np.uint64):
         . 8  . 1 . . . 1 . .    . . . 1 1 1 1 .
         
         """
-        return self.trans_reflection_horizontal().trans_reflection_vertical()
+        return self.fhori().fvert()
 
-    def trans_rotate_90c(self) -> Self:
+    def ro090(self) -> Self:
         """
         Rotates a square set by 90 degrees clockwise.
         Square a1 is mapped to h1, and b1 is mapped to h2.
@@ -454,9 +454,9 @@ class SquareSet(np.uint64):
         . 8  . 1 . . . 1 . .    . . . . . . . .
 
         """
-        return self.trans_reflection_diag_h1a8().trans_reflection_horizontal()
+        return self.fh1a8().fhori()
 
-    def trans_rotate_90a(self) -> Self:
+    def ro270(self) -> Self:
         """
         Rotates a square set by 90 degrees anticlockwise.
         Square a1 is mapped to a8, and b1 is mapped to a7.
@@ -475,117 +475,117 @@ class SquareSet(np.uint64):
         . 8  . 1 . . . 1 . .    . . . . . . . .
 
         """
-        return self.trans_reflection_horizontal().trans_reflection_diag_h1a8()
+        return self.fhori().fh1a8()
 
     def transformations(self) -> np.ndarray:
         """
         Returns eight square set as an array by transforming the set as follow.
-         - 0 -> 0 : trans_identity
-         - 0 -> 1 : trans_rotate_90c
-         - 0 -> 2 : trans_rotate_180
-         - 0 -> 3 : trans_rotate_90a
-         - 0 -> 4 : trans_reflection_vertical
-         - 0 -> 5 : trans_reflection_diag_h1a8
-         - 0 -> 6 : trans_reflection_horizontal
-         - 0 -> 7 : trans_reflection_diag_a1h8
+         - 0 -> 0 : ro000
+         - 0 -> 1 : ro090
+         - 0 -> 2 : ro180
+         - 0 -> 3 : ro270
+         - 0 -> 4 : fvert
+         - 0 -> 5 : fh1a8
+         - 0 -> 6 : fhori
+         - 0 -> 7 : fa1h8
         """
         # ts: transformed square sets
         ts = np.zeros(8, dtype=SquareSet)
 
-        h1a8 = self.trans_reflection_diag_h1a8()
-        fh = self.trans_reflection_horizontal()
+        h1a8 = self.fh1a8()
+        fh = self.fhori()
 
-        # - 0 -> 0 : trans_identity
+        # - 0 -> 0 : ro000
         ts[0] = self
 
-        # - 0 -> 1 : trans_rotate_90c
-        ts[1] = h1a8.trans_reflection_horizontal()
+        # - 0 -> 1 : ro090
+        ts[1] = h1a8.fhori()
 
-        # - 0 -> 2 : trans_rotate_180
-        ts[2] = fh.trans_reflection_vertical()
+        # - 0 -> 2 : ro180
+        ts[2] = fh.fvert()
 
-        # - 0 -> 3 : trans_rotate_90a
-        ts[3] = fh.trans_reflection_diag_h1a8()
+        # - 0 -> 3 : ro270
+        ts[3] = fh.fh1a8()
 
-        # - 0 -> 4 : trans_reflection_vertical
-        ts[4] = self.trans_reflection_vertical()
+        # - 0 -> 4 : fvert
+        ts[4] = self.fvert()
 
-        # - 0 -> 5 : trans_reflection_diag_h1a8
+        # - 0 -> 5 : fh1a8
         ts[5] = h1a8
 
-        # - 0 -> 6 : trans_reflection_horizontal
+        # - 0 -> 6 : fhori
         ts[6] = fh
 
-        # - 0 -> 7 : trans_reflection_diag_a1h8
-        ts[7] = self.trans_reflection_diag_a1h8()
+        # - 0 -> 7 : fa1h8
+        ts[7] = self.fa1h8()
 
         return ts
 
     def anti_transformations(self):
         """
         Returns eight square set as an array by transforming the set as follow.
-         - 0 -> 0 : trans_identity
-         - 0 -> 1 : trans_rotate_90a
-         - 0 -> 2 : trans_rotate_180
-         - 0 -> 3 : trans_rotate_90c
-         - 0 -> 4 : trans_reflection_vertical
-         - 0 -> 5 : trans_reflection_diag_h1a8
-         - 0 -> 6 : trans_reflection_horizontal
-         - 0 -> 7 : trans_reflection_diag_a1h8
+         - 0 -> 0 : ro000
+         - 0 -> 1 : ro270
+         - 0 -> 2 : ro180
+         - 0 -> 3 : ro090
+         - 0 -> 4 : fvert
+         - 0 -> 5 : fh1a8
+         - 0 -> 6 : fhori
+         - 0 -> 7 : fa1h8
         These are the anti-transformations as defined by the transformations() method.
         """
         # ts: transformed square sets
         ts = np.zeros(8, dtype=SquareSet)
 
-        h1a8 = self.trans_reflection_diag_h1a8()
-        fh = self.trans_reflection_horizontal()
+        h1a8 = self.fh1a8()
+        fh = self.fhori()
 
-        # - 0 -> 0 : trans_identity
+        # - 0 -> 0 : ro000
         ts[0] = self
         
-        # - 0 -> 1 : trans_rotate_90a
-        ts[1] = fh.trans_reflection_diag_h1a8()
+        # - 0 -> 1 : ro270
+        ts[1] = fh.fh1a8()
 
-        # - 0 -> 2 : trans_rotate_180
-        ts[2] = fh.trans_reflection_vertical()
+        # - 0 -> 2 : ro180
+        ts[2] = fh.fvert()
 
-        # - 0 -> 3 : trans_rotate_90c
-        ts[3] = h1a8.trans_reflection_horizontal()
+        # - 0 -> 3 : ro090
+        ts[3] = h1a8.fhori()
 
-        # - 0 -> 4 : trans_reflection_vertical
-        ts[4] = self.trans_reflection_vertical()
+        # - 0 -> 4 : fvert
+        ts[4] = self.fvert()
 
-        # - 0 -> 5 : trans_reflection_diag_h1a8
+        # - 0 -> 5 : fh1a8
         ts[5] = h1a8
 
-        # - 0 -> 6 : trans_reflection_horizontal
+        # - 0 -> 6 : fhori
         ts[6] = fh
 
-        # - 0 -> 7 : trans_reflection_diag_a1h8
-        ts[7] = self.trans_reflection_diag_a1h8()
+        # - 0 -> 7 : fa1h8
+        ts[7] = self.fa1h8()
         
         return ts
 
     trans_fs = np.array(
-        [trans_identity,
-         trans_rotate_90c,
-         trans_rotate_180,
-         trans_rotate_90a,
-         trans_reflection_vertical,
-         trans_reflection_diag_h1a8,
-         trans_reflection_horizontal,
-         trans_reflection_diag_a1h8,
+        [ro000,
+         ro090,
+         ro180,
+         ro270,
+         fvert,
+         fh1a8,
+         fhori,
+         fa1h8,
          ])
 
     anti_trans_fs = np.array(
-        [trans_identity,
-         trans_rotate_90a,
-         trans_rotate_180,
-         trans_rotate_90c,
-         trans_reflection_vertical,
-         trans_reflection_diag_h1a8,
-         trans_reflection_horizontal,
-         trans_reflection_diag_a1h8,
+        [ro000,
+         ro270,
+         ro180,
+         ro090,
+         fvert,
+         fh1a8,
+         fhori,
+         fa1h8,
          ])
 
 
@@ -914,60 +914,60 @@ class Board:
             return True
         return False
 
-    def trans_reflection_diag_a1h8(self) -> Board:
+    def fa1h8(self) -> Board:
         """
         Reflects the board on the diagonal a1-h8.
         """
-        return Board(self.mover.trans_reflection_diag_a1h8(),
-                     self.opponent.trans_reflection_diag_a1h8())
+        return Board(self.mover.fa1h8(),
+                     self.opponent.fa1h8())
 
-    def trans_reflection_diag_h1a8(self) -> Board:
+    def fh1a8(self) -> Board:
         """
         Reflects the board on the diagonal h1-a8.
         """
-        return Board(self.mover.trans_reflection_diag_h1a8(),
-                     self.opponent.trans_reflection_diag_h1a8())
+        return Board(self.mover.fh1a8(),
+                     self.opponent.fh1a8())
 
-    def trans_reflection_horizontal(self) -> Board:
+    def fhori(self) -> Board:
         """
         Reflects the board horizontally (on the horizontal axis).
         """
-        return Board(self.mover.trans_reflection_horizontal(),
-                     self.opponent.trans_reflection_horizontal())
+        return Board(self.mover.fhori(),
+                     self.opponent.fhori())
 
-    def trans_reflection_vertical(self) -> Board:
+    def fvert(self) -> Board:
         """
         Reflects the board vertically (on the vertical axis).
         """
-        return Board(self.mover.trans_reflection_vertical(),
-                     self.opponent.trans_reflection_vertical())
+        return Board(self.mover.fvert(),
+                     self.opponent.fvert())
 
-    def trans_identity(self) -> Board:
+    def ro000(self) -> Board:
         """
         Returns the board unchanged, as it is.
         """
         return self.clone()
 
-    def trans_rotate_180(self) -> Board:
+    def ro180(self) -> Board:
         """
         Rotates the board by 180 degrees.
         """
-        return Board(self.mover.trans_rotate_180(),
-                     self.opponent.trans_rotate_180())
+        return Board(self.mover.ro180(),
+                     self.opponent.ro180())
 
-    def trans_rotate_90c(self) -> Board:
+    def ro090(self) -> Board:
         """
         Rotates the board by 90 degrees clockwise.
         """
-        return Board(self.mover.trans_rotate_90c(),
-                     self.opponent.trans_rotate_90c())
+        return Board(self.mover.ro090(),
+                     self.opponent.ro090())
 
-    def trans_rotate_90a(self) -> Board:
+    def ro270(self) -> Board:
         """
         Rotates the board by 90 degrees anticlockwise.
         """
-        return Board(self.mover.trans_rotate_90a(),
-                     self.opponent.trans_rotate_90a())
+        return Board(self.mover.ro270(),
+                     self.opponent.ro270())
 
     def transformations(self) -> np.ndarray:
         """

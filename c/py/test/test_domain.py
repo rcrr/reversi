@@ -184,87 +184,87 @@ class TestSquareSet(unittest.TestCase):
         self.assertEqual(full.count(), 64)
         self.assertEqual(ar.count(), 19)
 
-    def test_trans_reflection_diag_a1h8(self):
-        self.assertEqual(empty.trans_reflection_diag_a1h8(), empty)
-        self.assertEqual(full.trans_reflection_diag_a1h8(), full)
-        self.assertEqual(sqa1.trans_reflection_diag_a1h8(), sqa1)
-        self.assertEqual(sqh1.trans_reflection_diag_a1h8(), sqa8)
-        self.assertEqual(sqa8.trans_reflection_diag_a1h8(), sqh1)
-        self.assertEqual(sqh8.trans_reflection_diag_a1h8(), sqh8)
-        self.assertEqual(row_1.trans_reflection_diag_a1h8(), column_a)
-        self.assertEqual(row_8.trans_reflection_diag_a1h8(), column_h)
-        self.assertEqual(column_a.trans_reflection_diag_a1h8(), row_1)
-        self.assertEqual(column_h.trans_reflection_diag_a1h8(), row_8)
-        self.assertEqual(half_left.trans_reflection_diag_a1h8(), half_top)
-        self.assertEqual(half_right.trans_reflection_diag_a1h8(), half_bottom)
-        self.assertEqual(half_top.trans_reflection_diag_a1h8(), half_left)
-        self.assertEqual(half_bottom.trans_reflection_diag_a1h8(), half_right)
+    def test_fa1h8(self):
+        self.assertEqual(empty.fa1h8(), empty)
+        self.assertEqual(full.fa1h8(), full)
+        self.assertEqual(sqa1.fa1h8(), sqa1)
+        self.assertEqual(sqh1.fa1h8(), sqa8)
+        self.assertEqual(sqa8.fa1h8(), sqh1)
+        self.assertEqual(sqh8.fa1h8(), sqh8)
+        self.assertEqual(row_1.fa1h8(), column_a)
+        self.assertEqual(row_8.fa1h8(), column_h)
+        self.assertEqual(column_a.fa1h8(), row_1)
+        self.assertEqual(column_h.fa1h8(), row_8)
+        self.assertEqual(half_left.fa1h8(), half_top)
+        self.assertEqual(half_right.fa1h8(), half_bottom)
+        self.assertEqual(half_top.fa1h8(), half_left)
+        self.assertEqual(half_bottom.fa1h8(), half_right)
 
-    def test_trans_reflection_diag_h1a8(self):
-        self.assertEqual(empty.trans_reflection_diag_h1a8(), empty)
-        self.assertEqual(full.trans_reflection_diag_h1a8(), full)
-        self.assertEqual(sqa1.trans_reflection_diag_h1a8(), sqh8)
-        self.assertEqual(sqh1.trans_reflection_diag_h1a8(), sqh1)
-        self.assertEqual(sqa8.trans_reflection_diag_h1a8(), sqa8)
-        self.assertEqual(sqh8.trans_reflection_diag_h1a8(), sqa1)
+    def test_fh1a8(self):
+        self.assertEqual(empty.fh1a8(), empty)
+        self.assertEqual(full.fh1a8(), full)
+        self.assertEqual(sqa1.fh1a8(), sqh8)
+        self.assertEqual(sqh1.fh1a8(), sqh1)
+        self.assertEqual(sqa8.fh1a8(), sqa8)
+        self.assertEqual(sqh8.fh1a8(), sqa1)
 
-    def test_trans_reflection_horizontal(self):
-        self.assertEqual(empty.trans_reflection_horizontal(), empty)
-        self.assertEqual(full.trans_reflection_horizontal(), full)
-        self.assertEqual(sqa1.trans_reflection_horizontal(), sqh1)
-        self.assertEqual(sqh1.trans_reflection_horizontal(), sqa1)
-        self.assertEqual(sqa8.trans_reflection_horizontal(), sqh8)
-        self.assertEqual(sqh8.trans_reflection_horizontal(), sqa8)
+    def test_fhori(self):
+        self.assertEqual(empty.fhori(), empty)
+        self.assertEqual(full.fhori(), full)
+        self.assertEqual(sqa1.fhori(), sqh1)
+        self.assertEqual(sqh1.fhori(), sqa1)
+        self.assertEqual(sqa8.fhori(), sqh8)
+        self.assertEqual(sqh8.fhori(), sqa8)
 
-    def test_trans_reflection_vertical(self):
-        self.assertEqual(empty.trans_reflection_vertical(), empty)
-        self.assertEqual(full.trans_reflection_vertical(), full)
-        self.assertEqual(sqa1.trans_reflection_vertical(), sqa8)
-        self.assertEqual(sqh1.trans_reflection_vertical(), sqh8)
-        self.assertEqual(sqa8.trans_reflection_vertical(), sqa1)
-        self.assertEqual(sqh8.trans_reflection_vertical(), sqh1)
+    def test_fvert(self):
+        self.assertEqual(empty.fvert(), empty)
+        self.assertEqual(full.fvert(), full)
+        self.assertEqual(sqa1.fvert(), sqa8)
+        self.assertEqual(sqh1.fvert(), sqh8)
+        self.assertEqual(sqa8.fvert(), sqa1)
+        self.assertEqual(sqh8.fvert(), sqh1)
 
-    def test_trans_identity(self):
-        self.assertEqual(empty.trans_identity(), empty)
-        self.assertEqual(full.trans_identity(), full)
-        self.assertEqual(sqa1.trans_identity(), sqa1)
-        self.assertEqual(sqh1.trans_identity(), sqh1)
-        self.assertEqual(sqa8.trans_identity(), sqa8)
-        self.assertEqual(sqh8.trans_identity(), sqh8)
+    def test_ro000(self):
+        self.assertEqual(empty.ro000(), empty)
+        self.assertEqual(full.ro000(), full)
+        self.assertEqual(sqa1.ro000(), sqa1)
+        self.assertEqual(sqh1.ro000(), sqh1)
+        self.assertEqual(sqa8.ro000(), sqa8)
+        self.assertEqual(sqh8.ro000(), sqh8)
 
-    def test_trans_rotate_180(self):
-        self.assertEqual(empty.trans_rotate_180(), empty)
-        self.assertEqual(full.trans_rotate_180(), full)
-        self.assertEqual(sqa1.trans_rotate_180(), sqh8)
-        self.assertEqual(sqh1.trans_rotate_180(), sqa8)
-        self.assertEqual(sqa8.trans_rotate_180(), sqh1)
-        self.assertEqual(sqh8.trans_rotate_180(), sqa1)
+    def test_ro180(self):
+        self.assertEqual(empty.ro180(), empty)
+        self.assertEqual(full.ro180(), full)
+        self.assertEqual(sqa1.ro180(), sqh8)
+        self.assertEqual(sqh1.ro180(), sqa8)
+        self.assertEqual(sqa8.ro180(), sqh1)
+        self.assertEqual(sqh8.ro180(), sqa1)
 
-    def test_trans_rotate_90c(self):
-        self.assertEqual(empty.trans_rotate_90c(), empty)
-        self.assertEqual(full.trans_rotate_90c(), full)
-        self.assertEqual(sqa1.trans_rotate_90c(), sqa8)
-        self.assertEqual(sqh1.trans_rotate_90c(), sqa1)
-        self.assertEqual(sqa8.trans_rotate_90c(), sqh8)
-        self.assertEqual(sqh8.trans_rotate_90c(), sqh1)
+    def test_ro090(self):
+        self.assertEqual(empty.ro090(), empty)
+        self.assertEqual(full.ro090(), full)
+        self.assertEqual(sqa1.ro090(), sqa8)
+        self.assertEqual(sqh1.ro090(), sqa1)
+        self.assertEqual(sqa8.ro090(), sqh8)
+        self.assertEqual(sqh8.ro090(), sqh1)
 
-    def test_trans_rotate_90a(self):
-        self.assertEqual(empty.trans_rotate_90a(), empty)
-        self.assertEqual(full.trans_rotate_90a(), full)
-        self.assertEqual(sqa1.trans_rotate_90a(), sqh1)
-        self.assertEqual(sqh1.trans_rotate_90a(), sqh8)
-        self.assertEqual(sqa8.trans_rotate_90a(), sqa1)
-        self.assertEqual(sqh8.trans_rotate_90a(), sqa8)
+    def test_ro270(self):
+        self.assertEqual(empty.ro270(), empty)
+        self.assertEqual(full.ro270(), full)
+        self.assertEqual(sqa1.ro270(), sqh1)
+        self.assertEqual(sqh1.ro270(), sqh8)
+        self.assertEqual(sqa8.ro270(), sqa1)
+        self.assertEqual(sqh8.ro270(), sqa8)
 
     def test_ar_transformations(self):
-        self.assertEqual(ar.trans_reflection_diag_a1h8(), ar_reflection_a1h8)
-        self.assertEqual(ar.trans_reflection_diag_h1a8(), ar_reflection_h1a8)
-        self.assertEqual(ar.trans_reflection_horizontal(), ar_reflection_h)
-        self.assertEqual(ar.trans_reflection_vertical(), ar_reflection_v)
-        self.assertEqual(ar.trans_identity(), ar)
-        self.assertEqual(ar.trans_rotate_180(), ar_rotate_180)
-        self.assertEqual(ar.trans_rotate_90c(), ar_rotate_90c)
-        self.assertEqual(ar.trans_rotate_90a(), ar_rotate_90a)
+        self.assertEqual(ar.fa1h8(), ar_reflection_a1h8)
+        self.assertEqual(ar.fh1a8(), ar_reflection_h1a8)
+        self.assertEqual(ar.fhori(), ar_reflection_h)
+        self.assertEqual(ar.fvert(), ar_reflection_v)
+        self.assertEqual(ar.ro000(), ar)
+        self.assertEqual(ar.ro180(), ar_rotate_180)
+        self.assertEqual(ar.ro090(), ar_rotate_90c)
+        self.assertEqual(ar.ro270(), ar_rotate_90a)
 
     def test_bsr(self):
         s = SquareSet(0xFFFFFFFFFFFFFFFF)
@@ -789,74 +789,74 @@ class TestBoard(unittest.TestCase):
         move = Move.new_from_str('UN')
         self.assertFalse(b.is_move_legal(move))
 
-    def test_trans_reflection_diag_a1h8(self):
+    def test_fa1h8(self):
         mover = SquareSet(0x0000000000000002)
         opponent = SquareSet(0x0000000000000004)
         b = Board(mover, opponent)
-        t = b.trans_reflection_diag_a1h8()
+        t = b.fa1h8()
         expected = Board(SquareSet(0x0000000000000100),
                          SquareSet(0x0000000000010000))
         self.assertEqual(t, expected)
 
-    def test_trans_reflection_diag_h1a8(self):
+    def test_fh1a8(self):
         mover = SquareSet(0x0000000000000002)
         opponent = SquareSet(0x0000000000000004)
         b = Board(mover, opponent)
-        t = b.trans_reflection_diag_h1a8()
+        t = b.fh1a8()
         expected = Board(SquareSet(0x0080000000000000),
                          SquareSet(0x0000800000000000))
         self.assertEqual(t, expected)
 
-    def test_trans_reflection_horizontal(self):
+    def test_fhori(self):
         mover = SquareSet(0x0000000000000002)
         opponent = SquareSet(0x0000000000000004)
         b = Board(mover, opponent)
-        t = b.trans_reflection_horizontal()
+        t = b.fhori()
         expected = Board(SquareSet(0x0200000000000000),
                          SquareSet(0x0400000000000000))
         self.assertEqual(t, expected)
 
-    def test_trans_reflection_vertical(self):
+    def test_fvert(self):
         mover = SquareSet(0x0000000000000002)
         opponent = SquareSet(0x0000000000000004)
         b = Board(mover, opponent)
-        t = b.trans_reflection_vertical()
+        t = b.fvert()
         expected = Board(SquareSet(0x0000000000000040),
                          SquareSet(0x0000000000000020))
         self.assertEqual(t, expected)
 
-    def test_trans_identity(self):
+    def test_ro000(self):
         mover = SquareSet(0x0000000000000002)
         opponent = SquareSet(0x0000000000000004)
         b = Board(mover, opponent)
-        t = b.trans_identity()
+        t = b.ro000()
         expected = Board(SquareSet(0x0000000000000002),
                          SquareSet(0x0000000000000004))
         self.assertEqual(t, expected)
 
-    def test_trans_rotate_180(self):
+    def test_ro180(self):
         mover = SquareSet(0x0000000000000002)
         opponent = SquareSet(0x0000000000000004)
         b = Board(mover, opponent)
-        t = b.trans_rotate_180()
+        t = b.ro180()
         expected = Board(SquareSet(0x4000000000000000),
                          SquareSet(0x2000000000000000))
         self.assertEqual(t, expected)
 
-    def test_trans_rotate_90c(self):
+    def test_ro090(self):
         mover = SquareSet(0x0000000000000002)
         opponent = SquareSet(0x0000000000000004)
         b = Board(mover, opponent)
-        t = b.trans_rotate_90c()
+        t = b.ro090()
         expected = Board(SquareSet(0x0000000000008000),
                          SquareSet(0x0000000000800000))
         self.assertEqual(t, expected)
 
-    def test_trans_rotate_90a(self):
+    def test_ro270(self):
         mover = SquareSet(0x0000000000000002)
         opponent = SquareSet(0x0000000000000004)
         b = Board(mover, opponent)
-        t = b.trans_rotate_90a()
+        t = b.ro270()
         expected = Board(SquareSet(0x0001000000000000),
                          SquareSet(0x0000010000000000))
         self.assertEqual(t, expected)
@@ -1364,13 +1364,13 @@ class TestPatternPack(unittest.TestCase):
 
 class TestPatternSymmetries(unittest.TestCase):
 
-    ro90c = SquareSet.trans_rotate_90c
-    ro180 = SquareSet.trans_rotate_180
-    ro90a = SquareSet.trans_rotate_90a
-    rvert = SquareSet.trans_reflection_vertical
-    rh1a8 = SquareSet.trans_reflection_diag_h1a8
-    rhori = SquareSet.trans_reflection_horizontal
-    ra1h8 = SquareSet.trans_reflection_diag_a1h8
+    ro90c = SquareSet.ro090
+    ro180 = SquareSet.ro180
+    ro90a = SquareSet.ro270
+    rvert = SquareSet.fvert
+    rh1a8 = SquareSet.fh1a8
+    rhori = SquareSet.fhori
+    ra1h8 = SquareSet.fa1h8
 
     TestCase = namedtuple('TestCase', ['mask', 'name', 'expected'])
     test_data = [
