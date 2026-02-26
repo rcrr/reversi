@@ -1017,6 +1017,37 @@ class Pattern:
                                 after transformation i, preserving the original ordering of squares within the pattern.
     """
 
+    @classmethod
+    def mdp_csv_file(cls, patterns: list[Pattern], filename: str) -> None:
+        """
+        Writes a CSV file containing the MDP records of the provided patterns.
+        
+        Args:
+            patterns: A list of Pattern objects to be written to the file.
+            filename: The path to the output CSV file.
+            
+        Raises:
+            TypeError: If patterns is not a list or if any element is not a Pattern instance.
+            TypeError: If filename is not a string.
+        """
+        if not isinstance(patterns, list):
+            raise TypeError("Argument patterns must be a list.")
+        if not isinstance(filename, str):
+            raise TypeError("Argument filename must be a string.")
+        if not all(isinstance(p, Pattern) for p in patterns):
+            raise TypeError("All elements in patterns must be Pattern instances.")
+
+        with open(filename, 'w') as f:
+            header = (
+                "name,mask,"
+                "n_squares,n_configurations,n_instances,n_stabilizers,"
+                "cells,tmasks,mask_indexes,unique_masks,unique_mask_indexes,tr,at,sf,"
+                "cells_t0,cells_t1,cells_t2,cells_t3,cells_t4,cells_t5,cells_t6,cells_t7"
+            )
+            f.write(header + "\n")
+            for pattern in patterns:
+                f.write(pattern.mdp_record() + '\n')
+
     def __init__(self, name: str, mask: SquareSet):
         if not isinstance(mask, (SquareSet, np.uint64)):
             raise TypeError('Argument mask is not an instance of SquareSet')
