@@ -1412,3 +1412,44 @@ class TestPatternSymmetries(unittest.TestCase):
                     expected,
                     f"Symmetry list mismatch for {name}"
                 )
+                
+class TestPatternMdpRecord(unittest.TestCase):
+
+    def test_elle_pattern(self):
+        p = Pattern('ELLE', SquareSet(0x0000000000000107))
+        expected = (
+            "ELLE,0000000000000107,4,81,8,1,A1:B1:C1:A2,"
+            "0000000000000107:00000000008080C0:E080000000000000:0301010000000000:"
+            "00000000000080E0:C080800000000000:0701000000000000:0000000000010103,"
+            "0:1:2:3:4:5:6:7,"
+            "0000000000000107:00000000008080C0:E080000000000000:0301010000000000:"
+            "00000000000080E0:C080800000000000:0701000000000000:0000000000010103,"
+            "0:1:2:3:4:5:6:7,"
+            "ro000:ro090:ro180:ro270:fvert:fh1a8:fhori:fa1h8,"
+            "ro000:ro270:ro180:ro090:fvert:fh1a8:fhori:fa1h8,"
+            ","
+            "a1:b1:c1:a2,h1:h2:h3:g1,h8:g8:f8:h7,a8:a7:a6:b8,"
+            "h1:g1:f1:h2,h8:h7:h6:g8,a8:b8:c8:a7,a1:a2:a3:b1"
+        )
+        actual = p.mdp_record()
+        self.assertEqual(actual, expected)
+
+    def test_edge_pattern(self):
+        p = Pattern('EDGE', SquareSet(0x00000000000000FF))
+        expected = (
+            "EDGE,00000000000000FF,8,6561,4,2,A1:B1:C1:D1:E1:F1:G1:H1,"
+            "00000000000000FF:8080808080808080:FF00000000000000:0101010101010101:"
+            "00000000000000FF:8080808080808080:FF00000000000000:0101010101010101,"
+            "0:1:2:3:0:1:2:3,"
+            "00000000000000FF:8080808080808080:FF00000000000000:0101010101010101,"
+            "0:1:2:3,"
+            "ro000:ro090:ro180:ro270,"
+            "ro000:ro270:ro180:ro090,"
+            "fvert,"
+            "a1:b1:c1:d1:e1:f1:g1:h1,h1:h2:h3:h4:h5:h6:h7:h8,"
+            "h8:g8:f8:e8:d8:c8:b8:a8,a8:a7:a6:a5:a4:a3:a2:a1,"
+            "h1:g1:f1:e1:d1:c1:b1:a1,h8:h7:h6:h5:h4:h3:h2:h1,"
+            "a8:b8:c8:d8:e8:f8:g8:h8,a1:a2:a3:a4:a5:a6:a7:a8"
+        )
+        actual = p.mdp_record()
+        self.assertEqual(actual, expected)

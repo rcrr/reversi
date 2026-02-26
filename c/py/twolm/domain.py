@@ -1159,6 +1159,9 @@ class Pattern:
 
         # - Symmetries.
 
+        # Compute transformed cell names for each instance
+        self._compute_transformed_cells()
+
         # Invariance check
         self._check_invariances()
 
@@ -1189,10 +1192,83 @@ class Pattern:
         if not set(self.symmetry_fs).issubset(set(SquareSet.trans_fs)):
              raise AssertionError("symmetry_fs contains unknown transformation functions.")
 
+
+    def _compute_transformed_cells(self) -> None:
+        """
+        Computes the ordered cell names for each transformation instance.
+        """
+        # Get the original cell names in order
+        original_cells = self.snames
         
+        # Initialize lists for each transformation
+        self.snames_t0 = []
+        self.snames_t1 = []
+        self.snames_t2 = []
+        self.snames_t3 = []
+        self.snames_t4 = []
+        self.snames_t5 = []
+        self.snames_t6 = []
+        self.snames_t7 = []
+        
+        # Apply each transformation to the entire pattern mask
+        transformed_masks = self.mask.transformations()
+        
+        # For each original cell, determine where it maps to in each transformed pattern
+        for i, cell_name in enumerate(original_cells):
+            # Convert cell name to square index
+            sq = Square.new_from_str(cell_name)
+            # Create a square set with just this square
+            sq_set = SquareSet(SquareSet(1) << sq)
+            
+            # For each transformation, find where this square maps to
+            transformed_positions = []
+            for j in range(8):
+                # Apply transformation to the square
+                transformed_sq = SquareSet.trans_fs[j](sq_set)
+                # Get the square index from the transformed mask
+                if transformed_sq != 0:
+                    # Find the bit position
+                    pos = SquareSet(transformed_sq).bsr()
+                    # Convert back to square name
+                    transformed_positions.append(Square(pos).to_str().lower())
+                else:
+                    transformed_positions.append("")
+            
+            # Store in respective lists
+            self.snames_t0.append(transformed_positions[0])
+            self.snames_t1.append(transformed_positions[1])
+            self.snames_t2.append(transformed_positions[2])
+            self.snames_t3.append(transformed_positions[3])
+            self.snames_t4.append(transformed_positions[4])
+            self.snames_t5.append(transformed_positions[5])
+            self.snames_t6.append(transformed_positions[6])
+            self.snames_t7.append(transformed_positions[7])
+
+    def mdp_record(self) -> str:
+        """
+        Returns a string representation of the pattern in CSV format.
+        Fields are separated by commas.
+        """
+        trans_fs_labels = [SquareSet.tr[i] for i in self.unique_mask_indexes]
+        anti_trans_fs_labels = [SquareSet.at[i] for i in self.unique_mask_indexes]
+        symmetry_fs_labels = [SquareSet.tr[i] for i in self.unique_symmetric_instance_indexes]
+        return (
+            f"{self.name},{self.mask:016X},{self.n_squares},{self.n_configurations}"
+            f",{self.n_instances},{self.n_stabilizer},{':'.join(self.snames)}"
+            f",{':'.join(f'{m:016X}' for m in self.tmasks)}"
+            f",{':'.join(str(i) for i in self.mask_indexes)}"
+            f",{':'.join(f'{m:016X}' for m in self.unique_masks)}"
+            f",{':'.join(str(i) for i in self.unique_mask_indexes)}"
+            f",{':'.join(f'{fn}' for fn in trans_fs_labels)}"
+            f",{':'.join(f'{fn}' for fn in anti_trans_fs_labels)}"
+            f",{':'.join(f'{fn}' for fn in symmetry_fs_labels)}"
+            f",{':'.join(self.snames_t0)},{':'.join(self.snames_t1)},{':'.join(self.snames_t2)},{':'.join(self.snames_t3)}"
+            f",{':'.join(self.snames_t4)},{':'.join(self.snames_t5)},{':'.join(self.snames_t6)},{':'.join(self.snames_t7)}"
+        )
+
     def print(self) -> None:
         trans_fs_labels = [SquareSet.transformation_labels[i] for i in self.unique_mask_indexes]
-        a_trans_fs_labels = [SquareSet.anti_transformation_labels[i] for i in self.unique_mask_indexes]
+        anti_trans_fs_labels = [SquareSet.anti_transformation_labels[i] for i in self.unique_mask_indexes]
         symmetry_fs_labels = [SquareSet.transformation_labels[i] for i in self.unique_symmetric_instance_indexes]
         print(f"[Pattern: name = {self.name}, mask = 0x{self.mask:016x}]")
         print(f"  [n_squares = {self.n_squares}, n_configurations = {self.n_configurations}, n_instances = {self.n_instances}, n_stabilizer = {self.n_stabilizer}]")
@@ -1202,8 +1278,9 @@ class Pattern:
         print(f"  Unique masks:        [{', '.join(f'0x{x:016X}' for x in self.unique_masks)}]")
         print(f"  Unique mask indexes: [{', '.join(f'{x}' for x in self.unique_mask_indexes)}]")
         print(f"  Transf. functions:   [{', '.join(f'{fn}' for fn in trans_fs_labels)}]")
-        print(f"  Anti-transf. f.:     [{', '.join(f'{fn}' for fn in a_trans_fs_labels)}]")
+        print(f"  Anti-transf. f.:     [{', '.join(f'{fn}' for fn in anti_trans_fs_labels)}]")
         print(f"  Symmetry functions:  [{', '.join(f'{fn}' for fn in symmetry_fs_labels)}]")
+
 
 def pack_ss(s: np.uint64, p: Pattern) -> np.uint64:
     """
