@@ -107,7 +107,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
   \mdpNSquares=n_squares,
   \mdpNConfigurations=n_configurations,
   \mdpNInstances=n_instances,
-  \mdpNStabilizer=n_stabilizer,
+  \mdpNStabilizers=n_stabilizers,
   \mdpCells=cells,
   \mdpTMasks=tmasks,
   \mdpMaskIndexes=mask_indexes,
@@ -142,7 +142,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
   \begin{tcolorbox}[sharp corners, fontupper=\ttfamily\small, colback=white]
     \noindent Pattern: name = \mdpName, mask = 0x\mdpMask\\
     {[} n\_squares = \mdpNSquares, n\_configurations = \mdpNConfigurations,
-    n\_instances = \mdpNInstances, n\_stabilizer = \mdpNStabilizer { ]}\\[1.0ex]
+    n\_instances = \mdpNInstances, n\_stabilizers = \mdpNStabilizers { ]}\\[1.0ex]
     \begin{tabularx}{\textwidth}{@{} p{3.5cm} X @{}}
       Cells:               & {[}\mdpCellsCleaned{]}\\[0.5ex]
       Transformed masks:   & \mdpTMasksCleaned\\[0.5ex]
@@ -176,7 +176,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
 
 \begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
 [Pattern: name = ZSHAPE, mask = 0x0000000c30000000]
-  [n_squares = 4, n_configurations = 81, n_instances = 4, n_stabilizer = 2]
+  [n_squares = 4, n_configurations = 81, n_instances = 4, n_stabilizers = 2]
   Cells:               [E4, F4, C5, D5]
   Transformed masks:   
     0x0000000C30000000, 0x0000101008080000, 0x0000000C30000000, 0x0000101008080000, 
@@ -190,7 +190,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
   Symmetry functions:  [Rot1
 \begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
 [Pattern: name = ELLE, mask = 0x0000000000000107]
-  [n_squares = 4, n_configurations = 81, n_instances = 8, n_stabilizer = 1]
+  [n_squares = 4, n_configurations = 81, n_instances = 8, n_stabilizers = 1]
   Cells:               [A1, B1, C1, A2]
   Transformed masks:   
     0x0000000000000107, 0x00000000008080C0, 0xE080000000000000, 0x0301010000000000, 
@@ -297,7 +297,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
 
 \begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
 [Pattern: name = EDGE, mask = 0x00000000000000ff]
-  [n_squares = 8, n_configurations = 6561, n_instances = 4, n_stabilizer = 2]
+  [n_squares = 8, n_configurations = 6561, n_instances = 4, n_stabilizers = 2]
   Cells:               [A1, B1, C1, D1, E1, F1, G1, H1]
   Transformed masks:   
     0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000, 0x0101010101010101, 
@@ -402,7 +402,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
 
 \begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
 [Pattern: name = ZSHAPE, mask = 0x0000000c30000000]
-  [n_squares = 4, n_configurations = 81, n_instances = 4, n_stabilizer = 2]
+  [n_squares = 4, n_configurations = 81, n_instances = 4, n_stabilizers = 2]
   Cells:               [E4, F4, C5, D5]
   Transformed masks:   
     0x0000000C30000000, 0x0000101008080000, 0x0000000C30000000, 0x0000101008080000, 
@@ -507,7 +507,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
 
 \begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
 [Pattern: name = RCT2X4, mask = 0x0000003c3c000000]
-  [n_squares = 8, n_configurations = 6561, n_instances = 2, n_stabilizer = 4]
+  [n_squares = 8, n_configurations = 6561, n_instances = 2, n_stabilizers = 4]
   Cells:               [C4, D4, E4, F4, C5, D5, E5, F5]
   Transformed masks:   
     0x0000003C3C000000, 0x0000181818180000, 0x0000003C3C000000, 0x0000181818180000, 
@@ -620,7 +620,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
 
 \begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
 [Pattern: name = BARBEL, mask = 0x030304081020C0C0]
-  [n_squares = 12, n_configurations = 531441, n_instances = 2, n_stabilizer = 4]
+  [n_squares = 12, n_configurations = 531441, n_instances = 2, n_stabilizers = 4]
   Cells:               [G1, H1, G2, H2, F3, E4, D5, C6, A7, B7, A8, B8]
   Transformed masks:   
     0x030304081020C0C0, 0xC0C0201008040303, 0x030304081020C0C0, 0xC0C0201008040303,
@@ -742,7 +742,7 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
 
 \begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
 [Pattern: name = DIAG3, mask = 0x0000000000010204]
-  [n_squares = 3, n_configurations = 27, n_instances = 4, n_stabilizer = 2]
+  [n_squares = 3, n_configurations = 27, n_instances = 4, n_stabilizers = 2]
   Cells:               [C1, B2, A3]
   Transformed masks:   
     0x0000000000010204, 0x0000000000804020, 0x2040800000000000, 0x0402010000000000, 

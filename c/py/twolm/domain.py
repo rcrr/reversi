@@ -1013,7 +1013,7 @@ class Pattern:
                                       This identifies which symmetries produce identical masks.
     unique_mask_indexes (list): The indices of the transformations that produce unique masks.
     n_instances (int): The number of unique physical locations/orientations this pattern occupies (cardinality of the orbit |Orb|).
-    n_stabilizer (int): The number of transformations that leave the mask bitwise identical (order of the stabilizer |Stab|).
+    n_stabilizers (int): The number of transformations that leave the mask bitwise identical (order of the stabilizer |Stab|).
 
     4. Transformation Functions
     trans_fs (list): The set of functions used to transform the pattern squares.
@@ -1054,8 +1054,8 @@ class Pattern:
         self.unique_mask_indexes = list(dict.fromkeys(self.mask_indexes))
         # n_instances corresponds to the cardinality of the orbit |Orb(P)|
         self.n_instances = len(self.unique_masks)
-        # n_stabilizer corresponds to the order of the stabilizer |Stab(P)|
-        self.n_stabilizer = 8 // self.n_instances
+        # n_stabilizers corresponds to the order of the stabilizer |Stab(P)|
+        self.n_stabilizers = 8 // self.n_instances
         self.trans_fs = [SquareSet.trans_fs[i] for i in self.unique_mask_indexes]
         self.anti_trans_fs = [SquareSet.anti_trans_fs[i] for i in self.unique_mask_indexes]
 
@@ -1254,7 +1254,7 @@ class Pattern:
         symmetry_fs_labels = [SquareSet.tr[i] for i in self.unique_symmetric_instance_indexes]
         return (
             f"{self.name},{self.mask:016X},{self.n_squares},{self.n_configurations}"
-            f",{self.n_instances},{self.n_stabilizer},{':'.join(self.snames)}"
+            f",{self.n_instances},{self.n_stabilizers},{':'.join(self.snames)}"
             f",{':'.join(f'{m:016X}' for m in self.tmasks)}"
             f",{':'.join(str(i) for i in self.mask_indexes)}"
             f",{':'.join(f'{m:016X}' for m in self.unique_masks)}"
@@ -1271,7 +1271,7 @@ class Pattern:
         anti_trans_fs_labels = [SquareSet.anti_transformation_labels[i] for i in self.unique_mask_indexes]
         symmetry_fs_labels = [SquareSet.transformation_labels[i] for i in self.unique_symmetric_instance_indexes]
         print(f"[Pattern: name = {self.name}, mask = 0x{self.mask:016x}]")
-        print(f"  [n_squares = {self.n_squares}, n_configurations = {self.n_configurations}, n_instances = {self.n_instances}, n_stabilizer = {self.n_stabilizer}]")
+        print(f"  [n_squares = {self.n_squares}, n_configurations = {self.n_configurations}, n_instances = {self.n_instances}, n_stabilizers = {self.n_stabilizers}]")
         print(f"  Cells:               [{', '.join(f'{cn}' for cn in self.snames)}]")
         print(f"  Transformed masks:   [{', '.join(f'0x{x:016X}' for x in self.tmasks)}]")
         print(f"  Mask indexes:        [{', '.join(f'{x}' for x in self.mask_indexes)}]")

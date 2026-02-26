@@ -972,6 +972,7 @@ class TestPattern(unittest.TestCase):
         self.assertEqual(p.n_instances, 8)
         self.assertEqual(p.n_squares, 4)
         self.assertEqual(p.n_configurations, 81)
+        self.assertEqual(p.n_stabilizers, 1)
         
         computed_tmasks = [f(SquareSet(s)) for f, s in zip(p.trans_fs, all_masks)]
         npt.assert_array_equal(computed_tmasks, expected_tmasks)
