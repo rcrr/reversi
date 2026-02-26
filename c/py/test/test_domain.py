@@ -979,6 +979,19 @@ class TestPattern(unittest.TestCase):
         
         computed_all_masks = [f(SquareSet(s)) for f, s in zip(p.anti_trans_fs, expected_tmasks)]
         npt.assert_array_equal(computed_all_masks, all_masks)
+        
+        # Test snames_t field
+        expected_snames_t = [
+            ['a1', 'b1', 'c1', 'a2'],  # 0: ro000
+            ['h1', 'h2', 'h3', 'g1'],  # 1: ro090
+            ['h8', 'g8', 'f8', 'h7'],  # 2: ro180
+            ['a8', 'a7', 'a6', 'b8'],  # 3: ro270
+            ['h1', 'g1', 'f1', 'h2'],  # 4: fvert
+            ['h8', 'h7', 'h6', 'g8'],  # 5: fh1a8
+            ['a8', 'b8', 'c8', 'a7'],  # 6: fhori
+            ['a1', 'a2', 'a3', 'b1'],  # 7: fa1h8
+        ]
+        self.assertEqual(p.snames_t, expected_snames_t)
 
 
 class TestPatternPack(unittest.TestCase):
