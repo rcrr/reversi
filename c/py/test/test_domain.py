@@ -1364,40 +1364,41 @@ class TestPatternPack(unittest.TestCase):
 
 class TestPatternSymmetries(unittest.TestCase):
 
-    ro90c = SquareSet.ro090
+    ro000 = SquareSet.ro000
+    ro090 = SquareSet.ro090
     ro180 = SquareSet.ro180
-    ro90a = SquareSet.ro270
-    rvert = SquareSet.fvert
-    rh1a8 = SquareSet.fh1a8
-    rhori = SquareSet.fhori
-    ra1h8 = SquareSet.fa1h8
+    ro270 = SquareSet.ro270
+    fvert = SquareSet.fvert
+    fh1a8 = SquareSet.fh1a8
+    fhori = SquareSet.fhori
+    fa1h8 = SquareSet.fa1h8
 
     TestCase = namedtuple('TestCase', ['mask', 'name', 'expected'])
     test_data = [
         TestCase(0x0000000000000107, 'ELLE',   []),
         TestCase(0x0000000C30000000, 'ZSHAPE', [ro180]),
-        TestCase(0x00000000000000FF, 'EDGE',   [rvert]),
-        TestCase(0x000000000000FF00, 'R2',     [rvert]),
-        TestCase(0x0000000000FF0000, 'R3',     [rvert]),
-        TestCase(0x00000000FF000000, 'R4',     [rvert]),
-        TestCase(0x00000000000042FF, 'XEDGE',  [rvert]),
-        TestCase(0x0000000000010204, 'DIAG3',  [ra1h8]),
-        TestCase(0x0000000001020408, 'DIAG4',  [ra1h8]),
-        TestCase(0x0000000102040810, 'DIAG5',  [ra1h8]),
-        TestCase(0x0000010204081020, 'DIAG6',  [ra1h8]),
-        TestCase(0x0001020408102040, 'DIAG7',  [ra1h8]),
+        TestCase(0x00000000000000FF, 'EDGE',   [fvert]),
+        TestCase(0x000000000000FF00, 'R2',     [fvert]),
+        TestCase(0x0000000000FF0000, 'R3',     [fvert]),
+        TestCase(0x00000000FF000000, 'R4',     [fvert]),
+        TestCase(0x00000000000042FF, 'XEDGE',  [fvert]),
+        TestCase(0x0000000000010204, 'DIAG3',  [fa1h8]),
+        TestCase(0x0000000001020408, 'DIAG4',  [fa1h8]),
+        TestCase(0x0000000102040810, 'DIAG5',  [fa1h8]),
+        TestCase(0x0000010204081020, 'DIAG6',  [fa1h8]),
+        TestCase(0x0001020408102040, 'DIAG7',  [fa1h8]),
         TestCase(0x0102040810204080, 'DIAG8',  [ro180]),
-        TestCase(0x0000000000070707, 'CORNER', [ra1h8]),
+        TestCase(0x0000000000070707, 'CORNER', [fa1h8]),
         TestCase(0x0000000000001F1F, '2X5COR', []),
         TestCase(0x0000000000003F3F, '2X6COR', []),
-        TestCase(0x0000003C3C000000, 'RCT2X4', [ro180, rvert, rhori]),
-        TestCase(0x000000000000C3FF, 'CASTLE', [rvert]),
-        TestCase(0x030304081020C0C0, 'BARBEL', [ro180, rh1a8, ra1h8]),
-        TestCase(0x010204081020C0C0, 'MACE',   [rh1a8]),
-        TestCase(0x8100000000000081, 'FOURC',  [ro90c, ro180, ro90a, rvert, rh1a8, rhori, ra1h8]),
-        TestCase(0x0000001818000000, 'CORE',   [ro90c, ro180, ro90a, rvert, rh1a8, rhori, ra1h8]),
-        TestCase(0x0000241818240000, 'CORED',  [ro90c, ro180, ro90a, rvert, rh1a8, rhori, ra1h8]),
-        TestCase(0x000008381C100000, 'COREA',  [ro90c, ro180, ro90a]),
+        TestCase(0x0000003C3C000000, 'RCT2X4', [ro180, fvert, fhori]),
+        TestCase(0x000000000000C3FF, 'CASTLE', [fvert]),
+        TestCase(0x030304081020C0C0, 'BARBEL', [ro180, fh1a8, fa1h8]),
+        TestCase(0x010204081020C0C0, 'MACE',   [fh1a8]),
+        TestCase(0x8100000000000081, 'FOURC',  [ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8]),
+        TestCase(0x0000001818000000, 'CORE',   [ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8]),
+        TestCase(0x0000241818240000, 'CORED',  [ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8]),
+        TestCase(0x000008381C100000, 'COREA',  [ro090, ro180, ro270]),
     ]
 
     def setUp(self):
