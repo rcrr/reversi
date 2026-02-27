@@ -53,7 +53,7 @@ import numpy as np
 
 from typing import Self, Callable, Any, Union, TypeVar
 
-__all__ = ['Square', 'Move', 'SquareSet', 'Board', 'Pattern', 'pack_ss', 'unpack_ss']
+__all__ = ['Square', 'Move', 'SquareSet', 'Board', 'Pattern', 'pack_ss', 'unpack_ss', 'sample_patterns']
 
 class Square(np.uint8):
     """
@@ -1325,3 +1325,40 @@ def unpack_ss(packed_val: np.uint64, p: Pattern) -> np.uint64:
         current_packed_pos += block_len
         
     return res
+
+# A list of Patterns.
+#
+# Use it to generate the mdp.csv file used by the LaTeX document:
+#
+# $ cd $(REVERSI_HOME)/c
+# $ source py/.reversi_venv/bin/activate
+# $ PYTHONPATH="./py" python3
+# >>> from twolm.domain import *
+# >>> Pattern.mdp_csv_file(sample_patterns, 'build/tmp/mdp_test.csv')
+#
+sample_patterns = [
+    Pattern('ELLE', SquareSet(0x0000000000000107)),
+    Pattern('ZSHAPE', SquareSet(0x0000000C30000000)),
+    Pattern('EDGE', SquareSet(0x00000000000000FF)),
+    Pattern('R2', SquareSet(0x000000000000FF00)),
+    Pattern('R3', SquareSet(0x0000000000FF0000)),
+    Pattern('R4', SquareSet(0x00000000FF000000)),
+    Pattern('XEDGE', SquareSet(0x00000000000042FF)),
+    Pattern('DIAG3', SquareSet(0x0000000000010204)),
+    Pattern('DIAG4', SquareSet(0x0000000001020408)),
+    Pattern('DIAG5', SquareSet(0x0000000102040810)),
+    Pattern('DIAG6', SquareSet(0x0000010204081020)),
+    Pattern('DIAG7', SquareSet(0x0001020408102040)),
+    Pattern('DIAG8', SquareSet(0x0102040810204080)),
+    Pattern('CORNER', SquareSet(0x0000000000070707)),
+    Pattern('2X5COR', SquareSet(0x0000000000001F1F)),
+    Pattern('2X6COR', SquareSet(0x0000000000003F3F)),
+    Pattern('RCT2X4', SquareSet(0x0000003C3C000000)),
+    Pattern('CASTLE', SquareSet(0x000000000000C3FF)),
+    Pattern('BARBEL', SquareSet(0x030304081020C0C0)),
+    Pattern('MACE', SquareSet(0x010204081020C0C0)),
+    Pattern('FOURC', SquareSet(0x8100000000000081)),
+    Pattern('CORE', SquareSet(0x0000001818000000)),
+    Pattern('CORED', SquareSet(0x0000241818240000)),
+    Pattern('COREA', SquareSet(0x000008381C100000)),
+]
