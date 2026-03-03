@@ -34,19 +34,12 @@
 \newcounter{myhexcount}
 
 \def\extracthexvalues#1{%
-  \setcounter{myhexcount}{0}%
+  \setcounter{myhexcount}{1}%
   \foreach \hex in {#1} {%
-    \ifnum\value{myhexcount}=0 \xdef\hexA{\hex}\fi
-    \ifnum\value{myhexcount}=1 \xdef\hexB{\hex}\fi
-    \ifnum\value{myhexcount}=2 \xdef\hexC{\hex}\fi
-    \ifnum\value{myhexcount}=3 \xdef\hexD{\hex}\fi
-    \ifnum\value{myhexcount}=4 \xdef\hexE{\hex}\fi
-    \ifnum\value{myhexcount}=5 \xdef\hexF{\hex}\fi
-    \ifnum\value{myhexcount}=6 \xdef\hexG{\hex}\fi
-    \ifnum\value{myhexcount}=7 \xdef\hexH{\hex}\fi
+    \expandafter\xdef\csname hex\Alph{myhexcount}\endcsname{\hex}%
     \stepcounter{myhexcount}%
   }%
-}%
+}
 
 \ExplSyntaxOn
 
@@ -98,6 +91,14 @@
 \section{Catalogo dei Pattern}
 
 In questa appendice vengono visualizzati i pattern principali utilizzati dal sistema. Per ogni pattern sono mostrate le 8 trasformazioni del gruppo $D_4$. I numeri all'interno delle celle indicano l'indice di packing progressivo (0, 1, 2, ...) all'interno del pattern, permettendo di tracciare visivamente la permutazione delle celle sotto ogni trasformazione.
+
+Commenti poi da sistemare:
+
+Quando n_instances (orbite) vale 8, n_stabilizers (stabilizzatori) vale sempre 1.
+Questo e' il tipo di patetrn piu diffuso, TIPO 0. Nessuna simmetria.
+Le funzioni di trasformazione (trans_fs) sono 8, e sono sempre le stesse 8.
+Le funzioni di simmetria sono nessuna.
+
 \newpage
 
 % Inizia il ciclo per ogni riga del CSV mdp.csv
