@@ -82,35 +82,6 @@ half_right:    SquareSet = SquareSet(0xf0f0f0f0f0f0f0f0)
 half_top:      SquareSet = SquareSet(0x00000000ffffffff)
 half_bottom:   SquareSet = SquareSet(0xffffffff00000000)
 
-pattern_samples: dict[str, np.uint64] = {
-    'ELLE':   0x0000000000000107,
-    'ZSHAPE': 0x0000000C30000000,
-    'EDGE':   0x00000000000000FF,
-    'R2':     0x000000000000FF00,
-    'R3':     0x0000000000FF0000,
-    'R4':     0x00000000FF000000,
-    'XEDGE':  0x00000000000042FF,
-    'DIAG3':  0x0000000000010204,
-    'DIAG4':  0x0000000001020408,
-    'DIAG5':  0x0000000102040810,
-    'DIAG6':  0x0000010204081020,
-    'DIAG7':  0x0001020408102040,
-    'DIAG8':  0x0102040810204080,
-    'CORNER': 0x0000000000070707,
-    '2X5COR': 0x0000000000001F1F,
-    '2X6COR': 0x0000000000003F3F,
-    'RCT2X4': 0x0000003C3C000000,
-    'CASTLE': 0x000000000000C3FF,
-    'BARBEL': 0x030304081020C0C0,
-    'MACE':   0x010204081020C0C0,
-    'FOURC':  0x8100000000000081,
-    'CORE':   0x0000001818000000,
-    'CORED':  0x0000241818240000,
-    'COREA':  0x000008381C100000,
-    'WHIRL':  0x83800000000001C1,
-    'TAU':    0x010101FFFF010101,
-}
-
 class TestSquare(unittest.TestCase):
 
     def test_new_square(self):
@@ -1579,6 +1550,5 @@ class TestTransformationsCayleyTable(unittest.TestCase):
             self.verify_cayley_table(s)
 
     def test_cayley_with_sample_patterns(self):
-        tcs = list(pattern_samples.values())
-        for s in tcs:
-            self.verify_cayley_table(SquareSet(s))
+        for p in sample_patterns:
+            self.verify_cayley_table(p.mask)
