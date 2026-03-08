@@ -94,10 +94,35 @@ In questa appendice vengono visualizzati i pattern principali utilizzati dal sis
 
 Commenti poi da sistemare:
 
+Abbiamo 26 record nel db di sample.
+
 Quando n_instances (orbite) vale 8, n_stabilizers (stabilizzatori) vale sempre 1.
 Questo e' il tipo di patetrn piu diffuso, TIPO 0. Nessuna simmetria.
 Le funzioni di trasformazione (trans_fs) sono 8, e sono sempre le stesse 8.
 Le funzioni di simmetria sono nessuna.
+TIPO 0  : ELLE : nil : 2X5COR, 2X6COR
+
+Quando n_instances vale 4, n_stabilizers vale sempre 2.
+Ci sono 14 record nel nosro insieme di esempio, che cadono in 4 distinte categorie a secondo di quale sia la trasformazione di simmetria.
+
+TIPO 1  : ZSHAPE : ro180
+TIPO 2  : EDGE   : fvert : R2, R3, R4, XEDGE, CASTLE
+TIPO 3  : DIAG3  : fa1h8 : DIAG4, DIAG5, DIAG6, DIAG7, CORNER
+TIPO 4  : MACE   : fh1a8
+TIPO 5  : TAU    : fhori 
+
+Quando n_instances vale 2, n_stabilizers vale sempre 4.
+Ci sono 5 record nel nosro insieme di esempio, che cadono in 4 distinte categorie a secondo di quale siano la trasformazioni di simmetria.
+TIPO 7D : DIAG8 : ro180
+TIPO 6  : RCT2X4: ro180, fvert, fhori
+TIPO 7  : BARBEL: ro180, fh1a8, fa1h8
+TIPO 8  : COREA : ro090, ro180, ro270 : WHIRL
+
+Quando n_instances vale 1, n_stabilizers vale sempre 8.
+Esiste un solo TIPO.
+TIPO 9  : FOURC : ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8 : CORE, CORED
+
+
 
 \newpage
 

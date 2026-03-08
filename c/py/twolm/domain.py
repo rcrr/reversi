@@ -1361,4 +1361,6 @@ sample_patterns = [
     Pattern('CORE', SquareSet(0x0000001818000000)),
     Pattern('CORED', SquareSet(0x0000241818240000)),
     Pattern('COREA', SquareSet(0x000008381C100000)),
+    Pattern('WHIRL', SquareSet(0x83800000000001C1)),
+    Pattern('TAU', SquareSet(0x010101FFFF010101)),
 ]

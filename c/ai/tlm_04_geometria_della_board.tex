@@ -92,11 +92,143 @@ Le trasformazioni geometriche che agiscono sulla scacchiera del Reversi formano 
 noto come \textbf{Gruppo Diedrale di ordine 8}, indicato con il simbolo $\bm{D_4}$.
 Questo gruppo rappresenta l'insieme completo delle simmetrie di un quadrato.
 
+Il gruppo $D_4$ (gruppo delle simmetrie del quadrato) ha ordine $|D_4| = 8$. In totale, esistono \textbf{10 sottogruppi}, suddivisi come segue:
+
+\begin{itemize}
+    \item \textbf{Ordine 1:} L'identità $\{e\}$.
+    \item \textbf{Ordine 2:} 
+    \begin{itemize}
+        \item Sottogruppo generato dalla rotazione di $180^\circ$: $\langle R_{180} \rangle = \{e, R_{180}\}$.
+        \item 2 sottogruppi dalle riflessioni mediane: $\{e, S_h\}$ e $\{e, S_v\}$.
+        \item 2 sottogruppi dalle riflessioni diagonali: $\{e, S_{d1}\}$ e $\{e, S_{d2}\}$.
+    \end{itemize}
+    \item \textbf{Ordine 4:}
+    \begin{itemize}
+        \item Sottogruppo ciclico delle rotazioni: $C_4 = \{e, R_{90}, R_{180}, R_{270}\}$.
+        \item 2 sottogruppi isomorfi al gruppo di Klein $V_4$:
+        \begin{itemize}
+            \item $V_{4(m)} = \{e, R_{180}, S_h, S_v\}$ (mediane).
+            \item $V_{4(d)} = \{e, R_{180}, S_{d1}, S_{d2}\}$ (diagonali).
+        \end{itemize}
+    \end{itemize}
+    \item \textbf{Ordine 8:} Il gruppo stesso $D_4$.
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcl}
+\toprule
+\textbf{Ordine} & \textbf{Quantità} & \textbf{Descrizione} \\
+\midrule
+1 & 1 & Sottogruppo banale (Identità) \\
+2 & 5 & Riflessioni e rotazione di $180^\circ$ \\
+4 & 3 & Sottogruppo rotazionale e gruppi di Klein \\
+8 & 1 & Gruppo totale $D_4$ \\
+\midrule
+\textbf{Totale} & \textbf{10} & \\
+\bottomrule
+\end{tabular}
+\caption{Distribuzione dei sottogruppi di $D_4$}
+\end{table}
+
+\subsection{Logica e Interpretazione del Grafo dei Sottogruppi di $D_4$}
+Il grafo dei sottogruppi di $D_4$ è un \textbf{Diagramma di Hasse} che rappresenta visivamente la struttura algebrica del gruppo delle simmetrie del quadrato.
+La sua interpretazione segue regole logiche precise:
+
+Ogni segmento (linea) che congiunge un nodo inferiore $A$ a un nodo superiore $B$ indica una relazione di \textbf{inclusione}: $A \subset B$. 
+\begin{itemize}
+  \item Se esiste un percorso ascendente tra due nodi, il gruppo superiore contiene tutti gli elementi del gruppo inferiore.
+  \item Il diagramma mostra solo le inclusioni "minimali": non si tracciano linee superflue (ad esempio, dall'identità al gruppo totale) perché la relazione è transitiva.
+\end{itemize}
+
+Il grafo è strutturato verticalmente in base all'\textbf{ordine} (numero di elementi) dei sottogruppi, rispettando il \textit{Teorema di Lagrange}:
+\begin{enumerate}
+  \item \textbf{Livello 8 (Cima):} Rappresenta il gruppo $D_4$ stesso. Contiene tutte le 8 simmetrie.
+  \item \textbf{Livello 4 (Intermedio):} Contiene i sottogruppi massimali. Notiamo $C_4$ (rotazioni pure) e i due gruppi di Klein $V_4$. Ogni gruppo di questo livello contiene esattamente 3 sottogruppi di ordine 2.
+  \item \textbf{Livello 2 (Atomi):} Composti dall'identità e da un elemento invertibile (una riflessione o la rotazione di $180^\circ$). Sono i "mattoni" fondamentali del gruppo.
+  \item \textbf{Livello 1 (Base):} Il sottogruppo banale $\{e\}$.
+\end{enumerate}
+
+Osservando il grafo, si nota che il sottogruppo $\langle R_{180} \rangle$ è l'unico del livello 2 ad essere collegato a \textbf{tutti} i sottogruppi di ordine 4. 
+\[
+\{e, R_{180}\} = C_4 \cap V_{4(m)} \cap V_{4(d)}
+\]
+Logicamente, questo accade perché la rotazione di $180^\circ$ commuta con tutti gli elementi del gruppo e fa parte del \textbf{centro} di $D_4$,
+indicando che è una simmetria comune sia alle rotazioni che alle riflessioni assiali/diagonali, questo è il Ruolo Centrale di $R_{180}$.
+
+\subsection{Proprietà Algebriche Visibili}
+\begin{itemize}
+    \item \textbf{Sottogruppi Normali:} Dal grafo si può intuire quali sottogruppi siano normali ($H \trianglelefteq D_4$). Ad esempio, tutti i sottogruppi di ordine 4 sono normali in $D_4$ poiché hanno indice 2.
+    \item \textbf{Complementarietà:} Il fatto che $C_4$ e $V_4$ siano su rami diversi mostra che una riflessione non può mai essere generata da una rotazione di $90^\circ$.
+\end{itemize}
+
+\begin{figure}[h!] % 'h!' forza il posizionamento "qui" (here)
+    \centering
+    
+    \begin{tikzpicture}[node distance=2.5cm, every node/.style={fill=white, inner sep=2pt}]
+
+        % --- LIVELLO 4: Ordine 8 ---
+        \node (D4) at (0,6) {$D_4$};
+
+        % --- LIVELLO 3: Ordine 4 (Aumentata la x a -4 e 4 per spaziare) ---
+        \node (C4) at (-4.5,4) {$C_4 = \{e, R_{90}, R_{180}, R_{270}\}$};
+        \node (V4m) at (0,4) {$V_{4(m)} = \{e, R_{180}, S_h, S_v\}$};
+        \node (V4d) at (4.5,4) {$V_{4(d)} = \{e, R_{180}, S_{d1}, S_{d2}\}$};
+
+        % --- LIVELLO 2: Ordine 2 (Spaziati ulteriormente) ---
+        \node (S180) at (0,2) {$\{e, R_{180}\}$};
+        \node (Sh) at (-6,2) {$\{e, S_h\}$};
+        \node (Sv) at (-3,2) {$\{e, S_v\}$};
+        \node (Sd1) at (3,2) {$\{e, S_{d1}\}$};
+        \node (Sd2) at (6,2) {$\{e, S_{d2}\}$};
+
+        % --- LIVELLO 1: Ordine 1 ---
+        \node (e) at (0,0) {$\{e\}$};
+
+        % --- CONNESSIONI ---
+        \draw (D4) -- (C4); \draw (D4) -- (V4m); \draw (D4) -- (V4d);
+        \draw (C4) -- (S180);
+        \draw (V4m) -- (S180); \draw (V4m) -- (Sh); \draw (V4m) -- (Sv);
+        \draw (V4d) -- (S180); \draw (V4d) -- (Sd1); \draw (V4d) -- (Sd2);
+        \draw (S180) -- (e); \draw (Sh) -- (e); \draw (Sv) -- (e); \draw (Sd1) -- (e); \draw (Sd2) -- (e);
+
+    \end{tikzpicture}
+
+    \caption{Reticolo dei sottogruppi del gruppo diedrale $D_4$.}
+    \label{fig:reticoloD4}
+\end{figure}
+
+\subsection{Tabella di Cayley del Gruppo Diedrale $D_4$}
+Come si può osservare nella Tabella \ref{tab:cayley_d4}, il gruppo non è commutativo.
+La tabella seguente mostra il prodotto $G \cdot H$, dove $G$ è l'elemento della riga e $H$ l'elemento della colonna. 
+In questa rappresentazione, il prodotto segue l'ordine operativo da sinistra a destra: si applica prima la
+trasformazione $G$ e successivamente la trasformazione $H$ al risultato, ovvero $y = H(G(x))$.
+Si noti che la tabella \textbf{non è simmetrica} rispetto alla diagonale principale, a conferma che $D_4$ non è abeliano.
+
+\begin{table}[h]
+\centering
+\renewcommand{\arraystretch}{1.8} % Aumenta lo spazio verticale tra le righe
+\setlength{\tabcolsep}{10pt}      % Aumenta lo spazio orizzontale tra le colonne
+\begin{tabular}{c|cccc|cccc}
+$\cdot$ & $e$ & $r$ & $r^2$ & $r^3$ & $s_v$ & $s_h$ & $d_1$ & $d_2$ \\ \hline
+$e$     & $e$ & $r$ & $r^2$ & $r^3$ & $s_v$ & $s_h$ & $d_1$ & $d_2$ \\
+$r$     & $r$ & $r^2$ & $r^3$ & $e$   & $d_1$ & $d_2$ & $s_h$ & $s_v$ \\
+$r^2$   & $r^2$ & $r^3$ & $e$   & $r$   & $s_h$ & $s_v$ & $d_2$ & $d_1$ \\
+$r^3$   & $r^3$ & $e$   & $r$   & $r^2$ & $d_2$ & $d_1$ & $s_v$ & $s_h$ \\ \hline
+$s_v$   & $s_v$ & $d_2$ & $s_h$ & $d_1$ & $e$   & $r^2$ & $r^3$ & $r$   \\
+$s_h$   & $s_h$ & $d_1$ & $s_v$ & $d_2$ & $r^2$ & $e$   & $r$   & $r^3$ \\
+$d_1$   & $d_1$ & $s_v$ & $d_2$ & $s_h$ & $r$   & $r^3$ & $e$   & $r^2$ \\
+$d_2$   & $d_2$ & $s_h$ & $d_1$ & $s_v$ & $r^3$ & $r$   & $r^2$ & $e$   \\
+\end{tabular}
+  \caption{Tabella di Cayley del gruppo $D_4$ con evidenza delle classi di equivalenza.}
+  \label{tab:cayley_d4}
+\end{table}
+
 \subsection{Composizione del Gruppo}
 Il gruppo $G = \{T_0, T_1, \dots, T_7\}$ è composto da 8 elementi fondamentali:
 \begin{itemize}
-    \item \textbf{4 Rotazioni:} $0^\circ$ (l'elemento \textit{Identità} $e$), $90^\circ$, $180^\circ$ e $270^\circ$.
-    \item \textbf{4 Riflessioni:} Orizzontale, Verticale e le due Diagonali.
+  \item \textbf{4 Rotazioni:} $0^\circ$ (l'elemento \textit{Identità} $e$), $90^\circ$, $180^\circ$ e $270^\circ$.
+  \item \textbf{4 Riflessioni:} Orizzontale, Verticale e le due Diagonali.
 \end{itemize}
 
 \begin{table}[h]
@@ -119,6 +251,43 @@ Il gruppo $G = \{T_0, T_1, \dots, T_7\}$ è composto da 8 elementi fondamentali:
 
 L'ordine di un elemento \(T\in D_{4}\) rappresenta il ciclo di ripetizione della trasformazione geometrica.
 Gli elementi di ordine 2, detti involuzioni, sono auto-inversi (\(T=T^{-1}\)), semplificando la logica di mappatura tra istanze simmetriche.
+
+\subsection{Degenerazione del Sottogruppo $V_{4(d)}$ su Pattern Diagonali}
+Abbiamo due differenze da considerare nella similitudine che intercorre la board di reversi e il gruppo $D_4$, una sostanziale ed una più incidentale. 
+La seconda, che generalemnte trascureremo si basa sulla osservazione che la configurazione iniziale (Asimmetria di colore) i quattro dischi centrali sono disposti a "X": due bianchi e due neri incrociati.
+Questa disposizione rompe alcune simmetrie di $D_4$, ad esempio, una rotazione di 90 gradi o una riflessione assiale (orizzontale/verticale) scambia i colori dei dischi centrali.
+
+La prima, invece è basata sulla osservazione che il quadrato è una entità continua, mentre la board è discreta.
+
+Il gruppo $D_4$ agisce su un insieme di $64$ elementi distinti (le celle della board, una griglia discreta $8 \times 8$).
+Il \textit{caveat} fondamentale è che tale azione \textbf{non è libera}: la struttura a griglia impone un vincolo cinematico per cui lo spostamento di una singola cella determina univocamente il trascinamento delle altre $63$. Questa metrica rigida non è una proprietà intrinseca del gruppo $D_4$ \textit{per sé}, bensì deriva dall'\textbf{embedding} (immersione) del gruppo nella matrice discreta delle celle.
+
+In un modello geometrico continuo, tutte le riflessioni e le rotazioni ammettono punti fissi (gli assi di simmetria e il centro). Tuttavia, in una board $8 \times 8$, la discretizzazione introduce una netta distinzione tra i sottogruppi:
+
+\begin{itemize}
+    \item \textbf{Rotazioni ($C_4$):} Non ammettono celle fisse. Poiché la dimensione $n=8$ è pari, il centro di rotazione cade esattamente nell'intersezione tra quattro celle, mai sopra una di esse.
+    \item \textbf{Riflessioni Mediane ($S_h, S_v$):} Non ammettono celle fisse. Gli assi di riflessione passano \textit{tra} le righe o \textit{tra} le colonne, spostando ogni cella della scacchiera.
+    \item \textbf{L'Eccezione Diagonale:} Le riflessioni diagonali ($S_{d1}, S_{d2}$), appartenenti al sottogruppo di Klein $V_{4(d)}$, rappresentano l'unica eccezione logica. Esse sono le sole a possedere \textbf{punti fissi discreti}: ogni diagonale interseca esattamente $8$ celle che rimangono invarianti sotto l'azione di riflessione. 
+\end{itemize}
+
+Questo fenomeno rompe l'\textbf{omogeneità dell'azione} del gruppo sulla scacchiera: le diagonali agiscono come "ancore" geometriche, creando un'asimmetria fondamentale tra il comportamento dei pattern assiali e quelli diagonali.
+
+
+Sia $\mathcal{P}$ un pattern di dischi sulla board di Reversi. Definiamo il sottogruppo di simmetria del pattern come $G_{\mathcal{P}} = \{ \sigma \in D_4 \mid \sigma(\mathcal{P}) = \mathcal{P} \}$.
+
+Se il pattern $\mathcal{P}$ giace interamente sulla diagonale principale $d_1$ (ovvero tutte le celle occupate appartengono all'insieme dei punti fissi di $S_{d1}$), si verifica una \textbf{degenerazione dell'azione del gruppo}:
+
+\begin{equation}
+    S_{d1}(\mathcal{P}) \equiv e(\mathcal{P}) = \mathcal{P}
+\end{equation}
+
+Mentre $D_4$ ammette formalmente 10 sottogruppi, l'interazione con la griglia discreta $8 \times 8$ crea una distinzione fenomenologica:
+\begin{itemize}
+    \item \textbf{V4d Standard:} Agisce su pattern fuori diagonale (genera 4 istanze).
+    \item \textbf{V4d Degenerato:} Agisce su pattern diagonali, dove le riflessioni collassano nell'identità o nella rotazione di $180^\circ$.
+\end{itemize}
+In questo sottocaso, l'insieme delle trasformazioni efficaci si riduce a $\{e, R_{180}\}$, ma con la proprietà unica che $S_{d1}$ agisce come operatore neutro \textit{sul contenuto} delle celle.
+
 
 \subsection{Struttura Algebrica e Generatori}
 

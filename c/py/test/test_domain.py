@@ -41,7 +41,6 @@
 #
 
 import unittest
-import numpy.testing as npt
 
 import twolm
 import twolm.domain
@@ -49,8 +48,12 @@ import twolm.domain
 from twolm.domain import *
 
 import numpy as np
+import numpy.typing as npt  # Per i tipi (NDArray)
+import numpy.testing as nptest # Per i test (opzionale)
 
 from collections import namedtuple
+
+from typing import Callable, TypeAlias
 
 
 ar:            SquareSet = SquareSet(0x22120a0e1222221e)
@@ -79,6 +82,34 @@ half_right:    SquareSet = SquareSet(0xf0f0f0f0f0f0f0f0)
 half_top:      SquareSet = SquareSet(0x00000000ffffffff)
 half_bottom:   SquareSet = SquareSet(0xffffffff00000000)
 
+pattern_samples: dict[str, np.uint64] = {
+    'ELLE':   0x0000000000000107,
+    'ZSHAPE': 0x0000000C30000000,
+    'EDGE':   0x00000000000000FF,
+    'R2':     0x000000000000FF00,
+    'R3':     0x0000000000FF0000,
+    'R4':     0x00000000FF000000,
+    'XEDGE':  0x00000000000042FF,
+    'DIAG3':  0x0000000000010204,
+    'DIAG4':  0x0000000001020408,
+    'DIAG5':  0x0000000102040810,
+    'DIAG6':  0x0000010204081020,
+    'DIAG7':  0x0001020408102040,
+    'DIAG8':  0x0102040810204080,
+    'CORNER': 0x0000000000070707,
+    '2X5COR': 0x0000000000001F1F,
+    '2X6COR': 0x0000000000003F3F,
+    'RCT2X4': 0x0000003C3C000000,
+    'CASTLE': 0x000000000000C3FF,
+    'BARBEL': 0x030304081020C0C0,
+    'MACE':   0x010204081020C0C0,
+    'FOURC':  0x8100000000000081,
+    'CORE':   0x0000001818000000,
+    'CORED':  0x0000241818240000,
+    'COREA':  0x000008381C100000,
+    'WHIRL':  0x83800000000001C1,
+    'TAU':    0x010101FFFF010101,
+}
 
 class TestSquare(unittest.TestCase):
 
@@ -966,7 +997,7 @@ class TestPattern(unittest.TestCase):
         p = Pattern('ELLE', mask)
         self.assertEqual(p.name, 'ELLE')
         self.assertEqual(p.mask, mask)
-        npt.assert_array_equal(p.tmasks, expected_tmasks)
+        nptest.assert_array_equal(p.tmasks, expected_tmasks)
         self.assertEqual(p.squares, [Square(0), Square(1), Square(2), Square(8)])
         self.assertEqual(p.snames, ['A1', 'B1', 'C1', 'A2'])
         self.assertEqual(p.n_instances, 8)
@@ -975,10 +1006,10 @@ class TestPattern(unittest.TestCase):
         self.assertEqual(p.n_stabilizers, 1)
         
         computed_tmasks = [f(SquareSet(s)) for f, s in zip(p.trans_fs, all_masks)]
-        npt.assert_array_equal(computed_tmasks, expected_tmasks)
+        nptest.assert_array_equal(computed_tmasks, expected_tmasks)
         
         computed_all_masks = [f(SquareSet(s)) for f, s in zip(p.anti_trans_fs, expected_tmasks)]
-        npt.assert_array_equal(computed_all_masks, all_masks)
+        nptest.assert_array_equal(computed_all_masks, all_masks)
         
         # Test snames_t field
         expected_snames_t = [
@@ -1031,7 +1062,7 @@ class TestPatternPack(unittest.TestCase):
             (0x0000000000000007, 0),
             (0x0000000000000100, 5)
         ])
-        npt.assert_array_equal(expected_pack_plan, pack_plan)
+        nptest.assert_array_equal(expected_pack_plan, pack_plan)
 
         packed = [pack_ss(s, p) for s in self.square_set_list]
         expected = [
@@ -1085,7 +1116,7 @@ class TestPatternPack(unittest.TestCase):
         expected_pack_plan = np.array([
             (0x00000000000000FF, 0)
         ])
-        npt.assert_array_equal(expected_pack_plan, pack_plan)
+        nptest.assert_array_equal(expected_pack_plan, pack_plan)
 
         packed = [pack_ss(s, p) for s in self.square_set_list]
         expected = [
@@ -1139,7 +1170,7 @@ class TestPatternPack(unittest.TestCase):
         expected_pack_plan = np.array([
             (0x000000000000FF00, 8)
         ])
-        npt.assert_array_equal(expected_pack_plan, pack_plan)
+        nptest.assert_array_equal(expected_pack_plan, pack_plan)
 
         packed = [pack_ss(s, p) for s in self.square_set_list]
         expected = [
@@ -1195,7 +1226,7 @@ class TestPatternPack(unittest.TestCase):
             (0x0000000000000700, 5),
             (0x0000000000070000,10)
         ])
-        npt.assert_array_equal(expected_pack_plan, pack_plan)
+        nptest.assert_array_equal(expected_pack_plan, pack_plan)
 
         packed = [pack_ss(s, p) for s in self.square_set_list]
         expected = [
@@ -1256,7 +1287,7 @@ class TestPatternPack(unittest.TestCase):
             (0x0002000000000000, 43),
             (0x0100000000000000, 49)
         ])
-        npt.assert_array_equal(expected_pack_plan, pack_plan)
+        nptest.assert_array_equal(expected_pack_plan, pack_plan)
 
         packed = [pack_ss(s, p) for s in self.square_set_list]
         expected = [
@@ -1313,7 +1344,7 @@ class TestPatternPack(unittest.TestCase):
             (0x0100000000000000, 54),
             (0x8000000000000000, 60)
         ])
-        npt.assert_array_equal(expected_pack_plan, pack_plan)
+        nptest.assert_array_equal(expected_pack_plan, pack_plan)
 
         packed = [pack_ss(s, p) for s in self.square_set_list]
         expected = [
@@ -1399,6 +1430,8 @@ class TestPatternSymmetries(unittest.TestCase):
         TestCase(0x0000001818000000, 'CORE',   [ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8]),
         TestCase(0x0000241818240000, 'CORED',  [ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8]),
         TestCase(0x000008381C100000, 'COREA',  [ro090, ro180, ro270]),
+        TestCase(0x83800000000001C1, 'WHIRL',  [ro090, ro180, ro270]),
+        TestCase(0x010101FFFF010101, 'TAU',    [fhori]),
     ]
 
     def setUp(self):
@@ -1468,3 +1501,84 @@ class TestPatternMdpRecord(unittest.TestCase):
         )
         actual = p.mdp_record()
         self.assertEqual(actual, expected)
+
+
+class TestTransformationsCayleyTable(unittest.TestCase):
+
+    Tr: TypeAlias = Callable[[np.uint64], np.uint64]
+
+    # Transformations as described in the LaTeX paper
+    e:  Tr = SquareSet.ro000 # 0 - e   - $e$     - Identity
+    r:  Tr = SquareSet.ro090 # 1 - r   - $R_90$  - 90 degree clockwise rotation
+    r2: Tr = SquareSet.ro180 # 2 - r2  - $R_180$ - 180 degree clockwise rotation
+    r3: Tr = SquareSet.ro270 # 3 - r3  - $R_270$ - 270 degree clockwise rotation
+    sh: Tr = SquareSet.fhori # 4 - s   - $S_h$   - horizontal reflection
+    d1: Tr = SquareSet.fa1h8 # 5 - sr  - $S_d1$  - principal diag ( a1h8 ) reflection
+    sv: Tr = SquareSet.fvert # 6 - sr2 - $S_v$   - vertical reflection
+    d2: Tr = SquareSet.fh1a8 # 7 - sr3 - $S_d2$  - secondary diag ( a8h1 ) reflection
+
+    trl: list[Tr] = [e, r, r2, r3, sv, sh, d1, d2]
+    trs = np.array(trl, dtype=object)
+    # Mapping between the ordering of transformations. See SquareSet.transformation() documentation.
+    trm = np.array([0, 1, 2, 3, 4, 6, 7, 5], dtype=np.int8)
+
+    def transformations(self, s: np.uint64) -> npt.NDArray[np.uint64]:
+        r = np.array([f(s) for f in self.trl], dtype=np.uint64)
+        return r
+
+    cayley_list: list[Tr] = [
+        [  e,  r, r2, r3, sv, sh, d1, d2 ],
+        [  r, r2, r3, e,  d1, d2, sh, sv ],
+        [ r2, r3,  e, r,  sh, sv, d2, d1 ],
+        [ r3,  e,  r, r2, d2, d1, sv, sh ],
+        [ sv, d2, sh, d1,  e, r2, r3,  r ],
+        [ sh, d1, sv, d2, r2,  e,  r, r3 ],
+        [ d1, sv, d2, sh,  r, r3,  e, r2 ],
+        [ d2, sh, d1, sv, r3,  r, r2,  e ],
+    ]
+    cayley = np.array(cayley_list, dtype=object)
+
+    def verify_cayley_table(self, data: np.uint64):
+        """
+        Validates the entire Cayley table against functional composition 
+        for a specific input state.
+        
+        Order of operation: G (row i) is applied first, then H (column j).
+        Equivalent to: y = H(G(data))
+        """
+        for i in range(8):
+            for j in range(8):
+                # Expected result from the pre-computed Cayley table
+                expected = self.cayley[i, j](data)
+                
+                # Computed result applying transformations in sequence: G then H
+                # trs[i] is G (row), trs[j] is H (column)
+                computed = self.trs[j](self.trs[i](data))
+                
+                self.assertEqual(
+                    computed, 
+                    expected,
+                    (
+                        f"Cayley consistency error at indices [{i},{j}]:\n"
+                        f"Input: {data}\n"
+                        f"Table says: {self.cayley[i, j].__name__}\n"
+                        f"Code computed: {self.trs[j].__name__}({self.trs[i].__name__}(data))"
+                    ))
+
+    def test_the_cog_is_working(self):
+        computed = self.transformations(ar)
+        expected = ar.transformations()
+        nptest.assert_array_equal(computed, expected[self.trm])
+
+    def test_cayley_with_ar(self):
+        self.verify_cayley_table(ar)
+
+    def test_cayley_with_multiple_input(self):
+        tcs = [full, empty, sqa1, sqa8, sqh1, sqh8, row_1, row_8, column_a, column_h, half_left, half_right, half_top, half_bottom]
+        for s in tcs:
+            self.verify_cayley_table(s)
+
+    def test_cayley_with_sample_patterns(self):
+        tcs = list(pattern_samples.values())
+        for s in tcs:
+            self.verify_cayley_table(SquareSet(s))
