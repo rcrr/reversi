@@ -1378,7 +1378,7 @@ class TestPatternSymmetries(unittest.TestCase):
     TestCase = namedtuple('TestCase', ['mask', 'name', 'expected'])
     test_data = [
         TestCase(0x0000000000000107, 'ELLE',   []),
-        TestCase(0x0000000C30000000, 'ZSHAPE', [ro180]),
+        TestCase(0x0000000C30000000, 'SNAKE',  [ro180]),
         TestCase(0x00000000000000FF, 'EDGE',   [fvert]),
         TestCase(0x000000000000FF00, 'R2',     [fvert]),
         TestCase(0x0000000000FF0000, 'R3',     [fvert]),
@@ -1402,7 +1402,11 @@ class TestPatternSymmetries(unittest.TestCase):
         TestCase(0x0000241818240000, 'CORED',  [ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8]),
         TestCase(0x000008381C100000, 'COREA',  [ro090, ro180, ro270]),
         TestCase(0x83800000000001C1, 'WHIRL',  [ro090, ro180, ro270]),
-        TestCase(0x010101FFFF010101, 'TAU',    [fhori]),
+        #TestCase(0x010101FFFF010101, 'TAU',    [fhori]),
+        TestCase(0x010100C1C1000101, 'TAU',    [fhori]),
+        TestCase(0x0000000000000001, 'DOTA1',  []),
+        TestCase(0x0000000000000002, 'DOTB1',  []),
+        TestCase(0x0000000000000201, 'TWOND',  []),
     ]
 
     def setUp(self):
@@ -1552,3 +1556,19 @@ class TestTransformationsCayleyTable(unittest.TestCase):
     def test_cayley_with_sample_patterns(self):
         for p in sample_patterns:
             self.verify_cayley_table(p.mask)
+
+#
+# [I0, T1, T2, T3, T4, T5, T6, T7] : ELLE, 2X5COR, 2X6COR
+# [I0, T1, S0, S1, T4, T5, S4, S5] : SNAKE
+# [I0, T1, T2, T3, S0, S1, S2, S3] : EDGE, R2, r3, R4, XEDGE, CASTLE
+# [I0, T1, T2, T3, S1, S2, S3, S0] : DIAG3, DIAG4, DIAG5, DIAG6, DIAG7, CORNER
+# [I0, T1, S0, S1, I3, I0, I1, I2] : DIAG8
+# [I0, T1, S0, S1, S0, S1, S0, S1] : RCT2X4
+# [I0, T1, S0, S1, S1, S0, S1, S0] : BARBEL
+# [I0, T1, T2, T3, S3, S0, S1, S2] : MACE
+# [I0, S0, S0, S0, S0, S0, S0, S0] : FOURC, CORE, CORED
+# [I0, S0, S0, S0, T4, S4, S4, S4] : COREA, WHIRL
+# [I0, T1, T2, T3, S2, S3, S0, S1] : TAU
+#
+# New test to be added to verify the fingerprints for patterns.
+#

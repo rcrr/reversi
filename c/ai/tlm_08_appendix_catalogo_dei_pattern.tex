@@ -92,20 +92,50 @@
 
 In questa appendice vengono visualizzati i pattern principali utilizzati dal sistema. Per ogni pattern sono mostrate le 8 trasformazioni del gruppo $D_4$. I numeri all'interno delle celle indicano l'indice di packing progressivo (0, 1, 2, ...) all'interno del pattern, permettendo di tracciare visivamente la permutazione delle celle sotto ogni trasformazione.
 
-Commenti poi da sistemare:
+I Pattern sono categorizzati secondo i Sottogruppi di $D_4$ e propongono un set esaustivo delle casistiche esistenti.
 
-Abbiamo 26 record nel db di sample.
+\begin{enumerate}
+  \item \textbf{Livello 8 (Cima):} Rappresenta il gruppo $D_4$ stesso. Contiene tutte le 8 simmetrie.
+  \item \textbf{Livello 4 (Intermedio):} Contiene i sottogruppi massimali. Notiamo $C_4$ (rotazioni pure) e i due gruppi di Klein $V_4$. Ogni gruppo di questo livello contiene esattamente 3 sottogruppi di ordine 2.
+  \item \textbf{Livello 2 (Atomi):} Composti dall'identità e da un elemento invertibile (una riflessione o la rotazione di $180^\circ$). Sono i "mattoni" fondamentali del gruppo.
+  \item \textbf{Livello 1 (Base):} Il sottogruppo banale $\{e\}$.
+\end{enumerate}
 
+\begin{table}[h]
+  \centering
+  \newcolumntype{M}{>{\ttfamily}l}
+  \begin{tabular}{lclMlll}
+    \toprule
+    \textbf{Tipo} & \textbf{Livello} & \textbf{Pattern} & \multicolumn{1}{l}{\textbf{Fingerprint}} & \textbf{Simmetrie} & \textbf{Orbite} & \textbf{Stab} \\
+    \midrule
+    0  & 1 & ELLE   & [I0, T1, T2, T3, T4, T5, T6, T7] & ${\{e\}}$         & 8 & 1 \\
+    1  & 2 & SNAKE  & [I0, T1, S0, S1, T4, T5, S4, S5] & ${\{e, R_{180}\}}$ & 4 & 2 \\
+    2  & 2 & EDGE   & [I0, T1, T2, T3, S0, S1, S2, S3] & ${\{e, S_v\}}$     & 4 & 2 \\
+    3  & 2 & DIAG3  & [I0, T1, T2, T3, S1, S2, S3, S0] & ${\{e, S_{d2}\}}$  & 4 & 2 \\
+    3D & 2 & DOTA1  & [I0, T1, T2, T3, I1, I2, I3, I0] & ${\{e\}}$          & 4 & 2 \\
+    4  & 2 & TAU    & [I0, T1, T2, T3, S2, S3, S0, S1] & ${\{e, S_h\}}$     & 4 & 2 \\
+    5  & 2 & MACE   & [I0, T1, T2, T3, S3, S0, S1, S2] & ${\{e, S_{d1}\}}$  & 4 & 2 \\
+    6  & 4 & COREA  & [I0, S0, S0, S0, T4, S4, S4, S4] & ${C_4}$            & 2 & 4 \\
+    7  & 4 & BARBEL & [I0, T1, S0, S1, S1, S0, S1, S0] & ${V_{4(d)}}$        & 2 & 4 \\
+    7D & 4 & DIAG8  & [I0, T1, S0, S1, I3, I0, I1, I2] & ${\{e, R_{180}\}}$  & 2 & 4 \\
+    8  & 4 & RCT2X4 & [I0, T1, S0, S1, S0, S1, S0, S1] & ${V_{4(m)}}$        & 2 & 4 \\
+    9  & 8 & CORE   & [I0, S0, S0, S0, S0, S0, S0, S0] & ${D_4}$            & 1 & 8 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Categorizzazione dei Pattern}
+\end{table}
+
+Livello 1 (Base)
 Quando n_instances (orbite) vale 8, n_stabilizers (stabilizzatori) vale sempre 1.
 Questo e' il tipo di patetrn piu diffuso, TIPO 0. Nessuna simmetria.
 Le funzioni di trasformazione (trans_fs) sono 8, e sono sempre le stesse 8.
-Le funzioni di simmetria sono nessuna.
+Non ci sono simmetrie.
 TIPO 0  : ELLE : nil : 2X5COR, 2X6COR
 
 Quando n_instances vale 4, n_stabilizers vale sempre 2.
 Ci sono 14 record nel nosro insieme di esempio, che cadono in 4 distinte categorie a secondo di quale sia la trasformazione di simmetria.
 
-TIPO 1  : ZSHAPE : ro180
+TIPO 1  : SNAKE  : ro180
 TIPO 2  : EDGE   : fvert : R2, R3, R4, XEDGE, CASTLE
 TIPO 3  : DIAG3  : fa1h8 : DIAG4, DIAG5, DIAG6, DIAG7, CORNER
 TIPO 4  : MACE   : fh1a8
@@ -122,6 +152,26 @@ Quando n_instances vale 1, n_stabilizers vale sempre 8.
 Esiste un solo TIPO.
 TIPO 9  : FOURC : ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8 : CORE, CORED
 
+[I0, T1, T2, T3, T4, T5, T6, T7] : ELLE, 2X5COR, 2X6COR, DOTB1
+[I0, T1, S0, S1, T4, T5, S4, S5] : SNAKE
+[I0, T1, T2, T3, S0, S1, S2, S3] : EDGE, R2, r3, R4, XEDGE, CASTLE
+[I0, T1, T2, T3, S1, S2, S3, S0] : DIAG3, DIAG4, DIAG5, DIAG6, DIAG7, CORNER
+[I0, T1, S0, S1, I3, I0, I1, I2] : DIAG8
+[I0, T1, S0, S1, S0, S1, S0, S1] : RCT2X4
+[I0, T1, S0, S1, S1, S0, S1, S0] : BARBEL
+[I0, T1, T2, T3, S3, S0, S1, S2] : MACE
+[I0, S0, S0, S0, S0, S0, S0, S0] : FOURC, CORE, CORED
+[I0, S0, S0, S0, T4, S4, S4, S4] : COREA, WHIRL
+[I0, T1, T2, T3, S2, S3, S0, S1] : TAU
+[I0, T1, T2, T3, I1, I2, I3, I0] : DOTA1, TWOND
+
+Livello 8:
+TIPO 0 : D4 : [] : ELLE, 2X5COR, 2X6COR
+
+Livello 4:
+TIPO 1 : C4  :
+TIPO 2 : V4m :
+TIPO 3 : V4d :
 
 
 \newpage

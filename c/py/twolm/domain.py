@@ -51,6 +51,8 @@ from __future__ import annotations
 
 import numpy as np
 
+from enum import Enum
+
 from typing import Self, Callable, Any, Union, TypeVar
 
 __all__ = ['Square', 'Move', 'SquareSet', 'Board', 'Pattern', 'pack_ss', 'unpack_ss', 'sample_patterns']
@@ -965,6 +967,67 @@ class Board:
         to = self.opponent.anti_transformations()
         return np.array([Board(SquareSet(m), SquareSet(o)) for m, o in zip(tm, to)])
 
+class PatternType(Enum):
+    TYPE_0 = (
+        ("I0", "T1", "T2", "T3", "T4", "T5", "T6", "T7"), 
+        {"type": "0", "sample_mask": 0x0000000000000107, "sample_name": "ELLE", "level": 1, "n_instances": 8, "n_stabilizers": 1}
+    )
+    TYPE_1 = (
+        ("I0", "T1", "S0", "S1", "T4", "T5", "S4", "S5"), 
+        {"type": "1", "sample_mask": 0x0000000c30000000, "sample_name": "SNAKE", "level": 2, "n_instances": 4, "n_stabilizers": 2}
+    )
+    TYPE_2 = (
+        ("I0", "T1", "T2", "T3", "S0", "S1", "S2", "S3"),
+        {"type": "2", "sample_mask": 0x00000000000000ff, "sample_name": "EDGE", "level": 2, "n_instances": 4, "n_stabilizers": 2}
+    )
+    TYPE_3 = (
+        ("I0", "T1", "T2", "T3", "S1", "S2", "S3", "S0"),
+        {"type": "3", "sample_mask": 0x0000000000010204, "sample_name": "DIAG3", "level": 2, "n_instances": 4, "n_stabilizers": 2}
+     )
+    TYPE_3D = (
+        ("I0", "T1", "T2", "T3", "I1", "I2", "I3", "I0"),
+        {"type": "3D", "sample_mask": 0x0000000000000001, "sample_name": "DOTA1", "level": 2, "n_instances": 4, "n_stabilizers": 2}        
+    )
+    TYPE_4 = (
+        ("I0", "T1", "T2", "T3", "S2", "S3", "S0", "S1"),
+        {"type": "4", "sample_mask": 0x010100c1c1000101, "sample_name": "TAU", "level": 2, "n_instances": 4, "n_stabilizers": 2}
+    )
+    TYPE_5 = (
+        ("I0", "T1", "T2", "T3", "S3", "S0", "S1", "S2"),
+        {"type": "5", "sample_mask": 0x010204081020c0c0, "sample_name": "MACE", "level": 2, "n_instances": 4, "n_stabilizers": 2}
+    )
+    TYPE_6 = (
+        ("I0", "S0", "S0", "S0", "T4", "S4", "S4", "S4"),
+        {"type": "6", "sample_mask": 0x000008381c100000, "sample_name": "COREA", "level": 4, "n_instances": 2, "n_stabilizers": 4}
+    )
+    TYPE_7 = (
+        ("I0", "T1", "S0", "S1", "S1", "S0", "S1", "S0"),
+        {"type": "7", "sample_mask": 0x030304081020c0c0, "sample_name": "BARBEL", "level": 4, "n_instances": 2, "n_stabilizers": 4}
+    )
+    TYPE_7D = (
+        ("I0", "T1", "S0", "S1", "I3", "I0", "I1", "I2"),
+        {"type": "7D", "sample_mask": 0x0102040810204080, "sample_name": "DIAG8", "level": 4, "n_instances": 2, "n_stabilizers": 4}
+    )
+    TYPE_8 = (
+        ("I0", "T1", "S0", "S1", "S0", "S1", "S0", "S1"),
+        {"type": "8", "sample_mask": 0x0000003c3c000000, "sample_name": "RCT2X4", "level": 4, "n_instances": 2, "n_stabilizers": 4}
+    )
+    TYPE_9 = (
+        ("I0", "S0", "S0", "S0", "S0", "S0", "S0", "S0"),
+        {"type": "9", "sample_mask": 0x0000001818000000, "sample_name": "CORE", "level": 8, "n_instances": 1, "n_stabilizers": 8}
+    )
+    # ADD ALL PATTERN TYPES ....
+
+    def __init__(self, fingerprint, data):
+        self.fingerprint = tuple(fingerprint)
+        self.data = data
+
+    @classmethod
+    def from_fingerprint(cls, fingerprint):
+        if not hasattr(cls, "_lookup"):
+            cls._lookup = {item.fingerprint: item for item in cls}
+        return cls._lookup.get(tuple(fingerprint))
+
 
 class Pattern:
     """
@@ -1176,6 +1239,43 @@ class Pattern:
 
         # Compute transformed cell names for each instance
         self._compute_transformed_cells()
+        self.squares_ts = [sorted(l) for l in self.squares_t]
+
+        # - Fingerprint
+        self.fingerprint: list[str | None] = [None] * 8
+        self.fingerprint[0] = "I0"
+        for i in range (1, 8):
+            transformed_squares = self.squares_t[i]
+            sorted_transformed_squares = self.squares_ts[i]
+            found_i = False
+            found_s = False
+            pos_i = -1
+            pos_s = -1
+            for j in range (0, i):
+                if not found_i and transformed_squares == self.squares_t[j]:
+                    found_i = True
+                    pos_i = j
+                if not found_s and sorted_transformed_squares == self.squares_ts[j]:
+                    found_s = True
+                    pos_s = j
+            if found_i:
+                marker = f"I{pos_i}"
+            elif found_s:
+                marker = f"S{pos_s}"
+            else:
+                marker = f"T{i}"
+            self.fingerprint[i] = marker
+        # - Fingerprint.
+
+        self.type_info = PatternType.from_fingerprint(self.fingerprint)
+        
+        if self.type_info is None:
+            message = (
+                f"\n"
+                f"  Name = {self.name}, mask = 0x{self.mask:016x}\n"
+                f"  Fingerprint: [{', '.join(f'{fp}' for fp in self.fingerprint)}]\n"
+            )
+            raise ValueError(f"The pattern fingerprint has not been found: {message}")
 
         # Invariance check
         self._check_invariances()
@@ -1215,6 +1315,7 @@ class Pattern:
         original_cells = self.snames
         
         # Initialize list for each transformation
+        self.squares_t = [[] for _ in range(8)]
         self.snames_t = [[] for _ in range(8)]
         
         # Apply each transformation to the entire pattern mask
@@ -1235,12 +1336,16 @@ class Pattern:
                 if transformed_sq != 0:
                     # Find the bit position
                     pos = SquareSet(transformed_sq).bsr()
+                    transformed_cell = Square(pos)
                     # Convert back to square name
-                    transformed_cell = Square(pos).to_str().lower()
+                    transformed_cell_name = Square(pos).to_str().lower()
                 else:
-                    transformed_cell = ""
-                self.snames_t[j].append(transformed_cell)
-
+                    transformed_cell = None
+                    transformed_cell_name = ""
+                if transformed_cell is not None:
+                    self.squares_t[j].append(int(transformed_cell))
+                self.snames_t[j].append(transformed_cell_name)
+                
     def mdp_record(self) -> str:
         """
         Returns a string representation of the pattern in CSV format.
@@ -1268,14 +1373,17 @@ class Pattern:
         symmetry_fs_labels = [SquareSet.transformation_labels[i] for i in self.unique_symmetric_instance_indexes]
         print(f"[Pattern: name = {self.name}, mask = 0x{self.mask:016x}]")
         print(f"  [n_squares = {self.n_squares}, n_configurations = {self.n_configurations}, n_instances = {self.n_instances}, n_stabilizers = {self.n_stabilizers}]")
-        print(f"  Cells:               [{', '.join(f'{cn}' for cn in self.snames)}]")
-        print(f"  Transformed masks:   [{', '.join(f'0x{x:016X}' for x in self.tmasks)}]")
-        print(f"  Mask indexes:        [{', '.join(f'{x}' for x in self.mask_indexes)}]")
-        print(f"  Unique masks:        [{', '.join(f'0x{x:016X}' for x in self.unique_masks)}]")
-        print(f"  Unique mask indexes: [{', '.join(f'{x}' for x in self.unique_mask_indexes)}]")
-        print(f"  Transf. functions:   [{', '.join(f'{fn}' for fn in trans_fs_labels)}]")
-        print(f"  Anti-transf. f.:     [{', '.join(f'{fn}' for fn in anti_trans_fs_labels)}]")
-        print(f"  Symmetry functions:  [{', '.join(f'{fn}' for fn in symmetry_fs_labels)}]")
+        print(f"  Cells:                [{', '.join(f'{cn}' for cn in self.snames)}]")
+        print(f"  Transformed masks:    [{', '.join(f'0x{x:016X}' for x in self.tmasks)}]")
+        print(f"  Mask indexes:         [{', '.join(f'{x}' for x in self.mask_indexes)}]")
+        print(f"  Unique masks:         [{', '.join(f'0x{x:016X}' for x in self.unique_masks)}]")
+        print(f"  Unique mask indexes:  [{', '.join(f'{x}' for x in self.unique_mask_indexes)}]")
+        print(f"  Transf. functions:    [{', '.join(f'{fn}' for fn in trans_fs_labels)}]")
+        print(f"  Anti-transf. f.:      [{', '.join(f'{fn}' for fn in anti_trans_fs_labels)}]")
+        print(f"  Symmetry functions:   [{', '.join(f'{fn}' for fn in symmetry_fs_labels)}]")
+        print(f"  Transformed cells:    [{', '.join(f'{l}' for l in self.squares_t)}]")
+        print(f"  Transf. sorted cells: [{', '.join(f'{l}' for l in self.squares_ts)}]")
+        print(f"  Fingerprint:          [{', '.join(f'{fp}' for fp in self.fingerprint)}]")
 
 
 def pack_ss(s: np.uint64, p: Pattern) -> np.uint64:
@@ -1339,7 +1447,7 @@ def unpack_ss(packed_val: np.uint64, p: Pattern) -> np.uint64:
 #
 sample_patterns = [
     Pattern('ELLE',   SquareSet(0x0000000000000107)),
-    Pattern('ZSHAPE', SquareSet(0x0000000C30000000)),
+    Pattern('SNAKE',  SquareSet(0x0000000C30000000)),
     Pattern('EDGE',   SquareSet(0x00000000000000FF)),
     Pattern('R2',     SquareSet(0x000000000000FF00)),
     Pattern('R3',     SquareSet(0x0000000000FF0000)),
@@ -1363,5 +1471,8 @@ sample_patterns = [
     Pattern('CORED',  SquareSet(0x0000241818240000)),
     Pattern('COREA',  SquareSet(0x000008381C100000)),
     Pattern('WHIRL',  SquareSet(0x83800000000001C1)),
-    Pattern('TAU',    SquareSet(0x010101FFFF010101)),
+    Pattern('TAU',    SquareSet(0x010100C1C1000101)),
+    Pattern('DOTA1',  SquareSet(0x0000000000000001)),
+    Pattern('DOTB1',  SquareSet(0x0000000000000002)),
+    Pattern('TWOND',  SquareSet(0x0000000000000201)),
 ]
