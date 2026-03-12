@@ -1078,6 +1078,25 @@ class Pattern:
                                 after applying each of the 8 possible transformations.
                                 Each row snames_t[i] contains the names of the squares as they appear in the pattern
                                 after transformation i, preserving the original ordering of squares within the pattern.
+
+    8. Transformed Cell Indices
+    squares_t (list[list[int]]): A 2D array of shape (8, n_squares) containing the indices of pattern squares
+                                 after applying each of the 8 possible transformations.
+                                 Each row squares_t[i] contains the indices of the squares as they appear in the pattern
+                                 after transformation i, preserving the original ordering of squares within the pattern.
+
+    9. Transformed Cell Indices Sorted
+    squares_ts (list[list[int]]): A 2D array of shape (8, n_squares) containing the indices of pattern squares
+                                  after applying each of the 8 possible transformations, sorted.
+                                  Each row squares_ts[i] contains the indices of the squares as they appear in the pattern
+                                  after transformation i, sorted in ascending order.
+
+    10. Fingerprint
+    fingerprint (list[str]): A list of 8 strings that represent the configuration of the pattern under each of the 8 transformations.
+                             Each string can be "I0", "T1", "S0", etc., indicating whether the transformation is identical, transposed, or symmetric relative to the original configuration.
+
+    11. Type Information
+    type_info (PatternType): An object of PatternType that represents the type of pattern, based on its fingerprint.
     """
 
     @classmethod
@@ -1105,7 +1124,8 @@ class Pattern:
                 "name,mask,"
                 "n_squares,n_configurations,n_instances,n_stabilizers,"
                 "cells,tmasks,mask_indexes,unique_masks,unique_mask_indexes,tr,at,sf,"
-                "cells_t0,cells_t1,cells_t2,cells_t3,cells_t4,cells_t5,cells_t6,cells_t7"
+                "cells_t0,cells_t1,cells_t2,cells_t3,cells_t4,cells_t5,cells_t6,cells_t7,"
+                "fingerprint,type"
             )
             f.write(header + "\n")
             for pattern in patterns:
@@ -1354,6 +1374,7 @@ class Pattern:
         trans_fs_labels = [SquareSet.transformation_labels[i] for i in self.unique_mask_indexes]
         anti_trans_fs_labels = [SquareSet.anti_transformation_labels[i] for i in self.unique_mask_indexes]
         symmetry_fs_labels = [SquareSet.transformation_labels[i] for i in self.unique_symmetric_instance_indexes]
+        ptype = self.type_info.data["type"]
         return (
             f"{self.name},{self.mask:016X},{self.n_squares},{self.n_configurations}"
             f",{self.n_instances},{self.n_stabilizers},{':'.join(self.snames)}"
@@ -1365,14 +1386,17 @@ class Pattern:
             f",{':'.join(f'{fn}' for fn in anti_trans_fs_labels)}"
             f",{':'.join(f'{fn}' for fn in symmetry_fs_labels)}"
             f",{','.join(':'.join(self.snames_t[i]) for i in range(8))}"
+            f",{':'.join(f'{fp}' for fp in self.fingerprint)}"
+            f",{ptype}"
         )
 
     def print(self) -> None:
         trans_fs_labels = [SquareSet.transformation_labels[i] for i in self.unique_mask_indexes]
         anti_trans_fs_labels = [SquareSet.anti_transformation_labels[i] for i in self.unique_mask_indexes]
         symmetry_fs_labels = [SquareSet.transformation_labels[i] for i in self.unique_symmetric_instance_indexes]
+        ptype = self.type_info.data["type"]
         print(f"[Pattern: name = {self.name}, mask = 0x{self.mask:016x}]")
-        print(f"  [n_squares = {self.n_squares}, n_configurations = {self.n_configurations}, n_instances = {self.n_instances}, n_stabilizers = {self.n_stabilizers}]")
+        print(f"  [n_squares = {self.n_squares}, n_configurations = {self.n_configurations}, n_instances = {self.n_instances}, n_stabilizers = {self.n_stabilizers}, type = {ptype}]")
         print(f"  Cells:                [{', '.join(f'{cn}' for cn in self.snames)}]")
         print(f"  Transformed masks:    [{', '.join(f'0x{x:016X}' for x in self.tmasks)}]")
         print(f"  Mask indexes:         [{', '.join(f'{x}' for x in self.mask_indexes)}]")

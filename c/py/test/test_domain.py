@@ -1425,7 +1425,7 @@ class TestPatternSymmetries(unittest.TestCase):
                 mask = SquareSet(mask_val)
                 p = Pattern(name, mask)
 
-                if True:
+                if False:
                     print()
                     p.print()
 
@@ -1452,7 +1452,9 @@ class TestPatternMdpRecord(unittest.TestCase):
             "ro000:ro270:ro180:ro090:fvert:fh1a8:fhori:fa1h8,"
             ","
             "a1:b1:c1:a2,h1:h2:h3:g1,h8:g8:f8:h7,a8:a7:a6:b8,"
-            "h1:g1:f1:h2,h8:h7:h6:g8,a8:b8:c8:a7,a1:a2:a3:b1"
+            "h1:g1:f1:h2,h8:h7:h6:g8,a8:b8:c8:a7,a1:a2:a3:b1,"
+            "I0:T1:T2:T3:T4:T5:T6:T7,"
+            "0"
         )
         actual = p.mdp_record()
         self.assertEqual(actual, expected)
@@ -1472,7 +1474,9 @@ class TestPatternMdpRecord(unittest.TestCase):
             "a1:b1:c1:d1:e1:f1:g1:h1,h1:h2:h3:h4:h5:h6:h7:h8,"
             "h8:g8:f8:e8:d8:c8:b8:a8,a8:a7:a6:a5:a4:a3:a2:a1,"
             "h1:g1:f1:e1:d1:c1:b1:a1,h8:h7:h6:h5:h4:h3:h2:h1,"
-            "a8:b8:c8:d8:e8:f8:g8:h8,a1:a2:a3:a4:a5:a6:a7:a8"
+            "a8:b8:c8:d8:e8:f8:g8:h8,a1:a2:a3:a4:a5:a6:a7:a8,"
+            "I0:T1:T2:T3:S0:S1:S2:S3,"
+            "2"
         )
         actual = p.mdp_record()
         self.assertEqual(actual, expected)
@@ -1557,18 +1561,3 @@ class TestTransformationsCayleyTable(unittest.TestCase):
         for p in sample_patterns:
             self.verify_cayley_table(p.mask)
 
-#
-# [I0, T1, T2, T3, T4, T5, T6, T7] : ELLE, 2X5COR, 2X6COR
-# [I0, T1, S0, S1, T4, T5, S4, S5] : SNAKE
-# [I0, T1, T2, T3, S0, S1, S2, S3] : EDGE, R2, r3, R4, XEDGE, CASTLE
-# [I0, T1, T2, T3, S1, S2, S3, S0] : DIAG3, DIAG4, DIAG5, DIAG6, DIAG7, CORNER
-# [I0, T1, S0, S1, I3, I0, I1, I2] : DIAG8
-# [I0, T1, S0, S1, S0, S1, S0, S1] : RCT2X4
-# [I0, T1, S0, S1, S1, S0, S1, S0] : BARBEL
-# [I0, T1, T2, T3, S3, S0, S1, S2] : MACE
-# [I0, S0, S0, S0, S0, S0, S0, S0] : FOURC, CORE, CORED
-# [I0, S0, S0, S0, T4, S4, S4, S4] : COREA, WHIRL
-# [I0, T1, T2, T3, S2, S3, S0, S1] : TAU
-#
-# New test to be added to verify the fingerprints for patterns.
-#
