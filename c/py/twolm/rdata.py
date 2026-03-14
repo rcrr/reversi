@@ -27,6 +27,48 @@
 
 from twolm.domain import *
 
-__all__ = ["rdata_test"]
+import psycopg2 as pg
 
-rdata_test = True
+
+__all__ = ["RegabDBConnection"]
+
+
+class RegabDBConnection():
+    """
+    A regab database connection wraps the psycopg2 connection object.
+    The object could be created directly with the constructor or better using the 
+    new_from_config class method.
+    """
+    def __init__(self, dbname: str, user: str, host: str, port='5432', password=None):
+        if not isinstance(dbname, str):
+            raise TypeError('Argument dbname is not an instance of str')
+        if not isinstance(user, str):
+            raise TypeError('Argument user is not an instance of str')
+        if not isinstance(host, str):
+            raise TypeError('Argument host is not an instance of str')
+        if not isinstance(port, str):
+            raise TypeError('Argument port is not an instance of str')
+        self.dbname = dbname
+        self.user = user
+        self.host = host
+        self.port = port
+        self.password = password
+        if dbname != '':
+            cs = 'dbname={:s} user={:s} host={:s} port={:s}'.format(self.dbname,
+                                                                    self.user,
+                                                                    self.host,
+                                                                    self.port)
+            if self.password:
+                cs = cs + ' password={:s}'.format(self.password)
+            self._connect_string = cs
+            self.conn = pg.connect(self._connect_string)
+            with self.conn.cursor() as curs:
+                curs.execute("SET search_path TO reversi;")
+
+    def close(self):
+        """
+        Closes the db connection.
+        """
+        if self.conn:
+            self.conn.close()
+
