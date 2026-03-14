@@ -53,6 +53,8 @@ import numpy as np
 import numpy.typing as npt
 import numpy.testing as nptest
 
+import pandas as pd
+
 import os
 from dotenv import load_dotenv
 
@@ -231,3 +233,189 @@ class TestRegabGPExtract(BaseTestCase):
             expected_count = int(expected_count_prop)
             self.assertEqual(len(positions), expected_count, "The DataFrame has the wrong len.")
 
+class TestRegabDataSet(BaseTestCase):
+
+    def test_valid_initialization(self):
+        """
+        Tests the correct initialization of the RegabDataSet class with valid parameters.
+        """
+        bid = [1, 2]
+        status = ['CMS', 'CMR']
+        ec = 10
+        positions = pd.DataFrame({
+            'mover': [1, 2],
+            'opponent': [3, 4],
+            'game_value': [5, 6]
+        }).astype({
+            'mover': 'int64', 
+            'opponent': 'int64', 
+            'game_value': 'int8'
+        })
+
+        dataset = RegabDataSet(bid, status, ec, positions)
+
+        self.assertEqual(dataset.bid, bid)
+        self.assertEqual(dataset.status, status)
+        self.assertEqual(dataset.ec, ec)
+        self.assertEqual(dataset.positions.equals(positions), True)
+        self.assertEqual(dataset.len, len(positions))
+
+    def test_invalid_bid_type(self):
+        """
+        Tests that a TypeError is raised if bid is not a list of integers.
+        """
+        bid = 'not_a_list'
+        status = ['CMS', 'CMR']
+        ec = 10
+        positions = pd.DataFrame({
+            'mover': [1, 2],
+            'opponent': [3, 4],
+            'game_value': [5, 6]
+        }).astype({
+            'mover': 'int64', 
+            'opponent': 'int64', 
+            'game_value': 'int8'
+        })
+
+
+    def test_invalid_bid_value(self):
+        """
+        Tests that a ValueError is raised if bid contains negative integers.
+        """
+        bid = [-1, 2]
+        status = ['CMS', 'CMR']
+        ec = 10
+        positions = pd.DataFrame({
+            'mover': [1, 2],
+            'opponent': [3, 4],
+            'game_value': [5, 6]
+        }).astype({
+            'mover': 'int64', 
+            'opponent': 'int64', 
+            'game_value': 'int8'
+        })
+        with self.assertRaises(ValueError):
+            RegabDataSet(bid, status, ec, positions)
+
+    def test_invalid_status_type(self):
+        """
+        Tests that a TypeError is raised if status is not a list of strings.
+        """
+        bid = [1, 2]
+        status = 'not_a_list'
+        ec = 10
+        positions = pd.DataFrame({
+            'mover': [1, 2],
+            'opponent': [3, 4],
+            'game_value': [5, 6]
+        }).astype({
+            'mover': 'int64', 
+            'opponent': 'int64', 
+            'game_value': 'int8'
+        })
+        with self.assertRaises(TypeError):
+            RegabDataSet(bid, status, ec, positions)
+
+    def test_invalid_status_length(self):
+        """
+        Tests that a ValueError is raised if status contains strings not of length 3.
+        """
+        bid = [1, 2]
+        status = ['CMS', 'CM']
+        ec = 10
+        positions = pd.DataFrame({
+            'mover': [1, 2],
+            'opponent': [3, 4],
+            'game_value': [5, 6]
+        }).astype({
+            'mover': 'int64', 
+            'opponent': 'int64', 
+            'game_value': 'int8'
+        })
+        with self.assertRaises(ValueError):
+            RegabDataSet(bid, status, ec, positions)
+
+    def test_invalid_ec_type(self):
+        """
+        Tests that a TypeError is raised if ec is not an integer.
+        """
+        bid = [1, 2]
+        status = ['CMS', 'CMR']
+        ec = 'not_an_int'
+        positions = pd.DataFrame({
+            'mover': [1, 2],
+            'opponent': [3, 4],
+            'game_value': [5, 6]
+        }).astype({
+            'mover': 'int64', 
+            'opponent': 'int64', 
+            'game_value': 'int8'
+        })
+        with self.assertRaises(TypeError):
+            RegabDataSet(bid, status, ec, positions)
+
+    def test_invalid_ec_value(self):
+        """
+        Tests that a ValueError is raised if ec is not in the range [0, 60].
+        """
+        bid = [1, 2]
+        status = ['CMS', 'CMR']
+        ec = 61
+        positions = pd.DataFrame({
+            'mover': [1, 2],
+            'opponent': [3, 4],
+            'game_value': [5, 6]
+        }).astype({
+            'mover': 'int64', 
+            'opponent': 'int64', 
+            'game_value': 'int8'
+        })
+        with self.assertRaises(ValueError):
+            RegabDataSet(bid, status, ec, positions)
+
+    def test_invalid_positions_type(self):
+        """
+        Tests that a TypeError is raised if positions is not a pandas DataFrame.
+        """
+        bid = [1, 2]
+        status = ['CMS', 'CMR']
+        ec = 10
+        positions = 'not_a_dataframe'
+        with self.assertRaises(TypeError):
+            RegabDataSet(bid, status, ec, positions)
+
+    def test_invalid_positions_columns(self):
+        """
+        Tests that a ValueError is raised if positions does not have exactly 3 columns.
+        """
+        bid = [1, 2]
+        status = ['CMS', 'CMR']
+        ec = 10
+        positions = pd.DataFrame({
+            'mover': [1, 2],
+            'opponent': [3, 4]
+        }).astype({
+            'mover': 'int64', 
+            'opponent': 'int64'
+        })
+        with self.assertRaises(ValueError):
+            RegabDataSet(bid, status, ec, positions)
+
+    def test_invalid_positions_column_types(self):
+        """
+        Tests that a ValueError is raised if positions has incorrect column types.
+        """
+        bid = [1, 2]
+        status = ['CMS', 'CMR']
+        ec = 10
+        positions = pd.DataFrame({
+            'mover': [1, 2],
+            'opponent': [3, 4],
+            'game_value': [5.0, 6.0]  # Incorrect type, should be int8
+        }).astype({
+            'mover': 'int64', 
+            'opponent': 'int64', 
+            'game_value': 'float64'
+        })
+        with self.assertRaises(TypeError):
+            RegabDataSet(bid, status, ec, positions)

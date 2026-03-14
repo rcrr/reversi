@@ -33,7 +33,7 @@ import pandas as pd
 from typing import List, Self, Callable, Any, Union, TypeVar
 
 
-__all__ = ['RegabDBConnection', 'regab_gp_as_df', 'regab_gp_extract']
+__all__ = ['RegabDBConnection', 'regab_gp_as_df', 'regab_gp_extract', 'RegabDataSet']
 
 
 class RegabDBConnection():
@@ -239,3 +239,49 @@ def regab_gp_extract(rc: RegabDBConnection,
     min_fields = ['mover', 'opponent', 'game_value']
     df = regab_gp_as_df(rc, bid, status, ec, limit=None, where=None, fields=min_fields)
     return df
+
+
+class RegabDataSet:
+
+    def __init__(self,
+                 bid: List[int],
+                 status: List[str],
+                 ec: int,
+                 positions: pd.DataFrame):
+        
+        if isinstance(bid, list):
+            if not all([isinstance(x, int) for x in bid]):
+                raise TypeError('Argument bid has elements not being of type int')
+        else:
+            raise TypeError('Argument bid must be a list of ints')
+        if not all([x >= 0 for x in bid]):
+            raise ValueError('Argument bid must be equal or greather than zero')
+
+        if isinstance(status, list):
+            if not all([isinstance(x, str) for x in status]):
+                raise TypeError('Argument status has elements not being of type str')
+        else:
+            raise TypeError('Argument status must be a list of strs')
+        if not all([len(x) == 3 for x in status]):
+            raise ValueError('Argument status must have elements of lenght equal to 3')
+        
+        if not isinstance(ec, int):
+            raise TypeError('Argument ec is not an instance of int')
+        if not (ec >= 0 and ec <= 60):
+            raise ValueError('Argument ec must be in range [0..60]')
+
+        if not isinstance(positions, pd.DataFrame):
+            raise TypeError('Argument positions is not an instance of DataFrame')
+        if not len(positions.columns) == 3:
+            raise ValueError('Argument positions has not 3 columns.')
+        positions_expected_dtypes = ['int64', 'int64', 'int8']
+        for i, expected_type in enumerate(positions_expected_dtypes):
+            actual_type = positions.dtypes.iloc[i]
+            if actual_type != expected_type:
+                raise TypeError(f"Column '{i}' must be {expected_type}, but instead it is {actual_type}")
+
+        self.bid = bid
+        self.status = status
+        self.ec = ec
+        self.positions = positions
+        self.len = len(positions)
