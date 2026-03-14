@@ -33,7 +33,7 @@ import pandas as pd
 from typing import List, Self, Callable, Any, Union, TypeVar
 
 
-__all__ = ['RegabDBConnection', 'regab_gp_as_df']
+__all__ = ['RegabDBConnection', 'regab_gp_as_df', 'regab_gp_extract']
 
 
 class RegabDBConnection():
@@ -228,4 +228,14 @@ def regab_gp_as_df(rc: RegabDBConnection,
             colnames = [d[0] for d in curs.description]
             df = pd.DataFrame(curs.fetchall(), columns=colnames)
 
+    return df
+
+
+def regab_gp_extract(rc: RegabDBConnection,
+                     bid: Union[int, List[int]],
+                     status: Union[str, List[str]],
+                     ec: int) -> pd.DataFrame:
+
+    min_fields = ['mover', 'opponent', 'game_value']
+    df = regab_gp_as_df(rc, bid, status, ec, limit=None, where=None, fields=min_fields)
     return df

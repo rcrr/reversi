@@ -71,40 +71,7 @@ class TestDummy(unittest.TestCase):
 # DB_HOST=test_regab_database_hostname
 # DB_PORT=test_regab_database_tcpip_port
 #
-class TestRegabDBConnection(unittest.TestCase):
-
-    def setUp(self):
-        # Load credentials from .env
-        load_dotenv()
-        self.dbname = os.getenv('DB_NAME')
-        self.user = os.getenv('DB_USER')
-        self.password = os.getenv('DB_PASSWORD')
-        self.host = os.getenv('DB_HOST')
-        self.port = os.getenv('DB_PORT', '5432')
-
-    def test_connection_is_established(self):
-        # 1. Create the connection
-        rc = RegabDBConnection(self.dbname, self.user, self.host, self.port, self.password)
-        
-        # 2. Assert the connection object exists
-        self.assertIsNotNone(rc.conn, "Connection object was not created.")
-        
-        # 3. Assert the psycopg2 connection is actually open (0 = open)
-        self.assertEqual(rc.conn.closed, 0, "The database connection is closed.")
-        
-        # Cleanup
-        rc.close()
-        
-    def test_connection_closes_properly(self):
-        rc = RegabDBConnection(self.dbname, self.user, self.host, self.port, self.password)
-        rc.close()
-        
-        # Assert the connection is closed (> 0 means closed)
-        self.assertNotEqual(rc.conn.closed, 0, "The connection should be closed.")
-
-
-class TestRegabDB(unittest.TestCase):
-    
+class BaseTestCase(unittest.TestCase):
     def setUp(self):
         """
         Runs before each individual test. 
@@ -121,6 +88,13 @@ class TestRegabDB(unittest.TestCase):
         self.rc = RegabDBConnection(
             self.dbname, self.user, self.host, self.port, self.password
         )
+                
+        # Assert the connection object exists
+        self.assertIsNotNone(self.rc.conn, "Connection object was not created.")
+        
+        # Assert the psycopg2 connection is actually open (0 = open)
+        self.assertEqual(self.rc.conn.closed, 0, "The database connection is closed.")
+
 
     def tearDown(self):
         """
@@ -129,6 +103,12 @@ class TestRegabDB(unittest.TestCase):
         """
         if hasattr(self, 'rc') and self.rc.conn:
             self.rc.close()
+                    
+            # Assert the connection is closed (> 0 means closed)
+            self.assertNotEqual(self.rc.conn.closed, 0, "The connection should be closed.")
+
+
+class TestRegabDB(BaseTestCase):
 
     def test_connection_status(self):
         """
@@ -148,32 +128,7 @@ class TestRegabDB(unittest.TestCase):
             self.assertIn("reversi", current_path, f"Search path is set to {current_path} instead of 'reversi'.")
 
 
-class TestRegabGPAsDF(unittest.TestCase):
-
-    def setUp(self):
-        """
-        Runs before each individual test. 
-        Loads credentials and initializes the database connection.
-        """
-        load_dotenv()
-        self.dbname = os.getenv('DB_NAME')
-        self.user = os.getenv('DB_USER')
-        self.password = os.getenv('DB_PASSWORD')
-        self.host = os.getenv('DB_HOST')
-        self.port = os.getenv('DB_PORT', '5432')
-        
-        # Initialize the connection object
-        self.rc = RegabDBConnection(
-            self.dbname, self.user, self.host, self.port, self.password
-        )
-
-    def tearDown(self):
-        """
-        Runs after each individual test. 
-        Ensures the database connection is properly closed.
-        """
-        if hasattr(self, 'rc') and self.rc.conn:
-            self.rc.close()
+class TestRegabGPAsDF(BaseTestCase):
 
     def test_valid_query_construction(self):
         """
@@ -244,3 +199,35 @@ class TestRegabGPAsDF(unittest.TestCase):
             curs.execute("SELECT * FROM regab_prng_gp LIMIT 0;")
             colnames = [d[0] for d in curs.description]
         self.assertListEqual(list(df.columns), colnames, "The DataFrame fields do not match the table fields.")
+
+
+class TestRegabGPExtract(BaseTestCase):
+
+    def test_extraction(self):
+        # Load test parameters
+        arg_bid = os.getenv('TEST_RDATA_TEST_EXTRACTION_ARG_BID')
+        arg_status = os.getenv('TEST_RDATA_TEST_EXTRACTION_ARG_STATUS')
+        arg_ec = os.getenv('TEST_RDATA_TEST_EXTRACTION_ARG_EC')
+        expected_count_prop = os.getenv('TEST_RDATA_TEST_EXTRACTION_EXPECTED_COUNT')
+        
+        # Check if required parameters are present
+        if arg_bid is None:
+            raise ValueError("TEST_RDATA_TEST_EXTRACTION_ARG_BID is not set in the .env file.")
+        if arg_status is None:
+            raise ValueError("TEST_RDATA_TEST_EXTRACTION_ARG_STATUS is not set in the .env file.")
+        if arg_ec is None:
+            raise ValueError("TEST_RDATA_TEST_EXTRACTION_ARG_EC is not set in the .env file.")
+        
+        # Convert parameters to appropriate types
+        bid = [int(part) for part in arg_bid.split(',')]
+        status = arg_status.split(',')
+        ec = int(arg_ec)
+        
+        positions = regab_gp_extract(self.rc, bid, status, ec)
+        self.assertFalse(positions.empty, "The DataFrame is empty.")
+        self.assertEqual(len(positions.columns), 3, "Columns count is not proper.")
+
+        if expected_count_prop is not None:
+            expected_count = int(expected_count_prop)
+            self.assertEqual(len(positions), expected_count, "The DataFrame has the wrong len.")
+
