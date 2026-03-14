@@ -146,3 +146,101 @@ class TestRegabDB(unittest.TestCase):
             curs.execute("SHOW search_path;")
             current_path = curs.fetchone()[0]
             self.assertIn("reversi", current_path, f"Search path is set to {current_path} instead of 'reversi'.")
+
+
+class TestRegabGPAsDF(unittest.TestCase):
+
+    def setUp(self):
+        """
+        Runs before each individual test. 
+        Loads credentials and initializes the database connection.
+        """
+        load_dotenv()
+        self.dbname = os.getenv('DB_NAME')
+        self.user = os.getenv('DB_USER')
+        self.password = os.getenv('DB_PASSWORD')
+        self.host = os.getenv('DB_HOST')
+        self.port = os.getenv('DB_PORT', '5432')
+        
+        # Initialize the connection object
+        self.rc = RegabDBConnection(
+            self.dbname, self.user, self.host, self.port, self.password
+        )
+
+    def tearDown(self):
+        """
+        Runs after each individual test. 
+        Ensures the database connection is properly closed.
+        """
+        if hasattr(self, 'rc') and self.rc.conn:
+            self.rc.close()
+
+    def test_valid_query_construction(self):
+        """
+        Tests that the SQL query is constructed correctly with valid parameters.
+        """
+        bid = [7, 8]
+        status = ['CMS', 'CMR']
+        ec = 10
+        limit = 5
+        where = "game_value > 0"
+        fields = ['seq', 'mover', 'opponent', 'game_value']
+
+        df = regab_gp_as_df(self.rc, bid, status, ec, limit, where, fields)
+
+        # Checks that the resulting DataFrame is not empty
+        self.assertFalse(df.empty, "The resulting DataFrame is empty.")
+
+    def test_invalid_bid(self):
+        """
+        Tests that an exception is raised for an invalid bid value.
+        """
+        with self.assertRaises((TypeError, ValueError)):
+            regab_gp_as_df(self.rc, -1, ['CMP'], 10)
+
+    def test_invalid_status(self):
+        """
+        Tests that an exception is raised for an invalid status value.
+        """
+        with self.assertRaises((TypeError, ValueError)):
+            regab_gp_as_df(self.rc, [1], 'AAAA', 10)
+
+    def test_invalid_ec(self):
+        """
+        Tests that an exception is raised for an invalid ec value.
+        """
+        with self.assertRaises((TypeError, ValueError)):
+            regab_gp_as_df(self.rc, [1], ['CMP'], 61)
+
+    def test_invalid_limit(self):
+        """
+        Tests that an exception is raised for an invalid limit value.
+        """
+        with self.assertRaises((TypeError, ValueError)):
+            regab_gp_as_df(self.rc, 1, ['CMP'], 10, -1)
+
+    def test_invalid_where(self):
+        """
+        Tests that an exception is raised for an invalid where value.
+        """
+        with self.assertRaises(TypeError):
+            regab_gp_as_df(self.rc, 1, 'CMP', 10, 5, where=123)
+
+    def test_invalid_fields(self):
+        """
+        Tests that an exception is raised for an invalid fields value.
+        """
+        with self.assertRaises((TypeError, ValueError)):
+            regab_gp_as_df(self.rc, [1], ['CMP'], 10, 5, fields='invalid_field')
+
+    def test_all_fields(self):
+        """
+        Tests that the query includes all fields when fields='*'.
+        """
+        df = regab_gp_as_df(self.rc, [1], ['CMS'], 20, fields='*')
+
+        # Checks that the DataFrame contains all fields of the table
+        with self.rc.conn.cursor() as curs:
+            curs.execute("SELECT * FROM regab_prng_gp LIMIT 0;")
+            colnames = [d[0] for d in curs.description]
+        self.assertListEqual(list(df.columns), colnames, "The DataFrame fields do not match the table fields.")
