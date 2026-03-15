@@ -217,7 +217,7 @@ class TestRegabDataSet(BaseTestCase):
         positions = pd.DataFrame({
             'mover': [1, 2],
             'opponent': [3, 4],
-            'game_value': [5, 6]
+            'game_value': [4, 6]
         }).astype({
             'mover': 'int64', 
             'opponent': 'int64', 
@@ -242,7 +242,7 @@ class TestRegabDataSet(BaseTestCase):
         positions = pd.DataFrame({
             'mover': [1, 2],
             'opponent': [3, 4],
-            'game_value': [5, 6]
+            'game_value': [4, 6]
         }).astype({
             'mover': 'int64', 
             'opponent': 'int64', 
@@ -259,7 +259,7 @@ class TestRegabDataSet(BaseTestCase):
         positions = pd.DataFrame({
             'mover': [1, 2],
             'opponent': [3, 4],
-            'game_value': [5, 6]
+            'game_value': [4, 6]
         }).astype({
             'mover': 'int64', 
             'opponent': 'int64', 
@@ -335,7 +335,7 @@ class TestRegabDataSet(BaseTestCase):
         positions = pd.DataFrame({
             'mover': [1, 2],
             'opponent': [3, 4],
-            'game_value': [5, 6]
+            'game_value': [4, 6]
         }).astype({
             'mover': 'int64', 
             'opponent': 'int64', 
@@ -382,7 +382,7 @@ class TestRegabDataSet(BaseTestCase):
         positions = pd.DataFrame({
             'mover': [1, 2],
             'opponent': [3, 4],
-            'game_value': [5.0, 6.0]  # Incorrect type, should be int8
+            'game_value': [4.0, 6.0]  # Incorrect type, should be int8
         }).astype({
             'mover': 'int64', 
             'opponent': 'int64', 
@@ -422,15 +422,19 @@ class TestRegabDataSet(BaseTestCase):
             expected_count = int(expected_count_prop)
             self.assertEqual(len(positions), expected_count, "The DataFrame has the wrong len.")
 
-    def test_store_and_load(self):
+
+class TestRegabDataSetChecksum(BaseTestCase):
+
+    def setUp(self):
         """
-        Tests the storage and loading of RegabDataSet instances to and from a binary file.
+        Runs before each individual test. 
+        Creates a sample RegabDataSet instance and a temporary directory.
         """
-        # Create a sample RegabDataSet instance
-        bid = [1, 2]
-        status = ['CMS', 'CMR']
-        ec = 20
-        positions = pd.DataFrame({
+        super().setUp()
+        self.bid = [1, 2]
+        self.status = ['CMS', 'CMR']
+        self.ec = 20
+        self.positions = pd.DataFrame({
             'mover': [4611717676283199524, 72342959909978368],
             'opponent': [-7855295674223658936, 6952639131500418064],
             'game_value': [10, 36]
@@ -439,26 +443,78 @@ class TestRegabDataSet(BaseTestCase):
             'opponent': 'int64', 
             'game_value': 'int8'
         })
-        rds = RegabDataSet(bid, status, ec, positions)
+        self.rds = RegabDataSet(self.bid, self.status, self.ec, self.positions)
+        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
+        self.filename = os.path.join(self.tmp_dir, 'test_dataset.bin')
 
-        # Create a temporary directory within ./build/tmp
-        tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
-        try:
-            # Define the filename
-            filename = os.path.join(tmp_dir, 'test_dataset.bin')
-            
-            # Store the dataset to the file
-            rds.store_to_file(filename)
-            
-            # Load the dataset from the file
-            loaded_rds = RegabDataSet.load_from_file(filename)
-            
-            # Verify the loaded dataset matches the original
-            self.assertEqual(loaded_rds.bid, rds.bid)
-            self.assertEqual(loaded_rds.status, rds.status)
-            self.assertEqual(loaded_rds.ec, rds.ec)
-            self.assertTrue(loaded_rds.positions.equals(rds.positions))
-            self.assertEqual(loaded_rds.length, rds.length)
-        finally:
-            # Clean up the temporary directory
-            shutil.rmtree(tmp_dir)
+    def tearDown(self):
+        """
+        Runs after each individual test. 
+        Cleans up the temporary directory.
+        """
+        super().tearDown()
+        shutil.rmtree(self.tmp_dir)
+
+    def test_store_and_load(self):
+        """
+        Tests the storage and loading of RegabDataSet instances to and from a binary file.
+        """
+        # Store the dataset to the file
+        self.rds.store_to_file(self.filename)
+        
+        # Load the dataset from the file
+        loaded_rds = RegabDataSet.load_from_file(self.filename)
+        
+        # Verify the loaded dataset matches the original
+        self.assertEqual(loaded_rds.bid, self.rds.bid)
+        self.assertEqual(loaded_rds.status, self.rds.status)
+        self.assertEqual(loaded_rds.ec, self.rds.ec)
+        self.assertTrue(loaded_rds.positions.equals(self.rds.positions))
+        self.assertEqual(loaded_rds.length, self.rds.length)
+
+    def test_load_without_checksum(self):
+        """
+        Tests loading a RegabDataSet instance without checksum verification.
+        """
+        # Store the dataset to the file
+        self.rds.store_to_file(self.filename)
+        
+        # Load the dataset from the file without checksum verification
+        loaded_rds = RegabDataSet.load_from_file(self.filename, checksum=False)
+        
+        # Verify the loaded dataset matches the original
+        self.assertEqual(loaded_rds.bid, self.rds.bid)
+        self.assertEqual(loaded_rds.status, self.rds.status)
+        self.assertEqual(loaded_rds.ec, self.rds.ec)
+        self.assertTrue(loaded_rds.positions.equals(self.rds.positions))
+        self.assertEqual(loaded_rds.length, self.rds.length)
+
+    def test_load_missing_checksum_file(self):
+        """
+        Tests loading a RegabDataSet instance when the checksum file is missing.
+        """
+        # Store the dataset to the file
+        self.rds.store_to_file(self.filename)
+        
+        # Remove the checksum file to simulate a missing file
+        checksum_filename = self.filename + ".SHA3-256"
+        os.remove(checksum_filename)
+        
+        # Attempt to load the dataset from the file with checksum verification
+        with self.assertRaises(FileNotFoundError):
+            RegabDataSet.load_from_file(self.filename)
+
+    def test_load_mismatched_checksum(self):
+        """
+        Tests loading a RegabDataSet instance when the checksum does not match.
+        """
+        # Store the dataset to the file
+        self.rds.store_to_file(self.filename)
+        
+        # Modify the file to change its checksum
+        with open(self.filename, 'ab') as f:
+            f.write(b'some extra data')
+        
+        # Attempt to load the dataset from the file with checksum verification
+        with self.assertRaises(ValueError):
+            RegabDataSet.load_from_file(self.filename)

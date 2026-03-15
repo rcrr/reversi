@@ -34,6 +34,8 @@ import numpy as np
 from typing import List, Self, Callable, Any, Union, TypeVar
 
 import struct
+import hashlib
+import os
 
 
 __all__ = ['RegabDBConnection', 'regab_gp_as_df', 'RegabDataSet']
@@ -326,41 +328,61 @@ class RegabDataSet:
     
     def store_to_file(self, filename: str) -> None:
         """
-        Saves the RegabDataSet instance to a binary file.
+        Saves the RegabDataSet instance to a binary file and calculates the SHA3-256 checksum.
 
         Parameters
         ----------
         filename : str
             The name of the file in which to save the data.
         """
+        # Create a SHA3-256 hash object
+        sha3_256_hash = hashlib.sha3_256()
+
         with open(filename, 'wb') as f:
             # Write the number of elements in bid
             num_bid = len(self.bid)
             f.write(struct.pack('<I', num_bid))
+            sha3_256_hash.update(struct.pack('<I', num_bid))
             # Write the elements of bid
             for b in self.bid:
                 f.write(struct.pack('<I', b))
+                sha3_256_hash.update(struct.pack('<I', b))
             
             # Write the number of elements in status
             num_status = len(self.status)
             f.write(struct.pack('<I', num_status))
+            sha3_256_hash.update(struct.pack('<I', num_status))
             # Write the elements of status
             for s in self.status:
                 f.write(s.encode('utf-8'))
+                sha3_256_hash.update(s.encode('utf-8'))
         
             # Write ec
             f.write(struct.pack('<I', self.ec))
+            sha3_256_hash.update(struct.pack('<I', self.ec))
             
             # Write length
             f.write(struct.pack('<I', self.length))
+            sha3_256_hash.update(struct.pack('<I', self.length))
             
             # Write the data of the arrays
             f.write(self.positions['mover'].values.tobytes())
+            sha3_256_hash.update(self.positions['mover'].values.tobytes())
             f.write(self.positions['opponent'].values.tobytes())
+            sha3_256_hash.update(self.positions['opponent'].values.tobytes())
             f.write(self.positions['game_value'].values.tobytes())
+            sha3_256_hash.update(self.positions['game_value'].values.tobytes())
+
+        # Calculate the SHA3-256 checksum
+        checksum = sha3_256_hash.hexdigest()
+
+        # Write the checksum to a separate file with the same name and ".SHA3-256" suffix
+        checksum_filename = filename + ".SHA3-256"
+        with open(checksum_filename, 'w') as checksum_file:
+            checksum_file.write(checksum)
 
     @classmethod
-    def load_from_file(cls: type[Self], filename: str) -> Self:
+    def load_from_file(cls: type[Self], filename: str, checksum: bool = True) -> Self:
         """
         Loads a RegabDataSet instance from a binary file.
 
@@ -368,12 +390,44 @@ class RegabDataSet:
         ----------
         filename : str
             The name of the file from which to load the data.
+        checksum : bool, optional
+            Whether to verify the SHA3-256 checksum of the file. Default is True.
 
         Returns
         -------
         RegabDataSet
             An instance of RegabDataSet containing the loaded data.
+
+        Raises
+        ------
+        FileNotFoundError
+            If the checksum file is not found when checksum verification is enabled.
+        ValueError
+            If the calculated checksum does not match the stored checksum.
         """
+        if checksum:
+            # Construct the checksum filename
+            checksum_filename = filename + ".SHA3-256"
+            
+            # Check if the checksum file exists
+            if not os.path.exists(checksum_filename):
+                raise FileNotFoundError(f"The checksum file {checksum_filename} does not exist.")
+            
+            # Read the stored checksum from the file
+            with open(checksum_filename, 'r') as checksum_file:
+                stored_checksum = checksum_file.read().strip()
+            
+            # Calculate the actual checksum of the file
+            sha3_256_hash = hashlib.sha3_256()
+            with open(filename, 'rb') as f:
+                while chunk := f.read(8192):
+                    sha3_256_hash.update(chunk)
+            actual_checksum = sha3_256_hash.hexdigest()
+            
+            # Compare the stored checksum with the actual checksum
+            if stored_checksum != actual_checksum:
+                raise ValueError(f"The calculated checksum {actual_checksum} does not match the stored checksum {stored_checksum}.")
+
         with open(filename, 'rb') as f:
             # Read the number of elements in bid
             num_bid = struct.unpack('<I', f.read(4))[0]
