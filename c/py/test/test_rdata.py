@@ -56,6 +56,8 @@ import numpy.testing as nptest
 import pandas as pd
 
 import os
+import tempfile
+import shutil
 from dotenv import load_dotenv
 
 
@@ -203,36 +205,6 @@ class TestRegabGPAsDF(BaseTestCase):
         self.assertListEqual(list(df.columns), colnames, "The DataFrame fields do not match the table fields.")
 
 
-class TestRegabGPExtract(BaseTestCase):
-
-    def test_extraction(self):
-        # Load test parameters
-        arg_bid = os.getenv('TEST_RDATA_TEST_EXTRACTION_ARG_BID')
-        arg_status = os.getenv('TEST_RDATA_TEST_EXTRACTION_ARG_STATUS')
-        arg_ec = os.getenv('TEST_RDATA_TEST_EXTRACTION_ARG_EC')
-        expected_count_prop = os.getenv('TEST_RDATA_TEST_EXTRACTION_EXPECTED_COUNT')
-        
-        # Check if required parameters are present
-        if arg_bid is None:
-            raise ValueError("TEST_RDATA_TEST_EXTRACTION_ARG_BID is not set in the .env file.")
-        if arg_status is None:
-            raise ValueError("TEST_RDATA_TEST_EXTRACTION_ARG_STATUS is not set in the .env file.")
-        if arg_ec is None:
-            raise ValueError("TEST_RDATA_TEST_EXTRACTION_ARG_EC is not set in the .env file.")
-        
-        # Convert parameters to appropriate types
-        bid = [int(part) for part in arg_bid.split(',')]
-        status = arg_status.split(',')
-        ec = int(arg_ec)
-        
-        positions = regab_gp_extract(self.rc, bid, status, ec)
-        self.assertFalse(positions.empty, "The DataFrame is empty.")
-        self.assertEqual(len(positions.columns), 3, "Columns count is not proper.")
-
-        if expected_count_prop is not None:
-            expected_count = int(expected_count_prop)
-            self.assertEqual(len(positions), expected_count, "The DataFrame has the wrong len.")
-
 class TestRegabDataSet(BaseTestCase):
 
     def test_valid_initialization(self):
@@ -258,7 +230,7 @@ class TestRegabDataSet(BaseTestCase):
         self.assertEqual(dataset.status, status)
         self.assertEqual(dataset.ec, ec)
         self.assertEqual(dataset.positions.equals(positions), True)
-        self.assertEqual(dataset.len, len(positions))
+        self.assertEqual(dataset.length, len(positions))
 
     def test_invalid_bid_type(self):
         """
@@ -276,7 +248,6 @@ class TestRegabDataSet(BaseTestCase):
             'opponent': 'int64', 
             'game_value': 'int8'
         })
-
 
     def test_invalid_bid_value(self):
         """
@@ -419,3 +390,75 @@ class TestRegabDataSet(BaseTestCase):
         })
         with self.assertRaises(TypeError):
             RegabDataSet(bid, status, ec, positions)
+
+    def test_extract_data_from_db(self):
+        """
+        """
+        # Load test parameters
+        arg_bid = os.getenv('TEST_RDATA_TEST_EXTRACTION_ARG_BID')
+        arg_status = os.getenv('TEST_RDATA_TEST_EXTRACTION_ARG_STATUS')
+        arg_ec = os.getenv('TEST_RDATA_TEST_EXTRACTION_ARG_EC')
+        expected_count_prop = os.getenv('TEST_RDATA_TEST_EXTRACTION_EXPECTED_COUNT')
+        
+        # Check if required parameters are present
+        if arg_bid is None:
+            raise ValueError("TEST_RDATA_TEST_EXTRACTION_ARG_BID is not set in the .env file.")
+        if arg_status is None:
+            raise ValueError("TEST_RDATA_TEST_EXTRACTION_ARG_STATUS is not set in the .env file.")
+        if arg_ec is None:
+            raise ValueError("TEST_RDATA_TEST_EXTRACTION_ARG_EC is not set in the .env file.")
+        
+        # Convert parameters to appropriate types
+        bid = [int(part) for part in arg_bid.split(',')]
+        status = arg_status.split(',')
+        ec = int(arg_ec)
+
+        rds = RegabDataSet.extract_from_db(self.rc, bid, status, ec)
+        positions = rds.positions
+        self.assertFalse(positions.empty, "The DataFrame is empty.")
+        self.assertEqual(len(positions.columns), 3, "Columns count is not proper.")
+
+        if expected_count_prop is not None:
+            expected_count = int(expected_count_prop)
+            self.assertEqual(len(positions), expected_count, "The DataFrame has the wrong len.")
+
+    def test_store_and_load(self):
+        """
+        Tests the storage and loading of RegabDataSet instances to and from a binary file.
+        """
+        # Create a sample RegabDataSet instance
+        bid = [1, 2]
+        status = ['CMS', 'CMR']
+        ec = 20
+        positions = pd.DataFrame({
+            'mover': [4611717676283199524, 72342959909978368],
+            'opponent': [-7855295674223658936, 6952639131500418064],
+            'game_value': [10, 36]
+        }).astype({
+            'mover': 'int64', 
+            'opponent': 'int64', 
+            'game_value': 'int8'
+        })
+        rds = RegabDataSet(bid, status, ec, positions)
+
+        # Create a temporary directory within ./build/tmp
+        tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
+        try:
+            # Define the filename
+            filename = os.path.join(tmp_dir, 'test_dataset.bin')
+            
+            # Store the dataset to the file
+            rds.store_to_file(filename)
+            
+            # Load the dataset from the file
+            loaded_rds = RegabDataSet.load_from_file(filename)
+            
+            # Verify the loaded dataset matches the original
+            self.assertEqual(loaded_rds.bid, rds.bid)
+            self.assertEqual(loaded_rds.status, rds.status)
+            self.assertEqual(loaded_rds.ec, rds.ec)
+            self.assertTrue(loaded_rds.positions.equals(rds.positions))
+            self.assertEqual(loaded_rds.length, rds.length)
+        finally:
+            # Clean up the temporary directory
+            shutil.rmtree(tmp_dir)

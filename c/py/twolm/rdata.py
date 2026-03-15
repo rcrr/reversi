@@ -29,11 +29,14 @@ from twolm.domain import *
 
 import psycopg2 as pg
 import pandas as pd
+import numpy as np
 
 from typing import List, Self, Callable, Any, Union, TypeVar
 
+import struct
 
-__all__ = ['RegabDBConnection', 'regab_gp_as_df', 'regab_gp_extract', 'RegabDataSet']
+
+__all__ = ['RegabDBConnection', 'regab_gp_as_df', 'RegabDataSet']
 
 
 class RegabDBConnection():
@@ -231,16 +234,6 @@ def regab_gp_as_df(rc: RegabDBConnection,
     return df
 
 
-def regab_gp_extract(rc: RegabDBConnection,
-                     bid: Union[int, List[int]],
-                     status: Union[str, List[str]],
-                     ec: int) -> pd.DataFrame:
-
-    min_fields = ['mover', 'opponent', 'game_value']
-    df = regab_gp_as_df(rc, bid, status, ec, limit=None, where=None, fields=min_fields)
-    return df
-
-
 class RegabDataSet:
 
     def __init__(self,
@@ -248,7 +241,21 @@ class RegabDataSet:
                  status: List[str],
                  ec: int,
                  positions: pd.DataFrame):
-        
+        """
+        Initializes a RegabDataSet instance.
+
+        Parameters
+        ----------
+        bid : List[int]
+            A list of batch IDs.
+        status : List[str]
+            A list of status codes, each exactly 3 characters long.
+        ec : int
+            The empty count, must be in the range [0, 60].
+        positions : pd.DataFrame
+            A DataFrame containing the game positions with columns 'mover', 'opponent', and 'game_value'.
+        """
+
         if isinstance(bid, list):
             if not all([isinstance(x, int) for x in bid]):
                 raise TypeError('Argument bid has elements not being of type int')
@@ -284,4 +291,114 @@ class RegabDataSet:
         self.status = status
         self.ec = ec
         self.positions = positions
-        self.len = len(positions)
+        self.length = len(positions)
+
+    @classmethod
+    def extract_from_db(cls: type[Self],
+                        rc: RegabDBConnection,
+                        bid: Union[int, List[int]],
+                        status: Union[str, List[str]],
+                        ec: int) -> Self:
+        """
+        Extracts data from the database and creates a RegabDataSet instance.
+
+        Parameters
+        ----------
+        rc : RegabDBConnection
+            An instance of the RegabDBConnection class representing the database connection.
+        bid : List[int] or int
+            A list of batch IDs or a single batch ID to filter the game positions.
+        status : List[str] or str
+            A list of status codes or a single status code to filter the game positions.
+        ec : int
+            The empty count to filter the game positions.
+
+        Returns
+        -------
+        RegabDataSet
+            An instance of RegabDataSet containing the extracted data.
+        """
+        selected_fields = ['mover', 'opponent', 'game_value']
+        df = regab_gp_as_df(rc, bid, status, ec, limit=None, where=None, fields=selected_fields)
+        df['game_value'] = df['game_value'].astype(np.int8)
+        rds = RegabDataSet(bid, status, ec, df)
+        return rds
+    
+    def store_to_file(self, filename: str) -> None:
+        """
+        Saves the RegabDataSet instance to a binary file.
+
+        Parameters
+        ----------
+        filename : str
+            The name of the file in which to save the data.
+        """
+        with open(filename, 'wb') as f:
+            # Write the number of elements in bid
+            num_bid = len(self.bid)
+            f.write(struct.pack('<I', num_bid))
+            # Write the elements of bid
+            for b in self.bid:
+                f.write(struct.pack('<I', b))
+            
+            # Write the number of elements in status
+            num_status = len(self.status)
+            f.write(struct.pack('<I', num_status))
+            # Write the elements of status
+            for s in self.status:
+                f.write(s.encode('utf-8'))
+        
+            # Write ec
+            f.write(struct.pack('<I', self.ec))
+            
+            # Write length
+            f.write(struct.pack('<I', self.length))
+            
+            # Write the data of the arrays
+            f.write(self.positions['mover'].values.tobytes())
+            f.write(self.positions['opponent'].values.tobytes())
+            f.write(self.positions['game_value'].values.tobytes())
+
+    @classmethod
+    def load_from_file(cls: type[Self], filename: str) -> Self:
+        """
+        Loads a RegabDataSet instance from a binary file.
+
+        Parameters
+        ----------
+        filename : str
+            The name of the file from which to load the data.
+
+        Returns
+        -------
+        RegabDataSet
+            An instance of RegabDataSet containing the loaded data.
+        """
+        with open(filename, 'rb') as f:
+            # Read the number of elements in bid
+            num_bid = struct.unpack('<I', f.read(4))[0]
+            bid = [struct.unpack('<I', f.read(4))[0] for _ in range(num_bid)]
+            
+            # Read the number of elements in status
+            num_status = struct.unpack('<I', f.read(4))[0]
+            status = [f.read(3).decode('utf-8') for _ in range(num_status)]
+        
+            # Read ec
+            ec = struct.unpack('<I', f.read(4))[0]
+            
+            # Read length
+            length = struct.unpack('<I', f.read(4))[0]
+            
+            # Read the data of the arrays
+            mover = np.frombuffer(f.read(length * 8), dtype=np.int64)
+            opponent = np.frombuffer(f.read(length * 8), dtype=np.int64)
+            game_value = np.frombuffer(f.read(length), dtype=np.int8)
+            
+            # Create the DataFrame
+            positions = pd.DataFrame({
+                'mover': mover,
+                'opponent': opponent,
+                'game_value': game_value
+            })
+            
+            return cls(bid, status, ec, positions)
