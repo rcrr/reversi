@@ -53,7 +53,7 @@ import numpy.testing as nptest # Per i test (opzionale)
 
 from collections import namedtuple
 
-from typing import Callable, TypeAlias
+from typing import Callable, TypeAlias, List
 
 
 ar:            SquareSet = SquareSet(0x22120a0e1222221e)
@@ -1026,14 +1026,31 @@ class TestPatternPack(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def run_test_vectorized(self, p: Pattern, expected: List[SquareSet]) -> None:
+        square_set_array = np.array(self.square_set_list, dtype=np.uint64)
+        expected_array = np.array(expected, dtype=np.uint64)
+        packed_array = pack_ss(square_set_array, p)
+        nptest.assert_array_equal(expected_array, packed_array)
+        unpacked_array = unpack_ss(packed_array, p)
+        expected_array = square_set_array & p.mask
+        nptest.assert_array_equal(expected_array, unpacked_array)
+
+
     def test_elle(self):
         p = Pattern('ELLE', SquareSet(0x0000000000000107))
-        pack_plan = p.pack_plan
-        expected_pack_plan = np.array([
-            (0x0000000000000007, 0),
-            (0x0000000000000100, 5)
+        pack_masks, unpack_masks, pack_shifts = p.pack_plan
+        expected_pack_masks = np.array([
+            0x0000000000000007,
+            0x0000000000000100
         ])
-        nptest.assert_array_equal(expected_pack_plan, pack_plan)
+        expected_unpack_masks = np.array([
+            0x0000000000000007,
+            0x0000000000000008
+        ])
+        expected_pack_shifts = np.array([0, 5])
+        nptest.assert_array_equal(expected_pack_masks, pack_masks)
+        nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
+        nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
 
         packed = [pack_ss(s, p) for s in self.square_set_list]
         expected = [
@@ -1080,14 +1097,22 @@ class TestPatternPack(unittest.TestCase):
             SquareSet(0x0000000000000000), # c8
         ]
         self.assertEqual(unpacked, expected_unpacked)
+        self.run_test_vectorized(p, expected)
+
 
     def test_edge(self):
         p = Pattern('EDGE', SquareSet(0x00000000000000FF))
-        pack_plan = p.pack_plan
-        expected_pack_plan = np.array([
-            (0x00000000000000FF, 0)
+        pack_masks, unpack_masks, pack_shifts = p.pack_plan
+        expected_pack_masks = np.array([
+            0x00000000000000ff
         ])
-        nptest.assert_array_equal(expected_pack_plan, pack_plan)
+        expected_unpack_masks = np.array([
+            0x00000000000000ff,
+        ])
+        expected_pack_shifts = np.array([0])
+        nptest.assert_array_equal(expected_pack_masks, pack_masks)
+        nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
+        nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
 
         packed = [pack_ss(s, p) for s in self.square_set_list]
         expected = [
@@ -1134,14 +1159,21 @@ class TestPatternPack(unittest.TestCase):
             SquareSet(0x0000000000000080), # c8
         ]
         self.assertEqual(unpacked, expected_unpacked)
+        self.run_test_vectorized(p, expected)
 
     def test_r2(self):
         p = Pattern('R2', SquareSet(0x000000000000FF00))
-        pack_plan = p.pack_plan
-        expected_pack_plan = np.array([
-            (0x000000000000FF00, 8)
+        pack_masks, unpack_masks, pack_shifts = p.pack_plan
+        expected_pack_masks = np.array([
+            0x000000000000ff00
         ])
-        nptest.assert_array_equal(expected_pack_plan, pack_plan)
+        expected_unpack_masks = np.array([
+            0x00000000000000ff,
+        ])
+        expected_pack_shifts = np.array([8])
+        nptest.assert_array_equal(expected_pack_masks, pack_masks)
+        nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
+        nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
 
         packed = [pack_ss(s, p) for s in self.square_set_list]
         expected = [
@@ -1165,6 +1197,7 @@ class TestPatternPack(unittest.TestCase):
             SquareSet(0x0000000000000080), # c8
         ]
         self.assertEqual(packed, expected)
+        self.run_test_vectorized(p, expected)
 
         unpacked = [unpack_ss(s, p) for s in packed]
         expected_unpacked = [
@@ -1191,13 +1224,21 @@ class TestPatternPack(unittest.TestCase):
 
     def test_corner(self):
         p = Pattern('CORNER', SquareSet(0x0000000000070707))
-        pack_plan = p.pack_plan
-        expected_pack_plan = np.array([
-            (0x0000000000000007, 0),
-            (0x0000000000000700, 5),
-            (0x0000000000070000,10)
+        pack_masks, unpack_masks, pack_shifts = p.pack_plan
+        expected_pack_masks = np.array([
+            0x0000000000000007,
+            0x0000000000000700,
+            0x0000000000070000
         ])
-        nptest.assert_array_equal(expected_pack_plan, pack_plan)
+        expected_unpack_masks = np.array([
+            0x0000000000000007,
+            0x0000000000000038,
+            0x00000000000001c0
+        ])
+        expected_pack_shifts = np.array([0, 5, 10])
+        nptest.assert_array_equal(expected_pack_masks, pack_masks)
+        nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
+        nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
 
         packed = [pack_ss(s, p) for s in self.square_set_list]
         expected = [
@@ -1244,21 +1285,35 @@ class TestPatternPack(unittest.TestCase):
             SquareSet(0x0000000000000000), # c8
         ]
         self.assertEqual(unpacked, expected_unpacked)
+        self.run_test_vectorized(p, expected)
 
     def test_diag8(self):
         p = Pattern('DIAG8',  SquareSet(0x0102040810204080))
-        pack_plan = p.pack_plan
-        expected_pack_plan = np.array([
-            (0x0000000000000080,  7),
-            (0x0000000000004000, 13),
-            (0x0000000000200000, 19),
-            (0x0000000010000000, 25),
-            (0x0000000800000000, 31),
-            (0x0000040000000000, 37),
-            (0x0002000000000000, 43),
-            (0x0100000000000000, 49)
+        pack_masks, unpack_masks, pack_shifts = p.pack_plan
+        expected_pack_masks = np.array([
+            0x0000000000000080,
+            0x0000000000004000,
+            0x0000000000200000,
+            0x0000000010000000,
+            0x0000000800000000,
+            0x0000040000000000,
+            0x0002000000000000,
+            0x0100000000000000
         ])
-        nptest.assert_array_equal(expected_pack_plan, pack_plan)
+        expected_unpack_masks = np.array([
+            0x0000000000000001,
+            0x0000000000000002,
+            0x0000000000000004,
+            0x0000000000000008,
+            0x0000000000000010,
+            0x0000000000000020,
+            0x0000000000000040,
+            0x0000000000000080
+        ])
+        expected_pack_shifts = np.array([7, 13, 19, 25, 31, 37, 43, 49])
+        nptest.assert_array_equal(expected_pack_masks, pack_masks)
+        nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
+        nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
 
         packed = [pack_ss(s, p) for s in self.square_set_list]
         expected = [
@@ -1305,17 +1360,27 @@ class TestPatternPack(unittest.TestCase):
             SquareSet(0x0000000000000080), # c8
         ]
         self.assertEqual(unpacked, expected_unpacked)
+        self.run_test_vectorized(p, expected)
 
     def test_fourc(self):
         p = Pattern('FOURC', SquareSet(0x8100000000000081))
-        pack_plan = p.pack_plan
-        expected_pack_plan = np.array([
-            (0x0000000000000001,  0),
-            (0x0000000000000080,  6),
-            (0x0100000000000000, 54),
-            (0x8000000000000000, 60)
+        pack_masks, unpack_masks, pack_shifts = p.pack_plan
+        expected_pack_masks = np.array([
+            0x0000000000000001,
+            0x0000000000000080,
+            0x0100000000000000,
+            0x8000000000000000
         ])
-        nptest.assert_array_equal(expected_pack_plan, pack_plan)
+        expected_unpack_masks = np.array([
+            0x0000000000000001,
+            0x0000000000000002,
+            0x0000000000000004,
+            0x0000000000000008
+        ])
+        expected_pack_shifts = np.array([0, 6, 54, 60])
+        nptest.assert_array_equal(expected_pack_masks, pack_masks)
+        nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
+        nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
 
         packed = [pack_ss(s, p) for s in self.square_set_list]
         expected = [
@@ -1339,6 +1404,7 @@ class TestPatternPack(unittest.TestCase):
             SquareSet(0x000000000000000A), # c8
         ]
         self.assertEqual(packed, expected)
+        self.run_test_vectorized(p, expected)
 
         unpacked = [unpack_ss(s, p) for s in packed]
         expected_unpacked = [
@@ -1561,3 +1627,42 @@ class TestTransformationsCayleyTable(unittest.TestCase):
         for p in sample_patterns:
             self.verify_cayley_table(p.mask)
 
+
+class TestBoardPatternIndexes(unittest.TestCase):
+
+    def setUp(self):
+        self.board2D = """\
+          a b c d e f g h
+        1 . . @ O . @ O .
+        2 . . . O O O O .
+        3 . . O O O O @ .
+        4 @ @ O @ O @ @ @
+        5 . @ O @ O O @ @
+        6 . O @ @ @ O O .
+        7 . . O O O O O O
+        8 . O . . O . @ O
+        """
+        mover = SquareSet.new_from_signed_int(np.int64(4611717676283199524))
+        opponent = SquareSet.new_from_signed_int(np.int64(-7855295674223658936))
+        self.board = Board(mover, opponent)
+        
+    def tearDown(self):
+        pass
+
+    def test_elle(self):
+        p = Pattern('ELLE',   SquareSet(0x0000000000000107))
+        expected = [9, 54, 59, 54, 15, 35, 6, 0]
+        
+        expected_indexes: npt.NDArray[np.uint32] = np.array(expected, dtype=np.uint32)
+        computed_indexes: npt.NDArray[np.uint32] = p.compute_indexes_on_board(self.board)
+        self.assertEqual(len(computed_indexes), p.n_instances)
+        nptest.assert_array_equal(computed_indexes, expected_indexes)
+
+    def test_edge(self):
+        p = Pattern('EDGE',   SquareSet(0x00000000000000FF))
+        expected = [1764, 5940, 1517, 81]
+        
+        expected_indexes: npt.NDArray[np.uint32] = np.array(expected, dtype=np.uint32)
+        computed_indexes: npt.NDArray[np.uint32] = p.compute_indexes_on_board(self.board)
+        self.assertEqual(len(computed_indexes), p.n_instances)
+        nptest.assert_array_equal(computed_indexes, expected_indexes)

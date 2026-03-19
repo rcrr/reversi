@@ -137,7 +137,7 @@ class SquareSet(np.uint64):
          ])
 
     @classmethod
-    def new_from_signed_int(cls, i: np.int64) -> Self:
+    def new_from_signed_int(cls, i: np.int64) -> SquareSet:
         """
         Returns a new SquareSet object from a numpy.int64 value given as argument.
 
@@ -206,7 +206,7 @@ class SquareSet(np.uint64):
     
         return positions
 
-    def to_square_array(self) -> np.ndarray:
+    def to_square_array(self) -> npt.NDArray[Square]:
         """
         Returns the square set as a numpy array.
         """
@@ -226,7 +226,7 @@ class SquareSet(np.uint64):
         bit_count = np.bitwise_count(self)
         return bit_count
     
-    def print(self):
+    def print(self) -> None:
         """
         Prints on stdout a 2D representation of the square set.
         """
@@ -457,7 +457,7 @@ class SquareSet(np.uint64):
         """
         return self.fhori().fh1a8()
 
-    def transformations(self) -> np.ndarray:
+    def transformations(self) -> npt.NDArray[SquareSet]:
         """
         Returns eight square set as an array by transforming the set as follow.
          - 0 -> 0 : ro000
@@ -501,7 +501,7 @@ class SquareSet(np.uint64):
 
         return ts
 
-    def anti_transformations(self):
+    def anti_transformations(self) -> npt.NDArray[SquareSet]:
         """
         Returns eight square set as an array by transforming the set as follow.
          - 0 -> 0 : ro000
@@ -723,7 +723,7 @@ class Board:
         c._lmc_ = self._lmc_
         return c
 
-    def print(self):
+    def print(self) -> None:
         """
         Prints on stdout a 2D representation of the board.
         Symbol @ identifies the mover, symbol O the opponent.
@@ -949,7 +949,7 @@ class Board:
         return Board(self.mover.ro270(),
                      self.opponent.ro270())
 
-    def transformations(self) -> np.ndarray:
+    def transformations(self) -> npt.NDArray[Board]:
         """
         Returns an array of transformed boards.
         See the transformation() method defined by SquareSet.
@@ -958,7 +958,7 @@ class Board:
         to = self.opponent.transformations()
         return np.array([Board(SquareSet(m), SquareSet(o)) for m, o in zip(tm, to)])
     
-    def anti_transformations(self) -> np.ndarray:
+    def anti_transformations(self) -> npt.NDArray[Board]:
         """
         Returns an array of anti-transformed boards.
         See the anti_transformation() method defined by SquareSet.
@@ -966,6 +966,7 @@ class Board:
         tm = self.mover.anti_transformations()
         to = self.opponent.anti_transformations()
         return np.array([Board(SquareSet(m), SquareSet(o)) for m, o in zip(tm, to)])
+
 
 class PatternType(Enum):
     TYPE_0 = (
@@ -1016,7 +1017,6 @@ class PatternType(Enum):
         ("I0", "S0", "S0", "S0", "S0", "S0", "S0", "S0"),
         {"type": "9", "sample_mask": 0x0000001818000000, "sample_name": "CORE", "level": 8, "n_instances": 1, "n_stabilizers": 8}
     )
-    # ADD ALL PATTERN TYPES ....
 
     def __init__(self, fingerprint, data):
         self.fingerprint = tuple(fingerprint)
@@ -1176,50 +1176,40 @@ class Pattern:
             )
             raise ValueError(mesg)
         
-        def _precompute_pack_plan() -> list[tuple[np.uint64, int]]:
-            empty = np.uint64(0)
-            plan = []
+        def _precompute_pack_unpack_plans() -> tuple[npt.NDArray[np.uint64], npt.NDArray[np.uint64], npt.NDArray[np.uint64]]:
             mask = np.uint64(self.mask)
+            one = np.uint64(1)
+            all_ones = np.uint64(0xFFFFFFFFFFFFFFFF)
             dest_pos = 0
             source_pos = 0
-            
-            while source_pos < 64:
-                # 1. Skip zeros to find the start of the next block
-                # We use a bit selector to stay in the 64-bit domain
-                while source_pos < 64:
-                    selector = np.uint64(1) << source_pos
-                    if (mask & selector) != empty:
-                        break
-                    source_pos += 1
-                if source_pos >= 64:
-                    break
-                
-                # 2. Found the start of a block
-                start_source = source_pos
+    
+            p_masks, p_shifts, u_masks = [], [], []
 
-                # 3. Find the end of this contiguous block
-                while source_pos < 64:
-                    selector = np.uint64(1) << source_pos
-                    if (mask & selector) == empty:
-                        break
+            while source_pos < 64:
+                while source_pos < 64 and not (mask & (one << source_pos)):
+                    source_pos += 1
+                if source_pos >= 64: break
+        
+                start_source = source_pos
+                while source_pos < 64 and (mask & (np.uint64(1) << source_pos)):
                     source_pos += 1
                 block_len = source_pos - start_source
-        
-                # 4. Create the mask for this block
-                block_mask = (np.uint64(0xFFFFFFFFFFFFFFFF) >> (64 - block_len)) << start_source
-        
-                # 5. Calculate the shift required to pack this block
+
+                pack_mask = (all_ones >> (64 - block_len)) << start_source
                 shift_amount = start_source - dest_pos
-        
-                # Store in the plan: (mask, shift)
-                plan.append((block_mask, shift_amount))
-        
-                # 6. Increment destination position by the number of bits packed
+                p_masks.append(pack_mask)
+                p_shifts.append(shift_amount)
+
+                unpack_mask = (all_ones >> (64 - block_len)) << dest_pos
+                u_masks.append(unpack_mask)
+
                 dest_pos += block_len
 
-            return plan
+            return (np.array(p_masks, dtype=np.uint64),
+                    np.array(u_masks, dtype=np.uint64),
+                    np.array(p_shifts, dtype=np.uint64))
 
-        self.pack_plan = _precompute_pack_plan()
+        self.pack_plan = _precompute_pack_unpack_plans()
 
         # - Symmetries ...
 
@@ -1296,6 +1286,10 @@ class Pattern:
                 f"  Fingerprint: [{', '.join(f'{fp}' for fp in self.fingerprint)}]\n"
             )
             raise ValueError(f"The pattern fingerprint has not been found: {message}")
+
+        # Used by the compute_indexes_on_board method. 
+        self.powers_3 = 3 ** np.arange(self.n_squares, dtype=np.uint32)
+        self.bit_shifts = np.arange(self.n_squares, dtype=np.uint32)
 
         # Invariance check
         self._check_invariances()
@@ -1409,54 +1403,63 @@ class Pattern:
         print(f"  Transf. sorted cells: [{', '.join(f'{l}' for l in self.squares_ts)}]")
         print(f"  Fingerprint:          [{', '.join(f'{fp}' for fp in self.fingerprint)}]")
 
+    def pack_ss(self, s: np.int64) -> np.uint64:
+        """
+        Packs a square set according to the mask defined by this pattern.
+        """
+        return pack_ss(s, self)
 
-def pack_ss(s: np.uint64, p: Pattern) -> np.uint64:
-    """
-    Packs a square set according to the mask defined by pattern p.
-    """
-    s = np.uint64(s)
-    res = np.uint64(0)
+    def compute_indexes_on_board(self, b: Board) -> npt.NDArray[np.int32]:
+        def _sum_of_powers(arr_uint: List[np.uint64]) -> np.uint32:
+            bits = np.array([[x >> shift & 1 for shift in self.bit_shifts] for x in arr_uint])
+            return np.dot(bits, self.powers_3)
+
+        m = b.mover.anti_transformations()
+        o = b.opponent.anti_transformations()
+        im = m[self.unique_mask_indexes]
+        io = o[self.unique_mask_indexes]
+        pim = pack_ss(im, self)
+        pio = pack_ss(io, self)
+        idx_m = _sum_of_powers(pim)
+        idx_o = _sum_of_powers(pio)
+        indexes = idx_m + 2 * idx_o
+        return indexes
     
-    for block_mask, shift in p.pack_plan:
-        res |= (s & block_mask) >> shift
-        
-    return res
+    # Vettorizzare !!!
+    # Bisogna SEMPLIFICARE ....
 
-def unpack_ss(packed_val: np.uint64, p: Pattern) -> np.uint64:
+
+def pack_ss(s_tensor: npt.NDArray[np.uint64], p: Pattern) -> npt.NDArray[np.uint64]:
+    """
+    Compresses a square set according to the mask defined by this pattern.
+    """
+    pack_masks, _, pack_shifts = p.pack_plan
+    masked = (s_tensor[..., np.newaxis] & pack_masks) >> pack_shifts
+    return np.bitwise_or.reduce(masked, axis=-1)
+
+def unpack_ss(packed_array: npt.NDArray[np.uint64], p: Pattern) -> npt.NDArray[np.uint64]:
     """
     Executes the inverse of pack_ss (PDEP simulation).
     Takes packed bits and distributes them back to their original 
     positions on the bitboard using the precomputed pack_plan.
     
     Args:
-        packed_val: The compressed bits (result of a pack operation).
+        packed_array: The array of compressed bits (result of a pack_ss operation).
         p: The Pattern object containing the pack_plan.
     """
-    res = np.uint64(0)
-    packed_val = np.uint64(packed_val)
-    all_ones = np.uint64(0xFFFFFFFFFFFFFFFF)
+    _, unpack_masks, pack_shifts = p.pack_plan
+    # 1. Caching local references to avoid attribute lookup in high-frequency calls
+    u_masks = unpack_masks    # Shape (P,)
+    u_shifts = pack_shifts  # Shape (P,)
+
+    # 2. Vectorized extraction and restoration
+    # (N, M, 1) & (1, 1, P) << (1, 1, P) -> (N, M, P)
+    # We use broadcasting to process all blocks of the pack_plan at once
+    unpacked_blocks = (packed_array[..., np.newaxis] & u_masks) << u_shifts
     
-    # We need to track how many bits we have already 'unpacked' 
-    # to know where to extract them from the packed_val.
-    current_packed_pos = 0
-    
-    for block_mask, shift in p.pack_plan:
-        # 1. Calculate the length of the block from its mask
-        # (Technically, the plan could store block_len, but we can derive it)
-        # Using bit_count is efficient on Zen 3 (native popcount)
-        block_len = int(np.bitwise_count(block_mask))
-        
-        # 2. Create a mask for the bits in their CURRENT packed position
-        extract_mask = (all_ones >> np.uint64(64 - block_len)) << np.uint64(current_packed_pos)
-        
-        # 3. Extract the bits from the packed value and shift them BACK to the source
-        # Since 'shift' was (source - dest), we shift LEFT to go back.
-        res |= (packed_val & extract_mask) << np.uint64(shift)
-        
-        # 4. Advance the pointer in the packed value
-        current_packed_pos += block_len
-        
-    return res
+    # 3. Bitwise OR reduction across the plan axis (last axis)
+    return np.bitwise_or.reduce(unpacked_blocks, axis=-1)
+
 
 #
 # A list of Patterns.
