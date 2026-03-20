@@ -77,6 +77,18 @@ class Square(np.uint8):
     
     @classmethod
     def new_from_str(cls: type[Self], name: str) -> Self:
+        """
+        Creates a new Square instance from a string representation.
+
+        Args:
+            name (str): The string representation of the square (e.g., 'A1').
+
+        Returns:
+            Square: A new Square instance.
+
+        Raises:
+            ValueError: If the name is not a valid square name.
+        """
         try:
             index = cls.__names__.index(name)
             return cls(index)
@@ -84,13 +96,37 @@ class Square(np.uint8):
             raise ValueError(f"Invalid name: '{name}'. Must be one of {cls.__names__}")
 
     def __new__(cls: type[Self], value: np.uint8) -> Self:
+        """
+        Creates a new Square instance from a numeric value.
+
+        Args:
+            value (np.uint8): The numeric value of the square (0-63).
+
+        Returns:
+            Square: A new Square instance.
+
+        Raises:
+            AssertionError: If the value is not in the range [0..63].
+        """
         assert 0 <= value < cls.__max_value__, f"Value must be in the range [0..{cls.__max_value__}]"
         return super().__new__(cls, value)
 
     def to_str(self) -> str:
+        """
+        Returns the string representation of the square.
+
+        Returns:
+            str: The string representation of the square (e.g., 'A1').
+        """
         return self.__names__[self]
 
     def as_square_set(self) -> SquareSet:
+        """
+        Converts the square to a SquareSet containing only this square.
+
+        Returns:
+            SquareSet: A SquareSet containing only this square.
+        """
         return SquareSet(np.uint64(1) << self)
 
 class Move(Square):
@@ -141,6 +177,15 @@ class SquareSet(np.uint64):
         """
         Returns a new SquareSet object from a numpy.int64 value given as argument.
 
+        Args:
+            i (np.int64): The signed integer value.
+
+        Returns:
+            SquareSet: A new SquareSet instance.
+
+        Raises:
+            TypeError: If the argument is not an instance of numpy.int64.
+
         Example:
           i = numpy.int64(-1)
           s = SquareSet.new_from_signed_int(i)
@@ -157,6 +202,16 @@ class SquareSet(np.uint64):
         Characters could be uppercase or lovercase.
         Note that the argument string is not prefixed with '0x'.
 
+        Args:
+            h (str): The hexadecimal string.
+
+        Returns:
+            SquareSet: A new SquareSet instance.
+
+        Raises:
+            TypeError: If the argument is not an instance of str.
+            ValueError: If the argument string is not 16 characters long.
+
         Example:
           s = SquareSet.new_from_hex('ffffffffffffffff')
         """
@@ -170,6 +225,9 @@ class SquareSet(np.uint64):
     def clone(self) -> SquareSet:
         """
         Clones the square set.
+
+        Returns:
+            SquareSet: A new SquareSet instance with the same value.
         """
         return SquareSet(self)
 
@@ -177,12 +235,18 @@ class SquareSet(np.uint64):
         """
         Returns the signed int 64 bit long representation of the square set.
         It is useful to store and retrieve the value from PostgreSQL databases.
+
+        Returns:
+            np.int64: The signed integer representation of the square set.
         """
         return np.int64(self)
 
     def bsr(self) -> int:
         """
         Bit Scan Reverse - returns index of MOST significant set bit (63-0) or -1 if zero.
+
+        Returns:
+            int: The index of the most significant set bit or -1 if the square set is zero.
         """
         n = int(self)
         if n == 0:
@@ -192,7 +256,10 @@ class SquareSet(np.uint64):
     def to_square_list(self) -> List[Square]:
         """
         Returns the square set represented as a list of squares.
-        Squares are ordered from larger (H8) to smaller (A1)
+        Squares are ordered from larger (H8) to smaller (A1).
+
+        Returns:
+            List[Square]: A list of Square instances.
         """
         if self == 0:
             return []
@@ -209,12 +276,18 @@ class SquareSet(np.uint64):
     def to_square_array(self) -> npt.NDArray[Square]:
         """
         Returns the square set as a numpy array.
+
+        Returns:
+            npt.NDArray[Square]: A numpy array of Square instances.
         """
         return np.array(self.to_square_list())
 
     def to_string_list(self) -> List[str]:
         """
         Returns the square set as a list of strings.
+
+        Returns:
+            List[str]: A list of string representations of the squares.
         """
         squares = self.to_square_list()
         return [sq.to_str() for sq in squares]
@@ -222,6 +295,9 @@ class SquareSet(np.uint64):
     def count(self) -> int:
         """
         Returns the number of squares in the set.
+
+        Returns:
+            int: The number of squares in the set.
         """
         bit_count = np.bitwise_count(self)
         return bit_count
@@ -263,6 +339,9 @@ class SquareSet(np.uint64):
         . 7  . 1 . . 1 . . .    1 1 1 1 1 1 1 1
         . 8  . 1 . . . 1 . .    . . . . . . . .
         
+
+        Returns:
+            SquareSet: The reflected square set.
         """
         k1: SquareSet = 0x5500550055005500
         k2: SquareSet = 0x3333000033330000
@@ -294,6 +373,8 @@ class SquareSet(np.uint64):
         . 7  . 1 . . 1 . . .    . . . . . . . .
         . 8  . 1 . . . 1 . .    . . . . . . . .
 
+        Returns:
+            SquareSet: The reflected square set.
         """
         k1: SquareSet = 0xaa00aa00aa00aa00
         k2: SquareSet = 0xcccc0000cccc0000
@@ -324,7 +405,9 @@ class SquareSet(np.uint64):
         . 6  . 1 . 1 . . . .    . 1 . . . 1 . .
         . 7  . 1 . . 1 . . .    . 1 . . . 1 . .
         . 8  . 1 . . . 1 . .    . 1 1 1 1 . . .
-        
+
+        Returns:
+            SquareSet: The reflected square set.        
         """
         mask56: SquareSet = 0xFF00000000000000
         mask48: SquareSet = 0x00FF000000000000
@@ -363,6 +446,8 @@ class SquareSet(np.uint64):
         . 7  . 1 . . 1 . . .    . . . 1 . . 1 .
         . 8  . 1 . . . 1 . .    . . 1 . . . 1 .
 
+        Returns:
+            SquareSet: The reflected square set.
         """
         k1: SquareSet = 0x5555555555555555
         k2: SquareSet = 0x3333333333333333
@@ -391,6 +476,8 @@ class SquareSet(np.uint64):
         . 7  . 1 . . 1 . . .    . 1 . . 1 . . .
         . 8  . 1 . . . 1 . .    . 1 . . . 1 . .
         
+        Returns:
+            SquareSet: The unchanged square set.
         """
         return self
 
@@ -412,6 +499,8 @@ class SquareSet(np.uint64):
         . 7  . 1 . . 1 . . .    . . 1 . . . 1 .
         . 8  . 1 . . . 1 . .    . . . 1 1 1 1 .
         
+        Returns:
+            SquareSet: The rotated square set.
         """
         return self.fhori().fvert()
 
@@ -433,6 +522,8 @@ class SquareSet(np.uint64):
         . 7  . 1 . . 1 . . .    . . . . . . . .
         . 8  . 1 . . . 1 . .    . . . . . . . .
 
+        Returns:
+            SquareSet: The rotated square set.
         """
         return self.fh1a8().fhori()
 
@@ -454,6 +545,8 @@ class SquareSet(np.uint64):
         . 7  . 1 . . 1 . . .    1 1 1 1 1 1 1 1
         . 8  . 1 . . . 1 . .    . . . . . . . .
 
+        Returns:
+            SquareSet: The rotated square set.
         """
         return self.fhori().fh1a8()
 
@@ -468,6 +561,9 @@ class SquareSet(np.uint64):
          - 0 -> 5 : fh1a8
          - 0 -> 6 : fhori
          - 0 -> 7 : fa1h8
+        
+        Returns:
+            npt.NDArray[SquareSet]: An array of transformed square sets.
         """
         # ts: transformed square sets
         ts = np.zeros(8, dtype=SquareSet)
@@ -513,6 +609,9 @@ class SquareSet(np.uint64):
          - 0 -> 6 : fhori
          - 0 -> 7 : fa1h8
         These are the anti-transformations as defined by the transformations() method.
+        
+        Returns:
+            npt.NDArray[SquareSet]: An array of anti-transformed square sets.
         """
         # ts: transformed square sets
         ts = np.zeros(8, dtype=SquareSet)
@@ -706,9 +805,15 @@ class Board:
         self._lms_ = None # legal moves set
         self._lmc_ = None # legal move count
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         """
         Two boards are equals when mover and opponent fields are equal.
+
+        Args:
+            other: The object to compare with.
+        
+        Returns:
+            bool: True if the boards are equal, False otherwise.
         """
         if isinstance(other, Board):
             return self.mover == other.mover and self.opponent == other.opponent
@@ -717,6 +822,9 @@ class Board:
     def clone(self) -> Board:
         """
         Clones the board.
+
+        Returns:
+            Board: A new Board instance with the same state.
         """
         c = Board(self.mover, self.opponent)
         c._lms_ = self._lms_
@@ -748,24 +856,36 @@ class Board:
     def empties(self) -> SquareSet:
         """
         Returns the set of empty squares in the game position.
+
+        Returns:
+            SquareSet: A SquareSet containing the empty squares.
         """
         return ~(self.mover | self.opponent)
 
     def get_mover(self) -> SquareSet:
         """
         Returns the set of squares belonging to the mover player.
+
+        Returns:
+            SquareSet: A SquareSet containing the mover's squares.
         """
         return self.mover
 
     def get_opponent(self) -> SquareSet:
         """
         Returns the set of squares belonging to the opponent player.
+
+        Returns:
+            SquareSet: A SquareSet containing the opponent's squares.
         """
         return self.opponent
 
     def legal_moves(self) -> SquareSet:
         """
         Returns the set of squares that represents the legal moves for the game position.
+
+        Returns:
+            SquareSet: A SquareSet containing the legal moves.
         """
         if self._lms_ is None:
             self._lms_ = _kogge_stone_lms(self.mover, self.opponent, self.empties())
@@ -775,6 +895,9 @@ class Board:
     def legal_moves_count(self) -> int:
         """
         Returns the count of legal moves for the game position.
+
+        Returns:
+            int: The number of legal moves.
         """
         if self._lmc_ is None:
             lms = self.legal_moves()
@@ -791,6 +914,12 @@ class Board:
         When move is 0ULL, 0ULL is returned.
         The updated board is also returned as second element of the tuple when the move is legal,
         None otherwise.
+
+        Args:
+            move (SquareSet): The move to be made.
+
+        Returns:
+            (SquareSet, Board): A tuple containing the flipped squares and the updated board.
         """
         if not isinstance(move, SquareSet):
             raise TypeError('Argument move is not an instance of SquareSet')
@@ -811,6 +940,12 @@ class Board:
         When 64 (PA) is passed the player and opponent bitboard are swapped, it is not verified
         that pass is the only legal move.
         When an illegal move is passed the same board is returned.
+
+        Args:
+            move (Move): The move to be made.
+
+        Returns:
+            Board: The updated board after the move.
         """
         if not isinstance(move, Move):
             raise TypeError('Argument move is not an instance of Move')
@@ -827,6 +962,9 @@ class Board:
     def count_difference(self) -> int:
         """
         Returns the disk difference between the player and her opponent.
+
+        Returns:
+            int: The disk difference.
         """
         mc = self.mover.count()
         oc = self.opponent.count()
@@ -846,6 +984,9 @@ class Board:
         game will be determined by counting up the discs of each colour on the
         board, counting empty squares for the winner. In the event of a draw,
         the score will always be 32-32".
+
+        Returns:
+            int: The final score.
         """
         mc = int(self.mover.count())
         oc = int(self.opponent.count())
@@ -861,6 +1002,9 @@ class Board:
     def has_to_pass(self) -> bool:
         """
         Returns true if the mover player does't have any legal move.
+
+        Returns:
+            bool: True if the mover has to pass, False otherwise.
         """
         lmc = self.legal_moves_count()
         if lmc == 0:
@@ -871,6 +1015,9 @@ class Board:
     def is_game_over(self) -> bool:
         """
         Returns true if the game is over.
+
+        Returns:
+            bool: True if the game is over, False otherwise.
         """
         lmc = self.legal_moves_count()
         if lmc > 0: return False
@@ -882,6 +1029,12 @@ class Board:
     def is_move_legal(self, move: Move) -> bool:
         """
         Returns true if the move is legal.
+
+        Args:
+            move (Move): The move to be checked.
+
+        Returns:
+            bool: True if the move is legal, False otherwise.
         """
         if not isinstance(move, Move):
             raise TypeError('Argument move is not an instance of Move')
@@ -897,6 +1050,9 @@ class Board:
     def fa1h8(self) -> Board:
         """
         Reflects the board on the diagonal a1-h8.
+
+        Returns:
+            Board: The reflected board.
         """
         return Board(self.mover.fa1h8(),
                      self.opponent.fa1h8())
@@ -904,6 +1060,9 @@ class Board:
     def fh1a8(self) -> Board:
         """
         Reflects the board on the diagonal h1-a8.
+
+        Returns:
+            Board: The reflected board.
         """
         return Board(self.mover.fh1a8(),
                      self.opponent.fh1a8())
@@ -911,6 +1070,9 @@ class Board:
     def fhori(self) -> Board:
         """
         Reflects the board horizontally (on the horizontal axis).
+
+        Returns:
+            Board: The reflected board.
         """
         return Board(self.mover.fhori(),
                      self.opponent.fhori())
@@ -918,6 +1080,9 @@ class Board:
     def fvert(self) -> Board:
         """
         Reflects the board vertically (on the vertical axis).
+
+        Returns:
+            Board: The reflected board.
         """
         return Board(self.mover.fvert(),
                      self.opponent.fvert())
@@ -925,12 +1090,18 @@ class Board:
     def ro000(self) -> Board:
         """
         Returns the board unchanged, as it is.
+
+        Returns:
+            Board: The unchanged board.
         """
         return self.clone()
 
     def ro180(self) -> Board:
         """
         Rotates the board by 180 degrees.
+
+        Returns:
+            Board: The rotated board.
         """
         return Board(self.mover.ro180(),
                      self.opponent.ro180())
@@ -938,6 +1109,9 @@ class Board:
     def ro090(self) -> Board:
         """
         Rotates the board by 90 degrees clockwise.
+
+        Returns:
+            Board: The rotated board.
         """
         return Board(self.mover.ro090(),
                      self.opponent.ro090())
@@ -945,6 +1119,9 @@ class Board:
     def ro270(self) -> Board:
         """
         Rotates the board by 90 degrees anticlockwise.
+
+        Returns:
+            Board: The rotated board.
         """
         return Board(self.mover.ro270(),
                      self.opponent.ro270())
@@ -1061,18 +1238,22 @@ class Pattern:
     anti_trans_fs (list): The inverse functions used to map transformed squares back to the original configuration.
 
     5. Symmetry & Automorphism Logic
-    unique_symmetric_instance_indexes (list): Indices of transformations that leave the mask bitwise identical but might permute the internal order of the squares.
+    unique_symmetric_instance_indexes (list): Indices of transformations that leave the mask bitwise identical but might
+                                              permute the internal order of the squares.
                                               These represent the Automorphism Group of the pattern.
-    symmetry_fs (list): The specific transformation functions that result in a bitwise identical mask, used to reduce parameters in the regression model or neural network.
+    symmetry_fs (list): The specific transformation functions that result in a bitwise identical mask,
+                        used to reduce parameters in the regression model or neural network.
 
     6. Optimization Plans
-    pack_plan (list): A precomputed sequence of bitwise operations (masks and shifts) used to "pack" the scattered bits of a 64-bit board into a contiguous integer index.
-                      This is critical for high-speed evaluation.
-                      Detailed breakdown of each tuple:
-                      np.uint64: The first element of the tuple is the block_mask.
-                      int: The second element is the shift_amount.
-                           It is the result of the subtraction of (source_pos - dest_pos), it defaults to the standard Python int type.
-
+    pack_plan (tuple[npt.NDArray[np.uint64],
+               npt.NDArray[np.uint64],
+               npt.NDArray[np.uint64]]): A precomputed sequence of bitwise operations (masks and shifts) used to "pack"
+                                         the scattered bits of a 64-bit board into a contiguous integer index.
+                                         This is critical for high-speed evaluation.
+                                         The tuple contains three arrays:
+                                          - p_masks (np.ndarray[np.uint64]): The block masks used for packing.
+                                          - u_masks (np.ndarray[np.uint64]): The block masks used for unpacking.
+                                          - p_shifts (np.ndarray[np.uint64]): The shift amounts used for packing.
     7. Transformed Cell Names
     snames_t (list[list[str]]): A 2D array of shape (8, n_squares) containing the coordinate names of pattern squares
                                 after applying each of the 8 possible transformations.
@@ -1093,7 +1274,8 @@ class Pattern:
 
     10. Fingerprint
     fingerprint (list[str]): A list of 8 strings that represent the configuration of the pattern under each of the 8 transformations.
-                             Each string can be "I0", "T1", "S0", etc., indicating whether the transformation is identical, transposed, or symmetric relative to the original configuration.
+                             Each string can be "I0", "T1", "S0", etc., indicating whether the transformation is identical, transposed,
+                             or symmetric relative to the original configuration.
 
     11. Type Information
     type_info (PatternType): An object of PatternType that represents the type of pattern, based on its fingerprint.
@@ -1132,6 +1314,18 @@ class Pattern:
                 f.write(pattern.mdp_record() + '\n')
 
     def __init__(self, name: str, mask: SquareSet):
+        """
+        Initializes a new Pattern instance with the given name and mask.
+        
+        Args:
+            name (str): The human-readable label for the pattern (e.g., "EDG8", "DIAG8", "CORNER").
+            mask (SquareSet): The primary 64-bit mask defining the squares belonging to this pattern.
+        
+        Raises:
+            TypeError: If the mask is not an instance of SquareSet.
+            TypeError: If the name is not an instance of str.
+            ValueError: If the mask is not the principal mask among its transformations.
+        """
         if not isinstance(mask, (SquareSet, np.uint64)):
             raise TypeError('Argument mask is not an instance of SquareSet')
         if not isinstance(name, str):
@@ -1158,6 +1352,13 @@ class Pattern:
         self.anti_trans_fs = [SquareSet.anti_trans_fs[i] for i in self.unique_mask_indexes]
 
         def _check_mask_is_principal() -> int:
+            """
+            Checks if the mask is the principal mask among its transformations.
+            The principal mask is the one having the lower value of the highest bit set.
+        
+            Returns:
+                int: The index of the offending transformation if the mask is not principal, otherwise 0.
+            """
             instance: int = 0
             highest_cell_instance_0 = SquareSet(self.tmasks[0]).bsr()
             for i in range(1, 8):
@@ -1176,7 +1377,20 @@ class Pattern:
             )
             raise ValueError(mesg)
         
-        def _precompute_pack_unpack_plans() -> tuple[npt.NDArray[np.uint64], npt.NDArray[np.uint64], npt.NDArray[np.uint64]]:
+        def _precompute_pack_unpack_plans() -> tuple[npt.NDArray[np.uint64],
+                                                     npt.NDArray[np.uint64],
+                                                     npt.NDArray[np.uint64]]:
+            """
+            Precomputes the pack and unpack plans for the pattern.
+            These plans are used to compress and decompress the square set according to the pattern's mask.
+        
+            Returns:
+                tuple[npt.NDArray[np.uint64], npt.NDArray[np.uint64], npt.NDArray[np.uint64]]:
+                    A tuple containing three numpy arrays:
+                    - p_masks (npt.NDArray[np.uint64]): The block masks used for packing.
+                    - u_masks (npt.NDArray[np.uint64]): The block masks used for unpacking.
+                    - p_shifts (npt.NDArray[np.uint64]): The shift amounts used for packing.
+            """
             mask = np.uint64(self.mask)
             one = np.uint64(1)
             all_ones = np.uint64(0xFFFFFFFFFFFFFFFF)
@@ -1213,7 +1427,17 @@ class Pattern:
 
         # - Symmetries ...
 
-        def _get_position_mapping(symms) -> list[int]:
+        def _get_position_mapping(symms: list[list[int]]) -> list[int]:
+            """
+            Generates a mapping of unique symmetry positions.
+        
+            Args:
+                symms (list[list[int]]): A list of lists, where each inner list represents a permutation of cell positions
+                                         resulting from a symmetry transformation.
+        
+            Returns:
+                list[int]: A list of integers representing the unique position mapping for each symmetry.
+            """
             seen = {}
             res = []
             for i, arr in enumerate(symms):
@@ -1364,6 +1588,9 @@ class Pattern:
         """
         Returns a string representation of the pattern in CSV format.
         Fields are separated by commas.
+        
+        Returns:
+            str: A string representing the pattern in CSV format.
         """
         trans_fs_labels = [SquareSet.transformation_labels[i] for i in self.unique_mask_indexes]
         anti_trans_fs_labels = [SquareSet.anti_transformation_labels[i] for i in self.unique_mask_indexes]
@@ -1385,6 +1612,13 @@ class Pattern:
         )
 
     def print(self) -> None:
+        """
+        Prints a detailed representation of the pattern to stdout.
+        Includes information about the pattern's name, mask, number of squares, number of configurations,
+        number of instances, number of stabilizers, type, cells, transformed masks, mask indexes,
+        unique masks, unique mask indexes, transformation functions, anti-transformation functions,
+        symmetry functions, transformed cells, transformed sorted cells, and fingerprint.
+        """
         trans_fs_labels = [SquareSet.transformation_labels[i] for i in self.unique_mask_indexes]
         anti_trans_fs_labels = [SquareSet.anti_transformation_labels[i] for i in self.unique_mask_indexes]
         symmetry_fs_labels = [SquareSet.transformation_labels[i] for i in self.unique_symmetric_instance_indexes]
@@ -1410,6 +1644,15 @@ class Pattern:
         return pack_ss(s, self)
 
     def compute_indexes_on_board(self, b: Board) -> npt.NDArray[np.int32]:
+        """
+        Computes the indexes of the pattern on the given board for both mover and opponent.
+        
+        Args:
+            b (Board): The board on which to compute the pattern indexes.
+            
+        Returns:
+            npt.NDArray[np.int32]: An array of indexes representing the pattern configurations on the board.
+        """
         instances_mover = b.mover.anti_transformations()[self.unique_mask_indexes]
         instances_opponent = b.opponent.anti_transformations()[self.unique_mask_indexes]
         combined = np.stack([instances_mover, instances_opponent])
@@ -1422,6 +1665,13 @@ class Pattern:
 def pack_ss(s_tensor: npt.NDArray[np.uint64], p: Pattern) -> npt.NDArray[np.uint64]:
     """
     Compresses a square set according to the mask defined by this pattern.
+    
+    Args:
+        s_tensor (npt.NDArray[np.uint64]): The input square set tensor to be packed.
+        p (Pattern): The Pattern object containing the pack_plan used for compression.
+    
+    Returns:
+        npt.NDArray[np.uint64]: The packed square set as a compressed bit array.
     """
     pack_masks, _, pack_shifts = p.pack_plan
     masked = (s_tensor[..., np.newaxis] & pack_masks) >> pack_shifts
@@ -1436,6 +1686,9 @@ def unpack_ss(packed_array: npt.NDArray[np.uint64], p: Pattern) -> npt.NDArray[n
     Args:
         packed_array: The array of compressed bits (result of a pack_ss operation).
         p: The Pattern object containing the pack_plan.
+    
+    Returns:
+        npt.NDArray[np.uint64]: The unpacked square set with bits restored to their original positions.
     """
     _, unpack_masks, pack_shifts = p.pack_plan
     # 1. Caching local references to avoid attribute lookup in high-frequency calls
