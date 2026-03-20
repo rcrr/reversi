@@ -1410,23 +1410,13 @@ class Pattern:
         return pack_ss(s, self)
 
     def compute_indexes_on_board(self, b: Board) -> npt.NDArray[np.int32]:
-        def _sum_of_powers(arr_uint: List[np.uint64]) -> np.uint32:
-            bits = np.array([[x >> shift & 1 for shift in self.bit_shifts] for x in arr_uint])
-            return np.dot(bits, self.powers_3)
-
-        m = b.mover.anti_transformations()
-        o = b.opponent.anti_transformations()
-        im = m[self.unique_mask_indexes]
-        io = o[self.unique_mask_indexes]
-        pim = pack_ss(im, self)
-        pio = pack_ss(io, self)
-        idx_m = _sum_of_powers(pim)
-        idx_o = _sum_of_powers(pio)
-        indexes = idx_m + 2 * idx_o
-        return indexes
-    
-    # Vettorizzare !!!
-    # Bisogna SEMPLIFICARE ....
+        instances_mover = b.mover.anti_transformations()[self.unique_mask_indexes]
+        instances_opponent = b.opponent.anti_transformations()[self.unique_mask_indexes]
+        combined = np.stack([instances_mover, instances_opponent])
+        p_combined = pack_ss(combined, self)
+        bits = (p_combined[..., np.newaxis] >> self.bit_shifts) & 1
+        idxs = bits @ self.powers_3
+        return (idxs[0] + 2 * idxs[1]).astype(np.int32)
 
 
 def pack_ss(s_tensor: npt.NDArray[np.uint64], p: Pattern) -> npt.NDArray[np.uint64]:

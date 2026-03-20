@@ -1650,7 +1650,7 @@ class TestBoardPatternIndexes(unittest.TestCase):
         pass
 
     def test_elle(self):
-        p = Pattern('ELLE',   SquareSet(0x0000000000000107))
+        p = Pattern('ELLE', SquareSet(0x0000000000000107))
         expected = [9, 54, 59, 54, 15, 35, 6, 0]
         
         expected_indexes: npt.NDArray[np.uint32] = np.array(expected, dtype=np.uint32)
@@ -1658,9 +1658,99 @@ class TestBoardPatternIndexes(unittest.TestCase):
         self.assertEqual(len(computed_indexes), p.n_instances)
         nptest.assert_array_equal(computed_indexes, expected_indexes)
 
+    def test_snake(self):
+        p = Pattern('SNAKE', SquareSet(0x0000000C30000000))
+        expected = [50, 50, 79, 44]
+        
+        expected_indexes: npt.NDArray[np.uint32] = np.array(expected, dtype=np.uint32)
+        computed_indexes: npt.NDArray[np.uint32] = p.compute_indexes_on_board(self.board)
+        self.assertEqual(len(computed_indexes), p.n_instances)
+        nptest.assert_array_equal(computed_indexes, expected_indexes)
+
     def test_edge(self):
-        p = Pattern('EDGE',   SquareSet(0x00000000000000FF))
+        p = Pattern('EDGE', SquareSet(0x00000000000000FF))
         expected = [1764, 5940, 1517, 81]
+        
+        expected_indexes: npt.NDArray[np.uint32] = np.array(expected, dtype=np.uint32)
+        computed_indexes: npt.NDArray[np.uint32] = p.compute_indexes_on_board(self.board)
+        self.assertEqual(len(computed_indexes), p.n_instances)
+        nptest.assert_array_equal(computed_indexes, expected_indexes)
+
+    def test_diag3(self):
+        p = Pattern('DIAG3', SquareSet(0x0000000000010204))
+        expected = [1, 15, 6, 0]
+        
+        expected_indexes: npt.NDArray[np.uint32] = np.array(expected, dtype=np.uint32)
+        computed_indexes: npt.NDArray[np.uint32] = p.compute_indexes_on_board(self.board)
+        self.assertEqual(len(computed_indexes), p.n_instances)
+        nptest.assert_array_equal(computed_indexes, expected_indexes)
+
+    def test_dota1(self):
+        p = Pattern('DOTA1', SquareSet(0x0000000000000001))
+        expected = [0, 0, 2, 0]
+        
+        expected_indexes: npt.NDArray[np.uint32] = np.array(expected, dtype=np.uint32)
+        computed_indexes: npt.NDArray[np.uint32] = p.compute_indexes_on_board(self.board)
+        self.assertEqual(len(computed_indexes), p.n_instances)
+        nptest.assert_array_equal(computed_indexes, expected_indexes)
+
+    def test_tau(self):
+        p = Pattern('TAU', SquareSet(0x010100C1C1000101))
+        expected = [3033, 2166, 3203, 48093]
+        
+        expected_indexes: npt.NDArray[np.uint32] = np.array(expected, dtype=np.uint32)
+        computed_indexes: npt.NDArray[np.uint32] = p.compute_indexes_on_board(self.board)
+        self.assertEqual(len(computed_indexes), p.n_instances)
+        nptest.assert_array_equal(computed_indexes, expected_indexes)
+
+    def test_mace(self):
+        p = Pattern('MACE', SquareSet(0x010204081020C0C0))
+        expected = [3584, 5804, 19280, 58725]
+        
+        expected_indexes: npt.NDArray[np.uint32] = np.array(expected, dtype=np.uint32)
+        computed_indexes: npt.NDArray[np.uint32] = p.compute_indexes_on_board(self.board)
+        self.assertEqual(len(computed_indexes), p.n_instances)
+        nptest.assert_array_equal(computed_indexes, expected_indexes)
+
+    def test_corea(self):
+        p = Pattern('COREA', SquareSet(0x000008381C100000))
+        expected = [4283, 4100]
+        
+        expected_indexes: npt.NDArray[np.uint32] = np.array(expected, dtype=np.uint32)
+        computed_indexes: npt.NDArray[np.uint32] = p.compute_indexes_on_board(self.board)
+        self.assertEqual(len(computed_indexes), p.n_instances)
+        nptest.assert_array_equal(computed_indexes, expected_indexes)
+
+    def test_barbel(self):
+        p = Pattern('BARBEL', SquareSet(0x030304081020C0C0))
+        expected = [357878, 5804]
+        
+        expected_indexes: npt.NDArray[np.uint32] = np.array(expected, dtype=np.uint32)
+        computed_indexes: npt.NDArray[np.uint32] = p.compute_indexes_on_board(self.board)
+        self.assertEqual(len(computed_indexes), p.n_instances)
+        nptest.assert_array_equal(computed_indexes, expected_indexes)
+
+    def test_diag8(self):
+        p = Pattern('DIAG8', SquareSet(0x0102040810204080))
+        expected = [402, 647]
+        
+        expected_indexes: npt.NDArray[np.uint32] = np.array(expected, dtype=np.uint32)
+        computed_indexes: npt.NDArray[np.uint32] = p.compute_indexes_on_board(self.board)
+        self.assertEqual(len(computed_indexes), p.n_instances)
+        nptest.assert_array_equal(computed_indexes, expected_indexes)
+
+    def test_rct2x4(self):
+        p = Pattern('RCT2X4', SquareSet(0x0000003C3C000000))
+        expected = [6287, 3374]
+        
+        expected_indexes: npt.NDArray[np.uint32] = np.array(expected, dtype=np.uint32)
+        computed_indexes: npt.NDArray[np.uint32] = p.compute_indexes_on_board(self.board)
+        self.assertEqual(len(computed_indexes), p.n_instances)
+        nptest.assert_array_equal(computed_indexes, expected_indexes)
+
+    def test_core(self):
+        p = Pattern('CORE', SquareSet(0x0000001818000000))
+        expected = [70]
         
         expected_indexes: npt.NDArray[np.uint32] = np.array(expected, dtype=np.uint32)
         computed_indexes: npt.NDArray[np.uint32] = p.compute_indexes_on_board(self.board)
