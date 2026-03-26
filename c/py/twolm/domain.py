@@ -55,7 +55,9 @@ from enum import Enum
 
 from typing import Self, Callable, Any, Union, TypeVar
 
-__all__ = ['Square', 'Move', 'SquareSet', 'Board', 'Pattern', 'pack_ss', 'unpack_ss', 'sample_patterns']
+__all__ = ['Square', 'Move', 'SquareSet', 'Board', 'Pattern',
+           'pack_ss', 'unpack_ss', 'sample_patterns',
+           'convert_to_principal_index']
 
 class Square(np.uint8):
     """
@@ -321,6 +323,20 @@ class SquareSet(np.uint64):
             print()
         return
 
+    @staticmethod
+    def _fa1h8(ss: npt.NDArray[np.uint64]) -> npt.NDArray[np.uint64]:
+        k1 = 0x5500550055005500
+        k2 = 0x3333000033330000
+        k4 = 0x0f0f0f0f00000000
+        s = ss
+        t =      k4 & (s ^ (s << 28))
+        s = s ^       (t ^ (t >> 28))
+        t =      k2 & (s ^ (s << 14))
+        s = s ^       (t ^ (t >> 14))
+        t =      k1 & (s ^ (s << 7))
+        s = s ^       (t ^ (t >> 7))
+        return s
+
     def fa1h8(self) -> Self:
         """
         Reflects a square set on the diagonal a1-h8.
@@ -343,18 +359,22 @@ class SquareSet(np.uint64):
         Returns:
             SquareSet: The reflected square set.
         """
-        k1: SquareSet = 0x5500550055005500
-        k2: SquareSet = 0x3333000033330000
-        k4: SquareSet = 0x0f0f0f0f00000000
-        s = self
-        t =      k4 & (s ^ (s << 28))
-        s = s ^       (t ^ (t >> 28))
-        t =      k2 & (s ^ (s << 14))
-        s = s ^       (t ^ (t >> 14))
-        t =      k1 & (s ^ (s << 7))
-        s = s ^       (t ^ (t >> 7))
-        return SquareSet(s)
+        return SquareSet(self._fa1h8(self))
 
+    @staticmethod
+    def _fh1a8(ss: npt.NDArray[np.uint64]) -> npt.NDArray[np.uint64]:
+        k1 = 0xaa00aa00aa00aa00
+        k2 = 0xcccc0000cccc0000
+        k4 = 0xf0f0f0f00f0f0f0f
+        s = ss
+        t =            s ^ (s << 36)
+        s = s ^ (k4 & (t ^ (s >> 36)))
+        t =      k2 & (s ^ (s << 18))
+        s = s ^       (t ^ (t >> 18))
+        t =      k1 & (s ^ (s << 9))
+        s = s ^       (t ^ (t >> 9))
+        return s
+    
     def fh1a8(self) -> Self:
         """
         Reflects a square set on the diagonal h1-a8.
@@ -376,17 +396,28 @@ class SquareSet(np.uint64):
         Returns:
             SquareSet: The reflected square set.
         """
-        k1: SquareSet = 0xaa00aa00aa00aa00
-        k2: SquareSet = 0xcccc0000cccc0000
-        k4: SquareSet = 0xf0f0f0f00f0f0f0f
-        s = self
-        t =            s ^ (s << 36)
-        s = s ^ (k4 & (t ^ (s >> 36)))
-        t =      k2 & (s ^ (s << 18))
-        s = s ^       (t ^ (t >> 18))
-        t =      k1 & (s ^ (s << 9))
-        s = s ^       (t ^ (t >> 9))
-        return SquareSet(s)
+        return SquareSet(self._fh1a8(self))
+
+    @staticmethod
+    def _fhori(ss: npt.NDArray[np.uint64]) -> npt.NDArray[np.uint64]:
+        mask56 = 0xFF00000000000000
+        mask48 = 0x00FF000000000000
+        mask40 = 0x0000FF0000000000
+        mask32 = 0x000000FF00000000
+        mask24 = 0x00000000FF000000
+        mask16 = 0x0000000000FF0000
+        mask08 = 0x000000000000FF00
+        mask00 = 0x00000000000000FF
+        s = ss
+        s = (((s << 56) & mask56) |
+             ((s << 40) & mask48) |
+             ((s << 24) & mask40) |
+             ((s <<  8) & mask32) |
+             ((s >>  8) & mask24) |
+             ((s >> 24) & mask16) |
+             ((s >> 40) & mask08) |
+             ((s >> 56) & mask00))
+        return s
 
     def fhori(self) -> Self:
         """
@@ -409,24 +440,18 @@ class SquareSet(np.uint64):
         Returns:
             SquareSet: The reflected square set.        
         """
-        mask56: SquareSet = 0xFF00000000000000
-        mask48: SquareSet = 0x00FF000000000000
-        mask40: SquareSet = 0x0000FF0000000000
-        mask32: SquareSet = 0x000000FF00000000
-        mask24: SquareSet = 0x00000000FF000000
-        mask16: SquareSet = 0x0000000000FF0000
-        mask08: SquareSet = 0x000000000000FF00
-        mask00: SquareSet = 0x00000000000000FF
-        s = self
-        s = (((s << 56) & mask56) |
-             ((s << 40) & mask48) |
-             ((s << 24) & mask40) |
-             ((s <<  8) & mask32) |
-             ((s >>  8) & mask24) |
-             ((s >> 24) & mask16) |
-             ((s >> 40) & mask08) |
-             ((s >> 56) & mask00))
-        return SquareSet(s)
+        return SquareSet(self._fhori(self))
+
+    @staticmethod
+    def _fvert(ss: npt.NDArray[np.uint64]) -> npt.NDArray[np.uint64]:
+        k1 = 0x5555555555555555
+        k2 = 0x3333333333333333
+        k4 = 0x0f0f0f0f0f0f0f0f
+        s = ss
+        s = ((s >> 1) & k1) | ((s & k1) << 1)
+        s = ((s >> 2) & k2) | ((s & k2) << 2)
+        s = ((s >> 4) & k4) | ((s & k4) << 4)
+        return s
 
     def fvert(self) -> Self:
         """
@@ -449,14 +474,11 @@ class SquareSet(np.uint64):
         Returns:
             SquareSet: The reflected square set.
         """
-        k1: SquareSet = 0x5555555555555555
-        k2: SquareSet = 0x3333333333333333
-        k4: SquareSet = 0x0f0f0f0f0f0f0f0f
-        s = self
-        s = ((s >> 1) & k1) | ((s & k1) << 1)
-        s = ((s >> 2) & k2) | ((s & k2) << 2)
-        s = ((s >> 4) & k4) | ((s & k4) << 4)
-        return  SquareSet(s)
+        return SquareSet(self._fvert(self))
+
+    @staticmethod
+    def _ro000(ss: npt.NDArray[np.uint64]) -> npt.NDArray[np.uint64]:
+        return ss
 
     def ro000(self) -> Self:
         """
@@ -479,7 +501,11 @@ class SquareSet(np.uint64):
         Returns:
             SquareSet: The unchanged square set.
         """
-        return self
+        return SquareSet(self._ro000(self))
+
+    @staticmethod
+    def _ro180(ss: npt.NDArray[np.uint64]) -> npt.NDArray[np.uint64]:
+        return SquareSet._fvert(SquareSet._fhori(ss))
 
     def ro180(self) -> Self:
         """
@@ -502,7 +528,11 @@ class SquareSet(np.uint64):
         Returns:
             SquareSet: The rotated square set.
         """
-        return self.fhori().fvert()
+        return SquareSet(self._ro180(self))
+
+    @staticmethod
+    def _ro090(ss: npt.NDArray[np.uint64]) -> npt.NDArray[np.uint64]:
+        return SquareSet._fhori(SquareSet._fh1a8(ss))
 
     def ro090(self) -> Self:
         """
@@ -525,7 +555,11 @@ class SquareSet(np.uint64):
         Returns:
             SquareSet: The rotated square set.
         """
-        return self.fh1a8().fhori()
+        return SquareSet(self._ro090(self))
+
+    @staticmethod
+    def _ro270(ss: npt.NDArray[np.uint64]) -> npt.NDArray[np.uint64]:
+        return SquareSet._fh1a8(SquareSet._fhori(ss))
 
     def ro270(self) -> Self:
         """
@@ -548,7 +582,7 @@ class SquareSet(np.uint64):
         Returns:
             SquareSet: The rotated square set.
         """
-        return self.fhori().fh1a8()
+        return SquareSet(self._ro270(self))
 
     def transformations(self) -> npt.NDArray[SquareSet]:
         """
@@ -565,7 +599,6 @@ class SquareSet(np.uint64):
         Returns:
             npt.NDArray[SquareSet]: An array of transformed square sets.
         """
-        # ts: transformed square sets
         ts = np.zeros(8, dtype=SquareSet)
 
         h1a8 = self.fh1a8()
@@ -665,6 +698,28 @@ class SquareSet(np.uint64):
          fh1a8,
          fhori,
          fa1h8,
+         ])
+
+    _trans_fs = np.array(
+        [_ro000,
+         _ro090,
+         _ro180,
+         _ro270,
+         _fvert,
+         _fh1a8,
+         _fhori,
+         _fa1h8,
+         ])
+
+    _anti_trans_fs = np.array(
+        [_ro000,
+         _ro270,
+         _ro180,
+         _ro090,
+         _fvert,
+         _fh1a8,
+         _fhori,
+         _fa1h8,
          ])
 
 
@@ -1468,6 +1523,8 @@ class Pattern:
         unique_pos_map.discard(0)
         self.unique_symmetric_instance_indexes = [int(x) for i, x in enumerate(symmetric_instance_indexes) if i in unique_pos_map]
         self.symmetry_fs = [SquareSet.trans_fs[idx] for idx in self.unique_symmetric_instance_indexes]
+        self._symmetry_fs = [SquareSet._trans_fs[idx] for idx in self.unique_symmetric_instance_indexes]
+        self._anti_symmetry_fs = [SquareSet._anti_trans_fs[idx] for idx in self.unique_symmetric_instance_indexes]
 
         # - Symmetries.
 
@@ -1515,6 +1572,11 @@ class Pattern:
         self.powers_3 = 3 ** np.arange(self.n_squares, dtype=np.uint32)
         self.bit_shifts = np.arange(self.n_squares, dtype=np.uint32)
 
+        # Get computed only if used.
+        self.principal_index_dict: Union[npt.NDArray[np.uint32], None] = None
+        self.principal_indexes: Union[npt.NDArray[np.uint32], None] = None
+        self.principal_index_count: Union[int, None] = None
+        
         # Invariance check
         self._check_invariances()
 
@@ -1661,20 +1723,68 @@ class Pattern:
         idxs = bits @ self.powers_3
         return (idxs[0] + 2 * idxs[1]).astype(np.int32)
 
+    def compute_indexes_on_ss_packed_tensor(self, 
+                                            m: npt.NDArray[np.uint64], 
+                                            o: npt.NDArray[np.uint64]
+                                            ) -> npt.NDArray[np.uint32]:
+        combined = np.stack([m, o])
+        bits = (combined[..., np.newaxis] >> self.bit_shifts) & 1
+        idxs = bits @ self.powers_3
+        indexes = (idxs[0] + 2 * idxs[1]).astype(np.uint32)
+        return indexes
+        
+    def compute_principal_index_dict(self) -> None:
+        """
+        Computes the dictionary of principal indexes for the pattern.
+        This dictionary maps each configuration index to its principal index,
+        which is the smallest index among all its symmetric configurations.
+        The method also computes the unique principal indexes and their count.
+        """
+        def _symmetry_transformations(ss_array: npt.NDArray[np.uint64], 
+                                     symmetry_functions: list[Callable[[npt.NDArray[np.uint64]], npt.NDArray[np.uint64]]]) -> npt.NDArray[np.uint64]:
+            # Apply each function to the entire array and collect the results in a list
+            symmetries = [f(ss_array) for f in symmetry_functions]
+            # Stack the columns into a single matrix N x X
+            return np.column_stack(symmetries)
 
-def pack_ss(s_tensor: npt.NDArray[np.uint64], p: Pattern) -> npt.NDArray[np.uint64]:
+        # -1- Compute the packed configurations of mover and opponent.
+        #     This code is executed the same for each pattern, so cuould be factored and memoized, doing it for the larges one.
+        m, o = _compute_mover_opponent_by_index_value(int(self.n_squares))
+
+        # -2- Unpack the two square sets to get the instance 0 of the pattern with the given index.
+        m_unpacked, o_unpacked = unpack_ss(m[:self.n_configurations], self), unpack_ss(o[:self.n_configurations], self)
+        
+        # -3- Apply the symmetry operations [O,1,3,7]
+        symm_tr_fs = [SquareSet._ro000] + self._anti_symmetry_fs
+        m_syms = _symmetry_transformations(m_unpacked, symm_tr_fs)
+        o_syms = _symmetry_transformations(o_unpacked, symm_tr_fs)
+
+        # -4- Pack the results
+        m_syms_packed = pack_ss(m_syms, self)
+        o_syms_packed = pack_ss(o_syms, self)
+        
+        # -5- Calculate the indexes of the symmetric instances
+        sym_indexes = self.compute_indexes_on_ss_packed_tensor(m_syms_packed, o_syms_packed)
+
+        # -6- Take the lowest available value and insert it into principal_index_dict[index]
+        self.principal_index_dict = sym_indexes.min(axis=1)
+        self.principal_indexes = np.unique(self.principal_index_dict)
+        self.principal_index_count = len(self.principal_indexes)
+        return
+
+def pack_ss(ss_array: npt.NDArray[np.uint64], p: Pattern) -> npt.NDArray[np.uint64]:
     """
     Compresses a square set according to the mask defined by this pattern.
     
     Args:
-        s_tensor (npt.NDArray[np.uint64]): The input square set tensor to be packed.
+        ss_array (npt.NDArray[np.uint64]): The input square set tensor to be packed.
         p (Pattern): The Pattern object containing the pack_plan used for compression.
     
     Returns:
         npt.NDArray[np.uint64]: The packed square set as a compressed bit array.
     """
     pack_masks, _, pack_shifts = p.pack_plan
-    masked = (s_tensor[..., np.newaxis] & pack_masks) >> pack_shifts
+    masked = (ss_array[..., np.newaxis] & pack_masks) >> pack_shifts
     return np.bitwise_or.reduce(masked, axis=-1)
 
 def unpack_ss(packed_array: npt.NDArray[np.uint64], p: Pattern) -> npt.NDArray[np.uint64]:
@@ -1702,6 +1812,43 @@ def unpack_ss(packed_array: npt.NDArray[np.uint64], p: Pattern) -> npt.NDArray[n
     
     # 3. Bitwise OR reduction across the plan axis (last axis)
     return np.bitwise_or.reduce(unpacked_blocks, axis=-1)
+
+def convert_to_principal_index(index: npt.NDArray[np.uint32],
+                               p: Pattern) -> npt.NDArray[np.uint32]:
+    """
+    Converts a given configuration index to its principal index using the pattern's principal index dictionary.
+    If the dictionary is not yet computed, it computes it first.
+    
+    Args:
+        index (npt.NDArray[np.uint32]): The configuration index to be converted.
+        p (Pattern): The Pattern object containing the principal index dictionary.
+    
+    Returns:
+        npt.NDArray[np.uint32]: The principal index corresponding to the given configuration index.
+    """
+    if not p.principal_index_dict:
+        p.compute_principal_index_dict()
+    principal_index = p.principal_index_dict[index]
+    return principal_index
+
+def _compute_mover_opponent_by_index_value(n_squares: int) -> tuple[npt.NDArray[np.uint32], npt.NDArray[np.uint32]]:
+    if not isinstance(n_squares, int):
+        raise TypeError('Argument n_squares is not an instance of int')
+    if n_squares < 0:
+        raise ValueError(f"Argumnet n_square = {n_squares}. It must be positive.")
+    # Pattern having more than 18 n_squares are not fitting the uint32 space.
+    MAX_NUMBER_OF_SQUARE_FOR_PATTERN = 18
+    if n_squares > MAX_NUMBER_OF_SQUARE_FOR_PATTERN:
+        raise ValueError(f"More than 16 squares is not supported! n_square = {n_squares}. Aborting!")
+    N = 3 ** n_squares
+    indices = np.arange(N, dtype=np.uint32)
+    powers = 3 ** np.arange(n_squares, dtype=np.uint32)
+    digits = (indices[:, None] // powers) % 3    
+    bit_powers = np.uint64(1) << np.arange(n_squares, dtype=np.uint64)
+    m = np.sum((digits == 1) * bit_powers, axis=1, dtype=np.uint64)
+    o = np.sum((digits == 2) * bit_powers, axis=1, dtype=np.uint64)
+    return m, o
+
 
 
 #

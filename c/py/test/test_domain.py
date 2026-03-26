@@ -46,6 +46,7 @@ import twolm
 import twolm.domain
 
 from twolm.domain import *
+from twolm.domain import _compute_mover_opponent_by_index_value
 
 import numpy as np
 import numpy.typing as npt  # Per i tipi (NDArray)
@@ -1756,3 +1757,95 @@ class TestBoardPatternIndexes(unittest.TestCase):
         computed_indexes: npt.NDArray[np.uint32] = p.compute_indexes_on_board(self.board)
         self.assertEqual(len(computed_indexes), p.n_instances)
         nptest.assert_array_equal(computed_indexes, expected_indexes)
+
+class TestBoardPatternPrincipalIndex(unittest.TestCase):
+
+    def setUp(self):
+        pass
+        
+    def tearDown(self):
+        pass
+
+    def test_elle(self):
+        p = Pattern('ELLE', SquareSet(0x0000000000000107))
+        indexes: npt.NDArray[np.uint32] = np.array(range(3 ** p.n_squares), dtype=np.uint32)
+        expected_principal_indexes_list = range(3 ** p.n_squares)
+        expected_principal_indexes: npt.NDArray[np.uint32] = np.array(expected_principal_indexes_list, dtype=np.uint32)
+        computed_principal_indexes = convert_to_principal_index(indexes, p)
+        nptest.assert_array_equal(computed_principal_indexes, expected_principal_indexes)
+        unique_principal_indexes_list = range(3 ** p.n_squares)
+        nptest.assert_array_equal(p.principal_indexes, unique_principal_indexes_list)
+        self.assertEqual(len(unique_principal_indexes_list), p.principal_index_count)
+
+    def test_diag3(self):
+        p = Pattern('DIAG3', SquareSet(0x0000000000010204))
+        indexes: npt.NDArray[np.uint32] = np.array(range(3 ** p.n_squares), dtype=np.uint32)
+        expected_principal_indexes_list = [
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 1, 10, 11, 4, 13, 14, 7, 16, 17, 2, 11, 20, 5, 14, 23, 8, 17, 26
+        ]
+        expected_principal_indexes: npt.NDArray[np.uint32] = np.array(expected_principal_indexes_list, dtype=np.uint32)
+        computed_principal_indexes = convert_to_principal_index(indexes, p)
+        nptest.assert_array_equal(computed_principal_indexes, expected_principal_indexes)
+        unique_principal_indexes_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 14, 16, 17, 20, 23, 26]
+        nptest.assert_array_equal(p.principal_indexes, unique_principal_indexes_list)
+        self.assertEqual(len(unique_principal_indexes_list), p.principal_index_count)
+
+    def test_core(self):
+        p = Pattern('CORE', SquareSet(0x0000001818000000))
+        indexes: npt.NDArray[np.uint32] = np.array(range(3 ** p.n_squares), dtype=np.uint32)
+        expected_principal_indexes_list = [
+             0,  1,  2,  1,  4,  5,  2,  5,  8,  1,
+             4,  5, 12, 13, 14, 15, 16, 17,  2,  5,
+             8, 15, 16, 17, 24, 25, 26,  1, 12, 15,
+             4, 13, 16,  5, 14, 17,  4, 13, 16, 13,
+            40, 41, 16, 41, 44,  5, 14, 17, 16, 41,
+            44, 25, 52, 53,  2, 15, 24,  5, 16, 25,
+             8, 17, 26,  5, 16, 25, 14, 41, 52, 17,
+            44, 53,  8, 17, 26, 17, 44, 53, 26, 53,
+            80,
+        ]
+        expected_principal_indexes: npt.NDArray[np.uint32] = np.array(expected_principal_indexes_list, dtype=np.uint32)
+        computed_principal_indexes = convert_to_principal_index(indexes, p)
+        nptest.assert_array_equal(computed_principal_indexes, expected_principal_indexes)
+        unique_principal_indexes_list = [0, 1, 2, 4, 5, 8, 12, 13, 14, 15, 16, 17, 24, 25, 26, 40, 41, 44, 52, 53, 80]
+        nptest.assert_array_equal(p.principal_indexes, unique_principal_indexes_list)
+        self.assertEqual(len(unique_principal_indexes_list), p.principal_index_count)
+
+
+class TestComputeMoverOpponentByIndexValue(unittest.TestCase):
+
+    def test_base(self):
+        n_squares = 12
+        m, o = _compute_mover_opponent_by_index_value(n_squares)
+
+        index = 1764
+        self.assertEqual(m[index],  36)
+        self.assertEqual(o[index],  72)
+
+        index = 5940
+        self.assertEqual(m[index],  24)
+        self.assertEqual(o[index], 192)
+
+        index = 1517
+        self.assertEqual(m[index],   2)
+        self.assertEqual(o[index],  73)
+
+        index = 81
+        self.assertEqual(m[index],  16)
+        self.assertEqual(o[index],   0)
+
+        index = 3033
+        self.assertEqual(m[index], 220)
+        self.assertEqual(o[index],   0)
+
+        index = 2166
+        self.assertEqual(m[index],   0)
+        self.assertEqual(o[index], 122)
+
+        index = 3203
+        self.assertEqual(m[index], 236)
+        self.assertEqual(o[index],   3)
+
+        index = 48093
+        self.assertEqual(m[index], 256)
+        self.assertEqual(o[index], 634)
