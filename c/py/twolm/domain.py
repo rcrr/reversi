@@ -1334,6 +1334,21 @@ class Pattern:
 
     11. Type Information
     type_info (PatternType): An object of PatternType that represents the type of pattern, based on its fingerprint.
+
+    12. Powers of 3
+    powers_3 (np.ndarray[np.uint32]): Precomputed powers of 3 up to n_squares, used for index computation.
+
+    13. Bit Shifts
+    bit_shifts (np.ndarray[np.uint32]): Precomputed bit shifts for each square in the pattern, used for index computation.
+
+    14. Principal Index Dictionary
+    principal_index_dict (Union[npt.NDArray[np.uint32], None]): A dictionary mapping each configuration index to its principal index.
+
+    15. Principal Indexes
+    principal_indexes (Union[npt.NDArray[np.uint32], None]): An array of unique principal indexes.
+
+    16. Principal Index Count
+    principal_index_count (Union[int, None]): The count of unique principal indexes.
     """
 
     @classmethod
@@ -1699,12 +1714,6 @@ class Pattern:
         print(f"  Transf. sorted cells: [{', '.join(f'{l}' for l in self.squares_ts)}]")
         print(f"  Fingerprint:          [{', '.join(f'{fp}' for fp in self.fingerprint)}]")
 
-    def pack_ss(self, s: np.int64) -> np.uint64:
-        """
-        Packs a square set according to the mask defined by this pattern.
-        """
-        return pack_ss(s, self)
-
     def compute_indexes_on_board(self, b: Board) -> npt.NDArray[np.int32]:
         """
         Computes the indexes of the pattern on the given board for both mover and opponent.
@@ -1727,6 +1736,19 @@ class Pattern:
                                             m: npt.NDArray[np.uint64], 
                                             o: npt.NDArray[np.uint64]
                                             ) -> npt.NDArray[np.uint32]:
+        """
+        Computes the indexes of the pattern on a packed tensor of square sets for both mover and opponent.
+        
+        Arguments m and o must have the same shape.
+        The shape of the result matches the shape of m and o. Possible shapes are scalar, 1D array, 2D array.
+
+        Args:
+            m (npt.NDArray[np.uint64]): The packed square sets for the mover.
+            o (npt.NDArray[np.uint64]): The packed square sets for the opponent.
+
+        Returns:
+            npt.NDArray[np.uint32]: An array of indexes representing the pattern configurations on the packed tensor.
+        """
         combined = np.stack([m, o])
         bits = (combined[..., np.newaxis] >> self.bit_shifts) & 1
         idxs = bits @ self.powers_3
@@ -1839,7 +1861,7 @@ def _compute_mover_opponent_by_index_value(n_squares: int) -> tuple[npt.NDArray[
     # Pattern having more than 18 n_squares are not fitting the uint32 space.
     MAX_NUMBER_OF_SQUARE_FOR_PATTERN = 18
     if n_squares > MAX_NUMBER_OF_SQUARE_FOR_PATTERN:
-        raise ValueError(f"More than 16 squares is not supported! n_square = {n_squares}. Aborting!")
+        raise ValueError(f"More than 18 squares is not supported! n_square = {n_squares}. Aborting!")
     N = 3 ** n_squares
     indices = np.arange(N, dtype=np.uint32)
     powers = 3 ** np.arange(n_squares, dtype=np.uint32)
