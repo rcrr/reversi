@@ -35,7 +35,7 @@
 # >>> ar = SquareSet(0x22120a0e1222221e)
 # >>> ar
 # SquareSet(2455035802420388382)
-# >>> ar.print()
+# >>> ar.log()
 #   a b c d e f g h
 # 1 . x x x x . . .
 # 2 . x . . . x . .
@@ -53,11 +53,22 @@ import numpy as np
 
 from enum import Enum
 
-from typing import Self, Callable, Any, Union, TypeVar
+from typing import Self, Callable, Any, Union, TypeVar, List
 
-__all__ = ['Square', 'Move', 'SquareSet', 'Board', 'Pattern',
+import hashlib
+import logging
+import sys
+import io
+
+__all__ = ['Square', 'Move', 'SquareSet', 'Board', 'Pattern', 'PatternSet',
            'pack_ss', 'unpack_ss', 'sample_patterns',
            'convert_to_principal_index']
+
+logging.basicConfig(
+    stream=sys.stdout,
+    level=logging.INFO,
+    format='%(message)s'
+)
 
 class Square(np.uint8):
     """
@@ -304,23 +315,26 @@ class SquareSet(np.uint64):
         bit_count = np.bitwise_count(self)
         return bit_count
     
-    def print(self) -> None:
+    def log(self) -> None:
         """
-        Prints on stdout a 2D representation of the square set.
+        Logs (INFO level) a 2D representation of the square set.
         """
+        buffer = io.StringIO()
         one = SquareSet(1)
         sq = SquareSet(1)
-        print('  a b c d e f g h')
+        print('  a b c d e f g h', file=buffer)
         for row in range(0,8):
-            print(row + 1, end = '')
+            print(row + 1, end = '', file=buffer)
             for col in range(0,8):
                 if sq & self != 0:
                     c = 'x'
                 else:
                     c = '.'
-                print(' ' + c, end = '')
+                print(' ' + c, end = '', file=buffer)
                 sq <<= one
-            print()
+            print(file=buffer)
+        logging.info(buffer.getvalue())
+        buffer.close()
         return
 
     @staticmethod
@@ -886,16 +900,17 @@ class Board:
         c._lmc_ = self._lmc_
         return c
 
-    def print(self) -> None:
+    def log(self) -> None:
         """
-        Prints on stdout a 2D representation of the board.
+        Logs (INFO level) a 2D representation of the board.
         Symbol @ identifies the mover, symbol O the opponent.
         """
+        buffer = io.StringIO()
         one = SquareSet(1)
         sq = SquareSet(1)
-        print('  a b c d e f g h')
+        print('  a b c d e f g h', file=buffer)
         for row in range(0,8):
-            print(row + 1, end = '')
+            print(row + 1, end = '', file=buffer)
             for col in range(0,8):
                 if sq & self.mover != 0:
                     c = '@'
@@ -903,9 +918,11 @@ class Board:
                     c = 'O'
                 else:
                     c = '.'
-                print(' ' + c, end = '')
+                print(' ' + c, end = '', file=buffer)
                 sq <<= one
-            print()
+            print(file=buffer)
+        logging.info(buffer.getvalue())
+        buffer.close()
         return
 
     def empties(self) -> SquareSet:
@@ -1688,9 +1705,9 @@ class Pattern:
             f",{ptype}"
         )
 
-    def print(self) -> None:
+    def log(self) -> None:
         """
-        Prints a detailed representation of the pattern to stdout.
+        Logs a detailed representation of the pattern to stdout.
         Includes information about the pattern's name, mask, number of squares, number of configurations,
         number of instances, number of stabilizers, type, cells, transformed masks, mask indexes,
         unique masks, unique mask indexes, transformation functions, anti-transformation functions,
@@ -1700,19 +1717,19 @@ class Pattern:
         anti_trans_fs_labels = [SquareSet.anti_transformation_labels[i] for i in self.unique_mask_indexes]
         symmetry_fs_labels = [SquareSet.transformation_labels[i] for i in self.unique_symmetric_instance_indexes]
         ptype = self.type_info.data["type"]
-        print(f"[Pattern: name = {self.name}, mask = 0x{self.mask:016x}]")
-        print(f"  [n_squares = {self.n_squares}, n_configurations = {self.n_configurations}, n_instances = {self.n_instances}, n_stabilizers = {self.n_stabilizers}, type = {ptype}]")
-        print(f"  Cells:                [{', '.join(f'{cn}' for cn in self.snames)}]")
-        print(f"  Transformed masks:    [{', '.join(f'0x{x:016X}' for x in self.tmasks)}]")
-        print(f"  Mask indexes:         [{', '.join(f'{x}' for x in self.mask_indexes)}]")
-        print(f"  Unique masks:         [{', '.join(f'0x{x:016X}' for x in self.unique_masks)}]")
-        print(f"  Unique mask indexes:  [{', '.join(f'{x}' for x in self.unique_mask_indexes)}]")
-        print(f"  Transf. functions:    [{', '.join(f'{fn}' for fn in trans_fs_labels)}]")
-        print(f"  Anti-transf. f.:      [{', '.join(f'{fn}' for fn in anti_trans_fs_labels)}]")
-        print(f"  Symmetry functions:   [{', '.join(f'{fn}' for fn in symmetry_fs_labels)}]")
-        print(f"  Transformed cells:    [{', '.join(f'{l}' for l in self.squares_t)}]")
-        print(f"  Transf. sorted cells: [{', '.join(f'{l}' for l in self.squares_ts)}]")
-        print(f"  Fingerprint:          [{', '.join(f'{fp}' for fp in self.fingerprint)}]")
+        logging.info(f"[Pattern: name = {self.name}, mask = 0x{self.mask:016x}]")
+        logging.info(f"  [n_squares = {self.n_squares}, n_configurations = {self.n_configurations}, n_instances = {self.n_instances}, n_stabilizers = {self.n_stabilizers}, type = {ptype}]")
+        logging.info(f"  Cells:                [{', '.join(f'{cn}' for cn in self.snames)}]")
+        logging.info(f"  Transformed masks:    [{', '.join(f'0x{x:016X}' for x in self.tmasks)}]")
+        logging.info(f"  Mask indexes:         [{', '.join(f'{x}' for x in self.mask_indexes)}]")
+        logging.info(f"  Unique masks:         [{', '.join(f'0x{x:016X}' for x in self.unique_masks)}]")
+        logging.info(f"  Unique mask indexes:  [{', '.join(f'{x}' for x in self.unique_mask_indexes)}]")
+        logging.info(f"  Transf. functions:    [{', '.join(f'{fn}' for fn in trans_fs_labels)}]")
+        logging.info(f"  Anti-transf. f.:      [{', '.join(f'{fn}' for fn in anti_trans_fs_labels)}]")
+        logging.info(f"  Symmetry functions:   [{', '.join(f'{fn}' for fn in symmetry_fs_labels)}]")
+        logging.info(f"  Transformed cells:    [{', '.join(f'{l}' for l in self.squares_t)}]")
+        logging.info(f"  Transf. sorted cells: [{', '.join(f'{l}' for l in self.squares_ts)}]")
+        logging.info(f"  Fingerprint:          [{', '.join(f'{fp}' for fp in self.fingerprint)}]")
 
     def compute_indexes_on_board(self, b: Board) -> npt.NDArray[np.int32]:
         """
@@ -1915,3 +1932,90 @@ sample_patterns = [
     Pattern('DOTB1',  SquareSet(0x0000000000000002)),
     Pattern('TWOND',  SquareSet(0x0000000000000201)),
 ]
+
+
+class PatternSet:
+    """
+    The PatternSet class represents a collection of Pattern objects.
+    It uses the mask attribute of Pattern as a unique key.
+    Patterns are stored in a sorted order based on the uint64 value of their mask.
+
+    Attributes:
+    name (str): A human-readable label for the set of patterns.
+    patterns (List[Pattern]): A list of Pattern objects sorted by their mask values.
+    hash (str): A SHA256 hash of the sorted mask values, serving as a unique identifier for the set.
+
+    Methods:
+    names: Returns a list of names of the patterns in the set.
+    masks: Returns a numpy array of the mask values of the patterns in the set.
+    log_summary: Logs (INFO level) a summary of the set including the name, hash, and basic pattern information.
+    log: Logs (INFO level) a detailed summary of the set including the name, hash, and full pattern information.
+    """
+
+    def __init__(self, name: str, patterns: List[Pattern]):
+        """
+        Initializes a new PatternSet instance with the given name and list of patterns.
+        
+        Args:
+            name (str): The human-readable label for the set of patterns.
+            patterns (List[Pattern]): A list of Pattern objects to be included in the set.
+        
+        Raises:
+            TypeError: If the name is not a string.
+            TypeError: If the patterns list contains non-Pattern objects.
+            ValueError: If there are duplicate masks in the patterns list.
+        """
+        if not isinstance(name, str):
+            raise TypeError('Argument name is not an instance of str')
+        if not isinstance(patterns, list):
+            raise TypeError('Argument patterns is not a list')
+        if not all(isinstance(p, Pattern) for p in patterns):
+            raise TypeError('All elements in patterns must be Pattern instances')
+        
+        # Extract masks and check for duplicates
+        masks = [pattern.mask for pattern in patterns]
+        if len(masks) != len(set(masks)):
+            raise ValueError('Patterns list contains duplicate masks')
+        
+        # Sort patterns by mask value
+        self.patterns = sorted(patterns, key=lambda p: p.mask)
+        
+        # Create hash of sorted masks
+        hash_input = b''.join(pattern.mask.tobytes() for pattern in self.patterns)
+        self.hash = hashlib.sha256(hash_input).hexdigest()
+        
+        self.name = name
+
+    def names(self) -> List[str]:
+        """
+        Returns a list of names of the patterns in the set.
+        
+        Returns:
+            List[str]: A list of pattern names.
+        """
+        return [pattern.name for pattern in self.patterns]
+
+    def masks(self) -> np.ndarray:
+        """
+        Returns a numpy array of the mask values of the patterns in the set.
+        
+        Returns:
+            np.ndarray: A numpy array of mask values.
+        """
+        return np.array([pattern.mask for pattern in self.patterns], dtype=np.uint64)
+
+    def log_summary(self) -> None:
+        """
+        Logs (INFO level) a summary of the set including the name, hash, and basic pattern information.
+        """
+        logging.info(f"PatternSet: name = {self.name}, lenght = {len(self.patterns)}, hash = {self.hash}")
+        for pattern in self.patterns:
+            logging.info(f"  Pattern: name = {pattern.name}, mask = 0x{pattern.mask:016x}")
+
+    def log(self) -> None:
+        """
+        Logs (INFO level) a detailed summary of the set including the name, hash, and full pattern information.
+        """
+        logging.info(f"PatternSet: name = {self.name}, lenght = {len(self.patterns)}, hash = {self.hash}")
+        for pattern in self.patterns:
+            pattern.log()
