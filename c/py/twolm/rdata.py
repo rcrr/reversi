@@ -25,6 +25,8 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import annotations
+
 from twolm.domain import *
 
 import psycopg2 as pg
@@ -36,6 +38,7 @@ from typing import List, Self, Callable, Any, Union, TypeVar
 import struct
 import hashlib
 import os
+import io
 
 
 __all__ = ['RegabDBConnection', 'regab_gp_as_df', 'RegabDataSet']
@@ -289,11 +292,14 @@ class RegabDataSet:
             if actual_type != expected_type:
                 raise TypeError(f"Column '{i}' must be {expected_type}, but instead it is {actual_type}")
 
-        self.bid = bid
-        self.status = status
-        self.ec = ec
-        self.positions = positions
-        self.length = len(positions)
+        # Collect the fully qualified class name.
+        self.fqcn: str = f"{self.__class__.__module__}.{self.__class__.__qualname__}"
+        
+        self.bid: List[int]  = bid
+        self.status: List[str] = status
+        self.ec: int = ec
+        self.positions: pd.DataFrame = positions
+        self.length: int = len(positions)
 
     @classmethod
     def extract_from_db(cls: type[Self],
@@ -325,6 +331,44 @@ class RegabDataSet:
         df['game_value'] = df['game_value'].astype(np.int8)
         rds = RegabDataSet(bid, status, ec, df)
         return rds
+
+    def write_core_object_data(self, f: io.BufferedWriter, sha3_256_hash: hashlib._Hash) -> None:
+                    
+        # Write the number of elements in bid
+        num_bid = len(self.bid)
+        f.write(struct.pack('<I', num_bid))
+        sha3_256_hash.update(struct.pack('<I', num_bid))
+        # Write the elements of bid
+        for b in self.bid:
+            f.write(struct.pack('<I', b))
+            sha3_256_hash.update(struct.pack('<I', b))
+            
+        # Write the number of elements in status
+        num_status = len(self.status)
+        f.write(struct.pack('<I', num_status))
+        sha3_256_hash.update(struct.pack('<I', num_status))
+        # Write the elements of status
+        for s in self.status:
+            f.write(s.encode('utf-8'))
+            sha3_256_hash.update(s.encode('utf-8'))
+        
+        # Write ec
+        f.write(struct.pack('<I', self.ec))
+        sha3_256_hash.update(struct.pack('<I', self.ec))
+            
+        # Write length
+        f.write(struct.pack('<I', self.length))
+        sha3_256_hash.update(struct.pack('<I', self.length))
+            
+        # Write the data of the arrays
+        f.write(self.positions['mover'].values.tobytes())
+        sha3_256_hash.update(self.positions['mover'].values.tobytes())
+        f.write(self.positions['opponent'].values.tobytes())
+        sha3_256_hash.update(self.positions['opponent'].values.tobytes())
+        f.write(self.positions['game_value'].values.tobytes())
+        sha3_256_hash.update(self.positions['game_value'].values.tobytes())
+
+        return
     
     def store_to_file(self, filename: str) -> None:
         """
@@ -339,39 +383,11 @@ class RegabDataSet:
         sha3_256_hash = hashlib.sha3_256()
 
         with open(filename, 'wb') as f:
-            # Write the number of elements in bid
-            num_bid = len(self.bid)
-            f.write(struct.pack('<I', num_bid))
-            sha3_256_hash.update(struct.pack('<I', num_bid))
-            # Write the elements of bid
-            for b in self.bid:
-                f.write(struct.pack('<I', b))
-                sha3_256_hash.update(struct.pack('<I', b))
-            
-            # Write the number of elements in status
-            num_status = len(self.status)
-            f.write(struct.pack('<I', num_status))
-            sha3_256_hash.update(struct.pack('<I', num_status))
-            # Write the elements of status
-            for s in self.status:
-                f.write(s.encode('utf-8'))
-                sha3_256_hash.update(s.encode('utf-8'))
-        
-            # Write ec
-            f.write(struct.pack('<I', self.ec))
-            sha3_256_hash.update(struct.pack('<I', self.ec))
-            
-            # Write length
-            f.write(struct.pack('<I', self.length))
-            sha3_256_hash.update(struct.pack('<I', self.length))
-            
-            # Write the data of the arrays
-            f.write(self.positions['mover'].values.tobytes())
-            sha3_256_hash.update(self.positions['mover'].values.tobytes())
-            f.write(self.positions['opponent'].values.tobytes())
-            sha3_256_hash.update(self.positions['opponent'].values.tobytes())
-            f.write(self.positions['game_value'].values.tobytes())
-            sha3_256_hash.update(self.positions['game_value'].values.tobytes())
+            # Write the fully qualified class name
+            f.write((self.fqcn + '\n').encode('utf-8'))
+            sha3_256_hash.update((self.fqcn + '\n').encode('utf-8'))
+
+            self.write_core_object_data(f, sha3_256_hash)
 
         # Calculate the SHA3-256 checksum
         checksum = sha3_256_hash.hexdigest()
@@ -429,30 +445,41 @@ class RegabDataSet:
                 raise ValueError(f"The calculated checksum {actual_checksum} does not match the stored checksum {stored_checksum}.")
 
         with open(filename, 'rb') as f:
-            # Read the number of elements in bid
-            num_bid = struct.unpack('<I', f.read(4))[0]
-            bid = [struct.unpack('<I', f.read(4))[0] for _ in range(num_bid)]
+            # Read the fully qualified class name.
+            fqcn = f.readline().decode('utf-8').strip()
+            expected_fqcn = 'twolm.rdata.RegabDataSet'
+            if fqcn != expected_fqcn:
+                raise ValueError(f"The read fqcn {fqcn} does not match the expected one {expected_fqcn}.")
+
+            return RegabDataSet.read_core_object_data(f)
+
+    @classmethod
+    def read_core_object_data(cls: type[Self], f: io.BufferedReader) -> Self:
+                    
+        # Read the number of elements in bid
+        num_bid = struct.unpack('<I', f.read(4))[0]
+        bid = [struct.unpack('<I', f.read(4))[0] for _ in range(num_bid)]
             
-            # Read the number of elements in status
-            num_status = struct.unpack('<I', f.read(4))[0]
-            status = [f.read(3).decode('utf-8') for _ in range(num_status)]
+        # Read the number of elements in status
+        num_status = struct.unpack('<I', f.read(4))[0]
+        status = [f.read(3).decode('utf-8') for _ in range(num_status)]
         
-            # Read ec
-            ec = struct.unpack('<I', f.read(4))[0]
+        # Read ec
+        ec = struct.unpack('<I', f.read(4))[0]
             
-            # Read length
-            length = struct.unpack('<I', f.read(4))[0]
+        # Read length
+        length = struct.unpack('<I', f.read(4))[0]
             
-            # Read the data of the arrays
-            mover = np.frombuffer(f.read(length * 8), dtype=np.int64)
-            opponent = np.frombuffer(f.read(length * 8), dtype=np.int64)
-            game_value = np.frombuffer(f.read(length), dtype=np.int8)
-            
-            # Create the DataFrame
-            positions = pd.DataFrame({
-                'mover': mover,
-                'opponent': opponent,
-                'game_value': game_value
-            })
-            
-            return cls(bid, status, ec, positions)
+        # Read the data of the arrays
+        mover = np.frombuffer(f.read(length * 8), dtype=np.int64)
+        opponent = np.frombuffer(f.read(length * 8), dtype=np.int64)
+        game_value = np.frombuffer(f.read(length), dtype=np.int8)
+        
+        # Create the DataFrame
+        positions = pd.DataFrame({
+            'mover': mover,
+            'opponent': opponent,
+            'game_value': game_value
+        })
+
+        return cls(bid, status, ec, positions)
