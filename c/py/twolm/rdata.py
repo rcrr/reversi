@@ -44,13 +44,122 @@ import io
 __all__ = ['RegabDBConnection', 'regab_gp_as_df', 'RegabDataSet']
 
 
-class RegabDBConnection():
+def _fun_builder_write_and_hash(f: io.BufferedWriter, sha3_256_hash: hashlib._Hash) -> Callable[[bytes], None]:
+    """
+    Creates a function that writes data to a file and updates a SHA3-256 hash object.
+
+    Parameters
+    ----------
+    f : io.BufferedWriter
+        The file object to which data will be written.
+    sha3_256_hash : hashlib._Hash
+        The SHA3-256 hash object to be updated with the written data.
+
+    Returns
+    -------
+    Callable[[bytes], None]
+        A function that takes bytes as input, writes them to the file, and updates the hash object.
+
+    Notes
+    -----
+    - The returned function `fwriter` is designed to be used for writing data to a file while simultaneously updating a hash object.
+    - The function returns None.
+    """
+
+    def fwriter(data: bytes) -> None:
+        """
+        Writes data to a file and updates a SHA3-256 hash object.
+
+        Parameters
+        ----------
+        data : bytes
+            The data to be written to the file and used to update the hash object.
+
+        Returns
+        -------
+        None
+        """
+        f.write(data)
+        sha3_256_hash.update(data)
+        return
+
+    return fwriter
+
+def _checksum(filename: str) -> None:
+    """
+    Verifies the SHA3-256 checksum of a file against a stored checksum.
+
+    Parameters
+    ----------
+    filename : str
+        The name of the file for which to verify the checksum.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    FileNotFoundError
+        If the checksum file does not exist.
+
+    ValueError
+        If the calculated checksum does not match the stored checksum.
+
+    Notes
+    -----
+    - The checksum file is expected to have the same name as the input file with a ".SHA3-256" suffix.
+    - The method reads the stored checksum from the checksum file and compares it with the actual checksum of the input file.
+    """
+    # Construct the checksum filename
+    checksum_filename = filename + ".SHA3-256"
+            
+    # Check if the checksum file exists
+    if not os.path.exists(checksum_filename):
+        raise FileNotFoundError(f"The checksum file {checksum_filename} does not exist.")
+            
+    # Read the stored checksum from the file
+    with open(checksum_filename, 'r') as checksum_file:
+        stored_checksum = checksum_file.read().strip()
+            
+    # Calculate the actual checksum of the file
+    sha3_256_hash = hashlib.sha3_256()
+    with open(filename, 'rb') as f:
+        while chunk := f.read(8192):
+            sha3_256_hash.update(chunk)
+    actual_checksum = sha3_256_hash.hexdigest()
+            
+    # Compare the stored checksum with the actual checksum
+    if stored_checksum != actual_checksum:
+        raise ValueError(f"The calculated checksum {actual_checksum} does not match the stored checksum {stored_checksum}.")
+
+
+class RegabDBConnection:
     """
     A regab database connection wraps the psycopg2 connection object.
-    The object could be created directly with the constructor or better using the 
-    new_from_config class method.
     """
     def __init__(self, dbname: str, user: str, host: str, port='5432', password=None):
+        """
+        Initializes a RegabDBConnection instance.
+
+        Parameters
+        ----------
+        dbname : str
+            The name of the database.
+        user : str
+            The username for the database connection.
+        host : str
+            The hostname of the database server.
+        port : str, optional
+            The port number on which the database server is listening. Default is '5432'.
+        password : str, optional
+            The password for the database connection. Default is None.
+
+        Raises
+        ------
+        TypeError
+            If any of the arguments have an incorrect type.
+        """
         if not isinstance(dbname, str):
             raise TypeError('Argument dbname is not an instance of str')
         if not isinstance(user, str):
@@ -147,6 +256,7 @@ def regab_gp_as_df(rc: RegabDBConnection,
     - If the `fields` parameter is not specified, the default columns are used.
     - If the `where` parameter is specified, it is added to the SQL query as an additional filter.
     - If the `limit` parameter is specified, it limits the number of rows returned by the query.
+    - The function may raise an Exception if the SQL query execution fails.
     """
     def _check_arg_bid():
         ret = None
@@ -240,6 +350,24 @@ def regab_gp_as_df(rc: RegabDBConnection,
 
 
 class RegabDataSet:
+    """
+    Represents a dataset containing game positions from the Reversi game.
+
+    Attributes
+    ----------
+    bid : List[int]
+        A list of batch IDs.
+    status : List[str]
+        A list of status codes, each exactly 3 characters long.
+    ec : int
+        The empty count, must be in the range [0, 60].
+    positions : pd.DataFrame
+        A DataFrame containing the game positions with columns 'mover', 'opponent', and 'game_value'.
+    length : int
+        The number of game positions in the dataset.
+    fqcn : str
+        The fully qualified class name of the RegabDataSet instance.
+    """
 
     def __init__(self,
                  bid: List[int],
@@ -332,41 +460,51 @@ class RegabDataSet:
         rds = RegabDataSet(bid, status, ec, df)
         return rds
 
-    def write_core_object_data(self, f: io.BufferedWriter, sha3_256_hash: hashlib._Hash) -> None:
+    def write_core_object_data(self, fw: Callable[[bytes], None]) -> None:
+        """
+        Writes the core data of the RegabDataSet instance to a binary file using the provided writer function.
+
+        Parameters
+        ----------
+        fw : Callable[[bytes], None]
+            A function that takes bytes as input and writes them to a file.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        - The method writes the number of elements in `bid`, followed by the elements of `bid`.
+        - It then writes the number of elements in `status`, followed by the elements of `status`.
+        - The method writes the `ec` value, the `length` of the data, and the binary data for the `mover`, `opponent`, and `game_value` arrays.
+        - The function returns None.
+        """
                     
         # Write the number of elements in bid
         num_bid = len(self.bid)
-        f.write(struct.pack('<I', num_bid))
-        sha3_256_hash.update(struct.pack('<I', num_bid))
+        fw(struct.pack('<I', num_bid))
         # Write the elements of bid
         for b in self.bid:
-            f.write(struct.pack('<I', b))
-            sha3_256_hash.update(struct.pack('<I', b))
+            fw(struct.pack('<I', b))
             
         # Write the number of elements in status
         num_status = len(self.status)
-        f.write(struct.pack('<I', num_status))
-        sha3_256_hash.update(struct.pack('<I', num_status))
+        fw(struct.pack('<I', num_status))
         # Write the elements of status
         for s in self.status:
-            f.write(s.encode('utf-8'))
-            sha3_256_hash.update(s.encode('utf-8'))
+            fw(s.encode('utf-8'))
         
         # Write ec
-        f.write(struct.pack('<I', self.ec))
-        sha3_256_hash.update(struct.pack('<I', self.ec))
+        fw(struct.pack('<I', self.ec))
             
         # Write length
-        f.write(struct.pack('<I', self.length))
-        sha3_256_hash.update(struct.pack('<I', self.length))
-            
+        fw(struct.pack('<I', self.length))
+
         # Write the data of the arrays
-        f.write(self.positions['mover'].values.tobytes())
-        sha3_256_hash.update(self.positions['mover'].values.tobytes())
-        f.write(self.positions['opponent'].values.tobytes())
-        sha3_256_hash.update(self.positions['opponent'].values.tobytes())
-        f.write(self.positions['game_value'].values.tobytes())
-        sha3_256_hash.update(self.positions['game_value'].values.tobytes())
+        fw(self.positions['mover'].values.tobytes())
+        fw(self.positions['opponent'].values.tobytes())
+        fw(self.positions['game_value'].values.tobytes())
 
         return
     
@@ -378,16 +516,22 @@ class RegabDataSet:
         ----------
         filename : str
             The name of the file in which to save the data.
+
+        Returns
+        -------
+        None
         """
         # Create a SHA3-256 hash object
         sha3_256_hash = hashlib.sha3_256()
 
         with open(filename, 'wb') as f:
-            # Write the fully qualified class name
-            f.write((self.fqcn + '\n').encode('utf-8'))
-            sha3_256_hash.update((self.fqcn + '\n').encode('utf-8'))
 
-            self.write_core_object_data(f, sha3_256_hash)
+            fw = _fun_builder_write_and_hash(f, sha3_256_hash)
+
+            # Write the fully qualified class name
+            fw((self.fqcn + '\n').encode('utf-8'))
+
+            self.write_core_object_data(fw)
 
         # Calculate the SHA3-256 checksum
         checksum = sha3_256_hash.hexdigest()
@@ -420,29 +564,13 @@ class RegabDataSet:
             If the checksum file is not found when checksum verification is enabled.
         ValueError
             If the calculated checksum does not match the stored checksum.
+
+        Notes
+        -----
+        - The function returns an instance of RegabDataSet.
         """
         if checksum:
-            # Construct the checksum filename
-            checksum_filename = filename + ".SHA3-256"
-            
-            # Check if the checksum file exists
-            if not os.path.exists(checksum_filename):
-                raise FileNotFoundError(f"The checksum file {checksum_filename} does not exist.")
-            
-            # Read the stored checksum from the file
-            with open(checksum_filename, 'r') as checksum_file:
-                stored_checksum = checksum_file.read().strip()
-            
-            # Calculate the actual checksum of the file
-            sha3_256_hash = hashlib.sha3_256()
-            with open(filename, 'rb') as f:
-                while chunk := f.read(8192):
-                    sha3_256_hash.update(chunk)
-            actual_checksum = sha3_256_hash.hexdigest()
-            
-            # Compare the stored checksum with the actual checksum
-            if stored_checksum != actual_checksum:
-                raise ValueError(f"The calculated checksum {actual_checksum} does not match the stored checksum {stored_checksum}.")
+            _checksum(filename)
 
         with open(filename, 'rb') as f:
             # Read the fully qualified class name.
@@ -455,6 +583,32 @@ class RegabDataSet:
 
     @classmethod
     def read_core_object_data(cls: type[Self], f: io.BufferedReader) -> Self:
+        """
+        Reads the core data of a RegabDataSet instance from a binary file.
+
+        Parameters
+        ----------
+        cls : type[Self]
+            The class type of the RegabDataSet.
+        f : io.BufferedReader
+            The file object from which to read the data.
+
+        Returns
+        -------
+        Self
+            An instance of RegabDataSet containing the read data.
+
+        Raises
+        ------
+        ValueError
+            If the data read from the file is inconsistent or malformed.
+
+        Notes
+        -----
+        - The method reads the number of batch IDs, the batch IDs themselves, the number of status codes, the status codes, the empty count, and the length of the data.
+        - It then reads the binary data for the 'mover', 'opponent', and 'game_value' arrays and constructs a DataFrame from these arrays.
+        - The function returns an instance of RegabDataSet.
+        """
                     
         # Read the number of elements in bid
         num_bid = struct.unpack('<I', f.read(4))[0]
