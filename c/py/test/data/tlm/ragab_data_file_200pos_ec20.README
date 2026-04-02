@@ -1,0 +1,45 @@
+#
+# regab_data_file_200pos_ec20.README
+#
+# This file is part of the reversi program
+# http://github.com/rcrr/reversi
+# 
+# Author Roberto Corradini mailto:rob_corradini@yahoo.it
+# Copyright 2026 Roberto Corradini. All rights reserved.
+#
+# License
+# 
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation; either version 3, or (at your option) any
+# later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+# or visit the site <http://www.gnu.org/licenses/>.
+#
+
+#
+# Replace the connect string as required.
+# Replace the value for the batch_id, status and ec parameters.
+#
+# To rebuild the data for testing run:
+#
+
+(.reversi_venv) ($REVERSI_HOME)/c$ PYTHONPATH="./py" python3
+Python 3.12.3 (main, Mar  3 2026, 12:15:18) [GCC 13.3.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from twolm.domain import *
+>>> from twolm.rdata import *
+>>> rc = RegabDBConnection('tst_regab', 'tst_regab', 'database_host.local', '5432')
+>>> rds = RegabDataSet.extract_from_db(rc, [8], ['CMS', 'CMR'], 20)
+>>> rds.length
+200
+>>> rds.store_to_file('build/tmp/ragab_data_file_200pos_ec20.dat')
+>>> 

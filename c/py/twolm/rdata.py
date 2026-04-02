@@ -41,7 +41,7 @@ import os
 import io
 
 
-__all__ = ['RegabDBConnection', 'regab_gp_as_df', 'RegabDataSet']
+__all__ = ['RegabDBConnection', 'regab_gp_as_df', 'RegabDataSet', 'RegabIndexedDataSet']
 
 
 def _fun_builder_write_and_hash(f: io.BufferedWriter, sha3_256_hash: hashlib._Hash) -> Callable[[bytes], None]:
@@ -637,3 +637,25 @@ class RegabDataSet:
         })
 
         return cls(bid, status, ec, positions)
+
+class RegabIndexedDataSet:
+    """
+    Represents a dataset containing game positions from the Reversi game being indexed by a defined list of patterns.
+    """
+    
+    def __init__(self,
+                 rds: RegabDataSet,
+                 pset: PatternSet):
+        if not isinstance(rds, RegabDataSet):
+            raise TypeError('Argument rds is not an instance of RegabDataSet')
+        if not isinstance(pset, PatternSet):
+            raise TypeError('Argument pset is not an instance of PatternSet')
+
+        self.rds = rds
+        self.pset = pset
+
+        self.level = 0
+        self.indexes = None
+
+    def compute_indexes(self) -> None:
+        self.level = 1

@@ -1510,7 +1510,6 @@ class TestPatternSymmetries(unittest.TestCase):
         TestCase(0x0000241818240000, 'CORED',  [ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8]),
         TestCase(0x000008381C100000, 'COREA',  [ro090, ro180, ro270]),
         TestCase(0x83800000000001C1, 'WHIRL',  [ro090, ro180, ro270]),
-        #TestCase(0x010101FFFF010101, 'TAU',    [fhori]),
         TestCase(0x010100C1C1000101, 'TAU',    [fhori]),
         TestCase(0x0000000000000001, 'DOTA1',  []),
         TestCase(0x0000000000000002, 'DOTB1',  []),
@@ -2023,3 +2022,46 @@ class TestPatternSet(unittest.TestCase):
         expected_output[0] = expected_output[0].format(expected_hash)
         log_output_cleaned = [line.split(':root:', 1)[-1] for line in log.output]
         self.assertEqual(log_output_cleaned, expected_output)
+
+
+class TestTrxs(unittest.TestCase):
+    
+    def test_trxs_scalar(self):
+        ss = np.uint64(np.int64(2161731212669225984))
+        ts = SquareSet.trxs(ss)
+        self.assertEqual(ts.shape, (1, 8))
+
+        for i in range(ts.shape[1]):
+            s = SquareSet(ts[0, i])
+            self.assertEqual(s, SquareSet.trans_fs[i](SquareSet(ss)))
+
+    def test_trxs_array(self):
+        ss_list = [2161731212669225984, 13642792659518209, -9169247382941832704]
+        ss_array = np.array(ss_list, dtype=np.int64).view(np.uint64)
+        ts = SquareSet.trxs(ss_array)
+        self.assertEqual(ts.shape, (len(ss_list), 8))
+
+        for j in range(ts.shape[0]):
+            for i in range(ts.shape[1]):
+                s = SquareSet(ts[j, i])
+                self.assertEqual(s, SquareSet.trans_fs[i](SquareSet(ss_array[j])))
+    
+    def test_atrxs_scalar(self):
+        ss = np.uint64(np.int64(2161731212669225984))
+        ats = SquareSet.atrxs(ss)
+        self.assertEqual(ats.shape, (1, 8))
+
+        for i in range(ats.shape[1]):
+            s = SquareSet(ats[0, i])
+            self.assertEqual(s, SquareSet.anti_trans_fs[i](SquareSet(ss)))
+
+    def test_atrxs_array(self):
+        ss_list = [2161731212669225984, 13642792659518209, -9169247382941832704]
+        ss_array = np.array(ss_list, dtype=np.int64).view(np.uint64)
+        ats = SquareSet.atrxs(ss_array)
+        self.assertEqual(ats.shape, (len(ss_list), 8))
+
+        for j in range(ats.shape[0]):
+            for i in range(ats.shape[1]):
+                s = SquareSet(ats[j, i])
+                self.assertEqual(s, SquareSet.anti_trans_fs[i](SquareSet(ss_array[j])))

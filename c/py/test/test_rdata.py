@@ -518,3 +518,37 @@ class TestRegabDataSetChecksum(BaseTestCase):
         # Attempt to load the dataset from the file with checksum verification
         with self.assertRaises(ValueError):
             RegabDataSet.load_from_file(self.filename)
+
+
+class TestRegabIndexedDataSet(BaseTestCase):
+    
+    def setUp(self):
+        filename = 'py/test/data/tlm/ragab_data_file_200pos_ec20.dat'
+        self.rds = RegabDataSet.load_from_file(filename)
+        
+        edge = Pattern('EDGE', SquareSet(0x00000000000000FF))
+        elle = Pattern('ELLE', SquareSet(0x0000000000000107))
+        diag3 = Pattern('DIAG3', SquareSet(0x0000000000010204))
+        core = Pattern('CORE', SquareSet(0x0000001818000000))
+        self.pset = PatternSet("TestPatternSet", [edge, elle, diag3, core])
+
+    def tearDown(self):
+        pass
+
+    def test_init(self):
+        rids = RegabIndexedDataSet(self.rds, self.pset)
+        self.assertEqual(rids.level, 0)
+        self.assertEqual(rids.indexes, None)
+
+    def test_init_invalid_rds_type(self):
+        with self.assertRaises(TypeError):
+            RegabIndexedDataSet(None, self.pset)
+
+    def test_init_invalid_pset_type(self):
+        with self.assertRaises(TypeError):
+            RegabIndexedDataSet(self.rds, None)
+
+    def test_compute_indexes(self):
+        rids = RegabIndexedDataSet(self.rds, self.pset)
+        rids.compute_indexes()
+        self.assertEqual(rids.level, 1)

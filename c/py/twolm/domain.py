@@ -598,6 +598,60 @@ class SquareSet(np.uint64):
         """
         return SquareSet(self._ro270(self))
 
+    @staticmethod
+    def trxs(ss: npt.NDArray[np.uint64]) -> npt.NDArray[np.uint64]:
+        """
+        Vectorized transformation of input array into 8 derived uint64 columns.
+        It is the vectorized version of method transformations().
+        Input ss: Shape (N,)
+        Output: Shape (N, 8)
+        """
+        ss = np.atleast_1d(ss)
+        n = ss.shape[0]
+        ts = np.empty((n, 8), dtype=np.uint64)
+
+        # Pre-calculate common intermediate transformation
+        fh = SquareSet._fhori(ss)
+
+        # Each function call is expected to return an array of shape (N,)
+        ts[:, 0] = ss
+        ts[:, 1] = SquareSet._fa1h8(fh)
+        ts[:, 2] = SquareSet._fvert(fh)
+        ts[:, 3] = SquareSet._fh1a8(fh)
+        ts[:, 4] = SquareSet._fvert(ss)
+        ts[:, 5] = SquareSet._fh1a8(ss)
+        ts[:, 6] = fh
+        ts[:, 7] = SquareSet._fa1h8(ss)
+
+        return ts
+
+    @staticmethod
+    def atrxs(ss: npt.NDArray[np.uint64]) -> npt.NDArray[np.uint64]:
+        """
+        Vectorized anti-transformation of input array into 8 derived uint64 columns.
+        It is the vectorized version of method anti_transformations().
+        Input ss: Shape (N,)
+        Output: Shape (N, 8)
+        """
+        ss = np.atleast_1d(ss)
+        n = ss.shape[0]
+        ats = np.empty((n, 8), dtype=np.uint64)
+
+        # Pre-calculate common intermediate transformation
+        fh = SquareSet._fhori(ss)
+
+        # Each function call is expected to return an array of shape (N,)
+        ats[:, 0] = ss
+        ats[:, 1] = SquareSet._fh1a8(fh)
+        ats[:, 2] = SquareSet._fvert(fh)
+        ats[:, 3] = SquareSet._fa1h8(fh)
+        ats[:, 4] = SquareSet._fvert(ss)
+        ats[:, 5] = SquareSet._fh1a8(ss)
+        ats[:, 6] = fh
+        ats[:, 7] = SquareSet._fa1h8(ss)
+
+        return ats
+    
     def transformations(self) -> npt.NDArray[SquareSet]:
         """
         Returns eight square set as an array by transforming the set as follow.
@@ -613,37 +667,8 @@ class SquareSet(np.uint64):
         Returns:
             npt.NDArray[SquareSet]: An array of transformed square sets.
         """
-        ts = np.zeros(8, dtype=SquareSet)
-
-        h1a8 = self.fh1a8()
-        fh = self.fhori()
-
-        # - 0 -> 0 : ro000
-        ts[0] = self
-
-        # - 0 -> 1 : ro090
-        ts[1] = h1a8.fhori()
-
-        # - 0 -> 2 : ro180
-        ts[2] = fh.fvert()
-
-        # - 0 -> 3 : ro270
-        ts[3] = fh.fh1a8()
-
-        # - 0 -> 4 : fvert
-        ts[4] = self.fvert()
-
-        # - 0 -> 5 : fh1a8
-        ts[5] = h1a8
-
-        # - 0 -> 6 : fhori
-        ts[6] = fh
-
-        # - 0 -> 7 : fa1h8
-        ts[7] = self.fa1h8()
-
-        return ts
-
+        return SquareSet.trxs(self).view(SquareSet).flatten()
+    
     def anti_transformations(self) -> npt.NDArray[SquareSet]:
         """
         Returns eight square set as an array by transforming the set as follow.
@@ -660,37 +685,7 @@ class SquareSet(np.uint64):
         Returns:
             npt.NDArray[SquareSet]: An array of anti-transformed square sets.
         """
-        # ts: transformed square sets
-        ts = np.zeros(8, dtype=SquareSet)
-
-        h1a8 = self.fh1a8()
-        fh = self.fhori()
-
-        # - 0 -> 0 : ro000
-        ts[0] = self
-        
-        # - 0 -> 1 : ro270
-        ts[1] = fh.fh1a8()
-
-        # - 0 -> 2 : ro180
-        ts[2] = fh.fvert()
-
-        # - 0 -> 3 : ro090
-        ts[3] = h1a8.fhori()
-
-        # - 0 -> 4 : fvert
-        ts[4] = self.fvert()
-
-        # - 0 -> 5 : fh1a8
-        ts[5] = h1a8
-
-        # - 0 -> 6 : fhori
-        ts[6] = fh
-
-        # - 0 -> 7 : fa1h8
-        ts[7] = self.fa1h8()
-        
-        return ts
+        return SquareSet.atrxs(self).view(SquareSet).flatten()
 
     trans_fs = np.array(
         [ro000,
