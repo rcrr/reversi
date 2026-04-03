@@ -552,3 +552,58 @@ class TestRegabIndexedDataSet(BaseTestCase):
         rids = RegabIndexedDataSet(self.rds, self.pset)
         rids.compute_indexes()
         self.assertEqual(rids.level, 1)
+        self.assertEqual(rids.indexes.shape, (4, 200, 8))
+
+        m = self.rds.positions['mover'].values.view(np.uint64)
+        o = self.rds.positions['opponent'].values.view(np.uint64)
+        b000 = Board(SquareSet(m[0]),SquareSet(o[0]))
+        b023 = Board(SquareSet(m[23]),SquareSet(o[23]))
+        b199 = Board(SquareSet(m[199]),SquareSet(o[199]))
+
+        computed_indexes_edge_b000 = rids.indexes[0, 0, :]
+        expected_indexes_edge_b000 = np.array([162, 513, 1098, 117, 54, 99, 606, 351], dtype=np.uint32)
+        nptest.assert_array_equal(computed_indexes_edge_b000, expected_indexes_edge_b000)
+
+        computed_indexes_elle_b000 = rids.indexes[1, 0, :]
+        expected_indexes_elle_b000 = np.array([0, 0, 18, 36, 0, 18, 12, 0], dtype=np.uint32)
+        nptest.assert_array_equal(computed_indexes_elle_b000, expected_indexes_elle_b000)
+
+        computed_indexes_diag3_b000 = rids.indexes[2, 0, :]
+        expected_indexes_diag3_b000 = np.array([0, 6, 26, 16, 6, 26, 16, 0], dtype=np.uint32)
+        nptest.assert_array_equal(computed_indexes_diag3_b000, expected_indexes_diag3_b000)
+
+        computed_indexes_core_b000 = rids.indexes[3, 0, :]
+        expected_indexes_core_b000 = np.array([53, 77, 79, 71, 71, 79, 77, 53], dtype=np.uint32)
+        nptest.assert_array_equal(computed_indexes_core_b000, expected_indexes_core_b000)
+
+        computed_indexes_edge_b023 = rids.indexes[0, 23, :]
+        expected_indexes_edge_b023 = np.array([2304, 2188, 3277, 2179, 352, 2188, 2551, 2913], dtype=np.uint32)
+        nptest.assert_array_equal(computed_indexes_edge_b000, expected_indexes_edge_b000)
+
+        computed_indexes_elle_b023 = rids.indexes[1, 23, :]
+        expected_indexes_elle_b023 = np.array([63, 1, 10, 46, 1, 1, 13, 24], dtype=np.uint32)
+        nptest.assert_array_equal(computed_indexes_elle_b023, expected_indexes_elle_b023)
+
+        computed_indexes_diag3_b023 = rids.indexes[2, 23, :]
+        expected_indexes_diag3_b023 = np.array([25, 3, 4, 17, 3, 12, 25, 17], dtype=np.uint32)
+        nptest.assert_array_equal(computed_indexes_diag3_b023, expected_indexes_diag3_b023)
+
+        computed_indexes_core_b023 = rids.indexes[3, 23, :]
+        expected_indexes_core_b023 = np.array([50, 76, 70, 44, 70, 76, 50, 44], dtype=np.uint32)
+        nptest.assert_array_equal(computed_indexes_core_b023, expected_indexes_core_b023)
+
+        computed_indexes_edge_b199 = rids.indexes[0, 199, :]
+        expected_indexes_edge_b199 = np.array([4642, 566, 51, 3942, 4142, 6498, 2025, 178], dtype=np.uint32)
+        nptest.assert_array_equal(computed_indexes_edge_b199, expected_indexes_edge_b199)
+
+        computed_indexes_elle_b199 = rids.indexes[1, 199, :]
+        expected_indexes_elle_b199 = np.array([79, 26, 24, 0, 65, 72, 0, 70], dtype=np.uint32)
+        nptest.assert_array_equal(computed_indexes_elle_b199, expected_indexes_elle_b199)
+
+        computed_indexes_diag3_b199 = rids.indexes[2, 199, :]
+        expected_indexes_diag3_b199 = np.array([17, 17, 26, 0, 25, 26, 0, 25], dtype=np.uint32)
+        nptest.assert_array_equal(computed_indexes_diag3_b199, expected_indexes_diag3_b199)
+
+        computed_indexes_core_b199 = rids.indexes[3, 199, :]
+        expected_indexes_core_b199 = np.array([77, 79, 71, 53, 79, 77, 53, 71], dtype=np.uint32)
+        nptest.assert_array_equal(computed_indexes_core_b199, expected_indexes_core_b199)

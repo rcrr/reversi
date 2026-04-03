@@ -658,4 +658,41 @@ class RegabIndexedDataSet:
         self.indexes = None
 
     def compute_indexes(self) -> None:
+        m = self.rds.positions['mover'].values.view(np.uint64)
+        o = self.rds.positions['opponent'].values.view(np.uint64)
+        m_atrxs = SquareSet.atrxs(m)
+        o_atrxs = SquareSet.atrxs(o)
+        pl = self.pset.patterns
+        
+        S_max = max(p.n_squares for p in pl)
+        N = m.shape[0]
+        indexes = np.empty((len(pl), N, 8), dtype=np.uint32)
+        ONE = np.uint64(1)
+        
+        # Pre-allocated buffer to avoid cycles of memory allocation/deallocation
+        bits_buffer_m = np.empty((N, 8, S_max), dtype=np.uint32)
+        bits_buffer_o = np.empty((N, 8, S_max), dtype=np.uint32)
+
+        for i, p in enumerate(pl):
+            # p_m, p_o have shape = (N, 8), dtype = uint64
+            p_m = pack_ss(m_atrxs, p)
+            p_o = pack_ss(o_atrxs, p)
+            #
+            S = p.n_squares
+            bits_m = bits_buffer_m[:, :, :S]
+            bits_o = bits_buffer_o[:, :, :S]
+            bits_m[:] = (p_m[..., np.newaxis] >> p.bit_shifts) & ONE
+            bits_o[:] = (p_o[..., np.newaxis] >> p.bit_shifts) & ONE
+            #
+            # Calculate weighted ternary indices with p.powers_3
+            # The @ operator (matrix product) sums along the last dimension (n_squares)
+            # idx_m, idx_o shape: (N, 8)
+            idx_m = bits_m @ p.powers_3
+            idx_o = bits_o @ p.powers_3
+            #
+            # Combine the two states (0=empty, 1=mover, 2=opponent)
+            # Ternary formula: sum(state * 3^j) = sum(mover * 3^j + 2 * opponent * 3^j)
+            indexes[i] = np.uint32(2) * idx_o + idx_m
+
+        self.indexes = indexes
         self.level = 1
