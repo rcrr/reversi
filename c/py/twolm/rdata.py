@@ -37,6 +37,7 @@ from typing import List, Self, Callable, Any, Union, TypeVar
 
 import struct
 import hashlib
+import logging
 import os
 import io
 
@@ -653,9 +654,39 @@ class RegabIndexedDataSet:
 
         self.rds = rds
         self.pset = pset
-
-        self.level = 0
+        
         self.indexes = None
+        self.findexes = None
+        self.lookup = None
+        self.revmap = None
+        self.pindexes = None
+
+        max_uint32 = np.iinfo(np.uint32).max
+        self.REVMAP_INVALID_VALUE = max_uint32
+
+    def footprint(self) -> None:
+        rds = self.rds
+        pset = self.pset
+        bytes_in_mb = 1024**2
+        positions_total_mb = rds.positions.memory_usage(deep=True).sum() / bytes_in_mb
+        indexes_total_mb = 0
+        findexes_total_mb = 0
+        pindexes_total_mb = 0
+        logging.info(f"RegabIndexedDataSet memory footprint:")
+        logging.info(f"  rds:  [bid = {rds.bid}, status = {rds.status}, ec = {rds.ec}, lenght = {rds.length}]")
+        logging.info(f"  pset: [name = {pset.name}, patterns = {pset.names()}]")
+        logging.info(f"  - rds.positions : {positions_total_mb:9.2f} MB")
+        if self.indexes is not None:
+            indexes_total_mb = self.indexes.nbytes / bytes_in_mb
+            logging.info(f"  - indexes       : {indexes_total_mb:9.2f} MB")
+        if self.findexes is not None:
+            findexes_total_mb = self.findexes.nbytes / bytes_in_mb            
+            logging.info(f"  - findexes      : {findexes_total_mb:9.2f} MB")
+        if self.pindexes is not None:
+            pindexes_total_mb = self.pindexes.nbytes / bytes_in_mb            
+            logging.info(f"  - pindexes      : {pindexes_total_mb:9.2f} MB")
+        total_mb = positions_total_mb + indexes_total_mb + findexes_total_mb + pindexes_total_mb
+        logging.info(f"    Total         : {total_mb:9.2f} MB")
 
     def compute_indexes(self) -> None:
         m = self.rds.positions['mover'].values.view(np.uint64)
@@ -695,4 +726,114 @@ class RegabIndexedDataSet:
             indexes[i] = np.uint32(2) * idx_o + idx_m
 
         self.indexes = indexes
-        self.level = 1
+
+    def flatten_indexes(self) -> None:
+
+        if self.indexes is None:
+            self.compute_indexes()
+
+        # umi (Unique mask Indexes) is a list of arrays
+        # e.g., [np.array([0, 1, 2, 3]), np.array([0]), ...]
+        umi = [p.unique_mask_indexes for p in self.pset.patterns]
+        fi_length = sum(a.shape[0] for a in umi)
+        
+        # P is the count of patterns in the PatternSet.
+        # It must be equal to self.indexes.shape[0]
+        # self.indexes shape is (P, N, K=8), where N is the count of positions.
+        N = self.indexes.shape[1]
+        P = len(self.pset.patterns)
+        if P != self.indexes.shape[0]:
+            raise ValueError(
+                f"Data has an unrecoverable error: P = {P} and "
+                f"self.indexes.shape[0] = {self.indexes.shape[0]} "
+                "must have the same value."
+            )
+
+        # Flattening the data into shape (N, C=fi_length)
+        # Iterateing over P, select all N records, and filter the K=8 transformations into Kp ones accordingly with the pattern properties.
+        # Using .T (transpose) to ensure each slice is (N, Kp) before joining on axis 1
+        flat_indexes = np.concatenate([self.indexes[p, :, umi[p]].T for p in range(P)], axis=1)
+        if flat_indexes.shape != (N, fi_length):
+            raise ValueError(
+                f"Flattening the indexes run into problems. "
+                f"The returned array shape is not what is expected. "
+                f"Expected is ({N}, {fi_length}), returned is {flat_indexes.shape}."
+            )
+        
+        self.findexes = flat_indexes
+        
+    def compute_principal_indexes(self) -> None:
+        """
+        Computes principal indexes and populates the self.pindexes attribute.
+        Requires that self.indexes is calculated already, when not it does it.
+        """
+        if self.indexes is None:
+            self.compute_indexes()
+        
+        # Pre-calculate the total number of columns
+        # We sum the number of unique groups for each pattern
+        total_cols = sum(len(p.unique_mask_indexes) for p in self.pset.patterns)
+        N = self.indexes.shape[1]
+    
+        # Pre-allocate the final array (avoids hstack and extra copies)
+        self.pindexes = np.empty((N, total_cols), dtype=np.uint32)
+
+        current_col = 0
+        for i, p in enumerate(self.pset.patterns):
+            mi = p.mask_indexes
+            
+            # PATTERN ANALYSIS
+            # We find unique values in the order they appear.
+            # For [0, 1, 0, 1, 4, 5, 4, 5], unique_vals is [0, 1, 4, 5].
+            unique_vals = np.unique(mi)
+            n_groups = len(unique_vals)
+            group_size = 8 // n_groups
+            
+            # PHYSICAL REORDERING
+            # argsort handles non-contiguous groups perfectly.
+            # For mi=[0, 1, 0, 1, 4, 5, 4, 5], idx_sort is [0, 2, 1, 3, 4, 6, 5, 7].
+            # This physically moves columns of the same group together in memory.
+            idx_sort = np.argsort(mi)
+            self.pindexes[:, current_col : current_col + n_groups] = (
+                self.indexes[i][:, idx_sort]
+                .reshape(-1, n_groups, group_size)
+                .min(axis=2)
+            )
+                
+            current_col += n_groups
+
+    def compute_lookup(self) -> None:
+        """
+        Builds the Lookup Table: self.lookup
+        This table maps: [Flattened_Column_Index, Original_Pattern_P, Original_Transform_K]
+        
+        Usage:
+        _, p_idx, t_idx = self.lookup[col_number]
+        print(f"Column #: {col_number} describes Pattern: {p_idx}, Transformation: {t_idx}")
+        """
+        umi = [p.unique_mask_indexes for p in self.pset.patterns]
+        lookup = []
+        col_idx = 0
+        for p_idx, m in enumerate(umi):
+            for transform_idx in m:
+                lookup.append([col_idx, p_idx, transform_idx])
+                col_idx += 1
+        lookup = np.array(lookup, dtype=np.uint32)
+        self.lookup = lookup
+
+    def compute_revmap(self) -> None:
+        """
+        Builds the Reverse Lookup Table: self.revmap
+        Create a fast 2D map: revmap[p_idx][t_idx] = col_idx
+        Initialize with REVMAP_INVALID_VALUE = max_uint32 as a dummy value.
+        
+        Usage:
+        col_idx = revmap[p_idx, t_idx]
+        """
+        if self.lookup is None:
+            self.compute_lookup()
+        P = len(self.pset.patterns)
+        revmap = np.full((P, 8), self.REVMAP_INVALID_VALUE, dtype=np.uint32)
+        for col, p, t in self.lookup:
+            revmap[p, t] = col
+        self.revmap = revmap

@@ -1296,7 +1296,7 @@ class Pattern:
     unique_masks (list): The subset of tmasks containing only unique bitmasks. Used to identify distinct instances of the pattern on the board.
     mask_indexes (np.ndarray, uint8): An array of 8 indices mapping each of the 8 possible transformations to its "first seen" index in tmasks.
                                       This identifies which symmetries produce identical masks.
-    unique_mask_indexes (list): The indices of the transformations that produce unique masks.
+    unique_mask_indexes (np.ndarray, uint8): The indices of the transformations that produce unique masks.
     n_instances (int): The number of unique physical locations/orientations this pattern occupies (cardinality of the orbit |Orb|).
     n_stabilizers (int): The number of transformations that leave the mask bitwise identical (order of the stabilizer |Stab|).
 
@@ -1425,7 +1425,7 @@ class Pattern:
         self.mask_indexes = np.zeros(8, dtype=np.uint8)
         for i, tmask in enumerate(self.tmasks):
             self.mask_indexes[i] = self.mask_to_index[tmask]
-        self.unique_mask_indexes = list(dict.fromkeys(self.mask_indexes))
+        self.unique_mask_indexes = np.array(list(dict.fromkeys(self.mask_indexes)))
         # n_instances corresponds to the cardinality of the orbit |Orb(P)|
         self.n_instances = len(self.unique_masks)
         # n_stabilizers corresponds to the order of the stabilizer |Stab(P)|

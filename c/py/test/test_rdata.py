@@ -530,15 +530,21 @@ class TestRegabIndexedDataSet(BaseTestCase):
         elle = Pattern('ELLE', SquareSet(0x0000000000000107))
         diag3 = Pattern('DIAG3', SquareSet(0x0000000000010204))
         core = Pattern('CORE', SquareSet(0x0000001818000000))
-        self.pset = PatternSet("TestPatternSet", [edge, elle, diag3, core])
+        whirl = Pattern('WHIRL', SquareSet(0x83800000000001C1))
+        self.pset = PatternSet("TPS", [edge, elle, diag3, core, whirl])
 
     def tearDown(self):
         pass
 
     def test_init(self):
         rids = RegabIndexedDataSet(self.rds, self.pset)
-        self.assertEqual(rids.level, 0)
-        self.assertEqual(rids.indexes, None)
+        self.assertIsNotNone(rids.rds)
+        self.assertIsNotNone(rids.pset)
+        self.assertIsNone(rids.indexes)
+        self.assertIsNone(rids.findexes)
+        self.assertIsNone(rids.lookup)
+        self.assertIsNone(rids.revmap)
+        self.assertIsNone(rids.pindexes)
 
     def test_init_invalid_rds_type(self):
         with self.assertRaises(TypeError):
@@ -551,8 +557,8 @@ class TestRegabIndexedDataSet(BaseTestCase):
     def test_compute_indexes(self):
         rids = RegabIndexedDataSet(self.rds, self.pset)
         rids.compute_indexes()
-        self.assertEqual(rids.level, 1)
-        self.assertEqual(rids.indexes.shape, (4, 200, 8))
+        self.assertIsNotNone(rids.indexes)
+        self.assertEqual(rids.indexes.shape, (5, 200, 8))
 
         m = self.rds.positions['mover'].values.view(np.uint64)
         o = self.rds.positions['opponent'].values.view(np.uint64)
@@ -576,6 +582,10 @@ class TestRegabIndexedDataSet(BaseTestCase):
         expected_indexes_core_b000 = np.array([53, 77, 79, 71, 71, 79, 77, 53], dtype=np.uint32)
         nptest.assert_array_equal(computed_indexes_core_b000, expected_indexes_core_b000)
 
+        computed_indexes_whirl_b000 = rids.indexes[4, 0, :]
+        expected_indexes_whirl_b000 = np.array([729, 81, 3, 27, 0, 0, 0, 0], dtype=np.uint32)
+        nptest.assert_array_equal(computed_indexes_whirl_b000, expected_indexes_whirl_b000)
+
         computed_indexes_edge_b023 = rids.indexes[0, 23, :]
         expected_indexes_edge_b023 = np.array([2304, 2188, 3277, 2179, 352, 2188, 2551, 2913], dtype=np.uint32)
         nptest.assert_array_equal(computed_indexes_edge_b000, expected_indexes_edge_b000)
@@ -592,6 +602,10 @@ class TestRegabIndexedDataSet(BaseTestCase):
         expected_indexes_core_b023 = np.array([50, 76, 70, 44, 70, 76, 50, 44], dtype=np.uint32)
         nptest.assert_array_equal(computed_indexes_core_b023, expected_indexes_core_b023)
 
+        computed_indexes_whirl_b023 = rids.indexes[4, 23, :]
+        expected_indexes_whirl_b023 = np.array([3222, 3736, 418, 2464, 2431, 253, 2197, 2439], dtype=np.uint32)
+        nptest.assert_array_equal(computed_indexes_whirl_b023, expected_indexes_whirl_b023)
+        
         computed_indexes_edge_b199 = rids.indexes[0, 199, :]
         expected_indexes_edge_b199 = np.array([4642, 566, 51, 3942, 4142, 6498, 2025, 178], dtype=np.uint32)
         nptest.assert_array_equal(computed_indexes_edge_b199, expected_indexes_edge_b199)
@@ -607,3 +621,76 @@ class TestRegabIndexedDataSet(BaseTestCase):
         computed_indexes_core_b199 = rids.indexes[3, 199, :]
         expected_indexes_core_b199 = np.array([77, 79, 71, 53, 79, 77, 53, 71], dtype=np.uint32)
         nptest.assert_array_equal(computed_indexes_core_b199, expected_indexes_core_b199)
+
+        computed_indexes_whirl_b199 = rids.indexes[4, 199, :]
+        expected_indexes_whirl_b199 = np.array([73, 1703, 2835, 4389, 1529, 2427, 6243, 2161], dtype=np.uint32)
+        nptest.assert_array_equal(computed_indexes_whirl_b199, expected_indexes_whirl_b199)
+
+    def test_flatten_indexes(self):
+        rids = RegabIndexedDataSet(self.rds, self.pset)
+        rids.compute_indexes()
+        rids.flatten_indexes()
+
+        self.assertIsNotNone(rids.findexes)
+        self.assertIsInstance(rids.findexes, np.ndarray)
+        self.assertEqual(rids.findexes.shape, (200, 19))
+        self.assertEqual(rids.findexes.dtype, np.uint32)
+
+    def test_compute_principal_indexes(self):
+        rids = RegabIndexedDataSet(self.rds, self.pset)
+        rids.compute_principal_indexes()
+
+        print(f"rids.pindexes[0] = {rids.pindexes[0]}")
+        print(f"rids.pindexes[23] = {rids.pindexes[23]}")
+        print(f"rids.pindexes[199] = {rids.pindexes[199]}")
+
+        # TEST TO BE WRITTE HERE ....
+        #rids.footprint()
+
+    def test_compute_lookup(self):
+        rids = RegabIndexedDataSet(self.rds, self.pset)
+        rids.compute_lookup()
+        
+        self.assertIsNotNone(rids.lookup)
+        self.assertIsInstance(rids.lookup, np.ndarray)
+        self.assertEqual(rids.lookup.shape, (19, 3))
+        self.assertEqual(rids.lookup.dtype, np.uint32)
+
+        expected_lookup = np.array([[ 0, 0, 0],
+                                    [ 1, 0, 1],
+                                    [ 2, 0, 2],
+                                    [ 3, 0, 3],
+                                    [ 4, 1, 0],
+                                    [ 5, 1, 1],
+                                    [ 6, 1, 2],
+                                    [ 7, 1, 3],
+                                    [ 8, 1, 4],
+                                    [ 9, 1, 5],
+                                    [10, 1, 6],
+                                    [11, 1, 7],
+                                    [12, 2, 0],
+                                    [13, 2, 1],
+                                    [14, 2, 2],
+                                    [15, 2, 3],
+                                    [16, 3, 0],
+                                    [17, 4, 0],
+                                    [18, 4, 4]], dtype=np.uint32)
+        
+        nptest.assert_array_equal(rids.lookup, expected_lookup)
+
+    def test_compute_revmap(self):
+        rids = RegabIndexedDataSet(self.rds, self.pset)
+        rids.compute_revmap()
+
+        self.assertIsNotNone(rids.revmap)
+        self.assertIsInstance(rids.revmap, np.ndarray)
+        self.assertEqual(rids.revmap.shape, (5, 8))
+        self.assertEqual(rids.revmap.dtype, np.uint32)
+
+        IV = rids.REVMAP_INVALID_VALUE
+        expected_revmap = np.array([[  0,  1,  2,  3, IV, IV, IV, IV],
+                                    [  4,  5,  6,  7,  8,  9, 10, 11],
+                                    [ 12, 13, 14, 15, IV, IV, IV, IV],
+                                    [ 16, IV, IV, IV, IV, IV, IV, IV],
+                                    [ 17, IV, IV, IV, 18, IV, IV, IV]], dtype=np.uint32)
+        nptest.assert_array_equal(rids.revmap, expected_revmap)
