@@ -837,3 +837,10 @@ class RegabIndexedDataSet:
         for col, p, t in self.lookup:
             revmap[p, t] = col
         self.revmap = revmap
+
+    def get_pattern_columns(self, pattern_index: int) -> npt.NDArray[np.uint32]:
+        if self.revmap is None:
+            self.compute_revmap()
+        _col_idxs = self.revmap[pattern_index, :]
+        col_idxs = _col_idxs[_col_idxs != self.REVMAP_INVALID_VALUE]
+        return col_idxs

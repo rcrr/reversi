@@ -722,3 +722,40 @@ class TestRegabIndexedDataSet(BaseTestCase):
                                     [ 16, IV, IV, IV, IV, IV, IV, IV],
                                     [ 17, IV, IV, IV, 18, IV, IV, IV]], dtype=np.uint32)
         nptest.assert_array_equal(rids.revmap, expected_revmap)
+
+    def test_use_lookup(self):
+        rids = RegabIndexedDataSet(self.rds, self.pset)
+        rids.compute_lookup()
+
+        # Column 0 refers to EDGE pattern (0), T0
+        col_number = 0
+        cn_idx, p_idx, t_idx = rids.lookup[col_number]
+        expected_p_idx = 0
+        expected_t_idx = 0
+        self.assertEqual(col_number, cn_idx)
+        self.assertEqual(expected_p_idx, p_idx)
+        self.assertEqual(expected_t_idx, t_idx)
+
+        # Column 18 refers to WHIRL pattern (4), T4
+        col_number = 18
+        cn_idx, p_idx, t_idx = rids.lookup[col_number]
+        expected_p_idx = 4
+        expected_t_idx = 4
+        self.assertEqual(col_number, cn_idx)
+        self.assertEqual(expected_p_idx, p_idx)
+        self.assertEqual(expected_t_idx, t_idx)
+        
+    def test_use_revmap(self):
+        rids = RegabIndexedDataSet(self.rds, self.pset)
+        rids.compute_revmap()
+
+        pattern_index = 4
+        transformation_index = 4
+        col_idx = rids.revmap[pattern_index, transformation_index]
+        expected_col_idx = 18
+        self.assertEqual(expected_col_idx, col_idx)
+
+        pattern_index = 4
+        col_idxs = rids.get_pattern_columns(pattern_index)
+        expected_col_idxs = np.array([17, 18], dtype=np.uint32)
+        nptest.assert_array_equal(expected_col_idxs, col_idxs)
