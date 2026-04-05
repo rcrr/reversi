@@ -640,12 +640,40 @@ class TestRegabIndexedDataSet(BaseTestCase):
         rids = RegabIndexedDataSet(self.rds, self.pset)
         rids.compute_principal_indexes()
 
-        print(f"rids.pindexes[0] = {rids.pindexes[0]}")
-        print(f"rids.pindexes[23] = {rids.pindexes[23]}")
-        print(f"rids.pindexes[199] = {rids.pindexes[199]}")
+        self.assertIsNotNone(rids.pindexes)
+        self.assertIsInstance(rids.pindexes, np.ndarray)
+        self.assertEqual(rids.pindexes.shape, (200, 19))
+        self.assertEqual(rids.pindexes.dtype, np.uint32)
 
-        # TEST TO BE WRITTE HERE ....
-        #rids.footprint()
+        computed_pindexes_b000 = rids.pindexes[0, :]
+        expected_pindexes_b000 = np.array([
+            54, 99, 606, 117,           # EDGE [162, 513, 1098, 117, 54, 99, 606, 351] -> [min(162, 54), min(513, 99), min(1098, 606), min(117, 315)]
+            0, 0, 18, 36, 0, 18, 12, 0, # ELLE [0, 0, 18, 36, 0, 18, 12, 0]
+            0, 6, 26, 16,               # DIAG3 [0, 6, 26, 16, 6, 26, 16, 0] -> [min(0, 0), min(6, 6), min(26, 26), min(16, 16)]
+            53,                         # CORE [53, 77, 79, 71, 71, 79, 77, 53] -> [min(53, 77, 79, 71, 71, 79, 77, 53)]
+            3, 0                        # WHIRL [729, 81, 3, 27, 0, 0, 0, 0] -> [min(729, 81, 3, 27), min(0, 0, 0, 0)]
+        ], dtype=np.uint32)
+        nptest.assert_array_equal(computed_pindexes_b000, expected_pindexes_b000)
+
+        computed_pindexes_b023 = rids.pindexes[23, :]
+        expected_pindexes_b023 = np.array([
+            352, 2188, 2551, 2179,       # EDGE [2304, 2188, 3277, 2179, 352, 2188, 2551, 2913]
+            63, 1, 10, 46, 1, 1, 13, 24, # ELLE [63, 1, 10, 46, 1, 1, 13, 24]
+            17, 3, 4, 17,                # DIAG3 [25, 3, 4, 17, 3, 12, 25, 17]
+            44,                          # CORE [50, 76, 70, 44, 70, 76, 50, 44]
+            418, 253                     # WHIRL [3222, 3736, 418, 2464, 2431, 253, 2197, 2439]
+        ], dtype=np.uint32)
+        nptest.assert_array_equal(computed_pindexes_b023, expected_pindexes_b023)
+
+        computed_pindexes_b199 = rids.pindexes[199, :]
+        expected_pindexes_b199 = np.array([
+            4142, 566, 51, 178,           # EDGE [4642, 566, 51, 3942, 4142, 6498, 2025, 178]
+            79, 26, 24, 0, 65, 72, 0, 70, # ELLE [79, 26, 24, 0, 65, 72, 0, 70]
+            17, 17, 26, 0,                # DIAG3 [17, 17, 26, 0, 25, 26, 0, 25]
+            53,                           # CORE [77, 79, 71, 53, 79, 77, 53, 71]
+            73, 1529                      # WHIRL [73, 1703, 2835, 4389, 1529, 2427, 6243, 2161]
+        ], dtype=np.uint32)
+        nptest.assert_array_equal(computed_pindexes_b199, expected_pindexes_b199)
 
     def test_compute_lookup(self):
         rids = RegabIndexedDataSet(self.rds, self.pset)
