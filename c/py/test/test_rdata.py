@@ -58,10 +58,18 @@ import pandas as pd
 import os
 import tempfile
 import shutil
+import itertools
+
 from dotenv import load_dotenv
 
 
 class TestDummy(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
     
     def test_dummy(self):
         self.assertEqual(True, True)
@@ -98,7 +106,6 @@ class BaseTestCase(unittest.TestCase):
         
         # Assert the psycopg2 connection is actually open (0 = open)
         self.assertEqual(self.rc.conn.closed, 0, "The database connection is closed.")
-
 
     def tearDown(self):
         """
@@ -523,6 +530,7 @@ class TestRegabDataSetChecksum(BaseTestCase):
 class TestRegabIndexedDataSet(BaseTestCase):
     
     def setUp(self):
+        super().setUp()
         filename = 'py/test/data/tlm/ragab_data_file_200pos_ec20.dat'
         self.rds = RegabDataSet.load_from_file(filename)
         
@@ -534,7 +542,7 @@ class TestRegabIndexedDataSet(BaseTestCase):
         self.pset = PatternSet("TPS", [edge, elle, diag3, core, whirl])
 
     def tearDown(self):
-        pass
+        super().tearDown()
 
     def test_init(self):
         rids = RegabIndexedDataSet(self.rds, self.pset)
@@ -759,3 +767,119 @@ class TestRegabIndexedDataSet(BaseTestCase):
         col_idxs = rids.get_pattern_columns(pattern_index)
         expected_col_idxs = np.array([17, 18], dtype=np.uint32)
         nptest.assert_array_equal(expected_col_idxs, col_idxs)
+
+class TestRegabIndexedDataSetStoreAndLoad(TestRegabIndexedDataSet):
+    
+    def setUp(self):
+        super().setUp()
+        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
+        self.filename = os.path.join(self.tmp_dir, 'test_dataset.bin')
+        self.rids = RegabIndexedDataSet(self.rds, self.pset)
+        self.assertIsNotNone(self.rids.rds)
+        self.assertIsNotNone(self.rids.pset)
+
+    def tearDown(self):
+        super().tearDown()
+        shutil.rmtree(self.tmp_dir)
+
+    def helper_create_data_set(self, combo):
+
+        ds = self.rids
+
+        ds.compute_indexes()
+        ds.flatten_indexes()
+        ds.compute_principal_indexes()
+        ds.compute_lookup()
+        ds.compute_revmap()
+        
+        if not combo[0]: ds.indexes = None
+        if not combo[1]: ds.findexes = None
+        if not combo[2]: ds.pindexes = None
+        if not combo[3]: ds.lookup = None
+        if not combo[4]: ds.revmap = None
+    
+    def test_store_and_load(self):
+        
+        # Generate all 32 combinations of (True, False) for 5 slots
+        combinations = list(itertools.product([True, False], repeat=5))
+
+        for i, combo in enumerate(combinations):
+            with self.subTest(combo=combo):
+
+                # Generate the Data Set and data options
+                self.helper_create_data_set(combo)
+        
+                # Store the dataset to the file
+                self.rids.store_to_file(self.filename)
+        
+                # Load the dataset from the file
+                loaded_rids = RegabIndexedDataSet.load_from_file(self.filename)
+
+                # Verify that the two RegabIndexeddataSet are equal
+                self.verify_datasets_match(self.rids, loaded_rids)
+
+    def verify_datasets_match(self, ds1, ds2):    
+        # Verify the loaded dataset matches the original
+        self.assertEqual(ds2.rds.bid, ds1.rds.bid)
+        self.assertEqual(ds2.rds.status, ds1.rds.status)
+        self.assertEqual(ds2.rds.ec, ds1.rds.ec)
+        self.assertTrue(ds2.rds.positions.equals(ds1.rds.positions))
+        self.assertEqual(ds2.rds.length, ds1.rds.length)
+        self.assertEqual(ds2.pset.name, ds1.pset.name)
+        self.assertEqual(ds2.pset.hash, ds1.pset.hash)
+        self.assertEqual(ds2.pset.names(), ds1.pset.names())
+
+        if ds1.indexes is None:
+            self.assertIsNone(ds2.indexes)
+        else:
+            e = ds1.indexes
+            c = ds2.indexes
+            self.assertIsInstance(c, np.ndarray)
+            self.assertEqual(c.dtype, np.uint32)
+            self.assertEqual(e.dtype, np.uint32)
+            self.assertEqual(e.shape, c.shape)
+            nptest.assert_array_equal(e, c)
+
+        if ds1.findexes is None:
+            self.assertIsNone(ds2.findexes)
+        else:
+            e = ds1.findexes
+            c = ds2.findexes
+            self.assertIsInstance(c, np.ndarray)
+            self.assertEqual(c.dtype, np.uint32)
+            self.assertEqual(e.dtype, np.uint32)
+            self.assertEqual(e.shape, c.shape)
+            nptest.assert_array_equal(e, c)
+
+        if ds1.pindexes is None:
+            self.assertIsNone(ds2.pindexes)
+        else:
+            e = ds1.pindexes
+            c = ds2.pindexes
+            self.assertIsInstance(c, np.ndarray)
+            self.assertEqual(c.dtype, np.uint32)
+            self.assertEqual(e.dtype, np.uint32)
+            self.assertEqual(e.shape, c.shape)
+            nptest.assert_array_equal(e, c)
+
+        if ds1.lookup is None:
+            self.assertIsNone(ds2.lookup)
+        else:
+            e = ds1.lookup
+            c = ds2.lookup
+            self.assertIsInstance(c, np.ndarray)
+            self.assertEqual(c.dtype, np.uint32)
+            self.assertEqual(e.dtype, np.uint32)
+            self.assertEqual(e.shape, c.shape)
+            nptest.assert_array_equal(e, c)
+
+        if ds1.revmap is None:
+            self.assertIsNone(ds2.revmap)
+        else:
+            e = ds1.revmap
+            c = ds2.revmap
+            self.assertIsInstance(c, np.ndarray)
+            self.assertEqual(c.dtype, np.uint32)
+            self.assertEqual(e.dtype, np.uint32)
+            self.assertEqual(e.shape, c.shape)
+            nptest.assert_array_equal(e, c)

@@ -25,6 +25,28 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
+"""
+rdata module
+
+This module provides classes and functions for managing and processing datasets related to Reversi game positions.
+It includes functionality for connecting to a database, extracting game positions, storing and loading datasets,
+and indexing game positions based on defined patterns.
+
+Classes
+-------
+RegabDBConnection
+    A regab database connection wraps the psycopg2 connection object.
+RegabDataSet
+    Represents a dataset containing game positions from the Reversi game.
+RegabIndexedDataSet
+    Represents a dataset containing game positions from the Reversi game being indexed by a defined list of patterns.
+
+Functions
+---------
+regab_gp_as_df
+    Retrieves game positions from the database and returns them as a pandas DataFrame.
+"""
+
 from __future__ import annotations
 
 from twolm.domain import *
@@ -138,8 +160,30 @@ def _checksum(filename: str) -> None:
 class RegabDBConnection:
     """
     A regab database connection wraps the psycopg2 connection object.
+
+    Attributes
+    ----------
+    dbname : str
+        The name of the database.
+    user : str
+        The username for the database connection.
+    host : str
+        The hostname of the database server.
+    port : str
+        The port number on which the database server is listening.
+    password : str
+        The password for the database connection.
+    _connect_string : str
+        The connection string used to connect to the database.
+    conn : psycopg2.extensions.connection
+        The psycopg2 connection object.
+
+    Methods
+    -------
+    close()
+        Closes the db connection.
     """
-    def __init__(self, dbname: str, user: str, host: str, port='5432', password=None):
+    def __init__(self, dbname: str, user: str, host: str, port: str ='5432', password: str | None =None):
         """
         Initializes a RegabDBConnection instance.
 
@@ -368,8 +412,20 @@ class RegabDataSet:
         The number of game positions in the dataset.
     fqcn : str
         The fully qualified class name of the RegabDataSet instance.
-    """
 
+    Methods
+    -------
+    extract_from_db(rc: RegabDBConnection, bid: Union[int, List[int]], status: Union[str, List[str]], ec: int) -> RegabDataSet
+        Extracts data from the database and creates a RegabDataSet instance.
+    write_core_object_data(fw: Callable[[bytes], None]) -> None
+        Writes the core data of the RegabDataSet instance to a binary file using the provided writer function.
+    store_to_file(filename: str) -> None
+        Saves the RegabDataSet instance to a binary file and calculates the SHA3-256 checksum.
+    load_from_file(filename: str, checksum: bool = True) -> RegabDataSet
+        Loads a RegabDataSet instance from a binary file.
+    read_core_object_data(f: io.BufferedReader) -> RegabDataSet
+        Reads the core data of a RegabDataSet instance from a binary file.
+    """
     def __init__(self,
                  bid: List[int],
                  status: List[str],
@@ -388,6 +444,13 @@ class RegabDataSet:
             The empty count, must be in the range [0, 60].
         positions : pd.DataFrame
             A DataFrame containing the game positions with columns 'mover', 'opponent', and 'game_value'.
+
+        Raises
+        ------
+        TypeError
+            If any of the arguments have an incorrect type.
+        ValueError
+            If any of the arguments have an invalid value.
         """
 
         if isinstance(bid, list):
@@ -610,7 +673,7 @@ class RegabDataSet:
         - It then reads the binary data for the 'mover', 'opponent', and 'game_value' arrays and constructs a DataFrame from these arrays.
         - The function returns an instance of RegabDataSet.
         """
-                    
+
         # Read the number of elements in bid
         num_bid = struct.unpack('<I', f.read(4))[0]
         bid = [struct.unpack('<I', f.read(4))[0] for _ in range(num_bid)]
@@ -642,11 +705,74 @@ class RegabDataSet:
 class RegabIndexedDataSet:
     """
     Represents a dataset containing game positions from the Reversi game being indexed by a defined list of patterns.
+
+    Attributes
+    ----------
+    rds : RegabDataSet
+        An instance of the RegabDataSet class containing the game positions.
+    pset : PatternSet
+        An instance of the PatternSet class containing the patterns to be used for indexing.
+    indexes : np.ndarray
+        The indexes array for each pattern by considering the relevant transformations.
+    findexes : np.ndarray
+        The flattened indexes array.
+    lookup : np.ndarray
+        The Lookup Table mapping: [Flattened_Column_Index, Original_Pattern_P, Original_Transform_K].
+    revmap : np.ndarray
+        The Reverse Lookup Table: revmap[p_idx][t_idx] = col_idx.
+    pindexes : np.ndarray
+        The principal indexes array.
+    fqcn : str
+        The fully qualified class name of the RegabIndexedDataSet instance.
+    REVMAP_INVALID_VALUE : int
+        The maximum value of a 32-bit unsigned integer used as an invalid value in the revmap.
+
+    Methods
+    -------
+    load_from_file(filename: str, checksum: bool = True) -> RegabIndexedDataSet
+        Loads a RegabIndexedDataSet instance from a binary file.
+    footprint() -> None
+        Logs the memory footprint of the RegabIndexedDataSet instance.
+    compute_indexes() -> None
+        Computes the indexes array for each pattern by considering the relevant transformations.
+    flatten_indexes() -> None
+        Flattens the indexes array by selecting only the relevant transformations for each pattern.
+    compute_principal_indexes() -> None
+        Computes principal indexes and populates the self.pindexes attribute.
+    compute_lookup() -> None
+        Builds the Lookup Table: self.lookup.
+    compute_revmap() -> None
+        Builds the Reverse Lookup Table: self.revmap.
+    get_pattern_columns(pattern_index: int) -> np.ndarray
+        Retrieves the column indices corresponding to a specific pattern index.
+    write_core_object_data(fw: Callable[[bytes], None]) -> None
+        Writes the core data of the RegabIndexedDataSet instance to a binary file using the provided writer function.
+    store_to_file(filename: str) -> None
+        Saves the RegabIndexedDataSet instance to a binary file and calculates the SHA3-256 checksum.
     """
-    
     def __init__(self,
                  rds: RegabDataSet,
                  pset: PatternSet):
+        """
+        Initializes a RegabIndexedDataSet instance.
+
+        Parameters
+        ----------
+        rds : RegabDataSet
+            An instance of the RegabDataSet class containing the game positions.
+        pset : PatternSet
+            An instance of the PatternSet class containing the patterns to be used for indexing.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        TypeError
+            If the `rds` argument is not an instance of RegabDataSet.
+            If the `pset` argument is not an instance of PatternSet.
+        """
         if not isinstance(rds, RegabDataSet):
             raise TypeError('Argument rds is not an instance of RegabDataSet')
         if not isinstance(pset, PatternSet):
@@ -654,6 +780,9 @@ class RegabIndexedDataSet:
 
         self.rds = rds
         self.pset = pset
+        
+        # Collect the fully qualified class name.
+        self.fqcn: str = f"{self.__class__.__module__}.{self.__class__.__qualname__}"
         
         self.indexes = None
         self.findexes = None
@@ -664,7 +793,132 @@ class RegabIndexedDataSet:
         max_uint32 = np.iinfo(np.uint32).max
         self.REVMAP_INVALID_VALUE = max_uint32
 
+    @classmethod
+    def load_from_file(cls: type[Self], filename: str, checksum: bool = True) -> Self:
+        """
+        Loads a RegabIndexedDataSet instance from a binary file.
+
+        Parameters
+        ----------
+        filename : str
+            The name of the file from which to load the data.
+        checksum : bool, optional
+            Whether to verify the SHA3-256 checksum of the file. Default is True.
+
+        Returns
+        -------
+        RegabDataSet
+            An instance of RegabDataSet containing the loaded data.
+
+        Raises
+        ------
+        FileNotFoundError
+            If the checksum file is not found when checksum verification is enabled.
+        ValueError
+            If the calculated checksum does not match the stored checksum.
+        EOFError
+            If data is malformed or truncated.
+
+        Notes
+        -----
+        - The function returns an instance of RegabIndexedDataSet.
+        """
+        if checksum:
+            _checksum(filename)
+
+        with open(filename, 'rb') as f:
+            # Read the fully qualified class name.
+            fqcn = f.readline().decode('utf-8').strip()
+            expected_fqcn = 'twolm.rdata.RegabIndexedDataSet'
+            if fqcn != expected_fqcn:
+                raise ValueError(f"The read fqcn {fqcn} does not match the expected one {expected_fqcn}.")
+
+            rds = RegabDataSet.read_core_object_data(f)
+            pset = read_patternset_object_data(f)
+            rids = RegabIndexedDataSet(rds, pset)
+            
+            # 1. Read the 5 flags (1 byte per flag, but using 'I' as per your write logic)
+            # Total expected: 5 * 4 bytes = 20 bytes
+            flags_raw = f.read(20)
+            if len(flags_raw) < 20:
+                raise EOFError("Failed to read header flags: File is truncated or corrupted.")
+            
+            # Unpack the 5 unsigned integers
+            flags = struct.unpack('IIIII', flags_raw)
+            f_indexes, f_findexes, f_pindexes, f_lookup, f_revmap = flags
+
+            # 2. Read 'indexes' (3D array: P x POS x TRX)
+            if f_indexes == 1:
+                # Read 3 dimensions (24 bytes)
+                dims = f.read(24)
+                if len(dims) < 24: raise EOFError("Truncated dimensions for 'indexes'")
+                p, pos, trx = struct.unpack('QQQ', dims)
+                # Calculate size: each uint32 is 4 bytes
+                data = f.read(p * pos * trx * 4)
+                rids.indexes = np.frombuffer(data, dtype=np.uint32).reshape((p, pos, trx)).copy()
+            else:
+                rids.indexes = None
+
+            # 3. Read 'findexes' (2D array: POS x C)
+            if f_findexes == 1:
+                dims = f.read(16)
+                if len(dims) < 16: raise EOFError("Truncated dimensions for 'findexes'")
+                pos, c = struct.unpack('QQ', dims)
+                data = f.read(pos * c * 4)
+                rids.findexes = np.frombuffer(data, dtype=np.uint32).reshape((pos, c)).copy()
+            else:
+                rids.findexes = None
+
+            # 4. Read 'pindexes' (2D array: POS x C)
+            if f_pindexes == 1:
+                dims = f.read(16)
+                if len(dims) < 16: raise EOFError("Truncated dimensions for 'pindexes'")
+                pos, c = struct.unpack('QQ', dims)
+                data = f.read(pos * c * 4)
+                rids.pindexes = np.frombuffer(data, dtype=np.uint32).reshape((pos, c)).copy()
+            else:
+                rids.pindexes = None
+
+            # 5. Read 'lookup' (2D array: ROW x COL)
+            if f_lookup == 1:
+                dims = f.read(16)
+                if len(dims) < 16: raise EOFError("Truncated dimensions for 'lookup'")
+                row, col = struct.unpack('QQ', dims)
+                data = f.read(row * col * 4)
+                rids.lookup = np.frombuffer(data, dtype=np.uint32).reshape((row, col)).copy()
+            else:
+                rids.lookup = None
+
+            # 6. Read 'revmap' (2D array: ROW x COL)
+            if f_revmap == 1:
+                dims = f.read(16)
+                if len(dims) < 16: raise EOFError("Truncated dimensions for 'revmap'")
+                row, col = struct.unpack('QQ', dims)
+                data = f.read(row * col * 4)
+                rids.revmap = np.frombuffer(data, dtype=np.uint32).reshape((row, col)).copy()
+            else:
+                rids.revmap = None
+
+            return rids
+
     def footprint(self) -> None:
+        """
+        Logs the memory footprint of the RegabIndexedDataSet instance.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        - The method logs the memory usage of the `rds` attribute, including the batch IDs, status codes, empty count, and length.
+        - It also logs the memory usage of the `indexes`, `findexes`, and `pindexes` arrays if they have been computed.
+        - The memory usage is reported in megabytes (MB).
+        """
         rds = self.rds
         pset = self.pset
         bytes_in_mb = 1024**2
@@ -689,6 +943,28 @@ class RegabIndexedDataSet:
         logging.info(f"    Total         : {total_mb:9.2f} MB")
 
     def compute_indexes(self) -> None:
+        """
+        Computes the indexes array for each pattern by considering the relevant transformations.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        ValueError
+            If the `rds` or `pset` attributes are not properly initialized.
+
+        Notes
+        -----
+        - The method computes the indexes array for each pattern by considering the relevant transformations.
+        - It uses the `mover` and `opponent` positions from the `rds` attribute and the patterns from the `pset` attribute.
+        - The resulting indexes are stored in the `indexes` attribute.
+        """
         m = self.rds.positions['mover'].values.view(np.uint64)
         o = self.rds.positions['opponent'].values.view(np.uint64)
         m_atrxs = SquareSet.atrxs(m)
@@ -728,6 +1004,25 @@ class RegabIndexedDataSet:
         self.indexes = indexes
 
     def flatten_indexes(self) -> None:
+        """
+        Flattens the indexes array by selecting only the relevant transformations for each pattern.
+        Computes the findexes object attribute.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        - The method flattens the `indexes` array by selecting only the relevant transformations for each pattern.
+        - It uses the `unique_mask_indexes` attribute of each pattern to filter the transformations.
+        - The resulting flattened indexes are stored in the `findexes` attribute.
+        - If the `indexes` array has not been computed yet, it will be computed before flattening.
+        """
 
         if self.indexes is None:
             self.compute_indexes()
@@ -839,8 +1134,234 @@ class RegabIndexedDataSet:
         self.revmap = revmap
 
     def get_pattern_columns(self, pattern_index: int) -> npt.NDArray[np.uint32]:
+        """
+        Retrieves the column indices corresponding to a specific pattern index.
+
+        Parameters
+        ----------
+        pattern_index : int
+            The index of the pattern for which to retrieve the column indices.
+
+        Returns
+        -------
+        np.ndarray
+            An array of column indices corresponding to the specified pattern index.
+
+        Raises
+        ------
+        ValueError
+            If the pattern index is out of the valid range.
+
+        Notes
+        -----
+        - The method returns an array of column indices that correspond to the specified pattern index.
+        - If the reverse map (`revmap`) has not been computed yet, it will be computed before retrieving the column indices.
+        - The method filters out any invalid column indices (marked with `REVMAP_INVALID_VALUE`).
+
+        Example
+        -------
+        >>> rid = RegabIndexedDataSet(rds, pset)
+        >>> rid.compute_revmap()
+        >>> col_indices = rid.get_pattern_columns(0)
+        >>> print(col_indices)
+        array([0, 1, 2, 3])
+        """
         if self.revmap is None:
             self.compute_revmap()
         _col_idxs = self.revmap[pattern_index, :]
         col_idxs = _col_idxs[_col_idxs != self.REVMAP_INVALID_VALUE]
         return col_idxs
+
+    def write_core_object_data(self, fw: Callable[[bytes], None]) -> None:
+        """
+        Writes the core data of the RegabIndexedDataSet instance to a binary file using the provided writer function.
+
+        Parameters
+        ----------
+        fw : Callable[[bytes], None]
+            A function that takes bytes as input and writes them to a file.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        - The method writes the information if the attributes are populated or are None.
+        - It writes the flags indicating whether `indexes`, `findexes`, `pindexes`, `lookup`, and `revmap` are populated.
+        - If an attribute is populated, it writes the dimensions and the binary data for that attribute.
+        - The function returns None.
+        """
+
+        # First writes the information if the attributes are populated or are None.
+        # 1 means populated, 0 means None.
+        flag_indexes = 0
+        flag_findexes = 0
+        flag_pindexes = 0
+        flag_lookup = 0
+        flag_revmap = 0
+        
+        if self.indexes is not None:
+            flag_indexes = 1
+        if self.findexes is not None:
+            flag_findexes = 1
+        if self.pindexes is not None:
+            flag_pindexes = 1
+        if self.lookup is not None:
+            flag_lookup = 1
+        if self.revmap is not None:
+            flag_revmap = 1
+
+        fw(struct.pack('I', flag_indexes))
+        fw(struct.pack('I', flag_findexes))
+        fw(struct.pack('I', flag_pindexes))
+        fw(struct.pack('I', flag_lookup))
+        fw(struct.pack('I', flag_revmap))
+
+        if flag_indexes == 1:
+            p_dim, pos_dim, trx_dim = self.indexes.shape
+            fw(struct.pack('QQQ', p_dim, pos_dim, trx_dim))
+            fw(self.indexes.tobytes())
+
+        if flag_findexes == 1:
+            pos_dim, c_dim = self.findexes.shape
+            fw(struct.pack('QQ', pos_dim, c_dim))
+            fw(self.findexes.tobytes())
+
+        if flag_pindexes == 1:
+            pos_dim, c_dim = self.pindexes.shape
+            fw(struct.pack('QQ', pos_dim, c_dim))
+            fw(self.pindexes.tobytes())
+
+        if flag_lookup == 1:
+            row, col = self.lookup.shape
+            fw(struct.pack('QQ', row, col))
+            fw(self.lookup.tobytes())
+
+        if flag_revmap == 1:
+            row, col = self.revmap.shape
+            fw(struct.pack('QQ', row, col))
+            fw(self.revmap.tobytes())
+
+    def store_to_file(self, filename: str) -> None:
+        """
+        Saves the RegabIndexedDataSet instance to a binary file and calculates the SHA3-256 checksum.
+
+        Parameters
+        ----------
+        filename : str
+            The name of the file in which to save the data.
+
+        Returns
+        -------
+        None
+        """
+        # Create a SHA3-256 hash object
+        sha3_256_hash = hashlib.sha3_256()
+
+        with open(filename, 'wb') as f:
+            fw = _fun_builder_write_and_hash(f, sha3_256_hash)
+            fw((self.fqcn + '\n').encode('utf-8'))
+            self.rds.write_core_object_data(fw)
+            write_patternset_object_data(self.pset, fw)
+            self.write_core_object_data(fw)
+
+        # Calculate the SHA3-256 checksum
+        checksum = sha3_256_hash.hexdigest()
+
+        # Write the checksum to a separate file with the same name and ".SHA3-256" suffix
+        checksum_filename = filename + ".SHA3-256"
+        with open(checksum_filename, 'w') as checksum_file:
+            checksum_file.write(checksum)
+
+def write_patternset_object_data(pset: PatternSet, fw: Callable[[bytes], None]) -> None:
+    """
+    Writes the core data of a PatternSet instance to a binary file using the provided writer function.
+
+    Parameters
+    ----------
+    pset : PatternSet
+        An instance of the PatternSet class containing the patterns to be written.
+    fw : Callable[[bytes], None]
+        A function that takes bytes as input and writes them to a file.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    TypeError
+        If the `pset` argument is not an instance of PatternSet.
+    """
+    if not isinstance(pset, PatternSet):
+        raise TypeError('Argument pset is not an instance of PatternSet')
+
+    # Write pset name
+    pset_name_bytes = pset.name.encode('utf-8')
+    fw(struct.pack('I', len(pset_name_bytes)))
+    fw(pset_name_bytes)
+
+    # Write pset pattern count.
+    fw(struct.pack('I', len(pset.patterns)))
+    
+    # Write patterns
+    for p in pset.patterns:
+        name_bytes = p.name.encode('utf-8')
+        fw(struct.pack('I', len(name_bytes)))
+        fw(name_bytes)
+        fw(struct.pack('Q', p.mask))
+        
+    # Write SHA256 string
+    sha_bytes = pset.hash.encode('utf-8')
+    fw(struct.pack('I', len(sha_bytes)))
+    fw(sha_bytes)
+
+def read_patternset_object_data(f: io.BufferedReader) -> PatternSet:
+    """
+    Reads the core data of a PatternSet instance from a binary file.
+
+    Parameters
+    ----------
+    f : io.BufferedReader
+        The file object from which to read the data.
+
+    Returns
+    -------
+    PatternSet
+        An instance of PatternSet containing the read data.
+    """
+    # Helper per leggere stringhe (lunghezza + contenuto)
+    def read_string():
+        length_data = f.read(4)
+        if not length_data: return None
+        length = struct.unpack('I', length_data)[0]
+        return f.read(length).decode('utf-8')
+
+    # 1. Read pset name
+    pset_name = read_string()
+    
+    # 2. Read pset pattern count
+    pattern_count_data = f.read(4)
+    pattern_count = struct.unpack('I', pattern_count_data)[0]
+
+    # 3. Read patterns
+    pattern_data = []
+    for _ in range(pattern_count):
+        p_name = read_string()
+        p_mask = struct.unpack('Q', f.read(8))[0]
+        pattern_data.append({
+            'name': p_name,
+            'mask': np.uint64(p_mask)
+        })
+
+    # 4. Read SHA256 string
+    sha_hash = read_string()
+
+    patterns = [Pattern(item['name'], SquareSet(item['mask'])) for item in pattern_data]
+    pset = PatternSet(pset_name, patterns)
+    
+    if sha_hash != pset.hash:
+        raise ValueError(f"PatternSet read data is invalid: hash read from file '{sha_hash}', computed '{pset.hash}'")
+    
+    return pset
