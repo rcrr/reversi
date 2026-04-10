@@ -42,7 +42,8 @@
                     "status": ['CMS', 'CMR'],
                     "ec": 20
                 },
-                "filename": "regab_data_set.dat"
+                "filename": "regab_data_set.dat",
+                "purge": true
             },
             "pattern_set": {
                 "name": "BasicPatternSet",

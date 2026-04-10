@@ -93,6 +93,7 @@ class RegabDataSetConfig(BaseModel):
 class RegabDataSetCachedConfig(BaseModel):
     regab_data_set: RegabDataSetConfig
     filename: Path
+    purge: bool = False
 
 class RegabDataSetConfig(BaseModel):
     regab_data_set_cached: RegabDataSetCachedConfig
@@ -224,6 +225,34 @@ class ReversiLogisticModel:
         else:
             self.load_regab_data_set_from_db()
 
+    def purge_regab_data_set_cache(self) -> None:
+        """
+        Removes the regab data set cache file.
+        """
+        cfg_rdsc = (self.cfg
+                    .regab_indexed_data_set_cached
+                    .regab_indexed_data_set
+                    .regab_data_set_cached)
+        
+        logger.debug(f"Entering method purge_regab_data_set_cache().")
+        if not cfg_rdsc.purge:
+            logger.debug(f"The config file doesn't prescribe the purge action.")
+            return
+        logger.debug(f"The config file prescribes the purge action.")
+        full_path_filename = self.cfg.full_project_dir / cfg_rdsc.filename
+        logger.debug(f"File to be purged: {full_path_filename}")
+        if full_path_filename.exists():
+            checksum = full_path_filename.with_name(full_path_filename.name + ".SHA3-256")
+            logger.debug(f"Purging regab data set cache file.")
+            full_path_filename.unlink()
+            logger.debug(f"Purging regab data set cache checksum file.")
+            checksum.unlink(missing_ok=True)
+            logger.debug(f"Files have been deleted.")
+        else:
+            logger.debug(f"The file doesn't exist.")
+        
+
+        
     def load_regab_indexed_data_set(self) -> None:
         """
         Loads the regab indexed data set.
@@ -300,5 +329,6 @@ class ReversiLogisticModel:
             if is_file_modified:
                 rids.store_to_file(full_path_filename)
                 logger.debug(f"Cache file {full_path_filename} has been written.")
+                self.purge_regab_data_set_cache()
                 
             self.rids = rids
