@@ -55,6 +55,8 @@ import psycopg2 as pg
 import pandas as pd
 import numpy as np
 
+from pathlib import Path
+
 from typing import List, Self, Callable, Any, Union, TypeVar
 
 import struct
@@ -108,13 +110,13 @@ def _fun_builder_write_and_hash(f: io.BufferedWriter, sha3_256_hash: hashlib._Ha
 
     return fwriter
 
-def _checksum(filename: str) -> None:
+def _checksum(filename: str | Path) -> None:
     """
     Verifies the SHA3-256 checksum of a file against a stored checksum.
 
     Parameters
     ----------
-    filename : str
+    filename : str | Path
         The name of the file for which to verify the checksum.
 
     Returns
@@ -134,8 +136,13 @@ def _checksum(filename: str) -> None:
     - The checksum file is expected to have the same name as the input file with a ".SHA3-256" suffix.
     - The method reads the stored checksum from the checksum file and compares it with the actual checksum of the input file.
     """
+    if not isinstance(filename, (str, Path)):
+        raise TypeError('Argument filename is not an instance of str or Path')
+
+    filename = Path(filename)
+    
     # Construct the checksum filename
-    checksum_filename = filename + ".SHA3-256"
+    checksum_filename = filename.with_name(filename.name + ".SHA3-256")
             
     # Check if the checksum file exists
     if not os.path.exists(checksum_filename):
@@ -419,9 +426,9 @@ class RegabDataSet:
         Extracts data from the database and creates a RegabDataSet instance.
     write_core_object_data(fw: Callable[[bytes], None]) -> None
         Writes the core data of the RegabDataSet instance to a binary file using the provided writer function.
-    store_to_file(filename: str) -> None
+    store_to_file(filename: str | Path) -> None
         Saves the RegabDataSet instance to a binary file and calculates the SHA3-256 checksum.
-    load_from_file(filename: str, checksum: bool = True) -> RegabDataSet
+    load_from_file(filename: str | Path, checksum: bool = True) -> RegabDataSet
         Loads a RegabDataSet instance from a binary file.
     read_core_object_data(f: io.BufferedReader) -> RegabDataSet
         Reads the core data of a RegabDataSet instance from a binary file.
@@ -572,19 +579,24 @@ class RegabDataSet:
 
         return
     
-    def store_to_file(self, filename: str) -> None:
+    def store_to_file(self, filename: str | Path) -> None:
         """
         Saves the RegabDataSet instance to a binary file and calculates the SHA3-256 checksum.
 
         Parameters
         ----------
-        filename : str
+        filename : str | Path
             The name of the file in which to save the data.
 
         Returns
         -------
         None
         """
+        if not isinstance(filename, (str, Path)):
+            raise TypeError('Argument filename is not an instance of str or Path')
+
+        filename = Path(filename)
+        
         # Create a SHA3-256 hash object
         sha3_256_hash = hashlib.sha3_256()
 
@@ -601,18 +613,18 @@ class RegabDataSet:
         checksum = sha3_256_hash.hexdigest()
 
         # Write the checksum to a separate file with the same name and ".SHA3-256" suffix
-        checksum_filename = filename + ".SHA3-256"
+        checksum_filename = filename.with_name(filename.name + ".SHA3-256")
         with open(checksum_filename, 'w') as checksum_file:
             checksum_file.write(checksum)
 
     @classmethod
-    def load_from_file(cls: type[Self], filename: str, checksum: bool = True) -> Self:
+    def load_from_file(cls: type[Self], filename: str | Path, checksum: bool = True) -> Self:
         """
         Loads a RegabDataSet instance from a binary file.
 
         Parameters
         ----------
-        filename : str
+        filename : str | Path
             The name of the file from which to load the data.
         checksum : bool, optional
             Whether to verify the SHA3-256 checksum of the file. Default is True.
@@ -633,6 +645,9 @@ class RegabDataSet:
         -----
         - The function returns an instance of RegabDataSet.
         """
+        if not isinstance(filename, (str, Path)):
+            raise TypeError('Argument filename is not an instance of str or Path')
+
         if checksum:
             _checksum(filename)
 
@@ -729,7 +744,7 @@ class RegabIndexedDataSet:
 
     Methods
     -------
-    load_from_file(filename: str, checksum: bool = True) -> RegabIndexedDataSet
+    load_from_file(filename: str | Path, checksum: bool = True) -> RegabIndexedDataSet
         Loads a RegabIndexedDataSet instance from a binary file.
     footprint() -> None
         Logs the memory footprint of the RegabIndexedDataSet instance.
@@ -747,7 +762,7 @@ class RegabIndexedDataSet:
         Retrieves the column indices corresponding to a specific pattern index.
     write_core_object_data(fw: Callable[[bytes], None]) -> None
         Writes the core data of the RegabIndexedDataSet instance to a binary file using the provided writer function.
-    store_to_file(filename: str) -> None
+    store_to_file(filename: str | Path) -> None
         Saves the RegabIndexedDataSet instance to a binary file and calculates the SHA3-256 checksum.
     """
     def __init__(self,
@@ -794,13 +809,13 @@ class RegabIndexedDataSet:
         self.REVMAP_INVALID_VALUE = max_uint32
 
     @classmethod
-    def load_from_file(cls: type[Self], filename: str, checksum: bool = True) -> Self:
+    def load_from_file(cls: type[Self], filename: str | Path, checksum: bool = True) -> Self:
         """
         Loads a RegabIndexedDataSet instance from a binary file.
 
         Parameters
         ----------
-        filename : str
+        filename : str | Path
             The name of the file from which to load the data.
         checksum : bool, optional
             Whether to verify the SHA3-256 checksum of the file. Default is True.
@@ -823,6 +838,9 @@ class RegabIndexedDataSet:
         -----
         - The function returns an instance of RegabIndexedDataSet.
         """
+        if not isinstance(filename, (str, Path)):
+            raise TypeError('Argument filename is not an instance of str or Path')
+        
         if checksum:
             _checksum(filename)
 
@@ -1243,19 +1261,22 @@ class RegabIndexedDataSet:
             fw(struct.pack('QQ', row, col))
             fw(self.revmap.tobytes())
 
-    def store_to_file(self, filename: str) -> None:
+    def store_to_file(self, filename: str | Path) -> None:
         """
         Saves the RegabIndexedDataSet instance to a binary file and calculates the SHA3-256 checksum.
 
         Parameters
         ----------
-        filename : str
+        filename : str | Path
             The name of the file in which to save the data.
 
         Returns
         -------
         None
         """
+        if not isinstance(filename, (str, Path)):
+            raise TypeError('Argument filename is not an instance of str or Path')
+
         # Create a SHA3-256 hash object
         sha3_256_hash = hashlib.sha3_256()
 
@@ -1270,7 +1291,7 @@ class RegabIndexedDataSet:
         checksum = sha3_256_hash.hexdigest()
 
         # Write the checksum to a separate file with the same name and ".SHA3-256" suffix
-        checksum_filename = filename + ".SHA3-256"
+        checksum_filename = filename.with_name(filename.name + ".SHA3-256")
         with open(checksum_filename, 'w') as checksum_file:
             checksum_file.write(checksum)
 

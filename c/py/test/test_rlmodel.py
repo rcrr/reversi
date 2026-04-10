@@ -62,8 +62,10 @@ import shutil
 
 from pathlib import Path
 
+import os
 
-class TestReversiLogisticModel(unittest.TestCase):
+
+class TestReversiLogisticModelInit(unittest.TestCase):
 
     def setUp(self):
         self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
@@ -119,3 +121,84 @@ class TestReversiLogisticModel(unittest.TestCase):
         self.assertEqual(True, rids.has_lookup)
         self.assertEqual(True, rids.has_revmap)
         self.assertEqual(Path('regab_indexed_data_set.dat'), ridsc.filename)
+
+
+class TestReversiLogisticModel(unittest.TestCase):
+
+    def setUp(self):
+        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
+        json_config = 'py/test/data/tlm/rlmodel_00.json'
+        self.rlm = ReversiLogisticModel(json_config, base_dir_override=self.tmp_dir)
+        Path(self.rlm.cfg.full_project_dir).mkdir(parents=False, exist_ok=True)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp_dir)
+
+    def test_load_regab_data_set_from_db(self):
+        self.rlm.load_regab_data_set_from_db()
+        self.assertIsNotNone(self.rlm.rds)
+
+        if False:
+            os.system(f"ls -l {self.rlm.cfg.full_project_dir}")
+
+    def test_load_regab_data_set_from_file(self):
+        self.assertIsNone(self.rlm.rds)
+        self.rlm.load_regab_data_set_from_db()
+        self.assertIsNotNone(self.rlm.rds)
+        self.rlm.rds = None
+        self.assertIsNone(self.rlm.rds)
+
+        # So now we have the file saved into the tempdir.
+
+        if False:
+            os.system(f"ls -l {self.rlm.cfg.full_project_dir}")
+
+        self.rlm.load_regab_data_set_from_file()
+        self.assertIsNotNone(self.rlm.rds)
+
+    def test_load_regab_data_set_from_file(self):
+        self.assertIsNone(self.rlm.rds)
+        self.rlm.load_regab_data_set_from_db()
+        self.assertIsNotNone(self.rlm.rds)
+        self.rlm.rds = None
+        self.assertIsNone(self.rlm.rds)
+
+        # So now we have the file saved into the tempdir.
+
+        if False:
+            os.system(f"ls -l {self.rlm.cfg.full_project_dir}")
+
+        self.rlm.load_regab_data_set_from_file()
+        self.assertIsNotNone(self.rlm.rds)
+
+    def test_load_regab_data_set_option_no_file(self):
+        self.assertIsNone(self.rlm.rds)
+        self.rlm.load_regab_data_set()
+        self.assertIsNotNone(self.rlm.rds)
+
+    def test_load_regab_data_set_option_with_file(self):
+        self.assertIsNone(self.rlm.rds)
+        self.rlm.load_regab_data_set_from_db()
+        self.assertIsNotNone(self.rlm.rds)
+        self.rlm.rds = None
+        self.assertIsNone(self.rlm.rds)
+
+        self.rlm.load_regab_data_set()
+        self.assertIsNotNone(self.rlm.rds)
+
+    def test_load_regab_indexed_data_set(self):
+        self.assertIsNone(self.rlm.rds)
+        self.rlm.load_regab_indexed_data_set()
+        self.assertIsNotNone(self.rlm.rids)
+
+    def test_load_regab_indexed_data_set_from_cache_file(self):
+        self.assertIsNone(self.rlm.rds)
+        self.rlm.load_regab_indexed_data_set()
+        self.assertIsNotNone(self.rlm.rids)
+
+        self.rlm.rids = None
+        self.rlm.load_regab_indexed_data_set()
+        self.assertIsNotNone(self.rlm.rids)
+
+        if False:
+            os.system(f"ls -l {self.rlm.cfg.full_project_dir}")
