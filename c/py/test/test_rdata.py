@@ -60,8 +60,6 @@ import tempfile
 import shutil
 import itertools
 
-from pathlib import Path
-
 from dotenv import load_dotenv
 
 
@@ -775,7 +773,7 @@ class TestRegabIndexedDataSetStoreAndLoad(TestRegabIndexedDataSet):
     def setUp(self):
         super().setUp()
         self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
-        self.filename = Path(os.path.join(self.tmp_dir, 'test_dataset.bin'))
+        self.filename = os.path.join(self.tmp_dir, 'test_dataset.bin')
         self.rids = RegabIndexedDataSet(self.rds, self.pset)
         self.assertIsNotNone(self.rids.rds)
         self.assertIsNotNone(self.rids.pset)

@@ -1277,6 +1277,8 @@ class RegabIndexedDataSet:
         if not isinstance(filename, (str, Path)):
             raise TypeError('Argument filename is not an instance of str or Path')
 
+        filename = Path(filename)
+
         # Create a SHA3-256 hash object
         sha3_256_hash = hashlib.sha3_256()
 
