@@ -63,17 +63,6 @@ import itertools
 from dotenv import load_dotenv
 
 
-class TestDummy(unittest.TestCase):
-
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-    
-    def test_dummy(self):
-        self.assertEqual(True, True)
-
 #
 # A file .env must exist in $(REVERSI_HOME)/c
 # The file must have the following definitions:

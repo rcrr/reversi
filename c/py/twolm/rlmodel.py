@@ -110,6 +110,7 @@ class RegabIndexedDataSetConfig(BaseModel):
 class RegabIndexedDataSetCachedConfig(BaseModel):
     regab_indexed_data_set: RegabIndexedDataSetConfig
     filename: Path
+    purge: bool = False
 
 class ReversiLogisticModelConfig(BaseModel):
     name: str
