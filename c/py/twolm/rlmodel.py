@@ -46,6 +46,8 @@ from pathlib import Path
 
 import numpy as np
 
+from itertools import accumulate
+
 
 __all__ = ['ReversiLogisticModel']
 
@@ -112,12 +114,16 @@ class RegabIndexedDataSetCachedConfig(BaseModel):
     filename: Path
     purge: bool = False
 
+class StatModelConfig(BaseModel):
+    frequency_cut_off: PositiveInt = 1
+    
 class ReversiLogisticModelConfig(BaseModel):
     name: str
     description: str
     base_dir: Path
     project_dir: Path
     regab_indexed_data_set_cached: RegabIndexedDataSetCachedConfig
+    stat_model: StatModelConfig
     
     @computed_field
     @property
@@ -154,6 +160,11 @@ class ReversiLogisticModel:
 
         self.rds = None
         self.rids = None
+        self.pattern_w_ranges = None
+        self.iwmap_pattern_offset = None
+        self.iwmap = None
+        self.wmap = None
+        self.wmap_fallback = None
 
     def load_regab_data_set_from_db(self) -> None:
         """
@@ -252,8 +263,6 @@ class ReversiLogisticModel:
         else:
             logger.debug(f"The file doesn't exist.")
         
-
-        
     def load_regab_indexed_data_set(self) -> None:
         """
         Loads the regab indexed data set.
@@ -333,3 +342,174 @@ class ReversiLogisticModel:
                 self.purge_regab_data_set_cache()
                 
             self.rids = rids
+
+    def compute_wmaps(self) -> None:
+        """
+        Computes the following data structures given the cut_off hyper-parameter:
+            pattern_w_ranges: npt.NDArray[np.int64], shape(P, 3)
+                Lists for each pattern, ordered by pid (pattern index):
+                - fallback the index value of w used for the fallback (cut-off) configurations.
+                - w_min the first index value of w assigned to the pattern ( equal to fallback when fallback is not -1).
+                - w_max the last index value of w assigned to the pattern.
+            iwmap_pattern_offset: npt.NDArray[np.uint32], shape(P + 1,)
+                Gives the position of a pattern in the iwmap array.
+                iwmap_pattern_offset[pid] gives the position of configuration zero for the pattern identified by pid.
+            iwmap: npt.NDArray[np.int64], shape(K,)
+                Assigns to each possible configuration the index of w. -1 when the configuration is not found
+                in the dataset.
+                Given pid, and pattern_conf_id the formula:
+                    iwmap_pattern_offset[pid + pattern_conf_id] returns the index of w related to (pid, pattern_conf_id)
+            wmap: npt.NDArray[np.int64], shape(W, 3)
+                Given the w index returns the pattern index, the configuration index, and the frequency configuration
+                pid, pattern_conf_id, pattern_conf_frequency = wmap[w_index]
+            wmap_fallback: npt.NDArray[np.int64], shape(F, 3)
+                Contains the entries of wmap being excluded by the cut-off. It has:
+                - pid: pattern id
+                - pattern_conf_id: index of the pattern configuration excluded by the cut-off rule
+                - pattern_conf_frequency: the frequency of the patetrn conficuration within the dataset
+        Where:
+            P is the count of patterns defined by the model.
+            K is the count of all pattern configurations (K = sum([p.n_configurations for p in patterns])).
+            W is the count of all model weights.
+            F is the count of all cut-off configurations.
+        """
+
+        logger.debug(f"Analyzing patterns defined by the model.")
+
+        cut_off = self.cfg.stat_model.frequency_cut_off
+        logger.debug(f"cut_off = {cut_off} ...  (Frequency cut-off value set by the statistical model)")
+
+        patterns = self.rids.pset.patterns
+        P = len(patterns)
+        logger.debug(f"P = {P} ...  (count of patterns defined by the model)")
+
+        p_num_configurations = [p.n_configurations for p in patterns]
+        logger.debug(f"p_num_configurations = {p_num_configurations} ... (number of combinatorial configurations for each pattern)")
+        iwmap_pattern_offset = np.array([0] + list(accumulate(p_num_configurations)), dtype=np.uint32)
+        K = iwmap_pattern_offset[P]
+        logger.debug(f"K = {K} ... (length of the iwmap array, equal to iwmap_pattern_offset[P])")
+
+        iwmap = np.full(K, -1, dtype=np.int64)
+        pindexes = self.rids.pindexes
+        N = pindexes.shape[0]
+        next_w = 0
+        p_w_ranges = []
+
+        # Pre-allocate the inverse map after the loop starts or use a list to collect parts
+        # Since we don't know the final 'next_w' until the end, 
+        # collecting blocks and stacking them at the end is the most efficient way.
+        wmap_blocks = []
+        fallback_data = [] # To store [pid, config_id, frequency] for each fallback entry
+        
+        for pid, p in enumerate(patterns):
+            cols = self.rids.get_pattern_columns(pid)
+            if len(cols) != p.n_instances:
+                raise ValueError(f"Pattern {p.name}, pid = {pid}: len(cols) = {len(cols)} is not correct.")
+            logger.debug(f"Analyzing pattern {p.name}, pid = {pid}, cols = {cols}")
+            p_pindexes = pindexes[:, cols]
+            flat_p_pindexes = p_pindexes.ravel()
+            unique_values, counts = np.unique(flat_p_pindexes, return_counts=True)
+            stats = np.column_stack((unique_values, counts))
+            if sum(counts) != len(cols) * N:
+                raise ValueError(f"Pattern {p.name}, sum(counts) != len(cols) * N ... invariance violated.")
+            mask = stats[:, 1] < cut_off
+            stats_filtered_below = stats[mask]
+            stats_filtered_above = stats[~mask]
+            if len(stats_filtered_below) + len(stats_filtered_above) != len(stats):
+                raise ValueError(f"Pattern {p.name}, len(stats_filtered_below) + len(stats_filtered_above) != len(stats) ... invariance violated.")
+
+            w_indices = np.empty(len(stats), dtype=np.int64)
+            if len(stats_filtered_below) > 0:
+                fallback = next_w
+                w_indices[mask] = fallback
+                next_w += 1
+                fallback_pattern_configuration_is_present = True
+                logger.debug(f"  Configurations below freq. cut-off = {len(stats_filtered_below)}, occurrences = {stats_filtered_below[:, 1].sum()}")
+            else:
+                fallback = -1
+                fallback_pattern_configuration_is_present = False
+
+            # Handle the "above cutoff" group (mapped to a progressive sequence)
+            n_above = (~mask).sum()
+            if n_above > 0:
+                # Generate a sequence starting from the current next_w
+                w_indices[~mask] = np.arange(next_w, next_w + n_above)
+                # Increment next_w by the number of unique configurations added
+                next_w += n_above
+
+            # Add the new column to 'stats' and refresh the filtered views
+            stats = np.column_stack((stats, w_indices))
+
+            p_iwmap = iwmap[iwmap_pattern_offset[pid]:iwmap_pattern_offset[pid + 1]]
+            # MAPPING:
+            # stats[:, 0] contains the unique configurations (the "keys" or indices)
+            # stats[:, 2] contains the assigned w_index values
+            p_iwmap[stats[:, 0].astype(np.int64)] = stats[:, 2]
+            logger.debug(f"Pattern {p.name}: p_iwmap populated with {len(stats)} unique configurations.")
+            
+            # Identify the range of w_indices for the current pattern
+            # Using w_indices (from your previous step) to find min and max
+            w_min = w_indices.min() if len(w_indices) > 0 else -1
+            w_max = w_indices.max() if len(w_indices) > 0 else -1
+            p_w_ranges.append({
+                'pid': pid,
+                'fallback': fallback,
+                'w_min': w_min,
+                'w_max': w_max
+            })
+
+            # The number of unique w assigned to this pattern is (w_max - w_min + 1)
+            num_w_pattern = w_max - w_min + 1
+            pattern_w_mapping = np.empty((num_w_pattern, 3), dtype=np.int64)
+            # Column 0: Always the current Pattern ID
+            pattern_w_mapping[:, 0] = pid
+            # Fill the second column with Configuration IDs
+            # By default, we use -1 (which covers the fallback case)
+            pattern_w_mapping[:, 1] = -1
+
+            # Handle Fallback Frequency
+            if fallback_pattern_configuration_is_present:
+                # Sum of frequencies for all configurations below cutoff
+                fallback_freq = stats_filtered_below[:, 1].sum()
+                
+                # Assign to the specific row in the block
+                # Usually fallback is at w_min in your current logic
+                fallback_rel_idx = fallback - w_min
+                pattern_w_mapping[fallback_rel_idx, 2] = fallback_freq
+                
+                # Collect detailed fallback entries for the separate table
+                # stats_filtered_below has [config_id, frequency, w_index]
+                for row in stats_filtered_below:
+                    fallback_data.append([pid, row[0], row[1]])
+
+            
+            # For configurations above cutoff, we map the w_index to its config_id
+            # mask was defined as: stats[:, 1] < cut_off
+            above_mask = ~mask 
+            if above_mask.any():
+                # Get the w_indices and config_ids for the 'above' group
+                w_above = stats[above_mask, 2]
+                config_above = stats[above_mask, 0]
+                freq_above = stats[above_mask, 1]
+                # The index in pattern_w_mapping is (w - w_min)
+                relative_indices = (w_above - w_min).astype(np.int64)
+                pattern_w_mapping[relative_indices, 1] = config_above
+                pattern_w_mapping[relative_indices, 2] = freq_above
+            wmap_blocks.append(pattern_w_mapping)
+        
+        # Combine all blocks into the final inverse mapping table
+        # Index of this array is 'w', value is [PID, CONFIG_ID]
+        wmap = np.vstack(wmap_blocks)
+        
+        # Final fallback details table: [PID, CONFIG_ID, FREQ]
+        # This contains every single config_id that was merged into a fallback w
+        fallback_details_table = np.array(fallback_data, dtype=np.int64)      
+    
+        self.pattern_w_ranges = np.array([[m['fallback'], m['w_min'], m['w_max']] for m in p_w_ranges], dtype=np.int64)
+        self.iwmap_pattern_offset = iwmap_pattern_offset
+        self.iwmap = iwmap
+        self.wmap = wmap
+        self.wmap_fallback = fallback_details_table
+
+        logger.debug(f"Table wmap created. Shape: {wmap.shape} (Total weights assigned: {next_w})")
+        
