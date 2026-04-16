@@ -257,6 +257,8 @@ class TestReversiLogisticModelComputeWmaps(unittest.TestCase):
              ], dtype=np.int64)
         nptest.assert_array_equal(expected_iwmap, self.rlm.iwmap)
 
+        self.assertTrue(np.unique(self.rlm.rids.pindexes).size == np.count_nonzero(self.rlm.iwmap >= 0))
+
         # Checking wmap
         expected_wmap_shape = (16, 3)
         self.assertEqual(expected_wmap_shape, self.rlm.wmap.shape)
@@ -293,3 +295,94 @@ class TestReversiLogisticModelComputeWmaps(unittest.TestCase):
              [ 1, 40,  1],
              ], dtype=np.int64)
         nptest.assert_array_equal(expected_wmap_fallback, self.rlm.wmap_fallback)
+
+
+class TestReversiLogisticModelComputeDesignMatrix(unittest.TestCase):
+
+    def setUp(self):
+        json_config = 'py/test/data/tlm/rlmodel_01.json'
+        self.rlm = ReversiLogisticModel(json_config)
+        self.rlm.load_regab_indexed_data_set()
+        self.assertIsNotNone(self.rlm.rids)
+        self.rlm.compute_wmaps()
+        self.assertIsNotNone(self.rlm.iwmap_pattern_offset)
+        self.assertIsNotNone(self.rlm.iwmap)
+
+    def tearDown(self):
+        pass
+
+    def test_compute_design_matrix(self):
+        self.assertIsNone(self.rlm.X)
+        self.rlm.compute_design_matrix()
+        self.assertIsNotNone(self.rlm.X)
+
+        X = self.rlm.X
+
+        # Matrix X must have the same shape of principal indexes.
+        self.assertEqual(X.shape, (10, 5))
+        self.assertEqual(X.dtype, np.uint32)
+
+        expected_X = np.array(
+            [[ 2, 6,  5, 1, 13],
+             [ 2, 0, 10, 2, 13],
+             [ 3, 5,  7, 6, 13],
+             [ 7, 5,  9, 1, 11],
+             [ 7, 0,  7, 4, 12],
+             [ 4, 0, 10, 0, 14],
+             [ 3, 3,  0, 0, 15],
+             [ 5, 5,  8, 2, 15],
+             [ 8, 3,  2, 2, 14],
+             [ 9, 8,  3, 2, 12],
+             ], dtype=np.int64)
+        nptest.assert_array_equal(expected_X, X)
+
+
+class TestReversiLogisticModelStoreAndLoad(unittest.TestCase):
+
+    def setUp(self):
+        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
+        json_config_name = Path('rlmodel_02.json')
+        json_config_src = Path('py/test/data/tlm') / json_config_name
+        dst_dir = self.tmp_dir
+        json_config = dst_dir / json_config_name
+        shutil.copy(json_config_src, json_config)
+        self.rlm = ReversiLogisticModel(json_config, base_dir_override=self.tmp_dir)
+        self.rlm.load_regab_indexed_data_set()
+        self.assertIsNotNone(self.rlm.rids)
+        self.rlm.compute_wmaps()
+        self.assertIsNotNone(self.rlm.iwmap_pattern_offset)
+        self.assertIsNotNone(self.rlm.iwmap)
+        self.assertIsNone(self.rlm.X)
+        self.rlm.compute_design_matrix()
+        self.assertIsNotNone(self.rlm.X)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp_dir)
+
+    def test_store_and_load(self):
+        self.assertEqual(True, True)
+
+        if False:
+            print(f"self.rlm.cfg.full_project_dir = {self.rlm.cfg.full_project_dir}")
+            os.system(f"ls -l {self.rlm.cfg.full_project_dir}")
+
+        #print(f"Storing data to file....")
+        filename = self.tmp_dir / Path('reversi_logistic_model_test_02.dat')
+        self.rlm.store_to_file(filename)
+        self.assertTrue(filename.is_file())
+
+        if False:
+            os.system(f"ls -l {self.rlm.cfg.full_project_dir}")
+
+        #print(f"")
+        #print(f"self.rlm.X")
+        #print(f"{self.rlm.X}")
+
+        pattern_w_ranges0 = self.rlm.pattern_w_ranges
+        iwmap_pattern_offset0 = self.rlm.iwmap_pattern_offset
+        iwmap0 = self.rlm.iwmap
+        wmap0 = self.rlm.wmap
+        wmap_fallback0 = self.rlm.wmap_fallback
+        X0 = self.rlm.X
+
+        # Now we need to clean variaables and then reload the just written file.

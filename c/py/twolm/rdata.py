@@ -66,10 +66,10 @@ import os
 import io
 
 
-__all__ = ['RegabDBConnection', 'regab_gp_as_df', 'RegabDataSet', 'RegabIndexedDataSet']
+__all__ = ['RegabDBConnection', 'regab_gp_as_df', 'RegabDataSet', 'RegabIndexedDataSet', 'fun_builder_write_and_hash']
 
 
-def _fun_builder_write_and_hash(f: io.BufferedWriter, sha3_256_hash: hashlib._Hash) -> Callable[[bytes], None]:
+def fun_builder_write_and_hash(f: io.BufferedWriter, sha3_256_hash: hashlib._Hash) -> Callable[[bytes], None]:
     """
     Creates a function that writes data to a file and updates a SHA3-256 hash object.
 
@@ -602,7 +602,7 @@ class RegabDataSet:
 
         with open(filename, 'wb') as f:
 
-            fw = _fun_builder_write_and_hash(f, sha3_256_hash)
+            fw = fun_builder_write_and_hash(f, sha3_256_hash)
 
             # Write the fully qualified class name
             fw((self.fqcn + '\n').encode('utf-8'))
@@ -1283,7 +1283,7 @@ class RegabIndexedDataSet:
         sha3_256_hash = hashlib.sha3_256()
 
         with open(filename, 'wb') as f:
-            fw = _fun_builder_write_and_hash(f, sha3_256_hash)
+            fw = fun_builder_write_and_hash(f, sha3_256_hash)
             fw((self.fqcn + '\n').encode('utf-8'))
             self.rds.write_core_object_data(fw)
             write_patternset_object_data(self.pset, fw)

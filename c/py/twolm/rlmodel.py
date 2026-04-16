@@ -34,12 +34,15 @@ from __future__ import annotations
 from twolm.domain import *
 from twolm.rdata import *
 
+import struct
 import json5
+import hashlib
 import sys
 import logging
 
 from pydantic import (BaseModel, Field, PositiveInt, NonNegativeInt, DirectoryPath,
                       field_validator, computed_field, ConfigDict)
+
 from typing import List, Optional, Annotated
 
 from pathlib import Path
@@ -60,6 +63,9 @@ console_handler.setLevel(logging.INFO)
 logger.addHandler(console_handler)
 
 class RegabDBConnectionConfig(BaseModel):
+    """
+    Configuration for connecting to the Regab database.
+    """
     dbname: str
     user: str
     host: str
@@ -67,6 +73,9 @@ class RegabDBConnectionConfig(BaseModel):
     password: Optional[str] = None
 
 class PatternConfig(BaseModel):
+    """
+    Configuration for a pattern, including its name and mask.
+    """
     name: str
     mask: SquareSet = Field(..., description="Pattern mask in HEX format, no 0x prefix, just 16 digits.")
 
@@ -81,26 +90,40 @@ class PatternConfig(BaseModel):
         return SquareSet.new_from_hex(h)
 
 class PatternSetConfig(BaseModel):
+    """
+    Configuration for a set of patterns, including the name and a list of individual pattern configurations.
+    """
     name: str
     patterns: List[PatternConfig] = []
 
 StatusString = Annotated[str, Field(pattern=r"^[A-Z]{3}$")]
+"""
+Annotation for a status string, which must be exactly three uppercase letters.
+"""
 
 class RegabDataSetConfig(BaseModel):
+    """
+    Configuration for a Regab data set, including the database connection and filtering criteria.
+    """
     regab_db_connection: RegabDBConnectionConfig
     bid: List[NonNegativeInt]
     status: List[StatusString]
     ec: int = Field(..., ge=0, le=60)
 
 class RegabDataSetCachedConfig(BaseModel):
+    """
+    Configuration for caching a Regab data set, including the data set configuration
+    and the cache file details.
+    """
     regab_data_set: RegabDataSetConfig
     filename: Path
     purge: bool = False
 
-class RegabDataSetConfig(BaseModel):
-    regab_data_set_cached: RegabDataSetCachedConfig
-
 class RegabIndexedDataSetConfig(BaseModel):
+    """
+    Configuration for an indexed Regab data set, including the cached data set configuration
+    and flags for various indexes and lookups.
+    """
     regab_data_set_cached: RegabDataSetCachedConfig
     pattern_set: PatternSetConfig
     has_indexes: bool
@@ -110,14 +133,25 @@ class RegabIndexedDataSetConfig(BaseModel):
     has_revmap: bool
     
 class RegabIndexedDataSetCachedConfig(BaseModel):
+    """
+    Configuration for caching an indexed Regab data set,
+    including the indexed data set configuration and the cache file details.
+    """
     regab_indexed_data_set: RegabIndexedDataSetConfig
     filename: Path
     purge: bool = False
 
 class StatModelConfig(BaseModel):
+    """
+    Configuration for a statistical model, including the frequency cut-off threshold.
+    """
     frequency_cut_off: PositiveInt = 1
     
 class ReversiLogisticModelConfig(BaseModel):
+    """
+    Configuration for the Reversi logistic model, including general settings,
+    data set configurations, and statistical model settings.
+    """
     name: str
     description: str
     base_dir: Path
@@ -132,15 +166,55 @@ class ReversiLogisticModelConfig(BaseModel):
 
 class ReversiLogisticModel:
     """
+    This class is designed to handle the logistic regression model for the Reversi game.
+    It manages the loading and processing of datasets, computes necessary mappings and matrices, and prepares the model for training and evaluation.
+
+    Attributes:
+        cfg (ReversiLogisticModelConfig): Configuration object containing all necessary parameters for the model.
+        rds (Optional[RegabDataSet]): Loaded regab data set.
+        rids (Optional[RegabIndexedDataSet]): Loaded regab indexed data set.
+        pattern_w_ranges (Optional[npt.NDArray[np.int64]]): Array listing for each pattern the fallback, w_min, and w_max values.
+        iwmap_pattern_offset (Optional[npt.NDArray[np.uint32]]): Array giving the position of a pattern in the iwmap array.
+        iwmap (Optional[npt.NDArray[np.int64]]): Array assigning to each possible configuration the index of w.
+        wmap (Optional[npt.NDArray[np.int64]]): Array mapping w index to pattern index, configuration index, and frequency.
+        wmap_fallback (Optional[npt.NDArray[np.int64]]): Array containing entries of wmap excluded by the cut-off.
+        X (Optional[npt.NDArray[np.uint32]]): Design matrix for the logistic regression model.
+
+    Methods:
+        __init__(self, config_file_path: str, base_dir_override: str | None = None) -> None: Initializes the model with configuration from a file.
+        load_regab_data_set_from_db(self) -> None: Loads the regab data set from the database and saves it to a cache file.
+        load_regab_data_set_from_file(self) -> None: Loads the regab data set from a cache file.
+        load_regab_data_set(self) -> None: Loads the regab data set from a cache file if it exists, or from the database otherwise.
+        purge_regab_data_set_cache(self) -> None: Removes the regab data set cache file if the purge flag is set.
+        load_regab_indexed_data_set(self) -> None: Loads the regab indexed data set, computing necessary indexes and lookups if needed.
+        compute_wmaps(self) -> None: Computes the pattern_w_ranges, iwmap_pattern_offset, iwmap, wmap, and wmap_fallback arrays based on the frequency cut-off.
+        compute_design_matrix(self) -> None: Computes the design matrix X for the logistic regression model.
     """
     def __init__(self,
-                 config_file_path: str,
+                 config_file_path: str | Path,
                  base_dir_override: str | None =None):
         """
-        Initializes a ReversiLogisticModel instance by
-        loading and validating JSON configuration from a file.
+        Initializes the model with JSON configuration from a file.
+        Validates the configuration file path and loads the configuration data, optionally overriding the base directory.
+
+        The definition of the structure of the JSON config model is realized by adopting the Pydantic library.
+        The root class is ReversiLogisticModelConfig.
+
+        Parameters
+        ----------
+        config_file_path: str
+            The name as string or Path of the JSON file read as the configuration for the model.
+        base_dir_override: str | None =None
+            Eventually overrides the base directory. It is used for unit testing.
+
+        Raises
+        ------
+        TypeError
+            If the parameter config_file_path is not a string or a Path object.
+        FileNotFoundError
+            If the config file is not found.
         """
-        if not isinstance(config_file_path, str):
+        if not isinstance(config_file_path, (str, Path)):
             raise TypeError('Argument config_file_path is not an instance of str')
         
         cfp = Path(config_file_path)
@@ -165,11 +239,25 @@ class ReversiLogisticModel:
         self.iwmap = None
         self.wmap = None
         self.wmap_fallback = None
+        self.X = None
 
     def load_regab_data_set_from_db(self) -> None:
         """
         Loads the regab data set from the database as defined by the config file.
         Then, saves the data set to the cache file, again as defined by the config file.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        Exception
+            If there is an error during the database connection or data extraction.
         """
         cfg_rdsc = (self.cfg
                     .regab_indexed_data_set_cached
@@ -201,6 +289,19 @@ class ReversiLogisticModel:
     def load_regab_data_set_from_file(self) -> None:
         """
         Loads the regab data set from the cache file as defined by the config file.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        ValueError
+            If there is a mismatch between the configuration settings (bid, status, ec) and the loaded data set.
         """
         cfg_rdsc = (self.cfg
                     .regab_indexed_data_set_cached
@@ -223,8 +324,23 @@ class ReversiLogisticModel:
 
     def load_regab_data_set(self) -> None:
         """
-        Loads the regab data set from the cache file if it exists, or from db otherwise,
+        Loads the regab data set from the cache file if it exists, or from the database otherwise,
         as defined by the config file.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        ValueError
+            If there is a mismatch between the configuration settings (bid, status, ec) and the loaded data set.
+        Exception
+            If there is an error during the database connection or data extraction.
         """
         cfg_rdsc = (self.cfg
                     .regab_indexed_data_set_cached
@@ -239,7 +355,20 @@ class ReversiLogisticModel:
 
     def purge_regab_data_set_cache(self) -> None:
         """
-        Removes the regab data set cache file.
+        Removes the regab data set cache file if the purge flag is set in the configuration.
+        This method checks if the purge flag is enabled and deletes the cache file along with its checksum file if they exist.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        None
         """
         cfg_rdsc = (self.cfg
                     .regab_indexed_data_set_cached
@@ -266,6 +395,24 @@ class ReversiLogisticModel:
     def load_regab_indexed_data_set(self) -> None:
         """
         Loads the regab indexed data set.
+        This method loads the regab indexed data set from a cache file if it exists.
+        If the cache file does not exist, it creates the regab indexed data set by loading the regab data set
+        and computing the necessary indexes and lookups based on the configuration settings.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        ValueError
+            If there is a mismatch between the configuration settings and the loaded data set.
+        Exception
+            If there is an error during the creation of the regab indexed data set.
         """
         logger.debug(f"Entering method load_regab_indexed_data_set().")
         if self.rids is not None:
@@ -372,6 +519,34 @@ class ReversiLogisticModel:
             K is the count of all pattern configurations (K = sum([p.n_configurations for p in patterns])).
             W is the count of all model weights.
             F is the count of all cut-off configurations.
+
+        The method performs the following steps:
+            1. Initializes the cut-off value from the configuration.
+            2. Retrieves the list of patterns and their respective number of configurations.
+            3. Computes the offset for each pattern in the iwmap array using the cumulative sum of the number of configurations.
+            4. Initializes the iwmap array with -1, indicating that no configuration is initially mapped.
+            5. Iterates over each pattern to compute the unique configurations and their frequencies.
+            6. Determines the fallback configuration for each pattern if any configuration's frequency is below the cut-off.
+            7. Assigns unique w indices to configurations with frequencies above the cut-off.
+            8. Updates the iwmap array with the computed w indices.
+            9. Constructs the pattern_w_ranges array with fallback, w_min, and w_max values for each pattern.
+            10. Constructs the wmap array mapping each w index to the corresponding pattern index, configuration index, and frequency.
+            11. Constructs the wmap_fallback array containing configurations excluded by the cut-off.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        ValueError
+            If there is a mismatch between the expected number of instances and the actual number of instances for a pattern.
+            If the sum of counts does not match the expected total number of instances.
+            If the sum of filtered below and above configurations does not match the total number of configurations.
         """
 
         logger.debug(f"Analyzing patterns defined by the model.")
@@ -513,3 +688,172 @@ class ReversiLogisticModel:
 
         logger.debug(f"Table wmap created. Shape: {wmap.shape} (Total weights assigned: {next_w})")
         
+    def compute_design_matrix(self) -> None:
+        """
+        Computes the design matrix for the logistic regression model. The design matrix is used to represent the input features
+        in a compressed form, where each element corresponds to the index of the weight vector w that is different from zero and
+        is always equal to one. This allows the computation of the linear predictor as:
+
+            linear_predictor = np.sum(w[X], axis=1)
+
+        The design matrix X is also used in the gradient method to compute the backward pass:
+
+            grad = np.bincount(X.ravel(), weights=np.repeat(dyh_rn, P), minlength=N)
+
+        where:
+            N = len(w)
+            P = X.shape[1]
+            dyh_rn = yh * (1. - yh) * (yh - y)
+            yh = sigmoid(linear_predictor)
+
+        The method performs the following steps:
+            1. Checks if the design matrix X is already computed. If so, it returns immediately.
+            2. Loads the regab indexed data set if it is not already loaded.
+            3. Computes the principal indexes if they are not already computed.
+            4. Computes the iwmap table if it is not already computed.
+            5. Retrieves the principal indexes and the number of instances per pattern.
+            6. Computes the column offsets for each pattern.
+            7. Adjusts the principal indexes with the column offsets.
+            8. Validates that the adjusted principal indexes do not refer to invalid values in the iwmap array.
+            9. Initializes the design matrix X with the appropriate shape.
+            10. Populates the design matrix X by taking the corresponding values from the iwmap array.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        ValueError
+            If the principal indexes refer to an invalid value in the iwmap array.
+            If there is a mismatch between the indexes and valid values in the iwmap array.
+        """
+        logger.debug(f"Method compute design matrix.")
+
+        if self.X is not None:
+            logger.debug(f"The design matrix is already computed, returning.")
+            return
+
+        if self.rids is None:
+            logger.debug(f"The regab indexed data set is missing, loading it.")
+            self.load_regab_indexed_data_set()
+
+        if self.rids.pindexes is None:
+            logger.debug(f"The principal indexes are missing, computing them.")
+            self.rids.compute_principal_indexes()
+            
+        if self.iwmap_pattern_offset is None or self.iwmap is None:
+            logger.debug(f"The iwmap table is missing, computing it.")
+            self.compute_wmaps()
+
+        pindexes = self.rids.pindexes
+        
+        n_instances_per_pattern = [p.n_instances for p in self.rids.pset.patterns]
+        col_offsets = np.repeat(self.iwmap_pattern_offset[:-1], n_instances_per_pattern)
+        pindexes_with_offsets = pindexes + col_offsets
+
+        if np.any(self.iwmap[pindexes_with_offsets] == -1):
+            raise ValueError(f"It should never happen, pindexes is referring an invalid value.")
+
+        if not pindexes.size == np.count_nonzero(self.iwmap[pindexes_with_offsets] >= 0):
+            raise ValueError(f"It should never happen, ismatch between indexes and valid values.")
+        
+        self.X = np.empty(pindexes.shape, dtype=np.uint32)
+        np.take(self.iwmap, pindexes_with_offsets, out=self.X)
+        
+        logger.debug(f"Design matrix has been computed.")
+
+    def write_core_object_data(self, fw: Callable[[bytes], None]) -> None:
+        """
+        Writes the core data of the ReversiLogisticModel instance to a binary file using the provided writer function.
+
+        Parameters
+        ----------
+        fw : Callable[[bytes], None]
+            A function that takes bytes as input and writes them to a file.
+
+        Returns
+        -------
+        None
+        """
+        # Write the configuration as JSON5 string
+        cfg_json5 = json5.dumps(self.cfg.model_dump(), indent=4, default=str)
+        cfg_json5_bytes = cfg_json5.encode('utf-8')
+        fw(struct.pack('I', len(cfg_json5_bytes)))
+        fw(cfg_json5_bytes)
+
+        # Write the rds attribute if it is not None
+        if self.rds is not None:
+            self.rds.write_core_object_data(fw)
+
+        # Write the rids attribute if it is not None
+        if self.rids is not None:
+            self.rids.write_core_object_data(fw)
+
+        # Write the pattern_w_ranges attribute if it is not None
+        if self.pattern_w_ranges is not None:
+            fw(struct.pack('I', self.pattern_w_ranges.nbytes))
+            fw(self.pattern_w_ranges.tobytes())
+
+        # Write the iwmap_pattern_offset attribute if it is not None
+        if self.iwmap_pattern_offset is not None:
+            fw(struct.pack('I', self.iwmap_pattern_offset.nbytes))
+            fw(self.iwmap_pattern_offset.tobytes())
+
+        # Write the iwmap attribute if it is not None
+        if self.iwmap is not None:
+            fw(struct.pack('I', self.iwmap.nbytes))
+            fw(self.iwmap.tobytes())
+
+        # Write the wmap attribute if it is not None
+        if self.wmap is not None:
+            fw(struct.pack('I', self.wmap.nbytes))
+            fw(self.wmap.tobytes())
+
+        # Write the wmap_fallback attribute if it is not None
+        if self.wmap_fallback is not None:
+            fw(struct.pack('I', self.wmap_fallback.nbytes))
+            fw(self.wmap_fallback.tobytes())
+
+        # Write the X attribute if it is not None
+        if self.X is not None:
+            fw(struct.pack('I', self.X.nbytes))
+            fw(self.X.tobytes())
+
+    def store_to_file(self, filename: str | Path) -> None:
+        """
+        Saves the ReversiLogisticModel instance to a binary file and calculates the SHA3-256 checksum.
+
+        Parameters
+        ----------
+        filename : str | Path
+            The name of the file in which to save the data.
+
+        Returns
+        -------
+        None
+        """
+        if not isinstance(filename, (str, Path)):
+            raise TypeError('Argument filename is not an instance of str or Path')
+
+        filename = Path(filename)
+
+        # Create a SHA3-256 hash object
+        sha3_256_hash = hashlib.sha3_256()
+
+        with open(filename, 'wb') as f:
+            fw = fun_builder_write_and_hash(f, sha3_256_hash)
+            fw((self.__class__.__module__ + '.' + self.__class__.__qualname__ + '\n').encode('utf-8'))
+            self.write_core_object_data(fw)
+
+        # Calculate the SHA3-256 checksum
+        checksum = sha3_256_hash.hexdigest()
+
+        # Write the checksum to a separate file with the same name and ".SHA3-256" suffix
+        checksum_filename = filename.with_name(filename.name + ".SHA3-256")
+        with open(checksum_filename, 'w') as checksum_file:
+            checksum_file.write(checksum)

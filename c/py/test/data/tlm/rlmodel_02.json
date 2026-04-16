@@ -1,5 +1,5 @@
 /*
- * rlmodel_01.json
+ * rlmodel_02.json
  *
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
@@ -25,9 +25,9 @@
  * or visit the site <http://www.gnu.org/licenses/>.
  */
 {
-    "name": "RGLM (Logistic) - Unit Test 01 (rlmodel_01.json)",
+    "name": "RGLM (Logistic) - Unit Test 02 (rlmodel_02.json)",
     "description": "Used for unit testing.",
-    "base_dir": "./py/test/data/tlm",
+    "base_dir": "will/be/overwritten/by/python/during/unittesting",
     "project_dir": ".",
     "regab_indexed_data_set_cached": {
         "regab_indexed_data_set": {
@@ -38,18 +38,18 @@
                         "user": "tst_regab",
                         "host": "localhost"
                     },
-                    "bid": [7],
-                    "status": ['CMS'],
+                    "bid": [8],
+                    "status": ['CMS', 'CMR'],
                     "ec": 20
                 },
-                "filename": "regab_data_set_test_01.dat",
-                "purge": false
+                "filename": "regab_data_set_test_02.dat",
+                "purge": true
             },
             "pattern_set": {
                 "name": "BasicPatternSet",
                 "patterns": [
-                    { "name": "DIAG3", "mask": "0000000000010204" },
-                    { "name": "CORE", "mask": "0000001818000000" }
+                    { "name": "ELLE", "mask": "0000000000000107" },
+                    { "name": "EDGE", "mask": "00000000000000FF" }
                 ]
             },
             "has_indexes": false,
@@ -58,7 +58,7 @@
             "has_lookup": true,
             "has_revmap": true
         },
-        "filename": "regab_indexed_data_set_test_01.dat",
+        "filename": "regab_indexed_data_set_test_02.dat",
         "purge": false
     },
     "stat_model": {
