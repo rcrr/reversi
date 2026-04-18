@@ -75,7 +75,7 @@ class TestReversiLogisticModelInit(unittest.TestCase):
 
     def test_init(self):
         json_config = 'py/test/data/tlm/rlmodel_00.json'
-        rlm = ReversiLogisticModel(json_config, base_dir_override=self.tmp_dir)
+        rlm = ReversiLogisticModel.from_json_path(json_config, base_dir_override=self.tmp_dir)
 
         retrieved_name = rlm.cfg.name
         retrieved_description = rlm.cfg.description
@@ -128,7 +128,7 @@ class TestReversiLogisticModel(unittest.TestCase):
     def setUp(self):
         self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
         json_config = 'py/test/data/tlm/rlmodel_00.json'
-        self.rlm = ReversiLogisticModel(json_config, base_dir_override=self.tmp_dir)
+        self.rlm = ReversiLogisticModel.from_json_path(json_config, base_dir_override=self.tmp_dir)
         Path(self.rlm.cfg.full_project_dir).mkdir(parents=False, exist_ok=True)
 
     def tearDown(self):
@@ -141,58 +141,13 @@ class TestReversiLogisticModel(unittest.TestCase):
         if False:
             os.system(f"ls -l {self.rlm.cfg.full_project_dir}")
 
-    def test_load_regab_data_set_from_file(self):
-        self.assertIsNone(self.rlm.rds)
-        self.rlm.load_regab_data_set_from_db()
-        self.assertIsNotNone(self.rlm.rds)
-        self.rlm.rds = None
-        self.assertIsNone(self.rlm.rds)
-
-        # So now we have the file saved into the tempdir.
-
-        if False:
-            os.system(f"ls -l {self.rlm.cfg.full_project_dir}")
-
-        self.rlm.load_regab_data_set_from_file()
-        self.assertIsNotNone(self.rlm.rds)
-
-    def test_load_regab_data_set_from_file(self):
-        self.assertIsNone(self.rlm.rds)
-        self.rlm.load_regab_data_set_from_db()
-        self.assertIsNotNone(self.rlm.rds)
-        self.rlm.rds = None
-        self.assertIsNone(self.rlm.rds)
-
-        # So now we have the file saved into the tempdir.
-
-        if False:
-            os.system(f"ls -l {self.rlm.cfg.full_project_dir}")
-
-        self.rlm.load_regab_data_set_from_file()
-        self.assertIsNotNone(self.rlm.rds)
-
-    def test_load_regab_data_set_option_no_file(self):
-        self.assertIsNone(self.rlm.rds)
-        self.rlm.load_regab_data_set()
-        self.assertIsNotNone(self.rlm.rds)
-
-    def test_load_regab_data_set_option_with_file(self):
-        self.assertIsNone(self.rlm.rds)
-        self.rlm.load_regab_data_set_from_db()
-        self.assertIsNotNone(self.rlm.rds)
-        self.rlm.rds = None
-        self.assertIsNone(self.rlm.rds)
-
-        self.rlm.load_regab_data_set()
-        self.assertIsNotNone(self.rlm.rds)
-
     def test_load_regab_indexed_data_set(self):
-        self.assertIsNone(self.rlm.rds)
+        self.assertIsNone(self.rlm.rids)
         self.rlm.load_regab_indexed_data_set()
         self.assertIsNotNone(self.rlm.rids)
 
     def test_load_regab_indexed_data_set_from_cache_file(self):
-        self.assertIsNone(self.rlm.rds)
+        self.assertIsNone(self.rlm.rids)
         self.rlm.load_regab_indexed_data_set()
         self.assertIsNotNone(self.rlm.rids)
 
@@ -208,7 +163,7 @@ class TestReversiLogisticModelComputeWmaps(unittest.TestCase):
 
     def setUp(self):
         json_config = 'py/test/data/tlm/rlmodel_01.json'
-        self.rlm = ReversiLogisticModel(json_config)
+        self.rlm = ReversiLogisticModel.from_json_path(json_config)
         self.rlm.load_regab_indexed_data_set()
         self.assertIsNotNone(self.rlm.rids)
 
@@ -301,7 +256,7 @@ class TestReversiLogisticModelComputeDesignMatrix(unittest.TestCase):
 
     def setUp(self):
         json_config = 'py/test/data/tlm/rlmodel_01.json'
-        self.rlm = ReversiLogisticModel(json_config)
+        self.rlm = ReversiLogisticModel.from_json_path(json_config)
         self.rlm.load_regab_indexed_data_set()
         self.assertIsNotNone(self.rlm.rids)
         self.rlm.compute_wmaps()
@@ -346,7 +301,7 @@ class TestReversiLogisticModelStoreAndLoad(unittest.TestCase):
         dst_dir = self.tmp_dir
         json_config = dst_dir / json_config_name
         shutil.copy(json_config_src, json_config)
-        self.rlm = ReversiLogisticModel(json_config, base_dir_override=self.tmp_dir)
+        self.rlm = ReversiLogisticModel.from_json_path(json_config, base_dir_override=self.tmp_dir)
         self.rlm.load_regab_indexed_data_set()
         self.assertIsNotNone(self.rlm.rids)
         self.rlm.compute_wmaps()
@@ -366,23 +321,24 @@ class TestReversiLogisticModelStoreAndLoad(unittest.TestCase):
             print(f"self.rlm.cfg.full_project_dir = {self.rlm.cfg.full_project_dir}")
             os.system(f"ls -l {self.rlm.cfg.full_project_dir}")
 
-        #print(f"Storing data to file....")
         filename = self.tmp_dir / Path('reversi_logistic_model_test_02.dat')
         self.rlm.store_to_file(filename)
         self.assertTrue(filename.is_file())
 
-        if False:
-            os.system(f"ls -l {self.rlm.cfg.full_project_dir}")
+        m = ReversiLogisticModel.load_from_file(filename)
 
-        #print(f"")
-        #print(f"self.rlm.X")
-        #print(f"{self.rlm.X}")
+        nptest.assert_array_equal(self.rlm.pattern_w_ranges, m.pattern_w_ranges)
+        nptest.assert_array_equal(self.rlm.iwmap_pattern_offset, m.iwmap_pattern_offset)
+        nptest.assert_array_equal(self.rlm.iwmap, m.iwmap)
+        nptest.assert_array_equal(self.rlm.wmap, m.wmap)
+        nptest.assert_array_equal(self.rlm.wmap_fallback, m.wmap_fallback)
+        nptest.assert_array_equal(self.rlm.X, m.X)
 
-        pattern_w_ranges0 = self.rlm.pattern_w_ranges
-        iwmap_pattern_offset0 = self.rlm.iwmap_pattern_offset
-        iwmap0 = self.rlm.iwmap
-        wmap0 = self.rlm.wmap
-        wmap_fallback0 = self.rlm.wmap_fallback
-        X0 = self.rlm.X
-
-        # Now we need to clean variaables and then reload the just written file.
+        # Verify the loaded dataset matches the original
+        rds = self.rlm.rids.rds
+        m_rds = m.rids.rds
+        self.assertEqual(rds.bid, m_rds.bid)
+        self.assertEqual(rds.status, m_rds.status)
+        self.assertEqual(rds.ec, m_rds.ec)
+        self.assertTrue(rds.positions.equals(m_rds.positions))
+        self.assertEqual(rds.length, m_rds.length)

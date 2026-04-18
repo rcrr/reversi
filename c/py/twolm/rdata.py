@@ -66,7 +66,8 @@ import os
 import io
 
 
-__all__ = ['RegabDBConnection', 'regab_gp_as_df', 'RegabDataSet', 'RegabIndexedDataSet', 'fun_builder_write_and_hash']
+__all__ = ['RegabDBConnection', 'regab_gp_as_df', 'RegabDataSet', 'RegabIndexedDataSet',
+           'verify_checksum', 'fun_builder_write_and_hash']
 
 
 def fun_builder_write_and_hash(f: io.BufferedWriter, sha3_256_hash: hashlib._Hash) -> Callable[[bytes], None]:
@@ -110,7 +111,7 @@ def fun_builder_write_and_hash(f: io.BufferedWriter, sha3_256_hash: hashlib._Has
 
     return fwriter
 
-def _checksum(filename: str | Path) -> None:
+def verify_checksum(filename: str | Path) -> None:
     """
     Verifies the SHA3-256 checksum of a file against a stored checksum.
 
@@ -649,7 +650,7 @@ class RegabDataSet:
             raise TypeError('Argument filename is not an instance of str or Path')
 
         if checksum:
-            _checksum(filename)
+            verify_checksum(filename)
 
         with open(filename, 'rb') as f:
             # Read the fully qualified class name.
@@ -839,10 +840,10 @@ class RegabIndexedDataSet:
         - The function returns an instance of RegabIndexedDataSet.
         """
         if not isinstance(filename, (str, Path)):
-            raise TypeError('Argument filename is not an instance of str or Path')
+            raise TypeError(f"Argument filename '{filename}'is not an instance of str or Path.")
         
         if checksum:
-            _checksum(filename)
+            verify_checksum(filename)
 
         with open(filename, 'rb') as f:
             # Read the fully qualified class name.
@@ -850,74 +851,80 @@ class RegabIndexedDataSet:
             expected_fqcn = 'twolm.rdata.RegabIndexedDataSet'
             if fqcn != expected_fqcn:
                 raise ValueError(f"The read fqcn {fqcn} does not match the expected one {expected_fqcn}.")
-
-            rds = RegabDataSet.read_core_object_data(f)
-            pset = read_patternset_object_data(f)
-            rids = RegabIndexedDataSet(rds, pset)
             
-            # 1. Read the 5 flags (1 byte per flag, but using 'I' as per your write logic)
-            # Total expected: 5 * 4 bytes = 20 bytes
-            flags_raw = f.read(20)
-            if len(flags_raw) < 20:
-                raise EOFError("Failed to read header flags: File is truncated or corrupted.")
+            return RegabIndexedDataSet.read_core_object_data(f)
+
+    @classmethod
+    def read_core_object_data(cls: type[Self], f: io.BufferedReader) -> Self:
+
+        rds = RegabDataSet.read_core_object_data(f)
+        pset = read_patternset_object_data(f)
+        rids = RegabIndexedDataSet(rds, pset)
             
-            # Unpack the 5 unsigned integers
-            flags = struct.unpack('IIIII', flags_raw)
-            f_indexes, f_findexes, f_pindexes, f_lookup, f_revmap = flags
+        # 1. Read the 5 flags (1 byte per flag, but using 'I' as per your write logic)
+        # Total expected: 5 * 4 bytes = 20 bytes
+        flags_raw = f.read(20)
+        if len(flags_raw) < 20:
+            raise EOFError("Failed to read header flags: File is truncated or corrupted.")
+            
+        # Unpack the 5 unsigned integers
+        flags = struct.unpack('IIIII', flags_raw)
+        f_indexes, f_findexes, f_pindexes, f_lookup, f_revmap = flags
 
-            # 2. Read 'indexes' (3D array: P x POS x TRX)
-            if f_indexes == 1:
-                # Read 3 dimensions (24 bytes)
-                dims = f.read(24)
-                if len(dims) < 24: raise EOFError("Truncated dimensions for 'indexes'")
-                p, pos, trx = struct.unpack('QQQ', dims)
-                # Calculate size: each uint32 is 4 bytes
-                data = f.read(p * pos * trx * 4)
-                rids.indexes = np.frombuffer(data, dtype=np.uint32).reshape((p, pos, trx)).copy()
-            else:
-                rids.indexes = None
+        # 2. Read 'indexes' (3D array: P x POS x TRX)
+        if f_indexes == 1:
+            # Read 3 dimensions (24 bytes)
+            dims = f.read(24)
+            if len(dims) < 24: raise EOFError("Truncated dimensions for 'indexes'")
+            p, pos, trx = struct.unpack('QQQ', dims)
+            # Calculate size: each uint32 is 4 bytes
+            data = f.read(p * pos * trx * 4)
+            rids.indexes = np.frombuffer(data, dtype=np.uint32).reshape((p, pos, trx)).copy()
+        else:
+            rids.indexes = None
 
-            # 3. Read 'findexes' (2D array: POS x C)
-            if f_findexes == 1:
-                dims = f.read(16)
-                if len(dims) < 16: raise EOFError("Truncated dimensions for 'findexes'")
-                pos, c = struct.unpack('QQ', dims)
-                data = f.read(pos * c * 4)
-                rids.findexes = np.frombuffer(data, dtype=np.uint32).reshape((pos, c)).copy()
-            else:
-                rids.findexes = None
+        # 3. Read 'findexes' (2D array: POS x C)
+        if f_findexes == 1:
+            dims = f.read(16)
+            if len(dims) < 16: raise EOFError("Truncated dimensions for 'findexes'")
+            pos, c = struct.unpack('QQ', dims)
+            data = f.read(pos * c * 4)
+            rids.findexes = np.frombuffer(data, dtype=np.uint32).reshape((pos, c)).copy()
+        else:
+            rids.findexes = None
 
-            # 4. Read 'pindexes' (2D array: POS x C)
-            if f_pindexes == 1:
-                dims = f.read(16)
-                if len(dims) < 16: raise EOFError("Truncated dimensions for 'pindexes'")
-                pos, c = struct.unpack('QQ', dims)
-                data = f.read(pos * c * 4)
-                rids.pindexes = np.frombuffer(data, dtype=np.uint32).reshape((pos, c)).copy()
-            else:
-                rids.pindexes = None
+        # 4. Read 'pindexes' (2D array: POS x C)
+        if f_pindexes == 1:
+            dims = f.read(16)
+            if len(dims) < 16: raise EOFError("Truncated dimensions for 'pindexes'")
+            pos, c = struct.unpack('QQ', dims)
+            data = f.read(pos * c * 4)
+            rids.pindexes = np.frombuffer(data, dtype=np.uint32).reshape((pos, c)).copy()
+        else:
+            rids.pindexes = None
 
-            # 5. Read 'lookup' (2D array: ROW x COL)
-            if f_lookup == 1:
-                dims = f.read(16)
-                if len(dims) < 16: raise EOFError("Truncated dimensions for 'lookup'")
-                row, col = struct.unpack('QQ', dims)
-                data = f.read(row * col * 4)
-                rids.lookup = np.frombuffer(data, dtype=np.uint32).reshape((row, col)).copy()
-            else:
-                rids.lookup = None
+        # 5. Read 'lookup' (2D array: ROW x COL)
+        if f_lookup == 1:
+            dims = f.read(16)
+            if len(dims) < 16: raise EOFError("Truncated dimensions for 'lookup'")
+            row, col = struct.unpack('QQ', dims)
+            data = f.read(row * col * 4)
+            rids.lookup = np.frombuffer(data, dtype=np.uint32).reshape((row, col)).copy()
+        else:
+            rids.lookup = None
 
-            # 6. Read 'revmap' (2D array: ROW x COL)
-            if f_revmap == 1:
-                dims = f.read(16)
-                if len(dims) < 16: raise EOFError("Truncated dimensions for 'revmap'")
-                row, col = struct.unpack('QQ', dims)
-                data = f.read(row * col * 4)
-                rids.revmap = np.frombuffer(data, dtype=np.uint32).reshape((row, col)).copy()
-            else:
-                rids.revmap = None
+        # 6. Read 'revmap' (2D array: ROW x COL)
+        if f_revmap == 1:
+            dims = f.read(16)
+            if len(dims) < 16: raise EOFError("Truncated dimensions for 'revmap'")
+            row, col = struct.unpack('QQ', dims)
+            data = f.read(row * col * 4)
+            rids.revmap = np.frombuffer(data, dtype=np.uint32).reshape((row, col)).copy()
+        else:
+            rids.revmap = None
 
-            return rids
+        return rids
+        
 
     def footprint(self) -> None:
         """
@@ -1210,8 +1217,11 @@ class RegabIndexedDataSet:
         - If an attribute is populated, it writes the dimensions and the binary data for that attribute.
         - The function returns None.
         """
+        
+        self.rds.write_core_object_data(fw)
+        write_patternset_object_data(self.pset, fw)
 
-        # First writes the information if the attributes are populated or are None.
+        # Writes the information specifying if the attributes are populated or are None.
         # 1 means populated, 0 means None.
         flag_indexes = 0
         flag_findexes = 0
@@ -1285,8 +1295,6 @@ class RegabIndexedDataSet:
         with open(filename, 'wb') as f:
             fw = fun_builder_write_and_hash(f, sha3_256_hash)
             fw((self.fqcn + '\n').encode('utf-8'))
-            self.rds.write_core_object_data(fw)
-            write_patternset_object_data(self.pset, fw)
             self.write_core_object_data(fw)
 
         # Calculate the SHA3-256 checksum
@@ -1354,7 +1362,7 @@ def read_patternset_object_data(f: io.BufferedReader) -> PatternSet:
     PatternSet
         An instance of PatternSet containing the read data.
     """
-    # Helper per leggere stringhe (lunghezza + contenuto)
+    # Helper for reading strings (length + content)
     def read_string():
         length_data = f.read(4)
         if not length_data: return None

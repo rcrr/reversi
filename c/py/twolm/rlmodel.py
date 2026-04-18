@@ -41,9 +41,9 @@ import sys
 import logging
 
 from pydantic import (BaseModel, Field, PositiveInt, NonNegativeInt, DirectoryPath,
-                      field_validator, computed_field, ConfigDict)
+                      field_validator, field_serializer, computed_field, ConfigDict)
 
-from typing import List, Optional, Annotated
+from typing import List, Optional, Annotated, Self, Callable
 
 from pathlib import Path
 
@@ -88,7 +88,11 @@ class PatternConfig(BaseModel):
         Converts a hex string (e.g., '0x0000000000000107') into a SquareSet.
         """
         return SquareSet.new_from_hex(h)
-
+ 
+    @field_serializer("mask")
+    def serialize_mask_to_hex(self, mask: SquareSet) -> str:
+        return f"{mask:016X}"
+    
 class PatternSetConfig(BaseModel):
     """
     Configuration for a set of patterns, including the name and a list of individual pattern configurations.
@@ -171,7 +175,6 @@ class ReversiLogisticModel:
 
     Attributes:
         cfg (ReversiLogisticModelConfig): Configuration object containing all necessary parameters for the model.
-        rds (Optional[RegabDataSet]): Loaded regab data set.
         rids (Optional[RegabIndexedDataSet]): Loaded regab indexed data set.
         pattern_w_ranges (Optional[npt.NDArray[np.int64]]): Array listing for each pattern the fallback, w_min, and w_max values.
         iwmap_pattern_offset (Optional[npt.NDArray[np.uint32]]): Array giving the position of a pattern in the iwmap array.
@@ -190,9 +193,27 @@ class ReversiLogisticModel:
         compute_wmaps(self) -> None: Computes the pattern_w_ranges, iwmap_pattern_offset, iwmap, wmap, and wmap_fallback arrays based on the frequency cut-off.
         compute_design_matrix(self) -> None: Computes the design matrix X for the logistic regression model.
     """
-    def __init__(self,
-                 config_file_path: str | Path,
-                 base_dir_override: str | None =None):
+    def __init__(self, cfg: ReversiLogisticModelConfig):
+        """
+        """
+        if not isinstance(cfg, ReversiLogisticModelConfig):
+            raise TypeError('Argument cfg is not an instance of ReversiLogisticModelConfig')
+        
+
+        self.cfg = cfg
+        self.fqcn: str = f"{self.__class__.__module__}.{self.__class__.__qualname__}"
+        self.rids = None
+        self.pattern_w_ranges = None
+        self.iwmap_pattern_offset = None
+        self.iwmap = None
+        self.wmap = None
+        self.wmap_fallback = None
+        self.X = None
+
+    @classmethod
+    def from_json_path(cls,
+                       config_file_path: str | Path,
+                       base_dir_override: str | None =None) -> ReversiLogisticModel:
         """
         Initializes the model with JSON configuration from a file.
         Validates the configuration file path and loads the configuration data, optionally overriding the base directory.
@@ -215,7 +236,7 @@ class ReversiLogisticModel:
             If the config file is not found.
         """
         if not isinstance(config_file_path, (str, Path)):
-            raise TypeError('Argument config_file_path is not an instance of str')
+            raise TypeError('Argument config_file_path is not an instance of str or Path')
         
         cfp = Path(config_file_path)
 
@@ -230,16 +251,10 @@ class ReversiLogisticModel:
         if base_dir_override is not None:
             config_raw_data['base_dir'] = base_dir_override
 
-        self.cfg = ReversiLogisticModelConfig(**config_raw_data)
+        cfg = ReversiLogisticModelConfig(**config_raw_data)
 
-        self.rds = None
-        self.rids = None
-        self.pattern_w_ranges = None
-        self.iwmap_pattern_offset = None
-        self.iwmap = None
-        self.wmap = None
-        self.wmap_fallback = None
-        self.X = None
+        return cls(cfg=cfg)
+        
 
     def load_regab_data_set_from_db(self) -> None:
         """
@@ -438,9 +453,8 @@ class ReversiLogisticModel:
                 rids = RegabIndexedDataSet.load_from_file(full_path_filename)
             else:
                 logger.debug(f"Cache file not found, rids object has to be created.")
-                if self.rds is None:
-                    logger.debug(f"Loading regab data set, from cache file or from database.")
-                    self.load_regab_data_set()
+                logger.debug(f"Loading regab data set, from cache file or from database.")
+                self.load_regab_data_set()
                 logger.debug(f"Regab data set has been loaded.")
                 cfg_pset = cfg_rids.pattern_set
                 patterns = [Pattern(elt.name, elt.mask) for elt in cfg_pset.patterns]
@@ -786,42 +800,70 @@ class ReversiLogisticModel:
         fw(struct.pack('I', len(cfg_json5_bytes)))
         fw(cfg_json5_bytes)
 
-        # Write the rds attribute if it is not None
-        if self.rds is not None:
-            self.rds.write_core_object_data(fw)
+        # First writes the information if the attributes are populated or are None.
+        # 1 means populated, 0 means None.
+        flag_rids = 0
+        flag_pattern_w_ranges = 0
+        flag_iwmap_pattern_offset = 0
+        flag_iwmap = 0
+        flag_wmap = 0
+        flag_wmap_fallback = 0
+        flag_X = 0
 
-        # Write the rids attribute if it is not None
         if self.rids is not None:
+            flag_rids = 1
+        if self.pattern_w_ranges is not None:
+            flag_pattern_w_ranges = 1
+        if self.iwmap_pattern_offset is not None:
+            flag_iwmap_pattern_offset = 1
+        if self.iwmap is not None:
+            flag_iwmap = 1
+        if self.wmap is not None:
+            flag_wmap = 1
+        if self.wmap_fallback is not None:
+            flag_wmap_fallback = 1
+        if self.X is not None:
+            flag_X = 1
+
+        fw(struct.pack('I', flag_rids))
+        fw(struct.pack('I', flag_pattern_w_ranges))
+        fw(struct.pack('I', flag_iwmap_pattern_offset))
+        fw(struct.pack('I', flag_iwmap))
+        fw(struct.pack('I', flag_wmap))
+        fw(struct.pack('I', flag_wmap_fallback))
+        fw(struct.pack('I', flag_X))
+        
+        if flag_rids == 1:
             self.rids.write_core_object_data(fw)
 
-        # Write the pattern_w_ranges attribute if it is not None
-        if self.pattern_w_ranges is not None:
-            fw(struct.pack('I', self.pattern_w_ranges.nbytes))
+        if flag_pattern_w_ranges == 1:
+            rows, cols = self.pattern_w_ranges.shape
+            fw(struct.pack('QQ', rows, cols))
             fw(self.pattern_w_ranges.tobytes())
 
-        # Write the iwmap_pattern_offset attribute if it is not None
-        if self.iwmap_pattern_offset is not None:
-            fw(struct.pack('I', self.iwmap_pattern_offset.nbytes))
+        if flag_iwmap_pattern_offset == 1:
+            num_elements = self.iwmap_pattern_offset.size
+            fw(struct.pack('Q', num_elements))
             fw(self.iwmap_pattern_offset.tobytes())
 
-        # Write the iwmap attribute if it is not None
-        if self.iwmap is not None:
-            fw(struct.pack('I', self.iwmap.nbytes))
+        if flag_iwmap == 1:
+            num_elements = self.iwmap.size
+            fw(struct.pack('Q', num_elements))
             fw(self.iwmap.tobytes())
 
-        # Write the wmap attribute if it is not None
-        if self.wmap is not None:
-            fw(struct.pack('I', self.wmap.nbytes))
+        if flag_wmap == 1:
+            rows, cols = self.wmap.shape
+            fw(struct.pack('QQ', rows, cols))
             fw(self.wmap.tobytes())
 
-        # Write the wmap_fallback attribute if it is not None
-        if self.wmap_fallback is not None:
-            fw(struct.pack('I', self.wmap_fallback.nbytes))
+        if flag_wmap_fallback == 1:
+            rows, cols = self.wmap_fallback.shape
+            fw(struct.pack('QQ', rows, cols))
             fw(self.wmap_fallback.tobytes())
 
-        # Write the X attribute if it is not None
-        if self.X is not None:
-            fw(struct.pack('I', self.X.nbytes))
+        if flag_X == 1:
+            rows, cols = self.X.shape
+            fw(struct.pack('QQ', rows, cols))
             fw(self.X.tobytes())
 
     def store_to_file(self, filename: str | Path) -> None:
@@ -847,7 +889,7 @@ class ReversiLogisticModel:
 
         with open(filename, 'wb') as f:
             fw = fun_builder_write_and_hash(f, sha3_256_hash)
-            fw((self.__class__.__module__ + '.' + self.__class__.__qualname__ + '\n').encode('utf-8'))
+            fw((self.fqcn + '\n').encode('utf-8'))
             self.write_core_object_data(fw)
 
         # Calculate the SHA3-256 checksum
@@ -857,3 +899,137 @@ class ReversiLogisticModel:
         checksum_filename = filename.with_name(filename.name + ".SHA3-256")
         with open(checksum_filename, 'w') as checksum_file:
             checksum_file.write(checksum)
+
+    @classmethod
+    def load_from_file(cls: type[Self], filename: str | Path, checksum: bool = True) -> Self:
+        """
+        Loads a ReversiLogisticModel instance from a binary file.
+
+        Parameters
+        ----------
+        filename : str | Path
+            The name of the file from which to load the data.
+        checksum : bool, optional
+            Whether to verify the SHA3-256 checksum of the file. Default is True.
+
+        Returns
+        -------
+        ReversiLogisticModel
+            An instance of ReversiLogisticModel containing the loaded data.
+
+        Raises
+        ------
+        FileNotFoundError
+            If the checksum file is not found when checksum verification is enabled.
+        ValueError
+            If the calculated checksum does not match the stored checksum.
+        EOFError
+            If data is malformed or truncated.
+
+        Notes
+        -----
+        - The method reads the fully qualified class name and verifies it matches the expected one.
+        - It reads the configuration as a JSON5 string and loads it using ReversiLogisticModelConfig.
+        - It reads and loads the rds and rids attributes using the appropriate methods.
+        - It reads and loads other attributes (pattern_w_ranges, iwmap_pattern_offset, iwmap, wmap, wmap_fallback, X) if present.
+        - It creates a new instance of ReversiLogisticModel without calling the constructor (__new__) and assigns the loaded attributes to it.
+        - Finally, it returns the created instance of ReversiLogisticModel.
+        Notes
+        -----
+        - The function returns an instance of ReversiLogisticModel.
+        """
+        if not isinstance(filename, (str, Path)):
+            raise TypeError('Argument filename is not an instance of str or Path')
+
+        filename = Path(filename)
+        
+        if checksum:
+            verify_checksum(filename)
+
+        with open(filename, 'rb') as f:
+            # Read the fully qualified class name.
+            fqcn = f.readline().decode('utf-8').strip()
+            expected_fqcn = 'twolm.rlmodel.ReversiLogisticModel'
+            if fqcn != expected_fqcn:
+                raise ValueError(f"The read fqcn {fqcn} does not match the expected one {expected_fqcn}.")
+
+            # Read the configuration as JSON5 string
+            cfg_len = struct.unpack('I', f.read(4))[0]
+            cfg_json5_bytes = f.read(cfg_len)
+            cfg_json5 = cfg_json5_bytes.decode('utf-8')
+            cfg = ReversiLogisticModelConfig(**json5.loads(cfg_json5))
+
+            model = ReversiLogisticModel(cfg)
+
+            # 1. Read the flags (4 byte per flag, using 'I' as per write logic)
+            # Total expected: 7 * 4 bytes = 28 bytes
+            flag_count = 7
+            flag_bytes = 4 * flag_count
+            flags_raw = f.read(flag_bytes)
+            if len(flags_raw) < flag_bytes:
+                raise EOFError("Failed to read header flags: File is truncated or corrupted.")
+            
+            # Unpack the 5 unsigned integers
+            flags = struct.unpack('IIIIIII', flags_raw)
+            f_rids, f_pattern_w_ranges, f_iwmap_pattern_offset, f_iwmap, f_wmap, f_wmap_fallback, f_X = flags
+
+            if f_rids == 1:
+                model.rids = RegabIndexedDataSet.read_core_object_data(f)
+            else:
+                model.rids = None
+
+            if f_pattern_w_ranges == 1:
+                dims = f.read(16) # QQ
+                if len(dims) < 16: raise EOFError("Truncated dimensions for 'pattern_w_ranges'")
+                rows, cols = struct.unpack('QQ', dims)
+                data = np.fromfile(f, dtype=np.int64, count=rows*cols)
+                model.pattern_w_ranges = data.reshape((rows, cols)).copy()
+            else:
+                model.pattern_w_ranges = None
+
+            if f_iwmap_pattern_offset == 1:
+                dims = f.read(8) # Q
+                if len(dims) < 8: raise EOFError("Truncated dimensions for 'iwmap_pattern_offset'")
+                num_elements = struct.unpack('Q', dims)[0]
+                data = np.fromfile(f, dtype=np.uint32, count=num_elements)
+                model.iwmap_pattern_offset = data.copy()
+            else:
+                model.iwmap_pattern_offset = None
+
+            if f_iwmap == 1:
+                dims = f.read(8) # Q
+                if len(dims) < 8: raise EOFError("Truncated dimensions for 'iwmap'")
+                num_elements = struct.unpack('Q', dims)[0]
+                data = np.fromfile(f, dtype=np.int64, count=num_elements)
+                model.iwmap = data.copy()
+            else:
+                model.iwmap = None
+
+            if f_wmap == 1:
+                dims = f.read(16) # QQ
+                if len(dims) < 16: raise EOFError("Truncated dimensions for 'wmap'")
+                rows, cols = struct.unpack('QQ', dims)
+                data = np.fromfile(f, dtype=np.int64, count=rows*cols)
+                model.wmap = data.reshape((rows, cols)).copy()
+            else:
+                model.wmap = None
+
+            if f_wmap_fallback == 1:
+                dims = f.read(16) # QQ
+                if len(dims) < 16: raise EOFError("Truncated dimensions for 'wmap_fallback'")
+                rows, cols = struct.unpack('QQ', dims)
+                data = np.fromfile(f, dtype=np.int64, count=rows*cols)
+                model.wmap_fallback = data.reshape((rows, cols)).copy()
+            else:
+                model.wmap_fallback = None
+
+            if f_X == 1:
+                dims = f.read(16) # QQ
+                if len(dims) < 16: raise EOFError("Truncated dimensions for 'X'")
+                rows, cols = struct.unpack('QQ', dims)
+                data = np.fromfile(f, dtype=np.uint32, count=rows*cols)
+                model.X = data.reshape((rows, cols)).copy()
+            else:
+                model.X = None
+
+            return model
