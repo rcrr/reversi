@@ -27,6 +27,9 @@
 
 """
 rlmodel module
+
+This module provides the ReversiLogisticModel class, which handles the logistic regression model for the Reversi game.
+It manages the loading and processing of datasets, computes necessary mappings and matrices, and prepares the model for training and evaluation.
 """
 
 from __future__ import annotations
@@ -184,7 +187,8 @@ class ReversiLogisticModel:
         X (Optional[npt.NDArray[np.uint32]]): Design matrix for the logistic regression model.
 
     Methods:
-        __init__(self, config_file_path: str, base_dir_override: str | None = None) -> None: Initializes the model with configuration from a file.
+        __init__(self, cfg: ReversiLogisticModelConfig) -> None: Initializes the model with the provided configuration.
+        from_json_path(cls, config_file_path: str | Path, base_dir_override: str | None = None) -> ReversiLogisticModel: Initializes the model with JSON configuration from a file.
         load_regab_data_set_from_db(self) -> None: Loads the regab data set from the database and saves it to a cache file.
         load_regab_data_set_from_file(self) -> None: Loads the regab data set from a cache file.
         load_regab_data_set(self) -> None: Loads the regab data set from a cache file if it exists, or from the database otherwise.
@@ -192,9 +196,28 @@ class ReversiLogisticModel:
         load_regab_indexed_data_set(self) -> None: Loads the regab indexed data set, computing necessary indexes and lookups if needed.
         compute_wmaps(self) -> None: Computes the pattern_w_ranges, iwmap_pattern_offset, iwmap, wmap, and wmap_fallback arrays based on the frequency cut-off.
         compute_design_matrix(self) -> None: Computes the design matrix X for the logistic regression model.
+        write_core_object_data(self, fw: Callable[[bytes], None]) -> None: Writes the core data of the ReversiLogisticModel instance to a binary file using the provided writer function.
+        store_to_file(self, filename: str | Path) -> None: Saves the ReversiLogisticModel instance to a binary file and calculates the SHA3-256 checksum.
+        load_from_file(cls, filename: str | Path, checksum: bool = True) -> ReversiLogisticModel: Loads a ReversiLogisticModel instance from a binary file.
     """
     def __init__(self, cfg: ReversiLogisticModelConfig):
         """
+        Initializes an instance of the ReversiLogisticModel class with the provided configuration.
+
+        Parameters
+        ----------
+        cfg : ReversiLogisticModelConfig
+            Configuration object containing all necessary parameters for the model.
+
+        Raises
+        ------
+        TypeError
+            If the argument `cfg` is not an instance of `ReversiLogisticModelConfig`.
+
+        Notes
+        -----
+        - The method initializes the model with the provided configuration.
+        - It sets up the logger and initializes several attributes to `None`.
         """
         if not isinstance(cfg, ReversiLogisticModelConfig):
             raise TypeError('Argument cfg is not an instance of ReversiLogisticModelConfig')
@@ -934,9 +957,6 @@ class ReversiLogisticModel:
         - It reads and loads other attributes (pattern_w_ranges, iwmap_pattern_offset, iwmap, wmap, wmap_fallback, X) if present.
         - It creates a new instance of ReversiLogisticModel without calling the constructor (__new__) and assigns the loaded attributes to it.
         - Finally, it returns the created instance of ReversiLogisticModel.
-        Notes
-        -----
-        - The function returns an instance of ReversiLogisticModel.
         """
         if not isinstance(filename, (str, Path)):
             raise TypeError('Argument filename is not an instance of str or Path')
