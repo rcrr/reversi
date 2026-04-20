@@ -34,7 +34,7 @@
 
 %
 % TO-DO
-% - Completare la definizione dei Pattern.
+% - I capitoli che spiegano la definizione dei Pattern sono completi, ma vanno riorganizzati.
 % - Documentare tutta la evaluation_function.
 % - Codice per la creazione del modello e per il calcolo delle prestazioni.
 % - Definizione del nuovo modello RNNM (Reversi Neural Network Model)
@@ -139,7 +139,10 @@
 \usepackage{expl3}
 
 % Commentare la riga per avere il PDF completo.
-%\includeonly{tlm_00_intro,tlm_04_geometria_della_board,tlm_08_appendix_catalogo_dei_pattern}
+%\includeonly{tlm_00_intro,tlm_07_evaluation_function}
+
+% Usato nella appendice 08
+\newcounter{myhexcount}
 
 % 
 % M-:
@@ -150,6 +153,8 @@
 % Per scrivere le vocali accentate in Italiano:
 %
 % $ setxkbmap -layout us -variant intl
+%
+% Premere poi il tasto ` ( sotto esc, a sinistra del tasto 1 )
 %
 
 \title{Reversi}

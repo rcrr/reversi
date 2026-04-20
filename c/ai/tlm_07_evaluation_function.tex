@@ -25,41 +25,137 @@
 
 \section{La funzione di valutazione della posizione (evaluation function)}
 
-L'obiettivo della funzione di valutazione (Ef) è fornire una stima del risultato finale della partita a partire da una posizione non terminale. Nell'ecosistema Reversi, questo viene ottenuto attraverso un modello di apprendimento supervisionato che mappa le configurazioni della board su un valore atteso del game.
+L'obiettivo della funzione di valutazione (ef) è fornire una stima del risultato finale della partita a partire da una posizione non terminale.
+Nell'ecosistema Reversi, questo viene ottenuto attraverso un modello di apprendimento supervisionato che mappa le configurazioni della board
+su un valore atteso del game.
 
-\subsection{Il Modello Additivo a Pattern}
+\subsection{Il Modello Additivo a Pattern e la Funzione Logistica}
 
-Il modello adottato si basa sull'ipotesi che il valore di una posizione possa essere approssimato dalla somma dei contributi locali di diverse porzioni della scacchiera, chiamate pattern. Dato un insieme di pattern definiti $\mathcal{P}$ (come \texttt{EDGE}, \texttt{CORNER}, \texttt{DIAG8}), il valore di valutazione $V(B)$ di una board $B$ è calcolato come:
+Il modello adottato si basa sull'ipotesi che il valore di una posizione possa essere approssimato dalla somma dei contributi locali di diverse porzioni della scacchiera,
+chiamate pattern. Dato un insieme di pattern definiti $\mathcal{P}$ (come \texttt{EDGE}, \texttt{CORNER}, \texttt{DIAG8}),
+definiamo il \textit{linear predictor} $\eta(b)$ come la somma dei pesi associati alle configurazioni attive sulla board $b$:
 
 \begin{equation}
-    V(B) = \sum_{P \in \mathcal{P}} \sum_{j=1}^{N_P} w_{P, i_{P,j}(B)}
+\eta(b) = \sum_{p \in \mathcal{P}} \sum_{j=1}^{n_p} w_{p, i_{p,j}(b)}
 \end{equation}
 
 Dove:
 \begin{itemize}
-    \item $N_P$ è il numero di istanze uniche del pattern $P$ sulla scacchiera (es. 4 per \texttt{EDGE}).
-    \item $i_{P,j}(B)$ è l'indice della configurazione della $j$-esima istanza del pattern $P$, calcolato in base 3 come descritto nella sezione precedente.
-    \item $w_{P, k}$ è il peso (parametro del modello) associato alla $k$-esima configurazione del pattern $P$.
+    \item $n_p$ è il numero di istanze uniche del pattern $p$ sulla scacchiera (es. 4 per \texttt{EDGE}).
+    \item $i_{p,j}(b)$ è l'indice della configurazione attiva della $j$-esima istanza del pattern $p$.
+    \item $w_{p, k}$ è il peso (parametro del modello) associato alla $k$-esima configurazione del pattern $p$.
 \end{itemize}
 
-\subsection{Apprendimento dei Pesi e Regressione Logistica}
+La funzione di valutazione finale $v(b)$ è ottenuta applicando la trasformazione logistica (sigmoid function) al predetto valore lineare:
 
-I pesi $w$ sono i parametri che il modello deve apprendere. Questo processo avviene utilizzando il dataset REGAB, che contiene milioni di posizioni risolte esattamente. 
+\begin{equation}
+v(b) = \sigma(\eta(b)) = \frac{1}{1 + e^{-\eta(b)}}
+\end{equation}
 
-Il modello può essere interpretato in due modi:
-\begin{enumerate}
-    \item \textbf{Regressione Lineare:} Il valore $V(B)$ predice direttamente il differenziale di dischi finale $[-64, +64]$.
-    \item \textbf{Regressione Logistica:} La somma dei pesi rappresenta il \textit{logit} di un modello logistico che predice la probabilità di vittoria $P(vittoria) = \sigma(V(B))$, dove $\sigma$ è la funzione sigmoide.
-\end{enumerate}
+\subsection{Mapping del Risultato e Normalizzazione}
 
-L'approccio logistico è particolarmente efficace nel Reversi, poiché la natura del gioco è fortemente non lineare: piccoli vantaggi posizionali possono tradursi in vittorie schiaccianti o sconfitte improvvise (specialmente nelle fasi finali).
+Poiché l'output della funzione sigmoide $v(b)$ è strettamente contenuto nell'intervallo aperto $(0, 1)$, esso non può raggiungere i valori estremi del gioco, che nell'Othello sono rappresentati dal differenziale dei dischi nell'intervallo chiuso $[-64, +64]$. 
 
-\subsection{Riduzione Parametrica e Generalizzazione}
+Per ovviare a questa limitazione asintotica, si introduce un parametro di regolarizzazione $\alpha > 0$ (un valore piccolo scelto per prevenire la saturazione del gradiente). Questo permette di mappare l'output della sigmoide in un intervallo reale stimato $y$ attraverso la seguente trasformazione lineare:
 
-Grazie alla teoria dei gruppi discussa nel Capitolo \ref{sec:gruppo_diedrale}, il numero di parametri da apprendere è drasticamente ridotto. Se un pattern ha uno stabilizzatore di ordine $S$, il numero di configurazioni uniche è $3^k/S$. 
+\begin{equation}
+    y = \frac{128}{1 - 2\alpha} \left( \sigma(\eta(b)) - 0.5 \right)
+\end{equation}
 
-Inoltre, applicando la \textbf{normalizzazione canonica}, tutte le istanze simmetriche di un pattern condividono la stessa tabella di pesi (Pattern Database - PDB). Questo non solo riduce l'occupazione di memoria, ma garantisce una migliore generalizzazione del modello: l'esperienza appresa su un angolo della scacchiera viene automaticamente applicata a tutti e quattro gli angoli grazie alla simmetria del gruppo $D_4$.
+In questa formulazione, il termine $(\sigma(\eta(b)) - 0.5)$ centra l'intervallo sullo zero, mentre il coefficiente moltiplicativo scala l'ampiezza dell'output per coprire l'intero range dei possibili risultati del game.
 
-\subsection{Verso il Modello Neural Network (RNNM)}
+Simmetricamente, durante la fase di apprendimento, ogni posizione nel dataset associata a un risultato reale $R \in [-64, +64]$ deve essere convertita in un target probabilistico $T$ adatto alla regressione logistica:
 
-L'attuale architettura a "Two-Layer Model" prevede un primo livello di estrazione di feature (gli indici dei pattern) e un secondo livello di combinazione lineare (la Ef). L'evoluzione naturale di questo sistema è il \textbf{Reversi Neural Network Model (RNNM)}, dove i contributi dei pattern non vengono semplicemente sommati, ma processati attraverso strati nascosti (hidden layers) per catturare interazioni di ordine superiore tra diverse zone della scacchiera.
+\begin{equation}
+    T = \alpha + (1 - 2\alpha) \frac{R + 64}{128}
+\end{equation}
+
+Questa procedura di normalizzazione garantisce che i target $T$ siano sempre contenuti nell'intervallo $[\alpha, 1-\alpha]$. In termini computazionali, ciò impedisce che i pesi del modello tendano all'infinito durante l'ottimizzazione, garantendo una maggiore stabilità numerica del processo di training.
+
+\subsection{Ottimizzazione dei parametri e Funzione di Costo}
+
+Per determinare l'insieme ottimale dei pesi $w$, il processo di apprendimento supervisionato mira a minimizzare lo scarto tra le predizioni del modello e i risultati reali contenuti nel dataset $\mathcal{D}$. Sebbene il modello sia di natura logistica, per l'ottimizzazione si è scelto di adottare la minimizzazione dell'errore quadratico medio (Mean Squared Error, MSE).
+
+Data una posizione $b$ e il relativo target normalizzato $T$ (calcolato come descritto nella sezione precedente), la funzione di costo $J(w)$ per l'intero dataset è definita come:
+
+\begin{equation}
+    J(w) = \frac{1}{2|\mathcal{D}|} \sum_{(b, T) \in \mathcal{D}} \left( \sigma(\eta(b)) - T(b) \right)^2
+\end{equation}
+
+Dove:
+\begin{itemize}
+    \item $|\mathcal{D}|$ rappresenta il numero totale di campioni nel dataset.
+    \item $\sigma(\eta(b))$ è la probabilità stimata dal modello per la board $b$.
+    \item $T(b) \in [\alpha, 1-\alpha]$ è il target probabilistico derivato dal differenziale dischi finale.
+\end{itemize}
+
+Sebbene l'uso della funzione sigmoide combinata con il MSE non garantisca la convessità globale (a differenza di quanto avviene con la \textit{cross-entropy}), l'analisi del gradiente e dell'Hessiano mostra che la funzione è localmente convessa in un intorno dell'ottimo. In particolare, lo sviluppo dell'Hessiano per il MSE presenta un termine quadratico aggiuntivo rispetto alla \textit{cross-entropy} che, per valori di predizione prossimi al target, rimane positivo e garantisce la stabilità della convergenza.
+
+La scelta di adottare l'errore quadratico medio (MSE) in luogo della più comune \textit{cross-entropy} risiede nella natura stessa della funzione di valutazione richiesta da un engine di gioco. 
+
+Mentre la \textit{cross-entropy} è progettata per problemi di classificazione — dove l'obiettivo è massimizzare la probabilità che un evento appartenga a una categoria (vittoria o sconfitta) rispetto a una soglia — il MSE tratta il problema come una regressione pura. In questo contesto, l'output della sigmoide non viene interpretato meramente come una confidenza statistica, ma come una \textbf{stima di un valore continuo}. 
+
+L'utilizzo del MSE introduce una metrica della distanza coerente tra il valore predetto e il risultato atteso. Questo approccio è vantaggioso per diversi motivi:
+\begin{itemize}
+    \item \textbf{Ordinamento delle mosse:} Fornisce una graduatoria quantitativa tra diverse posizioni non terminali, permettendo all'algoritmo di ricerca di discriminare tra "gradi di vantaggio" diversi, anche quando entrambi preludono alla vittoria.
+    \item \textbf{Significato fisico dell'errore:} L'errore viene pesato in base alla sua magnitudo sulla scala dei dischi (attraverso il mapping precedentemente definito), penalizzando maggiormente le stime che si discostano linearmente dal valore reale.
+\end{itemize}
+
+In sintesi, l'obiettivo non è solo determinare se una posizione sia vincente, ma stimare correttamente "quanto" lo sia, rendendo il MSE lo strumento più idoneo a modellare la metrica di valore necessaria alla funzione di valutazione.
+
+Al fine di evitare il fenomeno dell'\textit{overfitting} e garantire che il modello generalizzi correttamente anche su configurazioni di pattern meno frequenti, viene introdotto un secondo iper-parametro: la regolarizzazione di Ridge (o norma $L_2$). La funzione di costo complessiva $J(w)$ da minimizzare diventa quindi:
+
+\begin{equation}
+    J(w) = \frac{1}{|2\mathcal{D}|} \sum_{(b, T) \in \mathcal{D}} \left( \sigma(\eta(b)) - T(b) \right)^2 + \frac{\lambda}{2} \sum_{p \in \mathcal{P}} \sum_{k} w_{p, k}^2
+\end{equation}
+
+In questa formulazione:
+\begin{itemize}
+    \item Il primo termine rappresenta l'errore quadratico medio (MSE), che misura la distanza euclidea tra la stima e il valore reale.
+    \item Il secondo termine è la penalità di Ridge, dove $\lambda$ è il coefficiente di regolarizzazione che controlla il compromesso tra la fedeltà ai dati di training e la complessità del modello.
+    \item $w_{p, k}$ rappresenta il peso associato alla $k$-esima configurazione del pattern $p$.
+\end{itemize}
+
+L'aggiunta della norma $L_2$ costringe i pesi a mantenere valori numerici contenuti, prevenendo che il modello si affidi eccessivamente a singoli pattern rari e rendendo la superficie di errore più regolare.
+Inoltre la regolarizzazione rende univoci e ripetibili i valori assunti dai pesi in diverse ottimizzazioni, eliminando le labilità insite nel disegno.
+
+\subsection{Apprendimento dei Pesi}
+
+L'obiettivo del processo di apprendimento è la ricerca del vettore di pesi ottimale $\hat{w}$ che minimizza la funzione di costo complessiva. Formalmente, questo problema di ottimizzazione si esprime come:
+
+\begin{equation}
+    \hat{w} = \arg\min_{w} J(w)
+\end{equation}
+
+In questo modello le configurazioni assunte dalle istanze di un pattern concorrono tutte in maniera uguale ed indistinta alla stima dal valore della posizione, senza reciproche influenze spaziali.
+Per questo motivo gli indici usati sono quelli principali, quelli che considerano le simmetrie e quindi condensano al massimo il numero di pesi generato.
+Nonostante questo pattern come \texttt{XEDGE}, o \texttt{2X3COR} hanno più di 50.000 configurazioni ciascuno, portando a modelli con 300.000 e più pesi.
+Al crescere della complessità del modello, anche la dimensione del dataset $\mathcal{D}$ di training deve crescere, per fornire una quantità sufficiente di casi per supportare il training ed evitare l'overfitting.
+
+In questo scenario la minimizzazione non può essere sviluppata con il metodo di Newton, che richiede il calcolo della matrice Hessiana, con una richiesta di RAM insostenibile.
+Gli algoritmi disponibili sono sostanzialmente il \textit{gradient descent}, il \textit{conjugate gradient}, o algoritmi più sofisticati come \textit{L-BFGS}.
+Ad ogni iterazione viene quindi ricalcolato solo il vettore del gradiente.
+
+\subsection{Calcolo del Gradiente}
+
+Per procedere alla minimizzazione di $J(w)$, è necessario calcolare la derivata parziale della funzione di costo rispetto a ciascun peso $w_{p,k}$. Applicando la regola della catena (chain rule), il gradiente per una singola posizione $b$ può essere scomposto come segue:
+
+\begin{equation}
+    \frac{\partial J(w)}{\partial w_{p,k}} = \underbrace{\sigma - T(b, \alpha)}_{\text{Errore}} \cdot \underbrace{\sigma(1 - \sigma)}_{\text{Derivata Sigmoide}} \cdot \underbrace{\mathbb{1}_{p,k}(b)}_{\text{Attivazione}} + \underbrace{\lambda w_{p,k}}_{\text{Regolarizzazione}}
+\end{equation}
+
+Dove:
+\begin{itemize}
+    \item $\sigma = \sigma(\eta(b))$ è l'output della funzione di valutazione per la board corrente.
+    \item $T(b,\alpha)$ è il target normalizzato della posizione.
+    \item $\mathbb{1}_{p,k}(b)$ è una funzione indicatrice che vale $1$ se la $k$-esima configurazione del pattern $p$ è presente sulla board $b$, e $0$ altrimenti.
+\end{itemize}
+
+Considerando l'intero dataset $\mathcal{D}$, il gradiente complessivo è dato dalla media dei gradienti individuali più il termine di regolarizzazione:
+
+\begin{equation}
+    \frac{\partial J(w)}{\partial w_{p,k}} = \frac{1}{|\mathcal{D}|} \sum_{(b, T) \in \mathcal{D}} (\sigma - T(b, \alpha)) \sigma(1 - \sigma) \mathbb{1}_{p,k}(b) + 2\lambda w_{p,k}
+\end{equation}
+
+Questa formulazione evidenzia l'efficienza del modello a pattern: il termine $\mathbb{1}_{p,k}(b)$ garantisce che, per ogni esempio nel dataset,
+il gradiente sia non nullo solo per i pesi corrispondenti alle configurazioni effettivamente osservate sulla board.
