@@ -62,6 +62,7 @@
         "purge": false
     },
     "stat_model": {
-        "frequency_cut_off": 2
+        "frequency_cut_off": 2,
+        "logit_clipping": 0.03
     }
 }

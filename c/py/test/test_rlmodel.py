@@ -186,6 +186,9 @@ class TestReversiLogisticModelComputeWmaps(unittest.TestCase):
         expected_cut_off = 2
         self.assertEqual(expected_cut_off, self.rlm.cfg.stat_model.frequency_cut_off)
 
+        expected_logit_clipping = 0.05
+        self.assertEqual(expected_logit_clipping, self.rlm.cfg.stat_model.logit_clipping)
+
         # Checking pattern_w_ranges
         P = len(self.rlm.rids.pset.patterns)
         expected_pwr_shape = (P, 3)
@@ -342,3 +345,53 @@ class TestReversiLogisticModelStoreAndLoad(unittest.TestCase):
         self.assertEqual(rds.ec, m_rds.ec)
         self.assertTrue(rds.positions.equals(m_rds.positions))
         self.assertEqual(rds.length, m_rds.length)
+
+class TestReversiLogisticModelComputeZed(unittest.TestCase):
+
+    def setUp(self):
+        json_config = 'py/test/data/tlm/rlmodel_01.json'
+        self.rlm = ReversiLogisticModel.from_json_path(json_config)
+        self.rlm.load_regab_indexed_data_set()
+        self.assertIsNotNone(self.rlm.rids)
+        self.rlm.compute_wmaps()
+        self.assertIsNotNone(self.rlm.iwmap_pattern_offset)
+        self.assertIsNotNone(self.rlm.iwmap)
+        self.assertIsNone(self.rlm.X)
+        self.rlm.compute_design_matrix()
+        self.assertIsNotNone(self.rlm.X)
+
+    def tearDown(self):
+        pass
+
+    def test_compute_z(self):
+        self.assertIsNone(self.rlm.y2z)
+        self.assertIsNone(self.rlm.z)
+
+        expected_logit_clipping = 0.03
+        logit_clipping = self.rlm.cfg.stat_model.logit_clipping
+        self.assertEqual(expected_logit_clipping, logit_clipping)
+
+        expected_y = np.array([10, 36, -22, 18, -16, 14, -22, 20, 0, 2], dtype=np.int8)
+        y = self.rlm.rids.rds.positions['game_value'].to_numpy()
+        nptest.assert_array_equal(expected_y, y)
+
+        self.rlm.compute_z()
+        self.assertIsNotNone(self.rlm.y2z)
+        
+        self.assertIsNotNone(self.rlm.z)
+        self.assertEqual(type(self.rlm.z), np.ndarray)
+        self.assertEqual(self.rlm.z.dtype, np.float32)
+        self.assertEqual(self.rlm.z.shape, (10,))
+                
+        expected_z = np.array([0.5734375,
+                               0.764375,
+                               0.3384375,
+                               0.6321875,
+                               0.3825,
+                               0.6028125,
+                               0.3384375,
+                               0.646875,
+                               0.5,
+                               0.5146875], dtype=np.float32)
+
+        nptest.assert_array_equal(expected_z, self.rlm.z)

@@ -153,6 +153,7 @@ class StatModelConfig(BaseModel):
     Configuration for a statistical model, including the frequency cut-off threshold.
     """
     frequency_cut_off: PositiveInt = 1
+    logit_clipping: float = Field(default=0.05, gt=0, lt=0.5)
     
 class ReversiLogisticModelConfig(BaseModel):
     """
@@ -232,6 +233,24 @@ class ReversiLogisticModel:
         self.wmap = None
         self.wmap_fallback = None
         self.X = None
+        self.y2z = None
+        self.z = None
+
+    @classmethod
+    def zed_fun_factory(cls, logit_clipping: float) -> Callable[[npt.NDArray[np.int8]], npt.NDArray[np.float32]]:
+        """
+        Returns a function that performs an affine transformation on int8 arrays.
+        It maps the range [-64, 64] to [logit_clipping, 1 - logit_clipping] 
+        to prevent numerical instability in the linear predictor.
+        """
+        a = np.float32(0.5)
+        b = np.float32((1 - 2 * logit_clipping) / 128)
+        def y_to_z(y: npt.NDArray[np.int8]) -> npt.NDArray[np.float32]:
+            y = np.float32(y)
+            z = a + y * b
+            return z
+        
+        return y_to_z
 
     @classmethod
     def from_json_path(cls,
@@ -1053,3 +1072,11 @@ class ReversiLogisticModel:
                 model.X = None
 
             return model
+
+    def compute_z(self) -> None:
+        alpha = self.cfg.stat_model.logit_clipping
+        fun_y_to_z = ReversiLogisticModel.zed_fun_factory(alpha)
+        y = self.rids.rds.positions['game_value'].to_numpy()
+        z = fun_y_to_z(y)
+        self.y2z = fun_y_to_z
+        self.z = z

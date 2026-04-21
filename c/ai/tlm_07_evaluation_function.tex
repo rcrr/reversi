@@ -59,11 +59,12 @@ Per determinare l'insieme ottimale dei pesi $w$, il processo di apprendimento su
 Sebbene il modello sia di natura logistica, per l'ottimizzazione si è scelto di adottare la minimizzazione dell'errore quadratico medio (Mean Squared Error, MSE).
 
 Sia $y \in [-64, +64]$ il risultato finale di una partita risolta esattamente presente nel dataset. Per poter addestrare il modello logistico, è necessario mappare questo valore nell'intervallo $(0, 1)$.
-Tuttavia, per evitare la saturazione del gradiente e la divergenza dei pesi, si applica una tecnica di \textit{label smoothing} introducendo un parametro di regolarizzazione $\alpha$. 
+Tuttavia, per evitare la saturazione del gradiente e la divergenza dei pesi, si applica una tecnica di \textit{label smoothing} introducendo
+un parametro di regolarizzazione $\alpha$ chiamato \textit{logit clipping}. 
 
 Il target normalizzato $z$ viene quindi definito come:
 \begin{equation}
-    z = \alpha + (1 - 2\alpha) \frac{y + 64}{128}
+    z = \alpha + (1 - 2\alpha) \frac{y + 64}{128} = 0.5 + y \frac{1 - 2\alpha}{128}
 \end{equation}
 
 Sebbene l'uso della funzione sigmoide combinata con il MSE non garantisca la convessità globale (a differenza di quanto avviene con la \textit{cross-entropy}), l'analisi del gradiente e dell'Hessiano mostra che la funzione è localmente convessa in un intorno dell'ottimo. In particolare, lo sviluppo dell'Hessiano per il MSE presenta un termine quadratico aggiuntivo rispetto alla \textit{cross-entropy} che, per valori di predizione prossimi al target, rimane positivo e garantisce la stabilità della convergenza.
