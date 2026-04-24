@@ -53,6 +53,8 @@ from pathlib import Path
 import numpy as np
 
 from itertools import accumulate
+from scipy.special import expit
+
 
 
 __all__ = ['ReversiLogisticModel']
@@ -154,6 +156,7 @@ class StatModelConfig(BaseModel):
     """
     frequency_cut_off: PositiveInt = 1
     logit_clipping: float = Field(default=0.05, gt=0, lt=0.5)
+    ridge_regularization: float = Field(default=0.00, ge=0.00)
     
 class ReversiLogisticModelConfig(BaseModel):
     """
@@ -200,6 +203,33 @@ class ReversiLogisticModel:
         write_core_object_data(self, fw: Callable[[bytes], None]) -> None: Writes the core data of the ReversiLogisticModel instance to a binary file using the provided writer function.
         store_to_file(self, filename: str | Path) -> None: Saves the ReversiLogisticModel instance to a binary file and calculates the SHA3-256 checksum.
         load_from_file(cls, filename: str | Path, checksum: bool = True) -> ReversiLogisticModel: Loads a ReversiLogisticModel instance from a binary file.
+
+    Structure:
+        model -|
+               +- cfg
+               +- fqcn
+               +- rids -|
+                        +- rds -|
+                                +- bid
+                                +- ec
+                                +- positions
+                        +- pset -|
+                                 +- name
+                                 +- patterns
+               +- pattern_w_ranges
+               +- iwmap_pattern_offset
+               +- iwmap
+               +- wmap
+               +- wmap_fallback
+               +- w
+               +- X
+               +- y2z
+               +- z2y
+               +- z
+               +- fg
+
+    Workflow:
+         To be written.
     """
     def __init__(self, cfg: ReversiLogisticModelConfig):
         """
@@ -232,25 +262,35 @@ class ReversiLogisticModel:
         self.iwmap = None
         self.wmap = None
         self.wmap_fallback = None
+        self.w = None
         self.X = None
         self.y2z = None
+        self.z2y = None
         self.z = None
+        self.fg = None
 
     @classmethod
-    def zed_fun_factory(cls, logit_clipping: float) -> Callable[[npt.NDArray[np.int8]], npt.NDArray[np.float32]]:
+    def zed_fun_factory(cls, logit_clipping: float) -> Tuple[Callable[[npt.NDArray[np.int8]], npt.NDArray[np.float32]],
+                                                             Callable[[npt.NDArray[np.float32]], npt.NDArray[np.float32]]]:
         """
-        Returns a function that performs an affine transformation on int8 arrays.
-        It maps the range [-64, 64] to [logit_clipping, 1 - logit_clipping] 
+        Returns two functions that perform an affine transformation.
+        One on int8 arrays, it maps the range [-64, 64] to [logit_clipping, 1 - logit_clipping].
+        The second does the inverted transformation.
         to prevent numerical instability in the linear predictor.
         """
         a = np.float32(0.5)
-        b = np.float32((1 - 2 * logit_clipping) / 128)
+        b = np.float32((1. - 2. * logit_clipping) / 128.)
         def y_to_z(y: npt.NDArray[np.int8]) -> npt.NDArray[np.float32]:
             y = np.float32(y)
             z = a + y * b
             return z
+        a1 = np.float32(-64. / (1. - 2. * logit_clipping))
+        b1 = np.float32(128. / (1. - 2. * logit_clipping))
+        def z_to_y(z: npt.NDArray[np.float32]) -> npt.NDArray[np.float32]:
+            y = a1 + z * b1
+            return y
         
-        return y_to_z
+        return y_to_z, z_to_y
 
     @classmethod
     def from_json_path(cls,
@@ -741,10 +781,11 @@ class ReversiLogisticModel:
         self.iwmap = iwmap
         self.wmap = wmap
         self.wmap_fallback = fallback_details_table
+        self.w = np.zeros(next_w, dtype=np.float32)
 
         logger.debug(f"Table wmap created. Shape: {wmap.shape} (Total weights assigned: {next_w})")
         
-    def compute_design_matrix(self) -> None:
+    def compute_design_matrix(self, force: bool = None) -> None:
         """
         Computes the design matrix for the logistic regression model. The design matrix is used to represent the input features
         in a compressed form, where each element corresponds to the index of the weight vector w that is different from zero and
@@ -790,7 +831,7 @@ class ReversiLogisticModel:
         """
         logger.debug(f"Method compute design matrix.")
 
-        if self.X is not None:
+        if self.X is not None and not force:
             logger.debug(f"The design matrix is already computed, returning.")
             return
 
@@ -801,9 +842,14 @@ class ReversiLogisticModel:
         if self.rids.pindexes is None:
             logger.debug(f"The principal indexes are missing, computing them.")
             self.rids.compute_principal_indexes()
-            
-        if self.iwmap_pattern_offset is None or self.iwmap is None:
-            logger.debug(f"The iwmap table is missing, computing it.")
+
+        if any(v is None for v in [self.pattern_w_ranges,
+                                   self.iwmap_pattern_offset,
+                                   self.iwmap,
+                                   self.wmap,
+                                   self.wmap_fallback,
+                                   self.w]):
+            logger.debug(f"The iwmap table, or one of the associated data structures, is missing computing it.")
             self.compute_wmaps()
 
         pindexes = self.rids.pindexes
@@ -844,12 +890,14 @@ class ReversiLogisticModel:
 
         # First writes the information if the attributes are populated or are None.
         # 1 means populated, 0 means None.
+        # Order matters.
         flag_rids = 0
         flag_pattern_w_ranges = 0
         flag_iwmap_pattern_offset = 0
         flag_iwmap = 0
         flag_wmap = 0
         flag_wmap_fallback = 0
+        flag_w = 0
         flag_X = 0
 
         if self.rids is not None:
@@ -864,6 +912,8 @@ class ReversiLogisticModel:
             flag_wmap = 1
         if self.wmap_fallback is not None:
             flag_wmap_fallback = 1
+        if self.w is not None:
+            flag_w = 1
         if self.X is not None:
             flag_X = 1
 
@@ -873,6 +923,7 @@ class ReversiLogisticModel:
         fw(struct.pack('I', flag_iwmap))
         fw(struct.pack('I', flag_wmap))
         fw(struct.pack('I', flag_wmap_fallback))
+        fw(struct.pack('I', flag_w))
         fw(struct.pack('I', flag_X))
         
         if flag_rids == 1:
@@ -902,6 +953,11 @@ class ReversiLogisticModel:
             rows, cols = self.wmap_fallback.shape
             fw(struct.pack('QQ', rows, cols))
             fw(self.wmap_fallback.tobytes())
+
+        if flag_w == 1:
+            num_elements = self.w.size
+            fw(struct.pack('Q', num_elements))
+            fw(self.w.tobytes())
 
         if flag_X == 1:
             rows, cols = self.X.shape
@@ -1001,16 +1057,16 @@ class ReversiLogisticModel:
             model = ReversiLogisticModel(cfg)
 
             # 1. Read the flags (4 byte per flag, using 'I' as per write logic)
-            # Total expected: 7 * 4 bytes = 28 bytes
-            flag_count = 7
+            # Total expected: 8 * 4 bytes = 32 bytes
+            flag_count = 8
             flag_bytes = 4 * flag_count
             flags_raw = f.read(flag_bytes)
             if len(flags_raw) < flag_bytes:
                 raise EOFError("Failed to read header flags: File is truncated or corrupted.")
             
             # Unpack the 5 unsigned integers
-            flags = struct.unpack('IIIIIII', flags_raw)
-            f_rids, f_pattern_w_ranges, f_iwmap_pattern_offset, f_iwmap, f_wmap, f_wmap_fallback, f_X = flags
+            flags = struct.unpack('IIIIIIII', flags_raw)
+            f_rids, f_pattern_w_ranges, f_iwmap_pattern_offset, f_iwmap, f_wmap, f_wmap_fallback, f_w, f_X = flags
 
             if f_rids == 1:
                 model.rids = RegabIndexedDataSet.read_core_object_data(f)
@@ -1062,6 +1118,15 @@ class ReversiLogisticModel:
             else:
                 model.wmap_fallback = None
 
+            if f_w == 1:
+                dims = f.read(8) # Q
+                if len(dims) < 8: raise EOFError("Truncated dimensions for 'w'")
+                num_elements = struct.unpack('Q', dims)[0]
+                data = np.fromfile(f, dtype=np.float32, count=num_elements)
+                model.w = data.copy()
+            else:
+                model.w = None
+
             if f_X == 1:
                 dims = f.read(16) # QQ
                 if len(dims) < 16: raise EOFError("Truncated dimensions for 'X'")
@@ -1073,10 +1138,72 @@ class ReversiLogisticModel:
 
             return model
 
-    def compute_z(self) -> None:
+    def compute_z(self, force: bool = False) -> None:
+
+        refresh: bool = False
+
+        if self.y2z is None or self.z2y is None or force:
+            
+            if self.cfg is None or self.cfg.stat_model is None or self.cfg.stat_model.logit_clipping is None:
+                raise ValueError("Configuration 'cfg.stat_model.logit_clipping' is not defined.")
+            
+            alpha = self.cfg.stat_model.logit_clipping
+            self.y2z, self.z2y = ReversiLogisticModel.zed_fun_factory(alpha)
+            refresh = True
+
+        if self.z is None or force or refresh:
+            
+            if not hasattr(self, 'rids') or self.rids.rds is None:
+                raise AttributeError("The 'rids.rds' structure is not initialized.")
+            
+            positions = self.rids.rds.positions
+            if 'game_value' not in positions.columns:
+                raise KeyError("Column 'game_value' missing in self.rids.rds.positions.")
+
+            if positions['game_value'].dtype != np.int8:
+                actual_type = positions['game_value'].dtype
+                raise TypeError(f"Column 'game_value' must be int8, but found {actual_type}.")
+        
+            y = positions['game_value'].to_numpy()
+        
+            self.z = self.y2z(y)
+
+    def generate_gradient(self, force: bool = False) -> None:
+        """
+        Builds the function returning loss and gradient and save it into attribute self.fg.
+        """
+
         alpha = self.cfg.stat_model.logit_clipping
-        fun_y_to_z = ReversiLogisticModel.zed_fun_factory(alpha)
-        y = self.rids.rds.positions['game_value'].to_numpy()
-        z = fun_y_to_z(y)
-        self.y2z = fun_y_to_z
-        self.z = z
+        N = len(self.w)
+        X = self.X
+        M, P = X.shape
+        X_flat = X.ravel()
+        z = self.z
+        bincount_weights_buffer = np.empty(M * P, dtype=np.float32)
+        bincount_weights_view = bincount_weights_buffer.reshape(M, P)
+    
+        def fg(w: npt.NDArray[np.float32]) -> Tuple[np.float32, npt.NDArray[np.float32]]:
+            linear_predictor = np.sum(w[X], axis=1)
+            zh = sigmoid(linear_predictor)
+            dzh = zh * (1. - zh)
+            rn = zh - z
+            norm_rn = np.dot(rn, rn)
+            norm_w = np.dot(w, w)
+            f = 0.5 * (norm_rn + alpha * norm_w)
+            dzh_rn = dzh * rn
+            bincount_weights_view[:] = dzh_rn[:, None]
+            g0 = np.bincount(X_flat, weights=bincount_weights_buffer, minlength=N)
+            g1 = alpha * w
+            g = g0 + g1
+            return f, g
+    
+        self.fg = fg
+
+def sigmoid(x: np.ndarray) -> np.ndarray:
+    """
+    Computes the sigmoid (logistic) function on the given array of float values.
+    It was computed as:
+      return 1. / (1. + np.exp(-x))
+    The expit funxtion from scipy provide more numerical stability for very small values of x.
+    """
+    return expit(x)

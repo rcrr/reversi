@@ -1780,6 +1780,12 @@ class Rglm:
         
         x0 = copy.deepcopy(self.w.astype(np.float32))
 
+        print(f"len(x0) = {len(x0)}")
+        print(f"x0 = {x0}")
+        f, g = fg(x0)
+        print(f"f = {f}")
+        print(f"g = {g}")
+
         with cProfile.Profile() as pr:
             self.w = lbfgs(fg, x0, max_iters=500, m=97,
                            min_grad=(3e-1, 3), min_p_fun_decrease=(1e-7, 7), verbosity=1)
@@ -2070,7 +2076,7 @@ class Rglm:
         
         return mw
 
-
+# 'features': 'INTERCEPT,MOBILITY3',
 test_run_0 = {'cfg_fname': 'cfg/regab.cfg',
               'env': 'test',
               'ec': 20,
@@ -2078,7 +2084,7 @@ test_run_0 = {'cfg_fname': 'cfg/regab.cfg',
               'vld_batches': [5],
               'statuses': 'CMR,CMS',
               'vld_statuses': 'CMR,CMS',
-              'features': 'INTERCEPT,MOBILITY3',
+              'features': 'INTERCEPT',
               'patterns': 'EDGE,DIAG3',
               'ridge_reg_param': 0.01,
               'l_bfgs_b_options': {'disp': True,
@@ -2307,7 +2313,7 @@ def rglm_workflow(kvargs: dict):
     m = timed_run(m.compute_y, "m = m.compute_y()")
     m = timed_run(m.compute_analytics, "m = m.compute_analytics()")
     m = timed_run(m.retrieve_expected_probabilities_from_regab_db, "m = m.retrieve_expected_probabilities_from_regab_db()")
-    m = timed_run(m.optimize6, "m = m.optimize6({}, {{...}})", ridge_reg_param, l_bfgs_b_options)
+    m = timed_run(m.optimize5, "m = m.optimize6({}, {{...}})", ridge_reg_param, l_bfgs_b_options)
     if l_bfgs_b_options is not None:
         print("   l_bfgs_b_options = {}".format(l_bfgs_b_options))
     m = timed_run(m.compute_wmean_for_patterns, "m = m.compute_wmean_for_patterns()")

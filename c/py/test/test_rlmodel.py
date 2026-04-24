@@ -176,19 +176,24 @@ class TestReversiLogisticModelComputeWmaps(unittest.TestCase):
         self.assertIsNone(self.rlm.iwmap)
         self.assertIsNone(self.rlm.wmap)
         self.assertIsNone(self.rlm.wmap_fallback)
+        self.assertIsNone(self.rlm.w)
         self.rlm.compute_wmaps()
         self.assertIsNotNone(self.rlm.pattern_w_ranges)
         self.assertIsNotNone(self.rlm.iwmap)
         self.assertIsNotNone(self.rlm.iwmap_pattern_offset)
         self.assertIsNotNone(self.rlm.wmap)
         self.assertIsNotNone(self.rlm.wmap_fallback)
+        self.assertIsNotNone(self.rlm.w)
 
         expected_cut_off = 2
         self.assertEqual(expected_cut_off, self.rlm.cfg.stat_model.frequency_cut_off)
 
-        expected_logit_clipping = 0.05
+        expected_logit_clipping = 0.03
         self.assertEqual(expected_logit_clipping, self.rlm.cfg.stat_model.logit_clipping)
 
+        expected_ridge_regularization = 0.00
+        self.assertEqual(expected_ridge_regularization, self.rlm.cfg.stat_model.ridge_regularization)
+        
         # Checking pattern_w_ranges
         P = len(self.rlm.rids.pset.patterns)
         expected_pwr_shape = (P, 3)
@@ -254,6 +259,14 @@ class TestReversiLogisticModelComputeWmaps(unittest.TestCase):
              ], dtype=np.int64)
         nptest.assert_array_equal(expected_wmap_fallback, self.rlm.wmap_fallback)
 
+        # Checking w (weights)
+        expected_w_length = 16
+        expected_w = np.zeros(expected_w_length, dtype=np.float32)
+        w = self.rlm.w
+        self.assertEqual(len(w), expected_w_length)
+        self.assertEqual(w.shape, (expected_w_length,))
+        self.assertEqual(w.dtype, np.float32)
+        nptest.assert_array_equal(expected_w, w)
 
 class TestReversiLogisticModelComputeDesignMatrix(unittest.TestCase):
 
@@ -363,6 +376,19 @@ class TestReversiLogisticModelComputeZed(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_zed_fun_factory(self):
+        alpha = 0.02
+        y2z, z2y = ReversiLogisticModel.zed_fun_factory(alpha)
+
+        values = np.array([-64, 0, 6, +64], dtype=np.int8)
+        transformed_values = y2z(values)
+        expected_transformed_values = np.array([0.02, 0.5, 0.545, 0.98], dtype=np.float32)
+        nptest.assert_allclose(expected_transformed_values, transformed_values, rtol=1e-6, atol=1e-7)
+        
+        re_transformed_values =z2y(transformed_values)
+        nptest.assert_allclose(np.float32(values), re_transformed_values, rtol=1e-6, atol=1e-7)
+
+        
     def test_compute_z(self):
         self.assertIsNone(self.rlm.y2z)
         self.assertIsNone(self.rlm.z)
@@ -395,3 +421,51 @@ class TestReversiLogisticModelComputeZed(unittest.TestCase):
                                0.5146875], dtype=np.float32)
 
         nptest.assert_array_equal(expected_z, self.rlm.z)
+
+class TestReversiLogisticModelGenerateGradient(unittest.TestCase):
+
+    def setUp(self): 
+        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
+        json_config = 'py/test/data/tlm/rlmodel_03.json'
+        self.rlm = ReversiLogisticModel.from_json_path(json_config, base_dir_override=self.tmp_dir)
+        Path(self.rlm.cfg.full_project_dir).mkdir(parents=False, exist_ok=True)
+        self.rlm.load_regab_indexed_data_set()
+        self.assertIsNotNone(self.rlm.rids)
+        self.rlm.compute_wmaps()
+        self.assertIsNotNone(self.rlm.iwmap_pattern_offset)
+        self.assertIsNotNone(self.rlm.iwmap)
+        self.assertIsNone(self.rlm.X)
+        self.rlm.compute_design_matrix()
+        self.assertIsNotNone(self.rlm.X)
+        self.rlm.compute_z()
+
+    def tearDown(self):
+        pass
+
+    def test_generate_gradient(self):
+
+        m = self.rlm
+
+        self.assertIsNone(m.fg)
+
+        self.assertEqual(m.X.shape, (199952, 8))
+
+        m.generate_gradient()
+        
+        self.assertIsNotNone(m.fg)
+        self.assertTrue(callable(m.fg), "The attribute fg should be callable")
+        self.assertEqual(len(m.w), 2981)
+
+        f, g = m.fg(m.w)
+        
+        expected_f = np.float32(4097.77197)
+        nptest.assert_allclose(f, expected_f, rtol=1e-6, atol=1e-7)
+
+        expected_g_0000 = np.float32(71.15)
+        nptest.assert_allclose(g[0], expected_g_0000, rtol=1e-4, atol=1e-7)
+
+        expected_g_0001 = np.float32(-47.89)
+        nptest.assert_allclose(g[1], expected_g_0001, rtol=1e-4, atol=1e-7)
+
+        expected_g_2980 = np.float32(220.11)
+        nptest.assert_allclose(g[2980], expected_g_2980, rtol=1e-4, atol=1e-7)
