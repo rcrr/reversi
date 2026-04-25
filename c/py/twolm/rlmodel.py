@@ -25,6 +25,27 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
+#
+# To-do:
+#
+# -0- Add checks on array shapes ... and values ....
+# -0.1- Review documentation
+# -1- Add footprint method
+# -2- Add info method
+# -3- Add alias for check_obj_consistency(level=last) .... validate()
+# -4- Add weights load/store
+# -4.1- Add model cache in the json file
+# -4.2- Review options in the json config file ...
+#
+# -5- Add L-BFGS module
+#
+# -6- Add optimize method
+# -6.1- Add stop-watch ...
+# -7- Add validation workflow
+# -8- Add analytics
+# -9- Add plots ...
+#
+
 """
 rlmodel module
 
@@ -253,7 +274,6 @@ class ReversiLogisticModel:
         if not isinstance(cfg, ReversiLogisticModelConfig):
             raise TypeError('Argument cfg is not an instance of ReversiLogisticModelConfig')
         
-
         self.cfg = cfg
         self.fqcn: str = f"{self.__class__.__module__}.{self.__class__.__qualname__}"
         self.rids = None
@@ -268,6 +288,8 @@ class ReversiLogisticModel:
         self.z2y = None
         self.z = None
         self.fg = None
+
+        self.check_obj_consistency(level=0)
 
     @classmethod
     def zed_fun_factory(cls, logit_clipping: float) -> Tuple[Callable[[npt.NDArray[np.int8]], npt.NDArray[np.float32]],
@@ -295,7 +317,7 @@ class ReversiLogisticModel:
     @classmethod
     def from_json_path(cls,
                        config_file_path: str | Path,
-                       base_dir_override: str | None =None) -> ReversiLogisticModel:
+                       base_dir_override: str | None = None) -> ReversiLogisticModel:
         """
         Initializes the model with JSON configuration from a file.
         Validates the configuration file path and loads the configuration data, optionally overriding the base directory.
@@ -335,7 +357,9 @@ class ReversiLogisticModel:
 
         cfg = ReversiLogisticModelConfig(**config_raw_data)
 
-        return cls(cfg=cfg)
+        obj = cls(cfg=cfg)
+        obj.check_obj_consistency(level=0)
+        return obj
         
 
     def load_regab_data_set_from_db(self) -> None:
@@ -356,6 +380,8 @@ class ReversiLogisticModel:
         Exception
             If there is an error during the database connection or data extraction.
         """
+        self.check_obj_consistency(level=0)
+        
         cfg_rdsc = (self.cfg
                     .regab_indexed_data_set_cached
                     .regab_indexed_data_set
@@ -400,6 +426,8 @@ class ReversiLogisticModel:
         ValueError
             If there is a mismatch between the configuration settings (bid, status, ec) and the loaded data set.
         """
+        self.check_obj_consistency(level=0)
+        
         cfg_rdsc = (self.cfg
                     .regab_indexed_data_set_cached
                     .regab_indexed_data_set
@@ -439,6 +467,8 @@ class ReversiLogisticModel:
         Exception
             If there is an error during the database connection or data extraction.
         """
+        self.check_obj_consistency(level=0)
+
         cfg_rdsc = (self.cfg
                     .regab_indexed_data_set_cached
                     .regab_indexed_data_set
@@ -512,9 +542,11 @@ class ReversiLogisticModel:
             If there is an error during the creation of the regab indexed data set.
         """
         logger.debug(f"Entering method load_regab_indexed_data_set().")
+        
+        self.check_obj_consistency(level=0)
+        
         if self.rids is not None:
             logger.debug(f"Attribute rids is already computed, returning.")
-            return
         else:
             logger.debug(f"Attribute rids is None, loading the data.")
             cfg_ridsc = self.cfg.regab_indexed_data_set_cached
@@ -578,13 +610,16 @@ class ReversiLogisticModel:
             if rids.revmap is not None and is_revmap_required is False:
                 logger.debug(f"Removing revmap.")
                 rids.revmap = None
-                
+
+            rids.check_obj_consistency(level=5)
             if is_file_modified:
                 rids.store_to_file(full_path_filename)
                 logger.debug(f"Cache file {full_path_filename} has been written.")
                 self.purge_regab_data_set_cache()
                 
             self.rids = rids
+        
+        self.check_obj_consistency(level=1)
 
     def compute_wmaps(self) -> None:
         """
@@ -646,6 +681,8 @@ class ReversiLogisticModel:
         """
 
         logger.debug(f"Analyzing patterns defined by the model.")
+        
+        self.check_obj_consistency(level=1)
 
         cut_off = self.cfg.stat_model.frequency_cut_off
         logger.debug(f"cut_off = {cut_off} ...  (Frequency cut-off value set by the statistical model)")
@@ -784,24 +821,14 @@ class ReversiLogisticModel:
         self.w = np.zeros(next_w, dtype=np.float32)
 
         logger.debug(f"Table wmap created. Shape: {wmap.shape} (Total weights assigned: {next_w})")
+
+        self.check_obj_consistency(level=2)
         
     def compute_design_matrix(self, force: bool = None) -> None:
         """
         Computes the design matrix for the logistic regression model. The design matrix is used to represent the input features
         in a compressed form, where each element corresponds to the index of the weight vector w that is different from zero and
-        is always equal to one. This allows the computation of the linear predictor as:
-
-            linear_predictor = np.sum(w[X], axis=1)
-
-        The design matrix X is also used in the gradient method to compute the backward pass:
-
-            grad = np.bincount(X.ravel(), weights=np.repeat(dyh_rn, P), minlength=N)
-
-        where:
-            N = len(w)
-            P = X.shape[1]
-            dyh_rn = yh * (1. - yh) * (yh - y)
-            yh = sigmoid(linear_predictor)
+        is always equal to one. This allows the computation of the linear predictor (forward pass) and the backward pass in the gradient.
 
         The method performs the following steps:
             1. Checks if the design matrix X is already computed. If so, it returns immediately.
@@ -830,6 +857,8 @@ class ReversiLogisticModel:
             If there is a mismatch between the indexes and valid values in the iwmap array.
         """
         logger.debug(f"Method compute design matrix.")
+
+        self.check_obj_consistency(level=2)
 
         if self.X is not None and not force:
             logger.debug(f"The design matrix is already computed, returning.")
@@ -866,6 +895,8 @@ class ReversiLogisticModel:
         
         self.X = np.empty(pindexes.shape, dtype=np.uint32)
         np.take(self.iwmap, pindexes_with_offsets, out=self.X)
+
+        self.check_obj_consistency(level=3)
         
         logger.debug(f"Design matrix has been computed.")
 
@@ -1139,6 +1170,8 @@ class ReversiLogisticModel:
             return model
 
     def compute_z(self, force: bool = False) -> None:
+        
+        self.check_obj_consistency(level=3)
 
         refresh: bool = False
 
@@ -1167,11 +1200,15 @@ class ReversiLogisticModel:
             y = positions['game_value'].to_numpy()
         
             self.z = self.y2z(y)
+            
+        self.check_obj_consistency(level=4)
 
     def generate_gradient(self, force: bool = False) -> None:
         """
         Builds the function returning loss and gradient and save it into attribute self.fg.
         """
+        
+        self.check_obj_consistency(level=4)
 
         alpha = self.cfg.stat_model.logit_clipping
         N = len(self.w)
@@ -1199,6 +1236,196 @@ class ReversiLogisticModel:
     
         self.fg = fg
 
+        self.check_obj_consistency(level=5)
+
+    def check_obj_consistency(self, level: int = 0, compute: bool = True) -> None:
+        """
+        Checks invariances are consistent.
+
+        level = 0
+        Basic object consistency must be always true.
+
+        level = 1
+        The rids attribute must be populated.
+        Data is loaded (positions) and patterns are set.
+
+        level = 2
+        Weights maps mast be computed and populated.
+
+        level = 3
+        Design matrix X must be computed and populated.
+
+        level = 4
+        Z array must be computed and populated.
+
+        level = 5
+        The gradient function must be generated and made available.
+        """
+        if not hasattr(self, 'cfg'):
+            raise AttributeError("The 'cfg' attribute is not found.")
+        if self.cfg is None:
+            raise ValueError("Attribute 'cfg' cannot be None.")
+        if not isinstance(self.cfg, ReversiLogisticModelConfig):
+            raise TypeError('Attribute cfg is not an instance of ReversiLogisticModelConfig')
+        if not hasattr(self, 'fqcn'):
+            raise AttributeError("The 'fqcn' attribute is not found.")
+        if self.fqcn is None:
+            raise ValueError("Attribute 'fqcn' cannot be None.")
+        if not isinstance(self.fqcn, str):
+            raise TypeError('Attribute fqcn is not an instance of str')
+        if not hasattr(self, 'rids'):
+            raise AttributeError("The 'rids' attribute is not found.")
+        if not isinstance(self.rids, RegabIndexedDataSet | None):
+            raise TypeError("Attribute 'rids' must have type RegabIndexedDataSet or be None")
+        
+        if not hasattr(self, 'pattern_w_ranges'):
+            raise AttributeError("The 'pattern_w_ranges' attribute is not found.")
+        if self.pattern_w_ranges is not None:
+            if not isinstance(self.pattern_w_ranges, np.ndarray):
+                raise TypeError("Attribute 'pattern_w_ranges' must be a numpy array or None")
+            if self.pattern_w_ranges.dtype != np.int64:
+                raise TypeError("The self.pattern_w_ranges array must contain int64 elements")
+        
+        if not hasattr(self, 'iwmap_pattern_offset'):
+            raise AttributeError("The 'iwmap_pattern_offset' attribute is not found.")
+        if self.iwmap_pattern_offset is not None:
+            if not isinstance(self.iwmap_pattern_offset, np.ndarray):
+                raise TypeError("Attribute 'iwmap_pattern_offset' must be a numpy array or None")
+            if self.iwmap_pattern_offset.dtype != np.uint32:
+                raise TypeError("The self.iwmap_pattern_offset array must contain uint32 elements")
+        
+        if not hasattr(self, 'iwmap'):
+            raise AttributeError("The 'iwmap' attribute is not found.")
+        if self.iwmap is not None:
+            if not isinstance(self.iwmap, np.ndarray):
+                raise TypeError("Attribute 'iwmap' must be a numpy array or None")
+            if self.iwmap.dtype != np.int64:
+                raise TypeError("The self.iwmap array must contain int64 elements")
+        
+        if not hasattr(self, 'wmap'):
+            raise AttributeError("The 'wmap' attribute is not found.")
+        if self.wmap is not None:
+            if not isinstance(self.wmap, np.ndarray):
+                raise TypeError("Attribute 'wmap' must be a numpy array or None")
+            if self.wmap.dtype != np.int64:
+                raise TypeError("The self.wmap array must contain int64 elements")
+        
+        if not hasattr(self, 'wmap_fallback'):
+            raise AttributeError("The 'wmap_fallback' attribute is not found.")
+        if self.wmap_fallback is not None:
+            if not isinstance(self.wmap_fallback, np.ndarray):
+                raise TypeError("Attribute 'wmap_fallback' must be a numpy array or None")
+            if self.wmap_fallback.dtype != np.int64:
+                raise TypeError("The self.wmap_fallback array must contain int64 elements")
+        
+        if not hasattr(self, 'w'):
+            raise AttributeError("The 'w' attribute is not found.")
+        if self.w is not None:
+            if not isinstance(self.w, np.ndarray):
+                raise TypeError("Attribute 'w' must be a numpy array or None")
+            if self.w.dtype != np.float32:
+                raise TypeError("The self.w array must contain float32 elements")
+        
+        if not hasattr(self, 'X'):
+            raise AttributeError("The 'X' attribute is not found.")
+        if self.X is not None:
+            if not isinstance(self.X, np.ndarray):
+                raise TypeError("Attribute 'X' must be a numpy array or None")
+            if self.X.dtype != np.uint32:
+                raise TypeError("The self.X array must contain uint32 elements")
+        
+        if not hasattr(self, 'y2z'):
+            raise AttributeError("The 'y2z' attribute is not found.")
+        if self.y2z is not None:
+            if not isinstance(self.y2z, Callable):
+                raise TypeError("Attribute 'y2z' must be Callable or None")
+        
+        if not hasattr(self, 'z2y'):
+            raise AttributeError("The 'z2y' attribute is not found.")
+        if self.z2y is not None:
+            if not isinstance(self.z2y, Callable):
+                raise TypeError("Attribute 'z2y' must be Callable or None")
+        
+        if not hasattr(self, 'z'):
+            raise AttributeError("The 'z' attribute is not found.")
+        if self.z is not None:
+            if not isinstance(self.z, np.ndarray):
+                raise TypeError("Attribute 'z' must be a numpy array or None")
+            if self.z.dtype != np.float32:
+                raise TypeError("The self.z array must contain float32 elements")
+        
+        if not hasattr(self, 'fg'):
+            raise AttributeError("The 'fg' attribute is not found.")
+        if self.fg is not None:
+            if not isinstance(self.fg, Callable):
+                raise TypeError("Attribute 'fg' must be Callable or None")
+
+        if level < 1: return
+        if self.rids is None:
+            if not compute:
+                raise ValueError("Attribute 'rids' cannot be None at level > 0.")
+            self.load_regab_indexed_data_set()
+
+        if level < 2: return
+        have_to_comute_wmaps = False
+        if self.pattern_w_ranges is None:
+            if not compute:
+                raise ValueError("Attribute 'pattern_w_ranges' cannot be None at level > 1.")
+            have_to_comute_wmaps = True
+        if self.iwmap_pattern_offset is None:
+            if not compute:
+                raise ValueError("Attribute 'iwmap_pattern_offset' cannot be None at level > 1.")
+            have_to_comute_wmaps = True
+        if self.iwmap is None:
+            if not compute:
+                raise ValueError("Attribute 'iwmap' cannot be None at level > 1.")
+            have_to_comute_wmaps = True
+        if self.wmap is None:
+            if not compute:
+                raise ValueError("Attribute 'wmap' cannot be None at level > 1.")
+            have_to_comute_wmaps = True
+        if self.wmap_fallback is None:
+            if not compute:
+                raise ValueError("Attribute 'wmap_fallback' cannot be None at level > 1.")
+            have_to_comute_wmaps = True
+        if self.w is None:
+            if not compute:
+                raise ValueError("Attribute 'w' cannot be None at level > 1.")
+            have_to_comute_wmaps = True
+        if have_to_comute_wmaps: self.compute_wmaps()
+
+        if level < 3: return
+        have_to_comute_X = False
+        if self.X is None:
+            if not compute:
+                raise ValueError("Attribute 'X' cannot be None at level > 2.")
+            have_to_comute_X = True
+        if have_to_comute_X: self.compute_design_matrix()
+
+        if level < 4: return
+        have_to_comute_z = False
+        if self.z is None:
+            if not compute:
+                raise ValueError("Attribute 'z' cannot be None at level > 3.")
+            have_to_comute_z = True
+        if self.z2y is None:
+            if not compute:
+                raise ValueError("Attribute 'z2y' cannot be None at level > 3.")
+            have_to_comute_z = True
+        if self.y2z is None:
+            if not compute:
+                raise ValueError("Attribute 'y2z' cannot be None at level > 3.")
+            have_to_comute_z = True
+        if have_to_comute_z: self.compute_z()
+        
+        if level < 5: return
+        have_to_comute_fg = False
+        if self.fg is None:
+            if not compute:
+                raise ValueError("Attribute 'fg' cannot be None at level > 4.")
+            have_to_comute_fg = True
+        if have_to_comute_fg: self.generate_gradient()
+    
 def sigmoid(x: np.ndarray) -> np.ndarray:
     """
     Computes the sigmoid (logistic) function on the given array of float values.

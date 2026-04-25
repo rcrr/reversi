@@ -808,6 +808,8 @@ class RegabIndexedDataSet:
 
         max_uint32 = np.iinfo(np.uint32).max
         self.REVMAP_INVALID_VALUE = max_uint32
+        
+        self.check_obj_consistency(level=0)
 
     @classmethod
     def load_from_file(cls: type[Self], filename: str | Path, checksum: bool = True) -> Self:
@@ -990,6 +992,8 @@ class RegabIndexedDataSet:
         - It uses the `mover` and `opponent` positions from the `rds` attribute and the patterns from the `pset` attribute.
         - The resulting indexes are stored in the `indexes` attribute.
         """
+        self.check_obj_consistency(level=0)
+        
         m = self.rds.positions['mover'].values.view(np.uint64)
         o = self.rds.positions['opponent'].values.view(np.uint64)
         m_atrxs = SquareSet.atrxs(m)
@@ -1028,6 +1032,8 @@ class RegabIndexedDataSet:
 
         self.indexes = indexes
 
+        self.check_obj_consistency(level=1)
+
     def flatten_indexes(self) -> None:
         """
         Flattens the indexes array by selecting only the relevant transformations for each pattern.
@@ -1049,8 +1055,7 @@ class RegabIndexedDataSet:
         - If the `indexes` array has not been computed yet, it will be computed before flattening.
         """
 
-        if self.indexes is None:
-            self.compute_indexes()
+        self.check_obj_consistency(level=1)
 
         # umi (Unique mask Indexes) is a list of arrays
         # e.g., [np.array([0, 1, 2, 3]), np.array([0]), ...]
@@ -1081,14 +1086,15 @@ class RegabIndexedDataSet:
             )
         
         self.findexes = flat_indexes
+
+        self.check_obj_consistency(level=2)
         
     def compute_principal_indexes(self) -> None:
         """
         Computes principal indexes and populates the self.pindexes attribute.
         Requires that self.indexes is calculated already, when not it does it.
         """
-        if self.indexes is None:
-            self.compute_indexes()
+        self.check_obj_consistency(level=2)
         
         # Pre-calculate the total number of columns
         # We sum the number of unique groups for each pattern
@@ -1122,6 +1128,8 @@ class RegabIndexedDataSet:
                 
             current_col += n_groups
 
+        self.check_obj_consistency(level=3)
+
     def compute_lookup(self) -> None:
         """
         Builds the Lookup Table: self.lookup
@@ -1131,6 +1139,8 @@ class RegabIndexedDataSet:
         _, p_idx, t_idx = self.lookup[col_number]
         print(f"Column #: {col_number} describes Pattern: {p_idx}, Transformation: {t_idx}")
         """
+        self.check_obj_consistency(level=3)
+
         umi = [p.unique_mask_indexes for p in self.pset.patterns]
         lookup = []
         col_idx = 0
@@ -1140,6 +1150,8 @@ class RegabIndexedDataSet:
                 col_idx += 1
         lookup = np.array(lookup, dtype=np.uint32)
         self.lookup = lookup
+        
+        self.check_obj_consistency(level=4)
 
     def compute_revmap(self) -> None:
         """
@@ -1150,6 +1162,8 @@ class RegabIndexedDataSet:
         Usage:
         col_idx = revmap[p_idx, t_idx]
         """
+        self.check_obj_consistency(level=3)
+        
         if self.lookup is None:
             self.compute_lookup()
         P = len(self.pset.patterns)
@@ -1157,6 +1171,8 @@ class RegabIndexedDataSet:
         for col, p, t in self.lookup:
             revmap[p, t] = col
         self.revmap = revmap
+        
+        self.check_obj_consistency(level=4)
 
     def get_pattern_columns(self, pattern_index: int) -> npt.NDArray[np.uint32]:
         """
@@ -1305,6 +1321,108 @@ class RegabIndexedDataSet:
         with open(checksum_filename, 'w') as checksum_file:
             checksum_file.write(checksum)
 
+    def check_obj_consistency(self, level: int = 0, compute: bool = True) -> None:
+        """
+        Checks invariances are consistent.
+
+        level = 0
+        Basic object consistency must be always true.
+        """
+        if not hasattr(self, 'rds'):
+            raise AttributeError("The 'rds' attribute is not found.")
+        if self.rds is None:
+            raise ValueError("Attribute 'rds' cannot be None.")
+        if not isinstance(self.rds, RegabDataSet):
+            raise TypeError("Attribute 'rds' is not an instance of RegabDataSet.")
+        if not hasattr(self, 'pset'):
+            raise AttributeError("The 'pset' attribute is not found.")
+        if self.pset is None:
+            raise ValueError("Attribute 'pset' cannot be None.")
+        if not isinstance(self.pset, PatternSet):
+            raise TypeError("Attribute 'pset' is not an instance of PatternSet.")
+        if not hasattr(self, 'fqcn'):
+            raise AttributeError("The 'fqcn' attribute is not found.")
+        if self.fqcn is None:
+            raise ValueError("Attribute 'fqcn' cannot be None.")
+        if not isinstance(self.fqcn, str):
+            raise TypeError("Attribute 'fqcn' is not an instance of str.")
+
+        if not hasattr(self, 'indexes'):
+            raise AttributeError("The 'indexes' attribute is not found.")
+        if self.indexes is not None:
+            if not isinstance(self.indexes, np.ndarray):
+                raise TypeError("Attribute 'indexes' must be a numpy array or None.")
+            if self.indexes.dtype != np.uint32:
+                raise TypeError("The 'self.indexes' array must contain uint32 elements.")
+
+        if not hasattr(self, 'findexes'):
+            raise AttributeError("The 'findexes' attribute is not found.")
+        if self.findexes is not None:
+            if not isinstance(self.findexes, np.ndarray):
+                raise TypeError("Attribute 'findexes' must be a numpy array or None.")
+            if self.findexes.dtype != np.uint32:
+                raise TypeError("The 'self.findexes' array must contain uint32 elements.")
+
+        if not hasattr(self, 'lookup'):
+            raise AttributeError("The 'lookup' attribute is not found.")
+        if self.lookup is not None:
+            if not isinstance(self.lookup, np.ndarray):
+                raise TypeError("Attribute 'lookup' must be a numpy array or None.")
+            if self.lookup.dtype != np.uint32:
+                raise TypeError("The 'self.lookup' array must contain uint32 elements.")
+
+        if not hasattr(self, 'revmap'):
+            raise AttributeError("The 'revmap' attribute is not found.")
+        if self.revmap is not None:
+            if not isinstance(self.revmap, np.ndarray):
+                raise TypeError("Attribute 'revmap' must be a numpy array or None.")
+            if self.revmap.dtype != np.uint32:
+                raise TypeError("The 'self.revmap' array must contain uint32 elements.")
+
+        if not hasattr(self, 'pindexes'):
+            raise AttributeError("The 'pindexes' attribute is not found.")
+        if self.pindexes is not None:
+            if not isinstance(self.pindexes, np.ndarray):
+                raise TypeError("Attribute 'pindexes' must be a numpy array or None.")
+            if self.pindexes.dtype != np.uint32:
+                raise TypeError("The 'self.pindexes' array must contain uint32 elements.")
+
+        if not hasattr(self, 'REVMAP_INVALID_VALUE'):
+            raise AttributeError("The 'REVMAP_INVALID_VALUE' attribute is not found.")
+        if self.REVMAP_INVALID_VALUE is None:
+            raise ValueError("Attribute 'REVMAP_INVALID_VALUE' cannot be None.")
+        if not isinstance(self.REVMAP_INVALID_VALUE, int):
+            raise TypeError("Attribute 'REVMAP_INVALID_VALUE' must be an int.")
+
+        if level < 1: return
+        if self.indexes is None:
+            if not compute:
+                raise ValueError("Attribute 'indexes' cannot be None at level > 0.")
+            self.compute_indexes()
+
+        if level < 2: return
+        if self.findexes is None:
+            if not compute:
+                raise ValueError("Attribute 'findexes' cannot be None at level > 1.")
+            self.flatten_indexes()
+
+        if level < 3: return
+        if self.pindexes is None:
+            if not compute:
+                raise ValueError("Attribute 'pindexes' cannot be None at level > 2.")
+            self.compute_principal_indexes()
+
+        if level < 4: return
+        if self.lookup is None:
+            if not compute:
+                raise ValueError("Attribute 'lookup' cannot be None at level > 3.")
+            self.compute_lookup()
+        if self.revmap is None:
+            if not compute:
+                raise ValueError("Attribute 'revmap' cannot be None at level > 3.")
+            self.compute_revmap()
+
+        
 def write_patternset_object_data(pset: PatternSet, fw: Callable[[bytes], None]) -> None:
     """
     Writes the core data of a PatternSet instance to a binary file using the provided writer function.
