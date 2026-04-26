@@ -30,9 +30,9 @@
 #
 # -0- Add checks on array shapes ... and values ....
 # -0.1- Review documentation
-# -1- Add footprint method
+# -1- [done] Add footprint method
 # -2- Add info method
-# -3- Add alias for check_obj_consistency(level=last) .... validate()
+# -3- [done] Add alias for check_obj_consistency(level=last) .... build()
 # -4- Add weights load/store
 # -4.1- Add model cache in the json file
 # -4.2- Review options in the json config file ...
@@ -44,6 +44,9 @@
 # -7- Add validation workflow
 # -8- Add analytics
 # -9- Add plots ...
+#
+#
+# Bisogna verificare che i dati della selezione siano consistenti con la lettura del file ...
 #
 
 """
@@ -72,6 +75,7 @@ from typing import List, Optional, Annotated, Self, Callable
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 
 from itertools import accumulate
 from scipy.special import expit
@@ -640,6 +644,7 @@ class ReversiLogisticModel:
             wmap: npt.NDArray[np.int64], shape(W, 3)
                 Given the w index returns the pattern index, the configuration index, and the frequency configuration
                 pid, pattern_conf_id, pattern_conf_frequency = wmap[w_index]
+                The value -1 is used to identify weight assigned to fall back configurations. One for pattern, if required.
             wmap_fallback: npt.NDArray[np.int64], shape(F, 3)
                 Contains the entries of wmap being excluded by the cut-off. It has:
                 - pid: pattern id
@@ -812,6 +817,8 @@ class ReversiLogisticModel:
         # Final fallback details table: [PID, CONFIG_ID, FREQ]
         # This contains every single config_id that was merged into a fallback w
         fallback_details_table = np.array(fallback_data, dtype=np.int64)      
+        if fallback_details_table.size == 0:
+            fallback_details_table = fallback_details_table.reshape(0, 3)
     
         self.pattern_w_ranges = np.array([[m['fallback'], m['w_min'], m['w_max']] for m in p_w_ranges], dtype=np.int64)
         self.iwmap_pattern_offset = iwmap_pattern_offset
@@ -823,6 +830,21 @@ class ReversiLogisticModel:
         logger.debug(f"Table wmap created. Shape: {wmap.shape} (Total weights assigned: {next_w})")
 
         self.check_obj_consistency(level=2)
+        
+    def collect_wmap_fallback_stats(self) -> pd.DataFrame:
+        P = len(self.rids.pset.patterns)
+        
+        counts = np.bincount(self.wmap_fallback[:, 0], minlength=P)
+        sums = np.bincount(self.wmap_fallback[:, 0],
+                           weights=self.wmap_fallback[:, 2],
+                           minlength=P).astype(np.uint32)
+
+        return pd.DataFrame({
+            'pattern_name': self.rids.pset.names(),
+            'configurations': counts,
+            'occurrences': sums,
+            'fallback_weight': self.pattern_w_ranges[:,0]
+        })
         
     def compute_design_matrix(self, force: bool = None) -> None:
         """
@@ -1238,6 +1260,88 @@ class ReversiLogisticModel:
 
         self.check_obj_consistency(level=5)
 
+    def build(self) -> None:
+        self.check_obj_consistency(level=5)
+
+    def footprint(self) -> None:
+        """
+        Logs the memory footprint of the ReversiLogisticModel instance.
+        """
+        self.check_obj_consistency(level=0)
+        
+        rids = self.rids
+        rds = rids.rds
+        pset = rids.pset
+        bytes_in_mb = 1024**2
+        positions_len = len(rds.positions)
+        positions_mb = rds.positions.memory_usage(deep=True).sum() / bytes_in_mb
+        indexes_mb = 0
+        findexes_mb = 0
+        pindexes_mb = 0
+        pattern_w_ranges_mb = 0
+        iwmap_pattern_offset_mb = 0
+        iwmap_mb = 0
+        wmap_mb = 0
+        wmap_fallback_mb = 0
+        w_mb = 0
+        X_mb = 0
+        z_mb = 0
+        logging.info(f"ReversiLogisticModel memory footprint:")
+        logging.info(f"  rids:")
+        logging.info(f"  - rds:  [bid = {rds.bid}, status = {rds.status}, ec = {rds.ec}, lenght = {rds.length:,}]")
+        logging.info(f"  - pset: [name = {pset.name}, patterns = {pset.names()}]")
+        logging.info(f"    - rds.positions      : [{positions_len:10,d}]            - {positions_mb:9.2f} MB")
+        if rids.indexes is not None:
+            indexes_mb = rids.indexes.nbytes / bytes_in_mb
+            indexes_s = rids.indexes.shape
+            logging.info(f"    - indexes            : [{indexes_s[1]:10,d}]:[{indexes_s[0]:3,d}]:[{indexes_s[2]:1,d}]* - {indexes_mb:9.2f} MB")
+        if rids.findexes is not None:
+            findexes_mb = rids.findexes.nbytes / bytes_in_mb
+            findexes_s = rids.findexes.shape
+            logging.info(f"    - findexes           : [{findexes_s[0]:10,d}]:[{findexes_s[1]:3,d}]      - {findexes_mb:9.2f} MB")
+        if rids.pindexes is not None:
+            pindexes_mb = rids.pindexes.nbytes / bytes_in_mb
+            pindexes_s = rids.pindexes.shape
+            logging.info(f"    - pindexes           : [{pindexes_s[0]:10,d}]:[{pindexes_s[1]:3,d}]      - {pindexes_mb:9.2f} MB")
+        if self.pattern_w_ranges is not None:
+            pattern_w_ranges_mb = self.pattern_w_ranges.nbytes / bytes_in_mb
+            pattern_w_ranges_s = self.pattern_w_ranges.shape
+            logging.info(f"  - pattern_w_ranges     : [{pattern_w_ranges_s[0]:10,d}]:[{pattern_w_ranges_s[1]:3,d}]      - {pattern_w_ranges_mb:9.2f} MB")
+        if self.iwmap_pattern_offset is not None:
+            iwmap_pattern_offset_mb = self.iwmap_pattern_offset.nbytes / bytes_in_mb
+            iwmap_pattern_offset_s = self.iwmap_pattern_offset.shape
+            logging.info(f"  - iwmap_pattern_offset : [{iwmap_pattern_offset_s[0]:10,d}]            - {iwmap_pattern_offset_mb:9.2f} MB")
+        if self.iwmap is not None:
+            iwmap_mb = self.iwmap.nbytes / bytes_in_mb
+            iwmap_s = self.iwmap.shape
+            logging.info(f"  - iwmap                : [{iwmap_s[0]:10,d}]            - {iwmap_mb:9.2f} MB")
+        if self.wmap is not None:
+            wmap_mb = self.wmap.nbytes / bytes_in_mb
+            wmap_s = self.wmap.shape
+            logging.info(f"  - wmap                 : [{wmap_s[0]:10,d}]:[{wmap_s[1]:3,d}]      - {wmap_mb:9.2f} MB")
+        if self.wmap_fallback is not None:
+            wmap_fallback_mb = self.wmap_fallback.nbytes / bytes_in_mb
+            wmap_fallback_s = self.wmap_fallback.shape
+            logging.info(f"  - wmap_fallback        : [{wmap_fallback_s[0]:10,d}]:[{wmap_fallback_s[1]:3,d}]      - {wmap_fallback_mb:9.2f} MB")
+        if self.w is not None:
+            w_mb = self.w.nbytes / bytes_in_mb
+            w_s = self.w.shape
+            logging.info(f"  - w                    : [{w_s[0]:10,d}]            - {w_mb:9.2f} MB")
+        if self.X is not None:
+            X_mb = self.X.nbytes / bytes_in_mb
+            X_s = self.X.shape
+            logging.info(f"  - X                    : [{X_s[0]:10,d}]:[{X_s[1]:3,d}]      - {X_mb:9.2f} MB")
+        if self.z is not None:
+            z_mb = self.z.nbytes / bytes_in_mb
+            z_s = self.z.shape
+            logging.info(f"  - z                    : [{z_s[0]:10,d}]            - {z_mb:9.2f} MB")
+        total_rids_mb = positions_mb + indexes_mb + findexes_mb + pindexes_mb
+        total_model_mb = ( total_rids_mb + pattern_w_ranges_mb + iwmap_pattern_offset_mb +
+                           iwmap_mb + wmap_mb + wmap_fallback_mb + w_mb + X_mb + z_mb )
+        logging.info(f"  _______________________________________________________________")
+        logging.info(f"  Total model            :                        {total_model_mb:12,.2f} MB")
+
+        
     def check_obj_consistency(self, level: int = 0, compute: bool = True) -> None:
         """
         Checks invariances are consistent.
@@ -1261,6 +1365,14 @@ class ReversiLogisticModel:
         level = 5
         The gradient function must be generated and made available.
         """
+        M = None
+        P = None
+        PI = None
+        IW = None
+        W = None
+        CNT = None
+        CNT_FB = None
+        
         if not hasattr(self, 'cfg'):
             raise AttributeError("The 'cfg' attribute is not found.")
         if self.cfg is None:
@@ -1365,6 +1477,18 @@ class ReversiLogisticModel:
             if not compute:
                 raise ValueError("Attribute 'rids' cannot be None at level > 0.")
             self.load_regab_indexed_data_set()
+        M = len(self.rids.rds.positions)
+        P = len(self.rids.pset.patterns)
+        PI = sum([p.n_instances for p in self.rids.pset.patterns])
+        rids_is = self.rids.indexes.shape
+        if M != rids_is[1] or P != rids_is[0] or 8 != rids_is[2]:
+            raise ValueError(f"self.rids.indexes.shape has an unexpected value: {self.rids.indexes.shape}")
+        rids_fs = self.rids.findexes.shape
+        if M != rids_fs[0] or PI != rids_fs[1]:
+            raise ValueError(f"self.rids.findexes.shape has an unexpected value: {self.rids.findexes.shape}, M = {M}, PI = {PI}")
+        rids_ps = self.rids.pindexes.shape
+        if M != rids_ps[0] or PI != rids_ps[1]:
+            raise ValueError(f"self.rids.pindexes.shape has an unexpected value: {self.rids.pindexes.shape}, M = {M}, PI = {PI}")
 
         if level < 2: return
         have_to_comute_wmaps = False
@@ -1393,6 +1517,31 @@ class ReversiLogisticModel:
                 raise ValueError("Attribute 'w' cannot be None at level > 1.")
             have_to_comute_wmaps = True
         if have_to_comute_wmaps: self.compute_wmaps()
+        pwr_s = self.pattern_w_ranges.shape
+        if P != pwr_s[0] or 3 != pwr_s[1]:
+            raise ValueError(f"self.pattern_w_ranges.shape has an unexpected value: {pwr_s}")
+        ipo_s = self.iwmap_pattern_offset.shape
+        if P + 1 != ipo_s[0]:
+            raise ValueError(f"self.iwmap_pattern_offset.shape has an unexpected value: {ipo_s}")
+        iwmap_s = self.iwmap.shape
+        IW = sum([p.n_configurations for p in self.rids.pset.patterns])
+        if IW != iwmap_s[0]:
+            raise ValueError(f"self.iwmap.shape has an unexpected value: {iwmap_s}")
+        W = max(self.iwmap) + 1
+        wmap_s = self.wmap.shape
+        if W != wmap_s[0] or 3 != wmap_s[1]:
+            raise ValueError(f"self.wmap.shape has an unexpected value: {wmap_s}")
+        wf_s = self.wmap_fallback.shape
+        if 3 != wf_s[1]:
+            raise ValueError(f"self.wmap_fallback.shape has an unexpected value: {wf_s}")
+        # Bisogna verificare che i CNT_FB sono tanti quanti gli FB dentro WMAP ...
+        CNT = sum(self.wmap[:, 2])
+        CNT_FB = sum(self.wmap_fallback[:, 2])
+        if CNT != rids_ps[0] * rids_ps[1]:
+            raise ValueError(f"self.rids.indexes.shape = {rids_ps} is not compatible with wmap frequencies. CNT = {CNT}")
+        self.verify_fallback_invariance()
+        if len(self.w) != W:
+            raise ValueError(f"len(self.w) {len(self.w)} has a wrong value, expected is {W}.")
 
         if level < 3: return
         have_to_comute_X = False
@@ -1401,6 +1550,8 @@ class ReversiLogisticModel:
                 raise ValueError("Attribute 'X' cannot be None at level > 2.")
             have_to_comute_X = True
         if have_to_comute_X: self.compute_design_matrix()
+        if self.X.shape != self.rids.pindexes.shape:
+            raise ValueError(f"self.X.shape {self.X.shape} != self.rids.pindexes.shape {self.rids.pindexes.shape}.")
 
         if level < 4: return
         have_to_comute_z = False
@@ -1425,7 +1576,48 @@ class ReversiLogisticModel:
                 raise ValueError("Attribute 'fg' cannot be None at level > 4.")
             have_to_comute_fg = True
         if have_to_comute_fg: self.generate_gradient()
-    
+        if len(self.rids.rds.positions) != len(self.z):
+            raise ValueError(f"len(self.rids.rds.positions) {len(self.rids.rds.positions)} != len(self.z) {len(self.z)}.")
+
+    def verify_fallback_invariance(self):
+        fbs = self.collect_wmap_fallback_stats()
+        
+        # 1. Filter rows with a valid fallback_weight (>= 0)
+        valid_mask = fbs['fallback_weight'] >= 0
+        valid_indices = fbs.index[valid_mask].values
+        fallback_ptrs = fbs.loc[valid_mask, 'fallback_weight'].values
+        expected_occurrences = fbs.loc[valid_mask, 'occurrences'].values
+
+        # 2. Direct access to m.wmap using the extracted pointers
+        # wmap_subset contains the specific rows pointed to by fallback_weight
+        wmap_subset = self.wmap[fallback_ptrs]
+
+        # 3. Invariance check:
+        # Column 0 of wmap must match the pattern index (e.g., 0, 1, 3...)
+        # Column 1 of wmap must always be -1 (fallback indicator)
+        # Column 2: Occurrences must match the dataframe values
+        check_pattern_idx = (wmap_subset[:, 0] == valid_indices)
+        check_minus_one = (wmap_subset[:, 1] == -1)
+        check_occurrences = (wmap_subset[:, 2] == expected_occurrences)
+
+        # 4. Final verification
+        all_checks = check_pattern_idx & check_minus_one & check_occurrences
+        
+        if not all_checks.all():
+            # Identify the first failure point for a detailed error message
+            failed_mask = ~all_checks
+            first_fail_idx = valid_indices[failed_mask][0]
+            
+            actual_values = wmap_subset[failed_mask][0]
+            expected_values = [first_fail_idx, -1, fbs.loc[first_fail_idx, 'occurrences']]
+            
+            raise ValueError(
+                f"Invariance check failed for pattern index {first_fail_idx} "
+                f"at fallback_weight {fbs.loc[first_fail_idx, 'fallback_weight']}.\n"
+                f"Expected [idx, -1, occurrences]: {expected_values}\n"
+                f"Found in wmap: {actual_values.tolist()}"
+            )
+
 def sigmoid(x: np.ndarray) -> np.ndarray:
     """
     Computes the sigmoid (logistic) function on the given array of float values.

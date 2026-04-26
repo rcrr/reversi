@@ -469,3 +469,26 @@ class TestReversiLogisticModelGenerateGradient(unittest.TestCase):
 
         expected_g_2980 = np.float32(220.11)
         nptest.assert_allclose(g[2980], expected_g_2980, rtol=1e-4, atol=1e-7)
+
+class TestReversiLogisticModelFootprint(unittest.TestCase):
+
+    def setUp(self): 
+        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
+        json_config = 'py/test/data/tlm/rlmodel_03.json'
+        self.rlm = ReversiLogisticModel.from_json_path(json_config, base_dir_override=self.tmp_dir)
+        Path(self.rlm.cfg.full_project_dir).mkdir(parents=False, exist_ok=True)
+        self.rlm.build()
+
+    def tearDown(self):
+        pass
+    
+    def test_footprint(self):
+        m = self.rlm
+
+        self.assertIsNotNone(m.fg)
+        
+        if False:
+            print(f"")
+            m.footprint()
+
+        
