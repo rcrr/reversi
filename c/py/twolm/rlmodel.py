@@ -28,7 +28,7 @@
 #
 # To-do:
 #
-# -0- Add checks on array shapes ... and values ....
+# -0- [done] Add checks on array shapes ... and values ....
 # -0.1- Review documentation
 # -1- [done] Add footprint method
 # -2- Add info method
@@ -36,6 +36,7 @@
 # -4- Add weights load/store
 # -4.1- Add model cache in the json file
 # -4.2- Review options in the json config file ...
+# -4.3- Add logging to the build() method
 #
 # -5- Add L-BFGS module
 #
@@ -47,6 +48,16 @@
 #
 #
 # Bisogna verificare che i dati della selezione siano consistenti con la lettura del file ...
+#
+# Serve definire dei livelli ... un workflow che verifica lo stato per livello e la consistenza ...
+# e che invalida e ricalcola le incosistenze ....
+# Workflow class ? IntEnum, @dataclass
+#class Level(enum.IntEnum):
+#    BASE = 0
+#    CONFIG = 1
+#    LOAD_DB = 2
+#    COMPUTE_ANALYTICS = 3
+#
 #
 
 """
@@ -302,7 +313,6 @@ class ReversiLogisticModel:
         Returns two functions that perform an affine transformation.
         One on int8 arrays, it maps the range [-64, 64] to [logit_clipping, 1 - logit_clipping].
         The second does the inverted transformation.
-        to prevent numerical instability in the linear predictor.
         """
         a = np.float32(0.5)
         b = np.float32((1. - 2. * logit_clipping) / 128.)
@@ -1261,7 +1271,56 @@ class ReversiLogisticModel:
         self.check_obj_consistency(level=5)
 
     def build(self) -> None:
+        """
+        Alias for the check_obj_consistency method when argument level is the max available.
+        """
         self.check_obj_consistency(level=5)
+        
+    def info(self) -> None:
+        """
+        Logs the info on the ReversiLogisticModel instance.
+        """
+        c = self.cfg
+        c_ridsc = self.cfg.regab_indexed_data_set_cached
+        c_rids = c_ridsc.regab_indexed_data_set
+        c_rdsc = c_rids.regab_data_set_cached
+        c_rds = c_rdsc.regab_data_set
+        c_dbc = c_rds.regab_db_connection
+        c_pset = c_rids.pattern_set
+        logging.info(f"ReversiLogisticModel:")
+        logging.info(f"  name                : {c.name}")
+        logging.info(f"  description         : {c.description}")
+        logging.info(f"  base_dir            : {c.base_dir}")
+        logging.info(f"  project_dir         : {c.project_dir}")
+        logging.info(f"  regab_indexed_data_set_cached:")
+        logging.info(f"    filename          : {c_ridsc.filename}")
+        logging.info(f"    purge             : {c_ridsc.purge}")
+        logging.info(f"    regab_indexed_data_set:")
+        logging.info(f"      regab_data_set_cached:")
+        logging.info(f"        filename      : {c_rdsc.filename}")
+        logging.info(f"        purge         : {c_rdsc.purge}")
+        logging.info(f"        regab_data_set:")
+        logging.info(f"          regab_db_connection:")
+        logging.info(f"            dbname    : {c_dbc.dbname}")
+        logging.info(f"            user      : {c_dbc.user}")
+        logging.info(f"            host      : {c_dbc.host}")
+        logging.info(f"          batch_id    : {c_rds.bid}")
+        logging.info(f"          status      : {c_rds.status}")
+        logging.info(f"          empty_c     : {c_rds.ec}")
+        logging.info(f"      pattern_set:")
+        logging.info(f"        name          : {c_pset.name}")
+        logging.info(f"        patterns:")
+        for c_p in c_pset.patterns:
+            logging.info(f"          - {c_p.name:<6}    : '0x{c_p.mask:016X}'") 
+        logging.info(f"      has_indexes     : {c_rids.has_indexes}") 
+        logging.info(f"      has_findexes    : {c_rids.has_findexes}") 
+        logging.info(f"      has_pindexes    : {c_rids.has_pindexes}") 
+        logging.info(f"      has_lookup      : {c_rids.has_lookup}") 
+        logging.info(f"      has_revmap      : {c_rids.has_revmap}") 
+        logging.info(f"  stat_model:")
+        logging.info(f"    frequency_cut_off : {c.stat_model.frequency_cut_off}")
+        logging.info(f"    logit_clipping    : {c.stat_model.logit_clipping}")
+        logging.info(f"    ridge_regulariz.  : {c.stat_model.ridge_regularization}")
 
     def footprint(self) -> None:
         """

@@ -63,6 +63,7 @@
     },
     "stat_model": {
         "frequency_cut_off": 1,
-        "logit_clipping": 0.01
+        "logit_clipping": 0.01,
+        "ridge_regularization": 0.01
     }
 }
