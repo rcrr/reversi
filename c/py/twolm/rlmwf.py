@@ -41,6 +41,15 @@ from pathlib import Path
 
 import csv
 
+from twolm.rlm_created_worker import RLMCreatedWorker
+from twolm.rlm_config_worker import RLMConfigWorker
+from twolm.rlm_positions_worker import RLMPositionsWorker
+from twolm.rlm_patterns_worker import RLMPatternsWorker
+from twolm.rlm_indexes_worker import RLMIndexesWorker
+from twolm.rlm_wmaps_worker import RLMWmapsWorker
+from twolm.rlm_design_matrix_worker import RLMDesignMatrixWorker
+from twolm.rlm_zed_worker import RLMZedWorker
+from twolm.rlm_gradient_worker import RLMGradientWorker
 
 __all__ = ['ReversiLogisticModel']
 
@@ -62,20 +71,21 @@ class ReversiLogisticModel:
         ERROR     = 4        
     
     class Level(IntEnum):
-        CREATED    = (0, "Just created.")
-        CONFIG     = (1, "Configuration has been loaded and validated.")
-        POSITIONS  = (2, "Game positions have been loaded.")
-        PATTERNS   = (3, "The pattern set has been loaded.")
-        INDEXES    = (4, "Indexes for pattern configurations have been computed.")
-        WMAPS      = (5, "Weight maps have been computed.")
-        DESIGN_MTR = (6, "The design matrix (X) has been computed.")
-        ZED        = (7, "Zed array calculated from the game values.")
-        GRADIENT   = (8, "The loss function and the gradient array are generated.")
-        OPTIMIZING = (9, "The model is ready for the optimization.")
+        CREATED    = (0, RLMCreatedWorker(), "Just created.")
+        CONFIG     = (1, RLMConfigWorker(), "Configuration has been loaded and validated.")
+        POSITIONS  = (2, RLMPositionsWorker(), "Game positions have been loaded.")
+        PATTERNS   = (3, RLMPatternsWorker(), "The pattern set has been loaded.")
+        INDEXES    = (4, RLMIndexesWorker(), "Indexes for pattern configurations have been computed.")
+        WMAPS      = (5, RLMWmapsWorker(), "Weight maps have been computed.")
+        DESIGN_MTR = (6, RLMDesignMatrixWorker(), "The design matrix (X) has been computed.")
+        ZED        = (7, RLMZedWorker(), "Zed array calculated from the game values.")
+        GRADIENT   = (8, RLMGradientWorker(), "The loss function and the gradient array are generated.")
+        OPTIMIZING = (9, None, "The model is ready for the optimization.")
 
-        def __new__(cls, value, description):
+        def __new__(cls, value, worker, description):
             obj = int.__new__(cls, value)
             obj._value_ = value
+            obj.worker = worker
             obj.description = description
             return obj
     
@@ -108,13 +118,11 @@ class ReversiLogisticModel:
             ))
             
     def __init__(self):
-
         self.current_level = self.Level.CREATED
         self.logs = []
         self.history: List[ReversiLogisticModel.LevelMove] = []
         self.verbosity = self.Verbosity.STANDARD
         self.cfg = None
-        
         self.log_event(self.Relevance.DEBUG, "ReversiLogisticModel initialized.")
         
     def log_event(self, relevance: Relevance, message: str) -> None:
@@ -196,88 +204,15 @@ class ReversiLogisticModel:
             else:
                 self.current_level = self.Level(lv_val - 1)
 
-    def _run_step(self, level, direction):
-        method_name = f"_{direction}_{level.name.lower()}"
-        method = getattr(self, method_name, None)
-        if method:
-            self.log_event(self.Relevance.INFO, f"Executing {method_name}...")
-            method()
-            self.log_event(self.Relevance.INFO, f"Completed execution of {method_name}.")
-        
-    def _up_created(self):
-        raise RuntimeError(f"Executing created step should never happen.")
-
-    def _down_created(self):
-        raise RuntimeError(f"Cleaning created step should never happen.")
-        
-    def _up_config(self):
-        # .... add the domain code ...
-        return
-
-    def _down_config(self):
-        # .... add the domain code ...
-        return
-        
-    def _up_positions(self):
-        # .... add the domain code ...
-        return
-
-    def _down_positions(self):
-        # .... add the domain code ...
-        return
-        
-    def _up_patterns(self):
-        # .... add the domain code ...
-        return
-
-    def _down_patterns(self):
-        # .... add the domain code ...
-        return
-        
-    def _up_indexes(self):
-        # .... add the domain code ...
-        return
-
-    def _down_indexes(self):
-        # .... add the domain code ...
-        return
-        
-    def _up_wmaps(self):
-        # .... add the domain code ...
-        return
-
-    def _down_wmaps(self):
-        # .... add the domain code ...
-        return
-        
-    def _up_design_mtr(self):
-        # .... add the domain code ...
-        return
-
-    def _down_design_mtr(self):
-        # .... add the domain code ...
-        return
-        
-    def _up_zed(self):
-        # .... add the domain code ...
-        return
-
-    def _down_zed(self):
-        # .... add the domain code ...
-        return
-        
-    def _up_gradient(self):
-        # .... add the domain code ...
-        return
-
-    def _down_gradient(self):
-        # .... add the domain code ...
-        return
-        
-    def _up_optimizing(self):
-        # .... add the domain code ...
-        return
-
-    def _down_optimizing(self):
-        # .... add the domain code ...
-        return
+    def _run_step(self, level: Level, direction: str):
+        if not level.worker:
+            self.log_event(self.Relevance.WARN, f"No worker defined for level {level.name}")
+            return
+        try:
+            self.log_event(self.Relevance.INFO, f"Starting {direction} step for {level.name}")            
+            method = getattr(level.worker, direction)
+            method(self)
+            self.log_event(self.Relevance.INFO, f"Completed {direction} step for {level.name}")
+        except Exception as e:
+            self.log_event(self.Relevance.ERROR, f"Error in {level.name} during {direction}: {str(e)}")
+            raise
