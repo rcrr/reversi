@@ -150,7 +150,7 @@ class ReversiLogisticModel:
         self.logs.append(event)
         if relevance >= self.verbosity:
             timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-            print(f"[{timestamp}] [{self.current_level}][{self.current_level.name}] [{relevance}:{self.verbosity}] {message}")
+            print(f"[{timestamp}] [{self.current_level:02}][{self.current_level.name:10}] [{relevance}:{self.verbosity}] {message}")
         
     def show_event_log(self) -> None:
         print(f"\n--- --- --- --- --- - EVENT LOG - --- --- --- --- ---")
@@ -227,16 +227,17 @@ class ReversiLogisticModel:
             self.log_event(self.Relevance.WARN, f"No worker defined for level {level.name}")
             return
         try:
-            self.log_event(self.Relevance.INFO, f"Starting {direction} step for {level.name}")            
+            worker_name = level.worker.__class__.__name__
+            self.log_event(self.Relevance.INFO, f"Starting worker {worker_name}, {direction.upper()} step for {level.name}")            
             method = getattr(level.worker, direction)
             method(self)
-            self.log_event(self.Relevance.INFO, f"Completed {direction} step for {level.name}")
+            self.log_event(self.Relevance.INFO, f"Completed {direction.upper()} step for {level.name}")
         except Exception as e:
             self.log_event(self.Relevance.ERROR, f"Error in {level.name} during {direction}: {str(e)}")
             raise
 
-    def get_cache_file_path_for_level(self) -> Path:
-        level = self.current_level
+    def get_cache_file_path_for_next_level(self) -> Path:
+        level = self.Level(self.current_level + 1)
         base_file_name = 'rlmwf'
         suffix = 'dat'
         level_string = f"{level:02}_{level.name}"

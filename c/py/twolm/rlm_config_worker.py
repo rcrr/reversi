@@ -128,7 +128,7 @@ def _store_to_file(model: ReversiLogisticModel,
     config_json = cfg.model_dump_json(indent=4)
     current_checksum = hashlib.sha3_256(config_json.encode()).hexdigest()
     
-    file_path = cfg.base_dir / model.get_cache_file_path_for_level()
+    file_path = cfg.base_dir / model.get_cache_file_path_for_next_level()
     checksum_file_path = file_path.with_name(file_path.name + ".SHA3-256")
     
     model.log_event(model.Relevance.DEBUG, f"File: {file_path}, current_checksum = {current_checksum}")

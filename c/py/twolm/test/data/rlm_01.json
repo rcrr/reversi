@@ -1,0 +1,66 @@
+/*
+ * rlm_01.json
+ *
+ * This file is part of the reversi program
+ * http://github.com/rcrr/reversi
+ * 
+ * Author Roberto Corradini mailto:rob_corradini@yahoo.it
+ * Copyright 2026 Roberto Corradini. All rights reserved.
+ *
+ * License
+ * 
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3, or (at your option) any
+ * later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+ * or visit the site <http://www.gnu.org/licenses/>.
+ */
+{
+    "name": "RGLM (Logistic) - Unit Test 01 (rlm_01.json)",
+    "description": "Used for unit testing.",
+    "base_dir": "will/be/overwritten/by/python/during/unittesting",
+    "project_dir": ".",
+    "regab_indexed_data_set_cached": {
+        "regab_indexed_data_set": {
+            "regab_data_set_cached": {
+                "regab_data_set": {
+                    "regab_db_connection": {
+                        "dbname": "tst_regab",
+                        "user": "tst_regab",
+                        "host": "localhost"
+                    },
+                    "bid": [8],
+                    "status": ['CMS', 'CMR'],
+                    "ec": 20
+                },
+                "filename": "regab_data_set.dat",
+                "purge": true
+            },
+            "pattern_set": {
+                "name": "BasicPatternSet",
+                "patterns": [
+                    { "name": "ELLE", "mask": "0000000000000107" },
+                    { "name": "EDGE", "mask": "00000000000000FF" }
+                ]
+            },
+            "has_indexes": false,
+            "has_findexes": false,
+            "has_pindexes": true,
+            "has_lookup": true,
+            "has_revmap": true
+        },
+        "filename": "regab_indexed_data_set.dat"
+    },
+    "stat_model": {
+        "frequency_cut_off": 2
+    }
+}

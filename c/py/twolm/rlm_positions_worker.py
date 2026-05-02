@@ -43,6 +43,23 @@ class RLMPositionsWorker(ReversiLogisticModelWorker):
     
     def up(self, model: ReversiLogisticModel) -> None:
         model.log_event(model.Relevance.INFO, "Loading game positions...")
+        _read_cache(model)
         
     def down(self, model: ReversiLogisticModel) -> None:
         model.log_event(model.Relevance.INFO, "Clearing game positions...")
+
+#
+# Steps ...
+#
+# -0- cerca il file di CACHE
+# -1- se esiste lo verifica con il checksum ...
+# -1.1- carica i dati di HEADER e li confronta con quelli di CFG
+# -1.2- se sono UGUALI carica il file.
+# -1.3- se sono DIVERSI _INVALIDA_LA_CACHE_ e prepara la DBCONN
+# -1.4- esegue la query.
+# -1.5- eventualmente calcola dei dati derivati ...
+# -2- se _INVALIDA_CACHE_ is True ... scrive il file di CACHE su disco
+# -3- FINE WORK ELEMENT
+
+def _read_cache(model: ReversiLogisticModel) -> None:
+    pass
