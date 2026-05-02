@@ -37,15 +37,67 @@ if TYPE_CHECKING:
 
 from twolm.rlm_abstract_worker import ReversiLogisticModelWorker
 
+from pydantic import (BaseModel)
+
+import json5
+from pathlib import Path
+
+
 __all__ = ['RLMConfigWorker']
+
+#
+# Pydantic configuration classes.
+#
+
+class ReversiLogisticModelConfig(BaseModel):
+    """
+    Configuration for the Reversi logistic model, including general settings,
+    data set configurations, and statistical model settings.
+    """
+    name: str
+    description: str
+    base_dir: Path
+    project_dir: Path
+    #regab_indexed_data_set_cached: RegabIndexedDataSetCachedConfig
+    #stat_model: StatModelConfig
+
+#
+# Pydantic - End.
+#
 
 class RLMConfigWorker(ReversiLogisticModelWorker):
     
     def up(self, model: ReversiLogisticModel) -> None:
         model.log_event(model.Relevance.INFO, "Loading configuration file...")
-        # ... qui metti le tue 200 righe di logica ...
-        # model.cfg = load_and_validate()
+        cfg = _load(model)
+        model.log_event(model.Relevance.INFO, f"Configuration file {model.config_file_path} loaded.")
+        #
+        _validate(model, cfg)
+        model.log_event(model.Relevance.INFO, f"Configuration file {model.config_file_path} validated.")
+        model.cfg = cfg
         
     def down(self, model: ReversiLogisticModel) -> None:
         model.log_event(model.Relevance.INFO, "Clearing configuration...")
         model.cfg = None
+
+#
+#
+#
+
+def _load(model: ReversiLogisticModel) -> ReversiLogisticModelConfig:
+
+    with model.config_file_path.open("r", encoding="utf-8") as f:
+        config_raw_data = json5.load(f)
+        model.log_event(model.Relevance.DEBUG, f"JSON file '{f}' read.")
+
+    if model.base_dir_override is not None:
+        config_raw_data['base_dir'] = model.base_dir_override
+        model.log_event(model.Relevance.DEBUG, f"Value for base_dir changed to '{model.base_dir_override}'.")
+
+    cfg = ReversiLogisticModelConfig(**config_raw_data)
+    model.log_event(model.Relevance.DEBUG, f"Configuration loaded.")
+    return cfg
+
+def _validate(model: ReversiLogisticModel,
+              cfg: ReversiLogisticModelConfig):
+    pass

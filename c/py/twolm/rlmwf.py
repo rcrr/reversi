@@ -36,7 +36,7 @@ from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass
 from contextlib import contextmanager
 
-from typing import List
+from typing import List, TypedDict, Any
 from pathlib import Path
 
 import csv
@@ -116,32 +116,49 @@ class ReversiLogisticModel:
                 finish=finish, 
                 duration=finish - start
             ))
-            
-    def __init__(self):
+
+    class LogEntry(TypedDict):
+        time: datetime
+        level: ReversiLogisticModel.Level
+        relevance: ReversiLogisticModel.Relevance
+        message: str
+    
+    def __init__(self,
+                 config_file_path: str | Path,
+                 base_dir_override: str | Path | None = None):
+        config_file_path = check_config_file_path(config_file_path)
+        if base_dir_override is not None:
+            base_dir_override = check_base_dir_override(base_dir_override)
         self.current_level = self.Level.CREATED
-        self.logs = []
+        self.logs: List[LogEntry] = []
         self.history: List[ReversiLogisticModel.LevelMove] = []
         self.verbosity = self.Verbosity.STANDARD
+        self.config_file_path = config_file_path
+        self.base_dir_override = base_dir_override
         self.cfg = None
         self.log_event(self.Relevance.DEBUG, "ReversiLogisticModel initialized.")
         
     def log_event(self, relevance: Relevance, message: str) -> None:
-        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        time = datetime.now(timezone.utc)
         event = {
-            "timestamp": timestamp,
-            "level": self.current_level.name,
+            "time": time,
+            "level": self.current_level,
             "relevance": relevance,
             "message": message
         }
         self.logs.append(event)
         if relevance >= self.verbosity:
-            print(f"[{timestamp}] [{self.current_level.name}] [{relevance}:{self.verbosity}] {message}")
+            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+            print(f"[{timestamp}] [{self.current_level}][{self.current_level.name}] [{relevance}:{self.verbosity}] {message}")
         
     def show_event_log(self) -> None:
-        print(f"\n--- --- --- --- EVENT LOG --- --- --- ---")
+        print(f"\n--- --- --- --- --- - EVENT LOG - --- --- --- --- ---")
+        print(f"______________________________________________________")
         print(f"TIMESTAMP           | LEVEL      | R | MESSAGE")
         for entry in self.logs:
-            print(f"{entry['timestamp']} | {entry['level']:10} | {entry['relevance']} | {entry['message']}")
+            time = entry['time']
+            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+            print(f"{timestamp} | {entry['level'].name:10} | {entry['relevance']} | {entry['message']}")
 
     def show_history_of_moves(self) -> None:
         print(f"{'Level':<15} | {'Dir':<5} | {'Start (UTC)':<26} | {'Dur (s)':<14}")
@@ -216,3 +233,28 @@ class ReversiLogisticModel:
         except Exception as e:
             self.log_event(self.Relevance.ERROR, f"Error in {level.name} during {direction}: {str(e)}")
             raise
+
+
+#
+# Helper methods.
+#
+
+def check_config_file_path(config_file_path: Path | str) -> Path:
+    if not isinstance(config_file_path, (str, Path)):
+        raise TypeError('Argument config_file_path is not an instance of str or Path')
+    cfp = Path(config_file_path)
+    if not cfp.exists():
+        raise FileNotFoundError(f"No such file: '{config_file_path}'")
+    if not cfp.is_file():
+        raise FileNotFoundError(f"File path is not a file: '{config_file_path}'")
+    return cfp
+
+def check_base_dir_override(base_dir_override: Path | str) -> Path:
+    if not isinstance(base_dir_override, (str, Path)):
+        raise TypeError('Argument base_dir_override is not an instance of str or Path')
+    bdo = Path(base_dir_override)
+    if not bdo.exists():
+        raise FileNotFoundError(f"No such file: '{base_dir_override}'")
+    if not bdo.is_directory():
+        raise FileNotFoundError(f"File path is not a directory: '{base_dir_override}'")
+    return bdo

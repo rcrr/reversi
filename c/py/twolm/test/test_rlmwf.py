@@ -49,6 +49,9 @@ import os
 import tempfile
 import shutil
 import csv
+import tempfile
+
+from pathlib import Path
 
 import twolm
 import twolm.domain
@@ -96,8 +99,15 @@ class TestReversiLogisticModelLevel(unittest.TestCase):
 
 class TestReversiLogisticModelInit(unittest.TestCase):
 
+    def setUp(self):
+        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
+        self.json_config = 'py/twolm/test/data/rlm_00.json'
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp_dir)
+
     def test_init(self):
-        rlm = ReversiLogisticModel()
+        rlm = ReversiLogisticModel(self.json_config)
         self.assertEqual(rlm.current_level.value, 0)
         self.assertEqual(rlm.current_level.name, 'CREATED')
         self.assertEqual(rlm.current_level.description, 'Just created.')
@@ -105,11 +115,13 @@ class TestReversiLogisticModelInit(unittest.TestCase):
 class TestReversiLogisticModelMoveToLevel(unittest.TestCase):
 
     def setUp(self):
-        self.rlm = ReversiLogisticModel()
+        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
+        self.json_config = 'py/twolm/test/data/rlm_00.json'
+        self.rlm = ReversiLogisticModel(self.json_config)
         self.rlm.verbosity = self.rlm.Verbosity.LOW
 
     def tearDown(self):
-        pass
+        shutil.rmtree(self.tmp_dir)
 
     def test_move_to_level(self):
         l = ReversiLogisticModel.Level['CREATED']
@@ -156,18 +168,27 @@ class TestReversiLogisticModelMoveToLevel(unittest.TestCase):
 
 class TestReversiLogisticModelEventHistory(unittest.TestCase):
 
+    def setUp(self):
+        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
+        self.json_config = 'py/twolm/test/data/rlm_00.json'
+        self.rlm = ReversiLogisticModel(self.json_config)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp_dir)
+
     def test_log(self):
-        rlm = ReversiLogisticModel()
+        rlm = self.rlm
         self.assertIsNotNone(rlm.logs)
         self.assertTrue(isinstance(rlm.logs, list))
         self.assertEqual(len(rlm.logs), 1)
         entry = rlm.logs[0]
-        self.assertEqual(entry['level'], 'CREATED')
+        self.assertEqual(entry['level'], 0)
+        self.assertEqual(entry['level'].name, 'CREATED')
         self.assertEqual(entry['message'], 'ReversiLogisticModel initialized.')
 
     def test_show_event_log(self):
-        rlm = ReversiLogisticModel()
-        if False:
+        rlm = self.rlm
+        if True:
             rlm.show_event_log()
         with patch('sys.stdout', new=StringIO()) as fake_out:
             rlm.show_event_log()
@@ -182,14 +203,17 @@ class TestReversiLogisticModelExportHistoryOfMovesAsCvs(unittest.TestCase):
     def setUp(self):
         level_name_0 = 'CREATED'
         level_name_1 = 'CONFIG'
-        self.rlm = ReversiLogisticModel()
+        
+        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
+        self.json_config = 'py/twolm/test/data/rlm_00.json'
+        self.rlm = ReversiLogisticModel(self.json_config)
+        
         self.rlm.verbosity = self.rlm.Verbosity.LOW
         self.rlm.move_to_level(level_name_1)
         self.assertEqual(self.rlm.current_level.name, level_name_1)
         self.rlm.move_to_level(level_name_0)
         self.assertEqual(self.rlm.current_level.name, level_name_0)
         
-        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
         self.filename = os.path.join(self.tmp_dir, 'log_moves.csv')
 
     def tearDown(self):
