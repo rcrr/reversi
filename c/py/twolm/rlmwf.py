@@ -255,6 +255,6 @@ def check_base_dir_override(base_dir_override: Path | str) -> Path:
     bdo = Path(base_dir_override)
     if not bdo.exists():
         raise FileNotFoundError(f"No such file: '{base_dir_override}'")
-    if not bdo.is_directory():
+    if not bdo.is_dir():
         raise FileNotFoundError(f"File path is not a directory: '{base_dir_override}'")
     return bdo

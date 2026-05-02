@@ -28,7 +28,7 @@
     "name": "RGLM (Logistic) - Unit Test 00 (rlm_00.json)",
     "description": "Used for unit testing.",
     "base_dir": "will/be/overwritten/by/python/during/unittesting",
-    "project_dir": "UNITTEST",
+    "project_dir": ".",
     "regab_indexed_data_set_cached": {
         "regab_indexed_data_set": {
             "regab_data_set_cached": {

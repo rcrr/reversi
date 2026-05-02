@@ -117,7 +117,7 @@ class TestReversiLogisticModelMoveToLevel(unittest.TestCase):
     def setUp(self):
         self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
         self.json_config = 'py/twolm/test/data/rlm_00.json'
-        self.rlm = ReversiLogisticModel(self.json_config)
+        self.rlm = ReversiLogisticModel(self.json_config, base_dir_override=self.tmp_dir)
         self.rlm.verbosity = self.rlm.Verbosity.LOW
 
     def tearDown(self):
@@ -188,7 +188,7 @@ class TestReversiLogisticModelEventHistory(unittest.TestCase):
 
     def test_show_event_log(self):
         rlm = self.rlm
-        if True:
+        if False:
             rlm.show_event_log()
         with patch('sys.stdout', new=StringIO()) as fake_out:
             rlm.show_event_log()
@@ -206,7 +206,7 @@ class TestReversiLogisticModelExportHistoryOfMovesAsCvs(unittest.TestCase):
         
         self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
         self.json_config = 'py/twolm/test/data/rlm_00.json'
-        self.rlm = ReversiLogisticModel(self.json_config)
+        self.rlm = ReversiLogisticModel(self.json_config, base_dir_override=self.tmp_dir)
         
         self.rlm.verbosity = self.rlm.Verbosity.LOW
         self.rlm.move_to_level(level_name_1)

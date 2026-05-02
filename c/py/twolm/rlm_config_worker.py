@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 
 from twolm.rlm_abstract_worker import ReversiLogisticModelWorker
 
-from pydantic import (BaseModel)
+from pydantic import (BaseModel, computed_field)
 
 import json5
 from pathlib import Path
@@ -60,6 +60,11 @@ class ReversiLogisticModelConfig(BaseModel):
     project_dir: Path
     #regab_indexed_data_set_cached: RegabIndexedDataSetCachedConfig
     #stat_model: StatModelConfig
+    
+    @computed_field
+    @property
+    def full_project_dir(self) -> Path:
+        return self.base_dir / self.project_dir
 
 #
 # Pydantic - End.
@@ -71,7 +76,6 @@ class RLMConfigWorker(ReversiLogisticModelWorker):
         model.log_event(model.Relevance.INFO, "Loading configuration file...")
         cfg = _load(model)
         model.log_event(model.Relevance.INFO, f"Configuration file {model.config_file_path} loaded.")
-        #
         _validate(model, cfg)
         model.log_event(model.Relevance.INFO, f"Configuration file {model.config_file_path} validated.")
         model.cfg = cfg
@@ -100,4 +104,11 @@ def _load(model: ReversiLogisticModel) -> ReversiLogisticModelConfig:
 
 def _validate(model: ReversiLogisticModel,
               cfg: ReversiLogisticModelConfig):
-    pass
+    _validate_full_project_dir(model, cfg)
+
+def _validate_full_project_dir(model: ReversiLogisticModel,
+                               cfg: ReversiLogisticModelConfig):
+    if not cfg.full_project_dir.exists():
+        model.log_event(model.Relevance.ERROR, f"The full project dir: '{cfg.full_project_dir}' doesn't exist.")
+        raise RuntimeError(f"The full project dir: '{cfg.full_project_dir}' doesn't exist.")
+        
