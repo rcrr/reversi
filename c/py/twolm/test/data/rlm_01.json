@@ -28,39 +28,14 @@
     "name": "RGLM (Logistic) - Unit Test 01 (rlm_01.json)",
     "description": "Used for unit testing.",
     "base_dir": "will/be/overwritten/by/python/during/unittesting",
-    "project_dir": ".",
-    "regab_indexed_data_set_cached": {
-        "regab_indexed_data_set": {
-            "regab_data_set_cached": {
-                "regab_data_set": {
-                    "regab_db_connection": {
-                        "dbname": "tst_regab",
-                        "user": "tst_regab",
-                        "host": "localhost"
-                    },
-                    "bid": [8],
-                    "status": ['CMS', 'CMR'],
-                    "ec": 20
-                },
-                "filename": "regab_data_set.dat",
-                "purge": true
-            },
-            "pattern_set": {
-                "name": "BasicPatternSet",
-                "patterns": [
-                    { "name": "ELLE", "mask": "0000000000000107" },
-                    { "name": "EDGE", "mask": "00000000000000FF" }
-                ]
-            },
-            "has_indexes": false,
-            "has_findexes": false,
-            "has_pindexes": true,
-            "has_lookup": true,
-            "has_revmap": true
+    "regab_data_set": {
+        "regab_db_connection": {
+            "dbname": "tst_regab",
+            "user": "tst_regab",
+            "host": "localhost"
         },
-        "filename": "regab_indexed_data_set.dat"
-    },
-    "stat_model": {
-        "frequency_cut_off": 2
+        "bid": [8],
+        "status": ['CMS', 'CMR'],
+        "ec": 20
     }
 }

@@ -37,7 +37,9 @@ if TYPE_CHECKING:
 
 from twolm.rlm_abstract_worker import ReversiLogisticModelWorker
 
-from pydantic import (BaseModel, computed_field)
+from pydantic import (BaseModel, Field, NonNegativeInt)
+
+from typing import List, Annotated, Optional
 
 import os
 import json5
@@ -51,16 +53,36 @@ __all__ = ['RLMConfigWorker']
 # Pydantic configuration classes.
 #
 
+class RegabDBConnectionConfig(BaseModel):
+    """
+    Configuration for connecting to the Regab database.
+    """
+    dbname: str
+    user: str
+    host: str
+    port: int = 5432
+    password: Optional[str] = None
+
+StatusString = Annotated[str, Field(pattern=r"^[A-Z]{3}$")]
+
+class RegabDataSetConfig(BaseModel):
+    """
+    Configuration for a Regab data set, including the database connection and filtering criteria.
+    """
+    regab_db_connection: RegabDBConnectionConfig
+    bid: List[NonNegativeInt]
+    status: List[StatusString]
+    ec: int = Field(..., ge=0, le=60)
+
 class ReversiLogisticModelConfig(BaseModel):
     """
-    Configuration for the Reversi logistic model, including general settings,
-    data set configurations, and statistical model settings.
+    Configuration for the Reversi Logistic Model, including general settings,
+    data set configuration.
     """
     name: str
     description: str
     base_dir: Path
-    #regab_indexed_data_set_cached: RegabIndexedDataSetCachedConfig
-    #stat_model: StatModelConfig
+    regab_data_set: RegabDataSetConfig
 
 #
 # Pydantic - End.
