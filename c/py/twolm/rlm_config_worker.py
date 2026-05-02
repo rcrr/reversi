@@ -69,12 +69,15 @@ class ReversiLogisticModelConfig(BaseModel):
 class RLMConfigWorker(ReversiLogisticModelWorker):
     
     def up(self, model: ReversiLogisticModel) -> None:
-        model.log_event(model.Relevance.INFO, "Loading configuration file...")
+        model.log_event(model.Relevance.INFO, f"Loading configuration file '{model.config_file_path}' ...")
         cfg = _load(model)
         model.log_event(model.Relevance.INFO, f"Configuration file {model.config_file_path} loaded.")
         _validate(model, cfg)
         model.log_event(model.Relevance.INFO, f"Configuration file {model.config_file_path} validated.")
         _store_to_file(model, cfg)
+        model.log_event(model.Relevance.INFO, f"Model name: {cfg.name}")
+        model.log_event(model.Relevance.INFO, f"Model description: {cfg.description}")
+        model.log_event(model.Relevance.INFO, f"Model base_dir: {cfg.base_dir}")
         model.cfg = cfg
         
     def down(self, model: ReversiLogisticModel) -> None:
@@ -96,7 +99,6 @@ def _load(model: ReversiLogisticModel) -> ReversiLogisticModelConfig:
         model.log_event(model.Relevance.DEBUG, f"Value for base_dir changed to '{model.base_dir_override}'.")
 
     cfg = ReversiLogisticModelConfig(**config_raw_data)
-    model.log_event(model.Relevance.DEBUG, f"Configuration loaded.")
     return cfg
 
 def _validate(model: ReversiLogisticModel,
