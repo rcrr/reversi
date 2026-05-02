@@ -125,6 +125,7 @@ class ReversiLogisticModel:
     
     def __init__(self,
                  config_file_path: str | Path,
+                 verbosity: Verbosity = Verbosity.STANDARD,
                  base_dir_override: str | Path | None = None):
         config_file_path = check_config_file_path(config_file_path)
         if base_dir_override is not None:
@@ -132,7 +133,7 @@ class ReversiLogisticModel:
         self.current_level = self.Level.CREATED
         self.logs: List[LogEntry] = []
         self.history: List[ReversiLogisticModel.LevelMove] = []
-        self.verbosity = self.Verbosity.STANDARD
+        self.verbosity = verbosity
         self.config_file_path = config_file_path
         self.base_dir_override = base_dir_override
         self.cfg = None
@@ -234,6 +235,14 @@ class ReversiLogisticModel:
             self.log_event(self.Relevance.ERROR, f"Error in {level.name} during {direction}: {str(e)}")
             raise
 
+    def get_cache_file_path_for_level(self) -> Path:
+        level = self.current_level
+        base_file_name = 'rlmwf'
+        suffix = 'dat'
+        level_string = f"{level:02}_{level.name}"
+        file_name = f"{base_file_name}_{level_string}.{suffix}"
+        fp = Path(file_name)
+        return fp
 
 #
 # Helper methods.

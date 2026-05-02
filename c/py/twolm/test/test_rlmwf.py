@@ -121,6 +121,9 @@ class TestReversiLogisticModelMoveToLevel(unittest.TestCase):
         self.rlm.verbosity = self.rlm.Verbosity.LOW
 
     def tearDown(self):
+        if False:
+            os.system(f"ls -l {self.tmp_dir}")
+            os.system(f"cat {self.tmp_dir}/rlmwf_00_CREATED.dat")
         shutil.rmtree(self.tmp_dir)
 
     def test_move_to_level(self):
