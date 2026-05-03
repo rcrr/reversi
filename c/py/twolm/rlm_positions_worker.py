@@ -51,7 +51,6 @@ import struct
 import hashlib
 import os
 
-
 __all__ = ['RLMPositionsWorker']
 
 class RLMPositionsWorker(ReversiLogisticModelWorker):
@@ -90,19 +89,6 @@ class RLMPositionsWorker(ReversiLogisticModelWorker):
         model.log_event(model.Relevance.INFO, "Clearing game positions...")
         model.rds = None
 
-#
-# Steps ...
-#
-# -0- cerca il file di CACHE
-# -1- se esiste lo verifica con il checksum ...
-# -1.1- carica i dati di HEADER e li confronta con quelli di CFG
-# -1.2- se sono UGUALI carica il file.
-# -1.3- se sono DIVERSI _INVALIDA_LA_CACHE_ e prepara la DBCONN
-# -1.4- esegue la query.
-# -1.5- eventualmente calcola dei dati derivati ...
-# -2- se _INVALIDA_CACHE_ is True ... scrive il file di CACHE su disco
-# -3- FINE WORK ELEMENT
-
 def _is_cache_available(p: Path) -> bool:
     if p.exists():
         verify_checksum(p)
@@ -140,11 +126,11 @@ def _is_cache_consistent(model: ReversiLogisticModel, rds: RegabDataSet) -> bool
 def _load_from_db(model: ReversiLogisticModel) -> RegabDataSet:
     cp = model.cfg.regab_data_set.regab_db_connection
     rc = RegabDBConnection(cp.dbname, cp.user, cp.host)
-    model.log_event(model.Relevance.INFO, f"Regab Database connection established succesfully.")
+    model.log_event(model.Relevance.DEBUG, f"Regab Database connection {cp.dbname, cp.user, cp.host} established succesfully.")
 
     cp = model.cfg.regab_data_set
     rds = RegabDataSet.extract_from_db(rc, cp.bid, cp.status, cp.ec)
-    model.log_event(model.Relevance.INFO, f"Extracted {len(rds.positions):,} positions from the database.")
+    model.log_event(model.Relevance.DEBUG, f"Extracted {len(rds.positions):,} positions from the database.")
     
     rc.close()
     return rds
@@ -180,6 +166,9 @@ class RegabDBConnection:
     -------
     close()
         Closes the db connection.
+
+    activate_conn()
+        Establish the connection.
     """
     def __init__(self, dbname: str, user: str, host: str,
                  port: str ='5432', password: str | None =None,
@@ -199,6 +188,8 @@ class RegabDBConnection:
             The port number on which the database server is listening. Default is '5432'.
         password : str, optional
             The password for the database connection. Default is None.
+        activate_conn : bool, optional
+            When False do not create the database connection.
 
         Raises
         ------
@@ -254,6 +245,8 @@ class RegabDataSet:
 
     Attributes
     ----------
+    rc : RegabDBConnection
+        A database connection object
     bid : List[int]
         A list of batch IDs.
     status : List[str]
@@ -263,18 +256,26 @@ class RegabDataSet:
     positions : pd.DataFrame
         A DataFrame containing the game positions with columns 'mover', 'opponent', and 'game_value'.
 
-    Methods
-    -------
+    Class Methods
+    -------------
     extract_from_db(rc: RegabDBConnection, bid: Union[int, List[int]], status: Union[str, List[str]], ec: int) -> RegabDataSet
         Extracts data from the database and creates a RegabDataSet instance.
-    write_core_object_data(fw: Callable[[bytes], None]) -> None
-        Writes the core data of the RegabDataSet instance to a binary file using the provided writer function.
-    store_to_file(filename: str | Path) -> None
-        Saves the RegabDataSet instance to a binary file and calculates the SHA3-256 checksum.
     load_from_file(filename: str | Path, checksum: bool = True) -> RegabDataSet
         Loads a RegabDataSet instance from a binary file.
-    read_core_object_data(f: io.BufferedReader) -> RegabDataSet
-        Reads the core data of a RegabDataSet instance from a binary file.
+
+    Methods
+    -------
+    store_to_file(filename: str | Path) -> None
+        Saves the RegabDataSet instance to a binary file and calculates the SHA3-256 checksum.
+
+    Private Methods
+    ---------------
+    _write_db_connection_data(fw: Callable[[bytes], None]) -> None
+        Writes the db connection header of the RegabDataSet instance to a binary file using the provided writer function.
+    _write_header_data(fw: Callable[[bytes], None]) -> None
+        Writes the header data of the RegabDataSet instance to a binary file using the provided writer function.
+    _write_positions_data(fw: Callable[[bytes], None]) -> None
+        Writes the game position data of the RegabDataSet instance to a binary file using the provided writer function.
     """
     def __init__(self,
                  rc: RegabDBConnection,
@@ -287,6 +288,8 @@ class RegabDataSet:
 
         Parameters
         ----------
+        rc : RegabDBConnection
+            A database connection object
         bid : List[int]
             A list of batch IDs.
         status : List[str]
@@ -303,7 +306,9 @@ class RegabDataSet:
         ValueError
             If any of the arguments have an invalid value.
         """
-
+        if not isinstance(rc, RegabDBConnection):
+            raise TypeError('Argument rc is not an instance of RegabDBConnection')
+            
         if isinstance(bid, list):
             if not all([isinstance(x, int) for x in bid]):
                 raise TypeError('Argument bid has elements not being of type int')
@@ -372,14 +377,34 @@ class RegabDataSet:
         rds = RegabDataSet(rc, bid, status, ec, df)
         return rds
 
-    def write_db_connection_data(self, fw: Callable[[bytes], None]) -> None:
+    def _write_db_connection_data(self, fw: Callable[[bytes], None]) -> None:
+        """
+        Writes the database connection parameter to a binary file using the provided writer function.
+
+        Parameters
+        ----------
+        fw : Callable[[bytes], None]
+            A function that takes bytes as input and writes them to a file.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        - The method applyes the write_string() utility that computes the length of the string
+          write as a 4 bytes integer, then writes the string characters.
+        - It writes `dbname`, `user`, `host` and `port`.
+        - The password field is not saved, it can change without generating a change in the dataset.
+        - The function returns None.
+        """
         write_string(fw, self.rc.dbname)
         write_string(fw, self.rc.user)
         write_string(fw, self.rc.host)
         write_string(fw, self.rc.port)
         return
 
-    def write_header_data(self, fw: Callable[[bytes], None]) -> None:
+    def _write_header_data(self, fw: Callable[[bytes], None]) -> None:
         """
         Writes the header RegabDataSet instance to a binary file using the provided writer function.
 
@@ -419,7 +444,7 @@ class RegabDataSet:
 
         return
 
-    def write_positions_data(self, fw: Callable[[bytes], None]) -> None:
+    def _write_positions_data(self, fw: Callable[[bytes], None]) -> None:
         """
         Writes the core data of the RegabDataSet instance to a binary file using the provided writer function.
 
@@ -481,13 +506,13 @@ class RegabDataSet:
             fw((fqcn + '\n').encode('utf-8'))
             fw(magic_number_buffer)
 
-            self.write_db_connection_data(fw)
+            self._write_db_connection_data(fw)
             fw(magic_number_buffer)
             
-            self.write_header_data(fw)
+            self._write_header_data(fw)
             fw(magic_number_buffer)
             
-            self.write_positions_data(fw)
+            self._write_positions_data(fw)
             fw(magic_number_buffer)
 
         # Calculate the SHA3-256 checksum

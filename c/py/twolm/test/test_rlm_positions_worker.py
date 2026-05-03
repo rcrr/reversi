@@ -77,15 +77,14 @@ class TestRLMPositionsWorker(unittest.TestCase):
         self.assertEqual(self.rlm.current_level.name, 'CONFIG')
 
     def tearDown(self):
-        if True:
+        if False:
             os.system(f"ls -l {self.tmp_dir}")
-            #os.system(f"cat {self.tmp_dir}/rlmwf_01_CONFIG.dat")
         shutil.rmtree(self.tmp_dir)
 
     def test_read_db(self):
         rlm = self.rlm
 
-        rlm.verbosity = ReversiLogisticModel.Verbosity.HIGH
+        rlm.verbosity = ReversiLogisticModel.Verbosity.LOW
         rlm.move_to_level('POSITIONS')
         self.assertEqual(rlm.current_level.value, 2)
         self.assertEqual(rlm.current_level.name, 'POSITIONS')
@@ -93,7 +92,7 @@ class TestRLMPositionsWorker(unittest.TestCase):
     def test_read_cache(self):
         rlm = self.rlm
 
-        rlm.verbosity = ReversiLogisticModel.Verbosity.HIGH
+        rlm.verbosity = ReversiLogisticModel.Verbosity.LOW
         rlm.move_to_level('POSITIONS')
         self.assertEqual(rlm.current_level.value, 2)
         self.assertEqual(rlm.current_level.name, 'POSITIONS')
@@ -101,7 +100,7 @@ class TestRLMPositionsWorker(unittest.TestCase):
         self.assertEqual(rlm.current_level.value, 1)
         self.assertEqual(rlm.current_level.name, 'CONFIG')
 
-        if True:
+        if False:
             print(f"self.tmp_dir = {self.tmp_dir}")
             os.system(f"ls -l {self.tmp_dir}")
         
