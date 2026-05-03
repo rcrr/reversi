@@ -45,6 +45,7 @@ from twolm.rlm_created_worker import RLMCreatedWorker
 from twolm.rlm_config_worker import RLMConfigWorker
 from twolm.rlm_positions_worker import RLMPositionsWorker
 from twolm.rlm_patterns_worker import RLMPatternsWorker
+from twolm.rlm_features_worker import RLMFeaturesWorker
 from twolm.rlm_indexes_worker import RLMIndexesWorker
 from twolm.rlm_wmaps_worker import RLMWmapsWorker
 from twolm.rlm_design_matrix_worker import RLMDesignMatrixWorker
@@ -71,16 +72,17 @@ class ReversiLogisticModel:
         ERROR     = 4        
     
     class Level(IntEnum):
-        CREATED    = (0, RLMCreatedWorker(), "Just created.")
-        CONFIG     = (1, RLMConfigWorker(), "Configuration has been loaded and validated.")
-        POSITIONS  = (2, RLMPositionsWorker(), "Game positions have been loaded.")
-        PATTERNS   = (3, RLMPatternsWorker(), "The pattern set has been loaded.")
-        INDEXES    = (4, RLMIndexesWorker(), "Indexes for pattern configurations have been computed.")
-        WMAPS      = (5, RLMWmapsWorker(), "Weight maps have been computed.")
-        DESIGN_MTR = (6, RLMDesignMatrixWorker(), "The design matrix (X) has been computed.")
-        ZED        = (7, RLMZedWorker(), "Zed array calculated from the game values.")
-        GRADIENT   = (8, RLMGradientWorker(), "The loss function and the gradient array are generated.")
-        OPTIMIZING = (9, None, "The model is ready for the optimization.")
+        CREATED    = ( 0, RLMCreatedWorker(), "Just created.")
+        CONFIG     = ( 1, RLMConfigWorker(), "Configuration has been loaded and validated.")
+        POSITIONS  = ( 2, RLMPositionsWorker(), "Game positions have been loaded.")
+        PATTERNS   = ( 3, RLMPatternsWorker(), "The pattern set has been loaded.")
+        FEATURES   = ( 4, RLMFeaturesWorker(), "The feature set has been loaded.")
+        INDEXES    = ( 5, RLMIndexesWorker(), "Indexes for pattern configurations have been computed.")
+        WMAPS      = ( 6, RLMWmapsWorker(), "Weight maps have been computed.")
+        DESIGN_MTR = ( 7, RLMDesignMatrixWorker(), "The design matrix (X) has been computed.")
+        ZED        = ( 8, RLMZedWorker(), "Zed array calculated from the game values.")
+        GRADIENT   = ( 9, RLMGradientWorker(), "The loss function and the gradient array are generated.")
+        OPTIMIZING = (10, None, "The model is ready for the optimization.")
 
         def __new__(cls, value, worker, description):
             obj = int.__new__(cls, value)
