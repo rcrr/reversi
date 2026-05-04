@@ -139,6 +139,8 @@ class ReversiLogisticModel:
         self.config_file_path = config_file_path
         self.base_dir_override = base_dir_override
         self.cfg = None
+        self.rds = None
+        self.pset = None
         self.log_event(self.Relevance.DEBUG, "ReversiLogisticModel initialized.")
         
     def log_event(self, relevance: Relevance, message: str) -> None:

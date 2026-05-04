@@ -35,6 +35,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from twolm.rlmwf import ReversiLogisticModel
 
+from twolm.domain import *
+    
 from twolm.rlm_abstract_worker import  ReversiLogisticModelWorker
 
 __all__ = ['RLMPatternsWorker']
@@ -43,6 +45,21 @@ class RLMPatternsWorker(ReversiLogisticModelWorker):
     
     def up(self, model: ReversiLogisticModel) -> None:
         model.log_event(model.Relevance.INFO, "Loading board patterns as defined by the model...")
+        model.pset = _load_patterns(model)
         
     def down(self, model: ReversiLogisticModel) -> None:
         model.log_event(model.Relevance.INFO, "Clearing patterns...")
+        model.pset = None
+
+##################################################################################################
+
+def _load_patterns(model: ReversiLogisticModel) -> PatternSet:
+    cfg_pset = model.cfg.pattern_set
+    pset_name = cfg_pset.name
+    model.log_event(model.Relevance.DEBUG, f"Pattern set name: '{pset_name}', patterns:")
+    patterns = [Pattern(elt.name, elt.mask) for elt in cfg_pset.patterns]
+    for i, p in enumerate(patterns):
+        model.log_event(model.Relevance.DEBUG, f"  -{i:02}- Pattern: name={p.name}, mask={p.mask:016X}")
+    pset = PatternSet(cfg_pset.name, patterns)
+    model.log_event(model.Relevance.DEBUG, f"Pattern set object created, hash = '{pset.hash}'.")
+    return pset
