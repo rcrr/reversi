@@ -37,7 +37,10 @@ if TYPE_CHECKING:
 
 from twolm.rlm_abstract_worker import ReversiLogisticModelWorker
 
-from pydantic import (BaseModel, Field, NonNegativeInt)
+from twolm.domain import *
+
+from pydantic import (BaseModel, Field, NonNegativeInt, field_validator, field_serializer,
+                      ConfigDict)
 
 from typing import List, Annotated, Optional
 
@@ -74,6 +77,34 @@ class RegabDataSetConfig(BaseModel):
     status: List[StatusString]
     ec: int = Field(..., ge=0, le=60)
 
+class PatternConfig(BaseModel):
+    """
+    Configuration for a pattern, including its name and mask.
+    """
+    name: str
+    mask: SquareSet = Field(..., description="Pattern mask in HEX format, no 0x prefix, just 16 digits.")
+ 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    @field_validator("mask", mode="before")
+    @classmethod
+    def parse_hex_to_square_set(cls, h: str) -> SquareSet:
+        """
+        Converts a hex string (e.g., '0x0000000000000107') into a SquareSet.
+        """
+        return SquareSet.new_from_hex(h)
+ 
+    @field_serializer("mask")
+    def serialize_mask_to_hex(self, mask: SquareSet) -> str:
+        return f"{mask:016X}"
+
+class PatternSetConfig(BaseModel):
+    """
+    Configuration for a set of patterns, including the name and a list of individual pattern configurations.
+    """
+    name: str
+    patterns: List[PatternConfig] = []
+
 class ReversiLogisticModelConfig(BaseModel):
     """
     Configuration for the Reversi Logistic Model, including general settings,
@@ -83,6 +114,7 @@ class ReversiLogisticModelConfig(BaseModel):
     description: str
     base_dir: Path
     regab_data_set: RegabDataSetConfig
+    pattern_set: PatternSetConfig
 
 #
 # Pydantic - End.
