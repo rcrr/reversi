@@ -37,12 +37,20 @@ if TYPE_CHECKING:
 
 from twolm.rlm_abstract_worker import  ReversiLogisticModelWorker
 
+from twolm.feature import Feature
+
 __all__ = ['RLMFeaturesWorker']
 
 class RLMFeaturesWorker(ReversiLogisticModelWorker):
     
     def up(self, model: ReversiLogisticModel) -> None:
         model.log_event(model.Relevance.INFO, "Loading board features as defined by the model...")
+        _load_features(model)
         
     def down(self, model: ReversiLogisticModel) -> None:
         model.log_event(model.Relevance.INFO, "Clearing features...")
+
+###########################################################################################################
+
+def _load_features(model: ReversiLogisticModel) -> None:
+    print(f"TO BE DEVELOPED!")
