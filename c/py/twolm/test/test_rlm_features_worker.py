@@ -68,6 +68,7 @@ from twolm.domain import *
 from twolm.rdata import *
 from twolm.rlmwf import *
 from twolm.feature import *
+from twolm.mobility import *
 
 class TestRLMFeaturesWorker(unittest.TestCase):
 
@@ -93,12 +94,12 @@ class TestRLMFeaturesWorker(unittest.TestCase):
         
         self.assertIsNone(rlm.fset)
 
-        rlm.verbosity = ReversiLogisticModel.Verbosity.HIGH
+        rlm.verbosity = ReversiLogisticModel.Verbosity.LOW
         rlm.move_to_level('FEATURES')
         self.assertEqual(rlm.current_level.value, 4)
         self.assertEqual(rlm.current_level.name, 'FEATURES')            
 
-        if True:
+        if False:
             print(f"self.tmp_dir = {self.tmp_dir}")
             os.system(f"ls -l {self.tmp_dir}")
         
@@ -136,24 +137,24 @@ class TestRLMFeaturesWorkerLMS(unittest.TestCase):
         opponent = np.array([0x0000000000000002,
                              0x0040201008040200], dtype=np.uint64)
         
-        lms = vectorized_legal_moves(mover, opponent)
+        lms = legal_moves(mover, opponent)
         
         expected_lms = np.array([0x0000000000000004,
                                  0x8000000000000000], dtype=np.uint64)
         
         nptest.assert_array_equal(lms, expected_lms)
 
-    @unittest.skipUnless(os.environ.get('PERF'), "Skipping performance test (set PERF=1 to run)")
+    @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_performance_10m(self):
         size = 10_000_000
         movers = np.full(size, 0x0000000000000001, dtype=np.uint64)
         opponents = np.full(size, 0x0040201008040200, dtype=np.uint64)
         
         # Warmup
-        vectorized_legal_moves(movers[:10], opponents[:10])
+        legal_moves(movers[:10], opponents[:10])
         
         start = time.perf_counter()
-        lms = vectorized_legal_moves(movers, opponents)
+        lms = legal_moves(movers, opponents)
         end = time.perf_counter()
         
         duration = end - start
@@ -200,14 +201,14 @@ class TestRLMFeaturesMobilities1M(unittest.TestCase):
             os.system(f"ls -l {self.tmp_dir}")
         shutil.rmtree(self.tmp_dir)
 
-    @unittest.skipUnless(os.environ.get('PERF'), "Skipping performance test (set PERF=1 to run)")
+    @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_mobilities(self):
         positions = self.rlm.rds.positions
-        movers = positions['mover'].to_numpy()
-        opponents = positions['opponent'].to_numpy()
+        movers = positions['mover'].to_numpy().view(np.uint64)
+        opponents = positions['opponent'].to_numpy().view(np.uint64)
         gv = positions['game_value'].to_numpy()
 
-        lms = vectorized_legal_moves(movers, opponents)
+        lms = legal_moves(movers, opponents)
         print(f"len(lms) = {len(lms)}")
         
         ms = mobilities(lms)
@@ -248,7 +249,7 @@ class TestRLMFeaturesMobilities1M(unittest.TestCase):
         ############ Anti-Mobility ############
         print(f"############ Anti-Mobility ############")
 
-        lms = vectorized_legal_moves(opponents, movers)        
+        lms = legal_moves(opponents, movers)        
         ms = mobilities(lms)
         ms['game_value'] = positions['game_value'].values
         # Calcolo delle statistiche globali per game_value

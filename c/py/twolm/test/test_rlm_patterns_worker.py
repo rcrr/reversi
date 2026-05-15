@@ -100,7 +100,6 @@ class TestRLMPatternsWorker(unittest.TestCase):
         self.assertEqual(rlm.pset.patterns[0].mask, 0x00000000000000FF)
         self.assertEqual(rlm.pset.patterns[1].mask, 0x0000000000000107)
             
-
         if False:
             print(f"self.tmp_dir = {self.tmp_dir}")
             os.system(f"ls -l {self.tmp_dir}")

@@ -53,4 +53,5 @@ class RLMFeaturesWorker(ReversiLogisticModelWorker):
 ###########################################################################################################
 
 def _load_features(model: ReversiLogisticModel) -> None:
-    print(f"TO BE DEVELOPED!")
+    #print(f"TO BE DEVELOPED!")
+    pass
