@@ -62,7 +62,7 @@ _slide_2 = _slide_1 * 2
 _slide_4 = _slide_1 * 4
 
 @njit(parallel=True, cache=True)
-def vectorized_legal_moves(movers: np.ndarray, opponents: np.ndarray) -> np.ndarray:
+def _vectorized_legal_moves(movers: np.ndarray, opponents: np.ndarray) -> np.ndarray:
     """
     Vectorized calculation of Reversi legal moves using Kogge-Stone algorithm.
     Optimized for large arrays (10M+ elements) using Numba JIT and multi-threading.
@@ -130,7 +130,7 @@ def legal_moves(mover: Bitboard | npt.NDArray[Bitboard],
         opponents = np.array([opponent], dtype=Bitboard)
         
         # Call the vectorized function
-        result = vectorized_legal_moves(movers, opponents)
+        result = _vectorized_legal_moves(movers, opponents)
         
         # Return the result as a scalar
         return result[0]
@@ -144,6 +144,6 @@ def legal_moves(mover: Bitboard | npt.NDArray[Bitboard],
             raise TypeError("The dtype of mover and opponent arrays must be Bitboard.")
         
         # Call the vectorized function directly
-        return vectorized_legal_moves(mover, opponent)
+        return _vectorized_legal_moves(mover, opponent)
     else:
         raise TypeError("Inputs must be either both Bitboard or both npt.NDArray[Bitboard].")
