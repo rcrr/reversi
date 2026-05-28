@@ -26,13 +26,18 @@
 #
 
 #
-# Ci sono diverse cose da fare.
-# - Creare la classe Feature.
-# - Creare la classe Mobility.
-#   Portare legal_moves vettorizzato dentro domain.
-# - Creare la gestione dei Pattern .... come Features.
+# Riscrivere Domain usando la Bitboard al posto di SquareSet.
+# Chiamo il modulo Board.
+# Tutte le funzioni vettorizzate.
+# Minimizziamo la overhead.
 #
+# Mettiamo legal_moves e make_move.
 #
+# Tutte le funzioni "non a oggetti", ma pure funzioni ...
+#
+# I patterns vanno nel modulo Pattern.
+#
+# Feature e' l'oggetto generico che va nel modello. Un Pattern e' un genratoe di feature. Mobility anche. Intercept anche.
 #
 
 from __future__ import annotations
