@@ -479,6 +479,30 @@ class Pattern:
         if not set(self.symmetry_fs).issubset(set(bitboard_trans_fs)):
              raise AssertionError("symmetry_fs contains unknown transformation functions.")
 
+    def mdp_record(self) -> str:
+        """
+        Returns a string representation of the pattern in CSV format.
+        Fields are separated by commas.
+        """
+        trans_fs_labels = [bitboard_transformation_labels[i] for i in self.unique_mask_indexes]
+        anti_trans_fs_labels = [bitboard_anti_transformation_labels[i] for i in self.unique_mask_indexes]
+        symmetry_fs_labels = [bitboard_transformation_labels[i] for i in self.unique_symmetric_instance_indexes]
+        ptype = self.type_info.data["type"]
+        return (
+            f"{self.name},{self.mask:016X},{self.n_squares},{self.n_configurations}"
+            f",{self.n_instances},{self.n_stabilizers},{':'.join(self.snames)}"
+            f",{':'.join(f'{m:016X}' for m in self.tmasks)}"
+            f",{':'.join(str(i) for i in self.mask_indexes)}"
+            f",{':'.join(f'{m:016X}' for m in self.unique_masks)}"
+            f",{':'.join(str(i) for i in self.unique_mask_indexes)}"
+            f",{':'.join(f'{fn}' for fn in trans_fs_labels)}"
+            f",{':'.join(f'{fn}' for fn in anti_trans_fs_labels)}"
+            f",{':'.join(f'{fn}' for fn in symmetry_fs_labels)}"
+            f",{','.join(':'.join(self.snames_t[i]) for i in range(8))}"
+            f",{':'.join(f'{fp}' for fp in self.fingerprint)}"
+            f",{ptype}"
+        )
+
 #### End of pattern Class.
 
 

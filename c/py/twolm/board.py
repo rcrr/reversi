@@ -52,7 +52,8 @@ __all__ = ['Square', 'SquareArray',
            'bitboard_fa1h8', 'bitboard_fh1a8', 'bitboard_fhori', 'bitboard_fvert',
            'bitboard_ro000', 'bitboard_ro090', 'bitboard_ro180', 'bitboard_ro270',
            'bitboard_to_square_list', 'bitboard_to_string_list',
-           'bitboard_trans_fs', 'bitboard_anti_trans_fs']
+           'bitboard_trans_fs', 'bitboard_anti_trans_fs',
+           'bitboard_transformation_labels', 'bitboard_anti_transformation_labels']
 
 
 
@@ -576,4 +577,30 @@ bitboard_anti_trans_fs = np.array(
      bitboard_fh1a8,
      bitboard_fhori,
      bitboard_fa1h8,
+     ])
+
+#: Transformation Labels
+#:   bitboard_transformation_labels: The set of labels describing the transformations of the bitboard.
+bitboard_transformation_labels = np.array(
+    ['ro000',
+     'ro090',
+     'ro180',
+     'ro270',
+     'fvert',
+     'fh1a8',
+     'fhori',
+     'fa1h8',
+     ])
+
+#: Anti Transformation Labels
+#:   bitboard_anti_transformation_labels: The set of labels describing the inverse transformations of the bitboard.
+bitboard_anti_transformation_labels = np.array(
+    ['ro000',
+     'ro270',
+     'ro180',
+     'ro090',
+     'fvert',
+     'fh1a8',
+     'fhori',
+     'fa1h8',
      ])

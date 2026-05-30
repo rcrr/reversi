@@ -56,6 +56,7 @@ from twolm.pattern import *
 
 from twolm.pattern import pack_ss, unpack_ss
 
+from collections import namedtuple
 
 from typing import Callable, TypeAlias, List
 
@@ -230,3 +231,435 @@ class TestPatternPack(unittest.TestCase):
         ]
         self.assertEqual(unpacked, expected_unpacked)
         self.run_test_vectorized(p, expected)
+
+    def test_edge(self):
+        p = Pattern('EDGE', Bitboard(0x00000000000000FF))
+        pack_masks, unpack_masks, pack_shifts = p.pack_plan
+        expected_pack_masks = np.array([
+            0x00000000000000ff
+        ])
+        expected_unpack_masks = np.array([
+            0x00000000000000ff,
+        ])
+        expected_pack_shifts = np.array([0])
+        nptest.assert_array_equal(expected_pack_masks, pack_masks)
+        nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
+        nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
+
+        packed = [pack_ss(s, p) for s in self.bitboard_list]
+        expected = [
+            Bitboard(0x0000000000000000), # empty
+            Bitboard(0x00000000000000FF), # full
+            Bitboard(0x00000000000000FF), # r1
+            Bitboard(0x0000000000000000), # r2
+            Bitboard(0x0000000000000000), # r3
+            Bitboard(0x0000000000000000), # r4
+            Bitboard(0x0000000000000000), # r5
+            Bitboard(0x0000000000000000), # r6
+            Bitboard(0x0000000000000000), # r7
+            Bitboard(0x0000000000000000), # r8
+            Bitboard(0x0000000000000001), # c1
+            Bitboard(0x0000000000000002), # c2
+            Bitboard(0x0000000000000004), # c3
+            Bitboard(0x0000000000000008), # c4
+            Bitboard(0x0000000000000010), # c5
+            Bitboard(0x0000000000000020), # c6
+            Bitboard(0x0000000000000040), # c7
+            Bitboard(0x0000000000000080), # c8
+        ]
+        self.assertEqual(packed, expected)
+
+        unpacked = [unpack_ss(s, p) for s in packed]
+        expected_unpacked = [
+            Bitboard(0x0000000000000000), # empty
+            Bitboard(0x00000000000000FF), # full
+            Bitboard(0x00000000000000FF), # r1
+            Bitboard(0x0000000000000000), # r2
+            Bitboard(0x0000000000000000), # r3
+            Bitboard(0x0000000000000000), # r4
+            Bitboard(0x0000000000000000), # r5
+            Bitboard(0x0000000000000000), # r6
+            Bitboard(0x0000000000000000), # r7
+            Bitboard(0x0000000000000000), # r8
+            Bitboard(0x0000000000000001), # c1
+            Bitboard(0x0000000000000002), # c2
+            Bitboard(0x0000000000000004), # c3
+            Bitboard(0x0000000000000008), # c4
+            Bitboard(0x0000000000000010), # c5
+            Bitboard(0x0000000000000020), # c6
+            Bitboard(0x0000000000000040), # c7
+            Bitboard(0x0000000000000080), # c8
+        ]
+        self.assertEqual(unpacked, expected_unpacked)
+        self.run_test_vectorized(p, expected)
+
+    def test_r2(self):
+        p = Pattern('R2', Bitboard(0x000000000000FF00))
+        pack_masks, unpack_masks, pack_shifts = p.pack_plan
+        expected_pack_masks = np.array([
+            0x000000000000ff00
+        ])
+        expected_unpack_masks = np.array([
+            0x00000000000000ff,
+        ])
+        expected_pack_shifts = np.array([8])
+        nptest.assert_array_equal(expected_pack_masks, pack_masks)
+        nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
+        nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
+
+        packed = [pack_ss(s, p) for s in self.bitboard_list]
+        expected = [
+            Bitboard(0x0000000000000000), # empty
+            Bitboard(0x00000000000000FF), # full
+            Bitboard(0x0000000000000000), # r1
+            Bitboard(0x00000000000000FF), # r2
+            Bitboard(0x0000000000000000), # r3
+            Bitboard(0x0000000000000000), # r4
+            Bitboard(0x0000000000000000), # r5
+            Bitboard(0x0000000000000000), # r6
+            Bitboard(0x0000000000000000), # r7
+            Bitboard(0x0000000000000000), # r8
+            Bitboard(0x0000000000000001), # c1
+            Bitboard(0x0000000000000002), # c2
+            Bitboard(0x0000000000000004), # c3
+            Bitboard(0x0000000000000008), # c4
+            Bitboard(0x0000000000000010), # c5
+            Bitboard(0x0000000000000020), # c6
+            Bitboard(0x0000000000000040), # c7
+            Bitboard(0x0000000000000080), # c8
+        ]
+        self.assertEqual(packed, expected)
+        self.run_test_vectorized(p, expected)
+
+        unpacked = [unpack_ss(s, p) for s in packed]
+        expected_unpacked = [
+            Bitboard(0x0000000000000000), # empty
+            Bitboard(0x000000000000FF00), # full
+            Bitboard(0x0000000000000000), # r1
+            Bitboard(0x000000000000FF00), # r2
+            Bitboard(0x0000000000000000), # r3
+            Bitboard(0x0000000000000000), # r4
+            Bitboard(0x0000000000000000), # r5
+            Bitboard(0x0000000000000000), # r6
+            Bitboard(0x0000000000000000), # r7
+            Bitboard(0x0000000000000000), # r8
+            Bitboard(0x0000000000000100), # c1
+            Bitboard(0x0000000000000200), # c2
+            Bitboard(0x0000000000000400), # c3
+            Bitboard(0x0000000000000800), # c4
+            Bitboard(0x0000000000001000), # c5
+            Bitboard(0x0000000000002000), # c6
+            Bitboard(0x0000000000004000), # c7
+            Bitboard(0x0000000000008000), # c8
+        ]
+        self.assertEqual(unpacked, expected_unpacked)
+
+    def test_corner(self):
+        p = Pattern('CORNER', Bitboard(0x0000000000070707))
+        pack_masks, unpack_masks, pack_shifts = p.pack_plan
+        expected_pack_masks = np.array([
+            0x0000000000000007,
+            0x0000000000000700,
+            0x0000000000070000
+        ])
+        expected_unpack_masks = np.array([
+            0x0000000000000007,
+            0x0000000000000038,
+            0x00000000000001c0
+        ])
+        expected_pack_shifts = np.array([0, 5, 10])
+        nptest.assert_array_equal(expected_pack_masks, pack_masks)
+        nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
+        nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
+
+        packed = [pack_ss(s, p) for s in self.bitboard_list]
+        expected = [
+            Bitboard(0x0000000000000000), # empty
+            Bitboard(0x00000000000001FF), # full
+            Bitboard(0x0000000000000007), # r1
+            Bitboard(0x0000000000000038), # r2
+            Bitboard(0x00000000000001C0), # r3
+            Bitboard(0x0000000000000000), # r4
+            Bitboard(0x0000000000000000), # r5
+            Bitboard(0x0000000000000000), # r6
+            Bitboard(0x0000000000000000), # r7
+            Bitboard(0x0000000000000000), # r8
+            Bitboard(0x0000000000000049), # c1
+            Bitboard(0x0000000000000092), # c2
+            Bitboard(0x0000000000000124), # c3
+            Bitboard(0x0000000000000000), # c4
+            Bitboard(0x0000000000000000), # c5
+            Bitboard(0x0000000000000000), # c6
+            Bitboard(0x0000000000000000), # c7
+            Bitboard(0x0000000000000000), # c8
+        ]
+        self.assertEqual(packed, expected)
+
+        unpacked = [unpack_ss(s, p) for s in packed]
+        expected_unpacked = [
+            Bitboard(0x0000000000000000), # empty
+            Bitboard(0x0000000000070707), # full
+            Bitboard(0x0000000000000007), # r1
+            Bitboard(0x0000000000000700), # r2
+            Bitboard(0x0000000000070000), # r3
+            Bitboard(0x0000000000000000), # r4
+            Bitboard(0x0000000000000000), # r5
+            Bitboard(0x0000000000000000), # r6
+            Bitboard(0x0000000000000000), # r7
+            Bitboard(0x0000000000000000), # r8
+            Bitboard(0x0000000000010101), # c1
+            Bitboard(0x0000000000020202), # c2
+            Bitboard(0x0000000000040404), # c3
+            Bitboard(0x0000000000000000), # c4
+            Bitboard(0x0000000000000000), # c5
+            Bitboard(0x0000000000000000), # c6
+            Bitboard(0x0000000000000000), # c7
+            Bitboard(0x0000000000000000), # c8
+        ]
+        self.assertEqual(unpacked, expected_unpacked)
+        self.run_test_vectorized(p, expected)
+
+    def test_diag8(self):
+        p = Pattern('DIAG8',  Bitboard(0x0102040810204080))
+        pack_masks, unpack_masks, pack_shifts = p.pack_plan
+        expected_pack_masks = np.array([
+            0x0000000000000080,
+            0x0000000000004000,
+            0x0000000000200000,
+            0x0000000010000000,
+            0x0000000800000000,
+            0x0000040000000000,
+            0x0002000000000000,
+            0x0100000000000000
+        ])
+        expected_unpack_masks = np.array([
+            0x0000000000000001,
+            0x0000000000000002,
+            0x0000000000000004,
+            0x0000000000000008,
+            0x0000000000000010,
+            0x0000000000000020,
+            0x0000000000000040,
+            0x0000000000000080
+        ])
+        expected_pack_shifts = np.array([7, 13, 19, 25, 31, 37, 43, 49])
+        nptest.assert_array_equal(expected_pack_masks, pack_masks)
+        nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
+        nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
+
+        packed = [pack_ss(s, p) for s in self.bitboard_list]
+        expected = [
+            Bitboard(0x0000000000000000), # empty
+            Bitboard(0x00000000000000FF), # full
+            Bitboard(0x0000000000000001), # r1
+            Bitboard(0x0000000000000002), # r2
+            Bitboard(0x0000000000000004), # r3
+            Bitboard(0x0000000000000008), # r4
+            Bitboard(0x0000000000000010), # r5
+            Bitboard(0x0000000000000020), # r6
+            Bitboard(0x0000000000000040), # r7
+            Bitboard(0x0000000000000080), # r8
+            Bitboard(0x0000000000000080), # c1
+            Bitboard(0x0000000000000040), # c2
+            Bitboard(0x0000000000000020), # c3
+            Bitboard(0x0000000000000010), # c4
+            Bitboard(0x0000000000000008), # c5
+            Bitboard(0x0000000000000004), # c6
+            Bitboard(0x0000000000000002), # c7
+            Bitboard(0x0000000000000001), # c8
+        ]
+        self.assertEqual(packed, expected)
+
+        unpacked = [unpack_ss(s, p) for s in packed]
+        expected_unpacked = [
+            Bitboard(0x0000000000000000), # empty
+            Bitboard(0x0102040810204080), # full
+            Bitboard(0x0000000000000080), # r1
+            Bitboard(0x0000000000004000), # r2
+            Bitboard(0x0000000000200000), # r3
+            Bitboard(0x0000000010000000), # r4
+            Bitboard(0x0000000800000000), # r5
+            Bitboard(0x0000040000000000), # r6
+            Bitboard(0x0002000000000000), # r7
+            Bitboard(0x0100000000000000), # r8
+            Bitboard(0x0100000000000000), # c1
+            Bitboard(0x0002000000000000), # c2
+            Bitboard(0x0000040000000000), # c3
+            Bitboard(0x0000000800000000), # c4
+            Bitboard(0x0000000010000000), # c5
+            Bitboard(0x0000000000200000), # c6
+            Bitboard(0x0000000000004000), # c7
+            Bitboard(0x0000000000000080), # c8
+        ]
+        self.assertEqual(unpacked, expected_unpacked)
+        self.run_test_vectorized(p, expected)
+
+    def test_fourc(self):
+        p = Pattern('FOURC', Bitboard(0x8100000000000081))
+        pack_masks, unpack_masks, pack_shifts = p.pack_plan
+        expected_pack_masks = np.array([
+            0x0000000000000001,
+            0x0000000000000080,
+            0x0100000000000000,
+            0x8000000000000000
+        ])
+        expected_unpack_masks = np.array([
+            0x0000000000000001,
+            0x0000000000000002,
+            0x0000000000000004,
+            0x0000000000000008
+        ])
+        expected_pack_shifts = np.array([0, 6, 54, 60])
+        nptest.assert_array_equal(expected_pack_masks, pack_masks)
+        nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
+        nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
+
+        packed = [pack_ss(s, p) for s in self.bitboard_list]
+        expected = [
+            Bitboard(0x0000000000000000), # empty
+            Bitboard(0x000000000000000F), # full
+            Bitboard(0x0000000000000003), # r1
+            Bitboard(0x0000000000000000), # r2
+            Bitboard(0x0000000000000000), # r3
+            Bitboard(0x0000000000000000), # r4
+            Bitboard(0x0000000000000000), # r5
+            Bitboard(0x0000000000000000), # r6
+            Bitboard(0x0000000000000000), # r7
+            Bitboard(0x000000000000000C), # r8
+            Bitboard(0x0000000000000005), # c1
+            Bitboard(0x0000000000000000), # c2
+            Bitboard(0x0000000000000000), # c3
+            Bitboard(0x0000000000000000), # c4
+            Bitboard(0x0000000000000000), # c5
+            Bitboard(0x0000000000000000), # c6
+            Bitboard(0x0000000000000000), # c7
+            Bitboard(0x000000000000000A), # c8
+        ]
+        self.assertEqual(packed, expected)
+        self.run_test_vectorized(p, expected)
+
+        unpacked = [unpack_ss(s, p) for s in packed]
+        expected_unpacked = [
+            Bitboard(0x0000000000000000), # empty
+            Bitboard(0x8100000000000081), # full
+            Bitboard(0x0000000000000081), # r1
+            Bitboard(0x0000000000000000), # r2
+            Bitboard(0x0000000000000000), # r3
+            Bitboard(0x0000000000000000), # r4
+            Bitboard(0x0000000000000000), # r5
+            Bitboard(0x0000000000000000), # r6
+            Bitboard(0x0000000000000000), # r7
+            Bitboard(0x8100000000000000), # r8
+            Bitboard(0x0100000000000001), # c1
+            Bitboard(0x0000000000000000), # c2
+            Bitboard(0x0000000000000000), # c3
+            Bitboard(0x0000000000000000), # c4
+            Bitboard(0x0000000000000000), # c5
+            Bitboard(0x0000000000000000), # c6
+            Bitboard(0x0000000000000000), # c7
+            Bitboard(0x8000000000000080), # c8
+        ]
+        self.assertEqual(unpacked, expected_unpacked)
+
+class TestPatternSymmetries(unittest.TestCase):
+
+    ro000 = bitboard_ro000
+    ro090 = bitboard_ro090
+    ro180 = bitboard_ro180
+    ro270 = bitboard_ro270
+    fvert = bitboard_fvert
+    fh1a8 = bitboard_fh1a8
+    fhori = bitboard_fhori
+    fa1h8 = bitboard_fa1h8
+
+    TestCase = namedtuple('TestCase', ['mask', 'name', 'expected'])
+    test_data = [
+        TestCase(0x0000000000000107, 'ELLE',   []),
+        TestCase(0x0000000C30000000, 'SNAKE',  [ro180]),
+        TestCase(0x00000000000000FF, 'EDGE',   [fvert]),
+        TestCase(0x000000000000FF00, 'R2',     [fvert]),
+        TestCase(0x0000000000FF0000, 'R3',     [fvert]),
+        TestCase(0x00000000FF000000, 'R4',     [fvert]),
+        TestCase(0x00000000000042FF, 'XEDGE',  [fvert]),
+        TestCase(0x0000000000010204, 'DIAG3',  [fa1h8]),
+        TestCase(0x0000000001020408, 'DIAG4',  [fa1h8]),
+        TestCase(0x0000000102040810, 'DIAG5',  [fa1h8]),
+        TestCase(0x0000010204081020, 'DIAG6',  [fa1h8]),
+        TestCase(0x0001020408102040, 'DIAG7',  [fa1h8]),
+        TestCase(0x0102040810204080, 'DIAG8',  [ro180]),
+        TestCase(0x0000000000070707, 'CORNER', [fa1h8]),
+        TestCase(0x0000000000001F1F, '2X5COR', []),
+        TestCase(0x0000000000003F3F, '2X6COR', []),
+        TestCase(0x0000003C3C000000, 'RCT2X4', [ro180, fvert, fhori]),
+        TestCase(0x000000000000C3FF, 'CASTLE', [fvert]),
+        TestCase(0x030304081020C0C0, 'BARBEL', [ro180, fh1a8, fa1h8]),
+        TestCase(0x010204081020C0C0, 'MACE',   [fh1a8]),
+        TestCase(0x8100000000000081, 'FOURC',  [ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8]),
+        TestCase(0x0000001818000000, 'CORE',   [ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8]),
+        TestCase(0x0000241818240000, 'CORED',  [ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8]),
+        TestCase(0x000008381C100000, 'COREA',  [ro090, ro180, ro270]),
+        TestCase(0x83800000000001C1, 'WHIRL',  [ro090, ro180, ro270]),
+        TestCase(0x010100C1C1000101, 'TAU',    [fhori]),
+        TestCase(0x0000000000000001, 'DOTA1',  []),
+        TestCase(0x0000000000000002, 'DOTB1',  []),
+        TestCase(0x0000000000000201, 'TWOND',  []),
+    ]
+    
+    def test_pattern_invariance(self):
+
+        for mask_val, name, expected in self.test_data:
+            with self.subTest(name=name):
+                mask = Bitboard(mask_val)
+                p = Pattern(name, mask)
+
+                self.assertEqual(
+                    p.symmetry_fs,
+                    expected,
+                    f"Symmetry list mismatch for {name}"
+                )
+
+class TestPatternMdpRecord(unittest.TestCase):
+
+    def test_elle_pattern(self):
+        p = Pattern('ELLE', Bitboard(0x0000000000000107))
+        expected = (
+            "ELLE,0000000000000107,4,81,8,1,A1:B1:C1:A2,"
+            "0000000000000107:00000000008080C0:E080000000000000:0301010000000000:"
+            "00000000000080E0:C080800000000000:0701000000000000:0000000000010103,"
+            "0:1:2:3:4:5:6:7,"
+            "0000000000000107:00000000008080C0:E080000000000000:0301010000000000:"
+            "00000000000080E0:C080800000000000:0701000000000000:0000000000010103,"
+            "0:1:2:3:4:5:6:7,"
+            "ro000:ro090:ro180:ro270:fvert:fh1a8:fhori:fa1h8,"
+            "ro000:ro270:ro180:ro090:fvert:fh1a8:fhori:fa1h8,"
+            ","
+            "a1:b1:c1:a2,h1:h2:h3:g1,h8:g8:f8:h7,a8:a7:a6:b8,"
+            "h1:g1:f1:h2,h8:h7:h6:g8,a8:b8:c8:a7,a1:a2:a3:b1,"
+            "I0:T1:T2:T3:T4:T5:T6:T7,"
+            "0"
+        )
+        actual = p.mdp_record()
+        self.assertEqual(actual, expected)
+
+    def test_edge_pattern(self):
+        p = Pattern('EDGE', Bitboard(0x00000000000000FF))
+        expected = (
+            "EDGE,00000000000000FF,8,6561,4,2,A1:B1:C1:D1:E1:F1:G1:H1,"
+            "00000000000000FF:8080808080808080:FF00000000000000:0101010101010101:"
+            "00000000000000FF:8080808080808080:FF00000000000000:0101010101010101,"
+            "0:1:2:3:0:1:2:3,"
+            "00000000000000FF:8080808080808080:FF00000000000000:0101010101010101,"
+            "0:1:2:3,"
+            "ro000:ro090:ro180:ro270,"
+            "ro000:ro270:ro180:ro090,"
+            "fvert,"
+            "a1:b1:c1:d1:e1:f1:g1:h1,h1:h2:h3:h4:h5:h6:h7:h8,"
+            "h8:g8:f8:e8:d8:c8:b8:a8,a8:a7:a6:a5:a4:a3:a2:a1,"
+            "h1:g1:f1:e1:d1:c1:b1:a1,h8:h7:h6:h5:h4:h3:h2:h1,"
+            "a8:b8:c8:d8:e8:f8:g8:h8,a1:a2:a3:a4:a5:a6:a7:a8,"
+            "I0:T1:T2:T3:S0:S1:S2:S3,"
+            "2"
+        )
+        actual = p.mdp_record()
+        self.assertEqual(actual, expected)
+
