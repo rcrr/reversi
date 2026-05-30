@@ -27,7 +27,7 @@
 
 from __future__ import annotations
 
-from typing import TypeAlias, Annotated
+from typing import TypeAlias, Annotated, List
 
 import numpy as np
 import numpy.typing as npt
@@ -40,60 +40,188 @@ from typing import IO, Union
 from pydantic import validate_call, ConfigDict, BeforeValidator
 
 
-__all__ = ['Bitboard', 'bitboard_from_signed_int', 'bitboard_bsr', 'bitboard_count',
+__all__ = ['Square',
+           'square_from_str', 'square_to_str', 'square_as_bitboard',
+           'square_validate_range',
+           'Move',
+           'move_from_str', 'move_to_str', 'move_as_bitboard',
+           'move_validate_range',
+           'Bitboard',
+           'bitboard_from_signed_int', 'bitboard_bsr', 'bitboard_count',
            'bitboard_transformations', 'bitboard_print',
            'bitboard_fa1h8', 'bitboard_fh1a8', 'bitboard_fhori', 'bitboard_fvert',
-           'bitboard_ro000', 'bitboard_ro090', 'bitboard_ro180', 'bitboard_ro270']
+           'bitboard_ro000', 'bitboard_ro090', 'bitboard_ro180', 'bitboard_ro270',
+           'bitboard_to_square_list']
 
 
+
+#: Represents a reversi board square indexed from 0 (A1) to 63 (H8) as a uint8 scalar.
+Square: TypeAlias = np.uint8
+
+__square_names__ = [
+    'A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1',
+    'A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2',
+    'A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3',
+    'A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4',
+    'A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5',
+    'A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6', 'H6',
+    'A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7', 'H7',
+    'A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8'
+]
+
+__square_max_value__ = len(__square_names__)
+
+def validate_square_array(v: any) -> any:
+    """Validator to ensure a numpy array strictly uses uint8 dtype."""
+    if isinstance(v, np.ndarray) and v.dtype != np.uint8:
+        raise ValueError(f"Array dtype must be uint8, got {v.dtype}")
+    return v
+
+# A Pydantic-compatible type hint for Square (np.uint8) arrays.
+SquareArray = Annotated[npt.NDArray[np.uint8], BeforeValidator(validate_square_array)]
+
+
+
+#: Moves are the actions during the game.
+#: On top of the 64 moves corresponding to fill a corresponding square with a disk,
+#: a few more are defined:
+#: - PA : Pass - It is still a well defined by the game rule action
+#: - NA : Not available - Used as a flag status by the program
+#: - UN : Unknown - Used when for instance it is unknown the parent move of a given game position
+Move: TypeAlias = np.uint8
+
+__move_names__ = __square_names__ + ['PA', 'NA', 'UN']
+
+__move_max_value__ = len(__move_names__)
+
+# A Pydantic-compatible type hint for Move (np.uint8) arrays.
+MoveArray = Annotated[npt.NDArray[np.uint8], BeforeValidator(validate_square_array)]
+
+
+
+#: A set of squares.
+#: It is implemented as a bit-board of 64 bit using numpy.uint64 as alias type.
 Bitboard: TypeAlias = np.uint64
 
-def validate_uint64_array(v: any) -> any:
+def validate_bitboard_array(v: any) -> any:
     """Validator to ensure a numpy array strictly uses uint64 dtype."""
     if isinstance(v, np.ndarray) and v.dtype != np.uint64:
         raise ValueError(f"Array dtype must be uint64, got {v.dtype}")
     return v
 
-# A robust Pydantic-compatible type hint for uint64 arrays
-BitboardArray = Annotated[npt.NDArray[np.uint64], BeforeValidator(validate_uint64_array)]
+# A Pydantic-compatible type hint for Bitboard (np.uint64) arrays.
+BitboardArray = Annotated[npt.NDArray[np.uint64], BeforeValidator(validate_bitboard_array)]
 
-def bitboard_from_signed_int(i: np.int64 | npt.NDArray[np.int64]) -> Bitboard | npt.NDArray[Bitboard]:
-    if isinstance(i, np.ndarray) and i.dtype == np.int64:
-        return i.view(np.uint64)
-    elif isinstance(i, np.int64):
-        return np.array(i).view(np.uint64)[()]
+
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def square_from_str(name: str) -> Square:
+    """
+    Creates a new Square instance from a string representation.
+    """
+    try:
+        index = __square_names__.index(name)
+        return Square(index)
+    except ValueError:
+        raise ValueError(f"Invalid name: '{name}'. Must be one of {__square_names__}")
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def square_to_str(sq: Square) -> str:
+    """
+    Returns the string representation of the square.
+    """
+    return __square_names__[sq]
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def square_as_bitboard(sq: Square) -> Bitboard:
+    """
+    Converts the square to a bitboard containing only this square.
+    """
+    return Bitboard(Bitboard(1) << sq)
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def square_validate_range(sq: Square | SquareArray) -> None:
+    if not isinstance(sq, np.ndarray):
+        if not sq < 64:
+            raise ValueError(f"Value must be in the range [0..63].")
     else:
-        raise TypeError(f"The argument i has the wrong type: {type(i)}")
+        if (sq >= 64).any():
+            raise ValueError("All values in the array must be in the range [0..63].")
+    return
 
-def bitboard_bsr(bb: Bitboard | npt.NDArray[Bitboard]) -> np.int8 | npt.NDArray[np.int8]:
+
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def move_from_str(name: str) -> Move:
+    """
+    Creates a new Move instance from a string representation.
+    """
+    try:
+        index = __move_names__.index(name)
+        return Move(index)
+    except ValueError:
+        raise ValueError(f"Invalid name: '{name}'. Must be one of {__move_names__}")
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def move_to_str(mo: Move) -> str:
+    """
+    Returns the string representation of the move.
+    """
+    return __move_names__[mo]
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def move_as_bitboard(mo: Move) -> Bitboard:
+    """
+    Converts the move to a bitboard containing only the square indicated by the move.
+    """
+    return Bitboard(Bitboard(1) << mo)
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def move_validate_range(mo: Move | MoveArray) -> None:
+    if not isinstance(mo, np.ndarray):
+        if not mo < __move_max_value__:
+            raise ValueError(f"Value must be in the range [0..{__move_max_value__}].")
+    else:
+        if (mo >= __move_max_value__).any():
+            raise ValueError(f"All values in the array must be in the range [0..{__move_max_value__}].")
+    return
+
+
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def bitboard_from_signed_int(i: np.int64 | npt.NDArray[np.int64]) -> Bitboard | BitboardArray:
+    """
+    Returns a new Bitboard from a numpy.int64 value given as argument.
+    Works on scalar and 1D array inputs.
+    """
+    
+    # Standardize input by checking if it came in as a scalar or an array
+    is_scalar = not isinstance(i, np.ndarray)
+    i_arr = np.atleast_1d(i)
+    
+    # Check layout constraints (Pydantic validates types, but we handle dimensions)
+    if i_arr.ndim != 1:
+        raise ValueError(f"When the argument i is an array, it must be 1D, got shape {i_arr.shape}")
+    
+    # Adapt output representation to match original scalar or matrix input context
+    if is_scalar:
+        return i.view(Bitboard)[()]
+    
+    if i.dtype != np.int64:
+        raise ValueError(f"Array dtype must be int64, got {i.dtype}")
+        
+    return i.view(Bitboard)
+
+    
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def bitboard_bsr(bb: Bitboard) -> int:
     """
     Bit Scan Reverse.
-    Returns the index of the MOST significant set bit as np.int8 (scalar or array).
+    Returns the index of the MOST significant set bit.
     """
-    if isinstance(bb, np.ndarray) and bb.dtype == Bitboard:
-        # Bit-smearing
-        a = bb.copy()
-        a |= a >> 1
-        a |= a >> 2
-        a |= a >> 4
-        a |= a >> 8
-        a |= a >> 16
-        a |= a >> 32
-        
-        # Count bits, subtract 1, cast to int8
-        result = np.bitwise_count(a).astype(np.int8) - np.int8(1)
-        
-        # Enforce -1 for zeros
-        return np.where(bb == np.uint64(0), np.int8(-1), result)
-        
-    elif isinstance(bb, np.uint64):
-        n = int(bb)
-        if n == 0:
-            return np.int8(-1)
-        return np.int8(n.bit_length() - 1)
-        
-    else:
-        raise TypeError(f"The argument bb must be Bitboard (np.uint64) or npt.NDArray[Bitboard], got {type(bb)}")
+    n = int(bb)
+    if n == 0: return -1
+    return n.bit_length() - 1
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_count(bb: Bitboard) -> int:
@@ -142,39 +270,36 @@ def bitboard_transformations(bb: Bitboard | BitboardArray) -> BitboardArray:
     When input is a scalar Bitboard output is an arry of Bitboards having shape (8,).
     When input is an array of Bitboards of lenght N, the output has shape (N, 8).
     """
-    # 1. Standardize input by checking if it came in as a scalar or an array
+    # Standardize input by checking if it came in as a scalar or an array
     is_scalar = not isinstance(bb, np.ndarray)
     bb_arr = np.atleast_1d(bb)
 
-    # 2. Check layout constraints (Pydantic validates types, but we handle dimensions)
+    # Check layout constraints (Pydantic validates types, but we handle dimensions)
     if bb_arr.ndim != 1:
         raise ValueError(f"When the argument bb is an array, it must be 1D, got shape {bb_arr.shape}")
 
-    # 3. Allocate memory for output transformations matrix
+    # Allocate memory for output transformations matrix
     n = bb_arr.shape[0]
-    ts = np.empty((8, n), dtype=Bitboard)
+    ts = np.empty((n, 8), dtype=Bitboard, order='F')
 
-    # 4. Pre-calculate common intermediate horizontal reflection transformation
+    # Pre-calculate common intermediate horizontal reflection transformation
     fh = bitboard_fhori(bb_arr)
 
     # Fast row-wise contiguous assignments
-    ts[0, :] = bb_arr
-    ts[1, :] = bitboard_fa1h8(fh)
-    ts[2, :] = bitboard_fvert(fh)
-    ts[3, :] = bitboard_fh1a8(fh)
-    ts[4, :] = bitboard_fvert(bb_arr)
-    ts[5, :] = bitboard_fh1a8(bb_arr)
-    ts[6, :] = fh
-    ts[7, :] = bitboard_fa1h8(bb_arr)
-
-    # Transpose back to (n, 8) at zero CPU cost
-    ts_out = ts.T
+    ts[:, 0] = bb_arr
+    ts[:, 1] = bitboard_fa1h8(fh)
+    ts[:, 2] = bitboard_fvert(fh)
+    ts[:, 3] = bitboard_fh1a8(fh)
+    ts[:, 4] = bitboard_fvert(bb_arr)
+    ts[:, 5] = bitboard_fh1a8(bb_arr)
+    ts[:, 6] = fh
+    ts[:, 7] = bitboard_fa1h8(bb_arr)
     
-    # 6. Adapt output representation to match original scalar or matrix input context
+    # Adapt output representation to match original scalar or matrix input context
     if is_scalar:
-        return ts_out.flatten().view(Bitboard)
+        return ts.flatten().view(Bitboard)
         
-    return ts_out.view(Bitboard)
+    return ts.view(Bitboard)
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_fa1h8(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
@@ -399,3 +524,28 @@ def bitboard_ro270(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     """
     
     return bitboard_fh1a8(bitboard_fhori(bb))
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def bitboard_to_square_list(bb: Bitboard) -> List[Square]:
+    """
+    Returns the bitboard represented as a list of squares.
+    Squares are ordered from larger (H8) to smaller (A1).
+    """
+
+    squares = []
+
+    if not bb == 0:
+        while bb:
+            sq = bitboard_bsr(bb)
+            squares.append(Square(sq))
+            bb = Bitboard(bb ^ (Bitboard(1) << sq))
+            
+    return squares
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def bitboard_to_string_list(bb: Bitboard) -> List[str]:
+    """
+    Returns the bitboard as a list of strings.
+    """
+    squares = bitboard_to_square_list(bb)
+    return [square_to_str(sq) for sq in squares]

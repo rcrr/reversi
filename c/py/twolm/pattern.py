@@ -216,9 +216,12 @@ class Pattern:
         #self.n_squares = mask.count()
         self.n_squares = bitboard_count(mask)
         self.n_configurations = 3 ** int(self.n_squares)
-        self.tmasks = mask.transformations()
-        self.squares = mask.to_square_list()[::-1]
-        self.snames = mask.to_string_list()[::-1]
+        #self.tmasks = mask.transformations()
+        self.tmasks = bitboard_transformations(mask)
+        #self.squares = mask.to_square_list()[::-1]
+        self.squares = bitboard_to_square_list(mask)[::-1]        
+        #self.snames = mask.to_string_list()[::-1]
+        self.snames = bitboard_to_string_list(mask)[::-1]
         self.unique_masks = list(dict.fromkeys(self.tmasks))
         self.mask_to_index = {m: i for i, m in reversed(list(enumerate(self.tmasks)))}
         self.mask_indexes = np.zeros(8, dtype=np.uint8)

@@ -86,6 +86,158 @@ half_top           = Bitboard(0x00000000ffffffff)
 half_bottom        = Bitboard(0xffffffff00000000)
 
 
+class TestSquare(unittest.TestCase):
+
+    def test_new_square(self):
+        self.assertEqual(Square(0), Square(0))
+        self.assertEqual(Square(1), Square(1))
+        self.assertEqual(Square(63), Square(63))
+        self.assertNotEqual(Square(0), Square(1))
+
+    def test_new_square_overflow(self):
+        with self.assertRaises(OverflowError):
+            Square(-1)
+        with self.assertRaises(OverflowError):
+            Square(256)
+
+    def test_new_square_array_overflow(self):
+        with self.assertRaises(OverflowError):
+            squares = np.array([0, 1, 256], dtype=Square)
+
+    def test_square_from_string(self):
+        self.assertEqual(Square(0), square_from_str('A1'))
+        
+    def test_invalid_name_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            square_from_str("UN")
+
+    def test_square_to_str(self):
+        sq = Square(0)
+        sq_as_str = square_to_str(sq)
+        self.assertEqual(sq_as_str, 'A1')
+            
+    def test_square_as_bitboard(self):
+        sq = Square(0)
+        expected = Bitboard(0x0000000000000001)
+        self.assertEqual(square_as_bitboard(sq), expected)
+        sq = Square(63)
+        expected = Bitboard(0x8000000000000000)
+        self.assertEqual(square_as_bitboard(sq), expected)
+        sq = Square(64)
+        expected = Bitboard(0x0000000000000000)
+        self.assertEqual(square_as_bitboard(sq), expected)
+
+    def test_wrong_type_raises_error(self):
+        with self.assertRaises(ValidationError):
+            square_from_str(None)
+            
+        with self.assertRaises(ValidationError):
+            square_to_str(None)
+            
+        with self.assertRaises(ValidationError):
+            square_as_bitboard(None)
+
+    def test_square_validate_range(self):
+        for i in range(64):
+            sq = Square(i)
+            square_validate_range(sq)
+
+        with self.assertRaises(ValueError):
+            sq = Square(64)
+            square_validate_range(sq)
+
+        squares = np.array([0, 1, 2], dtype=Square)
+        square_validate_range(squares)
+
+        with self.assertRaises(ValueError):
+            squares = np.array([0, 1, 64], dtype=Square)
+            square_validate_range(squares)
+
+class TestMove(unittest.TestCase):
+
+    def test_new_move(self):
+        self.assertEqual(Move(0), Move(0))
+        self.assertEqual(Move(1), Move(1))
+        self.assertEqual(Move(63), Move(63))
+        self.assertEqual(Move(64), Move(64))
+        self.assertEqual(Move(65), Move(65))
+        self.assertEqual(Move(66), Move(66))
+        self.assertNotEqual(Move(0), Move(1))
+
+    def test_new_move_overflow(self):
+        with self.assertRaises(OverflowError):
+            Move(-1)
+        with self.assertRaises(OverflowError):
+            Move(256)
+
+    def test_new_move_array_overflow(self):
+        with self.assertRaises(OverflowError):
+            moves = np.array([0, 1, 256], dtype=Move)
+
+    def test_move_from_string(self):
+        self.assertEqual(Move(0), move_from_str('A1'))
+        self.assertEqual(Move(1), move_from_str('B1'))
+        self.assertEqual(Move(63), move_from_str('H8'))
+        self.assertEqual(Move(64), move_from_str('PA'))
+        self.assertEqual(Move(65), move_from_str('NA'))
+        self.assertEqual(Move(66), move_from_str('UN'))
+        
+    def test_invalid_name_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            move_from_str("NO")
+
+    def test_move_to_str(self):
+        mo = Move(64)
+        mo_as_str = move_to_str(mo)
+        self.assertEqual(mo_as_str, 'PA')
+
+    def test_move_as_bitboard(self):
+        mo = Move(0)
+        expected = Bitboard(0x0000000000000001)
+        self.assertEqual(move_as_bitboard(mo), expected)
+        mo = Move(63)
+        expected = Bitboard(0x8000000000000000)
+        self.assertEqual(move_as_bitboard(mo), expected)
+        mo = move_from_str('PA')
+        expected = Bitboard(0x0000000000000000)
+        self.assertEqual(move_as_bitboard(mo), expected)
+        mo = move_from_str('NA')
+        expected = Bitboard(0x0000000000000000)
+        self.assertEqual(move_as_bitboard(mo), expected)
+        mo = move_from_str('UN')
+        expected = Bitboard(0x0000000000000000)
+        self.assertEqual(move_as_bitboard(mo), expected)
+
+    def test_wrong_type_raises_error(self):
+        with self.assertRaises(ValidationError):
+            move_from_str(None)
+            
+        with self.assertRaises(ValidationError):
+            move_to_str(None)
+            
+        with self.assertRaises(ValidationError):
+            move_as_bitboard(None)
+
+    def test_move_validate_range(self):
+        for i in range(64):
+            mo = Move(i)
+            move_validate_range(mo)
+
+        move_validate_range(move_from_str('PA'))
+        move_validate_range(move_from_str('NA'))
+        move_validate_range(move_from_str('UN'))
+
+        with self.assertRaises(ValueError):
+            mo = Square(67)
+            move_validate_range(mo)
+
+        moves = np.array([0, 1, 2, 64], dtype=Move)
+        move_validate_range(moves)
+
+        with self.assertRaises(ValueError):
+            moves = np.array([0, 1, 67], dtype=Move)
+            move_validate_range(moves)
+
 class TestBitboardFromSignedInt(unittest.TestCase):
 
     def setUp(self):
@@ -127,28 +279,34 @@ class TestBitboardFromSignedInt(unittest.TestCase):
         self.assertIsInstance(scalar_out, np.uint64)
         self.assertEqual(scalar_out, expected)
 
-    def test_wrong_type_raises_type_error(self):
+    def test_wrong_type_raises_error(self):
         """Should reject standard Python types or invalid NumPy dtypes."""
         # Test with built-in Python int
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValidationError):
             bitboard_from_signed_int(-1)
             
         # Test with invalid NumPy dtype (float64)
         arr_float = np.array([-1.0], dtype=np.float64)
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             bitboard_from_signed_int(arr_float)
 
-class TestBitboardBSR(unittest.TestCase):
+    def test_wrong_array_raises_value_error(self):
+        """Should reject arrays with more than one dimension."""
+        with self.assertRaises(ValueError):
+            i = np.array([[0, 1], [3, 7]], dtype=np.int64)
+            bitboard_from_signed_int(-1)
+
+class TestBitboardBsr(unittest.TestCase):
 
     def test_scalar_bsr_high_bits(self):
         """Should precisely identify highest bits near the 64-bit boundary and return np.int8."""
         # Test extreme and standard values
-        res_0 = bitboard_bsr(np.uint64(0))
-        res_1 = bitboard_bsr(np.uint64(1))
-        res_53 = bitboard_bsr(np.uint64(1 << 53))
-        res_62 = bitboard_bsr(np.uint64(1 << 62))
-        res_63 = bitboard_bsr(np.uint64(1 << 63))
-        res_max = bitboard_bsr(np.uint64(0xFFFFFFFFFFFFFFFF))
+        res_0 = bitboard_bsr(Bitboard(0))
+        res_1 = bitboard_bsr(Bitboard(1))
+        res_53 = bitboard_bsr(Bitboard(1 << 53))
+        res_62 = bitboard_bsr(Bitboard(1 << 62))
+        res_63 = bitboard_bsr(Bitboard(1 << 63))
+        res_max = bitboard_bsr(Bitboard(0xFFFFFFFFFFFFFFFF))
 
         # Verify exact bit indices
         self.assertEqual(res_0, -1)
@@ -159,30 +317,18 @@ class TestBitboardBSR(unittest.TestCase):
         self.assertEqual(res_max, 63)
 
         # Verify output type is strictly np.int8
-        self.assertIsInstance(res_0, np.int8)
-        self.assertIsInstance(res_max, np.int8)
-
-    def test_vector_bsr_high_bits(self):
-        """Should accurately process arrays containing high bit values and return np.int8 array."""
-        input_array = np.array([0, 1, 1 << 53, 1 << 62, 1 << 63, 0xFFFFFFFFFFFFFFFF], dtype=np.uint64)
-        expected_output = np.array([-1, 0, 53, 62, 63, 63], dtype=np.int8)
-        
-        output_array = bitboard_bsr(input_array)
-        
-        # Verify array contents, structure and precise dtype
-        self.assertIsInstance(output_array, np.ndarray)
-        self.assertEqual(output_array.dtype, np.int8)
-        np.testing.assert_array_equal(output_array, expected_output)
+        self.assertIsInstance(res_0, int)
+        self.assertIsInstance(res_max, int)
 
     def test_wrong_type_raises_type_error(self):
         """Should reject standard Python types or invalid NumPy signed/float types."""
         # Test with built-in Python int
-        with self.assertRaises(TypeError):
-            bitboard_from_signed_int(-1)
+        with self.assertRaises(ValidationError):
+            bitboard_bsr(-1)
             
         # Test with incorrect NumPy signed dtype (int64)
         arr_signed = np.array([1, 2], dtype=np.int64)
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValidationError):
             bitboard_bsr(arr_signed)
 
 class TestBitboardPrint(unittest.TestCase):
@@ -470,8 +616,6 @@ class TestBitboardTransformations(unittest.TestCase):
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_performance_1m(self):
         """Measure operations speed on a dense 1,000,000 matrix sequence."""
-        #import os
-        #import time
 
         size = 1_000_000
         # Use self.ar as the baseline seed for the dense vector simulation
@@ -493,3 +637,20 @@ class TestBitboardTransformations(unittest.TestCase):
         expected_output_seed = bitboard_transformations(fallback_seed)
         expected_vector = np.repeat(expected_output_seed[np.newaxis, :], size, axis=0)
         np.testing.assert_array_equal(computed_vector, expected_vector)
+
+class TestBitboardToSquareList(unittest.TestCase):
+    
+    def test_bitboard_to_square_list(self):
+        bb = Bitboard(0x0000000000000000)
+        self.assertTrue(bitboard_to_square_list(bb) == [])
+        
+        bb = Bitboard(0x0000000000000001)
+        self.assertTrue(bitboard_to_square_list(bb) == [Square(0)])
+
+        bb = Bitboard(0x8000000000000003)
+        self.assertTrue(bitboard_to_square_list(bb) == [Square(63), Square(1), Square(0)])
+
+    def test_wrong_type_raises_type_error(self):
+        with self.assertRaises(ValidationError):
+            bitboard_to_square_list('Not the right type')
+
