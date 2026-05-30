@@ -40,18 +40,19 @@ from typing import IO, Union
 from pydantic import validate_call, ConfigDict, BeforeValidator
 
 
-__all__ = ['Square',
+__all__ = ['Square', 'SquareArray',
            'square_from_str', 'square_to_str', 'square_as_bitboard',
            'square_validate_range',
-           'Move',
+           'Move', 'MoveArray',
            'move_from_str', 'move_to_str', 'move_as_bitboard',
            'move_validate_range',
-           'Bitboard',
+           'Bitboard', 'BitboardArray',
            'bitboard_from_signed_int', 'bitboard_bsr', 'bitboard_count',
            'bitboard_transformations', 'bitboard_print',
            'bitboard_fa1h8', 'bitboard_fh1a8', 'bitboard_fhori', 'bitboard_fvert',
            'bitboard_ro000', 'bitboard_ro090', 'bitboard_ro180', 'bitboard_ro270',
-           'bitboard_to_square_list']
+           'bitboard_to_square_list', 'bitboard_to_string_list',
+           'bitboard_trans_fs', 'bitboard_anti_trans_fs']
 
 
 
@@ -549,3 +550,30 @@ def bitboard_to_string_list(bb: Bitboard) -> List[str]:
     """
     squares = bitboard_to_square_list(bb)
     return [square_to_str(sq) for sq in squares]
+
+#: Transformation Functions
+#:   bitboard_trans_fs (list): The set of functions used to transform the bitboard.
+#:   bitboard_anti_trans_fs (list): The inverse functions used to map back to the original configuration.
+bitboard_trans_fs = np.array(
+    [bitboard_ro000,
+     bitboard_ro090,
+     bitboard_ro180,
+     bitboard_ro270,
+     bitboard_fvert,
+     bitboard_fh1a8,
+     bitboard_fhori,
+     bitboard_fa1h8,
+     ])
+
+#: Anti Transformation Functions
+#:   bitboard_anti_trans_fs (list): The inverse functions used to map back to the original configuration.
+bitboard_anti_trans_fs = np.array(
+    [bitboard_ro000,
+     bitboard_ro270,
+     bitboard_ro180,
+     bitboard_ro090,
+     bitboard_fvert,
+     bitboard_fh1a8,
+     bitboard_fhori,
+     bitboard_fa1h8,
+     ])
