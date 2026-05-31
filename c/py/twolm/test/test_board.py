@@ -423,7 +423,7 @@ class BaseBitboardTransformationTest:
                 f"Expected: 0x{expected_hex}"
             )
             
-    def test_wrong_type_raises_validation_error(self):
+    def test_wrong_type_raises_validation_error(self):        
         """Enforce strict Pydantic parameter boundaries against non-compliant argument inputs."""
         with self.assertRaises(ValidationError):
             self.func(42)
@@ -654,3 +654,112 @@ class TestBitboardToSquareList(unittest.TestCase):
         with self.assertRaises(ValidationError):
             bitboard_to_square_list('Not the right type')
 
+class TestPositionCreation(unittest.TestCase):
+
+    def test_new_position(self):
+        mover = bitboard_from_signed_int(np.int64(4611717676283199524))
+        opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
+        
+        position = np.void((mover, opponent), dtype=Position)
+
+        m = position['mover']
+        o = position['opponent']
+
+        self.assertEqual(m, mover)
+        self.assertEqual(o, opponent)
+
+    def test_create_position(self):
+        mover = bitboard_from_signed_int(np.int64(4611717676283199524))
+        opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
+        
+        position = make_position(mover, opponent)
+
+        m = position['mover']
+        o = position['opponent']
+
+        self.assertEqual(m, mover)
+        self.assertEqual(o, opponent)
+        
+        self.assertEqual(position.item(), (mover, opponent))
+        
+        self.assertIsInstance(position, np.void)
+        self.assertEqual(position.dtype, Position)
+        self.assertEqual(position.shape, ())
+
+    def test_new_position_array_one_element(self):
+        mover = bitboard_from_signed_int(np.int64(4611717676283199524))
+        opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
+        
+        position_array: PositionArray = np.array([(mover, opponent)], dtype=Position)
+        
+        m = position_array[0]['mover']
+        o = position_array[0]['opponent']
+
+        self.assertEqual(m, mover)
+        self.assertEqual(o, opponent)
+
+    def test_new_position_array_n_element(self):
+
+        N = 3
+        
+        mover = bitboard_from_signed_int(np.int64(4611717676283199524))
+        opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
+
+        m_list = [mover] * N
+        o_list = [opponent] * N
+
+        positions = make_position(m_list, o_list)
+        
+        self.assertIsInstance(positions, np.ndarray)
+        self.assertEqual(positions.dtype, Position)
+        self.assertEqual(positions.shape, (N,))
+
+        for i, pos in enumerate(positions): 
+            m = pos['mover']
+            o = pos['opponent']
+            self.assertEqual(m, mover)
+            self.assertEqual(o, opponent)
+
+        for i in range(N): 
+            m = positions[i]['mover']
+            o = positions[i]['opponent']
+            self.assertEqual(m, mover)
+            self.assertEqual(o, opponent)
+        
+    def test_make_position_length_mismatch(self):
+        """Test that passing arrays of different lengths raises a ValueError."""
+        mover = bitboard_from_signed_int(np.int64(4611717676283199524))
+        opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
+
+        m_array = np.array([mover] * 5, dtype=Bitboard)  # Length 5
+        o_array = np.array([opponent] * 3, dtype=Bitboard)  # Length 3
+
+        # Expect ValueError because of the size mismatch
+        with self.assertRaises(ValueError):
+            make_position(m_array, o_array)
+
+    def test_extract_views_zero_copy(self):
+        """Test that slicing fields from PositionArray returns zero-copy BitboardArrays."""
+        N = 3
+        mover = bitboard_from_signed_int(np.int64(4611717676283199524))
+        opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
+
+        # Create the array using our utility
+        positions: PositionArray = make_position([mover] * N, [opponent] * N)
+
+        # 1. EXTRACT THE VIEWS
+        mover_array: BitboardArray = positions['mover']
+        opponent_array: BitboardArray = positions['opponent']
+
+        # 2. ASSERT TYPES AND SHAPES
+        self.assertEqual(mover_array.dtype, np.uint64)
+        self.assertEqual(opponent_array.dtype, np.uint64)
+        self.assertEqual(mover_array.shape, (N,))
+        self.assertEqual(opponent_array.shape, (N,))
+
+        # 3. ASSERT ZERO-COPY (Modifying the view alters the parent array instantly)
+        new_bitboard = np.uint64(0xFFFFFFFFFFFFFFFF)
+        mover_array[0] = new_bitboard
+
+        # The underlying structured array changes without reassignment
+        self.assertEqual(positions[0]['mover'], new_bitboard)

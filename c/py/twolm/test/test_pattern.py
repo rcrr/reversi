@@ -61,6 +61,36 @@ from collections import namedtuple
 from typing import Callable, TypeAlias, List
 
 
+
+ar                 = Bitboard(0x22120a0e1222221e)
+
+ar_reflection_h    = Bitboard(0x1e2222120e0a1222)
+ar_reflection_v    = Bitboard(0x4448507048444478)
+ar_reflection_h1a8 = Bitboard(0x00ff888c92610000)
+ar_reflection_a1h8 = Bitboard(0x000086493111ff00)
+ar_rotate_180      = Bitboard(0x7844444870504844)
+ar_rotate_90c      = Bitboard(0x000061928c88ff00)
+ar_rotate_90a      = Bitboard(0x00ff113149860000)
+
+full               = Bitboard(0xffffffffffffffff)
+empty              = Bitboard(0x0000000000000000)
+sqa1               = Bitboard(0x0000000000000001)
+sqa8               = Bitboard(0x0000000000000080)
+sqh1               = Bitboard(0x0100000000000000)
+sqh8               = Bitboard(0x8000000000000000)
+
+row_1              = Bitboard(0x00000000000000ff)
+row_8              = Bitboard(0xff00000000000000)
+column_a           = Bitboard(0x0101010101010101)
+column_h           = Bitboard(0x8080808080808080)
+
+half_left          = Bitboard(0x0f0f0f0f0f0f0f0f)
+half_right         = Bitboard(0xf0f0f0f0f0f0f0f0)
+half_top           = Bitboard(0x00000000ffffffff)
+half_bottom        = Bitboard(0xffffffff00000000)
+
+
+
 class TestPattern(unittest.TestCase):
 
     def setUp(self):
@@ -663,3 +693,113 @@ class TestPatternMdpRecord(unittest.TestCase):
         actual = p.mdp_record()
         self.assertEqual(actual, expected)
 
+class TestTransformationsCayleyTable(unittest.TestCase):
+
+    Tr: TypeAlias = Callable[[np.uint64], np.uint64]
+
+    # Transformations as described in the LaTeX paper
+    e:  Tr = bitboard_ro000 # 0 - e   - $e$     - Identity
+    r:  Tr = bitboard_ro090 # 1 - r   - $R_90$  - 90 degree clockwise rotation
+    r2: Tr = bitboard_ro180 # 2 - r2  - $R_180$ - 180 degree clockwise rotation
+    r3: Tr = bitboard_ro270 # 3 - r3  - $R_270$ - 270 degree clockwise rotation
+    sh: Tr = bitboard_fhori # 4 - s   - $S_h$   - horizontal reflection
+    d1: Tr = bitboard_fa1h8 # 5 - sr  - $S_d1$  - principal diag ( a1h8 ) reflection
+    sv: Tr = bitboard_fvert # 6 - sr2 - $S_v$   - vertical reflection
+    d2: Tr = bitboard_fh1a8 # 7 - sr3 - $S_d2$  - secondary diag ( a8h1 ) reflection
+
+    trl: list[Tr] = [e, r, r2, r3, sv, sh, d1, d2]
+    trs = np.array(trl, dtype=object)
+    # Mapping between the ordering of transformations. See bitboard_transformation() documentation.
+    trm = np.array([0, 1, 2, 3, 4, 6, 7, 5], dtype=np.int8)
+
+    def transformations(self, s: np.uint64) -> npt.NDArray[np.uint64]:
+        r = np.array([f(s) for f in self.trl], dtype=np.uint64)
+        return r
+
+    cayley_list: list[Tr] = [
+        [  e,  r, r2, r3, sv, sh, d1, d2 ],
+        [  r, r2, r3, e,  d1, d2, sh, sv ],
+        [ r2, r3,  e, r,  sh, sv, d2, d1 ],
+        [ r3,  e,  r, r2, d2, d1, sv, sh ],
+        [ sv, d2, sh, d1,  e, r2, r3,  r ],
+        [ sh, d1, sv, d2, r2,  e,  r, r3 ],
+        [ d1, sv, d2, sh,  r, r3,  e, r2 ],
+        [ d2, sh, d1, sv, r3,  r, r2,  e ],
+    ]
+    cayley = np.array(cayley_list, dtype=object)
+
+    def verify_cayley_table(self, data: np.uint64):
+        """
+        Validates the entire Cayley table against functional composition 
+        for a specific input state.
+        
+        Order of operation: G (row i) is applied first, then H (column j).
+        Equivalent to: y = H(G(data))
+        """
+        for i in range(8):
+            for j in range(8):
+                # Expected result from the pre-computed Cayley table
+                expected = self.cayley[i, j](data)
+                
+                # Computed result applying transformations in sequence: G then H
+                # trs[i] is G (row), trs[j] is H (column)
+                computed = self.trs[j](self.trs[i](data))
+                
+                self.assertEqual(
+                    computed, 
+                    expected,
+                    (
+                        f"Cayley consistency error at indices [{i},{j}]:\n"
+                        f"Input: {data}\n"
+                        f"Table says: {self.cayley[i, j].__name__}\n"
+                        f"Code computed: {self.trs[j].__name__}({self.trs[i].__name__}(data))"
+                    ))
+
+    def test_the_cog_is_working(self):
+        computed = self.transformations(ar)
+        expected = bitboard_transformations(ar)
+        nptest.assert_array_equal(computed, expected[self.trm])
+
+    def test_cayley_with_ar(self):
+        self.verify_cayley_table(ar)
+
+    def test_cayley_with_multiple_input(self):
+        tcs = [full, empty, sqa1, sqa8, sqh1, sqh8, row_1, row_8, column_a, column_h, half_left, half_right, half_top, half_bottom]
+        for s in tcs:
+            self.verify_cayley_table(s)
+
+    def test_cayley_with_sample_patterns(self):
+        pattern_data = [
+            ('ELLE',   0x0000000000000107),
+            ('SNAKE',  0x0000000C30000000),
+            ('EDGE',   0x00000000000000FF),
+            ('R2',     0x000000000000FF00),
+            ('R3',     0x0000000000FF0000),
+            ('R4',     0x00000000FF000000),
+            ('XEDGE',  0x00000000000042FF),
+            ('DIAG3',  0x0000000000010204),
+            ('DIAG4',  0x0000000001020408),
+            ('DIAG5',  0x0000000102040810),
+            ('DIAG6',  0x0000010204081020),
+            ('DIAG7',  0x0001020408102040),
+            ('DIAG8',  0x0102040810204080),
+            ('CORNER', 0x0000000000070707),
+            ('2X5COR', 0x0000000000001F1F),
+            ('2X6COR', 0x0000000000003F3F),
+            ('RCT2X4', 0x0000003C3C000000),
+            ('CASTLE', 0x000000000000C3FF),
+            ('BARBEL', 0x030304081020C0C0),
+            ('MACE',   0x010204081020C0C0),
+            ('FOURC',  0x8100000000000081),
+            ('CORE',   0x0000001818000000),
+            ('CORED',  0x0000241818240000),
+            ('COREA',  0x000008381C100000),
+            ('WHIRL',  0x83800000000001C1),
+            ('TAU',    0x010100C1C1000101),
+            ('DOTA1',  0x0000000000000001),
+            ('DOTB1',  0x0000000000000002),
+            ('TWOND',  0x0000000000000201),
+        ]
+        patterns = [Pattern(name, Bitboard(mask)) for name, mask in pattern_data]
+        for p in patterns:
+            self.verify_cayley_table(p.mask)

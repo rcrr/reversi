@@ -53,7 +53,9 @@ __all__ = ['Square', 'SquareArray',
            'bitboard_ro000', 'bitboard_ro090', 'bitboard_ro180', 'bitboard_ro270',
            'bitboard_to_square_list', 'bitboard_to_string_list',
            'bitboard_trans_fs', 'bitboard_anti_trans_fs',
-           'bitboard_transformation_labels', 'bitboard_anti_transformation_labels']
+           'bitboard_transformation_labels', 'bitboard_anti_transformation_labels',
+           'Position', 'PositionArray',
+           'make_position']
 
 
 
@@ -111,8 +113,57 @@ def validate_bitboard_array(v: any) -> any:
         raise ValueError(f"Array dtype must be uint64, got {v.dtype}")
     return v
 
-# A Pydantic-compatible type hint for Bitboard (np.uint64) arrays.
+#: A Pydantic-compatible type hint for Bitboard (np.uint64) arrays.
 BitboardArray = Annotated[npt.NDArray[np.uint64], BeforeValidator(validate_bitboard_array)]
+
+
+
+#: A game position is a structured native NumPy dtype.
+#: Look into test_board, class TestPositionCreation, for more details in how to use it.
+Position = np.dtype([('mover', Bitboard), ('opponent', Bitboard)])
+
+def validate_position_array(v: any) -> any:
+    """Validates and coerces 2D uint64 arrays into a 1D Position structured array."""
+    if isinstance(v, np.ndarray) and v.dtype != Position:
+        if v.dtype == np.uint64 and v.ndim == 2 and v.shape[1] == 2:
+            return v.view(Position).reshape(-1)
+        raise ValueError(f"Array dtype must be {Position}, got {v.dtype}")
+    return v
+
+PositionArray = Annotated[npt.NDArray[any], BeforeValidator(validate_position_array)]
+
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def make_position(mover: Union[Bitboard, BitboardArray, List], 
+                  opponent: Union[Bitboard, BitboardArray, List]
+                  ) -> Union[np.void, PositionArray]:
+    """
+    Creates either a single Position scalar or a PositionArray from vectors/lists.
+    Guarantees zero-copy view casting on the combined data where applicable.
+    """
+    # ARRAY / LIST CASE
+    if isinstance(mover, (np.ndarray, list)) or isinstance(opponent, (np.ndarray, list)):
+        # Enforce identical length check before any allocation
+        if len(mover) != len(opponent):
+            raise ValueError(
+                f"Length mismatch: 'mover' has length {len(mover)}, "
+                f"but 'opponent' has length {len(opponent)}."
+            )
+            
+        # Convert to arrays if they are Python lists (no-op if already NumPy arrays)
+        m_arr = np.asarray(mover, dtype=Bitboard)
+        o_arr = np.asarray(opponent, dtype=Bitboard)
+        
+        # Allocate a contiguous 2D array block to interleave the data in C memory
+        data = np.empty((len(m_arr), 2), dtype=Bitboard)
+        data[:, 0] = m_arr
+        data[:, 1] = o_arr
+        
+        # Interpret the memory block as a 1D structured array (Zero-Copy View)
+        return data.view(Position).reshape(-1)
+        
+    # SCALAR CASE
+    return np.void((mover, opponent), dtype=Position)
 
 
 
