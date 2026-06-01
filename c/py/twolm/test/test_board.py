@@ -296,6 +296,128 @@ class TestBitboardFromSignedInt(unittest.TestCase):
             i = np.array([[0, 1], [3, 7]], dtype=np.int64)
             bitboard_from_signed_int(-1)
 
+class TestBitboardToSignedInt(unittest.TestCase):
+
+    def test_scalar_conversion_positive(self):
+        """Should return a positive int64 when the most significant bit (MSB) is 0."""
+        # A standard small bitboard number
+        bb = np.uint64(4611717676283199524)
+        expected = np.int64(4611717676283199524)
+        
+        result = bitboard_to_signed_int(bb)
+        
+        self.assertEqual(result, expected)
+        self.assertIsInstance(result, np.int64)
+
+    def test_scalar_conversion_negative_twos_complement(self):
+        """Should return a negative int64 when the MSB is 1 (two's complement conversion)."""
+        # 0xFFFFFFFFFFFFFFFF translates to signed -1
+        bb_all_ones = np.uint64(0xFFFFFFFFFFFFFFFF)
+        expected_minus_one = np.int64(-1)
+        
+        # 0x8000000000000000 is the lowest possible signed 64-bit integer
+        bb_min_int = np.uint64(0x8000000000000000)
+        expected_min_int = np.int64(-9223372036854775808)
+        
+        self.assertEqual(bitboard_to_signed_int(bb_all_ones), expected_minus_one)
+        self.assertEqual(bitboard_to_signed_int(bb_min_int), expected_min_int)
+
+    def test_array_1d_conversion_valid(self):
+        """Should correctly cast an entire 1D BitboardArray into a signed int64 array zero-copy."""
+        bb_array = np.array([0, 4611717676283199524, 0xFFFFFFFFFFFFFFFF], dtype=np.uint64)
+        expected = np.array([0, 4611717676283199524, -1], dtype=np.int64)
+        
+        result = bitboard_to_signed_int(bb_array)
+        
+        self.assertIsInstance(result, np.ndarray)
+        self.assertEqual(result.dtype, np.int64)
+        self.assertEqual(result.shape, (3,))
+        self.assertTrue(np.all(result == expected))
+
+    def test_array_invalid_dimensions(self):
+        """Should raise ValueError if the passed bitboard array is 2D instead of 1D."""
+        invalid_2d_array = np.array([
+            [1, 2],
+            [3, 4]
+        ], dtype=np.uint64)
+        
+        with self.assertRaises(ValueError):
+            bitboard_to_signed_int(invalid_2d_array)
+
+    def test_invalid_dtype_error(self):
+        """Should raise ValueError if the input array is not fundamentally a uint64."""
+        invalid_type_array = np.array([1, 2, 3], dtype=np.int32)
+        
+        with self.assertRaises(ValueError):
+            bitboard_to_signed_int(invalid_type_array)
+
+class TestBitboardFromHexStr(unittest.TestCase):
+    
+    def test_scalar_conversion_valid(self):
+        """Should correctly parse a valid 16-character hex string into a single Bitboard."""
+        hex_str = "0000001008000000"
+        expected = np.uint64(0x0000001008000000)
+        
+        result = bitboard_from_hex_str(hex_str)
+        
+        self.assertEqual(result, expected)
+        self.assertIsInstance(result, np.uint64)
+
+    def test_scalar_conversion_case_insensitivity(self):
+        """Should handle lowercase, uppercase, and mixed-case hex strings identically."""
+        hex_lower = "abcdef0123456789"
+        hex_upper = "ABCDEF0123456789"
+        
+        expected = np.uint64(0xABCDEF0123456789)
+        
+        self.assertEqual(bitboard_from_hex_str(hex_lower), expected)
+        self.assertEqual(bitboard_from_hex_str(hex_upper), expected)
+
+    def test_scalar_conversion_invalid_length(self):
+        """Should raise ValueError if a scalar string is not exactly 16 characters long."""
+        with self.assertRaises(ValueError):
+            bitboard_from_hex_str("123")  # Too short
+            
+        with self.assertRaises(ValueError):
+            bitboard_from_hex_str("000000100800000011")  # Too long
+
+    def test_array_1d_conversion_valid(self):
+        """Should correctly parse a 1D NumPy array of valid hex strings into a BitboardArray."""
+        hex_strings = np.array(["0000001008000000", "0000000810000000", "FFFFFFFFFFFFFFFF"])
+        expected = np.array([0x0000001008000000, 0x0000000810000000, 0xFFFFFFFFFFFFFFFF], dtype=np.uint64)
+        
+        result = bitboard_from_hex_str(hex_strings)
+        
+        self.assertIsInstance(result, np.ndarray)
+        self.assertEqual(result.dtype, np.uint64)
+        self.assertEqual(result.shape, (3,))
+        self.assertTrue(np.all(result == expected))
+
+    def test_array_1d_conversion_invalid_length(self):
+        """Should raise ValueError if any string inside the 1D array breaks the 16-character limit."""
+        # One string is valid, the second one is too short
+        invalid_array = np.array(["0000001008000000", "A1B2C3"])
+        
+        with self.assertRaises(ValueError):
+            bitboard_from_hex_str(invalid_array)
+
+    def test_array_invalid_dimensions(self):
+        """Should raise ValueError if the passed NumPy array is 2D instead of 1D."""
+        invalid_2d_array = np.array([
+            ["0000001008000000"], 
+            ["0000000810000000"]
+        ])
+        
+        with self.assertRaises(ValueError):
+            bitboard_from_hex_str(invalid_2d_array)
+
+    def test_invalid_characters(self):
+        """Should raise ValueError if strings contain non-hex characters (handled by Python's int cast)."""
+        invalid_hex_str = "000000100800000G"  # 'G' is out of bounds for base 16
+        
+        with self.assertRaises(ValueError):
+            bitboard_from_hex_str(invalid_hex_str)
+
 class TestBitboardBsr(unittest.TestCase):
 
     def test_scalar_bsr_high_bits(self):
@@ -653,6 +775,38 @@ class TestBitboardToSquareList(unittest.TestCase):
     def test_wrong_type_raises_type_error(self):
         with self.assertRaises(ValidationError):
             bitboard_to_square_list('Not the right type')
+
+class TestBitboardToSquareArray(unittest.TestCase):
+    
+    def test_bitboard_to_square_array(self):
+        bb = Bitboard(0x0000000000000000)
+        ar = bitboard_to_square_array(bb)
+        self.assertIsInstance(ar, np.ndarray)
+        self.assertEqual(len(ar), 0)
+        self.assertEqual(ar.dtype, Square)
+        self.assertEqual(ar.shape, (0,))
+        
+        bb = Bitboard(0x0000000000000001)
+        ar = bitboard_to_square_array(bb)
+        self.assertIsInstance(ar, np.ndarray)
+        self.assertEqual(len(ar), 1)
+        self.assertEqual(ar.dtype, Square)
+        self.assertEqual(ar.shape, (1,))
+        self.assertEqual(ar[0], Square(0))
+
+        bb = Bitboard(0x8000000000000003)
+        ar = bitboard_to_square_array(bb)
+        self.assertIsInstance(ar, np.ndarray)
+        self.assertEqual(len(ar), 3)
+        self.assertEqual(ar.dtype, Square)
+        self.assertEqual(ar.shape, (3,))
+        self.assertEqual(ar[0], Square(63))
+        self.assertEqual(ar[1], Square(1))
+        self.assertEqual(ar[2], Square(0))
+
+    def test_wrong_type_raises_type_error(self):
+        with self.assertRaises(ValidationError):
+            bitboard_to_square_array('Not the right type')
 
 class TestPositionCreation(unittest.TestCase):
 

@@ -47,11 +47,12 @@ __all__ = ['Square', 'SquareArray',
            'move_from_str', 'move_to_str', 'move_as_bitboard',
            'move_validate_range',
            'Bitboard', 'BitboardArray',
-           'bitboard_from_signed_int', 'bitboard_bsr', 'bitboard_count',
+           'bitboard_from_signed_int', 'bitboard_to_signed_int', 'bitboard_from_hex_str',
+           'bitboard_bsr', 'bitboard_count',
            'bitboard_transformations', 'bitboard_print',
            'bitboard_fa1h8', 'bitboard_fh1a8', 'bitboard_fhori', 'bitboard_fvert',
            'bitboard_ro000', 'bitboard_ro090', 'bitboard_ro180', 'bitboard_ro270',
-           'bitboard_to_square_list', 'bitboard_to_string_list',
+           'bitboard_to_square_list', 'bitboard_to_square_array', 'bitboard_to_string_list',
            'bitboard_trans_fs', 'bitboard_anti_trans_fs',
            'bitboard_transformation_labels', 'bitboard_anti_transformation_labels',
            'Position', 'PositionArray',
@@ -265,6 +266,70 @@ def bitboard_from_signed_int(i: np.int64 | npt.NDArray[np.int64]) -> Bitboard | 
         
     return i.view(Bitboard)
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def bitboard_to_signed_int(bb: Bitboard | BitboardArray) -> np.int64 | npt.NDArray[np.int64]:
+    """
+    Returns the signed int 64 bit long representation of the bitboard.
+    It is useful to store and retrieve the value from PostgreSQL databases.
+    Works on scalar and 1D array inputs.
+    """
+    
+    # Standardize input by checking if it came in as a scalar or an array
+    is_scalar = not isinstance(bb, np.ndarray)
+    bb_arr = np.atleast_1d(bb)
+    
+    # Check layout constraints (Pydantic validates types, but we handle dimensions)
+    if bb_arr.ndim != 1:
+        raise ValueError(f"When the argument bb is an array, it must be 1D, got shape {bb_arr.shape}")
+    
+    # Adapt output representation to match original scalar or matrix input context
+    if is_scalar:
+        return bb.view(np.int64)[()]
+    
+    if bb_arr.dtype != np.uint64:
+        raise ValueError(f"Array dtype must be uint64, got {bb.dtype}")
+        
+    return bb.view(np.int64)
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def bitboard_from_hex_str(h: str | npt.NDArray[str]) -> Bitboard | BitboardArray:
+    """
+    Returns a new Bitboard object from the hexadecimal string given as argument.
+    The h string must be 16 character long having values in the range [0..F].
+    Characters could be uppercase or lovercase.
+    Note that the argument string is not prefixed with '0x'.
+    Works on scalar and 1D array inputs.
+    """
+    
+    # Standardize input by checking if it came in as a scalar or an array
+    is_scalar = not isinstance(h, np.ndarray)
+    h_arr = np.atleast_1d(h)
+    
+    # Check layout constraints (Pydantic validates types, but we handle dimensions)
+    if h_arr.ndim != 1:
+        raise ValueError(f"When the argument h is an array, it must be 1D, got shape {h_arr.shape}")
+
+    # SCALAR CASE
+    if is_scalar:
+        if len(h) != 16:
+            raise ValueError('Argument h must be a string of length 16')
+        return Bitboard(int(h, 16))
+
+    # ARRAY CASE
+    # 1. Vectorized string length check using NumPy's character operations
+    # This ensures every string in the array is exactly 16 characters long
+    if not np.all(np.char.str_len(h_arr) == 16):
+        raise ValueError("All hex strings in the array must be exactly 16 characters long")
+
+    # 2. Vectorize the 'int(x, 16)' base conversion function
+    # np.frompyfunc converts a standard Python function into an optimized C-level loop
+    # Arguments: (function, number_of_inputs, number_of_outputs)
+    vectorized_hex_parser = np.frompyfunc(lambda x: int(x, 16), 1, 1)
+
+    # 3. Apply the vectorized parser and cast the resulting object array to pure uint64
+    result_array: BitboardArray = vectorized_hex_parser(h_arr).astype(np.uint64)
+    
+    return result_array
     
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_bsr(bb: Bitboard) -> int:
@@ -595,6 +660,13 @@ def bitboard_to_square_list(bb: Bitboard) -> List[Square]:
             
     return squares
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def bitboard_to_square_array(bb: Bitboard) -> SquareArray:
+    """
+    Returns the square set as a numpy array of squares.
+    """
+    return np.array(bitboard_to_square_list(bb), dtype=Square)
+        
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_to_string_list(bb: Bitboard) -> List[str]:
     """
