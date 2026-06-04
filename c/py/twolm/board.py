@@ -56,7 +56,8 @@ __all__ = ['Square', 'SquareArray',
            'bitboard_trans_fs', 'bitboard_anti_trans_fs',
            'bitboard_transformation_labels', 'bitboard_anti_transformation_labels',
            'Position', 'PositionArray',
-           'make_position', 'position_eq', 'position_print', 'position_empties']
+           'make_position', 'position_eq', 'position_print', 'position_empties',
+           'position_legal_moves', 'legal_moves', 'position_legal_moves_count']
 
 
 
@@ -121,8 +122,6 @@ BitboardArray = Annotated[npt.NDArray[np.uint64], BeforeValidator(validate_bitbo
 
 #: A game position is a structured native NumPy dtype.
 #: Look into test_board, class TestPositionCreation, for more details in how to use it.
-Position = np.dtype([('mover', Bitboard), ('opponent', Bitboard)])
-
 Position = np.dtype([('mover', Bitboard), ('opponent', Bitboard)])
 PositionField = Annotated[np.void, SkipValidation[Any]]
 
@@ -772,11 +771,126 @@ def position_empties(p: PositionField | PositionArray) -> Bitboard | BitboardArr
     """
     return ~(p['mover'] | p['opponent'])
 
-def position_legal_moves(p: PositionField) -> Bitboard:
-    pass
+#: legal_moves code start here.
 
+#: Constants for bitboard manipulation
+_all_squares                 = Bitboard(0xFFFFFFFFFFFFFFFF)
+_all_squares_except_column_a = Bitboard(0xFEFEFEFEFEFEFEFE)
+_all_squares_except_column_h = Bitboard(0x7F7F7F7F7F7F7F7F)
+
+#: Pre-calculating masks and slides to avoid overhead inside the JIT function
+_mask_l = np.array([
+    _all_squares_except_column_a,
+    _all_squares_except_column_h,
+    _all_squares,
+    _all_squares_except_column_a
+], dtype=Bitboard)
+_mask_r = np.array([
+    _all_squares_except_column_h,
+    _all_squares_except_column_a,
+    _all_squares,
+    _all_squares_except_column_h
+], dtype=Bitboard)
+_slide_1 = np.array([1, 7, 8, 9], dtype=np.uint8)
+_slide_2 = _slide_1 * 2
+_slide_4 = _slide_1 * 4
+
+#: Internal use function.
+@njit(parallel=True, cache=True)
+def _vectorized_legal_moves(movers: np.ndarray, opponents: np.ndarray) -> np.ndarray:
+    """
+    Vectorized calculation of Reversi legal moves using Kogge-Stone algorithm.
+    Optimized for large arrays (10M+ elements) using Numba JIT and multi-threading.
+    """
+    n = movers.shape[0]
+    results = np.empty(n, dtype=Bitboard)
+
+    # Parallel loop across all board instances
+    for i in prange(n):
+        mover = Bitboard(movers[i])
+        opponent = Bitboard(opponents[i])
+        empties = Bitboard(~(mover | opponent))
+        
+        legal_result = Bitboard(0)
+        
+        # Iterate through the 4 main directions (each handles both sides: Left/Right, Up/Down, etc.)
+        for d in range(4):
+            # --- Directional Forward Shift (Left-style) ---
+            g = mover
+            p = opponent & _mask_l[d]
+
+            g |= p & (g << _slide_1[d])
+            p &= p << _slide_1[d]
+            g |= p & (g << _slide_2[d])
+            p &= p << _slide_2[d]
+            g |= p & (g << _slide_4[d])
+
+            # Resulting moves must be in an empty square and not be the generator itself
+            g_final = empties & _mask_l[d] & ((g & ~mover) << _slide_1[d])
+            legal_result |= g_final
+
+            # --- Directional Backward Shift (Right-style) ---
+            g = mover
+            p = opponent & _mask_r[d]
+
+            g |= p & (g >> _slide_1[d])
+            p &= p >> _slide_1[d]
+            g |= p & (g >> _slide_2[d])
+            p &= p >> _slide_2[d]
+            g |= p & (g >> _slide_4[d])
+
+            g_final = empties & _mask_r[d] & ((g & ~mover) >> _slide_1[d])
+            legal_result |= g_final
+            
+        results[i] = legal_result
+        
+    return results
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def legal_moves(mover: Bitboard | BitboardArray,
+                opponent: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
+    """
+    Calculate Reversi legal moves for a single or multiple board configurations.
+    """
+    # Check if inputs are scalars
+    if isinstance(mover, Bitboard) and isinstance(opponent, Bitboard):
+        # Wrap the scalar inputs into numpy arrays
+        movers = np.array([mover], dtype=Bitboard)
+        opponents = np.array([opponent], dtype=Bitboard)
+        
+        # Call the vectorized function
+        result = _vectorized_legal_moves(movers, opponents)
+        
+        # Return the result as a scalar
+        return result[0]
+    elif isinstance(mover, np.ndarray) and isinstance(opponent, np.ndarray):
+        # Ensure the arrays have the same shape
+        if mover.shape != opponent.shape:
+            raise ValueError("The shapes of mover and opponent arrays must be the same.")
+        
+        # Ensure the dtype of the arrays is Bitboard
+        if mover.dtype != Bitboard or opponent.dtype != Bitboard:
+            raise TypeError("The dtype of mover and opponent arrays must be Bitboard.")
+        
+        # Call the vectorized function directly
+        return _vectorized_legal_moves(mover, opponent)
+    else:
+        raise TypeError("Inputs must be either both Bitboard or both npt.NDArray[Bitboard].")
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def position_legal_moves(p: PositionField | PositionArray) -> Bitboard | BitboardArray:
+    return legal_moves(p['mover'], p['opponent'])
+
+#: legal_move code ends here.
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_legal_moves_count(p: PositionField) -> int:
-    pass
+    """
+    Returns the count of legal moves for the game position.
+    """
+    lms = position_legal_moves(p)
+    lmc = bitboard_count(lms)
+    return lmc
 
 def position_flips(p: PositionField, move: Bitboard) -> (Bitboard, PositionField):
     pass
