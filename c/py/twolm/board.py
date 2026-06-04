@@ -27,7 +27,7 @@
 
 from __future__ import annotations
 
-from typing import TypeAlias, Annotated, List
+from typing import TypeAlias, Annotated, List, Any
 
 import numpy as np
 import numpy.typing as npt
@@ -37,7 +37,7 @@ import sys
 import io
 from typing import IO, Union
 
-from pydantic import validate_call, ConfigDict, BeforeValidator
+from pydantic import validate_call, ConfigDict, BeforeValidator, SkipValidation
 
 
 __all__ = ['Square', 'SquareArray',
@@ -56,7 +56,7 @@ __all__ = ['Square', 'SquareArray',
            'bitboard_trans_fs', 'bitboard_anti_trans_fs',
            'bitboard_transformation_labels', 'bitboard_anti_transformation_labels',
            'Position', 'PositionArray',
-           'make_position']
+           'make_position', 'position_eq', 'position_print', 'position_empties']
 
 
 
@@ -123,6 +123,10 @@ BitboardArray = Annotated[npt.NDArray[np.uint64], BeforeValidator(validate_bitbo
 #: Look into test_board, class TestPositionCreation, for more details in how to use it.
 Position = np.dtype([('mover', Bitboard), ('opponent', Bitboard)])
 
+Position = np.dtype([('mover', Bitboard), ('opponent', Bitboard)])
+PositionField = Annotated[np.void, SkipValidation[Any]]
+
+
 def validate_position_array(v: any) -> any:
     """Validates and coerces 2D uint64 arrays into a 1D Position structured array."""
     if isinstance(v, np.ndarray) and v.dtype != Position:
@@ -168,6 +172,8 @@ def make_position(mover: Union[Bitboard, BitboardArray, List],
 
 
 
+#: Square methods.
+
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def square_from_str(name: str) -> Square:
     """
@@ -205,6 +211,8 @@ def square_validate_range(sq: Square | SquareArray) -> None:
 
 
 
+#: Move methods.
+
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def move_from_str(name: str) -> Move:
     """
@@ -241,6 +249,8 @@ def move_validate_range(mo: Move | MoveArray) -> None:
     return
 
 
+
+#: Bitboard methods.
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_from_signed_int(i: np.int64 | npt.NDArray[np.int64]) -> Bitboard | BitboardArray:
@@ -345,9 +355,6 @@ def bitboard_bsr(bb: Bitboard) -> int:
 def bitboard_count(bb: Bitboard) -> int:
     """
     Returns the number of squares in the set.
-
-    Returns:
-        int: The number of squares in the set.
     """
     bit_count = np.bitwise_count(bb)
     return bit_count
@@ -727,3 +734,97 @@ bitboard_anti_transformation_labels = np.array(
      'fhori',
      'fa1h8',
      ])
+
+
+
+#: Position methods.
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def position_eq(pos_a: PositionField | PositionArray, pos_b: PositionField | PositionArray) -> bool:
+    return np.array_equal(pos_a, pos_b)
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def position_print(p: PositionField, output: Union[IO, io.StringIO] = sys.stdout) -> None:
+    """
+    Prints a 2D representation of the position to the given output.
+    """
+    sq = Bitboard(1)
+    print('  a b c d e f g h', file=output)
+    for row in range(0,8):
+        print(row + 1, end = '', file=output)
+        for col in range(0,8):
+            if sq & p['mover'] != 0:
+                c = '@'
+            elif sq & p['opponent'] != 0:
+                c = 'O'
+            else:
+                c = '.'
+            print(' ' + c, end = '', file=output)
+            sq <<= 1
+        print(file=output)
+    return
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def position_empties(p: PositionField | PositionArray) -> Bitboard | BitboardArray:
+    """
+    Returns the set of empty squares in the game position.
+    Works on scalar and 1D array inputs.
+    """
+    return ~(p['mover'] | p['opponent'])
+
+def position_legal_moves(p: PositionField) -> Bitboard:
+    pass
+
+def position_legal_moves_count(p: PositionField) -> int:
+    pass
+
+def position_flips(p: PositionField, move: Bitboard) -> (Bitboard, PositionField):
+    pass
+
+def position_make_move(p: PositionField, move: Bitboard) -> PositionField:
+    pass
+
+def position_count_difference(p: PositionField) -> int:
+    pass
+
+def position_final_value(p: PositionField) -> int:
+    pass
+
+def position_has_to_pass(p: PositionField) -> bool:
+    pass
+
+def position_is_game_over(p: PositionField) -> bool:
+    pass
+
+def position_is_move_legal(p: PositionField) -> bool:
+    pass
+
+def position_fa1h8(p: PositionField) -> PositionField:
+    pass
+
+def position_fh1a8(p: PositionField) -> PositionField:
+    pass
+
+def position_fhori(p: PositionField) -> PositionField:
+    pass
+
+def position_fvert(p: PositionField) -> PositionField:
+    pass
+
+def position_ro000(p: PositionField) -> PositionField:
+    pass
+
+def position_ro090(p: PositionField) -> PositionField:
+    pass
+
+def position_ro180(p: PositionField) -> PositionField:
+    pass
+
+def position_ro270(p: PositionField) -> PositionField:
+    pass
+
+def position_transformations(p: PositionField) -> PositionArray:
+    pass
+
+def position_anti_transformations(p: PositionField) -> PositionArray:
+    pass
