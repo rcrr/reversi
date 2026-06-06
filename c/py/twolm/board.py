@@ -27,7 +27,7 @@
 
 from __future__ import annotations
 
-from typing import TypeAlias, Annotated, List, Any
+from typing import TypeAlias, Annotated, List, Any, Tuple
 
 import numpy as np
 import numpy.typing as npt
@@ -56,8 +56,10 @@ __all__ = ['Square', 'SquareArray',
            'bitboard_trans_fs', 'bitboard_anti_trans_fs',
            'bitboard_transformation_labels', 'bitboard_anti_transformation_labels',
            'Position', 'PositionArray',
+           'position_collisions', 'position_check_collisions',
            'make_position', 'position_eq', 'position_print', 'position_empties',
-           'position_legal_moves', 'legal_moves', 'position_legal_moves_count']
+           'position_legal_moves', 'legal_moves', 'position_legal_moves_count',
+           'position_flips']
 
 
 
@@ -771,7 +773,43 @@ def position_empties(p: PositionField | PositionArray) -> Bitboard | BitboardArr
     """
     return ~(p['mover'] | p['opponent'])
 
-#: legal_moves code start here.
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def position_collisions(p: PositionField | PositionArray) -> Bitboard | BitboardArray:
+    """
+    Returns the set of overlapping squares between mover and opponent.
+    Given the observation that squares cannot be taken by both players,
+    it is an invariant that must be always zero (the empty set).
+    Works on scalar and 1D array inputs.
+    """
+    return p['mover'] & p['opponent']
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def position_check_collisions(p: PositionField | PositionArray) -> None:
+    """
+    Checks for overlapping squares between mover and opponent.
+    Given the observation that squares cannot be taken by both players,
+    it is an invariant that must be always zero (the empty set).
+    When a collision is found raises a ValueError.
+    Works on scalar and 1D array inputs.
+    """
+    collisions = position_collisions(p)
+    if np.any(collisions):
+        # Convert to 1D safely to support both scalar and array inputs without IndexError
+        collisions_1d = np.atleast_1d(collisions)
+        
+        total_size = collisions_1d.size
+        nonzero_indices = np.nonzero(collisions_1d)[0]
+        num_collisions = nonzero_indices.size  # Faster than len() on numpy arrays
+        first_collision_idx = nonzero_indices[0]
+        
+        error_message = (
+            f"Validation Failed: Detected {num_collisions} collision(s) "
+            f"out of {total_size} total elements. "
+            f"First collision occurred at index: {first_collision_idx}."
+        )
+        raise ValueError(error_message)
+
+#: legal_moves code starts here.
 
 #: Constants for bitboard manipulation
 _all_squares                 = Bitboard(0xFFFFFFFFFFFFFFFF)
@@ -892,11 +930,86 @@ def position_legal_moves_count(p: PositionField) -> int:
     lmc = bitboard_count(lms)
     return lmc
 
-def position_flips(p: PositionField, move: Bitboard) -> (Bitboard, PositionField):
-    pass
+#: make_move code starts here.
+
+_mm_mask = np.array([
+    _all_squares_except_column_a,
+    _all_squares_except_column_h,
+    _all_squares,
+    _all_squares_except_column_a,
+    _all_squares_except_column_h,
+    _all_squares_except_column_a,
+    _all_squares,
+    _all_squares_except_column_h,
+], dtype=Bitboard)
+
+_mm_slide_up_1 = np.array([1,  7,  8,  9,  0,  0,  0,  0], dtype=np.uint8)
+_mm_slide_dw_1 = np.array([0,  0,  0,  0,  1,  7,  8,  9], dtype=np.uint8)
+_mm_slide_up_2 = np.array([2, 14, 16, 18,  0,  0,  0,  0], dtype=np.uint8)
+_mm_slide_dw_2 = np.array([0,  0,  0,  0,  2, 14, 16, 18], dtype=np.uint8)
+_mm_slide_up_4 = np.array([4, 28, 32, 36,  0,  0,  0,  0], dtype=np.uint8)
+_mm_slide_dw_4 = np.array([0,  0,  0,  0,  4, 28, 32, 36], dtype=np.uint8)
+
+def _kogge_stone_mm(generator: Bitboard,
+                    propagator: Bitboard,
+                    blocker: Bitboard) -> Bitboard:
+    g: Bitboard
+    p: Bitboard
+    gt: Bitboard
+    accumulator: Bitboard
+
+    accumulator = Bitboard(0)
+
+    for i in range(8):
+        g = generator
+        p = propagator & _mm_mask[i]
+
+        g |= p & ((g << _mm_slide_up_1[i]) >> _mm_slide_dw_1[i])
+        p &=     ((p << _mm_slide_up_1[i]) >> _mm_slide_dw_1[i])
+
+        g |= p & ((g << _mm_slide_up_2[i]) >> _mm_slide_dw_2[i])
+        p &=     ((p << _mm_slide_up_2[i]) >> _mm_slide_dw_2[i])
+
+        # Flipped disks plus move, but only if this direction really flips.
+        g |= p & ((g << _mm_slide_up_4[i]) >> _mm_slide_dw_4[i])
+
+        # Flip blocker. It is the bracketing square belonging to mover.
+        gt = blocker & _mm_mask[i] & ((g << _mm_slide_up_1[i]) >> _mm_slide_dw_1[i])
+
+        # Accumulates flipped disks only if there is a blocker (true flipping direction).
+        # In C: (g & -(gt > 0))
+        if gt > 0:
+            accumulator |= g
+
+    return Bitboard(accumulator & ~generator)
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def position_flips(p: PositionField, move: Bitboard) -> Tuple[Bitboard, PositionField]:
+    """
+    Computes the flip set.
+    Return flips as well as the updated game position.
+    The moving player places a disc in the square identified by the move parameter.
+    The flipped squares are returned.
+    When the move is not legal the empy set is returned.
+    When move is 0ULL, 0ULL is returned.
+    The updated board is also returned as second element of the tuple when the move is legal,
+    None otherwise.
+    """
+    if bitboard_count(move) != 1:
+        return Bitboard(0x0000000000000000), None
+    m = p['mover']
+    o = p['opponent']
+    flips = _kogge_stone_mm(move, o, m)
+    if flips != 0x0000000000000000:
+        updated = make_position(o & ~flips, m | flips | move)
+    else:
+        updated = None
+    return flips, updated
 
 def position_make_move(p: PositionField, move: Bitboard) -> PositionField:
     pass
+
+#: make_move code ends here.
 
 def position_count_difference(p: PositionField) -> int:
     pass

@@ -301,7 +301,7 @@ class TestBitboardToSignedInt(unittest.TestCase):
     def test_scalar_conversion_positive(self):
         """Should return a positive int64 when the most significant bit (MSB) is 0."""
         # A standard small bitboard number
-        bb = np.uint64(4611717676283199524)
+        bb = Bitboard(4611717676283199524)
         expected = np.int64(4611717676283199524)
         
         result = bitboard_to_signed_int(bb)
@@ -312,11 +312,11 @@ class TestBitboardToSignedInt(unittest.TestCase):
     def test_scalar_conversion_negative_twos_complement(self):
         """Should return a negative int64 when the MSB is 1 (two's complement conversion)."""
         # 0xFFFFFFFFFFFFFFFF translates to signed -1
-        bb_all_ones = np.uint64(0xFFFFFFFFFFFFFFFF)
+        bb_all_ones = Bitboard(0xFFFFFFFFFFFFFFFF)
         expected_minus_one = np.int64(-1)
         
         # 0x8000000000000000 is the lowest possible signed 64-bit integer
-        bb_min_int = np.uint64(0x8000000000000000)
+        bb_min_int = Bitboard(0x8000000000000000)
         expected_min_int = np.int64(-9223372036854775808)
         
         self.assertEqual(bitboard_to_signed_int(bb_all_ones), expected_minus_one)
@@ -324,7 +324,7 @@ class TestBitboardToSignedInt(unittest.TestCase):
 
     def test_array_1d_conversion_valid(self):
         """Should correctly cast an entire 1D BitboardArray into a signed int64 array zero-copy."""
-        bb_array = np.array([0, 4611717676283199524, 0xFFFFFFFFFFFFFFFF], dtype=np.uint64)
+        bb_array = np.array([0, 4611717676283199524, 0xFFFFFFFFFFFFFFFF], dtype=Bitboard)
         expected = np.array([0, 4611717676283199524, -1], dtype=np.int64)
         
         result = bitboard_to_signed_int(bb_array)
@@ -356,19 +356,19 @@ class TestBitboardFromHexStr(unittest.TestCase):
     def test_scalar_conversion_valid(self):
         """Should correctly parse a valid 16-character hex string into a single Bitboard."""
         hex_str = "0000001008000000"
-        expected = np.uint64(0x0000001008000000)
+        expected = Bitboard(0x0000001008000000)
         
         result = bitboard_from_hex_str(hex_str)
         
         self.assertEqual(result, expected)
-        self.assertIsInstance(result, np.uint64)
+        self.assertIsInstance(result, Bitboard)
 
     def test_scalar_conversion_case_insensitivity(self):
         """Should handle lowercase, uppercase, and mixed-case hex strings identically."""
         hex_lower = "abcdef0123456789"
         hex_upper = "ABCDEF0123456789"
         
-        expected = np.uint64(0xABCDEF0123456789)
+        expected = Bitboard(0xABCDEF0123456789)
         
         self.assertEqual(bitboard_from_hex_str(hex_lower), expected)
         self.assertEqual(bitboard_from_hex_str(hex_upper), expected)
@@ -384,12 +384,12 @@ class TestBitboardFromHexStr(unittest.TestCase):
     def test_array_1d_conversion_valid(self):
         """Should correctly parse a 1D NumPy array of valid hex strings into a BitboardArray."""
         hex_strings = np.array(["0000001008000000", "0000000810000000", "FFFFFFFFFFFFFFFF"])
-        expected = np.array([0x0000001008000000, 0x0000000810000000, 0xFFFFFFFFFFFFFFFF], dtype=np.uint64)
+        expected = np.array([0x0000001008000000, 0x0000000810000000, 0xFFFFFFFFFFFFFFFF], dtype=Bitboard)
         
         result = bitboard_from_hex_str(hex_strings)
         
         self.assertIsInstance(result, np.ndarray)
-        self.assertEqual(result.dtype, np.uint64)
+        self.assertEqual(result.dtype, Bitboard)
         self.assertEqual(result.shape, (3,))
         self.assertTrue(np.all(result == expected))
 
@@ -520,13 +520,13 @@ class BaseBitboardTransformationTest:
 
     def test_vector_transformations(self):
         """Concurrently process all test cases as a single packed NumPy array vector."""
-        input_vector = np.array([case[0] for case in self.test_data], dtype=np.uint64)
-        expected_vector = np.array([case[1] for case in self.test_data], dtype=np.uint64)
+        input_vector = np.array([case[0] for case in self.test_data], dtype=Bitboard)
+        expected_vector = np.array([case[1] for case in self.test_data], dtype=Bitboard)
         
         computed_vector = self.func(input_vector)
         
         self.assertIsInstance(computed_vector, np.ndarray)
-        self.assertEqual(computed_vector.dtype, np.uint64)
+        self.assertEqual(computed_vector.dtype, Bitboard)
         
         try:
             np.testing.assert_array_equal(computed_vector, expected_vector)
@@ -564,8 +564,8 @@ class BaseBitboardTransformationTest:
         """Measure operations speed on a dense 1,000,000 matrix sequence."""
         size = 1_000_000
         # Fallback to a standard matrix if global variable constants like 'sqa1' aren't bound in context
-        fallback_seed = self.test_data[2][0] if len(self.test_data) > 2 else np.uint64(1)
-        input_vector = np.full(size, fallback_seed, dtype=np.uint64)
+        fallback_seed = self.test_data[2][0] if len(self.test_data) > 2 else Bitboard(1)
+        input_vector = np.full(size, fallback_seed, dtype=Bitboard)
         
         _ = self.func(input_vector[:10])  # Validation Warmup
         
@@ -580,7 +580,7 @@ class BaseBitboardTransformationTest:
         
         # Performance output sanity check
         expected_output_seed = self.func(fallback_seed)
-        expected_vector = np.full(size, expected_output_seed, dtype=np.uint64)
+        expected_vector = np.full(size, expected_output_seed, dtype=Bitboard)
         np.testing.assert_array_equal(computed_vector, expected_vector)
 
 class TestBitboardTransformationFa1h8(unittest.TestCase, BaseBitboardTransformationTest):
@@ -827,6 +827,7 @@ class TestPositionCreation(unittest.TestCase):
         opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
         
         position = make_position(mover, opponent)
+        position_check_collisions(position)
 
         m = position['mover']
         o = position['opponent']
@@ -863,6 +864,7 @@ class TestPositionCreation(unittest.TestCase):
         o_list = [opponent] * N
 
         positions = make_position(m_list, o_list)
+        position_check_collisions(positions)
         
         self.assertIsInstance(positions, np.ndarray)
         self.assertEqual(positions.dtype, Position)
@@ -900,19 +902,20 @@ class TestPositionCreation(unittest.TestCase):
 
         # Create the array using our utility
         positions: PositionArray = make_position([mover] * N, [opponent] * N)
+        position_check_collisions(positions)
 
         # 1. EXTRACT THE VIEWS
         mover_array: BitboardArray = positions['mover']
         opponent_array: BitboardArray = positions['opponent']
 
         # 2. ASSERT TYPES AND SHAPES
-        self.assertEqual(mover_array.dtype, np.uint64)
-        self.assertEqual(opponent_array.dtype, np.uint64)
+        self.assertEqual(mover_array.dtype, Bitboard)
+        self.assertEqual(opponent_array.dtype, Bitboard)
         self.assertEqual(mover_array.shape, (N,))
         self.assertEqual(opponent_array.shape, (N,))
 
         # 3. ASSERT ZERO-COPY (Modifying the view alters the parent array instantly)
-        new_bitboard = np.uint64(0xFFFFFFFFFFFFFFFF)
+        new_bitboard = Bitboard(0xFFFFFFFFFFFFFFFF)
         mover_array[0] = new_bitboard
 
         # The underlying structured array changes without reassignment
@@ -1297,6 +1300,7 @@ class TestPositionLegalMoves(unittest.TestCase):
         
         for i, (mover, opponent, expected_legal_moves) in enumerate(data):
             p = make_position(Bitboard(mover), Bitboard(opponent))
+            position_check_collisions(p)
             lm = position_legal_moves(p)
             elm = Bitboard(expected_legal_moves)
             if lm != elm:
@@ -1313,6 +1317,7 @@ class TestPositionLegalMoves(unittest.TestCase):
         data_array = np.array(data, dtype=Bitboard)
 
         positions = make_position(data_array[:, 0], data_array[:, 1])
+        position_check_collisions(positions)
         computed = position_legal_moves(positions)
         expected = data_array[:, 2].view(Bitboard)
         nptest.assert_array_equal(computed, expected)
@@ -1329,10 +1334,11 @@ class TestPositionLegalMoves(unittest.TestCase):
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_performance_1m(self):
         size = 1_000_000
-        movers = np.full(size, 0x0000000000000001, dtype=np.uint64)
-        opponents = np.full(size, 0x0040201008040200, dtype=np.uint64)
+        movers = np.full(size, 0x0000000000000001, dtype=Bitboard)
+        opponents = np.full(size, 0x0040201008040200, dtype=Bitboard)
 
         positions = make_position(movers, opponents)
+        position_check_collisions(positions)
         
         # Warmup
         position_legal_moves(positions[:10])
@@ -1342,10 +1348,119 @@ class TestPositionLegalMoves(unittest.TestCase):
         end = time.perf_counter()
         
         duration = end - start
-        print(f"\n[PERF] Processed {size:,} boards in {duration:.4f}s ({(size/duration):,.0f} boards/sec)")
+        print(f"\n[PERF position_legal_moves] Processed {size:,} boards in {duration:.4f}s ({(size/duration):,.0f} boards/sec)")
         
-        expected_lms = np.full(size, 0x8000000000000000, dtype=np.uint64)
+        expected_lms = np.full(size, 0x8000000000000000, dtype=Bitboard)
         nptest.assert_array_equal(lms, expected_lms)
+
+class TestPositionCollisions(unittest.TestCase):
+
+    def test_position_collisions_scalar(self):
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000002)
+        p = make_position(mover, opponent)
+        self.assertEqual(position_collisions(p), Bitboard(0x0000000000000000))
+        
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000001)
+        p = make_position(mover, opponent)
+        self.assertEqual(position_collisions(p), Bitboard(0x0000000000000001))
+
+    def test_position_collisions_array(self):
+
+        N = 3
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000002)
+        p = make_position([mover] * N, [opponent] * N)
+        computed = position_collisions(p)
+        expected = np.full(N, 0x0000000000000000, dtype=Bitboard)
+        nptest.assert_array_equal(computed, expected)
+
+        N = 3
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000001)
+        p = make_position([mover] * N, [opponent] * N)
+        computed = position_collisions(p)
+        expected = np.full(N, 0x0000000000000001, dtype=Bitboard)
+        nptest.assert_array_equal(computed, expected)
+
+class TestPositionCheckCollisions(unittest.TestCase):
+
+    def test_position_check_collisions_scalar_pass(self):
+        """Should complete silently when there are no collisions in a scalar input."""
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000002)
+        p = make_position(mover, opponent)
+        
+        # This should execute without raising any exceptions
+        try:
+            position_check_collisions(p)
+        except ValueError:
+            self.fail("position_check_collisions() raised ValueError unexpectedly!")
+
+    def test_position_check_collisions_scalar_fail(self):
+        """Should raise ValueError with 1 collision out of 1 element for a scalar input."""
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000001)  # Collision here
+        p = make_position(mover, opponent)
+        
+        with self.assertRaises(ValueError) as context:
+            position_check_collisions(p)
+            
+        # Verify the descriptive error metrics for the scalar case
+        self.assertIn("Detected 1 collision(s)", str(context.exception))
+        self.assertIn("out of 1 total elements", str(context.exception))
+        self.assertIn("index: 0", str(context.exception))
+
+    def test_position_check_collisions_array_pass(self):
+        """Should complete silently when there are no collisions across an array."""
+        N = 3
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000002)
+        p = make_position([mover] * N, [opponent] * N)
+        
+        try:
+            position_check_collisions(p)
+        except ValueError:
+            self.fail("position_check_collisions() raised ValueError unexpectedly on clean array!")
+
+    def test_position_check_collisions_array_fail_all(self):
+        """Should accurately count multiple collisions across the whole array."""
+        N = 3
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000001)  # Collisions everywhere
+        p = make_position([mover] * N, [opponent] * N)
+        
+        with self.assertRaises(ValueError) as context:
+            position_check_collisions(p)
+            
+        self.assertIn(f"Detected {N} collision(s)", str(context.exception))
+        self.assertIn(f"out of {N} total elements", str(context.exception))
+        self.assertIn("index: 0", str(context.exception))  # First one is still at 0
+
+    def test_position_check_collisions_array_fail_single(self):
+        """Should properly locate a solitary collision occurring deep inside an array."""
+        # Index 0: Clean
+        mover_list = [Bitboard(0x01)]
+        opponent_list = [Bitboard(0x02)]
+        
+        # Index 1: Collision!
+        mover_list.append(Bitboard(0x04))
+        opponent_list.append(Bitboard(0x04))
+        
+        # Index 2: Clean
+        mover_list.append(Bitboard(0x08))
+        opponent_list.append(Bitboard(0x10))
+        
+        p = make_position(mover_list, opponent_list)
+        
+        with self.assertRaises(ValueError) as context:
+            position_check_collisions(p)
+            
+        # Target specific metrics for the partial collision
+        self.assertIn("Detected 1 collision(s)", str(context.exception))
+        self.assertIn("out of 3 total elements", str(context.exception))
+        self.assertIn("index: 1", str(context.exception))  # Pinpoints index 1
 
 class TestPositionLegalMovesCount(unittest.TestCase):
 
@@ -1359,3 +1474,73 @@ class TestPositionLegalMovesCount(unittest.TestCase):
         expected = 1
         
         self.assertEqual(computed, expected)
+
+class TestPositionFlips(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def test_position_flips_base_case(self):
+
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000002)
+        position = make_position(mover, opponent)
+
+        move = Bitboard(0x0000000000000004)
+
+        flips, next_position = position_flips(position, move)
+
+        expected_flips = Bitboard(0x0000000000000002)
+        expected_next_position = make_position(Bitboard(0x0000000000000000),
+                                               Bitboard(0x0000000000000007))
+
+        self.assertEqual(flips, expected_flips)
+        self.assertTrue(position_eq(next_position, expected_next_position))
+
+    def test_position_flips_move_count_is_2(self):
+
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000002)
+        position = make_position(mover, opponent)
+
+        move = Bitboard(0x1000000000000004)
+
+        flips, next_position = position_flips(position, move)
+
+        expected_flips = Bitboard(0x0000000000000000)
+
+        self.assertEqual(flips, expected_flips)
+        self.assertIsNone(next_position)
+
+    def test_position_flips_move_is_empty(self):
+
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000002)
+        position = make_position(mover, opponent)
+
+        move = Bitboard(0x0000000000000000)
+
+        flips, next_position = position_flips(position, move)
+
+        expected_flips = Bitboard(0x0000000000000000)
+
+        self.assertEqual(flips, expected_flips)
+        self.assertIsNone(next_position)
+
+    def test_position_flips_move_is_invalid(self):
+
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000002)
+        position = make_position(mover, opponent)
+
+        move = Bitboard(0x1000000000000000)
+
+        flips, next_position = position_flips(position, move)
+
+        expected_flips = Bitboard(0x0000000000000000)
+
+        self.assertEqual(flips, expected_flips)
+        self.assertIsNone(next_position)
