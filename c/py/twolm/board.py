@@ -59,7 +59,7 @@ __all__ = ['Square', 'SquareArray',
            'position_collisions', 'position_check_collisions',
            'make_position', 'position_eq', 'position_print', 'position_empties',
            'position_legal_moves', 'legal_moves', 'position_legal_moves_count',
-           'position_flips']
+           'position_flips', 'position_make_move']
 
 
 
@@ -931,6 +931,16 @@ def position_legal_moves_count(p: PositionField) -> int:
     return lmc
 
 #: make_move code starts here.
+#:
+#: make_move and flips functions are strictly scalar.
+#: If we whould need to develop a version vectorized for numpy arrays
+#: a few steps are required:
+#:  - transform _kogge_stone_mm as done for _kogge_stone_lms
+#:    split the loop on the 8 directions into two loops on 4 ...
+#:    add the numba tag ... @njit(parallel=True, cache=True) ...
+#:    consider to parallelize the kogge_stone code using prange ...
+#:  - Find a way to check for PASS moves not as a special case ...
+#:    if not possible, the PASS moves has to be filter out from the kogge_stone call
 
 _mm_mask = np.array([
     _all_squares_except_column_a,
@@ -1006,8 +1016,22 @@ def position_flips(p: PositionField, move: Bitboard) -> Tuple[Bitboard, Position
         updated = None
     return flips, updated
 
-def position_make_move(p: PositionField, move: Bitboard) -> PositionField:
-    pass
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def position_make_move(p: PositionField, move: Move) -> PositionField:
+    """
+    Executes a game move.
+    The move must be in the range A1, ... H8, PA. [0..64].
+    When 64 (PA) is passed the player and opponent bitboard are swapped, it is not verified
+    that pass is the only legal move.
+    When an illegal move is passed the same board is returned.
+    """
+    if move == 64: # PASS
+        return make_position(p['opponent'], p['mover'])
+    if move > 64:
+        raise ValueError(f"Argument move {int(move)} is out of range [0..64]")
+    m = move_as_bitboard(move)
+    _, updated = position_flips(p, m)
+    return updated
 
 #: make_move code ends here.
 

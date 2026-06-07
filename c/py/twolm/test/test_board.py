@@ -1477,12 +1477,6 @@ class TestPositionLegalMovesCount(unittest.TestCase):
 
 class TestPositionFlips(unittest.TestCase):
 
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
     def test_position_flips_base_case(self):
 
         mover = Bitboard(0x0000000000000001)
@@ -1544,3 +1538,124 @@ class TestPositionFlips(unittest.TestCase):
 
         self.assertEqual(flips, expected_flips)
         self.assertIsNone(next_position)
+
+    def test_position_flips_wrong_move_type(self):
+
+        mover = Bitboard(0x000428080A2C7C3C)
+        opponent = Bitboard(0x10B8D6F7F5D30100)
+        position = make_position(mover, opponent)
+        move = 'WRONG TYPE'
+        with self.assertRaises(ValidationError):
+            flips, next_position = position_flips(position, move)
+
+    def test_position_flips_bulk(self):
+        data = [
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0000000000000000, 0x0000000000000000), # 000
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0000000000000001, 0x0000000000000000), # 001
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0000000000000002, 0x0000000000000000), # 002
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0000000000000040, 0x0000000000000000), # 003
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0000000000000080, 0x0000000000000000), # 004
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0000000000000200, 0x0000000000020000), # 005
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0000000000008000, 0x0000001020400000), # 006
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0000010000000000, 0x0000060204000000), # 007
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0001000000000000, 0x0000020400000000), # 008
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0002000000000000, 0x0000060200000000), # 009
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0040000000000000, 0x0038404040400000), # 010
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0100000000000000, 0x0000000000000000), # 011
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0200000000000000, 0x0000000000000000), # 012
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0400000000000000, 0x0000000000000000), # 013
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0800000000000000, 0x0018000000000000), # 014
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x2000000000000000, 0x0030000000000000), # 015
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x4000000000000000, 0x0020100000000000), # 016
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x8000000000000000, 0x0000000000000000), # 017
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000000000001, 0x0000000000000000), # 018
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000000000002, 0x0000000000080400), # 019
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000000000040, 0x0000000000002020), # 020
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000000000080, 0x0000000000000000), # 021
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000000000100, 0x0000000000000000), # 022
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000000000200, 0x0000000000043C00), # 023
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000000008000, 0x0000000000000000), # 024
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000000010000, 0x0000000002000000), # 025
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000000020000, 0x00000002020C0400), # 026
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000000800000, 0x0000000000000000), # 027
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000001000000, 0x0000040200000000), # 028
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000004000000, 0x0000000000040400), # 029
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000100000000, 0x0000010202040800), # 030
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000008000000000, 0x0000004000000000), # 031
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000400000000000, 0x0000004000000000), # 032
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0010000000000000, 0x0000080000000000), # 033
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0040000000000000, 0x0000000000000000), # 034
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0080000000000000, 0x0000000000000000), # 035
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0100000000000000, 0x0602040000000000), # 036
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x1000000000000000, 0x0000000000000000), # 037
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x2000000000000000, 0x0000000000000000), # 038
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x4000000000000000, 0x0000000000000000), # 039
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x8000000000000000, 0x0000000000000000), # 040
+            (0xFF0315CBE5713900, 0x00FC6A341A0E067F, 0x0000800000000000, 0x00C0600000000000), # 041
+        ]
+
+        for i, (mover, opponent, move, expected_flips) in enumerate(data):
+            p = make_position(Bitboard(mover), Bitboard(opponent))
+            position_check_collisions(p)
+            m = Bitboard(move)
+            flips, updated = position_flips(p, m)
+            ef = Bitboard(expected_flips)
+            if flips != ef:
+                print("\nTest fails, computed and expected flips differ.".format())
+                print("Error on data line n. {}".format(i))
+                print("Board:")
+                b.print()
+                print("Move:")
+                m.print()
+                print("Computed flips:")
+                flips.print()
+                print("Expected flips:")
+                ef.print()
+            self.assertTrue(flips == ef)
+
+class TestPositionMakeMove(unittest.TestCase):
+
+    def test_position_make_move(self):
+
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000002)
+        position = make_position(mover, opponent)
+        move = Move(2)
+        expected_updated = make_position(Bitboard(0x0000000000000000), Bitboard(0x0000000000000007))
+        updated = position_make_move(position, move)
+        self.assertEqual(updated, expected_updated)
+
+    def test_position_make_move_wrong_move_type(self):
+
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000002)
+        position = make_position(mover, opponent)
+        move = 'WRONG TYPE'
+        with self.assertRaises(ValidationError):
+            position_make_move(position, move)
+
+    def test_position_make_move_wrong_position_type(self):
+
+        position = 'WRONG TYPE'
+        move = Move(2)
+        with self.assertRaises(ValidationError):
+            position_make_move(position, move)
+
+    def test_position_make_move_wrong_move_value(self):
+
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000002)
+        position = make_position(mover, opponent)
+        move = Move(65)
+        with self.assertRaises(ValueError):
+            position_make_move(position, move)
+
+    def test_position_make_move_pass(self):
+
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000000)
+        position = make_position(mover, opponent)
+        move = Move(64)
+        expected_updated = make_position(Bitboard(0x0000000000000000), Bitboard(0x0000000000000001))
+        updated = position_make_move(position, move)
+        self.assertEqual(updated, expected_updated)
