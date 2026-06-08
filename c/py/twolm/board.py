@@ -59,7 +59,12 @@ __all__ = ['Square', 'SquareArray',
            'position_collisions', 'position_check_collisions',
            'make_position', 'position_eq', 'position_print', 'position_empties',
            'position_legal_moves', 'legal_moves', 'position_legal_moves_count',
-           'position_flips', 'position_make_move']
+           'position_flips', 'position_make_move', 'position_count_difference',
+           'position_final_value', 'position_has_to_pass', 'position_is_game_over',
+           'position_is_move_legal',
+           'position_fa1h8', 'position_fh1a8', 'position_fhori', 'position_fvert',
+           'position_ro000', 'position_ro090', 'position_ro180', 'position_ro270',
+           'position_transformations', 'position_anti_transformations']
 
 
 
@@ -140,33 +145,44 @@ PositionArray = Annotated[npt.NDArray[any], BeforeValidator(validate_position_ar
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def make_position(mover: Union[Bitboard, BitboardArray, List], 
-                  opponent: Union[Bitboard, BitboardArray, List]
-                  ) -> Union[np.void, PositionArray]:
+def make_position(mover: Union[Bitboard, np.ndarray, List], 
+                  opponent: Union[Bitboard, np.ndarray, List]
+                  ) -> Union[np.void, np.ndarray]:
     """
-    Creates either a single Position scalar or a PositionArray from vectors/lists.
-    Guarantees zero-copy view casting on the combined data where applicable.
+    Creates a single Position scalar, a 1D PositionArray, or a 2D PositionArray.
+    Guarantees zero-copy view casting on the combined data across all dimensionalities.
     """
-    # ARRAY / LIST CASE
+    # ARRAY / LIST / MULTI-DIMENSIONAL CASE
     if isinstance(mover, (np.ndarray, list)) or isinstance(opponent, (np.ndarray, list)):
-        # Enforce identical length check before any allocation
-        if len(mover) != len(opponent):
-            raise ValueError(
-                f"Length mismatch: 'mover' has length {len(mover)}, "
-                f"but 'opponent' has length {len(opponent)}."
-            )
-            
-        # Convert to arrays if they are Python lists (no-op if already NumPy arrays)
+        # Convert to arrays to safely inspect shapes and sizes
         m_arr = np.asarray(mover, dtype=Bitboard)
         o_arr = np.asarray(opponent, dtype=Bitboard)
         
-        # Allocate a contiguous 2D array block to interleave the data in C memory
-        data = np.empty((len(m_arr), 2), dtype=Bitboard)
-        data[:, 0] = m_arr
-        data[:, 1] = o_arr
+        # Enforce identical shape check across all dimensions
+        if m_arr.shape != o_arr.shape:
+            raise ValueError(
+                f"Shape mismatch: 'mover' has shape {m_arr.shape}, "
+                f"but 'opponent' has shape {o_arr.shape}."
+            )
+            
+        # Capture the original structural shape (works for 1D, 2D, or higher)
+        original_shape = m_arr.shape
         
-        # Interpret the memory block as a 1D structured array (Zero-Copy View)
-        return data.view(Position).reshape(-1)
+        # Build the shape for the continuous memory block: append an axis of size 2 at the end
+        # e.g., if original is (M, N), data_shape becomes (M, N, 2)
+        data_shape = original_shape + (2,)
+        
+        # Allocate a contiguous C-memory block
+        data = np.empty(data_shape, dtype=Bitboard)
+        
+        # Interleave the fields along the newly added trailing axis
+        # Using ellipsis (...) dynamically handles any number of dimensions (1D, 2D, etc.)
+        data[..., 0] = m_arr
+        data[..., 1] = o_arr
+        
+        # Interpret the memory block as a structured array (Zero-Copy View)
+        # The trailing dimension of size 2 collapses into the custom Position dtype
+        return data.view(Position).reshape(original_shape)
         
     # SCALAR CASE
     return np.void((mover, opponent), dtype=Position)
@@ -426,6 +442,41 @@ def bitboard_transformations(bb: Bitboard | BitboardArray) -> BitboardArray:
         return ts.flatten().view(Bitboard)
         
     return ts.view(Bitboard)
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def bitboard_anti_transformations(bb: Bitboard | BitboardArray) -> BitboardArray:
+    """
+    Applays the eight D8 anti-transformations on the input bitboards.
+    
+     - 0 -> 0 : ro000
+     - 0 -> 1 : ro270
+     - 0 -> 2 : ro180
+     - 0 -> 3 : ro180
+     - 0 -> 4 : fvert
+     - 0 -> 5 : fh1a8
+     - 0 -> 6 : fhori
+     - 0 -> 7 : fa1h8
+
+    When input is a scalar Bitboard output is an arry of Bitboards having shape (8,).
+    When input is an array of Bitboards of lenght N, the output has shape (N, 8).
+    
+    Applies the anti-transformations by reversing index 1 and 3 of bitboard_transformations.
+    Operates in-place on the generated matrix for maximum efficiency.
+    """
+    # Ottieni la matrice originale (8,) oppure (N, 8)
+    ts = bitboard_transformations(bb)
+    
+    # Se l'input era uno scalare, ts è un array 1D di shape (8,)
+    if ts.ndim == 1:
+        ts[1], ts[3] = ts[3], ts[1]
+    else:
+        # Se l'input era un array, ts è un array 2D di shape (N, 8)
+        # Sfruttiamo una copia temporanea di una colonna per lo swap in-place velocissimo
+        col_1_copy = ts[:, 1].copy()
+        ts[:, 1] = ts[:, 3]
+        ts[:, 3] = col_1_copy
+        
+    return ts
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_fa1h8(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
@@ -1035,47 +1086,176 @@ def position_make_move(p: PositionField, move: Move) -> PositionField:
 
 #: make_move code ends here.
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_count_difference(p: PositionField) -> int:
-    pass
+    """
+    Returns the disk difference between the player and her opponent.
+    """
+    mc = bitboard_count(p['mover'])
+    oc = bitboard_count(p['opponent'])
+    return int(mc) - int(oc)
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_final_value(p: PositionField) -> int:
-    pass
+    """
+    Used for the score at the end of the game.
+    Returns the disk difference between the player and her opponent,
+    assigning the empty squares to the player having most discs.
 
+    From the web site of the World Othello Federation,
+    World Othello Chanpionship Rules, scoring:
+    "At the end of the game, if both players have completed their moves in
+    the allowed time, the winner is the player with the greater number of
+    discs of his colour on the board at the end. The official score of the
+    game will be determined by counting up the discs of each colour on the
+    board, counting empty squares for the winner. In the event of a draw,
+    the score will always be 32-32".
+    """
+    mc = bitboard_count(p['mover'])
+    oc = bitboard_count(p['opponent'])
+    diff = int(mc) - int(oc)
+    if diff == 0: return 0
+    ec = 64 - (mc + oc)
+    if diff > 0:
+        delta = diff + ec
+    else:
+        delta = diff - ec
+    return delta
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_has_to_pass(p: PositionField) -> bool:
-    pass
+    """
+    Returns true if the mover player does't have any legal move.
+    """
+    lmc = position_legal_moves_count(p)
+    if lmc == 0:
+        return True
+    else:
+        return False
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_is_game_over(p: PositionField) -> bool:
-    pass
+    """
+    Returns true if the game is over.
+    """
+    lmc = position_legal_moves_count(p)
+    if lmc > 0: return False
+    next_board = position_make_move(p, move_from_str('PA'))
+    next_lmc = position_legal_moves_count(next_board)
+    if next_lmc > 0: return False
+    return True
 
-def position_is_move_legal(p: PositionField) -> bool:
-    pass
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def position_is_move_legal(p: PositionField, move: Move) -> bool:
+    """
+    Returns true if the move is legal.
+    """
+    if move > 64: return False
+    lms = position_legal_moves(p)
+    mbb = move_as_bitboard(move)
+    if mbb == 0x0000000000000000: # Pass move
+        if mbb == lms:
+            return True
+        else:
+            return False
+    if (mbb & lms) == mbb:
+        return True
+    return False
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_fa1h8(p: PositionField) -> PositionField:
-    pass
+    """
+    Reflects the game position on the diagonal a1-h8.
+    """
+    return make_position(bitboard_fa1h8(p['mover']), bitboard_fa1h8(p['opponent']))
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_fh1a8(p: PositionField) -> PositionField:
-    pass
+    """
+    Reflects the game position on the diagonal h1-a8.
+    """
+    return make_position(bitboard_fh1a8(p['mover']), bitboard_fh1a8(p['opponent']))
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_fhori(p: PositionField) -> PositionField:
-    pass
+    """
+    Reflects the game position horizontally (on the horizontal axis).
+    """
+    return make_position(bitboard_fhori(p['mover']), bitboard_fhori(p['opponent']))
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_fvert(p: PositionField) -> PositionField:
-    pass
+    """
+    Reflects the game position vertically (on the vertical axis).
+    """
+    return make_position(bitboard_fvert(p['mover']), bitboard_fvert(p['opponent']))
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_ro000(p: PositionField) -> PositionField:
-    pass
+    """
+    Returns the game position unchanged, as it is.
+    """
+    return p.copy()
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_ro090(p: PositionField) -> PositionField:
-    pass
+    """
+    Rotates the game position by 90 degrees clockwise.
+    """
+    return make_position(bitboard_ro090(p['mover']), bitboard_ro090(p['opponent']))
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_ro180(p: PositionField) -> PositionField:
-    pass
+    """
+    Rotates the game position by 180 degrees.
+    """
+    return make_position(bitboard_ro180(p['mover']), bitboard_ro180(p['opponent']))
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_ro270(p: PositionField) -> PositionField:
-    pass
+    """
+    Rotates the game position by 270 degrees clockwise.
+    """
+    return make_position(bitboard_ro270(p['mover']), bitboard_ro270(p['opponent']))
 
-def position_transformations(p: PositionField) -> PositionArray:
-    pass
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def position_transformations(p: PositionField | PositionArray) -> PositionArray:
+    """
+    Applays the eight D8 transformations on the input game positions.
+    
+     - 0 -> 0 : ro000
+     - 0 -> 1 : ro090
+     - 0 -> 2 : ro180
+     - 0 -> 3 : ro270
+     - 0 -> 4 : fvert
+     - 0 -> 5 : fh1a8
+     - 0 -> 6 : fhori
+     - 0 -> 7 : fa1h8
 
-def position_anti_transformations(p: PositionField) -> PositionArray:
-    pass
+    When input is a scalar Position output is an arry of Positions having shape (8,).
+    When input is an array of Positions of lenght N, the output has shape (N, 8).
+    """
+    mtrs = bitboard_transformations(p['mover'])
+    otrs = bitboard_transformations(p['opponent'])
+    return make_position(mtrs, otrs)
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def position_anti_transformations(p: PositionField | PositionArray) -> PositionArray:
+    """
+    Applays the eight D8 anti-transformations on the input game positions.
+    
+     - 0 -> 0 : ro000
+     - 0 -> 1 : ro270
+     - 0 -> 2 : ro180
+     - 0 -> 3 : ro090
+     - 0 -> 4 : fvert
+     - 0 -> 5 : fh1a8
+     - 0 -> 6 : fhori
+     - 0 -> 7 : fa1h8
+
+    When input is a scalar Position output is an arry of Positions having shape (8,).
+    When input is an array of Positions of lenght N, the output has shape (N, 8).
+    """
+    mtrs = bitboard_anti_transformations(p['mover'])
+    otrs = bitboard_anti_transformations(p['opponent'])
+    return make_position(mtrs, otrs)

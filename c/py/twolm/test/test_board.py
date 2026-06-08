@@ -1659,3 +1659,281 @@ class TestPositionMakeMove(unittest.TestCase):
         expected_updated = make_position(Bitboard(0x0000000000000000), Bitboard(0x0000000000000001))
         updated = position_make_move(position, move)
         self.assertEqual(updated, expected_updated)
+
+class TestPositionCountDifference(unittest.TestCase):
+
+    def test_position_count_difference(self):
+
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000006)
+        position = make_position(mover, opponent)
+        diff = position_count_difference(position)
+        self.assertEqual(True, True)
+
+class TestPositionFinalValue(unittest.TestCase):
+    
+    def test_position_final_value(self):
+
+        mover = Bitboard(0xFF00000000000000)
+        opponent = Bitboard(0x0000000000000002)
+        position = make_position(mover, opponent)
+        expected_value = 62
+        self.assertEqual(position_final_value(position), expected_value)
+
+class TestPositionHasToPass(unittest.TestCase):
+    
+    def test_position_has_to_pass_false(self):
+
+        mover = Bitboard(0xFF00000000000001)
+        opponent = Bitboard(0x0000000000000002)
+        position = make_position(mover, opponent)
+        self.assertFalse(position_has_to_pass(position))
+    
+    def test_position_has_to_pass_true(self):
+
+        mover = Bitboard(0xFF00000000000000)
+        opponent = Bitboard(0x0000000000000007)
+        position = make_position(mover, opponent)
+        self.assertTrue(position_has_to_pass(position))
+
+class TestPositionIsGameOver(unittest.TestCase):
+
+    def test_position_is_game_over_false(self):
+
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000002)
+        position = make_position(mover, opponent)
+        self.assertFalse(position_is_game_over(position))
+
+    def test_position_is_game_over_true(self):
+
+        mover = Bitboard(0xFFFFFFFFFFFFFFFF)
+        opponent = Bitboard(0x0000000000000000)
+        position = make_position(mover, opponent)
+        self.assertTrue(position_is_game_over(position))
+
+class TestPositionIsMoveLegal(unittest.TestCase):
+
+    def test_position_is_move_legal_false(self):
+
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000002)
+        position = make_position(mover, opponent)
+        move = Move(0)
+        self.assertFalse(position_is_move_legal(position, move))
+        move = Move(1)
+        self.assertFalse(position_is_move_legal(position, move))
+        move = Move(3)
+        self.assertFalse(position_is_move_legal(position, move))
+        move = Move(64)
+        self.assertFalse(position_is_move_legal(position, move))
+        move = Move(65)
+        self.assertFalse(position_is_move_legal(position, move))
+
+    def test_position_is_move_legal_true(self):
+
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000002)
+        position = make_position(mover, opponent)
+        move = Move(2)
+        self.assertTrue(position_is_move_legal(position, move))
+
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000004)
+        position = make_position(mover, opponent)
+        move = Move(64)
+        self.assertTrue(position_is_move_legal(position, move))
+
+class TestPositionTrFunctions(unittest.TestCase):
+
+    def setUp(self):
+        mover = bitboard_from_signed_int(np.int64(4611717676283199524))
+        opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
+        self.p = make_position(mover, opponent)
+
+    def tearDown(self):
+        pass
+
+    def test_position_fa1h8(self):
+        trp = position_fa1h8(self.p)
+        if False:
+            print(f"Position:")
+            position_print(self.p)
+            print(f"Transformed:")
+            position_print(trp)
+            print(f"mover:    {trp['mover']:016X}")
+            print(f"opponent: {trp['opponent']:016X}")
+        self.assertEqual(trp['mover'], Bitboard(0x189C092038211808))
+        self.assertEqual(trp['opponent'], Bitboard(0xC06376DE475CA000))
+
+    def test_position_fh1a8(self):
+        trp = position_fh1a8(self.p)
+        if False:
+            print(f"Position:")
+            position_print(self.p)
+            print(f"Transformed:")
+            position_print(trp)
+            print(f"mover:    {trp['mover']:016X}")
+            print(f"opponent: {trp['opponent']:016X}")
+        self.assertEqual(trp['mover'], Bitboard(0x1018841C04903918))
+        self.assertEqual(trp['opponent'], Bitboard(0x00053AE27B6EC603))
+
+    def test_position_fhori(self):
+        trp = position_fhori(self.p)
+        if False:
+            print(f"Position:")
+            position_print(self.p)
+            print(f"Transformed:")
+            position_print(trp)
+            print(f"mover:    {trp['mover']:016X}")
+            print(f"opponent: {trp['opponent']:016X}")
+        self.assertEqual(trp['mover'], Bitboard(0x240040EBCA1C0040))
+        self.assertEqual(trp['opponent'], Bitboard(0x48783C143462FC92))
+
+    def test_position_fvert(self):
+        trp = position_fvert(self.p)
+        if False:
+            print(f"Position:")
+            position_print(self.p)
+            print(f"Transformed:")
+            position_print(trp)
+            print(f"mover:    {trp['mover']:016X}")
+            print(f"opponent: {trp['opponent']:016X}")
+        self.assertEqual(trp['mover'], Bitboard(0x02003853D7020024))
+        self.assertEqual(trp['opponent'], Bitboard(0x493F462C283C1E12))
+
+    def test_position_ro000(self):
+        trp = position_ro000(self.p)
+        if False:
+            print(f"Position:")
+            position_print(self.p)
+            print(f"Transformed:")
+            position_print(trp)
+            print(f"mover:    {trp['mover']:016X}")
+            print(f"opponent: {trp['opponent']:016X}")
+        self.assertEqual(trp['mover'], Bitboard(0x40001CCAEB400024))
+        self.assertEqual(trp['opponent'], Bitboard(0x92FC6234143C7848))
+
+    def test_position_ro090(self):
+        trp = position_ro090(self.p)
+        if False:
+            print(f"Position:")
+            position_print(self.p)
+            print(f"Transformed:")
+            position_print(trp)
+            print(f"mover:    {trp['mover']:016X}")
+            print(f"opponent: {trp['opponent']:016X}")
+        self.assertEqual(trp['mover'], Bitboard(0x183990041C841810))
+        self.assertEqual(trp['opponent'], Bitboard(0x03C66E7BE23A0500))
+
+    def test_position_ro180(self):
+        trp = position_ro180(self.p)
+        if False:
+            print(f"Position:")
+            position_print(self.p)
+            print(f"Transformed:")
+            position_print(trp)
+            print(f"mover:    {trp['mover']:016X}")
+            print(f"opponent: {trp['opponent']:016X}")
+        self.assertEqual(trp['mover'], Bitboard(0x240002D753380002))
+        self.assertEqual(trp['opponent'], Bitboard(0x121E3C282C463F49))
+
+    def test_position_ro270(self):
+        trp = position_ro270(self.p)
+        if False:
+            print(f"Position:")
+            position_print(self.p)
+            print(f"Transformed:")
+            position_print(trp)
+            print(f"mover:    {trp['mover']:016X}")
+            print(f"opponent: {trp['opponent']:016X}")
+        self.assertEqual(trp['mover'], Bitboard(0x0818213820099C18))
+        self.assertEqual(trp['opponent'], Bitboard(0x00A05C47DE7663C0))
+
+class TestPositionTransformations(unittest.TestCase):
+
+    def setUp(self):
+        mover = bitboard_from_signed_int(np.int64(4611717676283199524))
+        opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
+        self.p = make_position(mover, opponent)
+
+        etrsm = np.array([
+            0x40001CCAEB400024,
+            0x183990041C841810,
+            0x240002D753380002,
+            0x0818213820099C18,
+            0x02003853D7020024,
+            0x1018841C04903918,
+            0x240040EBCA1C0040,
+            0x189C092038211808,
+        ], dtype=Bitboard)
+
+        etrso = np.array([
+            0x92FC6234143C7848,
+            0x03C66E7BE23A0500,
+            0x121E3C282C463F49,
+            0x00A05C47DE7663C0,
+            0x493F462C283C1E12,
+            0x00053AE27B6EC603,
+            0x48783C143462FC92,
+            0xC06376DE475CA000
+        ], dtype=Bitboard)
+        
+        self.etrs = make_position(etrsm, etrso)
+
+    def test_scalar(self):
+
+        trps = position_transformations(self.p)
+        nptest.assert_array_equal(trps, self.etrs)
+
+    def test_array(self):
+
+        N = 3
+        ps = np.full(N, self.p, dtype=Position)
+        trps = position_transformations(ps)
+        expected = np.tile(self.etrs, (N, 1))        
+        nptest.assert_array_equal(trps, expected)
+
+class TestPositionAntiTransformations(unittest.TestCase):
+
+    def setUp(self):
+        mover = bitboard_from_signed_int(np.int64(4611717676283199524))
+        opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
+        self.p = make_position(mover, opponent)
+
+        etrsm = np.array([
+            0x40001CCAEB400024, #0
+            0x0818213820099C18, #3
+            0x240002D753380002, #2
+            0x183990041C841810, #1
+            0x02003853D7020024, #4
+            0x1018841C04903918, #5
+            0x240040EBCA1C0040, #6
+            0x189C092038211808, #7
+        ], dtype=Bitboard)
+
+        etrso = np.array([
+            0x92FC6234143C7848, #0
+            0x00A05C47DE7663C0, #3
+            0x121E3C282C463F49, #2
+            0x03C66E7BE23A0500, #1
+            0x493F462C283C1E12, #4
+            0x00053AE27B6EC603, #5
+            0x48783C143462FC92, #6
+            0xC06376DE475CA000, #7
+        ], dtype=Bitboard)
+        
+        self.etrs = make_position(etrsm, etrso)
+
+    def test_scalar(self):
+
+        trps = position_anti_transformations(self.p)
+        nptest.assert_array_equal(trps, self.etrs)
+
+    def test_array(self):
+
+        N = 3
+        ps = np.full(N, self.p, dtype=Position)
+        trps = position_anti_transformations(ps)
+        expected = np.tile(self.etrs, (N, 1))        
+        nptest.assert_array_equal(trps, expected)
