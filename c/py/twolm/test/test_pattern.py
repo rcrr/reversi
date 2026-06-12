@@ -41,20 +41,16 @@
 #
 
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, mock_open, MagicMock
+
+from twolm.board import *
+from twolm.pattern import *
 
 import numpy as np
 import numpy.typing as npt
 import numpy.testing as nptest
 
-import twolm
-import twolm.board
-import twolm.pattern
-
-from twolm.board import *
-from twolm.pattern import *
-
-from twolm.pattern import pack_ss, unpack_ss
+import io
 
 from collections import namedtuple
 
@@ -193,9 +189,9 @@ class TestPatternPack(unittest.TestCase):
     def run_test_vectorized(self, p: Pattern, expected: List[Bitboard]) -> None:
         bitboard_array = np.array(self.bitboard_list, dtype=Bitboard)
         expected_array = np.array(expected, dtype=Bitboard)
-        packed_array = pack_ss(bitboard_array, p)
+        packed_array = p._pack_ss(bitboard_array)
         nptest.assert_array_equal(expected_array, packed_array)
-        unpacked_array = unpack_ss(packed_array, p)
+        unpacked_array = p._unpack_ss(packed_array)
         expected_array = bitboard_array & p.mask
         nptest.assert_array_equal(expected_array, unpacked_array)
 
@@ -215,7 +211,7 @@ class TestPatternPack(unittest.TestCase):
         nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
         nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
 
-        packed = [pack_ss(s, p) for s in self.bitboard_list]
+        packed = [p._pack_ss(s) for s in self.bitboard_list]
         expected = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x000000000000000F), # full
@@ -238,7 +234,7 @@ class TestPatternPack(unittest.TestCase):
         ]
         self.assertEqual(packed, expected)
 
-        unpacked = [unpack_ss(s, p) for s in packed]
+        unpacked = [p._unpack_ss(s) for s in packed]
         expected_unpacked = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x0000000000000107), # full
@@ -276,7 +272,7 @@ class TestPatternPack(unittest.TestCase):
         nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
         nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
 
-        packed = [pack_ss(s, p) for s in self.bitboard_list]
+        packed = [p._pack_ss(s) for s in self.bitboard_list]
         expected = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x00000000000000FF), # full
@@ -299,7 +295,7 @@ class TestPatternPack(unittest.TestCase):
         ]
         self.assertEqual(packed, expected)
 
-        unpacked = [unpack_ss(s, p) for s in packed]
+        unpacked = [p._unpack_ss(s) for s in packed]
         expected_unpacked = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x00000000000000FF), # full
@@ -337,7 +333,7 @@ class TestPatternPack(unittest.TestCase):
         nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
         nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
 
-        packed = [pack_ss(s, p) for s in self.bitboard_list]
+        packed = [p._pack_ss(s) for s in self.bitboard_list]
         expected = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x00000000000000FF), # full
@@ -361,7 +357,7 @@ class TestPatternPack(unittest.TestCase):
         self.assertEqual(packed, expected)
         self.run_test_vectorized(p, expected)
 
-        unpacked = [unpack_ss(s, p) for s in packed]
+        unpacked = [p._unpack_ss(s) for s in packed]
         expected_unpacked = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x000000000000FF00), # full
@@ -402,7 +398,7 @@ class TestPatternPack(unittest.TestCase):
         nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
         nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
 
-        packed = [pack_ss(s, p) for s in self.bitboard_list]
+        packed = [p._pack_ss(s) for s in self.bitboard_list]
         expected = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x00000000000001FF), # full
@@ -425,7 +421,7 @@ class TestPatternPack(unittest.TestCase):
         ]
         self.assertEqual(packed, expected)
 
-        unpacked = [unpack_ss(s, p) for s in packed]
+        unpacked = [p._unpack_ss(s) for s in packed]
         expected_unpacked = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x0000000000070707), # full
@@ -477,7 +473,7 @@ class TestPatternPack(unittest.TestCase):
         nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
         nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
 
-        packed = [pack_ss(s, p) for s in self.bitboard_list]
+        packed = [p._pack_ss(s) for s in self.bitboard_list]
         expected = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x00000000000000FF), # full
@@ -500,7 +496,7 @@ class TestPatternPack(unittest.TestCase):
         ]
         self.assertEqual(packed, expected)
 
-        unpacked = [unpack_ss(s, p) for s in packed]
+        unpacked = [p._unpack_ss(s) for s in packed]
         expected_unpacked = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x0102040810204080), # full
@@ -544,7 +540,7 @@ class TestPatternPack(unittest.TestCase):
         nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
         nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
 
-        packed = [pack_ss(s, p) for s in self.bitboard_list]
+        packed = [p._pack_ss(s) for s in self.bitboard_list]
         expected = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x000000000000000F), # full
@@ -568,7 +564,7 @@ class TestPatternPack(unittest.TestCase):
         self.assertEqual(packed, expected)
         self.run_test_vectorized(p, expected)
 
-        unpacked = [unpack_ss(s, p) for s in packed]
+        unpacked = [p._unpack_ss(s) for s in packed]
         expected_unpacked = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x8100000000000081), # full
@@ -803,3 +799,112 @@ class TestTransformationsCayleyTable(unittest.TestCase):
         patterns = [Pattern(name, Bitboard(mask)) for name, mask in pattern_data]
         for p in patterns:
             self.verify_cayley_table(p.mask)
+
+class TestPatternPrint(unittest.TestCase):
+        
+    def test_pattern_print(self):
+
+        p = Pattern('EDGE', Bitboard(0x00000000000000FF))
+        
+        expected_output_multiline = [
+            '[Pattern: name = EDGE, mask = 0x00000000000000ff]',
+            '  [n_squares = 8, n_configurations = 6561, n_instances = 4, n_stabilizers = 2, type = 2]',
+            '  Cells:                [A1, B1, C1, D1, E1, F1, G1, H1]',
+            '  Transformed masks:    [0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000, 0x0101010101010101, 0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000, 0x0101010101010101]',
+            '  Mask indexes:         [0, 1, 2, 3, 0, 1, 2, 3]',
+            '  Unique masks:         [0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000, 0x0101010101010101]',
+            '  Unique mask indexes:  [0, 1, 2, 3]',
+            '  Transf. functions:    [ro000, ro090, ro180, ro270]',
+            '  Anti-transf. f.:      [ro000, ro270, ro180, ro090]',
+            '  Symmetry functions:   [fvert]',
+            '  Transformed cells:    [[0, 1, 2, 3, 4, 5, 6, 7], [7, 15, 23, 31, 39, 47, 55, 63], [63, 62, 61, 60, 59, 58, 57, 56], [56, 48, 40, 32, 24, 16, 8, 0], [7, 6, 5, 4, 3, 2, 1, 0], [63, 55, 47, 39, 31, 23, 15, 7], [56, 57, 58, 59, 60, 61, 62, 63], [0, 8, 16, 24, 32, 40, 48, 56]]',
+            '  Transf. sorted cells: [[0, 1, 2, 3, 4, 5, 6, 7], [7, 15, 23, 31, 39, 47, 55, 63], [56, 57, 58, 59, 60, 61, 62, 63], [0, 8, 16, 24, 32, 40, 48, 56], [0, 1, 2, 3, 4, 5, 6, 7], [7, 15, 23, 31, 39, 47, 55, 63], [56, 57, 58, 59, 60, 61, 62, 63], [0, 8, 16, 24, 32, 40, 48, 56]]',
+            '  Fingerprint:          [I0, T1, T2, T3, S0, S1, S2, S3]',
+        ]
+        expected_output = '\n'.join(expected_output_multiline) + '\n'
+        
+        with io.StringIO() as buffer:
+            p.print(output=buffer)
+            actual_output = buffer.getvalue()
+            
+        self.assertEqual(actual_output, expected_output)
+
+class TestPatternMdpCsvFile(unittest.TestCase):
+
+    def setUp(self):
+        """Set up mock Pattern instances and common test data."""
+        # Create mocks to isolate the method from the actual Pattern/Bitboard logic
+        self.mock_pattern1 = MagicMock(spec=Pattern)
+        self.mock_pattern1.mdp_record.return_value = "EDGE,0xff,8,6561,4,2,cells,tmasks,indexes,u_masks,u_indexes,tr,at,sf,t0,t1,t2,t3,t4,t5,t6,t7,fp,2"
+        
+        self.mock_pattern2 = MagicMock(spec=Pattern)
+        self.mock_pattern2.mdp_record.return_value = "CORNER,0x0f,4,81,1,1,cells,tmasks,indexes,u_masks,u_indexes,tr,at,sf,t0,t1,t2,t3,t4,t5,t6,t7,fp,1"
+        
+        self.patterns_list = [self.mock_pattern1, self.mock_pattern2]
+        self.filename = "test_output.csv"
+
+    # --- 1. TYPE VALIDATION TESTS ---
+
+    def test_mdp_csv_file_raises_type_error_if_patterns_not_list(self):
+        """Verify TypeError is raised when the patterns argument is not a list."""
+        with self.assertRaises(TypeError) as context:
+            Pattern.mdp_csv_file(self.mock_pattern1, self.filename)  # Passing a single object instead of a list
+        self.assertEqual(str(context.exception), "Argument patterns must be a list.")
+
+    def test_mdp_csv_file_raises_type_error_if_filename_not_string(self):
+        """Verify TypeError is raised when the filename argument is not a string."""
+        with self.assertRaises(TypeError) as context:
+            Pattern.mdp_csv_file(self.patterns_list, 123)  # Passing an int instead of a str
+        self.assertEqual(str(context.exception), "Argument filename must be a string.")
+
+    def test_mdp_csv_file_raises_type_error_if_elements_not_pattern_instances(self):
+        """Verify TypeError is raised when the patterns list contains non-Pattern items."""
+        invalid_list = [self.mock_pattern1, "not_a_pattern_object"]
+        with self.assertRaises(TypeError) as context:
+            Pattern.mdp_csv_file(invalid_list, self.filename)
+        self.assertEqual(str(context.exception), "All elements in patterns must be Pattern instances.")
+
+    # --- 2. I/O AND CONTENT TESTS (Mocking open) ---
+
+    @patch("builtins.open", new_callable=mock_open)
+    def test_mdp_csv_file_writes_correct_content(self, mock_file):
+        """Verify the file is opened correctly and the exact CSV payload (header + records) is written."""
+        # Execute the method under test
+        Pattern.mdp_csv_file(self.patterns_list, self.filename)
+
+        # 1. Assert that open() was called once with the correct filename and mode ('w')
+        mock_file.assert_called_once_with(self.filename, 'w')
+
+        # 2. Extract the file handle to analyze what was written
+        handle = mock_file()
+        
+        # Collect all positional arguments sent to the handle.write() calls
+        written_strings = [call.args[0] for call in handle.write.call_args_list]
+
+        # 3. Assert header correctness
+        expected_header = (
+            "name,mask,"
+            "n_squares,n_configurations,n_instances,n_stabilizers,"
+            "cells,tmasks,mask_indexes,unique_masks,unique_mask_indexes,tr,at,sf,"
+            "cells_t0,cells_t1,cells_t2,cells_t3,cells_t4,cells_t5,cells_t6,cells_t7,"
+            "fingerprint,type\n"
+        )
+        self.assertEqual(written_strings[0], expected_header)
+
+        # 4. Assert that mdp_record() was triggered on each pattern instance
+        self.mock_pattern1.mdp_record.assert_called_once()
+        self.mock_pattern2.mdp_record.assert_called_once()
+
+        # 5. Assert that actual data lines contain the records appended with a newline
+        self.assertEqual(written_strings[1], self.mock_pattern1.mdp_record.return_value + '\n')
+        self.assertEqual(written_strings[2], self.mock_pattern2.mdp_record.return_value + '\n')
+
+    @patch("builtins.open", new_callable=mock_open)
+    def test_mdp_csv_file_with_empty_list(self, mock_file):
+        """Verify that an empty patterns list results in only the header line being written."""
+        Pattern.mdp_csv_file([], self.filename)
+        
+        handle = mock_file()
+        # Only 1 write call should occur (the header)
+        self.assertEqual(handle.write.call_count, 1)
+
