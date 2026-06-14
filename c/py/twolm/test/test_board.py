@@ -489,6 +489,36 @@ class TestBitboardCount(unittest.TestCase):
         with self.assertRaises(ValidationError):
             bitboard_count('Not the right type')
 
+
+class TestBitboardTransformationFa1h8Comp(unittest.TestCase):
+
+    def test_fa1h8_compositions(self):
+        expected = bitboard_fa1h8(ar)
+        
+        computed = bitboard_fa1h8(bitboard_ro000(ar))
+        self.assertEqual(computed, expected)
+        
+        computed = bitboard_fvert(bitboard_ro090(ar))
+        self.assertEqual(computed, expected)
+        
+        computed = bitboard_fh1a8(bitboard_ro180(ar))
+        self.assertEqual(computed, expected)
+        
+        computed = bitboard_fhori(bitboard_ro270(ar))
+        self.assertEqual(computed, expected)
+        
+        computed = bitboard_ro270(bitboard_fvert(ar))
+        self.assertEqual(computed, expected)
+        
+        computed = bitboard_ro090(bitboard_fhori(ar))
+        self.assertEqual(computed, expected)
+        
+        computed = bitboard_ro000(bitboard_fa1h8(ar))
+        self.assertEqual(computed, expected)
+        
+        computed = bitboard_ro180(bitboard_fh1a8(ar))
+        self.assertEqual(computed, expected)
+            
 class BaseBitboardTransformationTest:
     """
     Abstract blueprint containing core suite logic for Bitboard operations.
@@ -501,6 +531,8 @@ class BaseBitboardTransformationTest:
         """Iterate over all paired structures checking outputs using custom hex messages."""
         for i, (bb, expected) in enumerate(self.test_data):
             computed = self.func(bb)
+
+            self.assertIsInstance(computed, Bitboard)
             
             if computed != expected:
                 bb_hex = f"{int(bb):016X}"
@@ -757,6 +789,65 @@ class TestBitboardTransformations(unittest.TestCase):
         
         # Performance output sanity check
         expected_output_seed = bitboard_transformations(fallback_seed)
+        expected_vector = np.repeat(expected_output_seed[np.newaxis, :], size, axis=0)
+        np.testing.assert_array_equal(computed_vector, expected_vector)
+
+class TestBitboardAntiTransformations(unittest.TestCase):
+
+    def setUp(self):
+        self.ar = ar 
+        self.elle = Bitboard(0x0000000000000107)
+
+        self.expected_ar = np.array([
+            ar, ar_rotate_90a, ar_rotate_180, ar_rotate_90c,
+            ar_reflection_v, ar_reflection_h1a8, ar_reflection_h, ar_reflection_a1h8
+        ], dtype=Bitboard)
+
+        self.expected_elle = np.array([
+            0x0000000000000107, 0x0301010000000000, 0xE080000000000000, 0x00000000008080C0,
+            0x00000000000080E0, 0xC080800000000000, 0x0701000000000000, 0x0000000000010103
+        ], dtype=Bitboard)
+
+    def test_ar(self):
+        computed = bitboard_anti_transformations(self.ar)
+        self.assertEqual(computed.shape, (8,))
+        np.testing.assert_array_equal(computed, self.expected_ar)
+
+    def test_elle(self):
+        computed = bitboard_anti_transformations(self.elle)
+        self.assertEqual(computed.shape, (8,))
+        np.testing.assert_array_equal(computed, self.expected_elle)
+
+    def test_elle_ar_array(self):
+        bb_array = np.array([self.ar, self.elle], dtype=Bitboard)
+        expected = np.vstack([self.expected_ar, self.expected_elle])
+        
+        computed = bitboard_anti_transformations(bb_array)
+        self.assertEqual(computed.shape, (2, 8))
+        np.testing.assert_array_equal(computed, expected)
+
+    @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
+    def test_performance_1m(self):
+        """Measure operations speed on a dense 1,000,000 matrix sequence."""
+
+        size = 1_000_000
+        # Use self.ar as the baseline seed for the dense vector simulation
+        fallback_seed = self.ar
+        input_vector = np.full(size, fallback_seed, dtype=Bitboard)
+        
+        _ = bitboard_anti_transformations(input_vector[:10])  # Validation Warmup
+        
+        start_time = time.perf_counter()
+        computed_vector = bitboard_anti_transformations(input_vector)
+        end_time = time.perf_counter()
+        
+        duration = end_time - start_time
+        boards_per_sec = size / duration
+        
+        print(f"\n[PERF bitboard_anti_transformations] Processed {size:,} boards in {duration:.4f}s ({boards_per_sec:,.0f} b/s)")
+        
+        # Performance output sanity check
+        expected_output_seed = bitboard_anti_transformations(fallback_seed)
         expected_vector = np.repeat(expected_output_seed[np.newaxis, :], size, axis=0)
         np.testing.assert_array_equal(computed_vector, expected_vector)
 

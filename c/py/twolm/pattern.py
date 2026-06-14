@@ -33,11 +33,14 @@ from typing import TypeAlias, List, Tuple, Union, IO
 
 import sys
 import io
+import time        
 
 import numpy as np
 import numpy.typing as npt
 
+import numba as nb
 from numba import njit, prange
+
 from enum import Enum
 
 from pydantic import validate_call, ConfigDict, BeforeValidator
@@ -387,9 +390,9 @@ class Pattern:
             for j in range(self.n_squares):
                 sq = Square(j)
                 sqm = square_as_bitboard(sq)
-                sqm_up = self._unpack_ss(sqm)
+                sqm_up = self._unpack_bb(sqm)
                 m = tfn(sqm_up)
-                e = self._pack_ss(m)
+                e = self._pack_bb(m)
                 idx = bitboard_bsr(e)
                 exchanges[j] = idx
             symms.append(exchanges)
@@ -574,7 +577,7 @@ class Pattern:
         prt(f"  Fingerprint:          [{', '.join(f'{fp}' for fp in self.fingerprint)}]")
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-    def _pack_ss(self, bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
+    def _pack_bb(self, bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
         """
         Compresses a bitboard into a packed representation according to the mask defined by the pattern.
     
@@ -586,14 +589,14 @@ class Pattern:
         return np.bitwise_or.reduce(masked, axis=-1)
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-    def _unpack_ss(self, packed_bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
+    def _unpack_bb(self, packed_bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
         """
-        Executes the inverse of _pack_ss (PDEP simulation).
+        Executes the inverse of _pack_bb (PDEP simulation).
         Takes packed bits and distributes them back to their original 
         positions on the bitboard using the precomputed pack_plan.
             
         Args:
-            packed_bb: The array of compressed bits (result of a _pack_ss operation).
+            packed_bb: The array of compressed bits (result of a _pack_bb operation).
         """
         _, unpack_masks, pack_shifts = self.pack_plan
         # 1. Caching local references to avoid attribute lookup in high-frequency calls
@@ -607,8 +610,189 @@ class Pattern:
     
         # 3. Bitwise OR reduction across the plan axis (last axis)
         return np.bitwise_or.reduce(unpacked_blocks, axis=-1)
+
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def compute_indexes_on_position(self, pos: PositionField | PositionArray) -> npt.NDArray[np.uint32]:
+        """
+        Computes the pattern indexes on the given game position or array of positions.
+
+        This method applies anti-transformations (symmetries) to the game position,
+        filters them using unique mask indexes, packs the resulting configurations,
+        and converts them into numeric identifiers (base-3 indexing).
+
+        Args:
+            pos: A single game Position or a 1D NumPy array of Positions.
+
+        Returns:
+            A 1D array of uint32 indexes if 'pos' is a scalar, or a 2D array of shape 
+            (N, M_unique) if 'pos' is an array of N positions.
+        """
+        is_scalar = not isinstance(pos, np.ndarray)
+
+        m = np.atleast_1d(pos['mover'])
+        o = np.atleast_1d(pos['opponent'])
         
+        # 1. High-speed C-layout anti-transformations
+        #atrs_m = _numba_batch_anti_transformations(m)
+        #atrs_o = _numba_batch_anti_transformations(o)
+        atrs_m = bitboard_anti_transformations(m)
+        atrs_o = bitboard_anti_transformations(o)
+    
+        # 2. Extract unique symmetries along the column axis safely
+        sym_m = atrs_m[:, self.unique_mask_indexes]
+        sym_o = atrs_o[:, self.unique_mask_indexes]
+    
+        # 3. Pack bitboards using your fast pattern architecture logic
+        packed_m = self._pack_bb(sym_m)
+        packed_o = self._pack_bb(sym_o)
+    
+        # 4. Compute base-3 integer mapping via the 1D flat execution layer
+        ret = _numba_flat_compute_indexes(
+            packed_m, 
+            packed_o, 
+            self.bit_shifts, 
+            self.powers_3
+        )
+    
+        if is_scalar:
+            return ret[0] # Return as scalar view if input was a single field
+        return ret
+    
 #### End of pattern Class.
+
+@nb.njit(inline='always')
+def _numba_fhori(s):
+    mask56 = Bitboard(0xFF00000000000000)
+    mask48 = Bitboard(0x00FF000000000000)
+    mask40 = Bitboard(0x0000FF0000000000)
+    mask32 = Bitboard(0x000000FF00000000)
+    mask24 = Bitboard(0x00000000FF000000)
+    mask16 = Bitboard(0x0000000000FF0000)
+    mask08 = Bitboard(0x000000000000FF00)
+    mask00 = Bitboard(0x00000000000000FF)
+    s = (((s << 56) & mask56) |
+         ((s << 40) & mask48) |
+         ((s << 24) & mask40) |
+         ((s <<  8) & mask32) |
+         ((s >>  8) & mask24) |
+         ((s >> 24) & mask16) |
+         ((s >> 40) & mask08) |
+         ((s >> 56) & mask00))
+    return s
+
+@nb.njit(inline='always')
+def _numba_fvert(s):
+    k1 = Bitboard(0x5555555555555555)
+    k2 = Bitboard(0x3333333333333333)
+    k4 = Bitboard(0x0f0f0f0f0f0f0f0f)
+    s = ((s >> 1) & k1) | ((s & k1) << 1)
+    s = ((s >> 2) & k2) | ((s & k2) << 2)
+    s = ((s >> 4) & k4) | ((s & k4) << 4)
+    return s
+
+@nb.njit(inline='always')
+def _numba_fa1h8(s):
+    k1 = Bitboard(0x5500550055005500)
+    k2 = Bitboard(0x3333000033330000)
+    k4 = Bitboard(0x0f0f0f0f00000000)
+    t =      k4 & (s ^ (s << 28))
+    s = s ^       (t ^ (t >> 28))
+    t =      k2 & (s ^ (s << 14))
+    s = s ^       (t ^ (t >> 14))
+    t =      k1 & (s ^ (s << 7))
+    s = s ^       (t ^ (t >> 7))
+    return s
+
+@nb.njit(inline='always')
+def _numba_fh1a8(s):
+    k1 = Bitboard(0xaa00aa00aa00aa00)
+    k2 = Bitboard(0xcccc0000cccc0000)
+    k4 = Bitboard(0xf0f0f0f00f0f0f0f)
+    t =            s ^ (s << 36)
+    s = s ^ (k4 & (t ^ (s >> 36)))
+    t =      k2 & (s ^ (s << 18))
+    s = s ^       (t ^ (t >> 18))
+    t =      k1 & (s ^ (s << 9))
+    s = s ^       (t ^ (t >> 9))
+    return s
+
+@nb.njit(parallel=True, cache=True, fastmath=True)
+def _numba_batch_anti_transformations(bb_arr):
+    N = bb_arr.shape[0]
+    out = np.empty((N, 8), dtype=np.uint64)
+    
+    for i in nb.prange(N):
+        val = bb_arr[i]
+        fh = _numba_fhori(val)
+        
+        # Identity
+        out[i, 0] = val
+        
+        # Anti-transformation slot 1 (Was slot 3 in base transformations)
+        out[i, 1] = _numba_fh1a8(fh)
+        
+        # Vertical flip of horizontal flip
+        out[i, 2] = _numba_fvert(fh)
+        
+        # Anti-transformation slot 3 (Was slot 1 in base transformations)
+        out[i, 3] = _numba_fa1h8(fh)
+        
+        # Standard remaining mappings
+        out[i, 4] = _numba_fvert(val)
+        out[i, 5] = _numba_fh1a8(val)
+        out[i, 6] = fh
+        out[i, 7] = _numba_fa1h8(val)
+        
+    return out
+
+@nb.njit(parallel=True, cache=True, fastmath=True)
+def _numba_flat_compute_indexes(packed_m, packed_o, bit_shifts, powers_3):
+    """
+    Computes base-3 indices using a flattened 1D architecture to maximize CPU cache.
+    """
+    B = len(bit_shifts)
+    
+    if packed_m.ndim == 1:
+        # 1D Array Input Case (Scalar Position Field)
+        M = packed_m.shape[0]
+        out = np.zeros(M, dtype=np.uint32)
+        for j in range(M):
+            val_m = packed_m[j]
+            val_o = packed_o[j]
+            idx_sum = np.uint32(0)
+            for b in range(B):
+                shift = bit_shifts[b]
+                bit_m = (val_m >> shift) & np.uint64(1)
+                bit_o = (val_o >> shift) & np.uint64(1)
+                idx_sum += (bit_m * powers_3[b]) + (bit_o * (np.uint32(2) * powers_3[b]))
+            out[j] = idx_sum
+        return out
+    else:
+        # 2D Array Input Case (N positions, M_unique symmetries)
+        N, M = packed_m.shape
+        # Flatten output array for continuous L1/L2 cache efficiency
+        total_elements = N * M
+        out_flat = np.zeros(total_elements, dtype=np.uint32)
+        
+        # Flatten input views completely to eliminate non-contiguous stride overheads
+        flat_m = packed_m.ravel()
+        flat_o = packed_o.ravel()
+        
+        for i in nb.prange(total_elements):
+            val_m = flat_m[i]
+            val_o = flat_o[i]
+            idx_sum = np.uint32(0)
+            for b in range(B):
+                shift = bit_shifts[b]
+                bit_m = (val_m >> shift) & np.uint64(1)
+                bit_o = (val_o >> shift) & np.uint64(1)
+                idx_sum += (bit_m * powers_3[b]) + (bit_o * (np.uint32(2) * powers_3[b]))
+            out_flat[i] = idx_sum
+            
+        # Reshape back to (N, M) instantaneously at the C-level with zero data copying
+        return out_flat.reshape((N, M))
+
+
 
 #:
 #: A list of Patterns.

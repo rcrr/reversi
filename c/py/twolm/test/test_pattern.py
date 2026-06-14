@@ -51,6 +51,8 @@ import numpy.typing as npt
 import numpy.testing as nptest
 
 import io
+import time        
+import os
 
 from collections import namedtuple
 
@@ -189,9 +191,9 @@ class TestPatternPack(unittest.TestCase):
     def run_test_vectorized(self, p: Pattern, expected: List[Bitboard]) -> None:
         bitboard_array = np.array(self.bitboard_list, dtype=Bitboard)
         expected_array = np.array(expected, dtype=Bitboard)
-        packed_array = p._pack_ss(bitboard_array)
+        packed_array = p._pack_bb(bitboard_array)
         nptest.assert_array_equal(expected_array, packed_array)
-        unpacked_array = p._unpack_ss(packed_array)
+        unpacked_array = p._unpack_bb(packed_array)
         expected_array = bitboard_array & p.mask
         nptest.assert_array_equal(expected_array, unpacked_array)
 
@@ -211,7 +213,7 @@ class TestPatternPack(unittest.TestCase):
         nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
         nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
 
-        packed = [p._pack_ss(s) for s in self.bitboard_list]
+        packed = [p._pack_bb(s) for s in self.bitboard_list]
         expected = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x000000000000000F), # full
@@ -234,7 +236,7 @@ class TestPatternPack(unittest.TestCase):
         ]
         self.assertEqual(packed, expected)
 
-        unpacked = [p._unpack_ss(s) for s in packed]
+        unpacked = [p._unpack_bb(s) for s in packed]
         expected_unpacked = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x0000000000000107), # full
@@ -272,7 +274,7 @@ class TestPatternPack(unittest.TestCase):
         nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
         nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
 
-        packed = [p._pack_ss(s) for s in self.bitboard_list]
+        packed = [p._pack_bb(s) for s in self.bitboard_list]
         expected = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x00000000000000FF), # full
@@ -295,7 +297,7 @@ class TestPatternPack(unittest.TestCase):
         ]
         self.assertEqual(packed, expected)
 
-        unpacked = [p._unpack_ss(s) for s in packed]
+        unpacked = [p._unpack_bb(s) for s in packed]
         expected_unpacked = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x00000000000000FF), # full
@@ -333,7 +335,7 @@ class TestPatternPack(unittest.TestCase):
         nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
         nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
 
-        packed = [p._pack_ss(s) for s in self.bitboard_list]
+        packed = [p._pack_bb(s) for s in self.bitboard_list]
         expected = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x00000000000000FF), # full
@@ -357,7 +359,7 @@ class TestPatternPack(unittest.TestCase):
         self.assertEqual(packed, expected)
         self.run_test_vectorized(p, expected)
 
-        unpacked = [p._unpack_ss(s) for s in packed]
+        unpacked = [p._unpack_bb(s) for s in packed]
         expected_unpacked = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x000000000000FF00), # full
@@ -398,7 +400,7 @@ class TestPatternPack(unittest.TestCase):
         nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
         nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
 
-        packed = [p._pack_ss(s) for s in self.bitboard_list]
+        packed = [p._pack_bb(s) for s in self.bitboard_list]
         expected = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x00000000000001FF), # full
@@ -421,7 +423,7 @@ class TestPatternPack(unittest.TestCase):
         ]
         self.assertEqual(packed, expected)
 
-        unpacked = [p._unpack_ss(s) for s in packed]
+        unpacked = [p._unpack_bb(s) for s in packed]
         expected_unpacked = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x0000000000070707), # full
@@ -473,7 +475,7 @@ class TestPatternPack(unittest.TestCase):
         nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
         nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
 
-        packed = [p._pack_ss(s) for s in self.bitboard_list]
+        packed = [p._pack_bb(s) for s in self.bitboard_list]
         expected = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x00000000000000FF), # full
@@ -496,7 +498,7 @@ class TestPatternPack(unittest.TestCase):
         ]
         self.assertEqual(packed, expected)
 
-        unpacked = [p._unpack_ss(s) for s in packed]
+        unpacked = [p._unpack_bb(s) for s in packed]
         expected_unpacked = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x0102040810204080), # full
@@ -540,7 +542,7 @@ class TestPatternPack(unittest.TestCase):
         nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
         nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
 
-        packed = [p._pack_ss(s) for s in self.bitboard_list]
+        packed = [p._pack_bb(s) for s in self.bitboard_list]
         expected = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x000000000000000F), # full
@@ -564,7 +566,7 @@ class TestPatternPack(unittest.TestCase):
         self.assertEqual(packed, expected)
         self.run_test_vectorized(p, expected)
 
-        unpacked = [p._unpack_ss(s) for s in packed]
+        unpacked = [p._unpack_bb(s) for s in packed]
         expected_unpacked = [
             Bitboard(0x0000000000000000), # empty
             Bitboard(0x8100000000000081), # full
@@ -586,6 +588,31 @@ class TestPatternPack(unittest.TestCase):
             Bitboard(0x8000000000000080), # c8
         ]
         self.assertEqual(unpacked, expected_unpacked)
+
+    @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
+    def test_performance_1m(self):
+        
+        N = 1_000_000
+        n = len(self.bitboard_list)
+        x = N // n
+        bb_array = np.tile(self.bitboard_list, x + 1)
+        size = len(bb_array)
+
+        patterns = [
+            Pattern('EDGE', Bitboard(0x00000000000000FF)),
+            Pattern('CORNER', Bitboard(0x0000000000070707)),
+            Pattern('DIAG8',  Bitboard(0x0102040810204080)),
+        ]
+
+        for p in patterns:
+            _ = p._pack_bb(bb_array[:100])
+            start_time = time.perf_counter()
+            packed_array = p._pack_bb(bb_array)
+            end_time = time.perf_counter()
+            duration = end_time - start_time
+            positions_per_sec = size / duration
+            print(f"\n[PERF Pattern._pack_bb, pattern={p.name}] Processed {size:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
+
 
 class TestPatternSymmetries(unittest.TestCase):
 
@@ -908,3 +935,70 @@ class TestPatternMdpCsvFile(unittest.TestCase):
         # Only 1 write call should occur (the header)
         self.assertEqual(handle.write.call_count, 1)
 
+class TestPatternComputeIndexes(unittest.TestCase):
+
+    def test_compute_indexes_scalar(self):
+
+        pat = Pattern('EDGE', Bitboard(0x00000000000000FF))
+
+        mover = bitboard_from_signed_int(np.int64(4611717676283199524))
+        opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
+        
+        pos = make_position(mover, opponent)
+        position_check_collisions(pos)
+
+        indexes = pat.compute_indexes_on_position(pos)
+        
+        expected = np.array([1764, 5940, 1517, 81], dtype=np.uint32)
+
+        nptest.assert_array_equal(indexes, expected)
+
+    def test_compute_indexes_array(self):
+
+        N = 3
+
+        pat = Pattern('EDGE', Bitboard(0x00000000000000FF))
+
+        mover = bitboard_from_signed_int(np.int64(4611717676283199524))
+        opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
+        
+        pos = make_position(mover, opponent)
+        position_check_collisions(pos)
+
+        pos_array = np.full(N, pos)
+
+        indexes = pat.compute_indexes_on_position(pos_array)
+        
+        expected_scalar = np.array([1764, 5940, 1517, 81], dtype=np.uint32)
+        expected_array = np.tile(expected_scalar, (N, 1))
+        nptest.assert_array_equal(indexes, expected_array)
+        
+    @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
+    def test_performance_1m(self):
+        
+        N = 1_000_000
+
+        pat = Pattern('EDGE', Bitboard(0x00000000000000FF))
+
+        mover = bitboard_from_signed_int(np.int64(4611717676283199524))
+        opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
+        
+        pos = make_position(mover, opponent)
+        position_check_collisions(pos)
+
+        pos_array = np.full(N, pos)
+
+        _ = pat.compute_indexes_on_position(pos_array[:10])
+        
+        start_time = time.perf_counter()
+        indexes = pat.compute_indexes_on_position(pos_array)
+        end_time = time.perf_counter()
+        
+        duration = end_time - start_time
+        positions_per_sec = N / duration
+        
+        print(f"\n[PERF Pattern.compute_indexes_on_position] Processed {N:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
+
+        expected_scalar = np.array([1764, 5940, 1517, 81], dtype=np.uint32)
+        expected_array = np.tile(expected_scalar, (N, 1))
+        nptest.assert_array_equal(indexes, expected_array)

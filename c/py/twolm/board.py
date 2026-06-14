@@ -31,7 +31,11 @@ from typing import TypeAlias, Annotated, List, Any, Tuple
 
 import numpy as np
 import numpy.typing as npt
-from numba import njit, prange
+
+#from numba import njit, prange
+import numba as nb
+from numba import types
+from numba.extending import overload
 
 import sys
 import io
@@ -49,13 +53,13 @@ __all__ = ['Square', 'SquareArray',
            'Bitboard', 'BitboardArray',
            'bitboard_from_signed_int', 'bitboard_to_signed_int', 'bitboard_from_hex_str',
            'bitboard_bsr', 'bitboard_count',
-           'bitboard_transformations', 'bitboard_print',
+           'bitboard_transformations', 'bitboard_anti_transformations',  'bitboard_print',
            'bitboard_fa1h8', 'bitboard_fh1a8', 'bitboard_fhori', 'bitboard_fvert',
            'bitboard_ro000', 'bitboard_ro090', 'bitboard_ro180', 'bitboard_ro270',
            'bitboard_to_square_list', 'bitboard_to_square_array', 'bitboard_to_string_list',
            'bitboard_trans_fs', 'bitboard_anti_trans_fs',
            'bitboard_transformation_labels', 'bitboard_anti_transformation_labels',
-           'Position', 'PositionArray',
+           'Position', 'PositionField', 'PositionArray',
            'position_collisions', 'position_check_collisions',
            'make_position', 'position_eq', 'position_print', 'position_empties',
            'position_legal_moves', 'legal_moves', 'position_legal_moves_count',
@@ -420,28 +424,36 @@ def bitboard_transformations(bb: Bitboard | BitboardArray) -> BitboardArray:
     if bb_arr.ndim != 1:
         raise ValueError(f"When the argument bb is an array, it must be 1D, got shape {bb_arr.shape}")
 
-    # Allocate memory for output transformations matrix
-    n = bb_arr.shape[0]
-    ts = np.empty((n, 8), dtype=Bitboard, order='F')
+    ts = _numba_bitboard_transformations(bb_arr)
 
-    # Pre-calculate common intermediate horizontal reflection transformation
-    fh = bitboard_fhori(bb_arr)
-
-    # Fast row-wise contiguous assignments
-    ts[:, 0] = bb_arr
-    ts[:, 1] = bitboard_fa1h8(fh)
-    ts[:, 2] = bitboard_fvert(fh)
-    ts[:, 3] = bitboard_fh1a8(fh)
-    ts[:, 4] = bitboard_fvert(bb_arr)
-    ts[:, 5] = bitboard_fh1a8(bb_arr)
-    ts[:, 6] = fh
-    ts[:, 7] = bitboard_fa1h8(bb_arr)
-    
     # Adapt output representation to match original scalar or matrix input context
     if is_scalar:
         return ts.flatten().view(Bitboard)
         
     return ts.view(Bitboard)
+
+@nb.njit(parallel=True, cache=True, fastmath=True)
+def _numba_bitboard_transformations(bb_arr: BitboardArray) -> BitboardArray:
+    
+    # Allocate memory for output transformations matrix
+    n = bb_arr.shape[0]
+    ts = np.empty((n, 8), dtype=Bitboard)
+
+    for i in nb.prange(n):
+
+        value = bb_arr[i]
+        fh = _numba_fhori_scalar_impl(value)
+
+        ts[i, 0] = value
+        ts[i, 1] = _numba_fa1h8_scalar_impl(fh)
+        ts[i, 2] = _numba_fvert_scalar_impl(fh)
+        ts[i, 3] = _numba_fh1a8_scalar_impl(fh)
+        ts[i, 4] = _numba_fvert_scalar_impl(value)
+        ts[i, 5] = _numba_fh1a8_scalar_impl(value)
+        ts[i, 6] = fh
+        ts[i, 7] = _numba_fa1h8_scalar_impl(value)
+        
+    return ts
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_anti_transformations(bb: Bitboard | BitboardArray) -> BitboardArray:
@@ -463,18 +475,42 @@ def bitboard_anti_transformations(bb: Bitboard | BitboardArray) -> BitboardArray
     Applies the anti-transformations by reversing index 1 and 3 of bitboard_transformations.
     Operates in-place on the generated matrix for maximum efficiency.
     """
-    # Ottieni la matrice originale (8,) oppure (N, 8)
-    ts = bitboard_transformations(bb)
+    # Standardize input by checking if it came in as a scalar or an array
+    is_scalar = not isinstance(bb, np.ndarray)
+    bb_arr = np.atleast_1d(bb)
+
+    # Check layout constraints (Pydantic validates types, but we handle dimensions)
+    if bb_arr.ndim != 1:
+        raise ValueError(f"When the argument bb is an array, it must be 1D, got shape {bb_arr.shape}")
+
+    ts = _numba_bitboard_anti_transformations(bb_arr)
+
+    # Adapt output representation to match original scalar or matrix input context
+    if is_scalar:
+        return ts.flatten().view(Bitboard)
+        
+    return ts.view(Bitboard)
+
+@nb.njit(parallel=True, cache=True, fastmath=True)
+def _numba_bitboard_anti_transformations(bb_arr: BitboardArray) -> BitboardArray:
     
-    # Se l'input era uno scalare, ts è un array 1D di shape (8,)
-    if ts.ndim == 1:
-        ts[1], ts[3] = ts[3], ts[1]
-    else:
-        # Se l'input era un array, ts è un array 2D di shape (N, 8)
-        # Sfruttiamo una copia temporanea di una colonna per lo swap in-place velocissimo
-        col_1_copy = ts[:, 1].copy()
-        ts[:, 1] = ts[:, 3]
-        ts[:, 3] = col_1_copy
+    # Allocate memory for output transformations matrix
+    n = bb_arr.shape[0]
+    ts = np.empty((n, 8), dtype=Bitboard)
+
+    for i in nb.prange(n):
+
+        value = bb_arr[i]
+        fh = _numba_fhori_scalar_impl(value)
+
+        ts[i, 0] = value
+        ts[i, 1] = _numba_fh1a8_scalar_impl(fh)
+        ts[i, 2] = _numba_fvert_scalar_impl(fh)
+        ts[i, 3] = _numba_fa1h8_scalar_impl(fh)
+        ts[i, 4] = _numba_fvert_scalar_impl(value)
+        ts[i, 5] = _numba_fh1a8_scalar_impl(value)
+        ts[i, 6] = fh
+        ts[i, 7] = _numba_fa1h8_scalar_impl(value)
         
     return ts
 
@@ -498,10 +534,23 @@ def bitboard_fa1h8(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     . 8  . 1 . . . 1 . .    . . . . . . . .
 
     """
+    if isinstance(bb, np.ndarray):
+        return _numba_fa1h8_array_impl(bb)
+    else:
+        return Bitboard(_numba_fa1h8_scalar_impl(bb))
+
+@overload(bitboard_fa1h8)
+def _numba_ol_bitboard_fa1h8(bb):
+    if isinstance(bb, types.Array):
+        return lambda bb: _numba_fa1h8_array_impl(bb)
+    else:
+        return lambda bb: _numba_fa1h8_scalar_impl(bb)
+
+@nb.njit(inline='always')
+def _numba_fa1h8_scalar_impl(s):
     k1 = Bitboard(0x5500550055005500)
     k2 = Bitboard(0x3333000033330000)
-    k4 = Bitboard(0x0f0f0f0f00000000)
-    s = bb
+    k4 = Bitboard(0x0f0f0f0f00000000)    
     t =      k4 & (s ^ (s << 28))
     s = s ^       (t ^ (t >> 28))
     t =      k2 & (s ^ (s << 14))
@@ -509,6 +558,14 @@ def bitboard_fa1h8(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     t =      k1 & (s ^ (s << 7))
     s = s ^       (t ^ (t >> 7))
     return s
+
+@nb.njit(parallel=True, cache=True, fastmath=True)
+def _numba_fa1h8_array_impl(arr):
+    N = arr.shape[0]
+    out = np.empty(N, dtype=Bitboard)
+    for i in nb.prange(N):
+        out[i] = _numba_fa1h8_scalar_impl(arr[i])
+    return out
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_fh1a8(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
@@ -530,10 +587,23 @@ def bitboard_fh1a8(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     . 8  . 1 . . . 1 . .    . . . . . . . .
     
     """
+    if isinstance(bb, np.ndarray):
+        return _numba_fh1a8_array_impl(bb)
+    else:
+        return Bitboard(_numba_fh1a8_scalar_impl(bb))
+
+@overload(bitboard_fh1a8)
+def _numba_ol_bitboard_fh1a8(bb):
+    if isinstance(bb, types.Array):
+        return lambda bb: _numba_fh1a8_array_impl(bb)
+    else:
+        return lambda bb: _numba_fh1a8_scalar_impl(bb)
+
+@nb.njit(inline='always')
+def _numba_fh1a8_scalar_impl(s):    
     k1 = Bitboard(0xaa00aa00aa00aa00)
     k2 = Bitboard(0xcccc0000cccc0000)
     k4 = Bitboard(0xf0f0f0f00f0f0f0f)
-    s = bb
     t =            s ^ (s << 36)
     s = s ^ (k4 & (t ^ (s >> 36)))
     t =      k2 & (s ^ (s << 18))
@@ -541,6 +611,14 @@ def bitboard_fh1a8(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     t =      k1 & (s ^ (s << 9))
     s = s ^       (t ^ (t >> 9))
     return s
+
+@nb.njit(parallel=True, cache=True, fastmath=True)
+def _numba_fh1a8_array_impl(arr):
+    N = arr.shape[0]
+    out = np.empty(N, dtype=Bitboard)
+    for i in nb.prange(N):
+        out[i] = _numba_fh1a8_scalar_impl(arr[i])
+    return out
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_fhori(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
@@ -560,8 +638,22 @@ def bitboard_fhori(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     . 6  . 1 . 1 . . . .    . 1 . . . 1 . .
     . 7  . 1 . . 1 . . .    . 1 . . . 1 . .
     . 8  . 1 . . . 1 . .    . 1 1 1 1 . . .
-    
+
     """
+    if isinstance(bb, np.ndarray):
+        return _numba_fhori_array_impl(bb)
+    else:
+        return Bitboard(_numba_fhori_scalar_impl(bb))
+
+@overload(bitboard_fhori)
+def _numba_ol_bitboard_fhori(bb):
+    if isinstance(bb, types.Array):
+        return lambda bb: _numba_fhori_array_impl(bb)
+    else:
+        return lambda bb: _numba_fhori_scalar_impl(bb)
+
+@nb.njit(inline='always')
+def _numba_fhori_scalar_impl(s):
     mask56 = Bitboard(0xFF00000000000000)
     mask48 = Bitboard(0x00FF000000000000)
     mask40 = Bitboard(0x0000FF0000000000)
@@ -570,7 +662,6 @@ def bitboard_fhori(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     mask16 = Bitboard(0x0000000000FF0000)
     mask08 = Bitboard(0x000000000000FF00)
     mask00 = Bitboard(0x00000000000000FF)
-    s = bb
     s = (((s << 56) & mask56) |
          ((s << 40) & mask48) |
          ((s << 24) & mask40) |
@@ -580,6 +671,14 @@ def bitboard_fhori(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
          ((s >> 40) & mask08) |
          ((s >> 56) & mask00))
     return s
+
+@nb.njit(parallel=True, cache=True, fastmath=True)
+def _numba_fhori_array_impl(arr):
+    N = arr.shape[0]
+    out = np.empty(N, dtype=Bitboard)
+    for i in nb.prange(N):
+        out[i] = _numba_fhori_scalar_impl(arr[i])
+    return out
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_fvert(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
@@ -601,14 +700,37 @@ def bitboard_fvert(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     . 8  . 1 . . . 1 . .    . . 1 . . . 1 .
     
     """
+    if isinstance(bb, np.ndarray):
+        return _numba_fvert_array_impl(bb)
+    else:
+        return Bitboard(_numba_fvert_scalar_impl(bb))
+
+@overload(bitboard_fvert)
+def _numba_ol_bitboard_fvert(bb):
+    if isinstance(bb, types.Array):
+        return lambda bb: _numba_fvert_array_impl(bb)
+    else:
+        return lambda bb: _numba_fvert_scalar_impl(bb)
+
+@nb.njit(inline='always')
+def _numba_fvert_scalar_impl(s):
     k1 = Bitboard(0x5555555555555555)
     k2 = Bitboard(0x3333333333333333)
     k4 = Bitboard(0x0f0f0f0f0f0f0f0f)
-    s = bb
     s = ((s >> 1) & k1) | ((s & k1) << 1)
     s = ((s >> 2) & k2) | ((s & k2) << 2)
     s = ((s >> 4) & k4) | ((s & k4) << 4)
     return s
+
+@nb.njit(parallel=True, cache=True, fastmath=True)
+def _numba_fvert_array_impl(arr):
+    N = arr.shape[0]
+    out = np.empty(N, dtype=Bitboard)
+    for i in nb.prange(N):
+        out[i] = _numba_fvert_scalar_impl(arr[i])
+    return out
+
+#: -------------------------------------
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_ro000(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
@@ -677,7 +799,7 @@ def bitboard_ro180(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     
     """
     
-    return bitboard_fvert(bitboard_fhori(bb))
+    return bitboard_fh1a8(bitboard_fa1h8(bb))
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_ro270(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
@@ -885,7 +1007,7 @@ _slide_2 = _slide_1 * 2
 _slide_4 = _slide_1 * 4
 
 #: Internal use function.
-@njit(parallel=True, cache=True)
+@nb.njit(parallel=True, cache=True)
 def _vectorized_legal_moves(movers: np.ndarray, opponents: np.ndarray) -> np.ndarray:
     """
     Vectorized calculation of Reversi legal moves using Kogge-Stone algorithm.
@@ -895,7 +1017,7 @@ def _vectorized_legal_moves(movers: np.ndarray, opponents: np.ndarray) -> np.nda
     results = np.empty(n, dtype=Bitboard)
 
     # Parallel loop across all board instances
-    for i in prange(n):
+    for i in nb.prange(n):
         mover = Bitboard(movers[i])
         opponent = Bitboard(opponents[i])
         empties = Bitboard(~(mover | opponent))
