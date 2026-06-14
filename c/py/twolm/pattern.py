@@ -579,38 +579,55 @@ class Pattern:
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def _pack_bb(self, bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
         """
-        Compresses a bitboard into a packed representation according to the mask defined by the pattern.
+        Compresses a bitboard into a packed representation using a Numba-accelerated PEXT simulation.
     
         Args:
-            bb: The input bitboard tensor to be packed.
+            bb: The input bitboard tensor or single value to be packed.
+            
+        Returns:
+            The packed bitboard indices.
         """
         pack_masks, _, pack_shifts = self.pack_plan
-        masked = (bb[..., np.newaxis] & pack_masks) >> pack_shifts
-        return np.bitwise_or.reduce(masked, axis=-1)
-
+        
+        # Ensure data is passed as a NumPy array for Numba compatibility
+        bb_arr = np.asarray(bb, dtype=np.uint64)
+        
+        result = _numba_pack_bb_kernel(bb_arr, pack_masks, pack_shifts)
+        
+        # If input was a scalar/object, match your original type expectations if needed
+        return result if isinstance(bb, np.ndarray) else Bitboard(result.item())
+        
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def _unpack_bb(self, packed_bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
         """
-        Executes the inverse of _pack_bb (PDEP simulation).
-        Takes packed bits and distributes them back to their original 
-        positions on the bitboard using the precomputed pack_plan.
+        Executes the inverse of _pack_bb using a parallelized Numba PDEP simulation.
             
         Args:
-            packed_bb: The array of compressed bits (result of a _pack_bb operation).
+            packed_bb: The array or scalar of compressed bits.
+            
+        Returns:
+            The restored bitboard configurations matching the input structure type.
         """
         _, unpack_masks, pack_shifts = self.pack_plan
-        # 1. Caching local references to avoid attribute lookup in high-frequency calls
-        u_masks = unpack_masks  # Shape (P,)
-        u_shifts = pack_shifts  # Shape (P,)
+        
+        # Ensure correct NumPy type formatting before calling Numba
+        packed_arr = np.asarray(packed_bb, dtype=np.uint64)
+        
+        # Call the parallelized Numba unpacking kernel
+        result = _numba_unpack_bb_kernel(packed_arr, unpack_masks, pack_shifts)
+        
+        # Match the scalar or array output format of the input
+        return result if isinstance(packed_bb, np.ndarray) else np.uint64(result)
 
-        # 2. Vectorized extraction and restoration
-        # (N, M, 1) & (1, 1, P) << (1, 1, P) -> (N, M, P)
-        # We use broadcasting to process all blocks of the pack_plan at once
-        unpacked_blocks = (packed_bb[..., np.newaxis] & u_masks) << u_shifts
-    
-        # 3. Bitwise OR reduction across the plan axis (last axis)
-        return np.bitwise_or.reduce(unpacked_blocks, axis=-1)
-
+    #
+    # Questo metodo va bene cosi. Poi ottimizziamo quello per i principal indexes.
+    # Bisogna fare un unico blocco FUSO di numba ....
+    #
+    #: [PERF Pattern.compute_indexes_on_position, step 1] Processed 10,000,000 positions in 0.4710s (21,231,594 b/s)
+    #: [PERF Pattern.compute_indexes_on_position, step 2] Processed 10,000,000 positions in 0.3227s (30,986,569 b/s)
+    #: [PERF Pattern.compute_indexes_on_position, step 3] Processed 10,000,000 positions in 0.8050s (12,423,041 b/s)
+    #: [PERF Pattern.compute_indexes_on_position, step 4] Processed 10,000,000 positions in 0.2499s (40,014,095 b/s)
+    #: [PERF Pattern.compute_indexes_on_position] Processed 10,000,000 positions in 2.1014s (4,758,714 b/s)
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def compute_indexes_on_position(self, pos: PositionField | PositionArray) -> npt.NDArray[np.uint32]:
         """
@@ -633,26 +650,45 @@ class Pattern:
         o = np.atleast_1d(pos['opponent'])
         
         # 1. High-speed C-layout anti-transformations
-        #atrs_m = _numba_batch_anti_transformations(m)
-        #atrs_o = _numba_batch_anti_transformations(o)
+        N = len(pos)
+        start_time = time.perf_counter()
         atrs_m = bitboard_anti_transformations(m)
         atrs_o = bitboard_anti_transformations(o)
-    
+        end_time = time.perf_counter()        
+        duration = end_time - start_time
+        positions_per_sec = N / duration
+        print(f"\n[PERF Pattern.compute_indexes_on_position, step 1] Processed {N:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
+
         # 2. Extract unique symmetries along the column axis safely
+        start_time = time.perf_counter()
         sym_m = atrs_m[:, self.unique_mask_indexes]
         sym_o = atrs_o[:, self.unique_mask_indexes]
+        end_time = time.perf_counter()        
+        duration = end_time - start_time
+        positions_per_sec = N / duration
+        print(f"\n[PERF Pattern.compute_indexes_on_position, step 2] Processed {N:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
     
         # 3. Pack bitboards using your fast pattern architecture logic
+        start_time = time.perf_counter()
         packed_m = self._pack_bb(sym_m)
         packed_o = self._pack_bb(sym_o)
+        end_time = time.perf_counter()        
+        duration = end_time - start_time
+        positions_per_sec = N / duration
+        print(f"\n[PERF Pattern.compute_indexes_on_position, step 3] Processed {N:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
     
         # 4. Compute base-3 integer mapping via the 1D flat execution layer
-        ret = _numba_flat_compute_indexes(
+        start_time = time.perf_counter()
+        ret = _numba_computes_indexes_kernel(
             packed_m, 
             packed_o, 
             self.bit_shifts, 
             self.powers_3
         )
+        end_time = time.perf_counter()        
+        duration = end_time - start_time
+        positions_per_sec = N / duration
+        print(f"\n[PERF Pattern.compute_indexes_on_position, step 4] Processed {N:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
     
         if is_scalar:
             return ret[0] # Return as scalar view if input was a single field
@@ -660,93 +696,72 @@ class Pattern:
     
 #### End of pattern Class.
 
-@nb.njit(inline='always')
-def _numba_fhori(s):
-    mask56 = Bitboard(0xFF00000000000000)
-    mask48 = Bitboard(0x00FF000000000000)
-    mask40 = Bitboard(0x0000FF0000000000)
-    mask32 = Bitboard(0x000000FF00000000)
-    mask24 = Bitboard(0x00000000FF000000)
-    mask16 = Bitboard(0x0000000000FF0000)
-    mask08 = Bitboard(0x000000000000FF00)
-    mask00 = Bitboard(0x00000000000000FF)
-    s = (((s << 56) & mask56) |
-         ((s << 40) & mask48) |
-         ((s << 24) & mask40) |
-         ((s <<  8) & mask32) |
-         ((s >>  8) & mask24) |
-         ((s >> 24) & mask16) |
-         ((s >> 40) & mask08) |
-         ((s >> 56) & mask00))
-    return s
-
-@nb.njit(inline='always')
-def _numba_fvert(s):
-    k1 = Bitboard(0x5555555555555555)
-    k2 = Bitboard(0x3333333333333333)
-    k4 = Bitboard(0x0f0f0f0f0f0f0f0f)
-    s = ((s >> 1) & k1) | ((s & k1) << 1)
-    s = ((s >> 2) & k2) | ((s & k2) << 2)
-    s = ((s >> 4) & k4) | ((s & k4) << 4)
-    return s
-
-@nb.njit(inline='always')
-def _numba_fa1h8(s):
-    k1 = Bitboard(0x5500550055005500)
-    k2 = Bitboard(0x3333000033330000)
-    k4 = Bitboard(0x0f0f0f0f00000000)
-    t =      k4 & (s ^ (s << 28))
-    s = s ^       (t ^ (t >> 28))
-    t =      k2 & (s ^ (s << 14))
-    s = s ^       (t ^ (t >> 14))
-    t =      k1 & (s ^ (s << 7))
-    s = s ^       (t ^ (t >> 7))
-    return s
-
-@nb.njit(inline='always')
-def _numba_fh1a8(s):
-    k1 = Bitboard(0xaa00aa00aa00aa00)
-    k2 = Bitboard(0xcccc0000cccc0000)
-    k4 = Bitboard(0xf0f0f0f00f0f0f0f)
-    t =            s ^ (s << 36)
-    s = s ^ (k4 & (t ^ (s >> 36)))
-    t =      k2 & (s ^ (s << 18))
-    s = s ^       (t ^ (t >> 18))
-    t =      k1 & (s ^ (s << 9))
-    s = s ^       (t ^ (t >> 9))
-    return s
-
-@nb.njit(parallel=True, cache=True, fastmath=True)
-def _numba_batch_anti_transformations(bb_arr):
-    N = bb_arr.shape[0]
-    out = np.empty((N, 8), dtype=np.uint64)
+@nb.njit(parallel=True, fastmath=True, cache=True)
+def _numba_pack_bb_kernel(bb_array, pack_masks, pack_shifts):
+    """
+    Numba-accelerated PEXT simulation using direct loop fusion.
+    Eliminates intermediate array allocations caused by NumPy broadcasting.
+    """
+    # Flattens the input view to easily iterate over any multidimensional shape
+    flat_bb = bb_array.ravel()
+    num_elements = flat_bb.size
+    num_planes = pack_masks.shape[0]
     
-    for i in nb.prange(N):
-        val = bb_arr[i]
-        fh = _numba_fhori(val)
+    # Pre-allocate output array using np.empty (no initialization overhead)
+    out = np.empty(num_elements, dtype=Bitboard)
+
+    # CASE 1: Single-plane optimization (e.g., EDGE pattern)
+    if num_planes == 1:
+        mask = pack_masks[0]
+        shift = pack_shifts[0]
+        # nb.prange automatically distributes iterations across threads
+        for i in nb.prange(num_elements):
+            out[i] = (flat_bb[i] & mask) >> shift
+            
+    # CASE 2: Multi-plane optimization (e.g., CORNER, DIAG8)
+    else:
+        for i in nb.prange(num_elements):
+            val = flat_bb[i]
+            acc = np.uint64(0)
+            for p in range(num_planes):
+                acc |= (val & pack_masks[p]) >> pack_shifts[p]
+            out[i] = acc
         
-        # Identity
-        out[i, 0] = val
-        
-        # Anti-transformation slot 1 (Was slot 3 in base transformations)
-        out[i, 1] = _numba_fh1a8(fh)
-        
-        # Vertical flip of horizontal flip
-        out[i, 2] = _numba_fvert(fh)
-        
-        # Anti-transformation slot 3 (Was slot 1 in base transformations)
-        out[i, 3] = _numba_fa1h8(fh)
-        
-        # Standard remaining mappings
-        out[i, 4] = _numba_fvert(val)
-        out[i, 5] = _numba_fh1a8(val)
-        out[i, 6] = fh
-        out[i, 7] = _numba_fa1h8(val)
-        
-    return out
+    return out.reshape(bb_array.shape)
+
+@nb.njit(parallel=True, fastmath=True, cache=True)
+def _numba_unpack_bb_kernel(packed_array, unpack_masks, pack_shifts):
+    """
+    Multi-core accelerated PDEP simulation.
+    Optimized for reverse bitboard distribution across millions of positions.
+    """
+    flat_packed = packed_array.ravel()
+    num_elements = flat_packed.size
+    num_planes = unpack_masks.size  # Total number of bits/planes in the plan
+    
+    # Pre-allocate output array instantly using np.empty
+    out = np.empty(num_elements, dtype=np.uint64)
+    
+    # CASE 1: Single-plane optimization (e.g., EDGE pattern)
+    if num_planes == 1:
+        mask = unpack_masks[0]
+        shift = pack_shifts[0]
+        for i in nb.prange(num_elements):
+            out[i] = (flat_packed[i] & mask) << shift
+            
+    # CASE 2: Multi-plane optimization (e.g., CORNER, DIAG8)
+    else:
+        for i in nb.prange(num_elements):
+            val = flat_packed[i]
+            acc = np.uint64(0)
+            for p in range(num_planes):
+                acc |= (val & unpack_masks[p]) << pack_shifts[p]
+            out[i] = acc
+            
+    return out.reshape(packed_array.shape)
 
 @nb.njit(parallel=True, cache=True, fastmath=True)
-def _numba_flat_compute_indexes(packed_m, packed_o, bit_shifts, powers_3):
+def _numba_computes_indexes_kernel(packed_m, packed_o, bit_shifts, powers_3):
     """
     Computes base-3 indices using a flattened 1D architecture to maximize CPU cache.
     """

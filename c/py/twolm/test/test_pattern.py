@@ -602,6 +602,8 @@ class TestPatternPack(unittest.TestCase):
             Pattern('EDGE', Bitboard(0x00000000000000FF)),
             Pattern('CORNER', Bitboard(0x0000000000070707)),
             Pattern('DIAG8',  Bitboard(0x0102040810204080)),
+            Pattern('XEDGE',  Bitboard(0x00000000000042FF)),
+            Pattern('2X5COR', Bitboard(0x0000000000001F1F)),
         ]
 
         for p in patterns:
@@ -612,6 +614,14 @@ class TestPatternPack(unittest.TestCase):
             duration = end_time - start_time
             positions_per_sec = size / duration
             print(f"\n[PERF Pattern._pack_bb, pattern={p.name}] Processed {size:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
+
+            _ = p._unpack_bb(packed_array[:100])
+            start_time = time.perf_counter()
+            packed_array = p._unpack_bb(packed_array)
+            end_time = time.perf_counter()
+            duration = end_time - start_time
+            positions_per_sec = size / duration
+            print(f"\n[PERF Pattern._unpack_bb, pattern={p.name}] Processed {size:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
 
 
 class TestPatternSymmetries(unittest.TestCase):
@@ -976,7 +986,7 @@ class TestPatternComputeIndexes(unittest.TestCase):
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_performance_1m(self):
         
-        N = 1_000_000
+        N = 10_000_000
 
         pat = Pattern('EDGE', Bitboard(0x00000000000000FF))
 
