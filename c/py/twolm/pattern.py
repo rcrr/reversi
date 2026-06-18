@@ -29,11 +29,12 @@ from __future__ import annotations
 
 from twolm.board import *
 
-from typing import TypeAlias, List, Tuple, Union, IO
+from typing import TypeAlias, List, Tuple, Union, IO, Annotated
 
 import sys
 import io
-import time        
+import time
+import hashlib
 
 import numpy as np
 import numpy.typing as npt
@@ -47,7 +48,26 @@ from pydantic import validate_call, ConfigDict, BeforeValidator
 
 
 
-__all__ = ['Pattern', 'sample_pattern_data']
+__all__ = ['Index',
+           'Pattern', 'sample_pattern_data',
+           'PatternSet']
+
+
+
+#: Represents a reversi pattern index.
+Index: TypeAlias = np.uint32
+
+def validate_index_array(v: any) -> any:
+    """Validator to ensure a numpy array strictly uses uint32 dtype."""
+    if isinstance(v, np.ndarray) and v.dtype != np.uint32:
+        raise ValueError(f"Array dtype must be uint32, got {v.dtype}")
+    return v
+
+#: A Pydantic-compatible type hint for Index (np.uint32) arrays.
+IndexArray = Annotated[npt.NDArray[np.uint32], BeforeValidator(validate_index_array)]
+
+#: Pattern having more than 18 n_squares are not fitting the uint32 space.
+MAX_NUMBER_OF_SQUARE_FOR_PATTERN = 18
 
 
 
@@ -191,10 +211,10 @@ class Pattern:
     type_info (PatternType): An object of PatternType that represents the type of pattern, based on its fingerprint.
 
     12. Powers of 3
-    powers_3 (np.ndarray(n_squares,), dtype=np.uint32): Precomputed powers of 3 up to n_squares, used for index computation.
+    powers_3 (np.ndarray(n_squares,), dtype=Index): Precomputed powers of 3 up to n_squares, used for index computation.
 
     13. Bit Shifts
-    bit_shifts (np.ndarray(n_squares,), dtype=np.uint32): Precomputed bit shifts for each square in the pattern, used for index computation.
+    bit_shifts (np.ndarray(n_squares,), dtype=Index): Precomputed bit shifts for each square in the pattern, used for index computation.
 
     14. Labels
     trans_fs_labels (np.ndarray(n_instances,), dtype=str): Array of names of transformation functions.
@@ -202,10 +222,10 @@ class Pattern:
     symmetry_fs_labels (np.ndarray(n_stabilizers - 1,), dtype=str): Array of names of symmetry functions.
     
     15. Principal Index Dictionary
-    principal_index_dict (Union[npt.NDArray[np.uint32], None]): A dictionary mapping each configuration index to its principal index.
+    principal_index_dict (Union[npt.NDArray[Index], None]): A dictionary mapping each configuration index to its principal index.
 
     16. Principal Indexes
-    principal_indexes (Union[npt.NDArray[np.uint32], None]): An array of unique principal indexes.
+    principal_indexes (Union[npt.NDArray[Index], None]): An array of unique principal indexes.
 
     17. Principal Index Count
     principal_index_count (Union[int, None]): The count of unique principal indexes.
@@ -264,6 +284,8 @@ class Pattern:
         self.name = name
         self.mask = mask
         self.n_squares = bitboard_count(mask)
+        if self.n_squares > MAX_NUMBER_OF_SQUARE_FOR_PATTERN:
+            raise ValueError(f"More than 18 squares is not supported! n_square = {self.n_squares}. Aborting!")
         self.n_configurations = 3 ** int(self.n_squares)
         self.tmasks = bitboard_transformations(mask)
         self.squares = bitboard_to_square_list(mask)[::-1]        
@@ -446,8 +468,8 @@ class Pattern:
             raise ValueError(f"The pattern fingerprint has not been found: {message}")
 
         # Used by the compute_indexes_on_board method. 
-        self.powers_3 = 3 ** np.arange(self.n_squares, dtype=np.uint32)
-        self.bit_shifts = np.arange(self.n_squares, dtype=np.uint32)
+        self.powers_3 = 3 ** np.arange(self.n_squares, dtype=Index)
+        self.bit_shifts = np.arange(self.n_squares, dtype=Index)
 
         # Used for printing information on the pattern
         self.trans_fs_labels = [bitboard_transformation_labels[i] for i in self.unique_mask_indexes]
@@ -455,8 +477,8 @@ class Pattern:
         self.symmetry_fs_labels = [bitboard_transformation_labels[i] for i in self.unique_symmetric_instance_indexes]
 
         # Get computed only if used.
-        self.principal_index_dict: Union[npt.NDArray[np.uint32], None] = None
-        self.principal_indexes: Union[npt.NDArray[np.uint32], None] = None
+        self.principal_index_dict: Union[npt.NDArray[Index], None] = None
+        self.principal_indexes: Union[npt.NDArray[Index], None] = None
         self.principal_index_count: Union[int, None] = None
         
          # Invariance check
@@ -629,7 +651,7 @@ class Pattern:
     #: [PERF Pattern.compute_indexes_on_position, step 4] Processed 10,000,000 positions in 0.2499s (40,014,095 b/s)
     #: [PERF Pattern.compute_indexes_on_position] Processed 10,000,000 positions in 2.1014s (4,758,714 b/s)
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-    def compute_indexes_on_position(self, pos: PositionField | PositionArray) -> npt.NDArray[np.uint32]:
+    def compute_indexes_on_position(self, pos: PositionField | PositionArray) -> npt.NDArray[Index]:
         """
         Computes the pattern indexes on the given game position or array of positions.
 
@@ -650,51 +672,115 @@ class Pattern:
         o = np.atleast_1d(pos['opponent'])
         
         # 1. High-speed C-layout anti-transformations
-        N = len(pos)
-        start_time = time.perf_counter()
         atrs_m = bitboard_anti_transformations(m)
         atrs_o = bitboard_anti_transformations(o)
-        end_time = time.perf_counter()        
-        duration = end_time - start_time
-        positions_per_sec = N / duration
-        print(f"\n[PERF Pattern.compute_indexes_on_position, step 1] Processed {N:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
 
         # 2. Extract unique symmetries along the column axis safely
-        start_time = time.perf_counter()
         sym_m = atrs_m[:, self.unique_mask_indexes]
         sym_o = atrs_o[:, self.unique_mask_indexes]
-        end_time = time.perf_counter()        
-        duration = end_time - start_time
-        positions_per_sec = N / duration
-        print(f"\n[PERF Pattern.compute_indexes_on_position, step 2] Processed {N:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
     
         # 3. Pack bitboards using your fast pattern architecture logic
-        start_time = time.perf_counter()
         packed_m = self._pack_bb(sym_m)
         packed_o = self._pack_bb(sym_o)
-        end_time = time.perf_counter()        
-        duration = end_time - start_time
-        positions_per_sec = N / duration
-        print(f"\n[PERF Pattern.compute_indexes_on_position, step 3] Processed {N:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
     
         # 4. Compute base-3 integer mapping via the 1D flat execution layer
-        start_time = time.perf_counter()
         ret = _numba_computes_indexes_kernel(
             packed_m, 
             packed_o, 
             self.bit_shifts, 
             self.powers_3
         )
-        end_time = time.perf_counter()        
-        duration = end_time - start_time
-        positions_per_sec = N / duration
-        print(f"\n[PERF Pattern.compute_indexes_on_position, step 4] Processed {N:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
     
         if is_scalar:
             return ret[0] # Return as scalar view if input was a single field
         return ret
-    
-#### End of pattern Class.
+
+    def compute_principal_index_dict(self) -> None:
+        """
+        Computes the dictionary of principal indexes for the pattern.
+        This dictionary maps each configuration index to its principal index,
+        which is the smallest index among all its symmetric configurations.
+        The method also computes the unique principal indexes and their count.
+        """
+        def _symmetry_transformations(ss_array: npt.NDArray[Bitboard], 
+                                     symmetry_functions: List[Callable[[npt.NDArray[np.uint64]], npt.NDArray[np.uint64]]]) -> npt.NDArray[np.uint64]:
+            # Apply each function to the entire array and collect the results in a list
+            symmetries = [f(ss_array) for f in symmetry_functions]
+            # Stack the columns into a single matrix N x X
+            return np.column_stack(symmetries)
+        
+        def _compute_mover_opponent_by_index_value(n_squares: int) -> Tuple[BitboardArray, BitboardArray]:
+            N = 3 ** n_squares
+            indices = np.arange(N, dtype=Index)
+            powers = 3 ** np.arange(n_squares, dtype=Index)
+            digits = (indices[:, None] // powers) % 3    
+            bit_powers = Bitboard(1) << np.arange(n_squares, dtype=Bitboard)
+            m = np.sum((digits == 1) * bit_powers, axis=1, dtype=Bitboard)
+            o = np.sum((digits == 2) * bit_powers, axis=1, dtype=Bitboard)
+            return m, o
+
+        def _compute_indexes_on_ss_packed_tensor(p: Pattern, 
+                                                 m: npt.NDArray[np.uint64], 
+                                                 o: npt.NDArray[np.uint64]
+                                                 ) -> npt.NDArray[np.uint32]:
+            """
+            Computes the indexes of the pattern on a packed tensor of square sets for both mover and opponent.
+            
+            Arguments m and o must have the same shape.
+            The shape of the result matches the shape of m and o. Possible shapes are scalar, 1D array, 2D array.
+            
+            Args:
+                m (npt.NDArray[np.uint64]): The packed square sets for the mover.
+                o (npt.NDArray[np.uint64]): The packed square sets for the opponent.
+
+            Returns:
+                npt.NDArray[np.uint32]: An array of indexes representing the pattern configurations on the packed tensor.
+            """
+            combined = np.stack([m, o])
+            bits = (combined[..., np.newaxis] >> p.bit_shifts) & 1
+            idxs = bits @ p.powers_3
+            indexes = (idxs[0] + 2 * idxs[1]).astype(np.uint32)
+            return indexes
+
+        # -1- Compute the packed configurations of mover and opponent.
+        #     This code is executed the same for each pattern, so it could be factored and memoized, doing it for the largest one.
+        #     It is not done because this computation is not part of the data pipeline.
+        m, o = _compute_mover_opponent_by_index_value(int(self.n_squares))
+        
+        # -2- Unpack the two square sets to get the instance 0 of the pattern with the given index.
+        m_unpacked, o_unpacked = self._unpack_bb(m), self._unpack_bb(o)
+        
+        # -3- Apply the symmetry operations
+        symm_tr_fs = [bitboard_ro000] + self.symmetry_fs
+        m_syms = _symmetry_transformations(m_unpacked, symm_tr_fs)
+        o_syms = _symmetry_transformations(o_unpacked, symm_tr_fs)
+
+        # -4- Pack the results
+        m_syms_packed = self._pack_bb(m_syms)
+        o_syms_packed = self._pack_bb(o_syms)
+        
+        # -5- Calculate the indexes of the symmetric instances
+        sym_indexes = _compute_indexes_on_ss_packed_tensor(self, m_syms_packed, o_syms_packed)
+
+        # -6- Take the lowest available value and insert it into principal_index_dict[index]
+        self.principal_index_dict = sym_indexes.min(axis=1)
+        self.principal_indexes = np.unique(self.principal_index_dict)
+        self.principal_index_count = len(self.principal_indexes)
+        
+        return
+
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def convert_to_principal_index(self, index: IndexArray) -> IndexArray:
+        """
+        Converts a given configuration index to its principal index using the pattern's principal index dictionary.
+        If the dictionary is not yet computed, it computes it first.
+        """
+        if not self.principal_index_dict:
+            self.compute_principal_index_dict()
+        principal_index = self.principal_index_dict[index]
+        return principal_index
+
+#### End of Pattern class.
 
 @nb.njit(parallel=True, fastmath=True, cache=True)
 def _numba_pack_bb_kernel(bb_array, pack_masks, pack_shifts):
@@ -770,16 +856,16 @@ def _numba_computes_indexes_kernel(packed_m, packed_o, bit_shifts, powers_3):
     if packed_m.ndim == 1:
         # 1D Array Input Case (Scalar Position Field)
         M = packed_m.shape[0]
-        out = np.zeros(M, dtype=np.uint32)
+        out = np.zeros(M, dtype=Index)
         for j in range(M):
             val_m = packed_m[j]
             val_o = packed_o[j]
-            idx_sum = np.uint32(0)
+            idx_sum = Index(0)
             for b in range(B):
                 shift = bit_shifts[b]
                 bit_m = (val_m >> shift) & np.uint64(1)
                 bit_o = (val_o >> shift) & np.uint64(1)
-                idx_sum += (bit_m * powers_3[b]) + (bit_o * (np.uint32(2) * powers_3[b]))
+                idx_sum += (bit_m * powers_3[b]) + (bit_o * (Index(2) * powers_3[b]))
             out[j] = idx_sum
         return out
     else:
@@ -787,7 +873,7 @@ def _numba_computes_indexes_kernel(packed_m, packed_o, bit_shifts, powers_3):
         N, M = packed_m.shape
         # Flatten output array for continuous L1/L2 cache efficiency
         total_elements = N * M
-        out_flat = np.zeros(total_elements, dtype=np.uint32)
+        out_flat = np.zeros(total_elements, dtype=Index)
         
         # Flatten input views completely to eliminate non-contiguous stride overheads
         flat_m = packed_m.ravel()
@@ -796,18 +882,18 @@ def _numba_computes_indexes_kernel(packed_m, packed_o, bit_shifts, powers_3):
         for i in nb.prange(total_elements):
             val_m = flat_m[i]
             val_o = flat_o[i]
-            idx_sum = np.uint32(0)
+            idx_sum = Index(0)
             for b in range(B):
                 shift = bit_shifts[b]
                 bit_m = (val_m >> shift) & np.uint64(1)
                 bit_o = (val_o >> shift) & np.uint64(1)
-                idx_sum += (bit_m * powers_3[b]) + (bit_o * (np.uint32(2) * powers_3[b]))
+                idx_sum += (bit_m * powers_3[b]) + (bit_o * (Index(2) * powers_3[b]))
             out_flat[i] = idx_sum
             
         # Reshape back to (N, M) instantaneously at the C-level with zero data copying
         return out_flat.reshape((N, M))
 
-
+#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 #:
 #: A list of Patterns.
@@ -854,14 +940,91 @@ sample_pattern_data = [
     ('TWOND',  0x0000000000000201),
 ]
 
-#
-# To do:
-#
-# - compute_indexes_on_board
-# - compute_indexes_on_ss_packed_tensor
-# - compute_principal_index_dict
-# - convert_to_principal_index
-# - _compute_mover_opponent_by_index_value
-#
-# - class PatternSet
-#
+#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+
+class PatternSet:
+    """
+    The PatternSet class represents a collection of Pattern objects.
+    It uses the mask attribute of Pattern as a unique key.
+    Patterns are stored in a sorted order based on the uint64 value of their mask.
+
+    Attributes:
+    name (str): A human-readable label for the set of patterns.
+    patterns (List[Pattern]): A list of Pattern objects sorted by their mask values.
+    hash (str): A SHA256 hash of the sorted mask values, serving as a unique identifier for the set.
+
+    Methods:
+    names: Returns a list of names of the patterns in the set.
+    masks: Returns a numpy array of the mask values of the patterns in the set.
+    log_summary: Logs (INFO level) a summary of the set including the name, hash, and basic pattern information.
+    log: Logs (INFO level) a detailed summary of the set including the name, hash, and full pattern information.
+    """
+
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def __init__(self, name: str, patterns: List[Pattern]):
+        """
+        Initializes a new PatternSet instance with the given name and list of patterns.
+        
+        Args:
+            name (str): The human-readable label for the set of patterns.
+            patterns (List[Pattern]): A list of Pattern objects to be included in the set.
+        
+        Raises:
+            TypeError: If the name is not a string.
+            TypeError: If the patterns list contains non-Pattern objects.
+            ValueError: If there are duplicate masks in the patterns list.
+        """
+        
+        # Extract masks and check for duplicates
+        masks = [pattern.mask for pattern in patterns]
+        if len(masks) != len(set(masks)):
+            raise ValueError('Patterns list contains duplicate masks')
+        
+        # Sort patterns by mask value
+        self.patterns = sorted(patterns, key=lambda p: p.mask)
+        
+        # Create hash of sorted masks
+        hash_input = b''.join(pattern.mask.tobytes() for pattern in self.patterns)
+        self.hash = hashlib.sha256(hash_input).hexdigest()
+        
+        self.name = name
+
+    def names(self) -> List[str]:
+        """
+        Returns a list of names of the patterns in the set.
+        
+        Returns:
+            List[str]: A list of pattern names.
+        """
+        return [pattern.name for pattern in self.patterns]
+
+    def masks(self) -> np.ndarray:
+        """
+        Returns a numpy array of the mask values of the patterns in the set.
+        
+        Returns:
+            np.ndarray: A numpy array of mask values.
+        """
+        return np.array([pattern.mask for pattern in self.patterns], dtype=np.uint64)
+
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def print_summary(self, output: Union[IO, io.StringIO] = sys.stdout) -> None:
+        """
+        Prints a summary representation of the pattern set to stdout as default, or a specific IO.
+        The summary includes the name, hash, and basic pattern information.
+        """
+        prt = lambda msg: print(msg, file=output)
+        prt(f"PatternSet: name = {self.name}, lenght = {len(self.patterns)}, hash = {self.hash}")
+        for p in self.patterns:
+            prt(f"  Pattern: name = {p.name}, mask = 0x{p.mask:016x}")
+
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def print(self, output: Union[IO, io.StringIO] = sys.stdout) -> None:
+        """
+        Prints a detailed summary of the set including the name, hash, and full pattern information.
+        """
+        print(f"PatternSet: name = {self.name}, lenght = {len(self.patterns)}, hash = {self.hash}", file=output)
+        for pattern in self.patterns:
+            pattern.print(output=output)
+
+#### End of PatternSet class.

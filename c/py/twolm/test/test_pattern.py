@@ -58,6 +58,9 @@ from collections import namedtuple
 
 from typing import Callable, TypeAlias, List
 
+import pydantic
+from pydantic import ValidationError
+
 
 
 ar                 = Bitboard(0x22120a0e1222221e)
@@ -114,6 +117,10 @@ class TestPattern(unittest.TestCase):
     def test_init_invalid_type_arg_2_raises_assertion(self):
         with self.assertRaises(TypeError):
             p = Pattern('ELLE', 107)
+
+    def test_init_invalid_number_of_squares(self):
+        with self.assertRaises(ValueError):
+            p = Pattern('TOO_BIG', Bitboard(0x000000000007FFFF))
 
     def test_init_attributes(self):
         mask = Bitboard(0x0000000000000107)
@@ -986,7 +993,7 @@ class TestPatternComputeIndexes(unittest.TestCase):
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_performance_1m(self):
         
-        N = 10_000_000
+        N = 1_000_000
 
         pat = Pattern('EDGE', Bitboard(0x00000000000000FF))
 
@@ -1012,3 +1019,246 @@ class TestPatternComputeIndexes(unittest.TestCase):
         expected_scalar = np.array([1764, 5940, 1517, 81], dtype=np.uint32)
         expected_array = np.tile(expected_scalar, (N, 1))
         nptest.assert_array_equal(indexes, expected_array)
+
+class TestPatternSet(unittest.TestCase):
+    """
+    The TestPatternSet class contains unit tests for the PatternSet class.
+    """
+
+    def setUp(self):
+        """
+        Set up the test environment with sample patterns.
+        """
+        self.pattern1 = Pattern('ELLE', Bitboard(0x0000000000000107))
+        self.pattern2 = Pattern('SNAKE', Bitboard(0x0000000C30000000))
+        self.pattern3 = Pattern('EDGE', Bitboard(0x00000000000000FF))
+        self.pattern_set = PatternSet('SamplePatternSet', [self.pattern1, self.pattern2, self.pattern3])
+
+    def test_init(self):
+        """
+        Test the initialization of the PatternSet class.
+        """
+        self.assertEqual(self.pattern_set.name, 'SamplePatternSet')
+        self.assertEqual(len(self.pattern_set.patterns), 3)
+        self.assertIn(self.pattern1, self.pattern_set.patterns)
+        self.assertIn(self.pattern2, self.pattern_set.patterns)
+        self.assertIn(self.pattern3, self.pattern_set.patterns)
+        self.assertEqual(self.pattern_set.patterns[0], self.pattern3)
+        self.assertEqual(self.pattern_set.patterns[1], self.pattern1)
+        self.assertEqual(self.pattern_set.patterns[2], self.pattern2)
+
+    def test_init_invalid_type_arg_1_raises_assertion(self):
+        """
+        Test that initializing with a non-string name raises a ValidationError.
+        """
+        with self.assertRaises(ValidationError):
+            PatternSet(1, [self.pattern1, self.pattern2, self.pattern3])
+
+    def test_init_invalid_type_arg_2_raises_assertion(self):
+        """
+        Test that initializing with a non-list patterns raises a ValidationError.
+        """
+        with self.assertRaises(ValidationError):
+            PatternSet('SamplePatternSet', 'NOT A LIST')
+
+    def test_init_invalid_element_type_arg_2_raises_assertion(self):
+        """
+        Test that initializing with a list containing non-Pattern elements raises a ValidationError.
+        """
+        with self.assertRaises(ValidationError):
+            PatternSet('SamplePatternSet', [self.pattern1, 'NOT A PATTERN', self.pattern3])
+
+    def test_names(self):
+        """
+        Test the names method returns the correct list of pattern names.
+        """
+        expected_names = ['EDGE', 'ELLE', 'SNAKE']
+        self.assertEqual(self.pattern_set.names(), expected_names)
+
+    def test_masks(self):
+        """
+        Test the masks method returns the correct numpy array of pattern masks.
+        """
+        expected_masks = np.array([self.pattern3.mask, self.pattern1.mask, self.pattern2.mask], dtype=np.uint64)
+        nptest.assert_array_equal(self.pattern_set.masks(), expected_masks)
+
+    def test_print_summary(self):
+        """
+        Test the print_summary method prints the correct summary.
+        """
+        expected_hash = self.pattern_set.hash
+        
+        expected_output = [
+            'PatternSet: name = SamplePatternSet, lenght = 3, hash = {}',
+            '  Pattern: name = EDGE, mask = 0x00000000000000ff',
+            '  Pattern: name = ELLE, mask = 0x0000000000000107',
+            '  Pattern: name = SNAKE, mask = 0x0000000c30000000'
+        ]
+        expected_output[0] = expected_output[0].format(expected_hash)
+        expected_output = '\n'.join(expected_output) + '\n'
+        
+        with io.StringIO() as buffer:
+            self.pattern_set.print_summary(output=buffer)
+            actual_output = buffer.getvalue()
+
+        self.assertEqual(actual_output, expected_output)
+
+    def test_print(self):
+        """
+        Test the print method prints the correct detailed summary.
+        """
+        expected_hash = self.pattern_set.hash
+        
+        expected_output = [
+            'PatternSet: name = SamplePatternSet, lenght = 3, hash = {}',
+            '[Pattern: name = EDGE, mask = 0x00000000000000ff]',
+            '  [n_squares = 8, n_configurations = 6561, n_instances = 4, n_stabilizers = 2, type = 2]',
+            '  Cells:                [A1, B1, C1, D1, E1, F1, G1, H1]',
+            '  Transformed masks:    [0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000, 0x0101010101010101, 0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000, 0x0101010101010101]',
+            '  Mask indexes:         [0, 1, 2, 3, 0, 1, 2, 3]',
+            '  Unique masks:         [0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000, 0x0101010101010101]',
+            '  Unique mask indexes:  [0, 1, 2, 3]',
+            '  Transf. functions:    [ro000, ro090, ro180, ro270]',
+            '  Anti-transf. f.:      [ro000, ro270, ro180, ro090]',
+            '  Symmetry functions:   [fvert]',
+            '  Transformed cells:    [[0, 1, 2, 3, 4, 5, 6, 7], [7, 15, 23, 31, 39, 47, 55, 63], [63, 62, 61, 60, 59, 58, 57, 56], [56, 48, 40, 32, 24, 16, 8, 0], [7, 6, 5, 4, 3, 2, 1, 0], [63, 55, 47, 39, 31, 23, 15, 7], [56, 57, 58, 59, 60, 61, 62, 63], [0, 8, 16, 24, 32, 40, 48, 56]]',
+            '  Transf. sorted cells: [[0, 1, 2, 3, 4, 5, 6, 7], [7, 15, 23, 31, 39, 47, 55, 63], [56, 57, 58, 59, 60, 61, 62, 63], [0, 8, 16, 24, 32, 40, 48, 56], [0, 1, 2, 3, 4, 5, 6, 7], [7, 15, 23, 31, 39, 47, 55, 63], [56, 57, 58, 59, 60, 61, 62, 63], [0, 8, 16, 24, 32, 40, 48, 56]]',
+            '  Fingerprint:          [I0, T1, T2, T3, S0, S1, S2, S3]',
+            '[Pattern: name = ELLE, mask = 0x0000000000000107]',
+            '  [n_squares = 4, n_configurations = 81, n_instances = 8, n_stabilizers = 1, type = 0]',
+            '  Cells:                [A1, B1, C1, A2]',
+            '  Transformed masks:    [0x0000000000000107, 0x00000000008080C0, 0xE080000000000000, 0x0301010000000000, 0x00000000000080E0, 0xC080800000000000, 0x0701000000000000, 0x0000000000010103]',
+            '  Mask indexes:         [0, 1, 2, 3, 4, 5, 6, 7]',
+            '  Unique masks:         [0x0000000000000107, 0x00000000008080C0, 0xE080000000000000, 0x0301010000000000, 0x00000000000080E0, 0xC080800000000000, 0x0701000000000000, 0x0000000000010103]',
+            '  Unique mask indexes:  [0, 1, 2, 3, 4, 5, 6, 7]',
+            '  Transf. functions:    [ro000, ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8]',
+            '  Anti-transf. f.:      [ro000, ro270, ro180, ro090, fvert, fh1a8, fhori, fa1h8]',
+            '  Symmetry functions:   []',
+            '  Transformed cells:    [[0, 1, 2, 8], [7, 15, 23, 6], [63, 62, 61, 55], [56, 48, 40, 57], [7, 6, 5, 15], [63, 55, 47, 62], [56, 57, 58, 48], [0, 8, 16, 1]]',
+            '  Transf. sorted cells: [[0, 1, 2, 8], [6, 7, 15, 23], [55, 61, 62, 63], [40, 48, 56, 57], [5, 6, 7, 15], [47, 55, 62, 63], [48, 56, 57, 58], [0, 1, 8, 16]]',
+            '  Fingerprint:          [I0, T1, T2, T3, T4, T5, T6, T7]',
+            '[Pattern: name = SNAKE, mask = 0x0000000c30000000]',
+            '  [n_squares = 4, n_configurations = 81, n_instances = 4, n_stabilizers = 2, type = 1]',
+            '  Cells:                [E4, F4, C5, D5]',
+            '  Transformed masks:    [0x0000000C30000000, 0x0000101008080000, 0x0000000C30000000, 0x0000101008080000, 0x000000300C000000, 0x0000080810100000, 0x000000300C000000, 0x0000080810100000]',
+            '  Mask indexes:         [0, 1, 0, 1, 4, 5, 4, 5]',
+            '  Unique masks:         [0x0000000C30000000, 0x0000101008080000, 0x000000300C000000, 0x0000080810100000]',
+            '  Unique mask indexes:  [0, 1, 4, 5]',
+            '  Transf. functions:    [ro000, ro090, fvert, fh1a8]',
+            '  Anti-transf. f.:      [ro000, ro270, fvert, fh1a8]',
+            '  Symmetry functions:   [ro180]',
+            '  Transformed cells:    [[28, 29, 34, 35], [36, 44, 19, 27], [35, 34, 29, 28], [27, 19, 44, 36], [27, 26, 37, 36], [28, 20, 43, 35], [36, 37, 26, 27], [35, 43, 20, 28]]',
+            '  Transf. sorted cells: [[28, 29, 34, 35], [19, 27, 36, 44], [28, 29, 34, 35], [19, 27, 36, 44], [26, 27, 36, 37], [20, 28, 35, 43], [26, 27, 36, 37], [20, 28, 35, 43]]',
+            '  Fingerprint:          [I0, T1, S0, S1, T4, T5, S4, S5]',
+        ]
+        expected_output[0] = expected_output[0].format(expected_hash)
+        expected_output = '\n'.join(expected_output) + '\n'
+        
+        with io.StringIO() as buffer:
+            self.pattern_set.print(output=buffer)
+            actual_output = buffer.getvalue()
+
+        self.assertEqual(actual_output, expected_output)
+
+class TestPatternComputePrincipalIndexDict(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def test_init(self):
+        pass
+
+    def test_small_pattern_compute_principal_index_dict(self):
+        p = Pattern('SMALL', Bitboard(0x0000000000000018))
+
+        self.assertIsNone(p.principal_index_dict)
+        
+        p.compute_principal_index_dict()
+
+        expected_principal_index_dict = np.array([0, 1, 2, 1, 4, 5, 2, 5, 8], dtype=Index)
+        expected_principal_indexes = np.array([0, 1, 2, 4, 5, 8], dtype=Index)
+        expected_principal_index_count = 6
+        
+        nptest.assert_array_equal(p.principal_index_dict, expected_principal_index_dict)
+        nptest.assert_array_equal(p.principal_indexes, expected_principal_indexes)
+        nptest.assert_array_equal(p.principal_index_count, expected_principal_index_count)
+
+    def test_corner_pattern_compute_principal_index_dict(self):
+        p = Pattern('CORNER', Bitboard(0x0000000000070707))
+
+        self.assertIsNone(p.principal_index_dict)
+        
+        p.compute_principal_index_dict()
+
+        self.assertEqual(p.principal_index_dict[16], 16)
+        self.assertEqual(p.principal_index_dict[784], 16)
+
+    def test_core_pattern_compute_principal_index_dict(self):
+        p = Pattern('CORE', Bitboard(0x0000001818000000))
+
+        self.assertIsNone(p.principal_index_dict)
+        self.assertIsNone(p.principal_indexes)
+        self.assertIsNone(p.principal_index_count)
+        
+        p.compute_principal_index_dict()
+        
+        expected_principal_indexes_list = [
+             0,  1,  2,  1,  4,  5,  2,  5,  8,  1,
+             4,  5, 12, 13, 14, 15, 16, 17,  2,  5,
+             8, 15, 16, 17, 24, 25, 26,  1, 12, 15,
+             4, 13, 16,  5, 14, 17,  4, 13, 16, 13,
+            40, 41, 16, 41, 44,  5, 14, 17, 16, 41,
+            44, 25, 52, 53,  2, 15, 24,  5, 16, 25,
+             8, 17, 26,  5, 16, 25, 14, 41, 52, 17,
+            44, 53,  8, 17, 26, 17, 44, 53, 26, 53,
+            80,
+        ]
+        expected_principal_indexes = np.array(expected_principal_indexes_list, dtype=Index)
+        nptest.assert_array_equal(p.principal_index_dict, expected_principal_indexes)
+        
+        unique_principal_indexes_list = [0, 1, 2, 4, 5, 8, 12, 13, 14, 15, 16, 17, 24, 25, 26, 40, 41, 44, 52, 53, 80]
+        nptest.assert_array_equal(p.principal_indexes, unique_principal_indexes_list)
+        self.assertEqual(p.principal_index_count, len(unique_principal_indexes_list))
+
+    def test_diag3_pattern_compute_principal_index_dict(self):
+        p = Pattern('DIAG3', Bitboard(0x0000000000010204))
+
+        self.assertIsNone(p.principal_index_dict)
+        self.assertIsNone(p.principal_indexes)
+        self.assertIsNone(p.principal_index_count)
+        
+        p.compute_principal_index_dict()
+
+        expected_principal_indexes_list = [
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 1, 10, 11, 4, 13, 14, 7, 16, 17, 2, 11, 20, 5, 14, 23, 8, 17, 26
+        ]
+        expected_principal_indexes = np.array(expected_principal_indexes_list, dtype=Index)
+        nptest.assert_array_equal(p.principal_index_dict, expected_principal_indexes)
+        
+        unique_principal_indexes_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 14, 16, 17, 20, 23, 26]
+        nptest.assert_array_equal(p.principal_indexes, unique_principal_indexes_list)
+        self.assertEqual(p.principal_index_count, len(unique_principal_indexes_list))
+
+    def test_elle_pattern_compute_principal_index_dict(self):
+        p = Pattern('ELLE', Bitboard(0x0000000000000107))
+
+        self.assertIsNone(p.principal_index_dict)
+        self.assertIsNone(p.principal_indexes)
+        self.assertIsNone(p.principal_index_count)
+        
+        p.compute_principal_index_dict()
+
+        expected_principal_indexes_list = range(3 ** p.n_squares)
+        expected_principal_indexes = np.array(expected_principal_indexes_list, dtype=Index)
+        nptest.assert_array_equal(p.principal_index_dict, expected_principal_indexes)
+        
+        unique_principal_indexes_list = range(3 ** p.n_squares)
+        nptest.assert_array_equal(p.principal_indexes, unique_principal_indexes_list)
+        self.assertEqual(p.principal_index_count, len(unique_principal_indexes_list))
+
+    def test_convert_to_principal_index(self):
+        p = Pattern('CORE', Bitboard(0x0000001818000000))
+        indexes = np.array([9, 0, 80, 19], dtype=Index)
+        expected_principal_indexes = np.array([1, 0, 80, 5], dtype=Index)
+        computed_principal_indexes = p.convert_to_principal_index(indexes)
+        nptest.assert_array_equal(computed_principal_indexes, expected_principal_indexes)

@@ -43,7 +43,7 @@
 import unittest
 from unittest.mock import patch
 
-import time        
+import time
 import os
 import io
 
@@ -488,7 +488,6 @@ class TestBitboardCount(unittest.TestCase):
     def test_wrong_type_raises_type_error(self):
         with self.assertRaises(ValidationError):
             bitboard_count('Not the right type')
-
 
 class TestBitboardTransformationFa1h8Comp(unittest.TestCase):
 

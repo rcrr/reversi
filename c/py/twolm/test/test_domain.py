@@ -1851,7 +1851,6 @@ class TestBoardPatternPrincipalIndex(unittest.TestCase):
         nptest.assert_array_equal(p.principal_indexes, unique_principal_indexes_list)
         self.assertEqual(len(unique_principal_indexes_list), p.principal_index_count)
 
-
 class TestComputeMoverOpponentByIndexValue(unittest.TestCase):
 
     def test_base(self):
