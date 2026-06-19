@@ -1262,3 +1262,165 @@ class TestPatternComputePrincipalIndexDict(unittest.TestCase):
         expected_principal_indexes = np.array([1, 0, 80, 5], dtype=Index)
         computed_principal_indexes = p.convert_to_principal_index(indexes)
         nptest.assert_array_equal(computed_principal_indexes, expected_principal_indexes)
+
+class TestPatternSetComputePrincipalIndexes(unittest.TestCase):
+
+    def setUp(self):
+        self.pattern1 = Pattern('ELLE', Bitboard(0x0000000000000107))
+        self.pattern2 = Pattern('CORE', Bitboard(0x0000001818000000))
+        self.pattern3 = Pattern('EDGE', Bitboard(0x00000000000000FF))
+        self.pattern_set = PatternSet('SamplePatternSet', [self.pattern1, self.pattern2, self.pattern3])
+
+        self.mover = bitboard_from_signed_int(np.int64(4611717676283199524))
+        self.opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
+
+        self.m = np.array([self.mover], dtype=Bitboard)
+        self.o = np.array([self.opponent], dtype=Bitboard)
+
+        self.large_set_pattern_data = [
+            ('R2',     0x000000000000FF00),
+            ('R3',     0x0000000000FF0000),
+            ('R4',     0x00000000FF000000),
+            ('XEDGE',  0x00000000000042FF),
+            ('DIAG4',  0x0000000001020408),
+            ('DIAG5',  0x0000000102040810),
+            ('DIAG6',  0x0000010204081020),
+            ('DIAG7',  0x0001020408102040),
+            ('DIAG8',  0x0102040810204080),
+            ('CORNER', 0x0000000000070707),
+            ('2X5COR', 0x0000000000001F1F),
+            ('RCT2X4', 0x0000003C3C000000),
+            ('CORE',   0x0000001818000000),
+        ]
+
+        self.expected_large_set_pattern_order = [
+            '2X5COR',
+            'XEDGE',
+            'R2',
+            'CORNER',
+            'R3',
+            'DIAG4',
+            'R4',
+            'DIAG5',
+            'CORE',
+            'RCT2X4',
+            'DIAG6',
+            'DIAG7',
+            'DIAG8',
+        ]
+        
+        self.expected_large_set_pindexes_attribution = {
+            '2X5COR': ( 0, 8,  0,  7),
+            'XEDGE':  ( 1, 4,  8, 11),
+            'R2':     ( 2, 4, 12, 15),
+            'CORNER': ( 3, 4, 16, 19),
+            'R3':     ( 4, 4, 20, 23),
+            'DIAG4':  ( 5, 4, 24, 27),
+            'R4':     ( 6, 4, 28, 31),
+            'DIAG5':  ( 7, 4, 32, 35),
+            'CORE':   ( 8, 1, 36, 36),
+            'RCT2X4': ( 9, 2, 37, 38),
+            'DIAG6':  (10, 4, 39, 42),
+            'DIAG7':  (11, 4, 43, 46),
+            'DIAG8':  (12, 2, 47, 48),
+        }
+
+        self.expected_large_set_principal_indexes = [
+            52_551, 30_483, 58_865, 31_185, 58_497, 32_435, 57_030, 26_271, # 2X5COR
+            13_542, 52_604, 14_639, 27, # XEDGE
+            240, 4_256, 728, 128, # R2
+            13_131, 15_972, 18_179, 11_427, # CORNER
+            723, 2_158, 1_833, 1_936, # R3
+            29, 22, 53, 24, # DIAG4
+            3_370, 2_177, 1_372, 1_835, # R4
+            51, 134, 76, 125, # DIAG5
+            44, # CORE
+            4_127, 3_374, # RCT2X4
+            160, 133, 150, 150, # DIAG6
+            701, 242, 395, 205, # DIAG7
+            402, 647 # DIAG8
+        ]
+
+
+
+
+    def test_one_record(self):
+
+        principal_indexes = self.pattern_set.compute_principal_indexes(self.m, self.o)
+
+        if False:
+            position = make_position(self.mover, self.opponent)
+            position_print(position)
+            
+            print()
+            print(f"Patterns:")
+            i0 = 0
+            for i, p in enumerate(self.pattern_set.patterns):
+                I = len(p.unique_mask_indexes)
+                print(f"  {i:02d}: {p.name} {I} [{i0:2d}:{(i0+I):2d}]")
+                i0 += I
+
+            print()
+            print(f"principal_indexes:")
+            print(f"{principal_indexes}")
+
+            print(f"principal_indexes.shape = {principal_indexes.shape}")
+
+        expected = np.array([[ 420, 116, 1517, 27, 9, 54, 59, 54, 15, 35, 6, 0, 44]], dtype=Index)
+        nptest.assert_array_equal(principal_indexes, expected)
+
+    def test_large_set(self):
+
+        N = 3
+
+        patterns = [Pattern(name, Bitboard(mask)) for name, mask in self.large_set_pattern_data]
+        pset = PatternSet('50_PLUS', patterns)
+        
+        computed_pattern_order = [p.name for p in pset.patterns]
+        self.assertEqual(computed_pattern_order, self.expected_large_set_pattern_order)
+
+        J = 0
+        for i, p in enumerate(pset.patterns):
+            I = len(p.unique_mask_indexes)
+            r0 = J
+            r1 = J + I - 1
+            ei, eI, er0, er1 = self.expected_large_set_pindexes_attribution[p.name]
+            self.assertEqual(i, ei)
+            self.assertEqual(I, eI)
+            self.assertEqual(r0, er0)
+            self.assertEqual(r1, er1)
+            J += I
+
+        m = np.full(N, self.mover, dtype=Bitboard)
+        o = np.full(N, self.opponent, dtype=Bitboard)
+        principal_indexes = pset.compute_principal_indexes(m, o)
+
+        self.assertEqual(principal_indexes.shape, (N, J))
+        self.assertEqual(principal_indexes.dtype, Index)
+
+        expected = np.array(self.expected_large_set_principal_indexes, dtype=Index)
+        computed = principal_indexes[0]
+        nptest.assert_array_equal(computed, expected)
+
+    @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
+    def test_performance_1m(self):
+        
+        N = 1_000_000
+
+        patterns = [Pattern(name, Bitboard(mask)) for name, mask in self.large_set_pattern_data]
+        pset = PatternSet('50_PLUS', patterns)
+
+        m = np.full(N, self.mover, dtype=Bitboard)
+        o = np.full(N, self.opponent, dtype=Bitboard)
+
+        _ = pset.compute_principal_indexes(m[:100], o[:100])
+        start_time = time.perf_counter()
+        principal_indexes = pset.compute_principal_indexes(m, o)
+        end_time = time.perf_counter()
+        duration = end_time - start_time
+        positions_per_sec = N / duration
+        print(f"\n[PERF PatternSet.compute_principal_indexes] Processed {N:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
+
+        expected = np.array(self.expected_large_set_principal_indexes, dtype=Index)
+        computed = principal_indexes[0]
+        nptest.assert_array_equal(computed, expected)

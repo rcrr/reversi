@@ -641,15 +641,6 @@ class Pattern:
         # Match the scalar or array output format of the input
         return result if isinstance(packed_bb, np.ndarray) else np.uint64(result)
 
-    #
-    # Questo metodo va bene cosi. Poi ottimizziamo quello per i principal indexes.
-    # Bisogna fare un unico blocco FUSO di numba ....
-    #
-    #: [PERF Pattern.compute_indexes_on_position, step 1] Processed 10,000,000 positions in 0.4710s (21,231,594 b/s)
-    #: [PERF Pattern.compute_indexes_on_position, step 2] Processed 10,000,000 positions in 0.3227s (30,986,569 b/s)
-    #: [PERF Pattern.compute_indexes_on_position, step 3] Processed 10,000,000 positions in 0.8050s (12,423,041 b/s)
-    #: [PERF Pattern.compute_indexes_on_position, step 4] Processed 10,000,000 positions in 0.2499s (40,014,095 b/s)
-    #: [PERF Pattern.compute_indexes_on_position] Processed 10,000,000 positions in 2.1014s (4,758,714 b/s)
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def compute_indexes_on_position(self, pos: PositionField | PositionArray) -> npt.NDArray[Index]:
         """
@@ -863,8 +854,8 @@ def _numba_computes_indexes_kernel(packed_m, packed_o, bit_shifts, powers_3):
             idx_sum = Index(0)
             for b in range(B):
                 shift = bit_shifts[b]
-                bit_m = (val_m >> shift) & np.uint64(1)
-                bit_o = (val_o >> shift) & np.uint64(1)
+                bit_m = (val_m >> shift) & Bitboard(1)
+                bit_o = (val_o >> shift) & Bitboard(1)
                 idx_sum += (bit_m * powers_3[b]) + (bit_o * (Index(2) * powers_3[b]))
             out[j] = idx_sum
         return out
@@ -885,8 +876,8 @@ def _numba_computes_indexes_kernel(packed_m, packed_o, bit_shifts, powers_3):
             idx_sum = Index(0)
             for b in range(B):
                 shift = bit_shifts[b]
-                bit_m = (val_m >> shift) & np.uint64(1)
-                bit_o = (val_o >> shift) & np.uint64(1)
+                bit_m = (val_m >> shift) & Bitboard(1)
+                bit_o = (val_o >> shift) & Bitboard(1)
                 idx_sum += (bit_m * powers_3[b]) + (bit_o * (Index(2) * powers_3[b]))
             out_flat[i] = idx_sum
             
@@ -1027,4 +1018,174 @@ class PatternSet:
         for pattern in self.patterns:
             pattern.print(output=output)
 
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def compute_principal_indexes(self, m: BitboardArray, o: BitboardArray) -> IndexArray:
+        """
+        Computes principal indexes for all patterns in the set.
+        Packs and transforms structural configurations via an end-to-end Numba pipeline.
+        """
+        if m.shape != o.shape:
+            raise ValueError(f"Arguments o and m must have the same shape. Got m.shape = {m.shape}, o.shape = {o.shape}")
+        
+        N = m.shape[0]
+        L = len(self.patterns)
+        
+        # 1. High-speed C-layout anti-transformations
+        m_atrxs = bitboard_anti_transformations(m)
+        o_atrxs = bitboard_anti_transformations(o)
+        
+        # 2. Extract layout dimensions and structural invariants
+        S_max = max(p.n_squares for p in self.patterns)
+        P_max = max(p.pack_plan[0].shape[0] for p in self.patterns) # Max configuration planes
+        
+        powers_3 = np.array([3**j for j in range(S_max)], dtype=Index)
+        
+        # Pre-allocate structures for unified vectorized stack execution
+        n_squares_arr = np.array([p.n_squares for p in self.patterns], dtype=Index)
+        num_planes_arr = np.empty(L, dtype=Index)
+        
+        bit_shifts_matrix = np.zeros((L, S_max), dtype=Index)
+        idx_sort_matrix = np.zeros((L, 8), dtype=Index)
+        
+        n_groups_arr = np.empty(L, dtype=Index)
+        group_size_arr = np.empty(L, dtype=Index)
+        col_offsets = np.empty(L, dtype=Index)
+        
+        pack_masks_3d = np.zeros((L, P_max), dtype=Bitboard)
+        pack_shifts_3d = np.zeros((L, P_max), dtype=Bitboard)
+        
+        current_col = 0
+        for i, p in enumerate(self.patterns):
+            S = p.n_squares
+            bit_shifts_matrix[i, :S] = p.bit_shifts
+            
+            # Extract grouping properties for the reduction step
+            mi = p.mask_indexes
+            unique_vals = np.unique(mi)
+            n_groups = len(unique_vals)
+            
+            n_groups_arr[i] = n_groups
+            group_size_arr[i] = 8 // n_groups
+            idx_sort_matrix[i, :] = np.argsort(mi)
+            col_offsets[i] = current_col
+            
+            # Unpack PEXT simulation attributes from each pattern's pack_plan
+            p_masks, _, p_shifts = p.pack_plan
+            num_planes = p_masks.shape[0]
+            num_planes_arr[i] = num_planes
+            
+            pack_masks_3d[i, :num_planes] = p_masks
+            pack_shifts_3d[i, :num_planes] = p_shifts
+            
+            current_col += n_groups
+
+        # 3. Stream data straight into the optimized Numba kernel
+        return _numba_compute_principal_indexes_kernel(
+            m_atrxs,
+            o_atrxs,
+            n_squares_arr,
+            bit_shifts_matrix,
+            powers_3,
+            n_groups_arr,
+            group_size_arr,
+            idx_sort_matrix,
+            current_col,
+            col_offsets,
+            num_planes_arr,
+            pack_masks_3d,
+            pack_shifts_3d
+        )
+
+
 #### End of PatternSet class.
+        
+@nb.njit(parallel=True, cache=True, fastmath=True)
+def _numba_compute_principal_indexes_kernel(
+    m_atrxs: np.ndarray,          # Shape: (N, 8), dtype: Bitboard
+    o_atrxs: np.ndarray,          # Shape: (N, 8), dtype: Bitboard
+    n_squares_arr: np.ndarray,    # Shape: (L,), dtype: Index
+    bit_shifts_matrix: np.ndarray,# Shape: (L, S_max), dtype: Index
+    powers_3: np.ndarray,         # Shape: (S_max,), dtype: Index
+    n_groups_arr: np.ndarray,     # Shape: (L,), dtype: Index
+    group_size_arr: np.ndarray,   # Shape: (L,), dtype: Index
+    idx_sort_matrix: np.ndarray,  # Shape: (L, 8), dtype: Index
+    total_cols: int,
+    col_offsets: np.ndarray,      # Shape: (L,), dtype: Index
+    num_planes_arr: np.ndarray,   # Shape: (L,), dtype: Index
+    pack_masks_3d: np.ndarray,    # Shape: (L, P_max), dtype: Bitboard
+    pack_shifts_3d: np.ndarray    # Shape: (L, P_max), dtype: Bitboard
+) -> np.ndarray:
+    """
+    Fused Othello Pattern pipeline engine. 
+    Processes positions (N) and patterns (L) concurrently. Instantly executes
+    PEXT compression, base-3 translation, and reduction min loops in CPU registers.
+    """
+    BITBOARD_ZERO = Bitboard(0)
+    BITBOARD_ONE = Bitboard(1)
+    INDEX_TWO = Index(2)
+    INDEX_ZERO = Index(0)
+    
+    N = m_atrxs.shape[0]
+    L = n_squares_arr.shape[0]
+    
+    # Pre-allocate the massive contiguous block to avoid memory fragmentation
+    out = np.empty((N, total_cols), dtype=Index)
+    
+    # Parallelize at the position level to ensure maximum CPU core saturation
+    for n in nb.prange(N):
+        # Local thread-safe array for the 8 calculated symmetry indices
+        local_symmetry_indexes = np.empty(8, dtype=Index)
+        
+        for i in range(L):
+            S = n_squares_arr[i]
+            n_groups = n_groups_arr[i]
+            group_size = group_size_arr[i]
+            col_offset = col_offsets[i]
+            num_planes = num_planes_arr[i]
+            
+            # --- LOOP FUSION 1: Integrated PEXT Simulation Layer ---
+            for s in range(8):
+                val_m = m_atrxs[n, s]
+                val_o = o_atrxs[n, s]
+                
+                packed_m = BITBOARD_ZERO
+                packed_o = BITBOARD_ZERO
+                
+                # Inline simulation of the _numba_pack_bb_kernel multi-plane logic
+                for p in range(num_planes):
+                    mask = pack_masks_3d[i, p]
+                    shift = pack_shifts_3d[i, p]
+                    packed_m |= (val_m & mask) >> shift
+                    packed_o |= (val_o & mask) >> shift
+                
+                # --- LOOP FUSION 2: Ternary Base-3 Indexing Layer ---
+                idx_m = INDEX_ZERO
+                idx_o = INDEX_ZERO
+                
+                for b in range(S):
+                    shift_val = bit_shifts_matrix[i, b]
+                    p3 = powers_3[b]
+                    
+                    bit_m = (packed_m >> shift_val) & BITBOARD_ONE
+                    bit_o = (packed_o >> shift_val) & BITBOARD_ONE
+                    
+                    idx_m += np.uint32(bit_m) * p3
+                    idx_o += np.uint32(bit_o) * p3
+                    
+                local_symmetry_indexes[s] = (INDEX_TWO * idx_o) + idx_m
+
+            # --- LOOP FUSION 3: Structural Group Minimum Reduction Layer ---
+            for g in range(n_groups):
+                min_val = np.uint32(4294967295) # Initialize with UINT32_MAX
+                start_idx = g * group_size
+                
+                for k in range(group_size):
+                    sorted_s = idx_sort_matrix[i, start_idx + k]
+                    val = local_symmetry_indexes[sorted_s]
+                    if val < min_val:
+                        min_val = val
+                        
+                # Direct streaming write into the contiguous final output grid
+                out[n, col_offset + g] = min_val
+                
+    return out
