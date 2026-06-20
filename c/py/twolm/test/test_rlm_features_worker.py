@@ -60,7 +60,8 @@ from pathlib import Path
 
 from twolm.rlmwf import *
 from twolm.feature import *
-from twolm.mobility import *
+
+from twolm.board import legal_moves
 
 class TestRLMFeaturesWorker(unittest.TestCase):
 

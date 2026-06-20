@@ -25,25 +25,9 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
-#
-# Riscrivere Domain usando la Bitboard al posto di SquareSet.
-# Chiamo il modulo Board.
-# Tutte le funzioni vettorizzate.
-# Minimizziamo la overhead.
-#
-# Mettiamo legal_moves e make_move.
-#
-# Tutte le funzioni "non a oggetti", ma pure funzioni ...
-#
-# I patterns vanno nel modulo Pattern.
-#
-# Feature e' l'oggetto generico che va nel modello. Un Pattern e' un genratoe di feature. Mobility anche. Intercept anche.
-#
-
 from __future__ import annotations
 
-from twolm.domain import *
-from twolm.mobility import *
+from twolm.board import *
 
 import numpy as np
 
@@ -119,11 +103,11 @@ def mobilities(lms: np.ndarray) -> np.ndarray:
         'r3a_squares': 'D3',
     }
 
-    get_uint64 = lambda sq: np.uint64(1) << Square.new_from_str(sq)
+    get_uint64 = lambda sq: Bitboard(1) << square_from_str(sq)
     mobs_sq_mask = {key: get_uint64(val) for key, val in mobs_def.items()}
-    mobs_8_masks = {key: SquareSet.trxs(val) for key, val in mobs_sq_mask.items()}
+    mobs_8_masks = {key: bitboard_transformations(val) for key, val in mobs_sq_mask.items()}
     mobs_1_mask = {
-        key: np.bitwise_or.reduce(SquareSet.trxs(val), axis=1)[0]
+        key: np.bitwise_or.reduce(bitboard_transformations(val))
         for key, val in mobs_sq_mask.items()
     }
     mobs = {'full': 0xFFFFFFFFFFFFFFFF, **mobs_1_mask}
@@ -132,7 +116,7 @@ def mobilities(lms: np.ndarray) -> np.ndarray:
             print(f"")
             print(f"key = {key}")
             print(f"mask = {val:016X}")
-            SquareSet(val).log()
+            bitboard_print(val)
 
     # Ora in mobs ho un dizionario k:v dove k è la stringa 'name' e v e' il mask della mobility.
     df = pd.DataFrame(list(mobs.items()), columns=['name', 'mask'])
