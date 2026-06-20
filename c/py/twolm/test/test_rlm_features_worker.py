@@ -58,14 +58,6 @@ import time
 
 from pathlib import Path
 
-import twolm
-import twolm.domain
-import twolm.rdata
-import twolm.rlmwf
-import twolm.feature
-
-from twolm.domain import *
-from twolm.rdata import *
 from twolm.rlmwf import *
 from twolm.feature import *
 from twolm.mobility import *

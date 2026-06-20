@@ -35,7 +35,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from twolm.rlmwf import ReversiLogisticModel
 
-from twolm.domain import *
+from twolm.board import *
+from twolm.pattern import *
     
 from twolm.rlm_abstract_worker import  ReversiLogisticModelWorker
 

@@ -53,13 +53,6 @@ import tempfile
 
 from pathlib import Path
 
-import twolm
-import twolm.domain
-import twolm.rdata
-import twolm.rlmwf
-
-from twolm.domain import *
-from twolm.rdata import *
 from twolm.rlmwf import *
 
 class TestRLMPositionsWorker(unittest.TestCase):
@@ -68,7 +61,7 @@ class TestRLMPositionsWorker(unittest.TestCase):
         self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
         self.json_config = 'py/twolm/test/data/rlm_01.json'
         self.rlm = ReversiLogisticModel(self.json_config,
-                                        verbosity=ReversiLogisticModel.Verbosity.LOW,
+                                        verbosity=ReversiLogisticModel.Verbosity.HIGH,
                                         base_dir_override=self.tmp_dir)
         self.assertEqual(self.rlm.current_level.value, 0)
         self.assertEqual(self.rlm.current_level.name, 'CREATED')
@@ -77,14 +70,16 @@ class TestRLMPositionsWorker(unittest.TestCase):
         self.assertEqual(self.rlm.current_level.name, 'CONFIG')
 
     def tearDown(self):
-        if False:
+        if True:
+            print()
+            print(f"self.tmp_dir = {self.tmp_dir}")
             os.system(f"ls -l {self.tmp_dir}")
         shutil.rmtree(self.tmp_dir)
 
     def test_read_db(self):
         rlm = self.rlm
 
-        rlm.verbosity = ReversiLogisticModel.Verbosity.LOW
+        rlm.verbosity = ReversiLogisticModel.Verbosity.HIGH
         rlm.move_to_level('POSITIONS')
         self.assertEqual(rlm.current_level.value, 2)
         self.assertEqual(rlm.current_level.name, 'POSITIONS')
@@ -92,7 +87,7 @@ class TestRLMPositionsWorker(unittest.TestCase):
     def test_read_cache(self):
         rlm = self.rlm
 
-        rlm.verbosity = ReversiLogisticModel.Verbosity.LOW
+        rlm.verbosity = ReversiLogisticModel.Verbosity.HIGH
         rlm.move_to_level('POSITIONS')
         self.assertEqual(rlm.current_level.value, 2)
         self.assertEqual(rlm.current_level.name, 'POSITIONS')

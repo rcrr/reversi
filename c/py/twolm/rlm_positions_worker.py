@@ -74,19 +74,20 @@ class RLMPositionsWorker(ReversiLogisticModelWorker):
                 cache_file_path.unlink(missing_ok=True)
                 model.log_event(model.Relevance.INFO, f"Cache file {cache_file_path} deleted.")
                 checksum_file_path.unlink(missing_ok=True)
-                model.log_event(model.Relevance.INFO, f"Cache file checksum f{checksum_file_path} deleted.")
+                model.log_event(model.Relevance.INFO, f"Cache file checksum {checksum_file_path} deleted.")
 
         if not rds:
             model.log_event(model.Relevance.INFO, f"Loading data from database...")
             rds = _load_from_db(model)
             model.log_event(model.Relevance.INFO, f"Game positions loaded. Count: {len(rds.positions):,}")
             rds.store_to_file(cache_file_path)
-            model.log_event(model.Relevance.INFO, f"Cache file f{cache_file_path} written.")
+            model.log_event(model.Relevance.INFO, f"Cache file {cache_file_path} written.")
         
         model.rds = rds
+        model.log_event(model.Relevance.INFO, f"Model attribute rds has been set.")
         
     def down(self, model: ReversiLogisticModel) -> None:
-        model.log_event(model.Relevance.INFO, "Clearing game positions...")
+        model.log_event(model.Relevance.INFO, f"Clearing game positions, setting model attribute rds to None.")
         model.rds = None
 
 def _is_cache_available(p: Path) -> bool:

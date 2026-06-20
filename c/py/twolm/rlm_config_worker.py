@@ -37,7 +37,8 @@ if TYPE_CHECKING:
 
 from twolm.rlm_abstract_worker import ReversiLogisticModelWorker
 
-from twolm.domain import *
+from twolm.board import *
+from twolm.pattern import *
 
 from pydantic import (BaseModel, Field, NonNegativeInt, field_validator, field_serializer,
                       ConfigDict)
@@ -82,20 +83,20 @@ class PatternConfig(BaseModel):
     Configuration for a pattern, including its name and mask.
     """
     name: str
-    mask: SquareSet = Field(..., description="Pattern mask in HEX format, no 0x prefix, just 16 digits.")
+    mask: Bitboard = Field(..., description="Pattern mask in HEX format, no 0x prefix, just 16 digits.")
  
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @field_validator("mask", mode="before")
     @classmethod
-    def parse_hex_to_square_set(cls, h: str) -> SquareSet:
+    def parse_hex_to_bitboard(cls, h: str) -> Bitboard:
         """
-        Converts a hex string (e.g., '0x0000000000000107') into a SquareSet.
+        Converts a hex string (e.g., '0x0000000000000107') into a Bitboard.
         """
-        return SquareSet.new_from_hex(h)
+        return bitboard_from_hex_str(h)
  
     @field_serializer("mask")
-    def serialize_mask_to_hex(self, mask: SquareSet) -> str:
+    def serialize_mask_to_hex(self, mask: Bitboard) -> str:
         return f"{mask:016X}"
 
 class PatternSetConfig(BaseModel):
@@ -193,8 +194,9 @@ def _store_to_file(model: ReversiLogisticModel,
         has_to_write = True
     else:
         if not checksum_file_path.exists():
-            model.log_event(model.Relevance.ERROR, f"The checksum file {checksum_file_path} is missing.")
-            raise RuntimeError(f"The checksum file {checksum_file_path} is missing.")    
+            msg = f"The checksum file {checksum_file_path} is missing."
+            model.log_event(model.Relevance.ERROR, msg)
+            raise RuntimeError(msg)
         with open(checksum_file_path, 'r') as checksum_file:
             stored_checksum = checksum_file.read().strip()
         model.log_event(model.Relevance.DEBUG, f"File: {file_path}, stored_checksum = {stored_checksum}")
@@ -207,7 +209,8 @@ def _store_to_file(model: ReversiLogisticModel,
         model.log_event(model.Relevance.DEBUG, f"File: {file_path}, on_disk_recomputed_checksum = {on_disk_recomputed_checksum}")
         
         if on_disk_recomputed_checksum != stored_checksum:
-            model.log_event(model.Relevance.ERROR, f"The checksum file on disk {checksum_file_path} is not matching.")
+            msg = f"The checksum file on disk {checksum_file_path} is not matching."
+            model.log_event(model.Relevance.ERROR, msg)
             raise RuntimeError(f"The checksum file on disk {checksum_file_path} is not matching.")    
 
         if current_checksum != stored_checksum:
@@ -218,5 +221,8 @@ def _store_to_file(model: ReversiLogisticModel,
         with open(checksum_file_path, 'w') as checksum_file:
             checksum_file.write(current_checksum)
         model.log_event(model.Relevance.INFO, f"File '{file_path}' and checksum written to disk.")
+    else:
+        model.log_event(model.Relevance.INFO, f"Existing file '{file_path}' and checksum are up to date.")
+        
 
 

@@ -1,5 +1,5 @@
 #
-# test_rlm_patterns_worker.py
+# test_rlm_config_worker.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -37,63 +37,60 @@
 #
 # -1- Run the tests.
 #
-# PYTHONPATH="./py" python3 -m unittest twolm.test.test_rlm_patterns_worker
+# PYTHONPATH="./py" python3 -m unittest twolm.test.test_rlm_config_worker
 #
 
 import unittest
 from unittest.mock import patch
 
-from io import StringIO
-
 import os
 import tempfile
 import shutil
-import csv
-import tempfile
-
-from pathlib import Path
 
 from twolm.rlmwf import *
 
-class TestRLMPatternsWorker(unittest.TestCase):
+
+
+class TestRLMConfigWorker(unittest.TestCase):
 
     def setUp(self):
         self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
-        self.json_config = 'py/twolm/test/data/rlm_00.json'
+        self.json_config = 'py/twolm/test/data/rlm_01.json'
         self.rlm = ReversiLogisticModel(self.json_config,
-                                        verbosity=ReversiLogisticModel.Verbosity.LOW,
+                                        verbosity=ReversiLogisticModel.Verbosity.HIGH,
                                         base_dir_override=self.tmp_dir)
         self.assertEqual(self.rlm.current_level.value, 0)
         self.assertEqual(self.rlm.current_level.name, 'CREATED')
-        self.rlm.move_to_level('POSITIONS')
-        self.assertEqual(self.rlm.current_level.value, 2)
-        self.assertEqual(self.rlm.current_level.name, 'POSITIONS')
 
     def tearDown(self):
-        if False:
+        if True:
+            print()
+            print(f"self.tmp_dir = {self.tmp_dir}")
             os.system(f"ls -l {self.tmp_dir}")
         shutil.rmtree(self.tmp_dir)
 
-    def test_build_pset(self):
+    def test_move_up(self):
+        self.rlm.move_to_level('CONFIG')
+        self.assertEqual(self.rlm.current_level.value, 1)
+        self.assertEqual(self.rlm.current_level.name, 'CONFIG')
+
+    def test_move_down(self):
         rlm = self.rlm
-        
-        self.assertIsNone(rlm.pset)
+        rlm.move_to_level('CONFIG')
+        self.assertEqual(rlm.current_level.value, 1)
+        self.assertEqual(rlm.current_level.name, 'CONFIG')
+        rlm.move_to_level('CREATED')
+        self.assertEqual(rlm.current_level.value, 0)
+        self.assertEqual(rlm.current_level.name, 'CREATED')
 
-        rlm.verbosity = ReversiLogisticModel.Verbosity.LOW
-        rlm.move_to_level('PATTERNS')
-        self.assertEqual(rlm.current_level.value, 3)
-        self.assertEqual(rlm.current_level.name, 'PATTERNS')
-
-        self.assertIsNotNone(rlm.pset)
-        self.assertEqual(rlm.pset.name, 'BasicPatternSet')
-        
-        self.assertIsNotNone(rlm.pset.patterns)
-        self.assertEqual(rlm.pset.patterns[0].name, 'EDGE')
-        self.assertEqual(rlm.pset.patterns[1].name, 'ELLE')
-        self.assertEqual(rlm.pset.patterns[0].mask, 0x00000000000000FF)
-        self.assertEqual(rlm.pset.patterns[1].mask, 0x0000000000000107)
-            
-        if False:
-            print(f"self.tmp_dir = {self.tmp_dir}")
-            os.system(f"ls -l {self.tmp_dir}")
-        
+    def test_move_up_with_cache(self):
+        rlm = self.rlm
+        rlm.move_to_level('CONFIG')
+        self.assertEqual(rlm.current_level.value, 1)
+        self.assertEqual(rlm.current_level.name, 'CONFIG')
+        rlm.move_to_level('CREATED')
+        self.assertEqual(rlm.current_level.value, 0)
+        self.assertEqual(rlm.current_level.name, 'CREATED')
+        rlm.move_to_level('CONFIG')
+        self.assertEqual(rlm.current_level.value, 1)
+        self.assertEqual(rlm.current_level.name, 'CONFIG')

@@ -53,13 +53,6 @@ import tempfile
 
 from pathlib import Path
 
-import twolm
-import twolm.domain
-import twolm.rdata
-import twolm.rlmwf
-
-from twolm.domain import *
-from twolm.rdata import *
 from twolm.rlmwf import *
 
 class TestReversiLogisticModelLevel(unittest.TestCase):
