@@ -35,14 +35,16 @@
             "host": "localhost"
         },
         "bid": [3],
-        "status": ['CMS', 'CMR'],
+        "status": ["CMS", "CMR"],
         "ec": 20
     },
-    "pattern_set": {
-        "name": "BasicPatternSet",
-        "patterns": [
-            { "name": "ELLE", "mask": "0000000000000107" },
-            { "name": "EDGE", "mask": "00000000000000FF" }
-        ]
-    },
+    "feature_set": {
+        "pattern_set": {
+            "name": "BasicPatternSet",
+            "patterns": [
+                { "name": "ELLE", "mask": "0000000000000107" },
+                { "name": "EDGE", "mask": "00000000000000FF" }
+            ]
+        }
+    }
 }

@@ -28,6 +28,11 @@
     "name": "RGLM (Logistic) - Unit Test 01 (rlm_01.json)",
     "description": "Used for unit testing.",
     "base_dir": "will/be/overwritten/by/python/during/unittesting",
+    "properties": {
+        "number": 7,
+        "string": "A string",
+        "is_on": false
+    },
     "regab_data_set": {
         "regab_db_connection": {
             "dbname": "tst_regab",
@@ -38,11 +43,21 @@
         "status": ['CMS', 'CMR'],
         "ec": 20
     },
-    "pattern_set": {
-        "name": "BasicPatternSet",
-        "patterns": [
-            { "name": "ELLE", "mask": "0000000000000107" },
-            { "name": "EDGE", "mask": "00000000000000FF" }
-        ]
+    "feature_set": {
+        "intercept": "True",
+        "pattern_set": {
+            "name": "BasicPatternSet",
+            "patterns": [
+                { "name": "ELLE", "mask": "0000000000000107" },
+                { "name": "EDGE", "mask": "00000000000000FF" }
+            ]
+        },
+        "mobility_set": {
+            "name": "BasicMobilitySet",
+            "mobility_features": [
+                { "name": "LMS", "mask": "FFFFFFFFFFFFFFFF", "amask": "0000000000000000" },
+                { "name": "ALMS", "mask": "0000000000000000", "amask": "FFFFFFFFFFFFFFFF" }
+            ]
+        },
     },
 }

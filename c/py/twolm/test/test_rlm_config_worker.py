@@ -94,3 +94,29 @@ class TestRLMConfigWorker(unittest.TestCase):
         rlm.move_to_level('CONFIG')
         self.assertEqual(rlm.current_level.value, 1)
         self.assertEqual(rlm.current_level.name, 'CONFIG')
+
+    def test_properties(self):
+        rlm = self.rlm
+        rlm.move_to_level('CONFIG')
+        self.assertEqual(rlm.current_level.value, 1)
+        self.assertEqual(rlm.current_level.name, 'CONFIG')
+
+        if False:
+            print(f"{rlm.cfg.properties}")
+
+        number = rlm.cfg.properties.get('number')
+        expected_number = 7
+        self.assertEqual(number, expected_number)
+
+        string = rlm.cfg.properties.get('string')
+        expected_string = 'A string'
+        self.assertEqual(string, expected_string)
+
+        is_on = rlm.cfg.properties.get('is_on')
+        expected_is_on = False
+        self.assertEqual(is_on, expected_is_on)
+
+        value = rlm.cfg.properties.get('missing_key')
+        expected_value = None
+        self.assertEqual(value, expected_value)
+        

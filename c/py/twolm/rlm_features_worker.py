@@ -55,3 +55,15 @@ class RLMFeaturesWorker(ReversiLogisticModelWorker):
 def _load_features(model: ReversiLogisticModel) -> None:
     #print(f"TO BE DEVELOPED!")
     pass
+
+
+def _load_patterns(model: ReversiLogisticModel) -> PatternSet:
+    cfg_pset = model.cfg.pattern_set
+    pset_name = cfg_pset.name
+    model.log_event(model.Relevance.DEBUG, f"Pattern set name: '{pset_name}', patterns:")
+    patterns = [Pattern(elt.name, elt.mask) for elt in cfg_pset.patterns]
+    for i, p in enumerate(patterns):
+        model.log_event(model.Relevance.DEBUG, f"  -{i:02}- Pattern: name={p.name}, mask={p.mask:016X}")
+    pset = PatternSet(cfg_pset.name, patterns)
+    model.log_event(model.Relevance.DEBUG, f"Pattern set object created, hash = '{pset.hash}'.")
+    return pset

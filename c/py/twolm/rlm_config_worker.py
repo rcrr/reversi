@@ -41,9 +41,9 @@ from twolm.board import *
 from twolm.pattern import *
 
 from pydantic import (BaseModel, Field, NonNegativeInt, field_validator, field_serializer,
-                      ConfigDict)
+                      ConfigDict, model_validator)
 
-from typing import List, Annotated, Optional
+from typing import List, Annotated, Optional, Any
 
 import os
 import json5
@@ -57,7 +57,10 @@ __all__ = ['RLMConfigWorker']
 # Pydantic configuration classes.
 #
 
-class RegabDBConnectionConfig(BaseModel):
+class RLMBaseConfig(BaseModel):
+    properties: dict[str, Any] = Field(default_factory=dict)
+    
+class RegabDBConnectionConfig(RLMBaseConfig):
     """
     Configuration for connecting to the Regab database.
     """
@@ -69,7 +72,7 @@ class RegabDBConnectionConfig(BaseModel):
 
 StatusString = Annotated[str, Field(pattern=r"^[A-Z]{3}$")]
 
-class RegabDataSetConfig(BaseModel):
+class RegabDataSetConfig(RLMBaseConfig):
     """
     Configuration for a Regab data set, including the database connection and filtering criteria.
     """
@@ -78,7 +81,7 @@ class RegabDataSetConfig(BaseModel):
     status: List[StatusString]
     ec: int = Field(..., ge=0, le=60)
 
-class PatternConfig(BaseModel):
+class PatternConfig(RLMBaseConfig):
     """
     Configuration for a pattern, including its name and mask.
     """
@@ -99,14 +102,51 @@ class PatternConfig(BaseModel):
     def serialize_mask_to_hex(self, mask: Bitboard) -> str:
         return f"{mask:016X}"
 
-class PatternSetConfig(BaseModel):
+class PatternSetConfig(RLMBaseConfig):
     """
     Configuration for a set of patterns, including the name and a list of individual pattern configurations.
     """
     name: str
     patterns: List[PatternConfig] = []
 
-class ReversiLogisticModelConfig(BaseModel):
+class MobilityFeatureConfig(RLMBaseConfig):
+    """
+    Configuration for a mobility feature.
+    """
+    name: str
+    mask: Bitboard = Field(..., description="Legal moves mask in HEX format, no 0x prefix, just 16 digits.")
+    amask: Bitboard = Field(..., description="Anti legal moves mask in HEX format, no 0x prefix, just 16 digits.")
+ 
+    model_config = ConfigDict(arbitrary_types_allowed=True) 
+
+    @field_validator("mask", "amask", mode="before")
+    @classmethod
+    def parse_hex_to_bitboard(cls, h: str) -> Bitboard:
+        """
+        Converts a hex string (e.g., '0x0000000000000107') into a Bitboard.
+        """
+        return bitboard_from_hex_str(h)
+
+    @field_serializer("mask", "amask")
+    def serialize_mask_to_hex(self, mask: Bitboard) -> str:
+        return f"{mask:016X}"
+    
+class MobilitySetConfig(RLMBaseConfig):
+    """
+    Configuration for a set of mobility features, including the name and a list of individual configurations.
+    """
+    name: str
+    mobility_features: List[MobilityFeatureConfig] = []
+
+class FeatureSetConfig(RLMBaseConfig):
+    """
+    Configuration for the set of features.
+    """
+    pattern_set: Optional[PatternSetConfig] = None
+    intercept: Optional[bool] = False
+    mobility_set: Optional[MobilitySetConfig] = None
+    
+class ReversiLogisticModelConfig(RLMBaseConfig):
     """
     Configuration for the Reversi Logistic Model, including general settings,
     data set configuration.
@@ -115,8 +155,8 @@ class ReversiLogisticModelConfig(BaseModel):
     description: str
     base_dir: Path
     regab_data_set: RegabDataSetConfig
-    pattern_set: PatternSetConfig
-
+    feature_set: FeatureSetConfig
+    
 #
 # Pydantic - End.
 #

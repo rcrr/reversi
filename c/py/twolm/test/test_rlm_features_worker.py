@@ -73,9 +73,9 @@ class TestRLMFeaturesWorker(unittest.TestCase):
                                         base_dir_override=self.tmp_dir)
         self.assertEqual(self.rlm.current_level.value, 0)
         self.assertEqual(self.rlm.current_level.name, 'CREATED')
-        self.rlm.move_to_level('PATTERNS')
-        self.assertEqual(self.rlm.current_level.value, 3)
-        self.assertEqual(self.rlm.current_level.name, 'PATTERNS')
+        self.rlm.move_to_level('POSITIONS')
+        self.assertEqual(self.rlm.current_level.value, 2)
+        self.assertEqual(self.rlm.current_level.name, 'POSITIONS')
 
     def tearDown(self):
         if False:
@@ -89,7 +89,7 @@ class TestRLMFeaturesWorker(unittest.TestCase):
 
         rlm.verbosity = ReversiLogisticModel.Verbosity.LOW
         rlm.move_to_level('FEATURES')
-        self.assertEqual(rlm.current_level.value, 4)
+        self.assertEqual(rlm.current_level.value, 3)
         self.assertEqual(rlm.current_level.name, 'FEATURES')            
 
         if False:
