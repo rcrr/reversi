@@ -176,7 +176,7 @@ class TestRLMFeaturesMobilities1M(unittest.TestCase):
 
     def setUp(self):
         self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
-        self.json_config = 'py/twolm/test/data/rlm_02.json'
+        self.json_config = 'py/twolm/test/data/rlm_00.json'
         self.rlm = ReversiLogisticModel(self.json_config,
                                         verbosity=ReversiLogisticModel.Verbosity.LOW,
                                         base_dir_override=self.tmp_dir)
