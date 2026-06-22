@@ -38,6 +38,7 @@ if TYPE_CHECKING:
 from twolm.rlm_abstract_worker import  ReversiLogisticModelWorker
 
 from twolm.feature import Feature
+from twolm.pattern import Pattern, PatternSet
 
 __all__ = ['RLMFeaturesWorker']
 
@@ -53,12 +54,14 @@ class RLMFeaturesWorker(ReversiLogisticModelWorker):
 ###########################################################################################################
 
 def _load_features(model: ReversiLogisticModel) -> None:
-    #print(f"TO BE DEVELOPED!")
+    _load_intercept(model)
+    _load_patterns(model)
+    _load_mobility(model)
     pass
 
 
 def _load_patterns(model: ReversiLogisticModel) -> PatternSet:
-    cfg_pset = model.cfg.pattern_set
+    cfg_pset = model.cfg.feature_set.pattern_set
     pset_name = cfg_pset.name
     model.log_event(model.Relevance.DEBUG, f"Pattern set name: '{pset_name}', patterns:")
     patterns = [Pattern(elt.name, elt.mask) for elt in cfg_pset.patterns]
@@ -67,3 +70,12 @@ def _load_patterns(model: ReversiLogisticModel) -> PatternSet:
     pset = PatternSet(cfg_pset.name, patterns)
     model.log_event(model.Relevance.DEBUG, f"Pattern set object created, hash = '{pset.hash}'.")
     return pset
+
+def _load_intercept(model: ReversiLogisticModel) -> None:
+    print(f"_load_intercept: TO BE DEVELOTED")
+    return
+
+def _load_mobility(model: ReversiLogisticModel) -> None:
+    print(f"_load_mobility: TO BE DEVELOTED")
+    return
+
