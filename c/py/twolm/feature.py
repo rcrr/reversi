@@ -27,63 +27,56 @@
 
 from __future__ import annotations
 
+from enum import IntEnum
+
 from twolm.board import *
+from twolm.pattern import *
 
 import numpy as np
 
-from abc import ABC, abstractmethod
+
 
 __all__ = ['Feature']
 
-class Feature(ABC):
-    @property
-    @abstractmethod
-    def n_configurations(self):
-        """Abstract getter"""
-        pass
 
-    @n_configurations.setter
-    @abstractmethod
-    def n_configurations(self, value):
-        """Abstract setter"""
-        pass
+
+class Feature:
+    """
+    """
     
-    @abstractmethod
-    def compute_indexes(self, movers: npt.NDArray[np.uint64], opponents: npt.NDArray[np.uint64]) -> npt.NDArray[np.uint32]:
-        pass
+    class Category(IntEnum):
+        INTERCEPT = 0
+        PATTERN   = 1
+        MOBILITY  = 2
 
-###############################################################################################################################
+    @classmethod
+    def new_from_pattern(cls, pattern: Pattern) -> Feature:
+        """
+        """
+        f = Feature(Feature.Category.PATTERN,
+                    pattern.name,
+                    int(pattern.n_configurations),
+                    int(pattern.n_instances))
+        f.pattern = pattern
+        return f
 
-class Intercept(Feature):
-    
-    def __init__(self):
-        self._n_configurations = 1
-    
-    def compute_indexes(self, movers: npt.NDArray[np.uint64], opponents: npt.NDArray[np.uint64]) -> npt.NDArray[np.uint32]:
-        pass
+    def __init__(self, category: Category, name: str, n_configurations: int, n_instances: int):
+        """
+        """
+        if not isinstance(category, self.Category):
+            raise TypeError('Argument category is not an instance of Category')
+        if not isinstance(name, str):
+            raise TypeError('Argument name is not an instance of str')
+        if not isinstance(n_configurations, int):
+            raise TypeError('Argument n_configurations is not an instance of int')
+        if n_configurations <= 0:
+            raise ValueError(f"Argument n_configurations is not positive, got {n_configurations}")
+        if not isinstance(n_instances, int):
+            raise TypeError('Argument n_instances is not an instance of int')
+        if n_instances <= 0:
+            raise ValueError(f"Argument n_instances is not positive, got {n_instances}")
 
-    @property
-    def n_configurations(self):
-        return self._n_configurations
-
-    @n_configurations.setter
-    def n_configurations(self, value):
-        raise RuntimeError("The property n_configurations cannot be set.")
-
-###############################################################################################################################
-
-class Mobility(Feature):
-    
-    def compute_indexes(self, movers: npt.NDArray[np.uint64], opponents: npt.NDArray[np.uint64]) -> npt.NDArray[np.uint32]:
-        pass
-
-
-###############################################################################################################################
-
-class CornerMobility(Feature):
-    
-    def compute_indexes(self, movers: npt.NDArray[np.uint64], opponents: npt.NDArray[np.uint64]) -> npt.NDArray[np.uint32]:
-        pass
-
-
-###############################################################################################################################
+        self.category = category
+        self.name = name
+        self.n_configurations = n_configurations
+        self.n_instances = n_instances

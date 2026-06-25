@@ -44,6 +44,7 @@ import unittest
 from unittest.mock import patch, mock_open, MagicMock
 
 from twolm.board import *
+from twolm.feature import *
 from twolm.pattern import *
 
 import numpy as np
@@ -71,3 +72,11 @@ class TestFeature(unittest.TestCase):
 
     def test_dummy(self):
         self.assertEqual(True, True)
+
+    def test_init_intercept(self):
+        f = Feature(Feature.Category.INTERCEPT, "INTERCEPT", 1, 1)
+        self.assertIsNotNone(f)
+        self.assertEqual(f.category, Feature.Category.INTERCEPT)
+        self.assertEqual(f.name, "INTERCEPT")
+        self.assertEqual(f.n_configurations, 1)
+        self.assertEqual(f.n_instances, 1)

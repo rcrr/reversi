@@ -32,7 +32,6 @@ from typing import TypeAlias, Annotated, List, Any, Tuple
 import numpy as np
 import numpy.typing as npt
 
-#from numba import njit, prange
 import numba as nb
 from numba import types
 from numba.extending import overload

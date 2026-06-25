@@ -39,6 +39,10 @@
 #
 # time PERF=0 PYTHONPATH="./py" python3 -m unittest twolm.test.test_board
 #
+# -2- In order to execute tests again the REGAB database run:
+#
+# ssh -N -f -L 5432:localhost:5432 username@database.server.local
+#
 
 import unittest
 from unittest.mock import patch

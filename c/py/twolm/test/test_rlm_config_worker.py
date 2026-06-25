@@ -57,13 +57,13 @@ class TestRLMConfigWorker(unittest.TestCase):
         self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
         self.json_config = 'py/twolm/test/data/rlm_00.json'
         self.rlm = ReversiLogisticModel(self.json_config,
-                                        verbosity=ReversiLogisticModel.Verbosity.HIGH,
+                                        verbosity=ReversiLogisticModel.Verbosity.LOW,
                                         base_dir_override=self.tmp_dir)
         self.assertEqual(self.rlm.current_level.value, 0)
         self.assertEqual(self.rlm.current_level.name, 'CREATED')
 
     def tearDown(self):
-        if True:
+        if False:
             print()
             print(f"self.tmp_dir = {self.tmp_dir}")
             os.system(f"ls -l {self.tmp_dir}")
