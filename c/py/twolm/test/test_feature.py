@@ -70,13 +70,31 @@ class TestFeature(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_dummy(self):
-        self.assertEqual(True, True)
+    def test_init_raises_runtime_error(self):
+        with self.assertRaises(RuntimeError):
+            Feature(Feature.Category.INTERCEPT, "INTERCEPT", 1, 1)
 
-    def test_init_intercept(self):
-        f = Feature(Feature.Category.INTERCEPT, "INTERCEPT", 1, 1)
+    def test_new_intercept(self):
+        f = Feature.new_intercept()
         self.assertIsNotNone(f)
         self.assertEqual(f.category, Feature.Category.INTERCEPT)
         self.assertEqual(f.name, "INTERCEPT")
         self.assertEqual(f.n_configurations, 1)
         self.assertEqual(f.n_instances, 1)
+        self.assertIsNone(f.pattern)
+
+    def test_new_from_pattern(self):
+        p = Pattern("EDGE", Bitboard(0x00000000000000FF))
+        f = Feature.new_from_pattern(p)
+        self.assertIsNotNone(f)
+        self.assertEqual(f.category, Feature.Category.PATTERN)
+        self.assertEqual(f.name, "EDGE")
+        self.assertEqual(f.n_configurations, 3**8)
+        self.assertEqual(f.n_instances, 4)
+        self.assertIsNotNone(f.pattern)
+
+    def test_new_from_pattern_invalid_type(self):
+        """Ensure input validation fires if wrong type object is injected."""
+        with self.assertRaises(ValidationError):
+            Feature.new_from_pattern("NotAPatternObject")
+
