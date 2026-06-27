@@ -268,7 +268,7 @@ class Pattern:
         Initializes a new Pattern instance with the given name and mask.
         
         Args:
-            name (str): The human-readable label for the pattern (e.g., "EDG8", "DIAG8", "CORNER").
+            name (str): The human-readable label for the pattern (e.g., "EDGE", "DIAG8", "CORNER").
             mask (Bitboard): The primary 64-bit mask defining the squares belonging to this pattern.
         
         Raises:
@@ -965,6 +965,10 @@ class PatternSet:
             TypeError: If the patterns list contains non-Pattern objects.
             ValueError: If there are duplicate masks in the patterns list.
         """
+        # Extract and check for duplicate names
+        names = [p.name for p in patterns]
+        if len(names) != len(set(names)):
+            raise ValueError('Patterns list contains duplicate names')
         
         # Extract masks and check for duplicates
         masks = [pattern.mask for pattern in patterns]

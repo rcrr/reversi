@@ -27,10 +27,12 @@
 
 from __future__ import annotations
 
-from typing import TypeAlias
+from typing import List
 
 from twolm.board import *
 from twolm.mobility import *
+
+import hashlib
 
 import numpy as np
 from numba import njit, prange
@@ -38,12 +40,90 @@ from numba import njit, prange
 from functools import reduce
 import pandas as pd
 
-
-
-__all__ = ['mobilities']
+from pydantic import validate_call, ConfigDict
 
 
 
+__all__ = ['Mobility',
+           'MobilitySet',
+           'mobilities']
+
+
+
+class Mobility:
+    """
+    The Mobility class is a measure of the available moves for the mover, masked by a defined set.
+    Otherwise is the measure of the pseudo-moves available to the opponent as if she would have to move.
+    When both mask and amask are defined, it is the difference between moves and anti-moves.
+    """
+    
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def __init__(self, name: str, mask: Bitboard, amask: Bitboard):
+        """
+        Initializes a new Mobility feature with the given name, mask, and anti-mask.
+        The mask is the set of squares counted as being legal moves.
+        The amask is the set of squares counted as the actual mover would be the opponent. 
+        
+        Args:
+            name (str): The human-readable label for the mobility (e.g., "LMC", "ALMC").
+            mask (Bitboard): The 64-bit mask defining the squares belonging to this mobility feature.
+            amask (Bitboard): The 64-bit mask defining the squares belonging to this anti-mobility feature.
+        """
+
+        self.name = name
+        self.mask = mask
+        self.amask = amask
+
+#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+
+class MobilitySet:
+    """
+    The MobilitySet class represents a collection of Mobility objects.
+    It uses the tuple (mast, amask) as a unique key.
+    Mobilities are stored in a descending sorted order based on their unique key. 
+    """
+
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def __init__(self, name: str, mobilities: List[Mobility]):
+        """
+        Initializes a new MobilitySet instance with the given name and list of mobilities.
+        
+        Args:
+            name (str): The human-readable label for the set of mobilities.
+            mobilities (List[Mobility]): A list of Mobility objects to be included in the set.
+        
+        Raises:
+            ValueError: If there are duplicate names in the mobilities list.
+            ValueError: If there are duplicate (mask, amask) pairs in the mobilities list.
+        """
+        # Extract and check for duplicate names
+        names = [m.name for m in mobilities]
+        if len(names) != len(set(names)):
+            raise ValueError('Mobilities list contains duplicate names')
+        
+        # Extract composite keys as tuples and check for duplicates
+        # Tuples are naturally hashable and comparable in Python
+        keys = [(m.mask, m.amask) for m in mobilities]
+        if len(keys) != len(set(keys)):
+            raise ValueError('Mobilities list contains duplicate (mask, amask) pairs')
+        
+        # Sort mobilities by composite key value
+        # Python sorts tuples lexicographically: first by mask, then by amask
+        self.mobilities = sorted(mobilities, key=lambda m: (m.mask, m.amask))
+        
+        # Create hash of sorted composite keys
+        # Concatenate bytes of both Bitboards sequentially for each element
+        hash_input = b''.join(
+            m.mask.tobytes() + m.amask.tobytes() 
+            for m in self.mobilities
+        )
+        self.hash = hashlib.sha256(hash_input).hexdigest()
+        
+        self.name = name
+        
+
+#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+    
 def mobilities(lms: np.ndarray) -> np.ndarray:
 
     mobs_def = {

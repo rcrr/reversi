@@ -45,6 +45,7 @@ from unittest.mock import patch, mock_open, MagicMock
 
 from twolm.board import *
 from twolm.feature import *
+from twolm.mobility import *
 from twolm.pattern import *
 
 import numpy as np

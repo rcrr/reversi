@@ -56,8 +56,9 @@
         "mobility_set": {
             "name": "BasicMobilitySet",
             "mobility_features": [
-                { "name": "LMS", "mask": "FFFFFFFFFFFFFFFF", "amask": "0000000000000000" },
-                { "name": "ALMS", "mask": "0000000000000000", "amask": "FFFFFFFFFFFFFFFF" }
+                { "name": "LMC", "mask": "FFFFFFFFFFFFFFFF", "amask": "0000000000000000" },
+                { "name": "ALMC", "mask": "0000000000000000", "amask": "FFFFFFFFFFFFFFFF" },
+                { "name": "DLMC", "mask": "FFFFFFFFFFFFFFFF", "amask": "FFFFFFFFFFFFFFFF" }
             ]
         }
     }
