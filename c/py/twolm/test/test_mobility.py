@@ -101,6 +101,14 @@ class TestMobility(unittest.TestCase):
         with self.assertRaises(ValidationError):
             Mobility('LMC', Bitboard(0xFFFFFFFFFFFFFFFF), 1)
 
+    def test_print(self):
+        m = Mobility('LMC', Bitboard(0xFFFFFFFFFFFFFFFF), Bitboard(0x0000000000000000))
+        expected_output = f"[Mobility: name = LMC     , mask = 0xffffffffffffffff, amask = 0x0000000000000000]\n"
+        with io.StringIO() as buffer:
+            m.print(output=buffer)
+            actual_output = buffer.getvalue()
+        self.assertEqual(actual_output, expected_output)
+
 class TestMobilitySet(unittest.TestCase):
 
     def setUp(self):
@@ -109,22 +117,18 @@ class TestMobilitySet(unittest.TestCase):
             ('ALMC', 0x0000000000000000, 0xFFFFFFFFFFFFFFFF),
             ('DLMC', 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF),
         ]
-
-    def tearDown(self):
-        pass
-
-    def test_dummy(self):
-        self.assertEqual(True, True)
+        
+        self.mlf = lambda x: [Mobility(n, Bitboard(m), Bitboard(a)) for n, m , a in x]
 
     def test_init(self):
-        ml = [Mobility(n, Bitboard(m), Bitboard(a)) for n, m , a in  self.mobility_set_data]
-        mobility_set = MobilitySet('TestMobilitySet', ml)
+        mobility_set = MobilitySet('TestMobilitySet', self.mlf(self.mobility_set_data))
 
-        print()
-        print(f"Mobility Set Name: {mobility_set.name}")
-        for i, m in enumerate(mobility_set.mobilities):
-            print(f"{i}: {m.name:10s} ({m.mask:016X}, {m.amask:016X})")
-        print(f"Hash: {mobility_set.hash}")
+        if False:
+            print()
+            print(f"Mobility Set Name: {mobility_set.name}")
+            for i, m in enumerate(mobility_set.mobilities):
+                print(f"{i}: {m.name:10s} ({m.mask:016X}, {m.amask:016X})")
+            print(f"Hash: {mobility_set.hash}")
 
     def test_duplicate_name_collision(self):
         """Test that initializing with duplicate mobility names raises a ValueError."""
@@ -215,7 +219,42 @@ class TestMobilitySet(unittest.TestCase):
         with self.assertRaises(ValidationError):
             MobilitySet(12345, ml)
 
+    def test_names(self):
+        mobility_list = self.mlf(self.mobility_set_data)
+        ms = MobilitySet("Test", mobility_list)
+        computed = ms.names()
+        expected = ['ALMC', 'LMC', 'DLMC']
+        self.assertEqual(computed, expected)
 
+    def test_masks(self):
+        mobility_list = self.mlf(self.mobility_set_data)
+        ms = MobilitySet("Test", mobility_list)
+        computed = ms.masks()
+        expected = np.array([[0x0000000000000000, 0xFFFFFFFFFFFFFFFF],
+                             [0xFFFFFFFFFFFFFFFF, 0x0000000000000000],
+                             [0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF]], dtype=Bitboard)
+        nptest.assert_array_equal(computed, expected)
+
+    def test_print_summary(self):
+        ms = MobilitySet("Test", self.mlf(self.mobility_set_data))
+
+        expected_hash = ms.hash
+        expected_output = [
+            'MobilitySet: name = Test, lenght = 3, hash = {}',
+            '  Mobility: name = ALMC    , mask = 0x0000000000000000, amask = 0xffffffffffffffff',
+            '  Mobility: name = LMC     , mask = 0xffffffffffffffff, amask = 0x0000000000000000',
+            '  Mobility: name = DLMC    , mask = 0xffffffffffffffff, amask = 0xffffffffffffffff'
+        ]
+        expected_output[0] = expected_output[0].format(expected_hash)
+        expected_output = '\n'.join(expected_output) + '\n'
+        
+        with io.StringIO() as buffer:
+            ms.print_summary(output=buffer)
+            actual_output = buffer.getvalue()
+
+        self.assertEqual(actual_output, expected_output)
+
+        
 #: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### 
 
 class TestRLMFeaturesWorkerLMS(unittest.TestCase):

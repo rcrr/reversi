@@ -27,11 +27,13 @@
 
 from __future__ import annotations
 
-from typing import List
+from typing import List, Union, IO
 
 from twolm.board import *
 from twolm.mobility import *
 
+import sys
+import io
 import hashlib
 
 import numpy as np
@@ -74,13 +76,22 @@ class Mobility:
         self.mask = mask
         self.amask = amask
 
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def print(self, output: Union[IO, io.StringIO] = sys.stdout) -> None:
+        """
+        Prints the mobility to stdout as default, or a specific IO.
+        """
+        prt = lambda msg: print(msg, file=output)
+        prt(f"[Mobility: name = {self.name:8s}, mask = 0x{self.mask:016x}, amask = 0x{self.amask:016x}]")
+
+        
 #: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 class MobilitySet:
     """
     The MobilitySet class represents a collection of Mobility objects.
     It uses the tuple (mast, amask) as a unique key.
-    Mobilities are stored in a descending sorted order based on their unique key. 
+    Mobilities are stored in a ascending sorted order based on their unique key. 
     """
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -120,7 +131,35 @@ class MobilitySet:
         self.hash = hashlib.sha256(hash_input).hexdigest()
         
         self.name = name
+
+    def names(self) -> List[str]:
+        """
+        Returns a list of names of the mobilities in the set.
         
+        Returns:
+            List[str]: A list of mobility names.
+        """
+        return [mobility.name for mobility in self.mobilities]
+
+    def masks(self) -> np.ndarray:
+        """
+        Returns a 2D numpy array (shape = (N, 2)) of the mask values of the mobilities in the set.
+        
+        Returns:
+            np.ndarray: A numpy array of mask values.
+        """
+        return np.array([[m.mask, m.amask] for m in self.mobilities], dtype=Bitboard)
+
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def print_summary(self, output: Union[IO, io.StringIO] = sys.stdout) -> None:
+        """
+        Prints a summary representation of the mobility set to stdout as default, or a specific IO.
+        The summary includes the name, hash, and basic mobility information.
+        """
+        prt = lambda msg: print(msg, file=output)
+        prt(f"MobilitySet: name = {self.name}, lenght = {len(self.mobilities)}, hash = {self.hash}")
+        for m in self.mobilities:
+            prt(f"  Mobility: name = {m.name:8s}, mask = 0x{m.mask:016x}, amask = 0x{m.amask:016x}")
 
 #: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
     
