@@ -118,7 +118,7 @@ class TestMobilitySet(unittest.TestCase):
             ('DLMC', 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF),
         ]
         
-        self.mlf = lambda x: [Mobility(n, Bitboard(m), Bitboard(a)) for n, m , a in x]
+        self.mlf = lambda x: [Mobility(n, Bitboard(m), Bitboard(a)) for n, m, a in x]
 
     def test_init(self):
         mobility_set = MobilitySet('TestMobilitySet', self.mlf(self.mobility_set_data))

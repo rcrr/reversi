@@ -31,10 +31,13 @@ from typing import Self, TypeAlias, List, Tuple, Union, IO, Annotated
 
 from dataclasses import dataclass, field
 
+import hashlib
+
 from enum import IntEnum
 
 from twolm.board import *
 from twolm.pattern import *
+from twolm.mobility import *
 
 import numpy as np
 
@@ -42,7 +45,8 @@ from pydantic import validate_call, ConfigDict, BeforeValidator
 
 
 
-__all__ = ['Feature']
+__all__ = ['Feature',
+           'FeatureSet']
 
 
 
@@ -59,15 +63,15 @@ class Feature:
     name: str
     n_configurations: int
     n_instances: int
-    pattern: Pattern | None = field(default=None, repr=False)
+    ref: Mobility | Pattern | None = field(default=None, repr=False)
     
     class Category(IntEnum):
         """
         Enumeration representing the logical classification of the feature.
         """
         INTERCEPT = 0
-        PATTERN   = 1
-        MOBILITY  = 2
+        MOBILITY  = 1
+        PATTERN   = 2
 
     def __new__(cls, *args: Any, **kwargs: Any) -> Self:
         """
@@ -99,7 +103,7 @@ class Feature:
         self.name = "INTERCEPT"
         self.n_configurations = 1
         self.n_instances = 1
-        self.pattern = None
+        self.ref = None
         return self
 
     @classmethod
@@ -123,43 +127,71 @@ class Feature:
         self.name = pattern.name
         self.n_configurations = pattern.n_configurations
         self.n_instances = pattern.n_instances
-        self.pattern = pattern
+        self.ref = pattern
         return self
 
     @classmethod
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-    def new_mobility(cls, name: str, n_configurations: int, n_instances: int) -> Self:
+    def new_from_mobility(cls, mobility: Mobility) -> Self:
         """
-        Factory method to construct a MOBILITY feature with explicit parameters.
+        Factory method to construct a MOBILITY feature from a Mobility instance.
         
         Args:
-            name: The custom identifier name for the mobility tracker.
-            n_configurations: Total unique configurations possible.
-            n_instances: Total target evaluation instances.
+            pattern: The game Mobility configuration object.
             
         Returns:
-            Feature: A validated mobility feature instance.
-            
-        Raises:
-            TypeError: If argument types do not match expectations.
-            ValueError: If counts are equal to or lower than zero.
+            Feature: A validated feature instance linked to the mobility.
         """
-        if not isinstance(name, str):
-            raise TypeError("Argument 'name' must be an instance of str.")
-        if not isinstance(n_configurations, int):
-            raise TypeError("Argument 'n_configurations' must be an instance of int.")
-        if not isinstance(n_instances, int):
-            raise TypeError("Argument 'n_instances' must be an instance of int.")
-            
-        if n_configurations <= 0:
-            raise ValueError(f"n_configurations must be positive, got {n_configurations}")
-        if n_instances <= 0:
-            raise ValueError(f"n_instances must be positive, got {n_instances}")
-
         self = cls._create_empty()
         self.category = cls.Category.MOBILITY
-        self.name = name
-        self.n_configurations = n_configurations
-        self.n_instances = n_instances
-        self.pattern = None
+        self.name = mobility.name
+        self.n_configurations = mobility.n_configurations
+        self.n_instances = mobility.n_instances
+        self.ref = mobility
         return self
+
+class FeatureSet:
+    """
+    """
+
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def __init__(self,
+                 name: str,
+                 intercept: Feature | None,
+                 mset: MobilitySet | None,
+                 pset: PatternSet | None) -> Self:
+
+        if intercept and intercept.category is not Feature.Category.INTERCEPT:
+            error_msg = f"Argument intercept is a feature having the wrong category {intercept.Category}."
+            raise ValueError(error_msg)
+
+        self.name = name
+        self.intercept = intercept
+        self.mset = mset
+        self.pset = pset
+
+        fs = []
+        if self.intercept:
+            fs.append(self.intercept)
+        if self.mset:
+            for m in self.mset.mobilities:
+                fs.append(Feature.new_from_mobility(m))
+        if self.pset:
+            for p in self.pset.patterns:
+                fs.append(Feature.new_from_pattern(p))
+        self.features = fs
+
+        chunks = []
+        if intercept:
+            chunks.append(b'INTERCEPT')
+        if mset:
+            chunks.append(mset.hash.encode('utf-8')) 
+        if pset:
+            chunks.append(pset.hash.encode('utf-8')) 
+        hash_input = b''.join(chunks)
+        self.hash = hashlib.sha256(hash_input).hexdigest()
+        
+        return
+
+    def print_summary(self) -> None:
+        pass

@@ -82,7 +82,18 @@ class TestFeature(unittest.TestCase):
         self.assertEqual(f.name, "INTERCEPT")
         self.assertEqual(f.n_configurations, 1)
         self.assertEqual(f.n_instances, 1)
-        self.assertIsNone(f.pattern)
+        self.assertIsNone(f.ref)
+
+    def test_new_from_mobility(self):
+        m = Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF), Bitboard(0x0000000000000000))
+        f = Feature.new_from_mobility(m)
+        self.assertIsNotNone(f)
+        self.assertEqual(f.category, Feature.Category.MOBILITY)
+        self.assertEqual(f.name, "LMC")
+        self.assertEqual(f.n_configurations, 64)
+        self.assertEqual(f.n_instances, 1)
+        self.assertIsNotNone(f.ref)
+        self.assertEqual(f.ref, m)
 
     def test_new_from_pattern(self):
         p = Pattern("EDGE", Bitboard(0x00000000000000FF))
@@ -92,10 +103,46 @@ class TestFeature(unittest.TestCase):
         self.assertEqual(f.name, "EDGE")
         self.assertEqual(f.n_configurations, 3**8)
         self.assertEqual(f.n_instances, 4)
-        self.assertIsNotNone(f.pattern)
+        self.assertIsNotNone(f.ref)
+        self.assertEqual(f.ref, p)
 
     def test_new_from_pattern_invalid_type(self):
         """Ensure input validation fires if wrong type object is injected."""
         with self.assertRaises(ValidationError):
             Feature.new_from_pattern("NotAPatternObject")
 
+class TestFeatureSet(unittest.TestCase):
+
+    def setUp(self):
+        pattern_set_data = [
+            ('R2',     0x000000000000FF00),
+            ('R3',     0x0000000000FF0000),
+            ('R4',     0x00000000FF000000),
+            ('XEDGE',  0x00000000000042FF),
+            ('DIAG4',  0x0000000001020408),
+            ('DIAG5',  0x0000000102040810),
+            ('DIAG6',  0x0000010204081020),
+            ('DIAG7',  0x0001020408102040),
+            ('DIAG8',  0x0102040810204080),
+            ('CORNER', 0x0000000000070707),
+            ('2X5COR', 0x0000000000001F1F),
+            ('RCT2X4', 0x0000003C3C000000),
+            ('CORE',   0x0000001818000000),
+        ]
+        plf = lambda x: [Pattern(n, Bitboard(m)) for n, m in x]
+        mobility_set_data = [
+            ('LMC',  0xFFFFFFFFFFFFFFFF, 0x0000000000000000),
+            ('ALMC', 0x0000000000000000, 0xFFFFFFFFFFFFFFFF),
+            ('DLMC', 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF),
+        ]
+        mlf = lambda x: [Mobility(n, Bitboard(m), Bitboard(a)) for n, m, a in x]
+        self.intercept = Feature.new_intercept()
+        self.mset = MobilitySet('TestMobilitySet', mlf(mobility_set_data))
+        self.pset = PatternSet('TestPatternSet', plf(pattern_set_data))
+
+    def tearDown(self):
+        pass
+
+    def test_init(self):
+        feature_set = FeatureSet('TestFeatureSet', self.intercept, self.mset, self.pset)
+        

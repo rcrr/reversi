@@ -142,9 +142,10 @@ class FeatureSetConfig(RLMBaseConfig):
     """
     Configuration for the set of features.
     """
-    pattern_set: Optional[PatternSetConfig] = None
+    name: Optional[str] = 'NoNameFeatureSet'
     intercept: Optional[bool] = False
     mobility_set: Optional[MobilitySetConfig] = None
+    pattern_set: Optional[PatternSetConfig] = None
     
 class ReversiLogisticModelConfig(RLMBaseConfig):
     """

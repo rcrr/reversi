@@ -82,12 +82,12 @@ class TestRLMFeaturesWorker(unittest.TestCase):
             os.system(f"ls -l {self.tmp_dir}")
         shutil.rmtree(self.tmp_dir)
 
-    def test_build_pset(self):
+    def test_build_feature_set(self):
         rlm = self.rlm
         
-        self.assertIsNone(rlm.fset)
+        self.assertIsNone(rlm.feature_set)
 
-        rlm.verbosity = ReversiLogisticModel.Verbosity.LOW
+        rlm.verbosity = ReversiLogisticModel.Verbosity.HIGH
         rlm.move_to_level('FEATURES')
         self.assertEqual(rlm.current_level.value, 3)
         self.assertEqual(rlm.current_level.name, 'FEATURES')            
@@ -96,3 +96,4 @@ class TestRLMFeaturesWorker(unittest.TestCase):
             print(f"self.tmp_dir = {self.tmp_dir}")
             os.system(f"ls -l {self.tmp_dir}")
         
+        self.assertIsNotNone(rlm.feature_set)

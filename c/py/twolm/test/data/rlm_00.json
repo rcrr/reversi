@@ -45,20 +45,21 @@
         "ec": 20
     },
     "feature_set": {
+        "name": "BasicFeatureSet",
         "intercept": true,
-        "pattern_set": {
-            "name": "BasicPatternSet",
-            "patterns": [
-                { "name": "ELLE", "mask": "0000000000000107" },
-                { "name": "EDGE", "mask": "00000000000000FF" }
-            ]
-        },
         "mobility_set": {
             "name": "BasicMobilitySet",
             "mobility_features": [
                 { "name": "LMC", "mask": "FFFFFFFFFFFFFFFF", "amask": "0000000000000000" },
                 { "name": "ALMC", "mask": "0000000000000000", "amask": "FFFFFFFFFFFFFFFF" },
                 { "name": "DLMC", "mask": "FFFFFFFFFFFFFFFF", "amask": "FFFFFFFFFFFFFFFF" }
+            ]
+        },
+        "pattern_set": {
+            "name": "BasicPatternSet",
+            "patterns": [
+                { "name": "ELLE", "mask": "0000000000000107" },
+                { "name": "EDGE", "mask": "00000000000000FF" }
             ]
         }
     }

@@ -76,6 +76,9 @@ class Mobility:
         self.mask = mask
         self.amask = amask
 
+        self.n_configurations = bitboard_count(mask) + bitboard_count(amask)
+        self.n_instances = 1
+
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def print(self, output: Union[IO, io.StringIO] = sys.stdout) -> None:
         """
