@@ -65,12 +65,6 @@ from pydantic import ValidationError
 
 class TestFeature(unittest.TestCase):
 
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
     def test_init_raises_runtime_error(self):
         with self.assertRaises(RuntimeError):
             Feature(Feature.Category.INTERCEPT, "INTERCEPT", 1, 1)
@@ -140,9 +134,39 @@ class TestFeatureSet(unittest.TestCase):
         self.mset = MobilitySet('TestMobilitySet', mlf(mobility_set_data))
         self.pset = PatternSet('TestPatternSet', plf(pattern_set_data))
 
-    def tearDown(self):
-        pass
-
     def test_init(self):
         feature_set = FeatureSet('TestFeatureSet', self.intercept, self.mset, self.pset)
-        
+        self.assertIsNotNone(feature_set)
+
+        self.assertEqual(feature_set.name, 'TestFeatureSet')
+        self.assertEqual(feature_set.intercept, self.intercept)
+        self.assertEqual(feature_set.mset, self.mset)
+        self.assertEqual(feature_set.pset, self.pset)
+
+        self.assertEqual(feature_set.n_instances, 53)
+
+        expected_n_instances = [1, 1, 1, 1, 8, 4, 4, 4, 4, 4, 4, 4, 1, 2, 4, 4, 2]
+        computed_n_instances = [f.n_instances for f in feature_set.features]
+        self.assertEqual(computed_n_instances, expected_n_instances)
+
+        expected_hash = 'bc8897b689ed90c5a6e9440fa9766a8f763d5ff0a8661550f48b45eaff01ebec'
+        self.assertEqual(feature_set.hash, expected_hash)
+
+    def test_print_summary(self):
+        feature_set = FeatureSet('TestFeatureSet', self.intercept, self.mset, self.pset)
+        with io.StringIO() as buffer:
+            feature_set.print_summary(output=buffer)
+            actual_output = buffer.getvalue()
+
+        self.assertIn("FeatureSet: name = TestFeatureSet, lenght = 17, hash = bc8897b689ed90c5a6e9440fa9766a8f763d5ff0a8661550f48b45eaff01ebec", actual_output)
+        self.assertIn("  Intercept is present.", actual_output)
+        self.assertIn("  MobilitySet: name = TestMobilitySet, hash = cee59abd002aefce5dbdc545629111e2975fc2ea278e66ffa4e22571560d5f34", actual_output)
+        self.assertIn("    00 name = ALMC      , mask = 0x0000000000000000, amask = 0xFFFFFFFFFFFFFFFF", actual_output)
+        self.assertIn("  MobilitySet: name = TestPatternSet, hash = f48dbd6313cf8ccbc72d46f56566b06d159560a0c4ebf7f81310756890ca2a1f", actual_output)
+        self.assertIn("    04 name = R3        , mask = 0x0000000000FF0000", actual_output)
+        self.assertIn("  Features: [<i>, <category>, <name>, <n_instances>, <n_configurations>]", actual_output)
+        self.assertIn("    00 0 INTERCEPT  1          1", actual_output)
+        self.assertIn("    01 1 ALMC       1         64", actual_output)
+        self.assertIn("    04 2 2X5COR     8     59,049", actual_output)
+        self.assertIn("    16 2 DIAG8      2      6,561", actual_output)
+

@@ -947,8 +947,8 @@ class PatternSet:
     Methods:
     names: Returns a list of names of the patterns in the set.
     masks: Returns a numpy array of the mask values of the patterns in the set.
-    log_summary: Logs (INFO level) a summary of the set including the name, hash, and basic pattern information.
-    log: Logs (INFO level) a detailed summary of the set including the name, hash, and full pattern information.
+    print_summary: Prints a summary of the set including the name, hash, and basic pattern information.
+    print: Prints a detailed summary of the set including the name, hash, and full pattern information.
     """
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))

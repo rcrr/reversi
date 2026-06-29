@@ -32,6 +32,8 @@ from typing import Self, TypeAlias, List, Tuple, Union, IO, Annotated
 from dataclasses import dataclass, field
 
 import hashlib
+import sys
+import io
 
 from enum import IntEnum
 
@@ -117,10 +119,6 @@ class Feature:
             
         Returns:
             Feature: A validated feature instance linked to the pattern.
-            
-        Raises:
-            TypeError: If the pattern object is not of type Pattern.
-            ValueError: If configuration or instance calculations are invalid.
         """
         self = cls._create_empty()
         self.category = cls.Category.PATTERN
@@ -137,7 +135,7 @@ class Feature:
         Factory method to construct a MOBILITY feature from a Mobility instance.
         
         Args:
-            pattern: The game Mobility configuration object.
+            mobility: The game Mobility configuration object.
             
         Returns:
             Feature: A validated feature instance linked to the mobility.
@@ -152,6 +150,21 @@ class Feature:
 
 class FeatureSet:
     """
+    The FeatureSet class represents a collection of Feature objects.
+    Intercept is kept directly, mobilities and patetrns are grouped into
+    a MobilitySet and a PatternSet rispectively.
+
+    Attributes:
+    name (str): A human-readable label for the set of features.
+    hash (str): A SHA256 hash of the intercept, mset, and pset attributes, serving as a unique identifier for the set.
+    intercept (Feature | None): The intercept feature or none.
+    mset (MobilitySet | None): The set of mobility objecs.
+    pset (PatternSet | None): The set of Pattern objects.
+    features (List[Feature]): A list of Feature objects, orderly collecting the intercept, the mobilities and the patterns.
+    n_instances (int): Sum of all n_instances collected from each feature.
+
+    Methods:
+    print_summary: Prints a summary of the set including the name, hash, and basic feature information.
     """
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -160,7 +173,10 @@ class FeatureSet:
                  intercept: Feature | None,
                  mset: MobilitySet | None,
                  pset: PatternSet | None) -> Self:
-
+        """
+        Initializes a new featureSet instance with the given name and list of features.
+        """
+        
         if intercept and intercept.category is not Feature.Category.INTERCEPT:
             error_msg = f"Argument intercept is a feature having the wrong category {intercept.Category}."
             raise ValueError(error_msg)
@@ -181,6 +197,8 @@ class FeatureSet:
                 fs.append(Feature.new_from_pattern(p))
         self.features = fs
 
+        self.n_instances = sum([f.n_instances for f in self.features])
+
         chunks = []
         if intercept:
             chunks.append(b'INTERCEPT')
@@ -193,5 +211,30 @@ class FeatureSet:
         
         return
 
-    def print_summary(self) -> None:
-        pass
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def print_summary(self, output: Union[IO, io.StringIO] = sys.stdout) -> None:
+        """
+        Prints a summary representation of the feature set to stdout as default, or a specific IO.
+        The summary includes the name, hash, and basic feature information.
+        """
+        prt = lambda msg: print(msg, file=output)
+        prt(f"FeatureSet: name = {self.name}, lenght = {len(self.features)}, hash = {self.hash}")
+        if self.intercept:
+            prt(f"  Intercept is present.")
+        else:
+            prt(f"  Intercept in None.")
+        if self.mset:
+            prt(f"  MobilitySet: name = {self.mset.name}, hash = {self.mset.hash}")
+            for i, m in enumerate(self.mset.mobilities):
+                prt(f"    {i:02d} name = {m.name:10s}, mask = 0x{m.mask:016X}, amask = 0x{m.amask:016X}")
+        else:
+            prt(f"  MobilitySet is None")
+        if self.pset:
+            prt(f"  MobilitySet: name = {self.pset.name}, hash = {self.pset.hash}")
+            for i, p in enumerate(self.pset.patterns):
+                prt(f"    {i:02d} name = {p.name:10s}, mask = 0x{p.mask:016X}")
+        else:
+            prt(f"  PatternSet is None")
+        prt(f"  Features: [<i>, <category>, <name>, <n_instances>, <n_configurations>]")
+        for i, f in enumerate(self.features):
+            prt(f"    {i:02d} {f.category} {f.name:10s} {f.n_instances} {f.n_configurations:10,d}")
