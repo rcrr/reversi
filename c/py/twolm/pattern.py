@@ -48,7 +48,7 @@ from pydantic import validate_call, ConfigDict, BeforeValidator
 
 
 
-__all__ = ['Index',
+__all__ = ['Index', 'IndexArray',
            'Pattern', 'sample_pattern_data',
            'PatternSet']
 

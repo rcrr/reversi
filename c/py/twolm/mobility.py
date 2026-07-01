@@ -30,14 +30,14 @@ from __future__ import annotations
 from typing import List, Union, IO
 
 from twolm.board import *
-from twolm.mobility import *
+from twolm.pattern import *
 
 import sys
 import io
 import hashlib
 
 import numpy as np
-from numba import njit, prange
+from numba import njit, prange, vectorize, uint64, uint32
 
 from functools import reduce
 import pandas as pd
@@ -48,7 +48,7 @@ from pydantic import validate_call, ConfigDict
 
 __all__ = ['Mobility',
            'MobilitySet',
-           'mobilities']
+           'popcount64', 'mobilities']
 
 
 
@@ -163,6 +163,131 @@ class MobilitySet:
         prt(f"MobilitySet: name = {self.name}, lenght = {len(self.mobilities)}, hash = {self.hash}")
         for m in self.mobilities:
             prt(f"  Mobility: name = {m.name:8s}, mask = 0x{m.mask:016x}, amask = 0x{m.amask:016x}")
+
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def compute_indexes_old(self, m: BitboardArray, o: BitboardArray) -> IndexArray:
+        """
+        Computes indexes for all mobilities in the set using vectorized bitwise operations.
+        """
+        if m.shape != o.shape:
+            raise ValueError(f"Arguments o and m must have the same shape. Got m.shape = {m.shape}, o.shape = {o.shape}")
+
+        N = m.shape[0]
+        L = len(self.mobilities)
+        
+        # L1 should be the proper way to compute L, but the two must be equal.
+        # Mobilities are designed to have n_instances equal to one.
+        L1 = sum([e.n_instances for e in self.mobilities])
+        if L1 != L:
+            raise RuntimeError("Mobilities are designed to have n_instances equal to one!")
+
+        lms = legal_moves(m, o)   # Shape: (N,)
+        alms = legal_moves(o, m)  # Shape: (N,)
+
+        # Extract masks into NumPy arrays and reshape to (1, L) for broadcasting
+        masks = np.array([mo.mask for mo in self.mobilities], dtype=Bitboard).reshape(1, L)
+        amasks = np.array([mo.amask for mo in self.mobilities], dtype=Bitboard).reshape(1, L)
+
+        # Precompute shifts directly from amasks. Shape: (1, L)
+        # Using np.bitwise_count to bypass Pydantic scalar validation on array elements.
+        shifts = np.bitwise_count(amasks)
+
+        # Reshape legal moves to (N, 1) to enable bitwise AND operations with masks (1, L)
+        lms_expanded = lms.reshape(N, 1)
+        alms_expanded = alms.reshape(N, 1)
+
+        # Perform bitwise operations using broadcasting -> Shape: (N, L)
+        lms_masked = lms_expanded & masks
+        alms_masked = alms_expanded & amasks
+
+        # Compute counts directly using np.bitwise_count -> Shape: (N, L)
+        lms_masked_count = np.bitwise_count(lms_masked)
+        alms_masked_count = np.bitwise_count(alms_masked)
+
+        # Compute the final index matrix and cast to Index (uint32)
+        indexes = (lms_masked_count - alms_masked_count + shifts).astype(Index)
+
+        return indexes
+
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def compute_indexes(self, m: BitboardArray, o: BitboardArray) -> IndexArray:
+        """
+        Computes indexes via high-performance Numba kernel.
+        """
+        if m.shape != o.shape:
+            raise ValueError(f"Arguments o and m must have the same shape. Got m.shape = {m.shape}, o.shape = {o.shape}")
+
+        N = m.shape[0]
+        L = len(self.mobilities)
+        
+        L1 = sum([e.n_instances for e in self.mobilities])
+        if L1 != L:
+            raise RuntimeError("Mobilities are designed to have n_instances equal to one!")
+
+        lms = legal_moves(m, o)
+        alms = legal_moves(o, m)
+
+        # 1D configurations for efficient Numba sequential access
+        masks = np.array([mo.mask for mo in self.mobilities], dtype=np.uint64)
+        amasks = np.array([mo.amask for mo in self.mobilities], dtype=np.uint64)
+        shifts = np.bitwise_count(amasks)
+
+        # Call the JIT-compiled function
+        return _numba_compute_indexes_kernel(lms, alms, masks, amasks, shifts)
+
+#: End of MobilitySet class.
+
+#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###    
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def popcount64(b: Bitboard | BitboardArray) -> Index | IndexArray:
+    """
+    Used to test the numba kernel.
+    """
+    return _numba_popcount64_kernel(b)
+
+@vectorize([uint32(uint64)], cache=True, fastmath=True)
+def _numba_popcount64_kernel(x):
+    """
+    High-performance 64-bit bitwise population count optimized for Numba.
+    LLVM often replaces this implementation with native CPU popcnt instructions.
+    Processes a single uint64 but expands automatically to arrays via NumPy UFuncs.
+    """
+    x -= (x >> np.uint64(1)) & np.uint64(0x5555555555555555)
+    x = (x & np.uint64(0x3333333333333333)) + ((x >> np.uint64(2)) & np.uint64(0x3333333333333333))
+    x = (x + (x >> np.uint64(4))) & np.uint64(0x0F0F0F0F0F0F0F0F)
+    x += x >> np.uint64(8)
+    x += x >> np.uint64(16)
+    x += x >> np.uint64(32)
+    return np.uint32(x & np.uint64(0x7F))
+
+@njit(cache=True, fastmath=True)
+def _numba_compute_indexes_kernel(lms: np.ndarray, alms: np.ndarray, masks: np.ndarray, amasks: np.ndarray, shifts: np.ndarray) -> np.ndarray:
+    """
+    Optimized Numba kernel to process indexes loop-by-loop without temporary memory allocations.
+    """
+    N = lms.shape[0]
+    L = masks.shape[0]
+    
+    # Pre-allocate only the final output matrix to optimize memory
+    indexes = np.empty((N, L), dtype=np.uint32)
+    
+    for i in range(N):
+        lms_val = lms[i]
+        alms_val = alms[i]
+        for j in range(L):
+            # Perform raw scalar bitwise operations
+            lms_masked = lms_val & masks[j]
+            alms_masked = alms_val & amasks[j]
+            
+            # Count bits using the JIT-compiled scalar function
+            lms_count = _numba_popcount64_kernel(lms_masked)
+            alms_count = _numba_popcount64_kernel(alms_masked)
+            
+            # Accumulate the final index value
+            indexes[i, j] = lms_count - alms_count + np.uint32(shifts[j])
+            
+    return indexes
 
 #: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
     

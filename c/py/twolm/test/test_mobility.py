@@ -44,6 +44,7 @@ import unittest
 from unittest.mock import patch, mock_open, MagicMock
 
 from twolm.board import *
+from twolm.pattern import *
 from twolm.mobility import *
 from twolm.rlmwf import *
 
@@ -69,15 +70,6 @@ from pydantic import ValidationError
 
 
 class TestMobility(unittest.TestCase):
-
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
-    def test_dummy(self):
-        self.assertEqual(True, True)
 
     def test_init(self):
         m = Mobility('LMC', Bitboard(0xFFFFFFFFFFFFFFFF), Bitboard(0x0000000000000000))
@@ -254,68 +246,115 @@ class TestMobilitySet(unittest.TestCase):
 
         self.assertEqual(actual_output, expected_output)
 
-        
-#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### 
+    def test_compute_indexes(self):
+        ms = MobilitySet("Test", self.mlf(self.mobility_set_data))
 
-class TestRLMFeaturesWorkerLMS(unittest.TestCase):
+        mover = bitboard_from_signed_int(np.int64(4611717676283199524))
+        opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
 
-    def setUp(self):
-        pass
+        movers = np.array([mover], dtype=Bitboard)
+        opponents = np.array([opponent], dtype=Bitboard)
 
-    def tearDown(self):
-        pass
+        indexes = ms.compute_indexes(movers, opponents)
 
-    def test_legal_moves_c1(self):
-
-        mover = np.uint64(0x0000000000000001)
-        opponent = np.uint64(0x0000000000000002)
-        
-        lms = legal_moves(mover, opponent)
-        expected_lms = np.uint64(0x0000000000000004)
-        self.assertEqual(lms, expected_lms)
-
-    def test_legal_moves_h8(self):
-
-        mover = np.uint64(0x0000000000000001)
-        opponent = np.uint64(0x0040201008040200)
-        
-        lms = legal_moves(mover, opponent)
-        expected_lms = np.uint64(0x8000000000000000)
-        self.assertEqual(lms, expected_lms)
-
-    def test_vectorized_legal_moves(self):
-
-        mover    = np.array([0x0000000000000001,
-                             0x0000000000000001], dtype=np.uint64)
-        opponent = np.array([0x0000000000000002,
-                             0x0040201008040200], dtype=np.uint64)
-        
-        lms = legal_moves(mover, opponent)
-        
-        expected_lms = np.array([0x0000000000000004,
-                                 0x8000000000000000], dtype=np.uint64)
-        
-        nptest.assert_array_equal(lms, expected_lms)
+        expected_indexes = [53, 13, 66]
+        expected_array = np.array([expected_indexes], dtype=Index)
+        nptest.assert_array_equal(indexes, expected_array)
 
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
-    def test_performance_10m(self):
-        size = 10_000_000
-        movers = np.full(size, 0x0000000000000001, dtype=np.uint64)
-        opponents = np.full(size, 0x0040201008040200, dtype=np.uint64)
+    def test_compute_indexes_performance_1m(self):
         
-        # Warmup
-        legal_moves(movers[:10], opponents[:10])
+        N = 1_000_000
         
-        start = time.perf_counter()
-        lms = legal_moves(movers, opponents)
-        end = time.perf_counter()
-        
-        duration = end - start
-        print(f"\n[PERF] Processed {size:,} boards in {duration:.4f}s ({(size/duration):,.0f} boards/sec)")
-        
-        expected_lms = np.full(size, 0x8000000000000000, dtype=np.uint64)
-        nptest.assert_array_equal(lms, expected_lms)
-        
+        ms = MobilitySet("Test", self.mlf(self.mobility_set_data))
+
+        mover = bitboard_from_signed_int(np.int64(4611717676283199524))
+        opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
+
+        movers = np.full(N, mover, dtype=Bitboard)
+        opponents = np.full(N, opponent, dtype=Bitboard)
+
+        _ = ms.compute_indexes(movers[:100], opponents[:100])
+        start_time = time.perf_counter()
+        indexes = ms.compute_indexes(movers, opponents)
+        end_time = time.perf_counter()
+        duration = end_time - start_time
+        positions_per_sec = N / duration
+        print(f"\n[PERF MobilitySet.compute_indexes] Processed {N:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
+
+    def test_popcount64(self):
+        data = [
+            (0x0000000000000000,  0), # line 0
+            (0x0000000000000001,  1),
+            (0x0000000000000002,  1),
+            (0x0000000000000004,  1),
+            (0x0000000000000008,  1),
+            (0x0000000000000010,  1),
+            (0x0000000000000020,  1),
+            (0x0000000000000040,  1),
+            (0x0000000000000080,  1),
+            (0x0000000000000100,  1),
+            (0x8000000000000000,  1), # line 10
+            (0x0000000000000003,  2),
+            (0x00000000000000FF,  8),
+            (0x000000000000FF00,  8),
+            (0x0000000000FF0000,  8),
+            (0x00000000FF000000,  8),
+            (0x000000FF00000000,  8),
+            (0x0000FF0000000000,  8),
+            (0x00FF000000000000,  8),
+            (0xFF00000000000000,  8),
+            (0x0101010101010101,  8), # line 20
+            (0xFFFFFFFFFFFFFFFF, 64),
+            (0x0000000000000007,  3),
+            (0x0000000000000070,  3),
+            (0x1000000000000030,  3),
+            (0x8000000000000001,  2),
+            (0x7000000000000007,  6),
+            (0x4444444444444444, 16),
+            (0x1484211821822141, 16),
+            (0x0000000000000300,  2),
+            (0x3000000000000000,  2), # line 30
+        ]
+
+        for i, element in enumerate(data):
+            mask, expected = element
+            b = Bitboard(mask)
+            computed_a = bitboard_count(b)
+            computed_b = popcount64(b)
+            if computed_a != expected:
+                msg = f"line {i:03}: expected = {expected}, bitboard_count() = {computed_a}"
+                print(msg)
+                self.assertTrue(False, msg)
+            if computed_b != expected:
+                msg = f"line {i:03}: expected = {expected}, popcount64() = {computed_b}"
+                print(msg)
+                self.assertTrue(False, msg)
+
+        # Vectorized testing (Verifies Numba UFunc processing over entire arrays)
+        masks_list = [element[0] for element in data]
+        expected_list = [element[1] for element in data]
+
+        # Create proper NumPy arrays aligned with Bitboard (uint64) and Index (uint32) types
+        bb_array = np.array(masks_list, dtype=Bitboard)
+        expected_array = np.array(expected_list, dtype=Index)
+
+        # Call the vectorized popcount function on the entire array batch
+        computed_vector = popcount64(bb_array)
+
+        # Ensure the output structure and shapes match exactly
+        self.assertEqual(computed_vector.shape, expected_array.shape, "Vectorized output shape mismatch")
+        self.assertEqual(computed_vector.dtype, expected_array.dtype, "Vectorized output dtype mismatch")
+
+        # Perform an element-wise array comparison assertion
+        np.testing.assert_array_equal(
+            computed_vector, 
+            expected_array, 
+            err_msg="Vectorized popcount computation mismatch on element-by-element verification"
+        )
+
+#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### 
+
 
 class TestRLMFeaturesMobilities(unittest.TestCase):
 

@@ -55,6 +55,48 @@ __all__ = ['ReversiLogisticModel']
 
 
 class ReversiLogisticModel:
+    """
+    The reversi logistic model is the state machine organizing the sequence of steps needed to create the
+    machine learning model used during game playing to evaluate a position.
+
+    The workflow.
+    To be completed.
+
+    Levels.
+    To be completed.
+
+    The log facility: verbosity and relevance.
+    To be completed.
+    
+    The cache management.
+    Moving up from one level to the next could cost a relevant compute time.
+    Computation on a selection of levels are stored in a cache file.
+    When the workflow is run again, before executing the computation specific of that level, the level logic
+    checks if the cache file is present, then compares the config data, with the data stored in the cache file,
+    off course the data relevant for the level, than if the data is unchanged, the result of the computation is
+    taken from the cache file. If not, computation is run again, and the cache file is then overwritten.
+    When the cache file is not valid for a level, is also not valid for all the other level coming after.
+    How the cache is managed on the model levels:
+    CREATED:    No cache file in this level.
+    CONFIG:     Cache file is created every time the file is missing, or his checksum is changing.
+                Has to be noted that the configuration is always read from the JSON file.
+                The cache file is a sentinel keeping the timestamp of the last run when the JSON file
+                was changing.
+    POSITIONS:  Cache file is generated and used as a real cache.
+    FEATURES:   No cache file is generated at this level. Info on features are always regenerated from the
+                JSON configuration file.
+    INDEXES:    Cache file is generated and used as a real cache.
+    WMAPS:      To be completed.
+    DESIGN_MTR: To be completed.
+    ZED:        To be completed.
+    GRADIENT:   To be completed.
+    OPTIMIZING: To be completed.
+
+    Methods:
+
+    Attributes:
+    
+    """
         
     class Verbosity(IntEnum):
         HIGH      = 0
@@ -139,7 +181,6 @@ class ReversiLogisticModel:
         self.cfg = None
         self.rds = None
         self.feature_set = None
-        #self.fset = None
         self.log_event(self.Relevance.DEBUG, "ReversiLogisticModel initialized.")
         
     def log_event(self, relevance: Relevance, message: str) -> None:
