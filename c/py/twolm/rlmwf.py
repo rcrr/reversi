@@ -181,6 +181,7 @@ class ReversiLogisticModel:
         self.cfg = None
         self.rds = None
         self.feature_set = None
+        self.indexes = None
         self.log_event(self.Relevance.DEBUG, "ReversiLogisticModel initialized.")
         
     def log_event(self, relevance: Relevance, message: str) -> None:

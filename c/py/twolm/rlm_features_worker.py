@@ -35,7 +35,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from twolm.rlmwf import ReversiLogisticModel
 
-from twolm.rlm_abstract_worker import  ReversiLogisticModelWorker
+from twolm.rlm_abstract_worker import ReversiLogisticModelWorker
 
 from twolm.feature import Feature, FeatureSet
 from twolm.mobility import Mobility, MobilitySet

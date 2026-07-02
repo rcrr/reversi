@@ -165,51 +165,6 @@ class MobilitySet:
             prt(f"  Mobility: name = {m.name:8s}, mask = 0x{m.mask:016x}, amask = 0x{m.amask:016x}")
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-    def compute_indexes_old(self, m: BitboardArray, o: BitboardArray) -> IndexArray:
-        """
-        Computes indexes for all mobilities in the set using vectorized bitwise operations.
-        """
-        if m.shape != o.shape:
-            raise ValueError(f"Arguments o and m must have the same shape. Got m.shape = {m.shape}, o.shape = {o.shape}")
-
-        N = m.shape[0]
-        L = len(self.mobilities)
-        
-        # L1 should be the proper way to compute L, but the two must be equal.
-        # Mobilities are designed to have n_instances equal to one.
-        L1 = sum([e.n_instances for e in self.mobilities])
-        if L1 != L:
-            raise RuntimeError("Mobilities are designed to have n_instances equal to one!")
-
-        lms = legal_moves(m, o)   # Shape: (N,)
-        alms = legal_moves(o, m)  # Shape: (N,)
-
-        # Extract masks into NumPy arrays and reshape to (1, L) for broadcasting
-        masks = np.array([mo.mask for mo in self.mobilities], dtype=Bitboard).reshape(1, L)
-        amasks = np.array([mo.amask for mo in self.mobilities], dtype=Bitboard).reshape(1, L)
-
-        # Precompute shifts directly from amasks. Shape: (1, L)
-        # Using np.bitwise_count to bypass Pydantic scalar validation on array elements.
-        shifts = np.bitwise_count(amasks)
-
-        # Reshape legal moves to (N, 1) to enable bitwise AND operations with masks (1, L)
-        lms_expanded = lms.reshape(N, 1)
-        alms_expanded = alms.reshape(N, 1)
-
-        # Perform bitwise operations using broadcasting -> Shape: (N, L)
-        lms_masked = lms_expanded & masks
-        alms_masked = alms_expanded & amasks
-
-        # Compute counts directly using np.bitwise_count -> Shape: (N, L)
-        lms_masked_count = np.bitwise_count(lms_masked)
-        alms_masked_count = np.bitwise_count(alms_masked)
-
-        # Compute the final index matrix and cast to Index (uint32)
-        indexes = (lms_masked_count - alms_masked_count + shifts).astype(Index)
-
-        return indexes
-
-    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def compute_indexes(self, m: BitboardArray, o: BitboardArray) -> IndexArray:
         """
         Computes indexes via high-performance Numba kernel.
