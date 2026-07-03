@@ -238,3 +238,36 @@ class FeatureSet:
         prt(f"  Features: [<i>, <category>, <name>, <n_instances>, <n_configurations>]")
         for i, f in enumerate(self.features):
             prt(f"    {i:02d} {f.category} {f.name:10s} {f.n_instances} {f.n_configurations:10,d}")
+
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def compute_indexes(self, positions: PositionArray) -> IndexArray:
+        """
+        Compute the 2D matrix of indices by horizontally stacking features.
+        
+        Handles empty edge cases (N=0 or I=0) gracefully by returning 
+        an empty NumPy array with the correct expected shape.
+        """
+        N = len(positions)
+        I = sum(f.n_instances for f in self.features)
+        
+        # Handle empty edge cases immediately to prevent unnecessary processing
+        if N == 0 or I == 0:
+            return np.empty((N, I), dtype=Index)
+            
+        mover = positions['mover']
+        opponent = positions['opponent']
+        
+        # Collect only the active blocks of indices
+        active_indexes = []
+        
+        if self.intercept:
+            active_indexes.append(np.ones((N, 1), dtype=Index))
+            
+        if self.mset:
+            active_indexes.append(self.mset.compute_indexes(mover, opponent))
+            
+        if self.pset:
+            active_indexes.append(self.pset.compute_principal_indexes(mover, opponent))
+            
+        # Efficiently merge all sub-arrays horizontally in a single C-level step
+        return np.hstack(active_indexes)
