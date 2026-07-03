@@ -85,10 +85,14 @@ class RLMPositionsWorker(ReversiLogisticModelWorker):
         
         model.rds = rds
         model.log_event(model.Relevance.INFO, f"Model attribute rds has been set.")
+        return
         
     def down(self, model: ReversiLogisticModel) -> None:
         model.log_event(model.Relevance.INFO, f"Clearing game positions, setting model attribute rds to None.")
         model.rds = None
+        return
+
+#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 def _is_cache_available(p: Path) -> bool:
     if p.exists():
@@ -134,6 +138,9 @@ def _load_from_db(model: ReversiLogisticModel) -> RegabDataSet:
     model.log_event(model.Relevance.DEBUG, f"Extracted {len(rds.positions):,} positions from the database.")
     
     rc.close()
+    model.log_event(model.Relevance.DEBUG, f"Regab Database connection closed succesfully.")
+
+    # HERE
     return rds
 
 #########################################################################################################
