@@ -165,26 +165,27 @@ class MobilitySet:
             prt(f"  Mobility: name = {m.name:8s}, mask = 0x{m.mask:016x}, amask = 0x{m.amask:016x}")
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-    def compute_indexes(self, m: BitboardArray, o: BitboardArray) -> IndexArray:
+    def compute_indexes(self, positions: PositionArray) -> IndexArray:
         """
         Computes indexes via high-performance Numba kernel.
         """
-        if m.shape != o.shape:
-            raise ValueError(f"Arguments o and m must have the same shape. Got m.shape = {m.shape}, o.shape = {o.shape}")
 
-        N = m.shape[0]
+        N = positions.shape[0]
         L = len(self.mobilities)
         
         L1 = sum([e.n_instances for e in self.mobilities])
         if L1 != L:
             raise RuntimeError("Mobilities are designed to have n_instances equal to one!")
 
+        m = positions['mover']
+        o = positions['opponent']
+        
         lms = legal_moves(m, o)
         alms = legal_moves(o, m)
 
         # 1D configurations for efficient Numba sequential access
-        masks = np.array([mo.mask for mo in self.mobilities], dtype=np.uint64)
-        amasks = np.array([mo.amask for mo in self.mobilities], dtype=np.uint64)
+        masks = np.array([mo.mask for mo in self.mobilities], dtype=Bitboard)
+        amasks = np.array([mo.amask for mo in self.mobilities], dtype=Bitboard)
         shifts = np.bitwise_count(amasks)
 
         # Call the JIT-compiled function

@@ -1023,16 +1023,16 @@ class PatternSet:
             pattern.print(output=output)
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-    def compute_principal_indexes(self, m: BitboardArray, o: BitboardArray) -> IndexArray:
+    def compute_principal_indexes(self, positions: PositionArray) -> IndexArray:
         """
         Computes principal indexes for all patterns in the set.
         Packs and transforms structural configurations via an end-to-end Numba pipeline.
-        """
-        if m.shape != o.shape:
-            raise ValueError(f"Arguments o and m must have the same shape. Got m.shape = {m.shape}, o.shape = {o.shape}")
-        
-        N = m.shape[0]
+        """        
+        N = positions.shape[0]
         L = len(self.patterns)
+
+        m = positions['mover']
+        o = positions['opponent']
         
         # 1. High-speed C-layout anti-transformations
         m_atrxs = bitboard_anti_transformations(m)

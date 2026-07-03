@@ -84,7 +84,7 @@ def _compute_indexes(model: ReversiLogisticModel) -> IndexArray:
 
     if fset.mset:
         print(f"Adding mobility indexes ...")
-        mobility_indexes = fset.mset.compute_indexes(mover, opponent)
+        mobility_indexes = fset.mset.compute_indexes(make_position(mover, opponent))
         print(f"")
         print(f"type(mobility_indexes) = {type(mobility_indexes)}")
         print(f"mobility_indexes: shape = {mobility_indexes.shape}, dtype = {mobility_indexes.dtype}")
@@ -92,7 +92,7 @@ def _compute_indexes(model: ReversiLogisticModel) -> IndexArray:
 
     if fset.pset:
         print(f"Adding pattern indexes ...")    
-        pattern_indexes = fset.pset.compute_principal_indexes(mover, opponent)
+        pattern_indexes = fset.pset.compute_principal_indexes(make_position(mover, opponent))
         print(f"")
         print(f"type(pattern_indexes) = {type(pattern_indexes)}")
         print(f"pattern_indexes: shape = {pattern_indexes.shape}, dtype = {pattern_indexes.dtype}")

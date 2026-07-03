@@ -252,10 +252,9 @@ class TestMobilitySet(unittest.TestCase):
         mover = bitboard_from_signed_int(np.int64(4611717676283199524))
         opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
 
-        movers = np.array([mover], dtype=Bitboard)
-        opponents = np.array([opponent], dtype=Bitboard)
+        positions = np.full(1, make_position(mover, opponent))
 
-        indexes = ms.compute_indexes(movers, opponents)
+        indexes = ms.compute_indexes(positions)
 
         expected_indexes = [53, 13, 66]
         expected_array = np.array([expected_indexes], dtype=Index)
@@ -271,12 +270,11 @@ class TestMobilitySet(unittest.TestCase):
         mover = bitboard_from_signed_int(np.int64(4611717676283199524))
         opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
 
-        movers = np.full(N, mover, dtype=Bitboard)
-        opponents = np.full(N, opponent, dtype=Bitboard)
+        positions = np.full(N, make_position(mover, opponent))
 
-        _ = ms.compute_indexes(movers[:100], opponents[:100])
+        _ = ms.compute_indexes(positions[:100])
         start_time = time.perf_counter()
-        indexes = ms.compute_indexes(movers, opponents)
+        indexes = ms.compute_indexes(positions)
         end_time = time.perf_counter()
         duration = end_time - start_time
         positions_per_sec = N / duration

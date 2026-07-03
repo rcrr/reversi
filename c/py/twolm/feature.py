@@ -253,9 +253,6 @@ class FeatureSet:
         # Handle empty edge cases immediately to prevent unnecessary processing
         if N == 0 or I == 0:
             return np.empty((N, I), dtype=Index)
-            
-        mover = positions['mover']
-        opponent = positions['opponent']
         
         # Collect only the active blocks of indices
         active_indexes = []
@@ -264,10 +261,10 @@ class FeatureSet:
             active_indexes.append(np.ones((N, 1), dtype=Index))
             
         if self.mset:
-            active_indexes.append(self.mset.compute_indexes(mover, opponent))
+            active_indexes.append(self.mset.compute_indexes(positions))
             
         if self.pset:
-            active_indexes.append(self.pset.compute_principal_indexes(mover, opponent))
+            active_indexes.append(self.pset.compute_principal_indexes(positions))
             
         # Efficiently merge all sub-arrays horizontally in a single C-level step
         return np.hstack(active_indexes)

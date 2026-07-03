@@ -1346,10 +1346,11 @@ class TestPatternSetComputePrincipalIndexes(unittest.TestCase):
 
     def test_one_record(self):
 
-        principal_indexes = self.pattern_set.compute_principal_indexes(self.m, self.o)
+        position = make_position(self.mover, self.opponent)
+        positions = np.full(1, position)
+        principal_indexes = self.pattern_set.compute_principal_indexes(positions)
 
         if False:
-            position = make_position(self.mover, self.opponent)
             position_print(position)
             
             print()
@@ -1391,9 +1392,8 @@ class TestPatternSetComputePrincipalIndexes(unittest.TestCase):
             self.assertEqual(r1, er1)
             J += I
 
-        m = np.full(N, self.mover, dtype=Bitboard)
-        o = np.full(N, self.opponent, dtype=Bitboard)
-        principal_indexes = pset.compute_principal_indexes(m, o)
+        positions = np.full(N, make_position(self.mover, self.opponent))
+        principal_indexes = pset.compute_principal_indexes(positions)
 
         self.assertEqual(principal_indexes.shape, (N, J))
         self.assertEqual(principal_indexes.dtype, Index)
@@ -1409,13 +1409,11 @@ class TestPatternSetComputePrincipalIndexes(unittest.TestCase):
 
         patterns = [Pattern(name, Bitboard(mask)) for name, mask in self.large_set_pattern_data]
         pset = PatternSet('50_PLUS', patterns)
+        positions = np.full(N, make_position(self.mover, self.opponent))
 
-        m = np.full(N, self.mover, dtype=Bitboard)
-        o = np.full(N, self.opponent, dtype=Bitboard)
-
-        _ = pset.compute_principal_indexes(m[:100], o[:100])
+        _ = pset.compute_principal_indexes(positions[:100])
         start_time = time.perf_counter()
-        principal_indexes = pset.compute_principal_indexes(m, o)
+        principal_indexes = pset.compute_principal_indexes(positions)
         end_time = time.perf_counter()
         duration = end_time - start_time
         positions_per_sec = N / duration
