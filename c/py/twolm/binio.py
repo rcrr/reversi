@@ -91,21 +91,31 @@ from __future__ import annotations
 import hashlib
 import os
 import struct
+
 from collections import namedtuple
+from pathlib import Path
 
 import numpy as np
 
+
+
 __all__ = [
-    "DEFAULT_MAGIC",
-    "DEFAULT_FILE_SIGNATURE",
-    "FileHeader",
-    "BinaryFormatError",
-    "BinaryWriter",
-    "BinaryReader",
-    "compute_sha3_256",
-    "write_sha3_256_sidecar",
-    "verify_sha3_256_sidecar",
+    'DEFAULT_MAGIC',
+    'DEFAULT_FILE_SIGNATURE',
+    'FileHeader',
+    'BinaryFormatError',
+    'BinaryWriter',
+    'BinaryReader',
+    'compute_sha3_256',
+    'write_sha3_256_sidecar',
+    'verify_sha3_256_sidecar',
+    'legacy_verify_checksum',
+    'legacy_write_string',
+    'legacy_read_string',
+    'legacy_fun_builder_write_and_hash',
 ]
+
+
 
 # Result of BinaryReader.read_header().
 FileHeader = namedtuple("FileHeader", ["description", "version"])
@@ -577,3 +587,113 @@ def verify_sha3_256_sidecar(path, *, suffix: str = ".SHA3-256") -> bool:
     if len(expected) != 64:
         raise BinaryFormatError(f"malformed sidecar: {sidecar!r}")
     return compute_sha3_256(path).lower() == expected.lower()
+
+#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+
+#: Legacy code to be removed or refactored.
+
+def legacy_verify_checksum(filename: str | Path) -> None:
+    """
+    Verifies the SHA3-256 checksum of a file against a stored checksum.
+
+    Parameters
+    ----------
+    filename : str | Path
+        The name of the file for which to verify the checksum.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    FileNotFoundError
+        If the checksum file does not exist.
+
+    ValueError
+        If the calculated checksum does not match the stored checksum.
+
+    Notes
+    -----
+    - The checksum file is expected to have the same name as the input file with a ".SHA3-256" suffix.
+    - The method reads the stored checksum from the checksum file and compares it with the actual checksum of the input file.
+    """
+    if not isinstance(filename, (str, Path)):
+        raise TypeError('Argument filename is not an instance of str or Path')
+
+    filename = Path(filename)
+    
+    # Construct the checksum filename
+    checksum_filename = filename.with_name(filename.name + ".SHA3-256")
+            
+    # Check if the checksum file exists
+    if not os.path.exists(checksum_filename):
+        raise FileNotFoundError(f"The checksum file {checksum_filename} does not exist.")
+            
+    # Read the stored checksum from the file
+    with open(checksum_filename, 'r') as checksum_file:
+        stored_checksum = checksum_file.read().strip()
+            
+    # Calculate the actual checksum of the file
+    sha3_256_hash = hashlib.sha3_256()
+    with open(filename, 'rb') as f:
+        while chunk := f.read(8192):
+            sha3_256_hash.update(chunk)
+    actual_checksum = sha3_256_hash.hexdigest()
+            
+    # Compare the stored checksum with the actual checksum
+    if stored_checksum != actual_checksum:
+        raise ValueError(f"The calculated checksum {actual_checksum} does not match the stored checksum {stored_checksum}.")
+
+def legacy_write_string(fw: Callable[[bytes], None], s: str) -> None:
+    data = s.encode('utf-8')
+    fw(struct.pack("I", len(data))) 
+    fw(data)
+
+def legacy_read_string(f: io.BufferedReader) -> str:
+    raw_len = f.read(4)
+    if not raw_len: return None
+    length = struct.unpack("I", raw_len)[0]
+    return f.read(length).decode('utf-8')
+
+
+def legacy_fun_builder_write_and_hash(f: io.BufferedWriter, sha3_256_hash: hashlib._Hash) -> Callable[[bytes], None]:
+    """
+    Creates a function that writes data to a file and updates a SHA3-256 hash object.
+
+    Parameters
+    ----------
+    f : io.BufferedWriter
+        The file object to which data will be written.
+    sha3_256_hash : hashlib._Hash
+        The SHA3-256 hash object to be updated with the written data.
+
+    Returns
+    -------
+    Callable[[bytes], None]
+        A function that takes bytes as input, writes them to the file, and updates the hash object.
+
+    Notes
+    -----
+    - The returned function `fwriter` is designed to be used for writing data to a file while simultaneously updating a hash object.
+    - The function returns None.
+    """
+
+    def fwriter(data: bytes) -> None:
+        """
+        Writes data to a file and updates a SHA3-256 hash object.
+
+        Parameters
+        ----------
+        data : bytes
+            The data to be written to the file and used to update the hash object.
+
+        Returns
+        -------
+        None
+        """
+        f.write(data)
+        sha3_256_hash.update(data)
+        return
+
+    return fwriter

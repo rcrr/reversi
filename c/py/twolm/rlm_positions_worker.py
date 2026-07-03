@@ -42,6 +42,7 @@ if TYPE_CHECKING:
 from twolm.rlm_abstract_worker import  ReversiLogisticModelWorker
 
 from twolm.regab import *
+from twolm.binio import *
 
 from pathlib import Path
 
@@ -102,7 +103,7 @@ class RLMPositionsWorker(ReversiLogisticModelWorker):
 
 def _is_cache_available(p: Path) -> bool:
     if p.exists():
-        verify_checksum(p)
+        legacy_verify_checksum(p)
         return True
     return False
 
@@ -310,16 +311,16 @@ class RegabDataSet:
 
         Notes
         -----
-        - The method applyes the write_string() utility that computes the length of the string
+        - The method applyes the legacy_write_string() utility that computes the length of the string
           write as a 4 bytes integer, then writes the string characters.
         - It writes `dbname`, `user`, `host` and `port`.
         - The password field is not saved, it can change without generating a change in the dataset.
         - The function returns None.
         """
-        write_string(fw, self.rc.dbname)
-        write_string(fw, self.rc.user)
-        write_string(fw, self.rc.host)
-        write_string(fw, self.rc.port)
+        legacy_write_string(fw, self.rc.dbname)
+        legacy_write_string(fw, self.rc.user)
+        legacy_write_string(fw, self.rc.host)
+        legacy_write_string(fw, self.rc.port)
         return
 
     def _write_header_data(self, fw: Callable[[bytes], None]) -> None:
@@ -417,7 +418,7 @@ class RegabDataSet:
 
         with open(filename, 'wb') as f:
 
-            fw = fun_builder_write_and_hash(f, sha3_256_hash)
+            fw = legacy_fun_builder_write_and_hash(f, sha3_256_hash)
             magic_number_buffer = struct.pack("8s", MAGIC_NUMBER)
 
             # Write the fully qualified class name
@@ -473,7 +474,7 @@ class RegabDataSet:
             raise TypeError('Argument filename is not an instance of str or Path')
 
         if checksum:
-            verify_checksum(filename)
+            legacy_verify_checksum(filename)
 
         with open(filename, 'rb') as f:
             # Read the fully qualified class name.
@@ -487,10 +488,10 @@ class RegabDataSet:
                 raise ValueError(f"Magic number is not correct, 1st read. Expected = '{MAGIC_NUMBER}', found = '{magic_number}'")
 
             # Read the connection data.
-            dbname = read_string(f)
-            user = read_string(f)
-            host = read_string(f)
-            port = read_string(f)
+            dbname = legacy_read_string(f)
+            user = legacy_read_string(f)
+            host = legacy_read_string(f)
+            port = legacy_read_string(f)
 
             rc = RegabDBConnection(dbname, user, host, port=port, activate_conn=False)
             
@@ -533,118 +534,3 @@ class RegabDataSet:
                 raise ValueError(f"Magic number is not correct, 4th read. Expected = '{MAGIC_NUMBER}', found = '{magic_number}'")
             
             return cls(rc, bid, status, ec, positions)
-
-#########################################################################################################
-
-def fun_builder_write_and_hash(f: io.BufferedWriter, sha3_256_hash: hashlib._Hash) -> Callable[[bytes], None]:
-    """
-    Creates a function that writes data to a file and updates a SHA3-256 hash object.
-
-    Parameters
-    ----------
-    f : io.BufferedWriter
-        The file object to which data will be written.
-    sha3_256_hash : hashlib._Hash
-        The SHA3-256 hash object to be updated with the written data.
-
-    Returns
-    -------
-    Callable[[bytes], None]
-        A function that takes bytes as input, writes them to the file, and updates the hash object.
-
-    Notes
-    -----
-    - The returned function `fwriter` is designed to be used for writing data to a file while simultaneously updating a hash object.
-    - The function returns None.
-    """
-
-    def fwriter(data: bytes) -> None:
-        """
-        Writes data to a file and updates a SHA3-256 hash object.
-
-        Parameters
-        ----------
-        data : bytes
-            The data to be written to the file and used to update the hash object.
-
-        Returns
-        -------
-        None
-        """
-        f.write(data)
-        sha3_256_hash.update(data)
-        return
-
-    return fwriter
-
-#########################################################################################################
-
-def verify_checksum(filename: str | Path) -> None:
-    """
-    Verifies the SHA3-256 checksum of a file against a stored checksum.
-
-    Parameters
-    ----------
-    filename : str | Path
-        The name of the file for which to verify the checksum.
-
-    Returns
-    -------
-    None
-
-    Raises
-    ------
-    FileNotFoundError
-        If the checksum file does not exist.
-
-    ValueError
-        If the calculated checksum does not match the stored checksum.
-
-    Notes
-    -----
-    - The checksum file is expected to have the same name as the input file with a ".SHA3-256" suffix.
-    - The method reads the stored checksum from the checksum file and compares it with the actual checksum of the input file.
-    """
-    if not isinstance(filename, (str, Path)):
-        raise TypeError('Argument filename is not an instance of str or Path')
-
-    filename = Path(filename)
-    
-    # Construct the checksum filename
-    checksum_filename = filename.with_name(filename.name + ".SHA3-256")
-            
-    # Check if the checksum file exists
-    if not os.path.exists(checksum_filename):
-        raise FileNotFoundError(f"The checksum file {checksum_filename} does not exist.")
-            
-    # Read the stored checksum from the file
-    with open(checksum_filename, 'r') as checksum_file:
-        stored_checksum = checksum_file.read().strip()
-            
-    # Calculate the actual checksum of the file
-    sha3_256_hash = hashlib.sha3_256()
-    with open(filename, 'rb') as f:
-        while chunk := f.read(8192):
-            sha3_256_hash.update(chunk)
-    actual_checksum = sha3_256_hash.hexdigest()
-            
-    # Compare the stored checksum with the actual checksum
-    if stored_checksum != actual_checksum:
-        raise ValueError(f"The calculated checksum {actual_checksum} does not match the stored checksum {stored_checksum}.")
-
-#########################################################################################################
-
-def write_string(fw: Callable[[bytes], None], s: str) -> None:
-    data = s.encode('utf-8')
-    fw(struct.pack("I", len(data))) 
-    fw(data)
-
-#########################################################################################################
-
-def read_string(f: io.BufferedReader) -> str:
-    raw_len = f.read(4)
-    if not raw_len: return None
-    length = struct.unpack("I", raw_len)[0]
-    return f.read(length).decode('utf-8')
-
-#########################################################################################################
