@@ -82,7 +82,7 @@ class UsageWithContextManagerTest(unittest.TestCase):
         arr_f32 = np.linspace(0.0, 1.0, 4, dtype=np.float32)
 
         # 3. Write everything in order. checksum=True by default, so the
-        #    .SHA256 sidecar is written automatically when the block exits.
+        #    .SHA3_256 sidecar is written automatically when the block exits.
         with binio.BinaryWriter(path) as w:
             w.write_header(description, version)
             w.write_string(text)
@@ -101,7 +101,7 @@ class UsageWithContextManagerTest(unittest.TestCase):
         # File closed, sidecar already on disk -- no explicit hashing call.
 
         # 4. Verify whole-file integrity.
-        self.assertTrue(binio.verify_sha256_sidecar(path))
+        self.assertTrue(binio.verify_sha3_256_sidecar(path))
 
         # 5. Reopen and read everything back, in the same order.
         with binio.BinaryReader(path) as r:
@@ -144,9 +144,9 @@ class UsageManualOpenCloseTest(unittest.TestCase):
             writer.write_i32(-12345)
             writer.write_array(arr)
         finally:
-            writer.close()   # writes manual.bin.SHA256 from the in-memory digest
+            writer.close()   # writes manual.bin.SHA3_256 from the in-memory digest
 
-        self.assertTrue(binio.verify_sha256_sidecar(path))
+        self.assertTrue(binio.verify_sha3_256_sidecar(path))
 
         # --- read ---
         reader = binio.BinaryReader(path)

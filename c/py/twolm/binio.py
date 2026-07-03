@@ -41,9 +41,9 @@ Design choices
   markers (one before, one after). The MAGIC is a *framing / version* check:
   if the reader is out of sync (wrong read order, version mismatch, truncation)
   it fails fast and loudly. It is NOT an integrity check of the payload bytes.
-* **Integrity**: whole-file integrity is handled separately via a SHA-256
-  sidecar file (see ``write_sha256_sidecar`` / ``verify_sha256_sidecar``),
-  written in the standard ``sha256sum`` format.
+* **Integrity**: whole-file integrity is handled separately via a SHA3-256
+  sidecar file (see ``write_sha3_256_sidecar`` / ``verify_sha3_256_sidecar``),
+  written in the standard ``sha3_256sum`` format.
 * **Ordered / manual**: there is no self-describing table of contents. The
   reader must call the read methods in the exact same order the writer used.
   This keeps the layout 100% predictable for the C/Rust side.
@@ -77,8 +77,8 @@ Example
     ...     w.write_u32(42)
     ...     w.write_f64(3.14159)
     ...     w.write_array(np.arange(10, dtype=np.int64))
-    >>> # On close, data.bin.SHA256 was written automatically (no re-read).
-    >>> assert verify_sha256_sidecar("data.bin")
+    >>> # On close, data.bin.SHA3-256 was written automatically (no re-read).
+    >>> assert verify_sha3_256_sidecar("data.bin")
     >>> with BinaryReader("data.bin") as r:
     ...     desc = r.read_string()
     ...     n = r.read_u32()
@@ -102,9 +102,9 @@ __all__ = [
     "BinaryFormatError",
     "BinaryWriter",
     "BinaryReader",
-    "compute_sha256",
-    "write_sha256_sidecar",
-    "verify_sha256_sidecar",
+    "compute_sha3_256",
+    "write_sha3_256_sidecar",
+    "verify_sha3_256_sidecar",
 ]
 
 # Result of BinaryReader.read_header().
@@ -174,30 +174,35 @@ _F64 = struct.Struct("<d")
 
 
 class BinaryFormatError(Exception):
-    """Raised when the data on disk does not match the expected format
-    (e.g. a MAGIC marker mismatch, truncated file, or unknown type code)."""
+    """
+    Raised when the data on disk does not match the expected format
+    (e.g. a MAGIC marker mismatch, truncated file, or unknown type code).
+    """
 
 
 def _open_arg(file, mode):
-    """Return (file_object, owns_it). Accepts a path or an open binary file."""
+    """
+    Return (file_object, owns_it). Accepts a path or an open binary file.
+    """
     if isinstance(file, (str, os.PathLike)):
         return open(file, mode), True
     return file, False
 
 
 class BinaryWriter:
-    """Write framed binary records. Accepts a path or an open binary file.
+    """
+    Write framed binary records. Accepts a path or an open binary file.
 
     When given a path it owns the file and closes it on ``close()`` / context
     exit; when given a file object it never closes it.
 
-    Checksum service (``checksum=True`` by default): the SHA-256 of the file is
+    Checksum service (``checksum=True`` by default): the SHA3-256 of the file is
     computed incrementally as data is written. On ``close()``, if the file was
     opened by path, a ``<path><checksum_suffix>`` sidecar is written from the
     in-memory digest -- no extra API call and no re-read of the file. When the
     target is a file object (no path), the digest is still available via the
-    ``sha256_hexdigest`` property. With ``checksum=False`` no hashing happens;
-    you may still create a sidecar afterwards with ``write_sha256_sidecar``.
+    ``sha3_256_hexdigest`` property. With ``checksum=False`` no hashing happens;
+    you may still create a sidecar afterwards with ``write_sha3_256_sidecar``.
     """
 
     def __init__(
@@ -207,7 +212,7 @@ class BinaryWriter:
         magic: int = DEFAULT_MAGIC,
         signature: int = DEFAULT_FILE_SIGNATURE,
         checksum: bool = True,
-        checksum_suffix: str = ".SHA256",
+        checksum_suffix: str = ".SHA3-256",
     ):
         # Capture the path (if any) so close() can write the sidecar next to it.
         if isinstance(file, (str, os.PathLike)):
@@ -223,9 +228,9 @@ class BinaryWriter:
         self.signature = signature
         self._magic_bytes = _MAGIC.pack(magic)
 
-        # Incremental SHA-256: updated on every write so the digest is ready at
+        # Incremental SHA3-256: updated on every write so the digest is ready at
         # close() without re-reading the file. Disabled when checksum=False.
-        self._hash = hashlib.sha256() if checksum else None
+        self._hash = hashlib.sha3_256() if checksum else None
         self._checksum_suffix = checksum_suffix
         self._closed = False
 
@@ -236,8 +241,9 @@ class BinaryWriter:
         self.close()
 
     @property
-    def sha256_hexdigest(self) -> str:
-        """The SHA-256 of everything written so far (incremental, no re-read).
+    def sha3_256_hexdigest(self) -> str:
+        """
+        The SHA3-256 of everything written so far (incremental, no re-read).
 
         Raises ``ValueError`` if this writer was opened with ``checksum=False``.
         """
@@ -265,7 +271,8 @@ class BinaryWriter:
     # -- framing ---------------------------------------------------------
 
     def _write(self, data: bytes):
-        """Write raw bytes and feed them to the incremental hash (if enabled)."""
+        """
+        Write raw bytes and feed them to the incremental hash (if enabled)."""
         self._f.write(data)
         if self._hash is not None:
             self._hash.update(data)
@@ -284,7 +291,8 @@ class BinaryWriter:
     # -- header ----------------------------------------------------------
 
     def write_header(self, description: str, version: int, *, encoding: str = "utf-8"):
-        """Write a file header:
+        """
+        Write a file header:
         [MAGIC][signature u32][version u32][length u64][description bytes][MAGIC].
 
         Intended as the very first record of a file. ``version`` is an
@@ -333,7 +341,8 @@ class BinaryWriter:
     # -- string ----------------------------------------------------------
 
     def write_string(self, value: str, *, encoding: str = "utf-8"):
-        """Write a string as [MAGIC][length u64][bytes][MAGIC].
+        """
+        Write a string as [MAGIC][length u64][bytes][MAGIC].
 
         ``length`` is the encoded byte count, NOT the character count.
         """
@@ -346,7 +355,8 @@ class BinaryWriter:
     # -- numpy array -----------------------------------------------------
 
     def write_array(self, array: np.ndarray):
-        """Write a numpy array as
+        """
+        Write a numpy array as
         [MAGIC][type_code u8][ndim u64][shape... u64][data][MAGIC].
 
         Data is written C-contiguous and little-endian.
@@ -373,7 +383,8 @@ class BinaryWriter:
 
 
 class BinaryReader:
-    """Read framed binary records written by :class:`BinaryWriter`.
+    """
+    Read framed binary records written by :class:`BinaryWriter`.
 
     Methods must be called in the same order the values were written.
     """
@@ -402,7 +413,9 @@ class BinaryReader:
     # -- low level -------------------------------------------------------
 
     def _read_exact(self, n: int) -> bytes:
-        """Read exactly ``n`` bytes or raise; handles short reads."""
+        """
+        Read exactly ``n`` bytes or raise; handles short reads.
+        """
         buf = self._f.read(n)
         if len(buf) < n:
             # File objects may legally return fewer bytes; loop to be safe.
@@ -436,7 +449,8 @@ class BinaryReader:
     # -- header ----------------------------------------------------------
 
     def read_header(self, *, encoding: str = "utf-8") -> FileHeader:
-        """Read the file header written by :meth:`BinaryWriter.write_header`.
+        """
+        Read the file header written by :meth:`BinaryWriter.write_header`.
 
         Returns a ``FileHeader(description, version)``. Raises
         ``BinaryFormatError`` if the signature does not match (foreign file).
@@ -519,26 +533,29 @@ class BinaryReader:
         return np.frombuffer(raw, dtype=dtype).reshape(shape).copy()
 
 
-# --- whole-file SHA-256 integrity (sidecar) -----------------------------
+# --- whole-file SHA3-256 integrity (sidecar) -----------------------------
 
 
-def compute_sha256(path, *, chunk_size: int = 1 << 20) -> str:
-    """Return the hex SHA-256 digest of the whole file at ``path``."""
-    h = hashlib.sha256()
+def compute_sha3_256(path, *, chunk_size: int = 1 << 20) -> str:
+    """
+    Return the hex SHA3-256 digest of the whole file at ``path``.
+    """
+    h = hashlib.sha3_256()
     with open(path, "rb") as f:
         for block in iter(lambda: f.read(chunk_size), b""):
             h.update(block)
     return h.hexdigest()
 
 
-def write_sha256_sidecar(path, *, suffix: str = ".SHA256") -> str:
-    """Write a ``<path><suffix>`` sidecar in ``sha256sum`` format.
+def write_sha3_256_sidecar(path, *, suffix: str = ".SHA3-256") -> str:
+    """
+    Write a ``<path><suffix>`` sidecar in ``sha3_256sum`` format.
 
     The line is ``"<hexdigest>  <basename>\\n"`` so the file is verifiable
-    with the standard ``sha256sum -c`` tool from the same directory.
+    with the standard ``sha3_256sum -c`` tool from the same directory.
     Returns the sidecar path.
     """
-    digest = compute_sha256(path)
+    digest = compute_sha3_256(path)
     sidecar = os.fspath(path) + suffix
     name = os.path.basename(os.fspath(path))
     with open(sidecar, "w", encoding="ascii") as f:
@@ -546,8 +563,9 @@ def write_sha256_sidecar(path, *, suffix: str = ".SHA256") -> str:
     return sidecar
 
 
-def verify_sha256_sidecar(path, *, suffix: str = ".SHA256") -> bool:
-    """Recompute the file's SHA-256 and compare it to its sidecar.
+def verify_sha3_256_sidecar(path, *, suffix: str = ".SHA3-256") -> bool:
+    """
+    Recompute the file's SHA3-256 and compare it to its sidecar.
 
     Returns True if they match. Raises ``FileNotFoundError`` if the sidecar
     is missing, ``BinaryFormatError`` if it is malformed.
@@ -558,4 +576,4 @@ def verify_sha256_sidecar(path, *, suffix: str = ".SHA256") -> bool:
     expected = line.split(None, 1)[0] if line else ""
     if len(expected) != 64:
         raise BinaryFormatError(f"malformed sidecar: {sidecar!r}")
-    return compute_sha256(path).lower() == expected.lower()
+    return compute_sha3_256(path).lower() == expected.lower()

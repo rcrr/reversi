@@ -57,7 +57,9 @@ from twolm.binio import BinaryFormatError, BinaryReader, BinaryWriter
 
 
 class ScalarRoundTripTest(unittest.TestCase):
-    """Each scalar type must survive a write/read round trip, at its bounds."""
+    """
+    Each scalar type must survive a write/read round trip, at its bounds.
+    """
 
     def _round_trip(self, write_name, read_name, values):
         buf = io.BytesIO()
@@ -267,14 +269,16 @@ class FramingTest(unittest.TestCase):
                 r.read_u64()
 
 
-class Sha256SidecarTest(unittest.TestCase):
-    """Tests for the standalone sidecar functions (checksum service off)."""
+class Sha3_256SidecarTest(unittest.TestCase):
+    """
+    Tests for the standalone sidecar functions (checksum service off).
+    """
 
     def setUp(self):
         self.dir = tempfile.mkdtemp()
         self.path = os.path.join(self.dir, "data.bin")
         # checksum=False so no sidecar is auto-created; these tests drive the
-        # standalone write_sha256_sidecar / verify_sha256_sidecar functions.
+        # standalone write_sha3_256_sidecar / verify_sha3_256_sidecar functions.
         with BinaryWriter(self.path, checksum=False) as w:
             w.write_header("integrity demo", version=1)
             w.write_array(np.arange(100, dtype=np.float64))
@@ -285,42 +289,44 @@ class Sha256SidecarTest(unittest.TestCase):
         os.rmdir(self.dir)
 
     def test_write_and_verify(self):
-        sidecar = binio.write_sha256_sidecar(self.path)
+        sidecar = binio.write_sha3_256_sidecar(self.path)
         self.assertTrue(os.path.exists(sidecar))
-        self.assertTrue(binio.verify_sha256_sidecar(self.path))
+        self.assertTrue(binio.verify_sha3_256_sidecar(self.path))
 
-    def test_sidecar_format_is_sha256sum_compatible(self):
-        binio.write_sha256_sidecar(self.path)
-        with open(self.path + ".SHA256", encoding="ascii") as f:
+    def test_sidecar_format_is_sha3_256sum_compatible(self):
+        binio.write_sha3_256_sidecar(self.path)
+        with open(self.path + ".SHA3-256", encoding="ascii") as f:
             line = f.readline().strip()
         digest, name = line.split("  ", 1)
         self.assertEqual(len(digest), 64)
         self.assertEqual(name, "data.bin")
-        self.assertEqual(digest, binio.compute_sha256(self.path))
+        self.assertEqual(digest, binio.compute_sha3_256(self.path))
 
     def test_detects_corruption(self):
-        binio.write_sha256_sidecar(self.path)
+        binio.write_sha3_256_sidecar(self.path)
         # Flip one byte in the payload.
         with open(self.path, "r+b") as f:
             f.seek(20)
             original = f.read(1)
             f.seek(20)
             f.write(bytes([original[0] ^ 0xFF]))
-        self.assertFalse(binio.verify_sha256_sidecar(self.path))
+        self.assertFalse(binio.verify_sha3_256_sidecar(self.path))
 
     def test_missing_sidecar_raises(self):
         with self.assertRaises(FileNotFoundError):
-            binio.verify_sha256_sidecar(self.path)
+            binio.verify_sha3_256_sidecar(self.path)
 
     def test_malformed_sidecar_raises(self):
-        with open(self.path + ".SHA256", "w", encoding="ascii") as f:
+        with open(self.path + ".SHA3-256", "w", encoding="ascii") as f:
             f.write("not-a-digest  data.bin\n")
         with self.assertRaises(BinaryFormatError):
-            binio.verify_sha256_sidecar(self.path)
+            binio.verify_sha3_256_sidecar(self.path)
 
 
 class AutoChecksumTest(unittest.TestCase):
-    """The built-in incremental checksum service (checksum=True default)."""
+    """
+    The built-in incremental checksum service (checksum=True default).
+    """
 
     def setUp(self):
         self.dir = tempfile.mkdtemp()
@@ -336,40 +342,42 @@ class AutoChecksumTest(unittest.TestCase):
         with BinaryWriter(self.path) as w:
             w.write_header("auto", version=1)
             w.write_u32(7)
-        self.assertTrue(os.path.exists(self.path + ".SHA256"))
-        self.assertTrue(binio.verify_sha256_sidecar(self.path))
+        self.assertTrue(os.path.exists(self.path + ".SHA3-256"))
+        self.assertTrue(binio.verify_sha3_256_sidecar(self.path))
 
     def test_incremental_matches_reread(self):
         # The incrementally-computed digest must equal a full re-read.
         with BinaryWriter(self.path) as w:
             w.write_string("payload")
             w.write_array(np.arange(50, dtype=np.int64))
-        with open(self.path + ".SHA256", encoding="ascii") as f:
+        with open(self.path + ".SHA3-256", encoding="ascii") as f:
             digest = f.readline().split()[0]
-        self.assertEqual(digest, binio.compute_sha256(self.path))
+        self.assertEqual(digest, binio.compute_sha3_256(self.path))
 
     def test_disabled_writes_no_sidecar(self):
         with BinaryWriter(self.path, checksum=False) as w:
             w.write_u32(1)
-        self.assertFalse(os.path.exists(self.path + ".SHA256"))
+        self.assertFalse(os.path.exists(self.path + ".SHA3-256"))
 
     def test_digest_property_on_file_object(self):
         # With a file object (no path) the digest is exposed, not a sidecar.
         buf = io.BytesIO()
         with BinaryWriter(buf) as w:
             w.write_u32(123)
-            digest = w.sha256_hexdigest
-        self.assertEqual(digest, hashlib.sha256(buf.getvalue()).hexdigest())
+            digest = w.sha3_256_hexdigest
+        self.assertEqual(digest, hashlib.sha3_256(buf.getvalue()).hexdigest())
 
     def test_digest_property_raises_when_disabled(self):
         buf = io.BytesIO()
         with BinaryWriter(buf, checksum=False) as w:
             with self.assertRaises(ValueError):
-                _ = w.sha256_hexdigest
+                _ = w.sha3_256_hexdigest
 
 
 class FullDocumentTest(unittest.TestCase):
-    """End-to-end: header + mixed scalars + string + arrays, ordered read."""
+    """
+    End-to-end: header + mixed scalars + string + arrays, ordered read.
+    """
 
     def test_mixed_document(self):
         buf = io.BytesIO()
