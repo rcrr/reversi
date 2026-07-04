@@ -36,6 +36,7 @@ import numpy as np
 
 
 __all__ = ['RegabDBConnection',
+           'RegabDataSet',
            'regab_gp_as_df']
 
 
@@ -140,6 +141,132 @@ class RegabDBConnection:
 #: End of RegabDBConnection class.
 
 #: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+
+class RegabDataSet:
+    """
+    Represents a dataset containing game positions from the Reversi game.
+
+    Attributes
+    ----------
+    rc : RegabDBConnection
+        A database connection object
+    bid : List[int]
+        A list of batch IDs.
+    status : List[str]
+        A list of status codes, each exactly 3 characters long.
+    ec : int
+        The empty count, must be in the range [0, 60].
+    positions : pd.DataFrame
+        A DataFrame containing the game positions with columns 'mover', 'opponent', and 'game_value'.
+
+    Class Methods
+    -------------
+    extract_from_db(rc: RegabDBConnection, bid: Union[int, List[int]], status: Union[str, List[str]], ec: int) -> RegabDataSet
+        Extracts data from the database and creates a RegabDataSet instance.
+    """
+    def __init__(self,
+                 rc: RegabDBConnection,
+                 bid: List[int],
+                 status: List[str],
+                 ec: int,
+                 positions: pd.DataFrame):
+        """
+        Initializes a RegabDataSet instance.
+
+        Parameters
+        ----------
+        rc : RegabDBConnection
+            A database connection object
+        bid : List[int]
+            A list of batch IDs.
+        status : List[str]
+            A list of status codes, each exactly 3 characters long.
+        ec : int
+            The empty count, must be in the range [0, 60].
+        positions : pd.DataFrame
+            A DataFrame containing the game positions with columns 'mover', 'opponent', and 'game_value'.
+
+        Raises
+        ------
+        TypeError
+            If any of the arguments have an incorrect type.
+        ValueError
+            If any of the arguments have an invalid value.
+        """
+        if not isinstance(rc, RegabDBConnection):
+            raise TypeError('Argument rc is not an instance of RegabDBConnection')
+            
+        if isinstance(bid, list):
+            if not all([isinstance(x, int) for x in bid]):
+                raise TypeError('Argument bid has elements not being of type int')
+        else:
+            raise TypeError('Argument bid must be a list of ints')
+        if not all([x >= 0 for x in bid]):
+            raise ValueError('Argument bid must be equal or greather than zero')
+
+        if isinstance(status, list):
+            if not all([isinstance(x, str) for x in status]):
+                raise TypeError('Argument status has elements not being of type str')
+        else:
+            raise TypeError('Argument status must be a list of strs')
+        if not all([len(x) == 3 for x in status]):
+            raise ValueError('Argument status must have elements of lenght equal to 3')
+        
+        if not isinstance(ec, int):
+            raise TypeError('Argument ec is not an instance of int')
+        if not (ec >= 0 and ec <= 60):
+            raise ValueError('Argument ec must be in range [0..60]')
+
+        if not isinstance(positions, pd.DataFrame):
+            raise TypeError('Argument positions is not an instance of DataFrame')
+        if not len(positions.columns) == 3:
+            raise ValueError('Argument positions has not 3 columns.')
+        positions_expected_dtypes = ['int64', 'int64', 'int8']
+        for i, expected_type in enumerate(positions_expected_dtypes):
+            actual_type = positions.dtypes.iloc[i]
+            if actual_type != expected_type:
+                raise TypeError(f"Column '{i}' must be {expected_type}, but instead it is {actual_type}")
+        
+        self.rc: RegabDBConnection = rc
+        self.bid: List[int]  = bid
+        self.status: List[str] = status
+        self.ec: int = ec
+        self.positions: pd.DataFrame = positions
+
+    @classmethod
+    def extract_from_db(cls: type[Self],
+                        rc: RegabDBConnection,
+                        bid: Union[int, List[int]],
+                        status: Union[str, List[str]],
+                        ec: int) -> Self:
+        """
+        Extracts data from the database and creates a RegabDataSet instance.
+
+        Parameters
+        ----------
+        rc : RegabDBConnection
+            An instance of the RegabDBConnection class representing the database connection.
+        bid : List[int] or int
+            A list of batch IDs or a single batch ID to filter the game positions.
+        status : List[str] or str
+            A list of status codes or a single status code to filter the game positions.
+        ec : int
+            The empty count to filter the game positions.
+
+        Returns
+        -------
+        RegabDataSet
+            An instance of RegabDataSet containing the extracted data.
+        """
+        selected_fields = ['mover', 'opponent', 'game_value']
+        df = regab_gp_as_df(rc, bid, status, ec, limit=None, where=None, fields=selected_fields)
+        df['game_value'] = df['game_value'].astype(np.int8)
+        rds = RegabDataSet(rc, bid, status, ec, df)
+        return rds
+
+#: End of RegabDataSet class.
+
+#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 def regab_gp_as_df(rc: RegabDBConnection,
                    bid: Union[int, List[int]],

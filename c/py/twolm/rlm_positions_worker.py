@@ -72,7 +72,7 @@ class RLMPositionsWorker(ReversiLogisticModelWorker):
         model.log_event(model.Relevance.INFO, f"Cache file path: '{cache_file_path}', exists={ca}.")
         
         if ca:
-            rds = RegabDataSet.load_from_file(cache_file_path)
+            rds = load_regab_data_set_from_file(cache_file_path)
             cc = _is_cache_consistent(model, rds)
             model.log_event(model.Relevance.INFO, f"Cache file loaded: '{cache_file_path}', is_cache_consistent={cc}.")
             if not cc:
@@ -87,7 +87,7 @@ class RLMPositionsWorker(ReversiLogisticModelWorker):
             model.log_event(model.Relevance.INFO, f"Loading data from database...")
             rds = _load_from_db(model)
             model.log_event(model.Relevance.INFO, f"Game positions loaded. Count: {len(rds.positions):,}")
-            rds.store_to_file(cache_file_path)
+            store_regab_data_set_to_file(rds, cache_file_path)
             model.log_event(model.Relevance.INFO, f"Cache file {cache_file_path} written.")
         
         model.rds = rds
@@ -147,7 +147,6 @@ def _load_from_db(model: ReversiLogisticModel) -> RegabDataSet:
     rc.close()
     model.log_event(model.Relevance.DEBUG, f"Regab Database connection closed succesfully.")
 
-    # HERE
     return rds
 
 #########################################################################################################
@@ -156,381 +155,251 @@ MAGIC_NUMBER = b"RLMRDS00"
 
 #########################################################################################################
 
-#########################################################################################################
-
-class RegabDataSet:
+def load_regab_data_set_from_file(filename: str | Path, checksum: bool = True) -> RegabDataSet:
     """
-    Represents a dataset containing game positions from the Reversi game.
+    Loads a RegabDataSet instance from a binary file.
 
-    Attributes
+    Parameters
     ----------
-    rc : RegabDBConnection
-        A database connection object
-    bid : List[int]
-        A list of batch IDs.
-    status : List[str]
-        A list of status codes, each exactly 3 characters long.
-    ec : int
-        The empty count, must be in the range [0, 60].
-    positions : pd.DataFrame
-        A DataFrame containing the game positions with columns 'mover', 'opponent', and 'game_value'.
+    filename : str | Path
+        The name of the file from which to load the data.
+    checksum : bool, optional
+        Whether to verify the SHA3-256 checksum of the file. Default is True.
 
-    Class Methods
-    -------------
-    extract_from_db(rc: RegabDBConnection, bid: Union[int, List[int]], status: Union[str, List[str]], ec: int) -> RegabDataSet
-        Extracts data from the database and creates a RegabDataSet instance.
-    load_from_file(filename: str | Path, checksum: bool = True) -> RegabDataSet
-        Loads a RegabDataSet instance from a binary file.
-
-    Methods
+    Returns
     -------
-    store_to_file(filename: str | Path) -> None
-        Saves the RegabDataSet instance to a binary file and calculates the SHA3-256 checksum.
+    RegabDataSet
+        An instance of RegabDataSet containing the loaded data.
 
-    Private Methods
-    ---------------
-    _write_db_connection_data(fw: Callable[[bytes], None]) -> None
-        Writes the db connection header of the RegabDataSet instance to a binary file using the provided writer function.
-    _write_header_data(fw: Callable[[bytes], None]) -> None
-        Writes the header data of the RegabDataSet instance to a binary file using the provided writer function.
-    _write_positions_data(fw: Callable[[bytes], None]) -> None
-        Writes the game position data of the RegabDataSet instance to a binary file using the provided writer function.
+    Raises
+    ------
+    FileNotFoundError
+        If the checksum file is not found when checksum verification is enabled.
+    ValueError
+        If the calculated checksum does not match the stored checksum.
+
+    Notes
+    -----
+    - The function returns an instance of RegabDataSet.
     """
-    def __init__(self,
-                 rc: RegabDBConnection,
-                 bid: List[int],
-                 status: List[str],
-                 ec: int,
-                 positions: pd.DataFrame):
-        """
-        Initializes a RegabDataSet instance.
+    if not isinstance(filename, (str, Path)):
+        raise TypeError('Argument filename is not an instance of str or Path')
 
-        Parameters
-        ----------
-        rc : RegabDBConnection
-            A database connection object
-        bid : List[int]
-            A list of batch IDs.
-        status : List[str]
-            A list of status codes, each exactly 3 characters long.
-        ec : int
-            The empty count, must be in the range [0, 60].
-        positions : pd.DataFrame
-            A DataFrame containing the game positions with columns 'mover', 'opponent', and 'game_value'.
+    if checksum:
+        legacy_verify_checksum(filename)
 
-        Raises
-        ------
-        TypeError
-            If any of the arguments have an incorrect type.
-        ValueError
-            If any of the arguments have an invalid value.
-        """
-        if not isinstance(rc, RegabDBConnection):
-            raise TypeError('Argument rc is not an instance of RegabDBConnection')
+    with open(filename, 'rb') as f:
+        # Read the fully qualified class name.
+        fqcn = f.readline().decode('utf-8').strip()
+        expected_fqcn = 'twolm.regab.RegabDataSet'
+        if fqcn != expected_fqcn:
+            raise ValueError(f"The read fqcn {fqcn} does not match the expected one {expected_fqcn}.")
+
+        magic_number = f.read(8)
+        if magic_number != MAGIC_NUMBER:
+            raise ValueError(f"Magic number is not correct, 1st read. Expected = '{MAGIC_NUMBER}', found = '{magic_number}'")
+
+        # Read the connection data.
+        dbname = legacy_read_string(f)
+        user = legacy_read_string(f)
+        host = legacy_read_string(f)
+        port = legacy_read_string(f)
+
+        rc = RegabDBConnection(dbname, user, host, port=port, activate_conn=False)
             
-        if isinstance(bid, list):
-            if not all([isinstance(x, int) for x in bid]):
-                raise TypeError('Argument bid has elements not being of type int')
-        else:
-            raise TypeError('Argument bid must be a list of ints')
-        if not all([x >= 0 for x in bid]):
-            raise ValueError('Argument bid must be equal or greather than zero')
+        magic_number = f.read(8)
+        if magic_number != MAGIC_NUMBER:
+            raise ValueError(f"Magic number is not correct, 2nd read. Expected = '{MAGIC_NUMBER}', found = '{magic_number}'")
 
-        if isinstance(status, list):
-            if not all([isinstance(x, str) for x in status]):
-                raise TypeError('Argument status has elements not being of type str')
-        else:
-            raise TypeError('Argument status must be a list of strs')
-        if not all([len(x) == 3 for x in status]):
-            raise ValueError('Argument status must have elements of lenght equal to 3')
+        # Read the number of elements in bid
+        num_bid = struct.unpack('<I', f.read(4))[0]
+        bid = [struct.unpack('<I', f.read(4))[0] for _ in range(num_bid)]
+            
+        # Read the number of elements in status
+        num_status = struct.unpack('<I', f.read(4))[0]
+        status = [f.read(3).decode('utf-8') for _ in range(num_status)]
         
-        if not isinstance(ec, int):
-            raise TypeError('Argument ec is not an instance of int')
-        if not (ec >= 0 and ec <= 60):
-            raise ValueError('Argument ec must be in range [0..60]')
+        # Read ec
+        ec = struct.unpack('<I', f.read(4))[0]
+            
+        magic_number = f.read(8)
+        if magic_number != MAGIC_NUMBER:
+            raise ValueError(f"Magic number is not correct, 3rd read. Expected = '{MAGIC_NUMBER}', found = '{magic_number}'")
+            
+        # Read length
+        length = struct.unpack('<I', f.read(4))[0]
 
-        if not isinstance(positions, pd.DataFrame):
-            raise TypeError('Argument positions is not an instance of DataFrame')
-        if not len(positions.columns) == 3:
-            raise ValueError('Argument positions has not 3 columns.')
-        positions_expected_dtypes = ['int64', 'int64', 'int8']
-        for i, expected_type in enumerate(positions_expected_dtypes):
-            actual_type = positions.dtypes.iloc[i]
-            if actual_type != expected_type:
-                raise TypeError(f"Column '{i}' must be {expected_type}, but instead it is {actual_type}")
+        # Read the data of the arrays
+        mover = np.frombuffer(f.read(length * 8), dtype=np.int64)
+        opponent = np.frombuffer(f.read(length * 8), dtype=np.int64)
+        game_value = np.frombuffer(f.read(length), dtype=np.int8)
         
-        self.rc: RegabDBConnection = rc
-        self.bid: List[int]  = bid
-        self.status: List[str] = status
-        self.ec: int = ec
-        self.positions: pd.DataFrame = positions
-
-    @classmethod
-    def extract_from_db(cls: type[Self],
-                        rc: RegabDBConnection,
-                        bid: Union[int, List[int]],
-                        status: Union[str, List[str]],
-                        ec: int) -> Self:
-        """
-        Extracts data from the database and creates a RegabDataSet instance.
-
-        Parameters
-        ----------
-        rc : RegabDBConnection
-            An instance of the RegabDBConnection class representing the database connection.
-        bid : List[int] or int
-            A list of batch IDs or a single batch ID to filter the game positions.
-        status : List[str] or str
-            A list of status codes or a single status code to filter the game positions.
-        ec : int
-            The empty count to filter the game positions.
-
-        Returns
-        -------
-        RegabDataSet
-            An instance of RegabDataSet containing the extracted data.
-        """
-        selected_fields = ['mover', 'opponent', 'game_value']
-        df = regab_gp_as_df(rc, bid, status, ec, limit=None, where=None, fields=selected_fields)
-        df['game_value'] = df['game_value'].astype(np.int8)
-        rds = RegabDataSet(rc, bid, status, ec, df)
-        return rds
-
-    def _write_db_connection_data(self, fw: Callable[[bytes], None]) -> None:
-        """
-        Writes the database connection parameter to a binary file using the provided writer function.
-
-        Parameters
-        ----------
-        fw : Callable[[bytes], None]
-            A function that takes bytes as input and writes them to a file.
-
-        Returns
-        -------
-        None
-
-        Notes
-        -----
-        - The method applyes the legacy_write_string() utility that computes the length of the string
-          write as a 4 bytes integer, then writes the string characters.
-        - It writes `dbname`, `user`, `host` and `port`.
-        - The password field is not saved, it can change without generating a change in the dataset.
-        - The function returns None.
-        """
-        legacy_write_string(fw, self.rc.dbname)
-        legacy_write_string(fw, self.rc.user)
-        legacy_write_string(fw, self.rc.host)
-        legacy_write_string(fw, self.rc.port)
-        return
-
-    def _write_header_data(self, fw: Callable[[bytes], None]) -> None:
-        """
-        Writes the header RegabDataSet instance to a binary file using the provided writer function.
-
-        Parameters
-        ----------
-        fw : Callable[[bytes], None]
-            A function that takes bytes as input and writes them to a file.
-
-        Returns
-        -------
-        None
-
-        Notes
-        -----
-        - The method writes the number of elements in `bid`, followed by the elements of `bid`.
-        - It then writes the number of elements in `status`, followed by the elements of `status`.
-        - The method writes the `ec` value.
-        - The function returns None.
-        """
-
-        # Write the number of elements in bid
-        num_bid = len(self.bid)
-        fw(struct.pack('<I', num_bid))
-        # Write the elements of bid
-        for b in self.bid:
-            fw(struct.pack('<I', b))
+        # Create the DataFrame
+        positions = pd.DataFrame({
+            'mover': mover,
+            'opponent': opponent,
+            'game_value': game_value
+        })
             
-        # Write the number of elements in status
-        num_status = len(self.status)
-        fw(struct.pack('<I', num_status))
-        # Write the elements of status
-        for s in self.status:
-            fw(s.encode('utf-8'))
+        magic_number = f.read(8)
+        if magic_number != MAGIC_NUMBER:
+            raise ValueError(f"Magic number is not correct, 4th read. Expected = '{MAGIC_NUMBER}', found = '{magic_number}'")
+            
+        return RegabDataSet(rc, bid, status, ec, positions)
+
+#: ### ### ###
+
+def store_regab_data_set_to_file(rds: RegabDataSet, filename: str | Path) -> None:
+    """
+    Saves the RegabDataSet instance to a binary file and calculates the SHA3-256 checksum.
+
+    Parameters
+    ----------
+    filename : str | Path
+        The name of the file in which to save the data.
+
+    Returns
+    -------
+    None
+    """
+    if not isinstance(filename, (str, Path)):
+        raise TypeError('Argument filename is not an instance of str or Path')
+
+    filename = Path(filename)
+
+    fqcn: str = f"{rds.__class__.__module__}.{rds.__class__.__qualname__}"
         
-        # Write ec
-        fw(struct.pack('<I', self.ec))
-
-        return
-
-    def _write_positions_data(self, fw: Callable[[bytes], None]) -> None:
-        """
-        Writes the core data of the RegabDataSet instance to a binary file using the provided writer function.
-
-        Parameters
-        ----------
-        fw : Callable[[bytes], None]
-            A function that takes bytes as input and writes them to a file.
-
-        Returns
-        -------
-        None
-
-        Notes
-        -----
-        - The `length` of the data, and the binary data for the `mover`, `opponent`, and `game_value` arrays.
-        - The function returns None.
-        """
-
-        # Write length
-        fw(struct.pack('<I', len(self.positions)))
-
-        # Write the data of the arrays
-        fw(self.positions['mover'].values.tobytes())
-        fw(self.positions['opponent'].values.tobytes())
-        fw(self.positions['game_value'].values.tobytes())
-
-        return
-
-    def store_to_file(self, filename: str | Path) -> None:
-        """
-        Saves the RegabDataSet instance to a binary file and calculates the SHA3-256 checksum.
-
-        Parameters
-        ----------
-        filename : str | Path
-            The name of the file in which to save the data.
-
-        Returns
-        -------
-        None
-        """
-        if not isinstance(filename, (str, Path)):
-            raise TypeError('Argument filename is not an instance of str or Path')
-
-        filename = Path(filename)
-
-        fqcn: str = f"{self.__class__.__module__}.{self.__class__.__qualname__}"
+    # Create a SHA3-256 hash object
+    sha3_256_hash = hashlib.sha3_256()
         
-        # Create a SHA3-256 hash object
-        sha3_256_hash = hashlib.sha3_256()
+    with open(filename, 'wb') as f:
+
+        fw = legacy_fun_builder_write_and_hash(f, sha3_256_hash)
+        magic_number_buffer = struct.pack("8s", MAGIC_NUMBER)
+
+        # Write the fully qualified class name
+        fw((fqcn + '\n').encode('utf-8'))
+        fw(magic_number_buffer)
+
+        _write_rds_db_connection_data(rds, fw)
+        fw(magic_number_buffer)
+
+        _write_rds_header_data(rds, fw)
+        fw(magic_number_buffer)
+
+        _write_rds_positions_data(rds, fw)
+        fw(magic_number_buffer)
+
+    # Calculate the SHA3-256 checksum
+    checksum = sha3_256_hash.hexdigest()
+
+    # Write the checksum to a separate file with the same name and ".SHA3-256" suffix
+    checksum_filename = filename.with_name(filename.name + ".SHA3-256")
+    with open(checksum_filename, 'w') as checksum_file:
+        checksum_file.write(checksum)
         
+    return
 
-        with open(filename, 'wb') as f:
+#: ### ### ###
 
-            fw = legacy_fun_builder_write_and_hash(f, sha3_256_hash)
-            magic_number_buffer = struct.pack("8s", MAGIC_NUMBER)
+def _write_rds_db_connection_data(rds: RegabDataSet, fw: Callable[[bytes], None]) -> None:
+    """
+    Writes the database connection parameter to a binary file using the provided writer function.
 
-            # Write the fully qualified class name
-            fw((fqcn + '\n').encode('utf-8'))
-            fw(magic_number_buffer)
+    Parameters
+    ----------
+    rds: RegabDataSet
+        The object to store on file
+    fw : Callable[[bytes], None]
+        A function that takes bytes as input and writes them to a file.
 
-            self._write_db_connection_data(fw)
-            fw(magic_number_buffer)
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    - The method applyes the legacy_write_string() utility that computes the length of the string
+        write as a 4 bytes integer, then writes the string characters.
+    - It writes `dbname`, `user`, `host` and `port`.
+    - The password field is not saved, it can change without generating a change in the dataset.
+    - The function returns None.
+    """
+    legacy_write_string(fw, rds.rc.dbname)
+    legacy_write_string(fw, rds.rc.user)
+    legacy_write_string(fw, rds.rc.host)
+    legacy_write_string(fw, rds.rc.port)
+    return
+
+def _write_rds_header_data(rds: RegabDataSet, fw: Callable[[bytes], None]) -> None:
+    """
+    Writes the header RegabDataSet instance to a binary file using the provided writer function.
+
+    Parameters
+    ----------
+    rds: RegabDataSet
+        The object to store on file
+    fw : Callable[[bytes], None]
+        A function that takes bytes as input and writes them to a file.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    - The method writes the number of elements in `bid`, followed by the elements of `bid`.
+    - It then writes the number of elements in `status`, followed by the elements of `status`.
+    - The method writes the `ec` value.
+    - The function returns None.
+    """
+
+    # Write the number of elements in bid
+    num_bid = len(rds.bid)
+    fw(struct.pack('<I', num_bid))
+    # Write the elements of bid
+    for b in rds.bid:
+        fw(struct.pack('<I', b))
             
-            self._write_header_data(fw)
-            fw(magic_number_buffer)
-            
-            self._write_positions_data(fw)
-            fw(magic_number_buffer)
-
-        # Calculate the SHA3-256 checksum
-        checksum = sha3_256_hash.hexdigest()
-
-        # Write the checksum to a separate file with the same name and ".SHA3-256" suffix
-        checksum_filename = filename.with_name(filename.name + ".SHA3-256")
-        with open(checksum_filename, 'w') as checksum_file:
-            checksum_file.write(checksum)
-
-    @classmethod
-    def load_from_file(cls: type[Self], filename: str | Path, checksum: bool = True) -> Self:
-        """
-        Loads a RegabDataSet instance from a binary file.
-
-        Parameters
-        ----------
-        filename : str | Path
-            The name of the file from which to load the data.
-        checksum : bool, optional
-            Whether to verify the SHA3-256 checksum of the file. Default is True.
-
-        Returns
-        -------
-        RegabDataSet
-            An instance of RegabDataSet containing the loaded data.
-
-        Raises
-        ------
-        FileNotFoundError
-            If the checksum file is not found when checksum verification is enabled.
-        ValueError
-            If the calculated checksum does not match the stored checksum.
-
-        Notes
-        -----
-        - The function returns an instance of RegabDataSet.
-        """
-        if not isinstance(filename, (str, Path)):
-            raise TypeError('Argument filename is not an instance of str or Path')
-
-        if checksum:
-            legacy_verify_checksum(filename)
-
-        with open(filename, 'rb') as f:
-            # Read the fully qualified class name.
-            fqcn = f.readline().decode('utf-8').strip()
-            expected_fqcn = 'twolm.rlm_positions_worker.RegabDataSet'
-            if fqcn != expected_fqcn:
-                raise ValueError(f"The read fqcn {fqcn} does not match the expected one {expected_fqcn}.")
-
-            magic_number = f.read(8)
-            if magic_number != MAGIC_NUMBER:
-                raise ValueError(f"Magic number is not correct, 1st read. Expected = '{MAGIC_NUMBER}', found = '{magic_number}'")
-
-            # Read the connection data.
-            dbname = legacy_read_string(f)
-            user = legacy_read_string(f)
-            host = legacy_read_string(f)
-            port = legacy_read_string(f)
-
-            rc = RegabDBConnection(dbname, user, host, port=port, activate_conn=False)
-            
-            magic_number = f.read(8)
-            if magic_number != MAGIC_NUMBER:
-                raise ValueError(f"Magic number is not correct, 2nd read. Expected = '{MAGIC_NUMBER}', found = '{magic_number}'")
-
-            # Read the number of elements in bid
-            num_bid = struct.unpack('<I', f.read(4))[0]
-            bid = [struct.unpack('<I', f.read(4))[0] for _ in range(num_bid)]
-            
-            # Read the number of elements in status
-            num_status = struct.unpack('<I', f.read(4))[0]
-            status = [f.read(3).decode('utf-8') for _ in range(num_status)]
+    # Write the number of elements in status
+    num_status = len(rds.status)
+    fw(struct.pack('<I', num_status))
+    # Write the elements of status
+    for s in rds.status:
+        fw(s.encode('utf-8'))
         
-            # Read ec
-            ec = struct.unpack('<I', f.read(4))[0]
-            
-            magic_number = f.read(8)
-            if magic_number != MAGIC_NUMBER:
-                raise ValueError(f"Magic number is not correct, 3rd read. Expected = '{MAGIC_NUMBER}', found = '{magic_number}'")
-            
-            # Read length
-            length = struct.unpack('<I', f.read(4))[0]
+    # Write ec
+    fw(struct.pack('<I', rds.ec))
 
-            # Read the data of the arrays
-            mover = np.frombuffer(f.read(length * 8), dtype=np.int64)
-            opponent = np.frombuffer(f.read(length * 8), dtype=np.int64)
-            game_value = np.frombuffer(f.read(length), dtype=np.int8)
-        
-            # Create the DataFrame
-            positions = pd.DataFrame({
-                'mover': mover,
-                'opponent': opponent,
-                'game_value': game_value
-            })
-            
-            magic_number = f.read(8)
-            if magic_number != MAGIC_NUMBER:
-                raise ValueError(f"Magic number is not correct, 4th read. Expected = '{MAGIC_NUMBER}', found = '{magic_number}'")
-            
-            return cls(rc, bid, status, ec, positions)
+    return
+
+def _write_rds_positions_data(rds: RegabDataSet, fw: Callable[[bytes], None]) -> None:
+    """
+    Writes the core data of the RegabDataSet instance to a binary file using the provided writer function.
+    
+    Parameters
+    ----------
+    rds: RegabDataSet
+        The object to store on file
+    fw : Callable[[bytes], None]
+        A function that takes bytes as input and writes them to a file.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    - The `length` of the data, and the binary data for the `mover`, `opponent`, and `game_value` arrays.
+    - The function returns None.
+    """
+
+    # Write length
+    fw(struct.pack('<I', len(rds.positions)))
+
+    # Write the data of the arrays
+    fw(rds.positions['mover'].values.tobytes())
+    fw(rds.positions['opponent'].values.tobytes())
+    fw(rds.positions['game_value'].values.tobytes())
+
+    return
