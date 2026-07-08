@@ -77,17 +77,14 @@ class RLMPositionsWorker(ReversiLogisticModelWorker):
         if not rds:
             model.log_event(model.Relevance.INFO, f"Loading data from database...")
             rds = _load_from_db(model)
-            model.log_event(model.Relevance.INFO, f"Game positions loaded. Count: {len(rds.positions):,}")
+            model.log_event(model.Relevance.INFO, f"Game positions loaded. Count: {len(rds.pd_mogv):,}")
             regab_store_data_set_to_file(rds, cache_file_path)
             model.log_event(model.Relevance.INFO, f"Cache file {cache_file_path} written.")
-        
-            pos_pd: pd.DataFrame = rds.positions
-            mover = pos_pd['mover'].to_numpy().view(Bitboard)
-            opponent = pos_pd['opponent'].to_numpy().view(Bitboard)
-            positions = make_position(mover, opponent)
+
+            positions, game_values = rds.generate_positions_and_game_values()
             model.positions = positions
             model.log_event(model.Relevance.INFO, f"Model attribute positions has been set.")
-            model.game_values = pos_pd['game_value'].to_numpy()
+            model.game_values = game_values
             model.log_event(model.Relevance.INFO, f"Model attribute game_values has been set.")
         return
         
@@ -139,7 +136,7 @@ def _load_from_db(model: ReversiLogisticModel) -> RegabDataSet:
 
     cp = model.cfg.regab_data_set
     rds = RegabDataSet.extract_from_db(rc, cp.bid, cp.status, cp.ec)
-    model.log_event(model.Relevance.DEBUG, f"Extracted {len(rds.positions):,} positions from the database.")
+    model.log_event(model.Relevance.DEBUG, f"Extracted {len(rds.pd_mogv):,} positions from the database.")
     
     rc.close()
     model.log_event(model.Relevance.DEBUG, f"Regab Database connection closed succesfully.")

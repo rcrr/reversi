@@ -33,13 +33,14 @@ from twolm.binio import *
 import psycopg2 as pg
 import pandas as pd
 import numpy as np
+import numpy.typing as npt
 
 from pathlib import Path
 
 import hashlib
 import struct
 
-from typing import Callable, Union, List, Annotated
+from typing import TypeAlias, Callable, Union, List, Annotated, Tuple
 
 from pydantic import validate_call, ConfigDict, BeforeValidator, AfterValidator, Field
 from contextvars import ContextVar
@@ -48,11 +49,23 @@ from functools import wraps
 
 __all__ = ['RegabDBConnection',
            'RegabDataSet',
+           'GameValue', 'GameValueArray',
            'regab_gp_as_df',
            'regab_load_data_set_from_file',
            'regab_store_data_set_to_file']
 
 
+#: Represents a reversi game value from -64 to +64 as an numpy.int8 scalar.
+GameValue: TypeAlias = np.int8
+
+def _validate_game_value_array(v: Any) -> Any:
+    """Validator to ensure a numpy array strictly uses int8 dtype."""
+    if isinstance(v, np.ndarray) and v.dtype != np.int8:
+        raise ValueError(f"Array dtype must be int8, got {v.dtype}")
+    return v
+
+# A Pydantic-compatible type hint for GameValue (np.int8) arrays.
+GameValueArray = Annotated[npt.NDArray[np.int8], BeforeValidator(_validate_game_value_array)]
 
 MAGIC_NUMBER = b"RLMRDS00"
 
@@ -170,7 +183,7 @@ class RegabDataSet:
         A list of status codes, each exactly 3 characters long.
     ec : int
         The empty count, must be in the range [0, 60].
-    positions : pd.DataFrame
+    pd_mogv : pd.DataFrame
         A DataFrame containing the game positions with columns 'mover', 'opponent', and 'game_value'.
 
     Class Methods
@@ -183,7 +196,7 @@ class RegabDataSet:
                  bid: List[int],
                  status: List[str],
                  ec: int,
-                 positions: pd.DataFrame):
+                 pd_mogv: pd.DataFrame):
         """
         Initializes a RegabDataSet instance.
 
@@ -197,7 +210,7 @@ class RegabDataSet:
             A list of status codes, each exactly 3 characters long.
         ec : int
             The empty count, must be in the range [0, 60].
-        positions : pd.DataFrame
+        pd_mogv : pd.DataFrame
             A DataFrame containing the game positions with columns 'mover', 'opponent', and 'game_value'.
 
         Raises
@@ -231,13 +244,13 @@ class RegabDataSet:
         if not (ec >= 0 and ec <= 60):
             raise ValueError('Argument ec must be in range [0..60]')
 
-        if not isinstance(positions, pd.DataFrame):
-            raise TypeError('Argument positions is not an instance of DataFrame')
-        if not len(positions.columns) == 3:
-            raise ValueError('Argument positions has not 3 columns.')
-        positions_expected_dtypes = ['int64', 'int64', 'int8']
-        for i, expected_type in enumerate(positions_expected_dtypes):
-            actual_type = positions.dtypes.iloc[i]
+        if not isinstance(pd_mogv, pd.DataFrame):
+            raise TypeError('Argument pd_mogv is not an instance of DataFrame')
+        if not len(pd_mogv.columns) == 3:
+            raise ValueError('Argument pd_mogv has not 3 columns.')
+        pd_mogv_expected_dtypes = ['int64', 'int64', 'int8']
+        for i, expected_type in enumerate(pd_mogv_expected_dtypes):
+            actual_type = pd_mogv.dtypes.iloc[i]
             if actual_type != expected_type:
                 raise TypeError(f"Column '{i}' must be {expected_type}, but instead it is {actual_type}")
         
@@ -245,7 +258,7 @@ class RegabDataSet:
         self.bid: List[int]  = bid
         self.status: List[str] = status
         self.ec: int = ec
-        self.positions: pd.DataFrame = positions
+        self.pd_mogv: pd.DataFrame = pd_mogv
 
     @classmethod
     def extract_from_db(cls: type[Self],
@@ -277,6 +290,15 @@ class RegabDataSet:
         df['game_value'] = df['game_value'].astype(np.int8)
         rds = RegabDataSet(rc, bid, status, ec, df)
         return rds
+
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def generate_positions_and_game_values(self) -> Tuple[PositionArray, GameValueArray]:
+        pos_pd: pd.DataFrame = self.pd_mogv
+        mover = pos_pd['mover'].to_numpy().view(Bitboard)
+        opponent = pos_pd['opponent'].to_numpy().view(Bitboard)
+        positions = make_position(mover, opponent)
+        game_values = pos_pd['game_value'].to_numpy()
+        return positions, game_values
 
 #: End of RegabDataSet class.
 
@@ -530,7 +552,7 @@ def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True) -
         game_value = np.frombuffer(f.read(length), dtype=np.int8)
         
         # Create the DataFrame
-        positions = pd.DataFrame({
+        pd_mogv = pd.DataFrame({
             'mover': mover,
             'opponent': opponent,
             'game_value': game_value
@@ -540,7 +562,7 @@ def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True) -
         if magic_number != MAGIC_NUMBER:
             raise ValueError(f"Magic number is not correct, 4th read. Expected = '{MAGIC_NUMBER}', found = '{magic_number}'")
             
-        return RegabDataSet(rc, bid, status, ec, positions)
+        return RegabDataSet(rc, bid, status, ec, pd_mogv)
 
 #: ### ### ###
 
@@ -583,7 +605,7 @@ def regab_store_data_set_to_file(rds: RegabDataSet, filename: str | Path) -> Non
         _write_rds_header_data(rds, fw)
         fw(magic_number_buffer)
 
-        _write_rds_positions_data(rds, fw)
+        _write_rds_pd_mogv_data(rds, fw)
         fw(magic_number_buffer)
 
     # Calculate the SHA3-256 checksum
@@ -672,7 +694,7 @@ def _write_rds_header_data(rds: RegabDataSet, fw: Callable[[bytes], None]) -> No
     return
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def _write_rds_positions_data(rds: RegabDataSet, fw: Callable[[bytes], None]) -> None:
+def _write_rds_pd_mogv_data(rds: RegabDataSet, fw: Callable[[bytes], None]) -> None:
     """
     Writes the core data of the RegabDataSet instance to a binary file using the provided writer function.
     
@@ -694,11 +716,11 @@ def _write_rds_positions_data(rds: RegabDataSet, fw: Callable[[bytes], None]) ->
     """
 
     # Write length
-    fw(struct.pack('<I', len(rds.positions)))
+    fw(struct.pack('<I', len(rds.pd_mogv)))
 
     # Write the data of the arrays
-    fw(rds.positions['mover'].values.tobytes())
-    fw(rds.positions['opponent'].values.tobytes())
-    fw(rds.positions['game_value'].values.tobytes())
+    fw(rds.pd_mogv['mover'].values.tobytes())
+    fw(rds.pd_mogv['opponent'].values.tobytes())
+    fw(rds.pd_mogv['game_value'].values.tobytes())
 
     return
