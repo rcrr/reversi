@@ -40,19 +40,22 @@ from pathlib import Path
 import hashlib
 import struct
 
-from typing import TypeAlias, Callable, Union, List, Annotated, Tuple
+from typing import TypeAlias, Callable, Union, List, Annotated, Tuple, Type, Self
 
 from pydantic import validate_call, ConfigDict, BeforeValidator, AfterValidator, Field
 from contextvars import ContextVar
 from functools import wraps
 
 
-__all__ = ['RegabDBConnection',
-           'RegabDataSet',
-           'GameValue', 'GameValueArray',
+
+__all__ = ['GameValue', 'GameValueArray',
+           'RegabDBConnection',
            'regab_gp_as_df',
+           'RegabDataSet',
+           'regab_extract_data_set_fron_db',
            'regab_load_data_set_from_file',
            'regab_store_data_set_to_file']
+
 
 
 #: Represents a reversi game value from -64 to +64 as an numpy.int8 scalar.
@@ -68,6 +71,8 @@ def _validate_game_value_array(v: Any) -> Any:
 GameValueArray = Annotated[npt.NDArray[np.int8], BeforeValidator(_validate_game_value_array)]
 
 MAGIC_NUMBER = b"RLMRDS00"
+
+#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 class RegabDBConnection:
     """
@@ -98,6 +103,7 @@ class RegabDBConnection:
     activate_conn()
         Establish the connection.
     """
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __init__(self, dbname: str, user: str, host: str,
                  port: str ='5432', password: str | None =None,
                  activate_conn: bool =True):
@@ -124,14 +130,6 @@ class RegabDBConnection:
         TypeError
             If any of the arguments have an incorrect type.
         """
-        if not isinstance(dbname, str):
-            raise TypeError('Argument dbname is not an instance of str')
-        if not isinstance(user, str):
-            raise TypeError('Argument user is not an instance of str')
-        if not isinstance(host, str):
-            raise TypeError('Argument host is not an instance of str')
-        if not isinstance(port, str):
-            raise TypeError('Argument port is not an instance of str')
         self.dbname = dbname
         self.user = user
         self.host = host
@@ -166,141 +164,6 @@ class RegabDBConnection:
             self.conn.close()
 
 #: End of RegabDBConnection class.
-
-#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
-
-class RegabDataSet:
-    """
-    Represents a dataset containing game positions from the Reversi game.
-
-    Attributes
-    ----------
-    rc : RegabDBConnection
-        A database connection object
-    bid : List[int]
-        A list of batch IDs.
-    status : List[str]
-        A list of status codes, each exactly 3 characters long.
-    ec : int
-        The empty count, must be in the range [0, 60].
-    pd_mogv : pd.DataFrame
-        A DataFrame containing the game positions with columns 'mover', 'opponent', and 'game_value'.
-
-    Class Methods
-    -------------
-    extract_from_db(rc: RegabDBConnection, bid: Union[int, List[int]], status: Union[str, List[str]], ec: int) -> RegabDataSet
-        Extracts data from the database and creates a RegabDataSet instance.
-    """
-    def __init__(self,
-                 rc: RegabDBConnection,
-                 bid: List[int],
-                 status: List[str],
-                 ec: int,
-                 pd_mogv: pd.DataFrame):
-        """
-        Initializes a RegabDataSet instance.
-
-        Parameters
-        ----------
-        rc : RegabDBConnection
-            A database connection object
-        bid : List[int]
-            A list of batch IDs.
-        status : List[str]
-            A list of status codes, each exactly 3 characters long.
-        ec : int
-            The empty count, must be in the range [0, 60].
-        pd_mogv : pd.DataFrame
-            A DataFrame containing the game positions with columns 'mover', 'opponent', and 'game_value'.
-
-        Raises
-        ------
-        TypeError
-            If any of the arguments have an incorrect type.
-        ValueError
-            If any of the arguments have an invalid value.
-        """
-        if not isinstance(rc, RegabDBConnection):
-            raise TypeError('Argument rc is not an instance of RegabDBConnection')
-            
-        if isinstance(bid, list):
-            if not all([isinstance(x, int) for x in bid]):
-                raise TypeError('Argument bid has elements not being of type int')
-        else:
-            raise TypeError('Argument bid must be a list of ints')
-        if not all([x >= 0 for x in bid]):
-            raise ValueError('Argument bid must be equal or greather than zero')
-
-        if isinstance(status, list):
-            if not all([isinstance(x, str) for x in status]):
-                raise TypeError('Argument status has elements not being of type str')
-        else:
-            raise TypeError('Argument status must be a list of strs')
-        if not all([len(x) == 3 for x in status]):
-            raise ValueError('Argument status must have elements of lenght equal to 3')
-        
-        if not isinstance(ec, int):
-            raise TypeError('Argument ec is not an instance of int')
-        if not (ec >= 0 and ec <= 60):
-            raise ValueError('Argument ec must be in range [0..60]')
-
-        if not isinstance(pd_mogv, pd.DataFrame):
-            raise TypeError('Argument pd_mogv is not an instance of DataFrame')
-        if not len(pd_mogv.columns) == 3:
-            raise ValueError('Argument pd_mogv has not 3 columns.')
-        pd_mogv_expected_dtypes = ['int64', 'int64', 'int8']
-        for i, expected_type in enumerate(pd_mogv_expected_dtypes):
-            actual_type = pd_mogv.dtypes.iloc[i]
-            if actual_type != expected_type:
-                raise TypeError(f"Column '{i}' must be {expected_type}, but instead it is {actual_type}")
-        
-        self.rc: RegabDBConnection = rc
-        self.bid: List[int]  = bid
-        self.status: List[str] = status
-        self.ec: int = ec
-        self.pd_mogv: pd.DataFrame = pd_mogv
-
-    @classmethod
-    def extract_from_db(cls: type[Self],
-                        rc: RegabDBConnection,
-                        bid: Union[int, List[int]],
-                        status: Union[str, List[str]],
-                        ec: int) -> Self:
-        """
-        Extracts data from the database and creates a RegabDataSet instance.
-
-        Parameters
-        ----------
-        rc : RegabDBConnection
-            An instance of the RegabDBConnection class representing the database connection.
-        bid : List[int] or int
-            A list of batch IDs or a single batch ID to filter the game positions.
-        status : List[str] or str
-            A list of status codes or a single status code to filter the game positions.
-        ec : int
-            The empty count to filter the game positions.
-
-        Returns
-        -------
-        RegabDataSet
-            An instance of RegabDataSet containing the extracted data.
-        """
-        selected_fields = ['mover', 'opponent', 'game_value']
-        df = regab_gp_as_df(rc, bid, status, ec, limit=None, where=None, fields=selected_fields)
-        df['game_value'] = df['game_value'].astype(np.int8)
-        rds = RegabDataSet(rc, bid, status, ec, df)
-        return rds
-
-    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-    def generate_positions_and_game_values(self) -> Tuple[PositionArray, GameValueArray]:
-        pos_pd: pd.DataFrame = self.pd_mogv
-        mover = pos_pd['mover'].to_numpy().view(Bitboard)
-        opponent = pos_pd['opponent'].to_numpy().view(Bitboard)
-        positions = make_position(mover, opponent)
-        game_values = pos_pd['game_value'].to_numpy()
-        return positions, game_values
-
-#: End of RegabDataSet class.
 
 #: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
@@ -467,9 +330,122 @@ def regab_gp_as_df(rc: RegabDBConnection,
 
     return df
 
-#: Endo of regab_gp_as_df method.
+#: End of regab_gp_as_df method.
+
+#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+
+# Helper function: validates that the Pandas data frame has 3 columns of type: 'int64', 'int64', 'int8'. 
+# BEFORE Pydantic runs its type validation.
+def _ensure_column_count_and_type(df: pd.DataFrame) -> pd.DataFrame:
+    if not len(df.columns) == 3:
+        raise ValueError('Argument df_mogv has not 3 columns.')
+    df_mogv_expected_dtypes = ['int64', 'int64', 'int8']
+    for i, expected_type in enumerate(df_mogv_expected_dtypes):
+        actual_type = df.dtypes.iloc[i]
+        if actual_type != expected_type:
+            raise TypeError(f"Column '{i}' must be {expected_type}, but instead it is {actual_type}")
+    return df
+
+#: Custom type for 'df_mogv' argument validation.
+DfMogvArgument = Annotated[pd.DataFrame, AfterValidator(_ensure_column_count_and_type)]
+
+class RegabDataSet:
+    """
+    Represents a dataset containing game positions from the Reversi game.
+
+    Attributes
+    ----------
+    rc : RegabDBConnection
+        A database connection object
+    bid : List[int]
+        A list of batch IDs.
+    status : List[str]
+        A list of status codes, each exactly 3 characters long.
+    ec : int
+        The empty count, must be in the range [0, 60].
+    df_mogv : pd.DataFrame
+        A DataFrame containing the game positions with columns 'mover', 'opponent', and 'game_value'.
+    """
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def __init__(self,
+                 rc: RegabDBConnection,
+                 bid: BidArgument,
+                 status: StatusArgument,
+                 ec: EcArgument,
+                 df_mogv: DfMogvArgument):
+        """
+        Initializes a RegabDataSet instance.
+
+        Parameters
+        ----------
+        rc : RegabDBConnection
+            A database connection object
+        bid : List[int]
+            A list of batch IDs.
+        status : List[str]
+            A list of status codes, each exactly 3 characters long.
+        ec : int
+            The empty count, must be in the range [0, 60].
+        df_mogv : pd.DataFrame
+            A DataFrame containing the game positions with columns 'mover', 'opponent', and 'game_value'.
+
+        Raises
+        ------
+        TypeError
+            If any of the arguments have an incorrect type.
+        ValueError
+            If any of the arguments have an invalid value.
+        """
+        self.rc: RegabDBConnection = rc
+        self.bid: List[int]  = bid
+        self.status: List[str] = status
+        self.ec: int = ec
+        self.df_mogv: pd.DataFrame = df_mogv
+        
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def generate_positions_and_game_values(self) -> Tuple[PositionArray, GameValueArray]:
+        pos_pd: pd.DataFrame = self.df_mogv
+        mover = pos_pd['mover'].to_numpy().view(Bitboard)
+        opponent = pos_pd['opponent'].to_numpy().view(Bitboard)
+        positions = make_position(mover, opponent)
+        game_values = pos_pd['game_value'].to_numpy()
+        return positions, game_values
+
+#: End of RegabDataSet class.
 
 #: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def regab_extract_data_set_fron_db(rc: RegabDBConnection,
+                                   bid: Union[int, List[int]],
+                                   status: Union[str, List[str]],
+                                   ec: int) -> RegabDataSet:
+    """
+    Extracts data from the database and creates a RegabDataSet instance.
+
+    Parameters
+    ----------
+    rc : RegabDBConnection
+        An instance of the RegabDBConnection class representing the database connection.
+    bid : List[int] or int
+        A list of batch IDs or a single batch ID to filter the game positions.
+    status : List[str] or str
+        A list of status codes or a single status code to filter the game positions.
+    ec : int
+        The empty count to filter the game positions.
+
+    Returns
+    -------
+    RegabDataSet
+        An instance of RegabDataSet containing the extracted data.
+    """
+    selected_fields = ['mover', 'opponent', 'game_value']
+    df = regab_gp_as_df(rc, bid, status, ec, limit=None, where=None, fields=selected_fields)
+    df['game_value'] = df['game_value'].astype(np.int8)
+    rds = RegabDataSet(rc, bid, status, ec, df)
+    return rds
+
+#: ### ### ###
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True) -> RegabDataSet:
@@ -552,7 +528,7 @@ def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True) -
         game_value = np.frombuffer(f.read(length), dtype=np.int8)
         
         # Create the DataFrame
-        pd_mogv = pd.DataFrame({
+        df_mogv = pd.DataFrame({
             'mover': mover,
             'opponent': opponent,
             'game_value': game_value
@@ -562,7 +538,7 @@ def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True) -
         if magic_number != MAGIC_NUMBER:
             raise ValueError(f"Magic number is not correct, 4th read. Expected = '{MAGIC_NUMBER}', found = '{magic_number}'")
             
-        return RegabDataSet(rc, bid, status, ec, pd_mogv)
+        return RegabDataSet(rc, bid, status, ec, df_mogv)
 
 #: ### ### ###
 
@@ -605,7 +581,7 @@ def regab_store_data_set_to_file(rds: RegabDataSet, filename: str | Path) -> Non
         _write_rds_header_data(rds, fw)
         fw(magic_number_buffer)
 
-        _write_rds_pd_mogv_data(rds, fw)
+        _write_rds_df_mogv_data(rds, fw)
         fw(magic_number_buffer)
 
     # Calculate the SHA3-256 checksum
@@ -694,7 +670,7 @@ def _write_rds_header_data(rds: RegabDataSet, fw: Callable[[bytes], None]) -> No
     return
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def _write_rds_pd_mogv_data(rds: RegabDataSet, fw: Callable[[bytes], None]) -> None:
+def _write_rds_df_mogv_data(rds: RegabDataSet, fw: Callable[[bytes], None]) -> None:
     """
     Writes the core data of the RegabDataSet instance to a binary file using the provided writer function.
     
@@ -716,11 +692,11 @@ def _write_rds_pd_mogv_data(rds: RegabDataSet, fw: Callable[[bytes], None]) -> N
     """
 
     # Write length
-    fw(struct.pack('<I', len(rds.pd_mogv)))
+    fw(struct.pack('<I', len(rds.df_mogv)))
 
     # Write the data of the arrays
-    fw(rds.pd_mogv['mover'].values.tobytes())
-    fw(rds.pd_mogv['opponent'].values.tobytes())
-    fw(rds.pd_mogv['game_value'].values.tobytes())
+    fw(rds.df_mogv['mover'].values.tobytes())
+    fw(rds.df_mogv['opponent'].values.tobytes())
+    fw(rds.df_mogv['game_value'].values.tobytes())
 
     return

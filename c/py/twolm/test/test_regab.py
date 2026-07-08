@@ -162,7 +162,7 @@ class TestRegabGPAsDF(BaseTestCase):
         """
         Tests that an exception is raised for an invalid status value.
         """
-        with self.assertRaises((TypeError, ValueError)):
+        with self.assertRaises(ValueError):
             regab_gp_as_df(self.rc, [1], 'AAAA', 10)
 
     def test_invalid_ec(self):
@@ -214,7 +214,7 @@ class TestRegabDataSet(BaseTestCase):
         bid = [1, 2]
         status = ['CMS', 'CMR']
         ec = 10
-        pd_mogv = pd.DataFrame({
+        df_mogv = pd.DataFrame({
             'mover': [1, 2],
             'opponent': [3, 4],
             'game_value': [4, 6]
@@ -224,12 +224,12 @@ class TestRegabDataSet(BaseTestCase):
             'game_value': 'int8'
         })
 
-        dataset = RegabDataSet(self.rc, bid, status, ec, pd_mogv)
+        dataset = RegabDataSet(self.rc, bid, status, ec, df_mogv)
 
         self.assertEqual(dataset.bid, bid)
         self.assertEqual(dataset.status, status)
         self.assertEqual(dataset.ec, ec)
-        self.assertEqual(dataset.pd_mogv.equals(pd_mogv), True)
+        self.assertEqual(dataset.df_mogv.equals(df_mogv), True)
 
     def test_invalid_bid_type(self):
         """
@@ -238,7 +238,7 @@ class TestRegabDataSet(BaseTestCase):
         bid = 'not_a_list'
         status = ['CMS', 'CMR']
         ec = 10
-        pd_mogv = pd.DataFrame({
+        df_mogv = pd.DataFrame({
             'mover': [1, 2],
             'opponent': [3, 4],
             'game_value': [4, 6]
@@ -255,7 +255,7 @@ class TestRegabDataSet(BaseTestCase):
         bid = [-1, 2]
         status = ['CMS', 'CMR']
         ec = 10
-        pd_mogv = pd.DataFrame({
+        df_mogv = pd.DataFrame({
             'mover': [1, 2],
             'opponent': [3, 4],
             'game_value': [4, 6]
@@ -265,7 +265,7 @@ class TestRegabDataSet(BaseTestCase):
             'game_value': 'int8'
         })
         with self.assertRaises(ValueError):
-            RegabDataSet(self.rc, bid, status, ec, pd_mogv)
+            RegabDataSet(self.rc, bid, status, ec, df_mogv)
 
     def test_invalid_status_type(self):
         """
@@ -274,7 +274,7 @@ class TestRegabDataSet(BaseTestCase):
         bid = [1, 2]
         status = 'not_a_list'
         ec = 10
-        pd_mogv = pd.DataFrame({
+        df_mogv = pd.DataFrame({
             'mover': [1, 2],
             'opponent': [3, 4],
             'game_value': [5, 6]
@@ -283,8 +283,8 @@ class TestRegabDataSet(BaseTestCase):
             'opponent': 'int64', 
             'game_value': 'int8'
         })
-        with self.assertRaises(TypeError):
-            RegabDataSet(self.rc, bid, status, ec, pd_mogv)
+        with self.assertRaises(ValidationError):
+            RegabDataSet(self.rc, bid, status, ec, df_mogv)
 
     def test_invalid_status_length(self):
         """
@@ -293,7 +293,7 @@ class TestRegabDataSet(BaseTestCase):
         bid = [1, 2]
         status = ['CMS', 'CM']
         ec = 10
-        pd_mogv = pd.DataFrame({
+        df_mogv = pd.DataFrame({
             'mover': [1, 2],
             'opponent': [3, 4],
             'game_value': [5, 6]
@@ -303,7 +303,7 @@ class TestRegabDataSet(BaseTestCase):
             'game_value': 'int8'
         })
         with self.assertRaises(ValueError):
-            RegabDataSet(self.rc, bid, status, ec, pd_mogv)
+            RegabDataSet(self.rc, bid, status, ec, df_mogv)
 
     def test_invalid_ec_type(self):
         """
@@ -312,7 +312,7 @@ class TestRegabDataSet(BaseTestCase):
         bid = [1, 2]
         status = ['CMS', 'CMR']
         ec = 'not_an_int'
-        pd_mogv = pd.DataFrame({
+        df_mogv = pd.DataFrame({
             'mover': [1, 2],
             'opponent': [3, 4],
             'game_value': [5, 6]
@@ -321,8 +321,8 @@ class TestRegabDataSet(BaseTestCase):
             'opponent': 'int64', 
             'game_value': 'int8'
         })
-        with self.assertRaises(TypeError):
-            RegabDataSet(bid, status, ec, pd_mogv)
+        with self.assertRaises(ValidationError):
+            RegabDataSet(bid, status, ec, df_mogv)
 
     def test_invalid_ec_value(self):
         """
@@ -331,7 +331,7 @@ class TestRegabDataSet(BaseTestCase):
         bid = [1, 2]
         status = ['CMS', 'CMR']
         ec = 61
-        pd_mogv = pd.DataFrame({
+        df_mogv = pd.DataFrame({
             'mover': [1, 2],
             'opponent': [3, 4],
             'game_value': [4, 6]
@@ -341,27 +341,27 @@ class TestRegabDataSet(BaseTestCase):
             'game_value': 'int8'
         })
         with self.assertRaises(ValueError):
-            RegabDataSet(self.rc, bid, status, ec, pd_mogv)
+            RegabDataSet(self.rc, bid, status, ec, df_mogv)
 
-    def test_invalid_pd_mogv_type(self):
+    def test_invalid_df_mogv_type(self):
         """
-        Tests that a TypeError is raised if pd_mogv is not a pandas DataFrame.
+        Tests that a TypeError is raised if df_mogv is not a pandas DataFrame.
         """
         bid = [1, 2]
         status = ['CMS', 'CMR']
         ec = 10
-        pd_mogv = 'not_a_dataframe'
-        with self.assertRaises(TypeError):
-            RegabDataSet(self.rc, bid, status, ec, pd_mogv)
+        df_mogv = 'not_a_dataframe'
+        with self.assertRaises(ValidationError):
+            RegabDataSet(self.rc, bid, status, ec, df_mogv)
 
-    def test_invalid_pd_mogv_columns(self):
+    def test_invalid_df_mogv_columns(self):
         """
-        Tests that a ValueError is raised if pd_mogv does not have exactly 3 columns.
+        Tests that a ValueError is raised if df_mogv does not have exactly 3 columns.
         """
         bid = [1, 2]
         status = ['CMS', 'CMR']
         ec = 10
-        pd_mogv = pd.DataFrame({
+        df_mogv = pd.DataFrame({
             'mover': [1, 2],
             'opponent': [3, 4]
         }).astype({
@@ -369,16 +369,16 @@ class TestRegabDataSet(BaseTestCase):
             'opponent': 'int64'
         })
         with self.assertRaises(ValueError):
-            RegabDataSet(self.rc, bid, status, ec, pd_mogv)
+            RegabDataSet(self.rc, bid, status, ec, df_mogv)
 
-    def test_invalid_pd_mogv_column_types(self):
+    def test_invalid_df_mogv_column_types(self):
         """
-        Tests that a ValueError is raised if pd_mogv has incorrect column types.
+        Tests that a ValueError is raised if df_mogv has incorrect column types.
         """
         bid = [1, 2]
         status = ['CMS', 'CMR']
         ec = 10
-        pd_mogv = pd.DataFrame({
+        df_mogv = pd.DataFrame({
             'mover': [1, 2],
             'opponent': [3, 4],
             'game_value': [4.0, 6.0]  # Incorrect type, should be int8
@@ -388,7 +388,7 @@ class TestRegabDataSet(BaseTestCase):
             'game_value': 'float64'
         })
         with self.assertRaises(TypeError):
-            RegabDataSet(self.rc, bid, status, ec, pd_mogv)
+            RegabDataSet(self.rc, bid, status, ec, df_mogv)
 
     def test_extract_data_from_db(self):
         """
@@ -413,14 +413,14 @@ class TestRegabDataSet(BaseTestCase):
         status = arg_status.split(',')
         ec = int(arg_ec)
 
-        rds = RegabDataSet.extract_from_db(self.rc, bid, status, ec)
-        pd_mogv = rds.pd_mogv
-        self.assertFalse(pd_mogv.empty, "The DataFrame is empty.")
-        self.assertEqual(len(pd_mogv.columns), 3, "Columns count is not proper.")
+        rds = regab_extract_data_set_fron_db(self.rc, bid, status, ec)
+        df_mogv = rds.df_mogv
+        self.assertFalse(df_mogv.empty, "The DataFrame is empty.")
+        self.assertEqual(len(df_mogv.columns), 3, "Columns count is not proper.")
 
         if expected_count_prop is not None:
             expected_count = int(expected_count_prop)
-            self.assertEqual(len(pd_mogv), expected_count, "The DataFrame has the wrong len.")
+            self.assertEqual(len(df_mogv), expected_count, "The DataFrame has the wrong len.")
 
     def test_generate_positions_and_game_values(self):
         """
@@ -429,7 +429,7 @@ class TestRegabDataSet(BaseTestCase):
         bid = [1, 2]
         status = ['CMS', 'CMR']
         ec = 10
-        pd_mogv = pd.DataFrame({
+        df_mogv = pd.DataFrame({
             'mover': [1, 2],
             'opponent': [3, 4],
             'game_value': [4, 6]
@@ -439,7 +439,7 @@ class TestRegabDataSet(BaseTestCase):
             'game_value': 'int8'
         })
 
-        rds = RegabDataSet(self.rc, bid, status, ec, pd_mogv)
+        rds = RegabDataSet(self.rc, bid, status, ec, df_mogv)
 
         positions, game_values = rds.generate_positions_and_game_values()
 
@@ -463,7 +463,7 @@ class TestRegabDataSetChecksum(BaseTestCase):
         self.bid = [1, 2]
         self.status = ['CMS', 'CMR']
         self.ec = 20
-        self.pd_mogv = pd.DataFrame({
+        self.df_mogv = pd.DataFrame({
             'mover': [4611717676283199524, 72342959909978368],
             'opponent': [-7855295674223658936, 6952639131500418064],
             'game_value': [10, 36]
@@ -472,7 +472,7 @@ class TestRegabDataSetChecksum(BaseTestCase):
             'opponent': 'int64', 
             'game_value': 'int8'
         })
-        self.rds = RegabDataSet(self.rc, self.bid, self.status, self.ec, self.pd_mogv)
+        self.rds = RegabDataSet(self.rc, self.bid, self.status, self.ec, self.df_mogv)
         self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
         self.filename = os.path.join(self.tmp_dir, 'test_dataset.bin')
 
@@ -498,7 +498,7 @@ class TestRegabDataSetChecksum(BaseTestCase):
         self.assertEqual(loaded_rds.bid, self.rds.bid)
         self.assertEqual(loaded_rds.status, self.rds.status)
         self.assertEqual(loaded_rds.ec, self.rds.ec)
-        self.assertTrue(loaded_rds.pd_mogv.equals(self.rds.pd_mogv))
+        self.assertTrue(loaded_rds.df_mogv.equals(self.rds.df_mogv))
 
     def test_load_without_checksum(self):
         """
@@ -514,7 +514,7 @@ class TestRegabDataSetChecksum(BaseTestCase):
         self.assertEqual(loaded_rds.bid, self.rds.bid)
         self.assertEqual(loaded_rds.status, self.rds.status)
         self.assertEqual(loaded_rds.ec, self.rds.ec)
-        self.assertTrue(loaded_rds.pd_mogv.equals(self.rds.pd_mogv))
+        self.assertTrue(loaded_rds.df_mogv.equals(self.rds.df_mogv))
 
     def test_load_missing_checksum_file(self):
         """

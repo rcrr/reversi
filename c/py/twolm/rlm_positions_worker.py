@@ -77,7 +77,7 @@ class RLMPositionsWorker(ReversiLogisticModelWorker):
         if not rds:
             model.log_event(model.Relevance.INFO, f"Loading data from database...")
             rds = _load_from_db(model)
-            model.log_event(model.Relevance.INFO, f"Game positions loaded. Count: {len(rds.pd_mogv):,}")
+            model.log_event(model.Relevance.INFO, f"Game positions loaded. Count: {len(rds.df_mogv):,}")
             regab_store_data_set_to_file(rds, cache_file_path)
             model.log_event(model.Relevance.INFO, f"Cache file {cache_file_path} written.")
 
@@ -135,8 +135,8 @@ def _load_from_db(model: ReversiLogisticModel) -> RegabDataSet:
     model.log_event(model.Relevance.DEBUG, f"Regab Database connection {cp.dbname, cp.user, cp.host} established succesfully.")
 
     cp = model.cfg.regab_data_set
-    rds = RegabDataSet.extract_from_db(rc, cp.bid, cp.status, cp.ec)
-    model.log_event(model.Relevance.DEBUG, f"Extracted {len(rds.pd_mogv):,} positions from the database.")
+    rds = regab_extract_data_set_fron_db(rc, cp.bid, cp.status, cp.ec)
+    model.log_event(model.Relevance.DEBUG, f"Extracted {len(rds.df_mogv):,} positions from the database.")
     
     rc.close()
     model.log_event(model.Relevance.DEBUG, f"Regab Database connection closed succesfully.")
