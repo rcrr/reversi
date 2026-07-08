@@ -39,6 +39,11 @@ from pathlib import Path
 import hashlib
 import struct
 
+from typing import Callable, Union, List, Annotated
+
+from pydantic import validate_call, ConfigDict, BeforeValidator, AfterValidator, Field
+from contextvars import ContextVar
+from functools import wraps
 
 
 __all__ = ['RegabDBConnection',
@@ -277,13 +282,82 @@ class RegabDataSet:
 
 #: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
+#: Here start the argument validation for the method: regab_gp_as_df
+
+#: Define a ContextVar to securely hold the database reference during validation
+rc_context: ContextVar[any] = ContextVar("rc_context", default=None)
+
+#: Update the validator to read directly from the ContextVar
+def _validate_db_fields(fields_input: Union[str, List[str], None]) -> List[str]:
+    rc = rc_context.get()
+    if rc is None:
+        raise RuntimeError("Database connection context 'rc' could not be found.")
+        
+    with rc.conn.cursor() as curs:
+        curs.execute("SELECT * FROM regab_prng_gp LIMIT 0;")
+        colnames = [d[0] for d in curs.description]
+        
+    base_colnames = ['seq', 'batch_id', 'status', 'mover', 'opponent', 'player', 'empty_count', 'game_value']
+
+    if not fields_input:
+        return base_colnames
+    if isinstance(fields_input, str):
+        if fields_input == '*':
+            return colnames
+        raise ValueError("If 'fields' is a string, it must be '*'")
+    if isinstance(fields_input, list):
+        if len(fields_input) != len(set(fields_input)):
+            raise ValueError("Argument 'fields' contains duplicate entries")
+        invalid_cols = [x for x in fields_input if x not in colnames]
+        if invalid_cols:
+            raise ValueError(f"Columns do not exist in the database: {invalid_cols}")
+        return fields_input
+
+def _validate_with_db_context(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # Dynamically extract 'rc' from positional or keyword parameters
+        rc = kwargs.get('rc') if 'rc' in kwargs else (args[0] if args else None)
+        
+        # Set the context, execute the function, and reset it afterwards
+        token = rc_context.set(rc)
+        try:
+            return func(*args, **kwargs)
+        finally:
+            rc_context.reset(token)
+    return wrapper
+
+# Helper function: converts a single int into a single-element list 
+# BEFORE Pydantic runs its type validation.
+def _ensure_list(v: Any) -> Any:
+    """Converts a single input into a single-element list if it is not already a list."""
+    return [v] if isinstance(v, (int, str)) else v
+
+#: BeforeValidator transforms int -> List[int]
+#: Field(ge=0) ensures every integer in that list is >= 0 (zero included)
+BidArgument = Annotated[List[Annotated[int, Field(ge=0)]], BeforeValidator(_ensure_list)]
+
+# Custom type for 'status': handles list conversion and checks for strings of length exactly 3
+StatusArgument = Annotated[
+    List[Annotated[str, Field(min_length=3, max_length=3)]], 
+    BeforeValidator(_ensure_list)
+]
+
+#: Custom type for 'ec': enforces an integer strictly between 0 and 60 inclusive [0..60]
+EcArgument = Annotated[int, Field(ge=0, le=60)]
+
+#: Fields Type: Resolves database checks using AfterValidator and validation context
+FieldsArgument = Annotated[Union[str, List[str], None], AfterValidator(_validate_db_fields)]
+
+@_validate_with_db_context
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def regab_gp_as_df(rc: RegabDBConnection,
-                   bid: Union[int, List[int]],
-                   status: Union[str, List[str]],
-                   ec: int,
+                   bid: BidArgument,
+                   status: StatusArgument,
+                   ec: EcArgument,
                    limit: Union[int, None] = None,
                    where: Union[str, None] = None,
-                   fields: Union[List[str], None] = None) -> pd.DataFrame:
+                   fields: FieldsArgument = None) -> pd.DataFrame:
     """
     Retrieves game positions from the database and returns them as a pandas DataFrame.
 
@@ -342,70 +416,9 @@ def regab_gp_as_df(rc: RegabDBConnection,
     - If the `limit` parameter is specified, it limits the number of rows returned by the query.
     - The function may raise an Exception if the SQL query execution fails.
     """
-    def _check_arg_bid():
-        ret = None
-        if isinstance(bid, list):
-            if all([isinstance(x, int) for x in bid]):
-                ret = bid
-            else:
-                raise TypeError('Argument bid has elements not being of type int')
-        elif isinstance(bid, int):
-            ret = [bid]
-        else:
-            raise TypeError('Argument bid must be int or a list of ints')
-        if not all([x >= 0 for x in ret]):
-            raise ValueError('Argument bid must be equal or greather than zero')
-        return ret
-
-    def _check_arg_status():
-        if isinstance(status, list):
-            if all([isinstance(x, str) for x in status]):
-                ret = status
-            else:
-                raise TypeError('Argument status has elements not being of type str')
-        elif isinstance(status, str):
-            ret = [status]
-        else:
-            raise TypeError('Argument status must be str or a list of strs')
-        if not all([len(x) == 3 for x in ret]):
-            raise ValueError('Argument status must have elements of lenght equal to 3')
-        return ret
-
-    def _check_arg_fields():
-        with rc.conn.cursor() as curs:
-            curs.execute("SELECT * FROM regab_prng_gp LIMIT 0;")
-            colnames = [d[0] for d in curs.description]
-        base_colnames = ['seq', 'batch_id', 'status', 'mover', 'opponent', 'player', 'empty_count', 'game_value']
-
-        if not fields:
-            return base_colnames
-        else:
-            if isinstance(fields, str):
-                if fields == '*':
-                    return colnames
-                else:
-                    raise ValueError('Argument fields has an invalid value')
-            elif isinstance(fields, list):
-                if not all([isinstance(x, str) for x in fields]):
-                    raise TypeError('Argument fields is a list thta must have all elements belonging to the string type')
-                if len(fields) != len(list(dict.fromkeys(fields))):
-                    raise ValueError('Argument fields has duplicate entries')
-                if not all([x in colnames for x in fields]):
-                    raise ValueError('Argument fields has entries not being a column of the game positions db table')
-                return fields
-            else:
-                raise TypeError('Argument field must be string or a list of stings')
             
-    if not isinstance(rc, RegabDBConnection):
-        raise TypeError('Argument rc is not an instance of RegabDBConnection')
-    if not isinstance(ec, int):
-        raise TypeError('Argument ec is not an instance of int')
-    if not (ec >= 0 and ec <= 60):
-        raise ValueError('Argument ec must be in range [0..60]')
-    lbid = _check_arg_bid()
-    lbid_str = ', '.join([str(x) for x in lbid])
-    lstatus = _check_arg_status()
-    lstatus_str = ', '.join(["'{}'".format(x) for x in lstatus])
+    bid_str = ', '.join([str(x) for x in bid])
+    status_str = ', '.join(["'{}'".format(x) for x in status])
     if limit:
         if not isinstance(limit, int):
             raise TypeError('Argument limit is not an instance of int')
@@ -414,8 +427,8 @@ def regab_gp_as_df(rc: RegabDBConnection,
     if where:
         if not isinstance(where, str):
             raise TypeError('Argument where is not an instance of str')
-    selection = ', '.join(_check_arg_fields())
-    q = "SELECT {:s} FROM regab_prng_gp WHERE batch_id IN ({:s}) AND empty_count = {:d} AND status IN ({:s})".format(selection, lbid_str, ec, lstatus_str)
+    selection = ', '.join(fields)
+    q = "SELECT {:s} FROM regab_prng_gp WHERE batch_id IN ({:s}) AND empty_count = {:d} AND status IN ({:s})".format(selection, bid_str, ec, status_str)
     if where:
         q = q + ' AND {:s}'.format(where)
     q = q + ' ORDER BY seq'
@@ -432,9 +445,11 @@ def regab_gp_as_df(rc: RegabDBConnection,
 
     return df
 
-#: End of RegabDBConnection class.
+#: Endo of regab_gp_as_df method.
 
 #: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True) -> RegabDataSet:
     """
     Loads a RegabDataSet instance from a binary file.
@@ -529,7 +544,7 @@ def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True) -
 
 #: ### ### ###
 
-
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def regab_store_data_set_to_file(rds: RegabDataSet, filename: str | Path) -> None:
     """
     Saves the RegabDataSet instance to a binary file and calculates the SHA3-256 checksum.
@@ -583,6 +598,7 @@ def regab_store_data_set_to_file(rds: RegabDataSet, filename: str | Path) -> Non
 
 #: ### ### ###
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def _write_rds_db_connection_data(rds: RegabDataSet, fw: Callable[[bytes], None]) -> None:
     """
     Writes the database connection parameter to a binary file using the provided writer function.
@@ -612,6 +628,7 @@ def _write_rds_db_connection_data(rds: RegabDataSet, fw: Callable[[bytes], None]
     legacy_write_string(fw, rds.rc.port)
     return
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def _write_rds_header_data(rds: RegabDataSet, fw: Callable[[bytes], None]) -> None:
     """
     Writes the header RegabDataSet instance to a binary file using the provided writer function.
@@ -654,6 +671,7 @@ def _write_rds_header_data(rds: RegabDataSet, fw: Callable[[bytes], None]) -> No
 
     return
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def _write_rds_positions_data(rds: RegabDataSet, fw: Callable[[bytes], None]) -> None:
     """
     Writes the core data of the RegabDataSet instance to a binary file using the provided writer function.

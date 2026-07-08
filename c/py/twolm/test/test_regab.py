@@ -155,7 +155,7 @@ class TestRegabGPAsDF(BaseTestCase):
         """
         Tests that an exception is raised for an invalid bid value.
         """
-        with self.assertRaises((TypeError, ValueError)):
+        with self.assertRaises(ValidationError):
             regab_gp_as_df(self.rc, -1, ['CMP'], 10)
 
     def test_invalid_status(self):
@@ -169,7 +169,7 @@ class TestRegabGPAsDF(BaseTestCase):
         """
         Tests that an exception is raised for an invalid ec value.
         """
-        with self.assertRaises((TypeError, ValueError)):
+        with self.assertRaises(ValidationError):
             regab_gp_as_df(self.rc, [1], ['CMP'], 61)
 
     def test_invalid_limit(self):
@@ -183,14 +183,14 @@ class TestRegabGPAsDF(BaseTestCase):
         """
         Tests that an exception is raised for an invalid where value.
         """
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValidationError):
             regab_gp_as_df(self.rc, 1, 'CMP', 10, 5, where=123)
 
     def test_invalid_fields(self):
         """
         Tests that an exception is raised for an invalid fields value.
         """
-        with self.assertRaises((TypeError, ValueError)):
+        with self.assertRaises((ValueError)):
             regab_gp_as_df(self.rc, [1], ['CMP'], 10, 5, fields='invalid_field')
 
     def test_all_fields(self):
