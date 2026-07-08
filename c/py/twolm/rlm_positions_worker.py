@@ -41,6 +41,7 @@ if TYPE_CHECKING:
 
 from twolm.rlm_abstract_worker import  ReversiLogisticModelWorker
 
+from twolm.board import *
 from twolm.regab import *
 from twolm.binio import *
 
@@ -80,8 +81,14 @@ class RLMPositionsWorker(ReversiLogisticModelWorker):
             regab_store_data_set_to_file(rds, cache_file_path)
             model.log_event(model.Relevance.INFO, f"Cache file {cache_file_path} written.")
         
-        model.rds = rds
-        model.log_event(model.Relevance.INFO, f"Model attribute rds has been set.")
+            pos_pd: pd.DataFrame = rds.positions
+            mover = pos_pd['mover'].to_numpy().view(Bitboard)
+            opponent = pos_pd['opponent'].to_numpy().view(Bitboard)
+            positions = make_position(mover, opponent)
+            model.positions = positions
+            model.log_event(model.Relevance.INFO, f"Model attribute positions has been set.")
+            model.game_values = pos_pd['game_value'].to_numpy()
+            model.log_event(model.Relevance.INFO, f"Model attribute game_values has been set.")
         return
         
     def down(self, model: ReversiLogisticModel) -> None:

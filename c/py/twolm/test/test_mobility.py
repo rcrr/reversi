@@ -393,10 +393,9 @@ class TestRLMFeaturesMobilities1M(unittest.TestCase):
 
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_mobilities(self):
-        positions = self.rlm.rds.positions
-        movers = positions['mover'].to_numpy().view(np.uint64)
-        opponents = positions['opponent'].to_numpy().view(np.uint64)
-        gv = positions['game_value'].to_numpy()
+        movers = self.rlm.positions['mover']
+        opponents = self.rlm.positions['opponent']
+        gv = self.rlm.game_values
 
         lms = legal_moves(movers, opponents)
         print()
@@ -404,7 +403,7 @@ class TestRLMFeaturesMobilities1M(unittest.TestCase):
         
         ms = mobilities(lms)
 
-        ms['game_value'] = positions['game_value'].values
+        ms['game_value'] = gv
         # Calculation of global statistics for game_value
         global_stats = ms['game_value'].agg(['min', 'max', 'mean', 'std', 'var'])
 
@@ -440,7 +439,7 @@ class TestRLMFeaturesMobilities1M(unittest.TestCase):
 
         lms = legal_moves(opponents, movers)        
         ms = mobilities(lms)
-        ms['game_value'] = positions['game_value'].values
+        ms['game_value'] = gv
         # Calculation of global statistics for game_value
         global_stats = ms['game_value'].agg(['min', 'max', 'mean', 'std', 'var'])
 

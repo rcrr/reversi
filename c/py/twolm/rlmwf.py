@@ -179,7 +179,8 @@ class ReversiLogisticModel:
         self.config_file_path = config_file_path
         self.base_dir_override = base_dir_override
         self.cfg = None
-        self.rds = None
+        self.positions = None
+        self.game_values = None
         self.feature_set = None
         self.indexes = None
         self.log_event(self.Relevance.DEBUG, "ReversiLogisticModel initialized.")

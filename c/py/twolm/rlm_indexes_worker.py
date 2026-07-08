@@ -61,9 +61,5 @@ class RLMIndexesWorker(ReversiLogisticModelWorker):
 ###########################################################################################################
 
 def _compute_indexes(model: ReversiLogisticModel) -> IndexArray:
-    positions: pd.DataFrame = model.rds.positions
-    mover = positions['mover'].to_numpy().view(Bitboard)
-    opponent = positions['opponent'].to_numpy().view(Bitboard)
-    positions = make_position(mover, opponent)
-    indexes = model.feature_set.compute_indexes(positions)
+    indexes = model.feature_set.compute_indexes(model.positions)
     return indexes
