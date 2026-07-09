@@ -543,52 +543,5 @@ class TestRegabDataSetChecksum(BaseTestCase):
             f.write(b'some extra data')
         
         # Attempt to load the dataset from the file with checksum verification
-        with self.assertRaises(ValueError):
+        with self.assertRaises(RuntimeError):
             regab_load_data_set_from_file(self.filename)
-
-
-#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
-
-class TestRegabDataSetStoreToFile(BaseTestCase):
-    
-    def setUp(self):
-        """
-        Runs before each individual test. 
-        Creates a sample RegabDataSet instance and a temporary directory.
-        """
-        super().setUp()
-        self.bid = [1, 2]
-        self.status = ['CMS', 'CMR']
-        self.ec = 20
-        self.df_mogv = pd.DataFrame({
-            'mover': [4611717676283199524, 72342959909978368],
-            'opponent': [-7855295674223658936, 6952639131500418064],
-            'game_value': [10, 36]
-        }).astype({
-            'mover': 'int64', 
-            'opponent': 'int64', 
-            'game_value': 'int8'
-        })
-        self.rds = RegabDataSet(self.rc, self.bid, self.status, self.ec, self.df_mogv)
-        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
-        self.filename = os.path.join(self.tmp_dir, 'test_dataset.bin')
-
-    def tearDown(self):
-        """
-        Runs after each individual test. 
-        Cleans up the temporary directory.
-        """
-        if False:
-            print()
-            print(f"self.tmp_dir = {self.tmp_dir}")
-            os.system(f"ls -l {self.tmp_dir}")
-        super().tearDown()
-        shutil.rmtree(self.tmp_dir)
-
-    def test_regab_store_data_set_to_file_new(self):
-
-        regab_store_data_set_to_file_new(self.rds, self.filename)
-
-        loaded_rds = regab_load_data_set_from_file_new(self.filename)
-        
-        self.assertIsNotNone(loaded_rds)

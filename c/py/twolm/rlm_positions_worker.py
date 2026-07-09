@@ -97,8 +97,7 @@ class RLMPositionsWorker(ReversiLogisticModelWorker):
 
 def _is_cache_available(p: Path) -> bool:
     if p.exists():
-        legacy_verify_checksum(p)
-        return True
+        return verify_sha3_256_sidecar(p)
     return False
 
 def _is_cache_consistent(model: ReversiLogisticModel, rds: RegabDataSet) -> bool:

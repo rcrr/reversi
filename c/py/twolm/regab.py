@@ -54,9 +54,7 @@ __all__ = ['GameValue', 'GameValueArray',
            'RegabDataSet',
            'regab_extract_data_set_fron_db',
            'regab_load_data_set_from_file',
-           'regab_store_data_set_to_file',
-           'regab_store_data_set_to_file_new',
-           'regab_load_data_set_from_file_new']
+           'regab_store_data_set_to_file']
 
 
 
@@ -450,7 +448,7 @@ def regab_extract_data_set_fron_db(rc: RegabDBConnection,
 #: ### ### ###
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def regab_load_data_set_from_file_new(filename: str | Path, checksum: bool = True) -> RegabDataSet:
+def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True) -> RegabDataSet:
     """
     Loads a RegabDataSet instance from a binary file.
 
@@ -473,6 +471,11 @@ def regab_load_data_set_from_file_new(filename: str | Path, checksum: bool = Tru
     ValueError
         If the calculated checksum does not match the stored checksum.
     """
+
+    if checksum:
+        is_consistent = binio.verify_sha3_256_sidecar(filename)
+        if not is_consistent:
+            raise RuntimeError("The checksum file signature doesn't match with current file.")
 
     expected_description = "RegabDataSet binary data file"
     expected_version = 1
@@ -520,103 +523,10 @@ def regab_load_data_set_from_file_new(filename: str | Path, checksum: bool = Tru
     
     return rds
 
-@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True) -> RegabDataSet:
-    """
-    Loads a RegabDataSet instance from a binary file.
-
-    Parameters
-    ----------
-    filename : str | Path
-        The name of the file from which to load the data.
-    checksum : bool, optional
-        Whether to verify the SHA3-256 checksum of the file. Default is True.
-
-    Returns
-    -------
-    RegabDataSet
-        An instance of RegabDataSet containing the loaded data.
-
-    Raises
-    ------
-    FileNotFoundError
-        If the checksum file is not found when checksum verification is enabled.
-    ValueError
-        If the calculated checksum does not match the stored checksum.
-
-    Notes
-    -----
-    - The function returns an instance of RegabDataSet.
-    """
-    if not isinstance(filename, (str, Path)):
-        raise TypeError('Argument filename is not an instance of str or Path')
-
-    if checksum:
-        binio.legacy_verify_checksum(filename)
-
-    with open(filename, 'rb') as f:
-        # Read the fully qualified class name.
-        fqcn = f.readline().decode('utf-8').strip()
-        expected_fqcn = 'twolm.regab.RegabDataSet'
-        if fqcn != expected_fqcn:
-            raise ValueError(f"The read fqcn {fqcn} does not match the expected one {expected_fqcn}.")
-
-        magic_number = f.read(8)
-        if magic_number != MAGIC_NUMBER:
-            raise ValueError(f"Magic number is not correct, 1st read. Expected = '{MAGIC_NUMBER}', found = '{magic_number}'")
-
-        # Read the connection data.
-        dbname = binio.legacy_read_string(f)
-        user = binio.legacy_read_string(f)
-        host = binio.legacy_read_string(f)
-        port = binio.legacy_read_string(f)
-
-        rc = RegabDBConnection(dbname, user, host, port=port, activate_conn=False)
-            
-        magic_number = f.read(8)
-        if magic_number != MAGIC_NUMBER:
-            raise ValueError(f"Magic number is not correct, 2nd read. Expected = '{MAGIC_NUMBER}', found = '{magic_number}'")
-
-        # Read the number of elements in bid
-        num_bid = struct.unpack('<I', f.read(4))[0]
-        bid = [struct.unpack('<I', f.read(4))[0] for _ in range(num_bid)]
-
-        # Read the number of elements in status
-        num_status = struct.unpack('<I', f.read(4))[0]
-        status = [f.read(3).decode('utf-8') for _ in range(num_status)]
-        
-        # Read ec
-        ec = struct.unpack('<I', f.read(4))[0]
-            
-        magic_number = f.read(8)
-        if magic_number != MAGIC_NUMBER:
-            raise ValueError(f"Magic number is not correct, 3rd read. Expected = '{MAGIC_NUMBER}', found = '{magic_number}'")
-            
-        # Read length
-        length = struct.unpack('<I', f.read(4))[0]
-
-        # Read the data of the arrays
-        mover = np.frombuffer(f.read(length * 8), dtype=np.int64)
-        opponent = np.frombuffer(f.read(length * 8), dtype=np.int64)
-        game_value = np.frombuffer(f.read(length), dtype=np.int8)
-        
-        # Create the DataFrame
-        df_mogv = pd.DataFrame({
-            'mover': mover,
-            'opponent': opponent,
-            'game_value': game_value
-        })
-            
-        magic_number = f.read(8)
-        if magic_number != MAGIC_NUMBER:
-            raise ValueError(f"Magic number is not correct, 4th read. Expected = '{MAGIC_NUMBER}', found = '{magic_number}'")
-            
-        return RegabDataSet(rc, bid, status, ec, df_mogv)
-
 #: ### ### ###
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def regab_store_data_set_to_file_new(rds: RegabDataSet, filename: str | Path) -> None:
+def regab_store_data_set_to_file(rds: RegabDataSet, filename: str | Path) -> None:
     """
     Saves the RegabDataSet instance to a binary file and calculates the SHA3-256 checksum.
 
@@ -670,161 +580,3 @@ def regab_store_data_set_to_file_new(rds: RegabDataSet, filename: str | Path) ->
 
     return
 
-@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def regab_store_data_set_to_file(rds: RegabDataSet, filename: str | Path) -> None:
-    """
-    Saves the RegabDataSet instance to a binary file and calculates the SHA3-256 checksum.
-
-    Parameters
-    ----------
-    filename : str | Path
-        The name of the file in which to save the data.
-
-    Returns
-    -------
-    None
-    """
-    if not isinstance(filename, (str, Path)):
-        raise TypeError('Argument filename is not an instance of str or Path')
-
-    filename = Path(filename)
-
-    fqcn: str = f"{rds.__class__.__module__}.{rds.__class__.__qualname__}"
-        
-    # Create a SHA3-256 hash object
-    sha3_256_hash = hashlib.sha3_256()
-        
-    with open(filename, 'wb') as f:
-
-        fw = binio.legacy_fun_builder_write_and_hash(f, sha3_256_hash)
-        magic_number_buffer = struct.pack("8s", MAGIC_NUMBER)
-
-        # Write the fully qualified class name
-        fw((fqcn + '\n').encode('utf-8'))
-        fw(magic_number_buffer)
-
-        _write_rds_db_connection_data(rds, fw)
-        fw(magic_number_buffer)
-
-        _write_rds_header_data(rds, fw)
-        fw(magic_number_buffer)
-
-        _write_rds_df_mogv_data(rds, fw)
-        fw(magic_number_buffer)
-
-    # Calculate the SHA3-256 checksum
-    checksum = sha3_256_hash.hexdigest()
-
-    # Write the checksum to a separate file with the same name and ".SHA3-256" suffix
-    checksum_filename = filename.with_name(filename.name + ".SHA3-256")
-    with open(checksum_filename, 'w') as checksum_file:
-        checksum_file.write(checksum)
-        
-    return
-
-#: ### ### ###
-
-@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def _write_rds_db_connection_data(rds: RegabDataSet, fw: Callable[[bytes], None]) -> None:
-    """
-    Writes the database connection parameter to a binary file using the provided writer function.
-
-    Parameters
-    ----------
-    rds: RegabDataSet
-        The object to store on file
-    fw : Callable[[bytes], None]
-        A function that takes bytes as input and writes them to a file.
-
-    Returns
-    -------
-    None
-
-    Notes
-    -----
-    - The method applyes the legacy_write_string() utility that computes the length of the string
-        write as a 4 bytes integer, then writes the string characters.
-    - It writes `dbname`, `user`, `host` and `port`.
-    - The password field is not saved, it can change without generating a change in the dataset.
-    - The function returns None.
-    """
-    binio.legacy_write_string(fw, rds.rc.dbname)
-    binio.legacy_write_string(fw, rds.rc.user)
-    binio.legacy_write_string(fw, rds.rc.host)
-    binio.legacy_write_string(fw, rds.rc.port)
-    return
-
-@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def _write_rds_header_data(rds: RegabDataSet, fw: Callable[[bytes], None]) -> None:
-    """
-    Writes the header RegabDataSet instance to a binary file using the provided writer function.
-
-    Parameters
-    ----------
-    rds: RegabDataSet
-        The object to store on file
-    fw : Callable[[bytes], None]
-        A function that takes bytes as input and writes them to a file.
-
-    Returns
-    -------
-    None
-
-    Notes
-    -----
-    - The method writes the number of elements in `bid`, followed by the elements of `bid`.
-    - It then writes the number of elements in `status`, followed by the elements of `status`.
-    - The method writes the `ec` value.
-    - The function returns None.
-    """
-
-    # Write the number of elements in bid
-    num_bid = len(rds.bid)
-    fw(struct.pack('<I', num_bid))
-    # Write the elements of bid
-    for b in rds.bid:
-        fw(struct.pack('<I', b))
-            
-    # Write the number of elements in status
-    num_status = len(rds.status)
-    fw(struct.pack('<I', num_status))
-    # Write the elements of status
-    for s in rds.status:
-        fw(s.encode('utf-8'))
-        
-    # Write ec
-    fw(struct.pack('<I', rds.ec))
-
-    return
-
-@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def _write_rds_df_mogv_data(rds: RegabDataSet, fw: Callable[[bytes], None]) -> None:
-    """
-    Writes the core data of the RegabDataSet instance to a binary file using the provided writer function.
-    
-    Parameters
-    ----------
-    rds: RegabDataSet
-        The object to store on file
-    fw : Callable[[bytes], None]
-        A function that takes bytes as input and writes them to a file.
-
-    Returns
-    -------
-    None
-
-    Notes
-    -----
-    - The `length` of the data, and the binary data for the `mover`, `opponent`, and `game_value` arrays.
-    - The function returns None.
-    """
-
-    # Write length
-    fw(struct.pack('<I', len(rds.df_mogv)))
-
-    # Write the data of the arrays
-    fw(rds.df_mogv['mover'].values.tobytes())
-    fw(rds.df_mogv['opponent'].values.tobytes())
-    fw(rds.df_mogv['game_value'].values.tobytes())
-
-    return
