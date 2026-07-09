@@ -28,7 +28,7 @@
 from __future__ import annotations
 
 from twolm.board import *
-from twolm.binio import *
+from twolm import binio
 
 import psycopg2 as pg
 import pandas as pd
@@ -54,7 +54,9 @@ __all__ = ['GameValue', 'GameValueArray',
            'RegabDataSet',
            'regab_extract_data_set_fron_db',
            'regab_load_data_set_from_file',
-           'regab_store_data_set_to_file']
+           'regab_store_data_set_to_file',
+           'regab_store_data_set_to_file_new',
+           'regab_load_data_set_from_file_new']
 
 
 
@@ -448,6 +450,77 @@ def regab_extract_data_set_fron_db(rc: RegabDBConnection,
 #: ### ### ###
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def regab_load_data_set_from_file_new(filename: str | Path, checksum: bool = True) -> RegabDataSet:
+    """
+    Loads a RegabDataSet instance from a binary file.
+
+    Parameters
+    ----------
+    filename : str | Path
+        The name of the file from which to load the data.
+    checksum : bool, optional
+        Whether to verify the SHA3-256 checksum of the file. Default is True.
+
+    Returns
+    -------
+    RegabDataSet
+        An instance of RegabDataSet containing the loaded data.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the checksum file is not found when checksum verification is enabled.
+    ValueError
+        If the calculated checksum does not match the stored checksum.
+    """
+
+    expected_description = "RegabDataSet binary data file"
+    expected_version = 1
+    
+    with binio.BinaryReader(filename) as r:
+
+        # Read the file header info
+        description, version = r.read_header()
+        if description != expected_description:
+            ruise (RuntimeError, f"The file is not a proper {expected_description}.")
+        if version != 1:
+            raise (RuntimeError, f"The file version is not consistent, found {version}, expected {expected_version}")
+        
+        # Read the connection data.
+        dbname = r.read_string()
+        user = r.read_string()
+        host = r.read_string()
+        port = r.read_string()
+        
+        # Read the number of elements in bid and bid
+        num_bid = r.read_u32()
+        bid = [r.read_u32() for _ in range(num_bid)]
+
+        # Read the number of elements in status
+        num_status = r.read_u32()
+        status = [r.read_string() for _ in range(num_status)]
+        
+        # Read ec
+        ec = r.read_u32()
+
+        # Read the positions and game_values
+        mover = r.read_array()
+        opponent = r.read_array()
+        game_value = r.read_array()
+
+    rc = RegabDBConnection(dbname, user, host, port=port, activate_conn=False)
+
+    df_mogv = pd.DataFrame({
+        'mover': mover,
+        'opponent': opponent,
+        'game_value': game_value
+    })
+
+    rds = RegabDataSet(rc, bid, status, ec, df_mogv)
+    
+    return rds
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True) -> RegabDataSet:
     """
     Loads a RegabDataSet instance from a binary file.
@@ -479,7 +552,7 @@ def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True) -
         raise TypeError('Argument filename is not an instance of str or Path')
 
     if checksum:
-        legacy_verify_checksum(filename)
+        binio.legacy_verify_checksum(filename)
 
     with open(filename, 'rb') as f:
         # Read the fully qualified class name.
@@ -493,10 +566,10 @@ def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True) -
             raise ValueError(f"Magic number is not correct, 1st read. Expected = '{MAGIC_NUMBER}', found = '{magic_number}'")
 
         # Read the connection data.
-        dbname = legacy_read_string(f)
-        user = legacy_read_string(f)
-        host = legacy_read_string(f)
-        port = legacy_read_string(f)
+        dbname = binio.legacy_read_string(f)
+        user = binio.legacy_read_string(f)
+        host = binio.legacy_read_string(f)
+        port = binio.legacy_read_string(f)
 
         rc = RegabDBConnection(dbname, user, host, port=port, activate_conn=False)
             
@@ -507,7 +580,7 @@ def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True) -
         # Read the number of elements in bid
         num_bid = struct.unpack('<I', f.read(4))[0]
         bid = [struct.unpack('<I', f.read(4))[0] for _ in range(num_bid)]
-            
+
         # Read the number of elements in status
         num_status = struct.unpack('<I', f.read(4))[0]
         status = [f.read(3).decode('utf-8') for _ in range(num_status)]
@@ -543,6 +616,61 @@ def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True) -
 #: ### ### ###
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def regab_store_data_set_to_file_new(rds: RegabDataSet, filename: str | Path) -> None:
+    """
+    Saves the RegabDataSet instance to a binary file and calculates the SHA3-256 checksum.
+
+    Parameters
+    ----------
+    filename : str | Path
+        The name of the file in which to save the data.
+
+    Returns
+    -------
+    None
+    """
+
+    filename = Path(filename)
+
+    description = "RegabDataSet binary data file"
+    version = 1
+
+    with binio.BinaryWriter(filename) as w:
+
+        #: Write header
+        w.write_header(description, version)
+
+        #: Write the connect data
+        w.write_string(rds.rc.dbname)
+        w.write_string(rds.rc.user)
+        w.write_string(rds.rc.host)
+        w.write_string(rds.rc.port)
+
+        # Write the number of elements in bid
+        num_bid = len(rds.bid)
+        w.write_u32(num_bid)
+        # Write the elements of bid
+        for b in rds.bid:
+            w.write_u32(b)
+            
+        # Write the number of elements in status
+        num_status = len(rds.status)
+        w.write_u32(num_status)
+        # Write the elements of status
+        for s in rds.status:
+            w.write_string(s)
+        
+        # Write ec
+        w.write_u32(rds.ec)
+
+        # Write the data of the arrays
+        w.write_array(rds.df_mogv['mover'].values)
+        w.write_array(rds.df_mogv['opponent'].values)
+        w.write_array(rds.df_mogv['game_value'].values)
+
+    return
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def regab_store_data_set_to_file(rds: RegabDataSet, filename: str | Path) -> None:
     """
     Saves the RegabDataSet instance to a binary file and calculates the SHA3-256 checksum.
@@ -568,7 +696,7 @@ def regab_store_data_set_to_file(rds: RegabDataSet, filename: str | Path) -> Non
         
     with open(filename, 'wb') as f:
 
-        fw = legacy_fun_builder_write_and_hash(f, sha3_256_hash)
+        fw = binio.legacy_fun_builder_write_and_hash(f, sha3_256_hash)
         magic_number_buffer = struct.pack("8s", MAGIC_NUMBER)
 
         # Write the fully qualified class name
@@ -620,10 +748,10 @@ def _write_rds_db_connection_data(rds: RegabDataSet, fw: Callable[[bytes], None]
     - The password field is not saved, it can change without generating a change in the dataset.
     - The function returns None.
     """
-    legacy_write_string(fw, rds.rc.dbname)
-    legacy_write_string(fw, rds.rc.user)
-    legacy_write_string(fw, rds.rc.host)
-    legacy_write_string(fw, rds.rc.port)
+    binio.legacy_write_string(fw, rds.rc.dbname)
+    binio.legacy_write_string(fw, rds.rc.user)
+    binio.legacy_write_string(fw, rds.rc.host)
+    binio.legacy_write_string(fw, rds.rc.port)
     return
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
