@@ -58,6 +58,7 @@ import time
 
 from pathlib import Path
 
+from twolm.types import *
 from twolm.rlmwf import *
 
 
@@ -68,7 +69,7 @@ class TestRLMIndexesWorker(unittest.TestCase):
         self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
         self.json_config = 'py/twolm/test/data/rlm_00.json'
         self.rlm = ReversiLogisticModel(self.json_config,
-                                        verbosity=ReversiLogisticModel.Verbosity.LOW,
+                                        verbosity=Verbosity.LOW,
                                         base_dir_override=self.tmp_dir)
         self.assertEqual(self.rlm.current_level.value, 0)
         self.assertEqual(self.rlm.current_level.name, 'CREATED')
@@ -86,6 +87,6 @@ class TestRLMIndexesWorker(unittest.TestCase):
         
         #self.assertIsNone(rlm.feature_set)
 
-        rlm.verbosity = ReversiLogisticModel.Verbosity.HIGH
+        rlm.verbosity = Verbosity.HIGH
         rlm.move_to_level('INDEXES')
 

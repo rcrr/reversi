@@ -37,12 +37,18 @@ if TYPE_CHECKING:
 
 from twolm.rlm_abstract_worker import  ReversiLogisticModelWorker
 
+from twolm.types import *
+
+
+
 __all__ = ['RLMDesignMatrixWorker']
+
+
 
 class RLMDesignMatrixWorker(ReversiLogisticModelWorker):
     
     def up(self, model: ReversiLogisticModel) -> None:
-        model.log_event(model.Relevance.INFO, "Computing the design matrix for the model...")
+        model.log_event(Relevance.INFO, "Computing the design matrix for the model...")
         
     def down(self, model: ReversiLogisticModel) -> None:
-        model.log_event(model.Relevance.INFO, "Clearing the design matrix...")
+        model.log_event(Relevance.INFO, "Clearing the design matrix...")

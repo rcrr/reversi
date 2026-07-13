@@ -41,9 +41,12 @@ if TYPE_CHECKING:
 
 from twolm.rlm_abstract_worker import  ReversiLogisticModelWorker
 
+from twolm.types import *
 from twolm.board import *
 from twolm.regab import *
 from twolm.binio import *
+
+from twolm.cache_manager import *
 
 
 
@@ -51,45 +54,47 @@ __all__ = ['RLMPositionsWorker']
 
 
 
+
 class RLMPositionsWorker(ReversiLogisticModelWorker):
-    
+
     def up(self, model: ReversiLogisticModel) -> None:
-        model.log_event(model.Relevance.INFO, "Loading game positions...")
+        model.log_event(Relevance.INFO, "Loading game positions...")
 
-        rds: RegabDataSet = None
+        cache_file_path = model.get_cache_file_full_path_for_next_level()
+
+        logger = model.log_event
+
+        # Step 0: Is cache allowed? (Example logic)
+        is_cache_allowed = model.cfg.use_cache 
+
+        # Define the injected strategies (Business Logic)
+        def compute() -> RegabDataSet:
+            return _load_from_db(model)
+
+        def validate(cached_rds: RegabDataSet) -> bool:
+            return _is_cache_consistent(model, cached_rds)
+
+        # Execute the abstracted pipeline
+        rds = cache_manager_load_or_compute(
+            cache_path=cache_file_path,
+            is_allowed=is_cache_allowed,
+            load_fn=regab_load_data_set_from_file,
+            store_fn=regab_store_data_set_to_file,
+            validate_fn=validate,
+            compute_fn=compute,
+            logger_fn=logger
+        )
+
+        # Post-processing (unrelated to caching logic)
+        positions, game_values = rds.generate_positions_and_game_values()
+        model.positions = positions
+        model.game_values = game_values
         
-        cache_file_path = model.cfg.base_dir / model.get_cache_file_path_for_next_level()
-        ca = _is_cache_available(cache_file_path)
-        model.log_event(model.Relevance.INFO, f"Cache file path: '{cache_file_path}', exists={ca}.")
-        
-        if ca:
-            rds = regab_load_data_set_from_file(cache_file_path)
-            cc = _is_cache_consistent(model, rds)
-            model.log_event(model.Relevance.INFO, f"Cache file loaded: '{cache_file_path}', is_cache_consistent={cc}.")
-            if not cc:
-                rds = None
-                checksum_file_path = cache_file_path.with_suffix(cache_file_path.suffix + ".SHA3-256")
-                cache_file_path.unlink(missing_ok=True)
-                model.log_event(model.Relevance.INFO, f"Cache file {cache_file_path} deleted.")
-                checksum_file_path.unlink(missing_ok=True)
-                model.log_event(model.Relevance.INFO, f"Cache file checksum {checksum_file_path} deleted.")
-
-        if not rds:
-            model.log_event(model.Relevance.INFO, f"Loading data from database...")
-            rds = _load_from_db(model)
-            model.log_event(model.Relevance.INFO, f"Game positions loaded. Count: {len(rds.df_mogv):,}")
-            regab_store_data_set_to_file(rds, cache_file_path)
-            model.log_event(model.Relevance.INFO, f"Cache file {cache_file_path} written.")
-
-            positions, game_values = rds.generate_positions_and_game_values()
-            model.positions = positions
-            model.log_event(model.Relevance.INFO, f"Model attribute positions has been set.")
-            model.game_values = game_values
-            model.log_event(model.Relevance.INFO, f"Model attribute game_values has been set.")
+        model.log_event(Relevance.INFO, f"Model attributes positions and game_values have been set.")
         return
         
     def down(self, model: ReversiLogisticModel) -> None:
-        model.log_event(model.Relevance.INFO, f"Clearing game positions, setting model attribute rds to None.")
+        model.log_event(Relevance.INFO, f"Clearing game positions, setting model attribute rds to None.")
         model.rds = None
         return
 
@@ -121,24 +126,24 @@ def _is_cache_consistent(model: ReversiLogisticModel, rds: RegabDataSet) -> bool
                  f"  cfg.status = {repr(m.status)}, cache.status = {repr(c.status)}"
                  f"  cfg.ec = {repr(m.ec)}, cache.ec = {repr(c.ec)}")
     is_cache_consistent = is_db_conn_consistent and is_db_query_consistent
-    model.log_event(model.Relevance.DEBUG, f"is_cache_consistent = {is_cache_consistent}.")
+    model.log_event(Relevance.DEBUG, f"is_cache_consistent = {is_cache_consistent}.")
     if not is_db_conn_consistent:
-        model.log_event(model.Relevance.DEBUG, msg_conn)
+        model.log_event(Relevance.DEBUG, msg_conn)
     if not is_db_query_consistent:
-        model.log_event(model.Relevance.DEBUG, msg_query)
+        model.log_event(Relevance.DEBUG, msg_query)
     return is_cache_consistent
 
 def _load_from_db(model: ReversiLogisticModel) -> RegabDataSet:
     cp = model.cfg.regab_data_set.regab_db_connection
     rc = RegabDBConnection(cp.dbname, cp.user, cp.host)
-    model.log_event(model.Relevance.DEBUG, f"Regab Database connection {cp.dbname, cp.user, cp.host} established succesfully.")
+    model.log_event(Relevance.DEBUG, f"Regab Database connection {cp.dbname, cp.user, cp.host} established succesfully.")
 
     cp = model.cfg.regab_data_set
     rds = regab_extract_data_set_fron_db(rc, cp.bid, cp.status, cp.ec)
-    model.log_event(model.Relevance.DEBUG, f"Extracted {len(rds.df_mogv):,} positions from the database.")
+    model.log_event(Relevance.DEBUG, f"Extracted {len(rds.df_mogv):,} positions from the database.")
     
     rc.close()
-    model.log_event(model.Relevance.DEBUG, f"Regab Database connection closed succesfully.")
+    model.log_event(Relevance.DEBUG, f"Regab Database connection closed succesfully.")
 
     return rds
 

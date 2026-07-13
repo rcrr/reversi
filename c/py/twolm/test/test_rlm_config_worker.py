@@ -47,6 +47,7 @@ import os
 import tempfile
 import shutil
 
+from twolm.types import *
 from twolm.rlmwf import *
 
 
@@ -57,7 +58,7 @@ class TestRLMConfigWorker(unittest.TestCase):
         self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
         self.json_config = 'py/twolm/test/data/rlm_00.json'
         self.rlm = ReversiLogisticModel(self.json_config,
-                                        verbosity=ReversiLogisticModel.Verbosity.LOW,
+                                        verbosity=Verbosity.LOW,
                                         base_dir_override=self.tmp_dir)
         self.assertEqual(self.rlm.current_level.value, 0)
         self.assertEqual(self.rlm.current_level.name, 'CREATED')

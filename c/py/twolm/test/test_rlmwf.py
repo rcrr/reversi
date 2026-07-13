@@ -53,6 +53,7 @@ import tempfile
 
 from pathlib import Path
 
+from twolm.types import *
 from twolm.rlmwf import *
 
 class TestReversiLogisticModelLevel(unittest.TestCase):
@@ -111,7 +112,7 @@ class TestReversiLogisticModelMoveToLevel(unittest.TestCase):
         self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
         self.json_config = 'py/twolm/test/data/rlm_00.json'
         self.rlm = ReversiLogisticModel(self.json_config, base_dir_override=self.tmp_dir)
-        self.rlm.verbosity = self.rlm.Verbosity.LOW
+        self.rlm.verbosity = Verbosity.LOW
 
     def tearDown(self):
         if False:
@@ -204,7 +205,7 @@ class TestReversiLogisticModelExportHistoryOfMovesAsCvs(unittest.TestCase):
         self.json_config = 'py/twolm/test/data/rlm_00.json'
         self.rlm = ReversiLogisticModel(self.json_config, base_dir_override=self.tmp_dir)
         
-        self.rlm.verbosity = self.rlm.Verbosity.LOW
+        self.rlm.verbosity = Verbosity.LOW
         self.rlm.move_to_level(level_name_1)
         self.assertEqual(self.rlm.current_level.name, level_name_1)
         self.rlm.move_to_level(level_name_0)

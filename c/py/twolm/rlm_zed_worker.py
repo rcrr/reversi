@@ -37,12 +37,18 @@ if TYPE_CHECKING:
 
 from twolm.rlm_abstract_worker import  ReversiLogisticModelWorker
 
+from twolm.types import *
+
+
+
 __all__ = ['RLMZedWorker']
+
+
 
 class RLMZedWorker(ReversiLogisticModelWorker):
     
     def up(self, model: ReversiLogisticModel) -> None:
-        model.log_event(model.Relevance.INFO, "Computing the zed data structures for the model...")
+        model.log_event(Relevance.INFO, "Computing the zed data structures for the model...")
         
     def down(self, model: ReversiLogisticModel) -> None:
-        model.log_event(model.Relevance.INFO, "Clearing the zed data structures...")
+        model.log_event(Relevance.INFO, "Clearing the zed data structures...")

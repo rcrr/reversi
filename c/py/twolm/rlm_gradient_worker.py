@@ -37,12 +37,18 @@ if TYPE_CHECKING:
     
 from twolm.rlm_abstract_worker import  ReversiLogisticModelWorker
 
+from twolm.types import *
+
+
+
 __all__ = ['RLMGradientWorker']
+
+
 
 class RLMGradientWorker(ReversiLogisticModelWorker):
     
     def up(self, model: ReversiLogisticModel) -> None:
-        model.log_event(model.Relevance.INFO, "Computing the gradient method...")
+        model.log_event(Relevance.INFO, "Computing the gradient method...")
         
     def down(self, model: ReversiLogisticModel) -> None:
-        model.log_event(model.Relevance.INFO, "Clearing the gradient method...")
+        model.log_event(Relevance.INFO, "Clearing the gradient method...")

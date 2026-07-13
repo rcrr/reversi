@@ -37,6 +37,7 @@ if TYPE_CHECKING:
 
 from twolm.rlm_abstract_worker import ReversiLogisticModelWorker
 
+from twolm.types import *
 from twolm.board import *
 from twolm.pattern import *
 
@@ -155,6 +156,7 @@ class ReversiLogisticModelConfig(RLMBaseConfig):
     name: str
     description: str
     base_dir: Path
+    use_cache: bool = True
     regab_data_set: RegabDataSetConfig
     feature_set: FeatureSetConfig
     
@@ -165,19 +167,19 @@ class ReversiLogisticModelConfig(RLMBaseConfig):
 class RLMConfigWorker(ReversiLogisticModelWorker):
     
     def up(self, model: ReversiLogisticModel) -> None:
-        model.log_event(model.Relevance.INFO, f"Loading configuration file '{model.config_file_path}' ...")
+        model.log_event(Relevance.INFO, f"Loading configuration file '{model.config_file_path}' ...")
         cfg = _load(model)
-        model.log_event(model.Relevance.INFO, f"Configuration file {model.config_file_path} loaded.")
+        model.log_event(Relevance.INFO, f"Configuration file {model.config_file_path} loaded.")
         _validate(model, cfg)
-        model.log_event(model.Relevance.INFO, f"Configuration file {model.config_file_path} validated.")
+        model.log_event(Relevance.INFO, f"Configuration file {model.config_file_path} validated.")
         _store_to_file(model, cfg)
-        model.log_event(model.Relevance.INFO, f"Model name: {cfg.name}")
-        model.log_event(model.Relevance.INFO, f"Model description: {cfg.description}")
-        model.log_event(model.Relevance.INFO, f"Model base_dir: {cfg.base_dir}")
+        model.log_event(Relevance.INFO, f"Model name: {cfg.name}")
+        model.log_event(Relevance.INFO, f"Model description: {cfg.description}")
+        model.log_event(Relevance.INFO, f"Model base_dir: {cfg.base_dir}")
         model.cfg = cfg
         
     def down(self, model: ReversiLogisticModel) -> None:
-        model.log_event(model.Relevance.INFO, "Clearing configuration...")
+        model.log_event(Relevance.INFO, "Clearing configuration...")
         model.cfg = None
 
 #
@@ -188,11 +190,11 @@ def _load(model: ReversiLogisticModel) -> ReversiLogisticModelConfig:
 
     with model.config_file_path.open("r", encoding="utf-8") as f:
         config_raw_data = json5.load(f)
-        model.log_event(model.Relevance.DEBUG, f"JSON file '{f}' read.")
+        model.log_event(Relevance.DEBUG, f"JSON file '{f}' read.")
 
     if model.base_dir_override is not None:
         config_raw_data['base_dir'] = model.base_dir_override
-        model.log_event(model.Relevance.DEBUG, f"Value for base_dir changed to '{model.base_dir_override}'.")
+        model.log_event(Relevance.DEBUG, f"Value for base_dir changed to '{model.base_dir_override}'.")
 
     cfg = ReversiLogisticModelConfig(**config_raw_data)
     return cfg
@@ -205,16 +207,16 @@ def _validate_base_dir(model: ReversiLogisticModel,
                        cfg: ReversiLogisticModelConfig):
     if not cfg.base_dir.exists():
         error_message = f"The base dir: '{cfg.base_dir}' doesn't exist."
-        model.log_event(model.Relevance.ERROR, error_message)
+        model.log_event(Relevance.ERROR, error_message)
         raise RuntimeError(error_message)
     if not cfg.base_dir.is_dir():
         error_message = f"The base dir: '{cfg.base_dir}' is not a directory."
-        model.log_event(model.Relevance.ERROR, error_message)
+        model.log_event(Relevance.ERROR, error_message)
         raise RuntimeError(error_message)    
     is_writable = os.access(cfg.base_dir, os.W_OK)
     if not is_writable:
         error_message = f"The base dir: '{cfg.base_dir}' is not writable."
-        model.log_event(model.Relevance.ERROR, error_message)
+        model.log_event(Relevance.ERROR, error_message)
         raise RuntimeError(error_message)    
 
 def _store_to_file(model: ReversiLogisticModel,
@@ -224,46 +226,46 @@ def _store_to_file(model: ReversiLogisticModel,
     config_json = cfg.model_dump_json(indent=4)
     current_checksum = hashlib.sha3_256(config_json.encode()).hexdigest()
     
-    file_path = cfg.base_dir / model.get_cache_file_path_for_next_level()
-    checksum_file_path = file_path.with_name(file_path.name + ".SHA3-256")
+    cache_file_path = cfg.base_dir / model.get_cache_file_path_for_next_level()
+    checksum_file_path = cache_file_path.with_name(cache_file_path.name + ".SHA3-256")
     
-    model.log_event(model.Relevance.DEBUG, f"File: {file_path}, current_checksum = {current_checksum}")
+    model.log_event(Relevance.DEBUG, f"File: {cache_file_path}, current_checksum = {current_checksum}")
     
     has_to_write = False
     
-    if not file_path.exists():
+    if not cache_file_path.exists():
         has_to_write = True
     else:
         if not checksum_file_path.exists():
             msg = f"The checksum file {checksum_file_path} is missing."
-            model.log_event(model.Relevance.ERROR, msg)
+            model.log_event(Relevance.ERROR, msg)
             raise RuntimeError(msg)
         with open(checksum_file_path, 'r') as checksum_file:
             stored_checksum = checksum_file.read().strip()
-        model.log_event(model.Relevance.DEBUG, f"File: {file_path}, stored_checksum = {stored_checksum}")
+        model.log_event(Relevance.DEBUG, f"File: {cache_file_path}, stored_checksum = {stored_checksum}")
 
         on_disk_recomputed_sha3_256_hash = hashlib.sha3_256()    
-        with open(file_path, 'rb') as f:
+        with open(cache_file_path, 'rb') as f:
             while chunk := f.read(8192):
                 on_disk_recomputed_sha3_256_hash.update(chunk)
         on_disk_recomputed_checksum = on_disk_recomputed_sha3_256_hash.hexdigest()
-        model.log_event(model.Relevance.DEBUG, f"File: {file_path}, on_disk_recomputed_checksum = {on_disk_recomputed_checksum}")
+        model.log_event(Relevance.DEBUG, f"File: {cache_file_path}, on_disk_recomputed_checksum = {on_disk_recomputed_checksum}")
         
         if on_disk_recomputed_checksum != stored_checksum:
             msg = f"The checksum file on disk {checksum_file_path} is not matching."
-            model.log_event(model.Relevance.ERROR, msg)
+            model.log_event(Relevance.ERROR, msg)
             raise RuntimeError(f"The checksum file on disk {checksum_file_path} is not matching.")    
 
         if current_checksum != stored_checksum:
             has_to_write = True
 
     if has_to_write:
-        file_path.write_text(config_json, encoding="utf-8")
+        cache_file_path.write_text(config_json, encoding="utf-8")
         with open(checksum_file_path, 'w') as checksum_file:
             checksum_file.write(current_checksum)
-        model.log_event(model.Relevance.INFO, f"File '{file_path}' and checksum written to disk.")
+        model.log_event(Relevance.INFO, f"File '{cache_file_path}' and checksum written to disk.")
     else:
-        model.log_event(model.Relevance.INFO, f"Existing file '{file_path}' and checksum are up to date.")
+        model.log_event(Relevance.INFO, f"Existing file '{cache_file_path}' and checksum are up to date.")
         
 
 

@@ -37,6 +37,7 @@ if TYPE_CHECKING:
 
 from twolm.rlm_abstract_worker import ReversiLogisticModelWorker
 
+from twolm.types import *
 from twolm.board import *
 from twolm.pattern import *
 
@@ -51,11 +52,11 @@ __all__ = ['RLMIndexesWorker']
 class RLMIndexesWorker(ReversiLogisticModelWorker):
     
     def up(self, model: ReversiLogisticModel) -> None:
-        model.log_event(model.Relevance.INFO, "Computing indexes for the pattern configurations...")
+        model.log_event(Relevance.INFO, "Computing indexes for the pattern configurations...")
         model.indexes = _compute_indexes(model)
         
     def down(self, model: ReversiLogisticModel) -> None:
-        model.log_event(model.Relevance.INFO, "Clearing indexes...")
+        model.log_event(Relevance.INFO, "Clearing indexes...")
         model.indexes = None
 
 ###########################################################################################################

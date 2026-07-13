@@ -41,6 +41,8 @@ from pathlib import Path
 
 import csv
 
+from twolm.types import *
+
 from twolm.rlm_created_worker import RLMCreatedWorker
 from twolm.rlm_config_worker import RLMConfigWorker
 from twolm.rlm_positions_worker import RLMPositionsWorker
@@ -97,20 +99,6 @@ class ReversiLogisticModel:
     Attributes:
     
     """
-        
-    class Verbosity(IntEnum):
-        HIGH      = 0
-        MODERATE  = 1
-        STANDARD  = 2
-        LOW       = 3
-        NONE      = 4
-
-    class Relevance(IntEnum):
-        TRACE     = 0
-        DEBUG     = 1
-        INFO      = 2
-        WARN      = 3
-        ERROR     = 4        
     
     class Level(IntEnum):
         CREATED    = ( 0, RLMCreatedWorker(), "Just created.")
@@ -162,7 +150,7 @@ class ReversiLogisticModel:
     class LogEntry(TypedDict):
         time: datetime
         level: ReversiLogisticModel.Level
-        relevance: ReversiLogisticModel.Relevance
+        relevance: Relevance
         message: str
     
     def __init__(self,
@@ -183,7 +171,7 @@ class ReversiLogisticModel:
         self.game_values = None
         self.feature_set = None
         self.indexes = None
-        self.log_event(self.Relevance.DEBUG, "ReversiLogisticModel initialized.")
+        self.log_event(Relevance.DEBUG, "ReversiLogisticModel initialized.")
         
     def log_event(self, relevance: Relevance, message: str) -> None:
         time = datetime.now(timezone.utc)
@@ -270,16 +258,16 @@ class ReversiLogisticModel:
 
     def _run_step(self, level: Level, direction: str):
         if not level.worker:
-            self.log_event(self.Relevance.WARN, f"No worker defined for level {level.name}")
+            self.log_event(Relevance.WARN, f"No worker defined for level {level.name}")
             return
         try:
             worker_name = level.worker.__class__.__name__
-            self.log_event(self.Relevance.INFO, f"Starting worker {worker_name}, {direction.upper()} step for {level.name}")            
+            self.log_event(Relevance.INFO, f"Starting worker {worker_name}, {direction.upper()} step for {level.name}")            
             method = getattr(level.worker, direction)
             method(self)
-            self.log_event(self.Relevance.INFO, f"Completed {direction.upper()} step for {level.name}")
+            self.log_event(Relevance.INFO, f"Completed {direction.upper()} step for {level.name}")
         except Exception as e:
-            self.log_event(self.Relevance.ERROR, f"Error in {level.name} during {direction}: {str(e)}")
+            self.log_event(Relevance.ERROR, f"Error in {level.name} during {direction}: {str(e)}")
             raise
 
     def get_cache_file_path_for_next_level(self) -> Path:
@@ -290,6 +278,10 @@ class ReversiLogisticModel:
         file_name = f"{base_file_name}_{level_string}.{suffix}"
         fp = Path(file_name)
         return fp
+
+    def get_cache_file_full_path_for_next_level(self) -> Path:
+        fname = self.get_cache_file_path_for_next_level()
+        return self.cfg.base_dir / fname
 
 #
 # Helper methods.

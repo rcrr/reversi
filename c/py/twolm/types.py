@@ -1,5 +1,5 @@
 #
-# rlm_created_worker.py
+# types.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -25,32 +25,20 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
-#
-# Reversi Logistic Model Created Worker
-#
+from enum import IntEnum
 
-from __future__ import annotations
+__all__ = ['Verbosity', 'Relevance']
 
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from twolm.rlmwf import ReversiLogisticModel
+class Verbosity(IntEnum):
+    HIGH      = 0
+    MODERATE  = 1
+    STANDARD  = 2
+    LOW       = 3
+    NONE      = 4
 
-from twolm.rlm_abstract_worker import  ReversiLogisticModelWorker
-
-from twolm.types import *
-
-
-
-__all__ = ['RLMCreatedWorker']
-
-
-
-class RLMCreatedWorker(ReversiLogisticModelWorker):
-    
-    def up(self, model: ReversiLogisticModel) -> None:
-        model.log_event(Relevance.ERROR, "Executing CREATED up worker should never happen.")
-        raise RuntimeError(f"Executing created step should never happen.")
-        
-    def down(self, model: ReversiLogisticModel) -> None:
-        model.log_event(Relevance.ERROR, "Executing CREATED down worker should never happen.")
-        raise RuntimeError(f"Cleaning created step should never happen.")
+class Relevance(IntEnum):
+    TRACE     = 0
+    DEBUG     = 1
+    INFO      = 2
+    WARN      = 3
+    ERROR     = 4
