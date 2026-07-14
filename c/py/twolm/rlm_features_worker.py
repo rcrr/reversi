@@ -78,7 +78,7 @@ def _load_features(model: ReversiLogisticModel) -> FeatureSet:
     model.log_event(Relevance.INFO, f"  has PatternSet: {feature_set.pset is not None}")
     if feature_set.pset is not None:
         model.log_event(Relevance.INFO, f"    PatternSet: name = {feature_set.pset.name}, hash = {feature_set.pset.hash}")
-    model.log_event(Relevance.INFO, f"  Features list: [<i>, <category>, <name>, <n_instances>, <n_configurations>]")
+    model.log_event(Relevance.DEBUG, f"  Features list: [<i>, <category>, <name>, <n_instances>, <n_configurations>]")
     for i, f in enumerate(feature_set.features):
         model.log_event(Relevance.DEBUG, f"    {i:03d} [{f.category}] {f.name:10s} {f.n_instances} {f.n_configurations:8d}")
         

@@ -166,11 +166,12 @@ class ReversiLogisticModel:
         self.verbosity = verbosity
         self.config_file_path = config_file_path
         self.base_dir_override = base_dir_override
+        self.use_cache = None
         self.cfg = None
         self.positions = None
         self.game_values = None
         self.feature_set = None
-        self.indexes = None
+        self.rlm_indexes = None
         self.log_event(Relevance.DEBUG, "ReversiLogisticModel initialized.")
         
     def log_event(self, relevance: Relevance, message: str) -> None:

@@ -84,9 +84,23 @@ class TestRLMIndexesWorker(unittest.TestCase):
 
     def test_build_indexes(self):
         rlm = self.rlm
-        
-        #self.assertIsNone(rlm.feature_set)
 
-        rlm.verbosity = Verbosity.HIGH
+        rlm.verbosity = Verbosity.LOW
         rlm.move_to_level('INDEXES')
 
+        #: Missing assertion
+
+    def test_load_indexes_from_cache(self):
+        rlm = self.rlm
+        rlm.verbosity = Verbosity.LOW
+        rlm.move_to_level('INDEXES')
+
+        rlm = None
+
+        rlm = ReversiLogisticModel(self.json_config,
+                                   verbosity=Verbosity.LOW,
+                                   base_dir_override=self.tmp_dir)
+        
+        rlm.move_to_level('INDEXES')
+        
+        #: Missing assertion

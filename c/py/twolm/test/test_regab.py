@@ -413,7 +413,7 @@ class TestRegabDataSet(BaseTestCase):
         status = arg_status.split(',')
         ec = int(arg_ec)
 
-        rds = regab_extract_data_set_fron_db(self.rc, bid, status, ec)
+        rds = regab_extract_data_set_from_db(self.rc, bid, status, ec)
         df_mogv = rds.df_mogv
         self.assertFalse(df_mogv.empty, "The DataFrame is empty.")
         self.assertEqual(len(df_mogv.columns), 3, "Columns count is not proper.")

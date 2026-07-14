@@ -25,23 +25,6 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
-#
-# The steps to validate the cache data is as follow:
-#
-# - 0 - is cache allowed from previous step ?
-#
-# - 1 - is cache present ?
-#
-# - 2 - is checksum consistent ?
-#
-# - 3 - is application data valid ?
-#
-# - if all( 0, 1, 2, 3) then:
-#       load_chache()
-#   else:
-#       compute()
-#
-
 """
 Utility module to handle computation caching with a 4-step validation pipeline.
 It abstracts file I/O, checksum validation, and cache invalidation.
@@ -50,7 +33,6 @@ It abstracts file I/O, checksum validation, and cache invalidation.
 from __future__ import annotations
 
 import hashlib
-import logging
 from pathlib import Path
 from typing import Any, Callable, TypeVar
 
@@ -73,6 +55,9 @@ ValidateFunc = Callable[[T], bool]
 LoggerFunc = Callable[[Relevance, str], None]
 
 
+SHA3_256_CHECKSUM_SUFFIX = ".SHA3-256"
+
+
 def _compute_checksum(file_path: Path) -> str:
     """Compute SHA3-256 checksum of a file."""
     h = hashlib.sha3_256()
@@ -84,7 +69,7 @@ def _compute_checksum(file_path: Path) -> str:
 
 def _verify_checksum(file_path: Path) -> bool:
     """Step 2: Verify if the checksum file exists and matches the data file."""
-    checksum_path = file_path.with_suffix(file_path.suffix + ".SHA3-256")
+    checksum_path = file_path.with_suffix(file_path.suffix + SHA3_256_CHECKSUM_SUFFIX)
     if not checksum_path.exists():
         return False
     
@@ -96,14 +81,14 @@ def _verify_checksum(file_path: Path) -> bool:
 
 def _save_checksum(file_path: Path) -> None:
     """Save the checksum file after successful computation and storage."""
-    checksum_path = file_path.with_suffix(file_path.suffix + ".SHA3-256")
+    checksum_path = file_path.with_suffix(file_path.suffix + SHA3_256_CHECKSUM_SUFFIX)
     checksum = _compute_checksum(file_path)
     checksum_path.write_text(checksum)
 
 
 def _delete_cache_files(cache_path: Path) -> None:
     """Safely delete both the data file and its checksum."""
-    checksum_path = cache_path.with_suffix(cache_path.suffix + ".SHA3-256")
+    checksum_path = cache_path.with_suffix(cache_path.suffix + SHA3_256_CHECKSUM_SUFFIX)
     cache_path.unlink(missing_ok=True)
     checksum_path.unlink(missing_ok=True)
 
@@ -115,7 +100,7 @@ def cache_manager_load_or_compute(cache_path: Path,
                                   validate_fn: ValidateFunc[T],
                                   compute_fn: ComputeFunc[T],
                                   logger_fn: LoggerFunc
-                                  ) -> T:
+                                  ) -> tuple[bool, T]:
     """
     Orchestrate the 4-step cache validation pipeline.
     
@@ -126,10 +111,12 @@ def cache_manager_load_or_compute(cache_path: Path,
         store_fn: Function to store data to cache_path.
         validate_fn: Step 3 - Business logic to validate loaded data.
         compute_fn: Function to compute data from scratch.
-        logger: Logger instance for tracking operations.
+        logger_fn: Logger callable.
         
     Returns:
-        The computed or loaded data.
+        A tuple containing:
+        - bool: True if data was loaded from cache, False if it was computed.
+        - T: The computed or loaded data.
     """
     
     #: Step 0: Is cache allowed?
@@ -163,14 +150,14 @@ def cache_manager_load_or_compute(cache_path: Path,
 
     #: All steps passed: return cached data
     logger_fn(Relevance.INFO, f"Cache successfully loaded and validated from '{cache_path}'.")
-    return cached_data
+    return True, cached_data
 
 
 def _compute_and_store(cache_path: Path, 
                        compute_fn: ComputeFunc[T], 
                        store_fn: StoreFunc[T], 
-                       logger_fn: LoggerFunc[M, R, str]
-                       ) -> T:
+                       logger_fn: LoggerFunc
+                       ) -> tuple[bool, T]:
     """Execute computation, store result, and save checksum."""
     logger_fn(Relevance.INFO, "Executing heavy computation...")
     data = compute_fn()
@@ -181,4 +168,4 @@ def _compute_and_store(cache_path: Path,
     _save_checksum(cache_path)
     logger_fn(Relevance.INFO, "Cache file and checksum successfully written.")
     
-    return data
+    return False, data

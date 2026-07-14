@@ -25,11 +25,25 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import annotations
+
 from enum import IntEnum
 
-__all__ = ['Verbosity', 'Relevance']
+from twolm.pattern import IndexArray
+
+from pydantic import validate_call, ConfigDict, BeforeValidator, AfterValidator, Field
+
+
+
+__all__ = ['Verbosity', 'Relevance', 'ReversiLogisticModelIndexes']
+
+
+
 
 class Verbosity(IntEnum):
+    """
+    Logging verbosity levels.
+    """
     HIGH      = 0
     MODERATE  = 1
     STANDARD  = 2
@@ -37,8 +51,32 @@ class Verbosity(IntEnum):
     NONE      = 4
 
 class Relevance(IntEnum):
+    """
+    Logging relevance levels.
+    """
     TRACE     = 0
     DEBUG     = 1
     INFO      = 2
     WARN      = 3
     ERROR     = 4
+
+class ReversiLogisticModelIndexes:
+    """
+    Represents the 2D index matrix togheter with the hash signature of the feature set
+    used to compute them.
+    """
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def __init__(self,
+                 feature_set_hash: str,
+                 indexes: IndexArray):
+        """
+        Initializes a RegabDataSet instance.
+
+        Parameters
+        ----------
+        feature_set_hash : str
+            The hash code taken from the feature_set used to compute indexes.
+        indexes : IndexArray
+        """
+        self.feature_set_hash = feature_set_hash
+        self.indexes = indexes

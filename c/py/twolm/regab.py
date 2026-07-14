@@ -52,7 +52,7 @@ __all__ = ['GameValue', 'GameValueArray',
            'RegabDBConnection',
            'regab_gp_as_df',
            'RegabDataSet',
-           'regab_extract_data_set_fron_db',
+           'regab_extract_data_set_from_db',
            'regab_load_data_set_from_file',
            'regab_store_data_set_to_file']
 
@@ -416,7 +416,7 @@ class RegabDataSet:
 #: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def regab_extract_data_set_fron_db(rc: RegabDBConnection,
+def regab_extract_data_set_from_db(rc: RegabDBConnection,
                                    bid: Union[int, List[int]],
                                    status: Union[str, List[str]],
                                    ec: int) -> RegabDataSet:

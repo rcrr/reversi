@@ -174,7 +174,7 @@ class FeatureSet:
                  mset: MobilitySet | None,
                  pset: PatternSet | None) -> Self:
         """
-        Initializes a new featureSet instance with the given name and list of features.
+        Initializes a new FeatureSet instance with the given name and list of features.
         """
         
         if intercept and intercept.category is not Feature.Category.INTERCEPT:

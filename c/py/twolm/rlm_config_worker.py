@@ -176,11 +176,13 @@ class RLMConfigWorker(ReversiLogisticModelWorker):
         model.log_event(Relevance.INFO, f"Model name: {cfg.name}")
         model.log_event(Relevance.INFO, f"Model description: {cfg.description}")
         model.log_event(Relevance.INFO, f"Model base_dir: {cfg.base_dir}")
+        model.use_cache = cfg.use_cache
         model.cfg = cfg
         
     def down(self, model: ReversiLogisticModel) -> None:
         model.log_event(Relevance.INFO, "Clearing configuration...")
         model.cfg = None
+        model.use_cache = None
 
 #
 #
