@@ -123,9 +123,9 @@ def rlm_indexes_load_from_file(
         # Read the file header info
         description, version = r.read_header()
         if description != expected_description:
-            raise (RuntimeError, f"The file is not a proper {expected_description}.")
+            raise RuntimeError(f"The file is not a proper {expected_description}.")
         if version != 1:
-            raise (RuntimeError, f"The file version is not consistent, found {version}, expected {expected_version}")
+            raise RuntimeError(f"The file version is not consistent, found {version}, expected {expected_version}")
 
         #: Read the feature_set_hash
         feature_set_hash = r.read_string()
