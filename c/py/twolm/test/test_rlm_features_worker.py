@@ -88,7 +88,7 @@ class TestRLMFeaturesWorker(unittest.TestCase):
         
         self.assertIsNone(rlm.feature_set)
 
-        rlm.verbosity = Verbosity.HIGH
+        rlm.verbosity = Verbosity.LOW
         rlm.move_to_level('FEATURES')
         self.assertEqual(rlm.current_level.value, 3)
         self.assertEqual(rlm.current_level.name, 'FEATURES')            

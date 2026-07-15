@@ -496,7 +496,7 @@ class TestReversiLogisticModelFootprint(unittest.TestCase):
 
         self.assertIsNotNone(m.fg)
         
-        if True:
+        if False:
             print(f"")
             m.info()
 

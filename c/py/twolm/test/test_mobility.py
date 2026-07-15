@@ -388,19 +388,23 @@ class TestRLMFeaturesMobilities1M(unittest.TestCase):
         self.assertEqual(self.rlm.current_level.name, 'POSITIONS')
 
     def tearDown(self):
-        if True:
+        if False:
             os.system(f"ls -l {self.tmp_dir}")
         shutil.rmtree(self.tmp_dir)
 
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_mobilities(self):
+        
+        is_print_on = False
+        cond_print = lambda msg: print(msg) if is_print_on else None
+        
         movers = self.rlm.positions['mover']
         opponents = self.rlm.positions['opponent']
         gv = self.rlm.game_values
 
         lms = legal_moves(movers, opponents)
-        print()
-        print(f"len(lms) = {len(lms)}")
+        cond_print("")
+        cond_print(f"len(lms) = {len(lms)}")
         
         ms = mobilities(lms)
 
@@ -408,15 +412,15 @@ class TestRLMFeaturesMobilities1M(unittest.TestCase):
         # Calculation of global statistics for game_value
         global_stats = ms['game_value'].agg(['min', 'max', 'mean', 'std', 'var'])
 
-        print("--- GLOBAL GAME_VALUE STATISTICS ---")
-        print(global_stats)
-        print(f"{ms}")
+        cond_print("--- GLOBAL GAME_VALUE STATISTICS ---")
+        cond_print(global_stats)
+        cond_print(f"{ms}")
 
         # Let's assume your dataframe is called 'ms'
         # Define the mobility columns (all except game_value)
         mobility_columns = [col for col in ms.columns if col != 'game_value']
 
-        print("--- GAME_VALUE ANALYSIS FOR MOBILITY LEVELS ---")
+        cond_print("--- GAME_VALUE ANALYSIS FOR MOBILITY LEVELS ---")
 
         for col in mobility_columns:
             # Group by the mask value (0, 1, 2...) 
@@ -426,17 +430,17 @@ class TestRLMFeaturesMobilities1M(unittest.TestCase):
             # Rename for clarity
             stats.columns = ['MIN_GV', 'MAX_GV', 'AVG_GV', 'STD_GV', 'VAR_GV', 'SAMPLES']
     
-            print(f"\nAnalysis for: {col}")
+            cond_print(f"\nAnalysis for: {col}")
             # Format for readable print
-            print(stats.to_string(formatters={
+            cond_print(stats.to_string(formatters={
                 'AVG_GV': '{:,.2f}'.format,
                 'STD_GV': '{:,.2f}'.format,
                 'VAR_GV': '{:,.2f}'.format
             }))
-            print("-" * 50)
+            cond_print("-" * 50)
 
         ############ Anti-Mobility ############
-        print(f"############ Anti-Mobility ############")
+        cond_print(f"############ Anti-Mobility ############")
 
         lms = legal_moves(opponents, movers)        
         ms = mobilities(lms)
@@ -444,16 +448,16 @@ class TestRLMFeaturesMobilities1M(unittest.TestCase):
         # Calculation of global statistics for game_value
         global_stats = ms['game_value'].agg(['min', 'max', 'mean', 'std', 'var'])
 
-        print("--- STATISTICHE GLOBALI GAME_VALUE ---")
-        print(global_stats)
-        print(f"{ms}")
+        cond_print("--- STATISTICHE GLOBALI GAME_VALUE ---")
+        cond_print(global_stats)
+        cond_print(f"{ms}")
 
 
         # Let's assume your dataframe is called 'ms'
         # Define the mobility columns (all except game_value)
         mobility_columns = [col for col in ms.columns if col != 'game_value']
 
-        print("--- GAME_VALUE ANALYSIS FOR MOBILITY LEVELS ---")
+        cond_print("--- GAME_VALUE ANALYSIS FOR MOBILITY LEVELS ---")
 
         for col in mobility_columns:
             # Group by the mask value (0, 1, 2...) 
@@ -463,11 +467,11 @@ class TestRLMFeaturesMobilities1M(unittest.TestCase):
             # Rename for clarity
             stats.columns = ['MIN_GV', 'MAX_GV', 'AVG_GV', 'STD_GV', 'VAR_GV', 'SAMPLES']
     
-            print(f"\nAnalysis for: {col}")
+            cond_print(f"\nAnalysis for: {col}")
             # Format for readable print
-            print(stats.to_string(formatters={
+            cond_print(stats.to_string(formatters={
                 'AVG_GV': '{:,.2f}'.format,
                 'STD_GV': '{:,.2f}'.format,
                 'VAR_GV': '{:,.2f}'.format
             }))
-            print("-" * 50)
+            cond_print("-" * 50)
