@@ -36,15 +36,14 @@ if TYPE_CHECKING:
     from twolm.rlmwf import ReversiLogisticModel
 
 from twolm.rlm_abstract_worker import ReversiLogisticModelWorker
-from twolm.types import Relevance, ReversiLogisticModelIndexes
-
-from twolm.board import *
-from twolm.pattern import *
+from twolm.types import Relevance
+from twolm.rlm_indexes import (ReversiLogisticModelIndexes,
+                               rlm_indexes_load_from_file,
+                               rlm_indexes_store_to_file,
+                               rlm_indexes_compute,
+                               rlm_indexes_is_cache_consistent)
 
 from twolm.cache_manager import cache_manager_load_or_compute
-from twolm import binio
-
-from pathlib import Path
 
 
 
@@ -61,10 +60,10 @@ class RLMIndexesWorker(ReversiLogisticModelWorker):
         cache_hit, rlm_indexes = cache_manager_load_or_compute(
             cache_path  = model.get_cache_file_full_path_for_next_level(),
             is_allowed  = model.use_cache,
-            load_fn     = _load_rlm_indexes_from_file,
-            store_fn    = _store_rlm_indexes_to_file,
-            validate_fn = lambda cached_rlm_indexes: _is_cache_consistent(model, cached_rlm_indexes),
-            compute_fn  = lambda: _compute_rlm_indexes(model),
+            load_fn     = rlm_indexes_load_from_file,
+            store_fn    = rlm_indexes_store_to_file,
+            validate_fn = lambda cached_rlm_indexes: rlm_indexes_is_cache_consistent(model, cached_rlm_indexes),
+            compute_fn  = lambda: rlm_indexes_compute(model),
             logger_fn   = model.log_event
         )
         
@@ -74,85 +73,3 @@ class RLMIndexesWorker(ReversiLogisticModelWorker):
     def down(self, model: ReversiLogisticModel) -> None:
         model.log_event(Relevance.INFO, "Clearing rlm_indexes...")
         model.rlm_indexes = None
-
-# ----------------------------------------------------------------------------------------
-# Private Helper Functions
-# ----------------------------------------------------------------------------------------
-
-def _is_cache_consistent(
-        model: ReversiLogisticModel,
-        rlm_indexes: ReversiLogisticModelIndexes
-) -> bool:
-    """Compare live configuration with cached dataset metadata."""
-
-    cached_feature_set_hash = rlm_indexes.feature_set_hash
-    expected_feature_set_hash = model.feature_set.hash
-    is_cache_consistent = cached_feature_set_hash == expected_feature_set_hash
-    
-    return is_cache_consistent
-
-def _compute_rlm_indexes(model: ReversiLogisticModel) -> ReversiLogisticModelIndexes:
-    indexes = model.feature_set.compute_indexes(model.positions)
-    feature_set_hash = model.feature_set.hash
-    rlm_indexes = ReversiLogisticModelIndexes(feature_set_hash, indexes)
-    return rlm_indexes
-
-def _load_rlm_indexes_from_file(
-        filename: str | Path,
-        checksum: bool = True
-) -> ReversiLogisticModelIndexes:
-    """
-    Loads a ReversiLogisticModelIndexes instance from a binary file.
-    """
-
-    if checksum:
-        is_consistent = binio.verify_sha3_256_sidecar(filename)
-        if not is_consistent:
-            raise RuntimeError("The checksum file signature doesn't match with current file.")
-
-    expected_description = "ReversiLogisticModelIndexes binary data file"
-    expected_version = 1
-
-    with binio.BinaryReader(filename) as r:
-
-        # Read the file header info
-        description, version = r.read_header()
-        if description != expected_description:
-            ruise (RuntimeError, f"The file is not a proper {expected_description}.")
-        if version != 1:
-            raise (RuntimeError, f"The file version is not consistent, found {version}, expected {expected_version}")
-
-        #: Read the feature_set_hash
-        feature_set_hash = r.read_string()
-        
-        # read the data of the 2D indexes matrix
-        indexes = r.read_array()
-
-    rlm_indexes = ReversiLogisticModelIndexes(feature_set_hash, indexes)
-    
-    return rlm_indexes
-
-def _store_rlm_indexes_to_file(
-        rlm_indexes: ReversiLogisticModelIndexes,
-        filename: str | Path
-) -> None:
-    """
-    Saves the ReversiLogisticModelIndexes instance to a binary file and calculates the SHA3-256 checksum.
-    """
-    filename = Path(filename)
-
-    description = "ReversiLogisticModelIndexes binary data file"
-    version = 1
-
-    with binio.BinaryWriter(filename) as w:
-
-        #: Write header
-        w.write_header(description, version)
-
-        #: Write the feature_set_hash
-        w.write_string(rlm_indexes.feature_set_hash)
-
-        # Write the data of the 2D indexes matrix
-        w.write_array(rlm_indexes.indexes)
-    
-    return
