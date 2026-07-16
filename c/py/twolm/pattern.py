@@ -190,7 +190,7 @@ class Pattern:
           - p_shifts: The shift amounts used for packing.
     
     7. Transformed Cell Names
-    snames_t (List[List[str]]): A list having 8 entries. Each Entry has lenght equal to n_squares.
+    snames_t (List[List[str]]): A list having 8 entries. Each Entry has length equal to n_squares.
                                 It contains the coordinate names of pattern squares
                                 after applying each of the 8 possible transformations.
                                 Each row snames_t[i] contains the names of the squares as they appear in the pattern
@@ -517,7 +517,7 @@ class Pattern:
                     pos = bitboard_bsr(transformed_sq)
                     transformed_cell = Square(pos)
                     # Convert back to square name
-                    transformed_cell_name = square_to_str(Square(pos)).lower()
+                    transformed_cell_name = square_to_str(Square(pos))
                 else:
                     transformed_cell = None
                     transformed_cell_name = ""
@@ -766,7 +766,7 @@ class Pattern:
         Converts a given configuration index to its principal index using the pattern's principal index dictionary.
         If the dictionary is not yet computed, it computes it first.
         """
-        if not self.principal_index_dict:
+        if self.principal_index_dict is None:
             self.compute_principal_index_dict()
         principal_index = self.principal_index_dict[index]
         return principal_index
@@ -1009,7 +1009,7 @@ class PatternSet:
         The summary includes the name, hash, and basic pattern information.
         """
         prt = lambda msg: print(msg, file=output)
-        prt(f"PatternSet: name = {self.name}, lenght = {len(self.patterns)}, hash = {self.hash}")
+        prt(f"PatternSet: name = {self.name}, length = {len(self.patterns)}, hash = {self.hash}")
         for p in self.patterns:
             prt(f"  Pattern: name = {p.name}, mask = 0x{p.mask:016x}")
 
@@ -1018,7 +1018,7 @@ class PatternSet:
         """
         Prints a detailed summary of the set including the name, hash, and full pattern information.
         """
-        print(f"PatternSet: name = {self.name}, lenght = {len(self.patterns)}, hash = {self.hash}", file=output)
+        print(f"PatternSet: name = {self.name}, length = {len(self.patterns)}, hash = {self.hash}", file=output)
         for pattern in self.patterns:
             pattern.print(output=output)
 

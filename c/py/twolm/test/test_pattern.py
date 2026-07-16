@@ -94,15 +94,6 @@ half_bottom        = Bitboard(0xffffffff00000000)
 
 class TestPattern(unittest.TestCase):
 
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
-    def test_dummy(self):
-        self.assertEqual(True, True)
-
     def test_init(self):
         p = Pattern('ELLE', Bitboard(0x0000000000000107))
         self.assertEqual(p, p)
@@ -153,17 +144,24 @@ class TestPattern(unittest.TestCase):
 
         # Test snames_t field
         expected_snames_t = [
-            ['a1', 'b1', 'c1', 'a2'],  # 0: ro000
-            ['h1', 'h2', 'h3', 'g1'],  # 1: ro090
-            ['h8', 'g8', 'f8', 'h7'],  # 2: ro180
-            ['a8', 'a7', 'a6', 'b8'],  # 3: ro270
-            ['h1', 'g1', 'f1', 'h2'],  # 4: fvert
-            ['h8', 'h7', 'h6', 'g8'],  # 5: fh1a8
-            ['a8', 'b8', 'c8', 'a7'],  # 6: fhori
-            ['a1', 'a2', 'a3', 'b1'],  # 7: fa1h8
+            ['A1', 'B1', 'C1', 'A2'],  # 0: ro000
+            ['H1', 'H2', 'H3', 'G1'],  # 1: ro090
+            ['H8', 'G8', 'F8', 'H7'],  # 2: ro180
+            ['A8', 'A7', 'A6', 'B8'],  # 3: ro270
+            ['H1', 'G1', 'F1', 'H2'],  # 4: fvert
+            ['H8', 'H7', 'H6', 'G8'],  # 5: fh1a8
+            ['A8', 'B8', 'C8', 'A7'],  # 6: fhori
+            ['A1', 'A2', 'A3', 'B1'],  # 7: fa1h8
         ]
         self.assertEqual(p.snames_t, expected_snames_t)
-
+        
+    def test_init_raises_value_error_for_non_principal_mask(self):
+        """Test that passing a transformed (non-principal) mask raises ValueError."""
+        # 0x00000000008080C0 is the 90-degree rotation of ELLE (0x0000000000000107)
+        # It is a valid pattern mask, but it is NOT the principal instance.
+        with self.assertRaises(ValueError) as context:
+            Pattern('BAD_ELLE', Bitboard(0x00000000008080C0))
+        self.assertIn("not principal", str(context.exception))
 
 class TestPatternPack(unittest.TestCase):
 
@@ -703,8 +701,8 @@ class TestPatternMdpRecord(unittest.TestCase):
             "ro000:ro090:ro180:ro270:fvert:fh1a8:fhori:fa1h8,"
             "ro000:ro270:ro180:ro090:fvert:fh1a8:fhori:fa1h8,"
             ","
-            "a1:b1:c1:a2,h1:h2:h3:g1,h8:g8:f8:h7,a8:a7:a6:b8,"
-            "h1:g1:f1:h2,h8:h7:h6:g8,a8:b8:c8:a7,a1:a2:a3:b1,"
+            "A1:B1:C1:A2,H1:H2:H3:G1,H8:G8:F8:H7,A8:A7:A6:B8,"
+            "H1:G1:F1:H2,H8:H7:H6:G8,A8:B8:C8:A7,A1:A2:A3:B1,"
             "I0:T1:T2:T3:T4:T5:T6:T7,"
             "0"
         )
@@ -723,10 +721,10 @@ class TestPatternMdpRecord(unittest.TestCase):
             "ro000:ro090:ro180:ro270,"
             "ro000:ro270:ro180:ro090,"
             "fvert,"
-            "a1:b1:c1:d1:e1:f1:g1:h1,h1:h2:h3:h4:h5:h6:h7:h8,"
-            "h8:g8:f8:e8:d8:c8:b8:a8,a8:a7:a6:a5:a4:a3:a2:a1,"
-            "h1:g1:f1:e1:d1:c1:b1:a1,h8:h7:h6:h5:h4:h3:h2:h1,"
-            "a8:b8:c8:d8:e8:f8:g8:h8,a1:a2:a3:a4:a5:a6:a7:a8,"
+            "A1:B1:C1:D1:E1:F1:G1:H1,H1:H2:H3:H4:H5:H6:H7:H8,"
+            "H8:G8:F8:E8:D8:C8:B8:A8,A8:A7:A6:A5:A4:A3:A2:A1,"
+            "H1:G1:F1:E1:D1:C1:B1:A1,H8:H7:H6:H5:H4:H3:H2:H1,"
+            "A8:B8:C8:D8:E8:F8:G8:H8,A1:A2:A3:A4:A5:A6:A7:A8,"
             "I0:T1:T2:T3:S0:S1:S2:S3,"
             "2"
         )
@@ -1089,7 +1087,7 @@ class TestPatternSet(unittest.TestCase):
         expected_hash = self.pattern_set.hash
         
         expected_output = [
-            'PatternSet: name = SamplePatternSet, lenght = 3, hash = {}',
+            'PatternSet: name = SamplePatternSet, length = 3, hash = {}',
             '  Pattern: name = EDGE, mask = 0x00000000000000ff',
             '  Pattern: name = ELLE, mask = 0x0000000000000107',
             '  Pattern: name = SNAKE, mask = 0x0000000c30000000'
@@ -1110,7 +1108,7 @@ class TestPatternSet(unittest.TestCase):
         expected_hash = self.pattern_set.hash
         
         expected_output = [
-            'PatternSet: name = SamplePatternSet, lenght = 3, hash = {}',
+            'PatternSet: name = SamplePatternSet, length = 3, hash = {}',
             '[Pattern: name = EDGE, mask = 0x00000000000000ff]',
             '  [n_squares = 8, n_configurations = 6561, n_instances = 4, n_stabilizers = 2, type = 2]',
             '  Cells:                [A1, B1, C1, D1, E1, F1, G1, H1]',
@@ -1160,13 +1158,56 @@ class TestPatternSet(unittest.TestCase):
 
         self.assertEqual(actual_output, expected_output)
 
+    def test_init_raises_value_error_for_duplicate_names(self):
+        """Test that duplicate pattern names raise ValueError."""
+        p1 = Pattern('ELLE', Bitboard(0x0000000000000107))
+        p2 = Pattern('ELLE', Bitboard(0x0000000C30000000)) # Same name, different mask
+        with self.assertRaises(ValueError) as context:
+            PatternSet('DupNameSet', [p1, p2])
+        self.assertIn("duplicate names", str(context.exception))
+
+    def test_init_raises_value_error_for_duplicate_masks(self):
+        """Test that duplicate pattern masks raise ValueError."""
+        p1 = Pattern('ELLE', Bitboard(0x0000000000000107))
+        p2 = Pattern('ELLE_CLONE', Bitboard(0x0000000000000107)) # Different name, same mask
+        with self.assertRaises(ValueError) as context:
+            PatternSet('DupMaskSet', [p1, p2])
+        self.assertIn("duplicate masks", str(context.exception))
+
+class TestPatternPrincipalIndex(unittest.TestCase):
+
+    def test_compute_and_convert_principal_index(self):
+        """
+        Tests the generation of the principal index dictionary and conversion.
+        Using ELLE (4 squares = 81 configurations) to keep it instant.
+        """
+        p = Pattern('ELLE', Bitboard(0x0000000000000107))
+        
+        # 1. Ensure it's initially None
+        self.assertIsNone(p.principal_index_dict)
+        
+        # 2. Compute the dictionary
+        p.compute_principal_index_dict()
+        
+        # 3. Check basic properties of the computed dict
+        self.assertIsNotNone(p.principal_index_dict)
+        self.assertEqual(p.principal_index_dict.shape, (81,))
+        
+        # The principal index must always be <= the original index
+        # (because 0 is the absolute principal for any set)
+        for i in range(81):
+            self.assertTrue(p.principal_index_dict[i] <= i, 
+                            f"Index {i} mapped to {p.principal_index_dict[i]}, which is greater!")
+        
+        # 4. Test the conversion method
+        test_indexes = np.array([0, 1, 80], dtype=np.uint32)
+        principal = p.convert_to_principal_index(test_indexes)
+        
+        self.assertIsInstance(principal, np.ndarray)
+        self.assertEqual(principal.shape, (3,))
+        self.assertEqual(principal[0], 0)  # Index 0 is always its own principal
+
 class TestPatternComputePrincipalIndexDict(unittest.TestCase):
-
-    def setUp(self):
-        pass
-
-    def test_init(self):
-        pass
 
     def test_small_pattern_compute_principal_index_dict(self):
         p = Pattern('SMALL', Bitboard(0x0000000000000018))
