@@ -29,8 +29,14 @@ from __future__ import annotations
 
 from typing import List, Union, IO
 
-from twolm.board import *
-from twolm.pattern import *
+from twolm.board import (Bitboard, BitboardArray,
+                         PositionArray,
+                         bitboard_transformations,
+                         bitboard_count,
+                         square_from_str,
+                         legal_moves)
+
+from twolm.pattern import (Index, IndexArray)
 
 import sys
 import io
@@ -48,7 +54,7 @@ from pydantic import validate_call, ConfigDict
 
 __all__ = ['Mobility',
            'MobilitySet',
-           'popcount64', 'mobilities']
+           'popcount64']
 
 
 
@@ -76,7 +82,7 @@ class Mobility:
         self.mask = mask
         self.amask = amask
 
-        self.n_configurations = bitboard_count(mask) + bitboard_count(amask)
+        self.n_configurations = bitboard_count(mask) + bitboard_count(amask) + 1
         self.n_instances = 1
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -151,7 +157,10 @@ class MobilitySet:
         Returns:
             np.ndarray: A numpy array of mask values.
         """
-        return np.array([[m.mask, m.amask] for m in self.mobilities], dtype=Bitboard)
+        arr = np.array([[m.mask, m.amask] for m in self.mobilities], dtype=Bitboard)
+        # Force the array to be strictly 2-dimensional (N, 2).
+        # If N=0, this correctly transforms shape (0,) into (0, 2)
+        return arr.reshape(-1, 2)
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def print_summary(self, output: Union[IO, io.StringIO] = sys.stdout) -> None:
@@ -160,7 +169,7 @@ class MobilitySet:
         The summary includes the name, hash, and basic mobility information.
         """
         prt = lambda msg: print(msg, file=output)
-        prt(f"MobilitySet: name = {self.name}, lenght = {len(self.mobilities)}, hash = {self.hash}")
+        prt(f"MobilitySet: name = {self.name}, length = {len(self.mobilities)}, hash = {self.hash}")
         for m in self.mobilities:
             prt(f"  Mobility: name = {m.name:8s}, mask = 0x{m.mask:016x}, amask = 0x{m.amask:016x}")
 
@@ -172,10 +181,6 @@ class MobilitySet:
 
         N = positions.shape[0]
         L = len(self.mobilities)
-        
-        L1 = sum([e.n_instances for e in self.mobilities])
-        if L1 != L:
-            raise RuntimeError("Mobilities are designed to have n_instances equal to one!")
 
         m = positions['mover']
         o = positions['opponent']
@@ -240,58 +245,7 @@ def _numba_compute_indexes_kernel(lms: np.ndarray, alms: np.ndarray, masks: np.n
             lms_count = _numba_popcount64_kernel(lms_masked)
             alms_count = _numba_popcount64_kernel(alms_masked)
             
-            # Accumulate the final index value
-            indexes[i, j] = lms_count - alms_count + np.uint32(shifts[j])
+            # Accumulate the final index value. Order matters, we must avoid incurring in an underflow.
+            indexes[i, j] = lms_count + (np.uint32(shifts[j]) - alms_count)
             
     return indexes
-
-#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
-    
-def mobilities(lms: np.ndarray) -> np.ndarray:
-
-    mobs_def = {
-        'corners': 'A1',
-        'c_squares': 'B1',
-        'x_squares': 'B2',
-        'a_squares': 'C1',
-        'r2b_squares': 'C2',
-        'r2a_squares': 'D2',
-        'r3b_squares': 'C3',
-        'r3a_squares': 'D3',
-    }
-
-    get_uint64 = lambda sq: Bitboard(1) << square_from_str(sq)
-    mobs_sq_mask = {key: get_uint64(val) for key, val in mobs_def.items()}
-    mobs_8_masks = {key: bitboard_transformations(val) for key, val in mobs_sq_mask.items()}
-    mobs_1_mask = {
-        key: np.bitwise_or.reduce(bitboard_transformations(val))
-        for key, val in mobs_sq_mask.items()
-    }
-    mobs = {'full': 0xFFFFFFFFFFFFFFFF, **mobs_1_mask}
-
-    # Now in mobs I have a dictionary k:v where k is the string 'name' and v is the mobility mask.
-    df = pd.DataFrame(list(mobs.items()), columns=['name', 'mask'])
-    df['name'] = df['name'].astype(str)
-    df['mask'] = df['mask'].astype(np.uint64)
-    
-    masks_array = df['mask'].to_numpy()
-    
-    # 1. We use the bitwise AND between the input lms and the masks.
-    # We take advantage of broadcasting: 
-    # lms[:, None] transforms lms into (N, 1)
-    # masks_array is (9,)
-    # The result will be (N, 9)
-    intersections = lms[:, np.newaxis] & masks_array
-
-    # 2. Count the active bits (popcount) for each intersection.
-    # In Python/NumPy, the fastest way for bit_count on uint64:
-    v_bit_count = np.vectorize(lambda x: int(x).bit_count())
-    mobs_values = v_bit_count(intersections).astype(np.int32)
-    
-    # 3. Create a temporary DataFrame for statistics
-    # Use the mask names defined in your original df
-    mobs_df = pd.DataFrame(mobs_values, columns=df['name'].values)
-    
-    return mobs_df
-
-

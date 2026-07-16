@@ -84,7 +84,7 @@ class TestFeature(unittest.TestCase):
         self.assertIsNotNone(f)
         self.assertEqual(f.category, Feature.Category.MOBILITY)
         self.assertEqual(f.name, "LMC")
-        self.assertEqual(f.n_configurations, 64)
+        self.assertEqual(f.n_configurations, 65)
         self.assertEqual(f.n_instances, 1)
         self.assertIsNotNone(f.ref)
         self.assertEqual(f.ref, m)
@@ -166,7 +166,7 @@ class TestFeatureSet(unittest.TestCase):
         self.assertIn("    04 name = R3        , mask = 0x0000000000FF0000", actual_output)
         self.assertIn("  Features: [<i>, <category>, <name>, <n_instances>, <n_configurations>]", actual_output)
         self.assertIn("    00 0 INTERCEPT  1          1", actual_output)
-        self.assertIn("    01 1 ALMC       1         64", actual_output)
+        self.assertIn("    01 1 ALMC       1         65", actual_output)
         self.assertIn("    04 2 2X5COR     8     59,049", actual_output)
         self.assertIn("    16 2 DIAG8      2      6,561", actual_output)
 

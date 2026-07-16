@@ -41,16 +41,24 @@
 #
 
 import unittest
-from unittest.mock import patch, mock_open, MagicMock
 
-from twolm.types import *
-from twolm.board import *
-from twolm.pattern import *
-from twolm.mobility import *
-from twolm.rlmwf import *
+from twolm.board import (Bitboard,
+                         Position,
+                         bitboard_count,
+                         bitboard_from_signed_int,
+                         make_position,
+                         legal_moves)
+
+from twolm.pattern import Index
+
+from twolm.mobility import (Mobility, MobilitySet,
+                            popcount64)
+
+from twolm.rlmwf import ReversiLogisticModel
+
+from twolm.types import Verbosity
 
 import numpy as np
-import numpy.typing as npt
 import numpy.testing as nptest
 
 import pandas as pd
@@ -60,12 +68,8 @@ import time
 import os
 import tempfile
 import shutil
-import csv
 import hashlib
 
-from typing import Callable, TypeAlias, List
-
-import pydantic
 from pydantic import ValidationError
 
 
@@ -74,13 +78,22 @@ class TestMobility(unittest.TestCase):
 
     def test_init(self):
         m = Mobility('LMC', Bitboard(0xFFFFFFFFFFFFFFFF), Bitboard(0x0000000000000000))
-        self.assertEqual(m, m)
+        self.assertEqual(m.name, 'LMC')
+        self.assertEqual(m.mask, Bitboard(0xFFFFFFFFFFFFFFFF))
+        self.assertEqual(m.amask, Bitboard(0x0000000000000000))
+        self.assertEqual(m.n_configurations, 65) # 64 + 0 + 1
         
         m = Mobility('ALMC', Bitboard(0x0000000000000000), Bitboard(0xFFFFFFFFFFFFFFFF))
-        self.assertEqual(m, m)
+        self.assertEqual(m.name, 'ALMC')
+        self.assertEqual(m.mask, Bitboard(0x0000000000000000))
+        self.assertEqual(m.amask, Bitboard(0xFFFFFFFFFFFFFFFF))
+        self.assertEqual(m.n_configurations, 65) # 64 + 0 + 1
         
         m = Mobility('DLMC', Bitboard(0xFFFFFFFFFFFFFFFF), Bitboard(0xFFFFFFFFFFFFFFFF))
-        self.assertEqual(m, m)
+        self.assertEqual(m.name, 'DLMC')
+        self.assertEqual(m.mask, Bitboard(0xFFFFFFFFFFFFFFFF))
+        self.assertEqual(m.amask, Bitboard(0xFFFFFFFFFFFFFFFF))
+        self.assertEqual(m.n_configurations, 129) # 64 + 64 + 1
 
     def test_init_invalid_type_arg_1_raises_assertion(self):
         with self.assertRaises(ValidationError):
@@ -102,6 +115,13 @@ class TestMobility(unittest.TestCase):
             actual_output = buffer.getvalue()
         self.assertEqual(actual_output, expected_output)
 
+    def test_n_configurations_calculation(self):
+        """Tests that n_configurations correctly includes the zero-state (+1)."""
+        # mask has 2 bits set, amask has 3 bits set.
+        # 0 moves, 1 move, 2 moves + 0 anti, 1 anti, 2 anti, 3 anti = 6 total states
+        m = Mobility('TEST_CFG', Bitboard(0x0000000000000003), Bitboard(0x0000000000000007))
+        self.assertEqual(m.n_configurations, 6) # 2 + 3 + 1
+        
 class TestMobilitySet(unittest.TestCase):
 
     def setUp(self):
@@ -233,7 +253,7 @@ class TestMobilitySet(unittest.TestCase):
 
         expected_hash = ms.hash
         expected_output = [
-            'MobilitySet: name = Test, lenght = 3, hash = {}',
+            'MobilitySet: name = Test, length = 3, hash = {}',
             '  Mobility: name = ALMC    , mask = 0x0000000000000000, amask = 0xffffffffffffffff',
             '  Mobility: name = LMC     , mask = 0xffffffffffffffff, amask = 0x0000000000000000',
             '  Mobility: name = DLMC    , mask = 0xffffffffffffffff, amask = 0xffffffffffffffff'
@@ -352,126 +372,65 @@ class TestMobilitySet(unittest.TestCase):
             err_msg="Vectorized popcount computation mismatch on element-by-element verification"
         )
 
-#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### 
-
-
-class TestRLMFeaturesMobilities(unittest.TestCase):
-
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
-    def test_mobilities(self):
-
-        size = 1
-        mask = np.uint64(0x0000000000000001)
-        lms = np.full(size, mask, dtype=np.uint64)
-        ms = mobilities(lms)
-
-class TestRLMFeaturesMobilities1M(unittest.TestCase):
-
-    def setUp(self):
-        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
-        self.json_config = 'py/twolm/test/data/rlm_00.json'
-        self.rlm = ReversiLogisticModel(self.json_config,
-                                        verbosity=Verbosity.LOW,
-                                        base_dir_override=self.tmp_dir)
-        self.assertEqual(self.rlm.current_level.value, 0)
-        self.assertEqual(self.rlm.current_level.name, 'CREATED')
-        self.rlm.move_to_level('CONFIG')
-        self.assertEqual(self.rlm.current_level.value, 1)
-        self.assertEqual(self.rlm.current_level.name, 'CONFIG')
-        self.rlm.move_to_level('POSITIONS')
-        self.assertEqual(self.rlm.current_level.value, 2)
-        self.assertEqual(self.rlm.current_level.name, 'POSITIONS')
-
-    def tearDown(self):
-        if False:
-            os.system(f"ls -l {self.tmp_dir}")
-        shutil.rmtree(self.tmp_dir)
-
-    @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
-    def test_mobilities(self):
+    def test_compute_indexes_prevents_underflow(self):
+        """
+        Blinds the Numba kernel against 32-bit integer underflows.
+        If alms_count > lms_count, the register must not wrap around to ~4 billion.
+        """
+        # Create a situation where opponent has moves, but mover has ZERO moves in the mask.
+        # mask = 0x000000000000000F (A1, B1, C1, D1)
+        # amask = 0x000000000000000F (same squares)
         
-        is_print_on = False
-        cond_print = lambda msg: print(msg) if is_print_on else None
+        ml = [
+            Mobility('UNDERFLOW_TEST', Bitboard(0x000000000000000F), Bitboard(0x000000000000000F))
+        ]
+        ms = MobilitySet('UnderflowSet', ml)
         
-        movers = self.rlm.positions['mover']
-        opponents = self.rlm.positions['opponent']
-        gv = self.rlm.game_values
-
-        lms = legal_moves(movers, opponents)
-        cond_print("")
-        cond_print(f"len(lms) = {len(lms)}")
+        # Craft a board where mover has NO legal moves on A1-D1, but opponent has ONE.
+        # Let's put mover on E1 (4), opponent on F1 (5), G1 (6), H1 (7).
+        # Mover legal moves will be 0x0000000000000000 (no valid flips possible).
+        # Opponent legal moves will be 0x0000000000000008 (D1).
+        mover = Bitboard(0x0000000000000010) # E1
+        opponent = Bitboard(0x00000000000000E0) # F1, G1, H1
+        pos = make_position(mover, opponent)
+        positions = np.full(1, pos)
         
-        ms = mobilities(lms)
+        indexes = ms.compute_indexes(positions)
+        
+        # lms_count = 0
+        # alms_count = 1 (bits D1 intersecting the mask)
+        # shifts = 4 (popcount of amask)
+        # Expected formula: 0 + (4 - 1) = 3
+        expected_index = 3
+        self.assertEqual(indexes[0, 0], expected_index)
 
-        ms['game_value'] = gv
-        # Calculation of global statistics for game_value
-        global_stats = ms['game_value'].agg(['min', 'max', 'mean', 'std', 'var'])
+    def test_init_empty_list(self):
+        """Test that initializing MobilitySet with an empty list works correctly."""
+        ms = MobilitySet('EmptySet', [])
+        
+        self.assertEqual(ms.name, 'EmptySet')
+        self.assertEqual(len(ms.mobilities), 0)
+        self.assertEqual(ms.names(), [])
+        
+        # Verify masks is an empty 2D array with shape (0, 2) and correct dtype
+        masks = ms.masks()
+        self.assertEqual(masks.shape, (0, 2))
+        self.assertEqual(masks.dtype, Bitboard)
+        
+        # Verify the hash matches an empty byte string (SHA256 of b'')
+        expected_hash = hashlib.sha256(b'').hexdigest()
+        self.assertEqual(ms.hash, expected_hash)
 
-        cond_print("--- GLOBAL GAME_VALUE STATISTICS ---")
-        cond_print(global_stats)
-        cond_print(f"{ms}")
-
-        # Let's assume your dataframe is called 'ms'
-        # Define the mobility columns (all except game_value)
-        mobility_columns = [col for col in ms.columns if col != 'game_value']
-
-        cond_print("--- GAME_VALUE ANALYSIS FOR MOBILITY LEVELS ---")
-
-        for col in mobility_columns:
-            # Group by the mask value (0, 1, 2...) 
-            # and calculate statistics on game_value
-            stats = ms.groupby(col)['game_value'].agg(['min', 'max', 'mean', 'std', 'var', 'count'])
-    
-            # Rename for clarity
-            stats.columns = ['MIN_GV', 'MAX_GV', 'AVG_GV', 'STD_GV', 'VAR_GV', 'SAMPLES']
-    
-            cond_print(f"\nAnalysis for: {col}")
-            # Format for readable print
-            cond_print(stats.to_string(formatters={
-                'AVG_GV': '{:,.2f}'.format,
-                'STD_GV': '{:,.2f}'.format,
-                'VAR_GV': '{:,.2f}'.format
-            }))
-            cond_print("-" * 50)
-
-        ############ Anti-Mobility ############
-        cond_print(f"############ Anti-Mobility ############")
-
-        lms = legal_moves(opponents, movers)        
-        ms = mobilities(lms)
-        ms['game_value'] = gv
-        # Calculation of global statistics for game_value
-        global_stats = ms['game_value'].agg(['min', 'max', 'mean', 'std', 'var'])
-
-        cond_print("--- STATISTICHE GLOBALI GAME_VALUE ---")
-        cond_print(global_stats)
-        cond_print(f"{ms}")
-
-
-        # Let's assume your dataframe is called 'ms'
-        # Define the mobility columns (all except game_value)
-        mobility_columns = [col for col in ms.columns if col != 'game_value']
-
-        cond_print("--- GAME_VALUE ANALYSIS FOR MOBILITY LEVELS ---")
-
-        for col in mobility_columns:
-            # Group by the mask value (0, 1, 2...) 
-            # and calculate statistics on game_value
-            stats = ms.groupby(col)['game_value'].agg(['min', 'max', 'mean', 'std', 'var', 'count'])
-    
-            # Rename for clarity
-            stats.columns = ['MIN_GV', 'MAX_GV', 'AVG_GV', 'STD_GV', 'VAR_GV', 'SAMPLES']
-    
-            cond_print(f"\nAnalysis for: {col}")
-            # Format for readable print
-            cond_print(stats.to_string(formatters={
-                'AVG_GV': '{:,.2f}'.format,
-                'STD_GV': '{:,.2f}'.format,
-                'VAR_GV': '{:,.2f}'.format
-            }))
-            cond_print("-" * 50)
+    def test_compute_indexes_empty_positions(self):
+        """Test that computing indexes on an empty position array returns an empty (0, L) array."""
+        # Use the standard setup data (3 mobilities)
+        ms = MobilitySet('EmptyPosTest', self.mlf(self.mobility_set_data))
+        
+        # Create an empty structured array matching PositionArray dtype
+        positions = np.array([], dtype=Position)
+        
+        indexes = ms.compute_indexes(positions)
+        
+        L = len(ms.mobilities) # Should be 3
+        self.assertEqual(indexes.shape, (0, L))
+        self.assertEqual(indexes.dtype, Index)
