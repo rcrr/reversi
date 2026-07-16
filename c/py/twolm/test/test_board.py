@@ -244,15 +244,6 @@ class TestMove(unittest.TestCase):
 
 class TestBitboardFromSignedInt(unittest.TestCase):
 
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
-    def test_dummy(self):
-        self.assertEqual(True, True)
-
     def test_numpy_array_conversion(self):
         """Should convert np.int64 array to np.uint64 array by reinterpreting bits."""
         arr_in = np.array([-1, -2, 0, 1], dtype=np.int64)
@@ -1015,6 +1006,25 @@ class TestPositionCreation(unittest.TestCase):
         # The underlying structured array changes without reassignment
         self.assertEqual(positions[0]['mover'], new_bitboard)
 
+    def test_make_position_2d_array(self):
+        """Test creating a 2D PositionArray from 2D NumPy arrays."""
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000002)
+        
+        # Create 2x3 grids of bitboards
+        m_2d = np.array([[mover, mover, mover], 
+                         [mover, mover, mover]], dtype=Bitboard)
+        o_2d = np.array([[opponent, opponent, opponent], 
+                         [opponent, opponent, opponent]], dtype=Bitboard)
+        
+        positions = make_position(m_2d, o_2d)
+        
+        self.assertIsInstance(positions, np.ndarray)
+        self.assertEqual(positions.dtype, Position)
+        # 2D input must yield a 2D structured array output
+        self.assertEqual(positions.shape, (2, 3)) 
+        self.assertEqual(positions[1, 2]['mover'], mover)
+
 class TestPositionEq(unittest.TestCase):
 
     def test_position_eq_scalar_true(self):
@@ -1207,6 +1217,22 @@ class TestPositionEmpties(unittest.TestCase):
         print(f"\n[PERF position_empties] Processed {N:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
 
         np.testing.assert_array_equal(computed, expected)
+
+    def test_position_array_pydantic_2d_coercion(self):
+        """Test that Pydantic coerces a 2D uint64 array into a 1D PositionArray."""
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000002)
+        
+        # Raw 2D array of shape (2, 2) representing 2 positions
+        raw_2d_data = np.array([[mover, opponent], 
+                                [mover, opponent]], dtype=np.uint64)
+        
+        # Pass to a function expecting PositionField | PositionArray
+        empties = position_empties(raw_2d_data)
+        
+        # The Pydantic validator should reshape it to a 1D array of length 2
+        self.assertEqual(empties.shape, (2,))
+        self.assertEqual(empties.dtype, Bitboard)
 
 class TestPositionLegalMoves(unittest.TestCase):
 
@@ -1754,6 +1780,18 @@ class TestPositionMakeMove(unittest.TestCase):
         updated = position_make_move(position, move)
         self.assertEqual(updated, expected_updated)
 
+    def test_position_make_move_illegal_returns_none(self):
+        """Test that making an illegal move (not a pass) returns None."""
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000002)
+        p = make_position(mover, opponent)
+        
+        # E3 (square 20) is not a legal move for this specific board setup
+        illegal_move = move_from_str('E3')
+        result = position_make_move(p, illegal_move)
+        
+        self.assertIsNone(result)
+
 class TestPositionCountDifference(unittest.TestCase):
 
     def test_position_count_difference(self):
@@ -1838,15 +1876,31 @@ class TestPositionIsMoveLegal(unittest.TestCase):
         move = Move(64)
         self.assertTrue(position_is_move_legal(position, move))
 
+    def test_position_is_move_legal_pass_when_moves_available(self):
+        """Test that PASS is illegal if the player has standard legal moves."""
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000002)
+        p = make_position(mover, opponent)
+        
+        # Player has legal moves (e.g., C1), so PASS must be False
+        self.assertFalse(position_is_move_legal(p, move_from_str('PA')))
+
+    def test_position_is_move_legal_pass_when_no_moves_available(self):
+        """Test that PASS is legal if the player has absolutely no legal moves."""
+        # A1 is mover, H8 is opponent. Mover has no adjacent opponents, so 0 legal moves.
+        mover = Bitboard(0x0000000000000001)  # A1
+        opponent = Bitboard(0x8000000000000000)  # H8
+        p = make_position(mover, opponent)
+        
+        # Player has NO legal moves, so PASS must be True
+        self.assertTrue(position_is_move_legal(p, move_from_str('PA')))
+
 class TestPositionTrFunctions(unittest.TestCase):
 
     def setUp(self):
         mover = bitboard_from_signed_int(np.int64(4611717676283199524))
         opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
         self.p = make_position(mover, opponent)
-
-    def tearDown(self):
-        pass
 
     def test_position_fa1h8(self):
         trp = position_fa1h8(self.p)
