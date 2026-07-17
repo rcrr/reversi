@@ -53,7 +53,7 @@ import tempfile
 
 from pathlib import Path
 
-from twolm.types import Verbosity, Relevance
+from twolm.enums import Verbosity, Relevance
 from twolm.rlmwf import ReversiLogisticModel
 
 class TestReversiLogisticModelLevel(unittest.TestCase):

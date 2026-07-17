@@ -53,7 +53,7 @@ import tempfile
 
 from pathlib import Path
 
-from twolm.types import *
+from twolm.enums import Verbosity
 from twolm.rlmwf import *
 
 class TestRLMPositionsWorker(unittest.TestCase):

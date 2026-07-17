@@ -40,7 +40,7 @@ from pathlib import Path
 
 import csv
 
-from twolm.types import Relevance, Verbosity
+from twolm.enums import Relevance, Verbosity
 from twolm.rlm_created_worker import RLMCreatedWorker
 from twolm.rlm_config_worker import RLMConfigWorker
 from twolm.rlm_positions_worker import RLMPositionsWorker

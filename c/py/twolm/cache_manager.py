@@ -36,7 +36,7 @@ import hashlib
 from pathlib import Path
 from typing import Any, Callable, TypeVar
 
-from twolm.types import *
+from twolm.enums import Relevance
 
 
 

@@ -48,7 +48,7 @@ from twolm.cache_manager import (
     _delete_cache_files,
     SHA3_256_CHECKSUM_SUFFIX,
 )
-from twolm.types import Relevance
+from twolm.enums import Relevance
 
 
 #: A constant dummy payload to simulate computed/cached data

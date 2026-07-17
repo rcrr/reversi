@@ -1,5 +1,5 @@
 #
-# types.py
+# enums.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi

@@ -56,7 +56,7 @@ from twolm.mobility import (Mobility, MobilitySet,
 
 from twolm.rlmwf import ReversiLogisticModel
 
-from twolm.types import Verbosity
+from twolm.enums import Verbosity
 
 import numpy as np
 import numpy.testing as nptest

@@ -48,7 +48,7 @@ import json5
 import tempfile
 import shutil
 
-from twolm.types import Verbosity
+from twolm.enums import Verbosity
 from twolm.rlmwf import ReversiLogisticModel
 
 from pathlib import Path

@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     from twolm.rlmwf import ReversiLogisticModel
 
 from twolm.rlm_abstract_worker import ReversiLogisticModelWorker
-from twolm.types import Relevance
+from twolm.enums import Relevance
 
 from twolm.regab import (
     RegabDataSet, 

@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 
 from twolm.rlm_abstract_worker import  ReversiLogisticModelWorker
 
-from twolm.types import *
+from twolm.enums import Relevance
 
 
 

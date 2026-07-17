@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     from twolm.rlmwf import ReversiLogisticModel
 
 from twolm.rlm_abstract_worker import ReversiLogisticModelWorker
-from twolm.types import Relevance
+from twolm.enums import Relevance
 from twolm.rlm_indexes import (ReversiLogisticModelIndexes,
                                rlm_indexes_load_from_file,
                                rlm_indexes_store_to_file,
