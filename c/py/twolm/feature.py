@@ -27,7 +27,7 @@
 
 from __future__ import annotations
 
-from typing import Self, TypeAlias, List, Tuple, Union, IO, Annotated
+from typing import Self, TypeAlias, List, Tuple, Union, IO, Annotated, Any
 
 from dataclasses import dataclass, field
 
@@ -37,9 +37,12 @@ import io
 
 from enum import IntEnum
 
-from twolm.board import *
-from twolm.pattern import *
-from twolm.mobility import *
+from twolm.board import PositionArray
+
+from twolm.pattern import (Pattern, PatternSet,
+                           Index, IndexArray)
+
+from twolm.mobility import (Mobility, MobilitySet)
 
 import numpy as np
 
@@ -75,6 +78,7 @@ class Feature:
         MOBILITY  = 1
         PATTERN   = 2
 
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __new__(cls, *args: Any, **kwargs: Any) -> Self:
         """
         Blocks the client to create new instances of feature via the Feature() call.
@@ -85,7 +89,8 @@ class Feature:
         )
 
     @classmethod
-    def _create_empty(cls) -> Feature:
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def _create_empty(cls) -> Self:
         """
         Internal utility method used to bypass the block in calling __init__.
         """
@@ -151,14 +156,14 @@ class Feature:
 class FeatureSet:
     """
     The FeatureSet class represents a collection of Feature objects.
-    Intercept is kept directly, mobilities and patetrns are grouped into
-    a MobilitySet and a PatternSet rispectively.
+    Intercept is kept directly, mobilities and patterns are grouped into
+    a MobilitySet and a PatternSet respectively.
 
     Attributes:
     name (str): A human-readable label for the set of features.
     hash (str): A SHA256 hash of the intercept, mset, and pset attributes, serving as a unique identifier for the set.
     intercept (Feature | None): The intercept feature or none.
-    mset (MobilitySet | None): The set of mobility objecs.
+    mset (MobilitySet | None): The set of mobility objects.
     pset (PatternSet | None): The set of Pattern objects.
     features (List[Feature]): A list of Feature objects, orderly collecting the intercept, the mobilities and the patterns.
     n_instances (int): Sum of all n_instances collected from each feature.
@@ -178,7 +183,7 @@ class FeatureSet:
         """
         
         if intercept and intercept.category is not Feature.Category.INTERCEPT:
-            error_msg = f"Argument intercept is a feature having the wrong category {intercept.Category}."
+            error_msg = f"Argument intercept is a feature having the wrong category {intercept.category}."
             raise ValueError(error_msg)
 
         self.name = name
@@ -218,23 +223,23 @@ class FeatureSet:
         The summary includes the name, hash, and basic feature information.
         """
         prt = lambda msg: print(msg, file=output)
-        prt(f"FeatureSet: name = {self.name}, lenght = {len(self.features)}, hash = {self.hash}")
+        prt(f"FeatureSet: name = {self.name}, length = {len(self.features)}, hash = {self.hash}")
         if self.intercept:
             prt(f"  Intercept is present.")
         else:
-            prt(f"  Intercept in None.")
+            prt(f"  Intercept is None.")
         if self.mset:
             prt(f"  MobilitySet: name = {self.mset.name}, hash = {self.mset.hash}")
             for i, m in enumerate(self.mset.mobilities):
                 prt(f"    {i:02d} name = {m.name:10s}, mask = 0x{m.mask:016X}, amask = 0x{m.amask:016X}")
         else:
-            prt(f"  MobilitySet is None")
+            prt(f"  MobilitySet is None.")
         if self.pset:
-            prt(f"  MobilitySet: name = {self.pset.name}, hash = {self.pset.hash}")
+            prt(f"  PatternSet: name = {self.pset.name}, hash = {self.pset.hash}")
             for i, p in enumerate(self.pset.patterns):
                 prt(f"    {i:02d} name = {p.name:10s}, mask = 0x{p.mask:016X}")
         else:
-            prt(f"  PatternSet is None")
+            prt(f"  PatternSet is None.")
         prt(f"  Features: [<i>, <category>, <name>, <n_instances>, <n_configurations>]")
         for i, f in enumerate(self.features):
             prt(f"    {i:02d} {f.category} {f.name:10s} {f.n_instances} {f.n_configurations:10,d}")

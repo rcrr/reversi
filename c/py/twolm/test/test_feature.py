@@ -41,12 +41,12 @@
 #
 
 import unittest
-from unittest.mock import patch, mock_open, MagicMock
 
-from twolm.board import *
-from twolm.feature import *
-from twolm.mobility import *
-from twolm.pattern import *
+from twolm.board import (Bitboard,
+                         make_position)
+from twolm.feature import Feature, FeatureSet
+from twolm.mobility import Mobility, MobilitySet
+from twolm.pattern import Pattern, PatternSet, Index
 
 import numpy as np
 import numpy.typing as npt
@@ -158,17 +158,28 @@ class TestFeatureSet(unittest.TestCase):
             feature_set.print_summary(output=buffer)
             actual_output = buffer.getvalue()
 
-        self.assertIn("FeatureSet: name = TestFeatureSet, lenght = 17, hash = bc8897b689ed90c5a6e9440fa9766a8f763d5ff0a8661550f48b45eaff01ebec", actual_output)
+        self.assertIn("FeatureSet: name = TestFeatureSet, length = 17, hash = bc8897b689ed90c5a6e9440fa9766a8f763d5ff0a8661550f48b45eaff01ebec", actual_output)
         self.assertIn("  Intercept is present.", actual_output)
         self.assertIn("  MobilitySet: name = TestMobilitySet, hash = cee59abd002aefce5dbdc545629111e2975fc2ea278e66ffa4e22571560d5f34", actual_output)
         self.assertIn("    00 name = ALMC      , mask = 0x0000000000000000, amask = 0xFFFFFFFFFFFFFFFF", actual_output)
-        self.assertIn("  MobilitySet: name = TestPatternSet, hash = f48dbd6313cf8ccbc72d46f56566b06d159560a0c4ebf7f81310756890ca2a1f", actual_output)
+        self.assertIn("  PatternSet: name = TestPatternSet, hash = f48dbd6313cf8ccbc72d46f56566b06d159560a0c4ebf7f81310756890ca2a1f", actual_output)
         self.assertIn("    04 name = R3        , mask = 0x0000000000FF0000", actual_output)
         self.assertIn("  Features: [<i>, <category>, <name>, <n_instances>, <n_configurations>]", actual_output)
         self.assertIn("    00 0 INTERCEPT  1          1", actual_output)
         self.assertIn("    01 1 ALMC       1         65", actual_output)
         self.assertIn("    04 2 2X5COR     8     59,049", actual_output)
         self.assertIn("    16 2 DIAG8      2      6,561", actual_output)
+
+    def test_init_invalid_intercept_category_raises_value_error(self):
+        """Test that passing a non-INTERCEPT feature as the intercept argument raises ValueError."""
+        # Create a valid Mobility feature
+        m = Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF), Bitboard(0x0000000000000000))
+        wrong_intercept = Feature.new_from_mobility(m)
+        
+        with self.assertRaises(ValueError) as context:
+            FeatureSet('WrongInterceptSet', wrong_intercept, self.mset, self.pset)
+            
+        self.assertIn("wrong category", str(context.exception))
 
 class TestFeatureSetComputeIndexes(unittest.TestCase):
 

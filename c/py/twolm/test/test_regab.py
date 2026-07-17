@@ -40,16 +40,22 @@
 # time PERF=0 PYTHONPATH="./py" python3 -m unittest twolm.test.test_regab
 #
 
+
 import unittest
 from unittest.mock import patch, mock_open, MagicMock
 
-from twolm.board import *
-from twolm.regab import *
+from twolm.board import Bitboard, make_position
+from twolm.regab import (RegabDBConnection,
+                         RegabDataSet,
+                         GameValue,
+                         regab_gp_as_df,
+                         regab_extract_data_set_from_db,
+                         regab_store_data_set_to_file,
+                         regab_load_data_set_from_file)
 
 import numpy as np
 import numpy.typing as npt
 import numpy.testing as nptest
-
 import pandas as pd
 
 import io
@@ -60,10 +66,7 @@ import shutil
 import itertools
 
 from typing import Callable, TypeAlias, List
-
-import pydantic
 from pydantic import ValidationError
-
 from dotenv import load_dotenv
 
 
@@ -151,6 +154,19 @@ class TestRegabGPAsDF(BaseTestCase):
         # Checks that the resulting DataFrame is not empty
         self.assertFalse(df.empty, "The resulting DataFrame is empty.")
 
+    def test_valid_query_construction_all_defaults(self):
+        """
+        Tests that the SQL query is constructed correctly with valid parameters.
+        """
+        bid = [7]
+        status = ['CMS', 'CMR']
+        ec = 10
+
+        df = regab_gp_as_df(self.rc, bid, status, ec)
+
+        # Checks that the resulting DataFrame is not empty
+        self.assertFalse(df.empty, "The resulting DataFrame is empty.")
+
     def test_invalid_bid(self):
         """
         Tests that an exception is raised for an invalid bid value.
@@ -176,22 +192,43 @@ class TestRegabGPAsDF(BaseTestCase):
         """
         Tests that an exception is raised for an invalid limit value.
         """
-        with self.assertRaises((TypeError, ValueError)):
-            regab_gp_as_df(self.rc, 1, ['CMP'], 10, -1)
+        with self.assertRaises(ValueError):
+            regab_gp_as_df(self.rc, 1, ['CMP'], 10, limit=-1)
 
     def test_invalid_where(self):
         """
         Tests that an exception is raised for an invalid where value.
         """
         with self.assertRaises(ValidationError):
-            regab_gp_as_df(self.rc, 1, 'CMP', 10, 5, where=123)
+            regab_gp_as_df(self.rc, 1, 'CMP', 10, limit=5, where=123)
 
-    def test_invalid_fields(self):
+    def test_invalid_fields_wrong_string(self):
         """
         Tests that an exception is raised for an invalid fields value.
         """
         with self.assertRaises((ValueError)):
-            regab_gp_as_df(self.rc, [1], ['CMP'], 10, 5, fields='invalid_field')
+            regab_gp_as_df(self.rc, [1], ['CMP'], 10, limit=5, fields='invalid_field')
+
+    def test_invalid_fields_duplicated_entries(self):
+        """
+        Tests that an exception is raised for an invalid fields value.
+        """
+        with self.assertRaises((ValueError)):
+            regab_gp_as_df(self.rc, [1], ['CMP'], 10, limit=5, fields=['seq', 'seq'])
+
+    def test_invalid_fields_wrong_list(self):
+        """
+        Tests that an exception is raised for an invalid fields value.
+        """
+        with self.assertRaises((ValueError)):
+            regab_gp_as_df(self.rc, [1], ['CMP'], 10, limit=5, fields=['seq', 'not_valid_col_name'])
+
+    def test_invalid_fields_wrong_element_in_the_list(self):
+        """
+        Tests that an exception is raised for an invalid fields value.
+        """
+        with self.assertRaises((ValueError)):
+            regab_gp_as_df(self.rc, [1], ['CMP'], 10, limit=5, fields=['seq', 'game_value', 3])
 
     def test_all_fields(self):
         """
@@ -247,7 +284,9 @@ class TestRegabDataSet(BaseTestCase):
             'opponent': 'int64', 
             'game_value': 'int8'
         })
-
+        with self.assertRaises(ValidationError):
+            RegabDataSet(self.rc, bid, status, ec, df_mogv)
+            
     def test_invalid_bid_value(self):
         """
         Tests that a ValueError is raised if bid contains negative integers.
@@ -545,3 +584,50 @@ class TestRegabDataSetChecksum(BaseTestCase):
         # Attempt to load the dataset from the file with checksum verification
         with self.assertRaises(RuntimeError):
             regab_load_data_set_from_file(self.filename)
+
+
+class TestRegabDataSetFileLoadExceptions(unittest.TestCase):
+
+    def setUp(self):
+        # We just need a dummy filename string since we are mocking everything
+        self.filename = "dummy_file.bin"
+
+    @patch('twolm.binio.BinaryReader')
+    @patch('twolm.binio.verify_sha3_256_sidecar')
+    def test_load_invalid_file_description(self, mock_verify, mock_reader_cls):
+        """
+        Tests that loading a file with an incorrect 'description' header raises RuntimeError.
+        """
+        # 1. Bypass the checksum verification
+        mock_verify.return_value = True
+        
+        # 2. Mock the BinaryReader to return a wrong description, but correct version
+        mock_reader_instance = MagicMock()
+        mock_reader_instance.read_header.return_value = ("Wrong File Type", 1)
+        mock_reader_cls.return_value.__enter__.return_value = mock_reader_instance
+        
+        # 3. Assert the specific RuntimeError is raised
+        with self.assertRaises(RuntimeError) as context:
+            regab_load_data_set_from_file(self.filename)
+            
+        self.assertIn("not a proper", str(context.exception))
+
+    @patch('twolm.binio.BinaryReader')
+    @patch('twolm.binio.verify_sha3_256_sidecar')
+    def test_load_invalid_file_version(self, mock_verify, mock_reader_cls):
+        """
+        Tests that loading a file with an incorrect 'version' header raises RuntimeError.
+        """
+        # 1. Bypass the checksum verification
+        mock_verify.return_value = True
+        
+        # 2. Mock the BinaryReader to return correct description, but wrong version
+        mock_reader_instance = MagicMock()
+        mock_reader_instance.read_header.return_value = ("RegabDataSet binary data file", 99)
+        mock_reader_cls.return_value.__enter__.return_value = mock_reader_instance
+        
+        # 3. Assert the specific RuntimeError is raised
+        with self.assertRaises(RuntimeError) as context:
+            regab_load_data_set_from_file(self.filename)
+            
+        self.assertIn("version is not consistent", str(context.exception))

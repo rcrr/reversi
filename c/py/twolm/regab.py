@@ -27,22 +27,22 @@
 
 from __future__ import annotations
 
-from twolm.board import *
+from twolm.board import (Bitboard, PositionArray,
+                         make_position)
+
 from twolm import binio
 
 import psycopg2 as pg
 import pandas as pd
 import numpy as np
 import numpy.typing as npt
+import hashlib
+import inspect
 
 from pathlib import Path
-
-import hashlib
-import struct
-
-from typing import TypeAlias, Callable, Union, List, Annotated, Tuple, Type, Self
-
+from typing import TypeAlias, Callable, Union, List, Annotated, Tuple, Type, Self, Any
 from pydantic import validate_call, ConfigDict, BeforeValidator, AfterValidator, Field
+from pydantic.fields import FieldInfo
 from contextvars import ContextVar
 from functools import wraps
 
@@ -69,8 +69,6 @@ def _validate_game_value_array(v: Any) -> Any:
 
 # A Pydantic-compatible type hint for GameValue (np.int8) arrays.
 GameValueArray = Annotated[npt.NDArray[np.int8], BeforeValidator(_validate_game_value_array)]
-
-MAGIC_NUMBER = b"RLMRDS00"
 
 #: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
@@ -124,11 +122,6 @@ class RegabDBConnection:
             The password for the database connection. Default is None.
         activate_conn : bool, optional
             When False do not create the database connection.
-
-        Raises
-        ------
-        TypeError
-            If any of the arguments have an incorrect type.
         """
         self.dbname = dbname
         self.user = user
@@ -170,7 +163,7 @@ class RegabDBConnection:
 #: Here start the argument validation for the method: regab_gp_as_df
 
 #: Define a ContextVar to securely hold the database reference during validation
-rc_context: ContextVar[any] = ContextVar("rc_context", default=None)
+rc_context: ContextVar[Any] = ContextVar("rc_context", default=None)
 
 #: Update the validator to read directly from the ContextVar
 def _validate_db_fields(fields_input: Union[str, List[str], None]) -> List[str]:
@@ -203,6 +196,21 @@ def _validate_with_db_context(func):
     def wrapper(*args, **kwargs):
         # Dynamically extract 'rc' from positional or keyword parameters
         rc = kwargs.get('rc') if 'rc' in kwargs else (args[0] if args else None)
+        
+        # Use bind_partial to see what was ACTUALLY passed
+        sig = inspect.signature(func)
+        bound = sig.bind_partial(*args, **kwargs)
+        
+        # Inject ONLY the defaults for arguments that were completely omitted
+        for param_name, param in sig.parameters.items():
+            if param_name not in bound.arguments and param.default is not inspect.Parameter.empty:
+                default_val = param.default
+                
+                # HANDLE PYDANTIC V2: Extract the actual default if it's a FieldInfo object
+                if isinstance(default_val, FieldInfo):
+                    default_val = default_val.default
+                    
+                kwargs[param_name] = default_val
         
         # Set the context, execute the function, and reset it afterwards
         token = rc_context.set(rc)
@@ -240,7 +248,7 @@ def regab_gp_as_df(rc: RegabDBConnection,
                    bid: BidArgument,
                    status: StatusArgument,
                    ec: EcArgument,
-                   limit: Union[int, None] = None,
+                   limit: Union[int, None] = Field(default=None, ge=0),
                    where: Union[str, None] = None,
                    fields: FieldsArgument = None) -> pd.DataFrame:
     """
@@ -282,17 +290,6 @@ def regab_gp_as_df(rc: RegabDBConnection,
     pd.DataFrame
         A pandas DataFrame containing the filtered game positions.
 
-    Raises
-    ------
-    TypeError
-        If any of the arguments have an incorrect type.
-
-    ValueError
-        If any of the arguments have an invalid value.
-
-    Exception
-        If the SQL query execution fails due to an incorrect WHERE clause or other database-related issues.
-
     Notes
     -----
     - If the `fields` parameter is specified, it overrides the default columns.
@@ -301,17 +298,8 @@ def regab_gp_as_df(rc: RegabDBConnection,
     - If the `limit` parameter is specified, it limits the number of rows returned by the query.
     - The function may raise an Exception if the SQL query execution fails.
     """
-            
     bid_str = ', '.join([str(x) for x in bid])
     status_str = ', '.join(["'{}'".format(x) for x in status])
-    if limit:
-        if not isinstance(limit, int):
-            raise TypeError('Argument limit is not an instance of int')
-        if not limit >= 0:
-            raise ValueError('Argument limit must be equal or greather than zero')
-    if where:
-        if not isinstance(where, str):
-            raise TypeError('Argument where is not an instance of str')
     selection = ', '.join(fields)
     q = "SELECT {:s} FROM regab_prng_gp WHERE batch_id IN ({:s}) AND empty_count = {:d} AND status IN ({:s})".format(selection, bid_str, ec, status_str)
     if where:
@@ -388,13 +376,6 @@ class RegabDataSet:
             The empty count, must be in the range [0, 60].
         df_mogv : pd.DataFrame
             A DataFrame containing the game positions with columns 'mover', 'opponent', and 'game_value'.
-
-        Raises
-        ------
-        TypeError
-            If any of the arguments have an incorrect type.
-        ValueError
-            If any of the arguments have an invalid value.
         """
         self.rc: RegabDBConnection = rc
         self.bid: List[int]  = bid
@@ -404,11 +385,10 @@ class RegabDataSet:
         
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def generate_positions_and_game_values(self) -> Tuple[PositionArray, GameValueArray]:
-        pos_pd: pd.DataFrame = self.df_mogv
-        mover = pos_pd['mover'].to_numpy().view(Bitboard)
-        opponent = pos_pd['opponent'].to_numpy().view(Bitboard)
+        mover = self.df_mogv['mover'].to_numpy().view(Bitboard)
+        opponent = self.df_mogv['opponent'].to_numpy().view(Bitboard)
         positions = make_position(mover, opponent)
-        game_values = pos_pd['game_value'].to_numpy()
+        game_values = self.df_mogv['game_value'].to_numpy()
         return positions, game_values
 
 #: End of RegabDataSet class.
@@ -485,9 +465,9 @@ def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True) -
         # Read the file header info
         description, version = r.read_header()
         if description != expected_description:
-            ruise (RuntimeError, f"The file is not a proper {expected_description}.")
+            raise RuntimeError(f"The file is not a proper {expected_description}.")
         if version != 1:
-            raise (RuntimeError, f"The file version is not consistent, found {version}, expected {expected_version}")
+            raise RuntimeError(f"The file version is not consistent, found {version}, expected {expected_version}")
         
         # Read the connection data.
         dbname = r.read_string()
