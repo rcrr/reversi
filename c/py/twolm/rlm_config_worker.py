@@ -37,9 +37,9 @@ if TYPE_CHECKING:
 
 from twolm.rlm_abstract_worker import ReversiLogisticModelWorker
 
-from twolm.types import *
-from twolm.board import *
-from twolm.pattern import *
+from twolm.types import Relevance
+from twolm.board import (Bitboard,
+                         bitboard_from_hex_str)
 
 from pydantic import (BaseModel, Field, NonNegativeInt, field_validator, field_serializer,
                       ConfigDict, model_validator)
@@ -87,7 +87,7 @@ class PatternConfig(RLMBaseConfig):
     Configuration for a pattern, including its name and mask.
     """
     name: str
-    mask: Bitboard = Field(..., description="Pattern mask in HEX format, no 0x prefix, just 16 digits.")
+    mask: Bitboard = Field(..., description="A 64-bit hex string (16 hex digits), case-insensitive.")
  
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -224,7 +224,6 @@ def _validate_base_dir(model: ReversiLogisticModel,
 def _store_to_file(model: ReversiLogisticModel,
                    cfg: ReversiLogisticModelConfig):
 
-    sha3_256_hash = hashlib.sha3_256()
     config_json = cfg.model_dump_json(indent=4)
     current_checksum = hashlib.sha3_256(config_json.encode()).hexdigest()
     
