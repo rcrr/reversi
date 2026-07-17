@@ -35,14 +35,12 @@ from enum import IntEnum
 from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass
 from contextlib import contextmanager
-
 from typing import List, TypedDict, Any
 from pathlib import Path
 
 import csv
 
-from twolm.types import *
-
+from twolm.types import Relevance, Verbosity
 from twolm.rlm_created_worker import RLMCreatedWorker
 from twolm.rlm_config_worker import RLMConfigWorker
 from twolm.rlm_positions_worker import RLMPositionsWorker
@@ -53,8 +51,38 @@ from twolm.rlm_design_matrix_worker import RLMDesignMatrixWorker
 from twolm.rlm_zed_worker import RLMZedWorker
 from twolm.rlm_gradient_worker import RLMGradientWorker
 
+
+
 __all__ = ['ReversiLogisticModel']
 
+
+
+
+#
+# Helper methods.
+#
+
+def check_config_file_path(config_file_path: Path | str) -> Path:
+    if not isinstance(config_file_path, (str, Path)):
+        raise TypeError('Argument config_file_path is not an instance of str or Path')
+    cfp = Path(config_file_path)
+    if not cfp.exists():
+        raise FileNotFoundError(f"No such file: '{config_file_path}'")
+    if not cfp.is_file():
+        raise FileNotFoundError(f"File path is not a file: '{config_file_path}'")
+    return cfp
+
+def check_base_dir_override(base_dir_override: Path | str) -> Path:
+    if not isinstance(base_dir_override, (str, Path)):
+        raise TypeError('Argument base_dir_override is not an instance of str or Path')
+    bdo = Path(base_dir_override)
+    if not bdo.exists():
+        raise FileNotFoundError(f"No such file: '{base_dir_override}'")
+    if not bdo.is_dir():
+        raise NotADirectoryError(f"File path is not a directory: '{base_dir_override}'")
+    return bdo
+
+#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 class ReversiLogisticModel:
     """
@@ -101,15 +129,15 @@ class ReversiLogisticModel:
     """
     
     class Level(IntEnum):
-        CREATED    = ( 0, RLMCreatedWorker(), "Just created.")
-        CONFIG     = ( 1, RLMConfigWorker(), "Configuration has been loaded and validated.")
-        POSITIONS  = ( 2, RLMPositionsWorker(), "Game positions have been loaded.")
-        FEATURES   = ( 3, RLMFeaturesWorker(), "The feature set has been loaded.")
-        INDEXES    = ( 4, RLMIndexesWorker(), "Indexes for pattern configurations have been computed.")
-        WMAPS      = ( 5, RLMWmapsWorker(), "Weight maps have been computed.")
-        DESIGN_MTR = ( 6, RLMDesignMatrixWorker(), "The design matrix (X) has been computed.")
-        ZED        = ( 7, RLMZedWorker(), "Zed array calculated from the game values.")
-        GRADIENT   = ( 8, RLMGradientWorker(), "The loss function and the gradient array are generated.")
+        CREATED    = ( 0, RLMCreatedWorker, "Just created.")
+        CONFIG     = ( 1, RLMConfigWorker, "Configuration has been loaded and validated.")
+        POSITIONS  = ( 2, RLMPositionsWorker, "Game positions have been loaded.")
+        FEATURES   = ( 3, RLMFeaturesWorker, "The feature set has been loaded.")
+        INDEXES    = ( 4, RLMIndexesWorker, "Indexes for pattern configurations have been computed.")
+        WMAPS      = ( 5, RLMWmapsWorker, "Weight maps have been computed.")
+        DESIGN_MTR = ( 6, RLMDesignMatrixWorker, "The design matrix (X) has been computed.")
+        ZED        = ( 7, RLMZedWorker, "Zed array calculated from the game values.")
+        GRADIENT   = ( 8, RLMGradientWorker, "The loss function and the gradient array are generated.")
         OPTIMIZING = ( 9, None, "The model is ready for the optimization.")
 
         def __new__(cls, value, worker, description):
@@ -175,16 +203,16 @@ class ReversiLogisticModel:
         self.log_event(Relevance.DEBUG, "ReversiLogisticModel initialized.")
         
     def log_event(self, relevance: Relevance, message: str) -> None:
-        time = datetime.now(timezone.utc)
+        evt_time = datetime.now(timezone.utc)
         event = {
-            "time": time,
+            "time": evt_time,
             "level": self.current_level,
             "relevance": relevance,
             "message": message
         }
         self.logs.append(event)
         if relevance >= self.verbosity:
-            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+            timestamp = evt_time.strftime("%Y-%m-%d %H:%M:%S")
             print(f"[{timestamp}] [{self.current_level:02}][{self.current_level.name:10}] [{relevance}:{self.verbosity}] {message}")
         
     def show_event_log(self) -> None:
@@ -204,7 +232,7 @@ class ReversiLogisticModel:
             name = getattr(entry.level, 'name', str(entry.level))
             start_str = entry.start.strftime("%Y-%m-%d %H:%M:%S.%f")
             dur = entry.duration.total_seconds()
-            print(f"{name:<15} | {entry.direction:<5} | {start_str:<12} | {dur:>15.6f}")
+            print(f"{name:<15} | {entry.direction:<5} | {start_str:<26} | {dur:>15.6f}")
 
     def export_history_of_moves_as_csv(self, filename: str | Path) -> None:
         keys = ["level", "level_name", "direction", "start_utc", "finish_utc", "duration_sec"]
@@ -262,9 +290,10 @@ class ReversiLogisticModel:
             self.log_event(Relevance.WARN, f"No worker defined for level {level.name}")
             return
         try:
-            worker_name = level.worker.__class__.__name__
+            worker_instance = level.worker() 
+            worker_name = worker_instance.__class__.__name__
             self.log_event(Relevance.INFO, f"Starting worker {worker_name}, {direction.upper()} step for {level.name}")            
-            method = getattr(level.worker, direction)
+            method = getattr(worker_instance, direction)
             method(self)
             self.log_event(Relevance.INFO, f"Completed {direction.upper()} step for {level.name}")
         except Exception as e:
@@ -283,27 +312,3 @@ class ReversiLogisticModel:
     def get_cache_file_full_path_for_next_level(self) -> Path:
         fname = self.get_cache_file_path_for_next_level()
         return self.cfg.base_dir / fname
-
-#
-# Helper methods.
-#
-
-def check_config_file_path(config_file_path: Path | str) -> Path:
-    if not isinstance(config_file_path, (str, Path)):
-        raise TypeError('Argument config_file_path is not an instance of str or Path')
-    cfp = Path(config_file_path)
-    if not cfp.exists():
-        raise FileNotFoundError(f"No such file: '{config_file_path}'")
-    if not cfp.is_file():
-        raise FileNotFoundError(f"File path is not a file: '{config_file_path}'")
-    return cfp
-
-def check_base_dir_override(base_dir_override: Path | str) -> Path:
-    if not isinstance(base_dir_override, (str, Path)):
-        raise TypeError('Argument base_dir_override is not an instance of str or Path')
-    bdo = Path(base_dir_override)
-    if not bdo.exists():
-        raise FileNotFoundError(f"No such file: '{base_dir_override}'")
-    if not bdo.is_dir():
-        raise FileNotFoundError(f"File path is not a directory: '{base_dir_override}'")
-    return bdo
