@@ -74,6 +74,15 @@ __all__ = ['Square', 'SquareArray',
 #: Represents a reversi board square indexed from 0 (A1) to 63 (H8) as a uint8 scalar.
 Square: TypeAlias = np.uint8
 
+def validate_square_array(v: any) -> any:
+    """Validator to ensure a numpy array strictly uses uint8 dtype."""
+    if isinstance(v, np.ndarray) and v.dtype != np.uint8:
+        raise ValueError(f"Array dtype must be uint8, got {v.dtype}")
+    return v
+
+# A Pydantic-compatible type hint for Square (np.uint8) arrays.
+SquareArray = Annotated[npt.NDArray[np.uint8], BeforeValidator(validate_square_array)]
+
 __square_names__ = [
     'A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1',
     'A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2',
@@ -86,17 +95,6 @@ __square_names__ = [
 ]
 
 __square_max_value__ = len(__square_names__)
-
-def validate_square_array(v: any) -> any:
-    """Validator to ensure a numpy array strictly uses uint8 dtype."""
-    if isinstance(v, np.ndarray) and v.dtype != np.uint8:
-        raise ValueError(f"Array dtype must be uint8, got {v.dtype}")
-    return v
-
-# A Pydantic-compatible type hint for Square (np.uint8) arrays.
-SquareArray = Annotated[npt.NDArray[np.uint8], BeforeValidator(validate_square_array)]
-
-
 
 #: Moves are the actions during the game.
 #: On top of the 64 moves corresponding to fill a corresponding square with a disk,
