@@ -110,7 +110,7 @@ class TestLogisticModel(unittest.TestCase):
         """Test that the state machine is initialized at step 0 (CREATED)."""
         self.assertEqual(self.model.current_step, 0)
         self.assertEqual(self.model.current_worker_name, "CREATED")
-        self.assertEqual(len(self.model.sm.workers), 3)
+        self.assertEqual(len(self.model.sm.workers), 5)
 
     def test_move_to_step_delegates_to_state_machine(self):
         """Test that moving to a step triggers the correct mock worker."""

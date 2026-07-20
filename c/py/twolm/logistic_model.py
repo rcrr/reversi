@@ -42,9 +42,13 @@ from twolm.rlmwf import check_config_file_path, check_base_dir_override
 # Import worker factories
 from twolm.lm_worker_config import lm_worker_config
 from twolm.lm_worker_positions import lm_worker_positions
+from twolm.lm_worker_features import lm_worker_features
+from twolm.lm_worker_indexes import lm_worker_indexes
+
 
 
 __all__ = ['RLMContext', 'LogisticModel']
+
 
 
 @dataclass
@@ -113,6 +117,8 @@ class LogisticModel:
             Worker("CREATED", _created_up, _created_down),
             lm_worker_config(),
             lm_worker_positions(),
+            lm_worker_features(),
+            lm_worker_indexes(),
             # Next workers will be added here
         ]
 
