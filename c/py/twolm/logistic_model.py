@@ -25,7 +25,6 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
-
 # twolm/logistic_model.py
 from __future__ import annotations
 
@@ -34,10 +33,8 @@ from pathlib import Path
 from typing import List, Any, Callable
 
 from twolm.state_machine import StateMachine, Worker, Context
+from twolm.base_model import BaseModel
 from twolm.enums import Verbosity, Relevance
-
-# We import the helpers from rlmwf.py for now, to avoid duplicating logic
-from twolm.rlmwf import check_config_file_path, check_base_dir_override
 
 # Import worker factories
 from twolm.lm_worker_config import lm_worker_config
@@ -50,6 +47,32 @@ from twolm.lm_worker_indexes import lm_worker_indexes
 __all__ = ['RLMContext', 'LogisticModel']
 
 
+
+#
+# Helper methods.
+#
+
+def _check_config_file_path(config_file_path: Path | str) -> Path:
+    if not isinstance(config_file_path, (str, Path)):
+        raise TypeError('Argument config_file_path is not an instance of str or Path')
+    cfp = Path(config_file_path)
+    if not cfp.exists():
+        raise FileNotFoundError(f"No such file: '{config_file_path}'")
+    if not cfp.is_file():
+        raise FileNotFoundError(f"File path is not a file: '{config_file_path}'")
+    return cfp
+
+def _check_base_dir_override(base_dir_override: Path | str) -> Path:
+    if not isinstance(base_dir_override, (str, Path)):
+        raise TypeError('Argument base_dir_override is not an instance of str or Path')
+    bdo = Path(base_dir_override)
+    if not bdo.exists():
+        raise FileNotFoundError(f"No such file: '{base_dir_override}'")
+    if not bdo.is_dir():
+        raise NotADirectoryError(f"File path is not a directory: '{base_dir_override}'")
+    return bdo
+
+#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 @dataclass
 class RLMContext(Context):
@@ -90,7 +113,7 @@ def _created_down(ctx: RLMContext) -> None:
     raise RuntimeError("Cleaning created step should never happen.")
 
 
-class LogisticModel:
+class LogisticModel(BaseModel):
     """
     Facade for the Reversi Logistic Model pipeline.
     Orchestrates the state machine and the shared context.
@@ -101,19 +124,19 @@ class LogisticModel:
                  verbosity: Verbosity = Verbosity.STANDARD,
                  base_dir_override: str | Path | None = None):
         
-        # Validate paths using existing helpers
-        config_file_path = check_config_file_path(config_file_path)
+        # 1. Validate domain specific paths
+        config_file_path = _check_config_file_path(config_file_path)
         if base_dir_override is not None:
-            base_dir_override = check_base_dir_override(base_dir_override)
+            base_dir_override = _check_base_dir_override(base_dir_override)
 
-        # Initialize the shared context
-        self.context = RLMContext(
+        # 2. Initialize the shared context
+        context = RLMContext(
             config_file_path=config_file_path,
             base_dir_override=base_dir_override
         )
 
-        # Build the pipeline using the factory functions
-        self.workers: List[Worker] = [
+        # 3. Build the pipeline using the factory functions
+        workers: List[Worker] = [
             Worker("CREATED", _created_up, _created_down),
             lm_worker_config(),
             lm_worker_positions(),
@@ -122,40 +145,5 @@ class LogisticModel:
             # Next workers will be added here
         ]
 
-        # Initialize the generic State Machine
-        self.sm = StateMachine(
-            workers=self.workers,
-            context=self.context,
-            verbosity=verbosity
-        )
-
-    # --- Facade methods to interact with the State Machine ---
-
-    @property
-    def current_step(self) -> int:
-        return self.sm.current_step
-
-    @property
-    def current_worker_name(self) -> str:
-        return self.sm.current_worker_name
-
-    @property
-    def verbosity(self) -> Verbosity:
-        return self.sm.verbosity
-
-    @verbosity.setter
-    def verbosity(self, value: Verbosity) -> None:
-        self.sm.verbosity = value
-    
-    def move_to_step(self, target_step: int | str) -> None:
-        """Move the pipeline to the specified step."""
-        self.sm.move_to_step(target_step)
-
-    def show_event_log(self) -> None:
-        self.sm.show_event_log()
-
-    def show_history_of_moves(self) -> None:
-        self.sm.show_history_of_moves()
-
-    def export_history_of_moves_as_csv(self, filename: str | Path) -> None:
-        self.sm.export_history_of_moves_as_csv(filename)
+        # 4. Call the superclass constructor with the assembled parts
+        super().__init__(workers=workers, context=context, verbosity=verbosity)
