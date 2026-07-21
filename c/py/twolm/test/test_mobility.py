@@ -54,8 +54,6 @@ from twolm.pattern import Index
 from twolm.mobility import (Mobility, MobilitySet,
                             popcount64)
 
-from twolm.rlmwf import ReversiLogisticModel
-
 from twolm.enums import Verbosity
 
 import numpy as np
