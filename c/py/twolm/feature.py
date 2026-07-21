@@ -263,7 +263,7 @@ class FeatureSet:
         active_indexes = []
         
         if self.intercept:
-            active_indexes.append(np.ones((N, 1), dtype=Index))
+            active_indexes.append(np.zeros((N, 1), dtype=Index))
             
         if self.mset:
             active_indexes.append(self.mset.compute_indexes(positions))

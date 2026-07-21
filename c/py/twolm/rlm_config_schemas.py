@@ -27,8 +27,8 @@
 
 from __future__ import annotations
 
-
-from pydantic import (BaseModel, Field, NonNegativeInt, field_validator, field_serializer,
+from pydantic import (BaseModel, Field, PositiveInt, NonNegativeInt,
+                      field_validator, field_serializer,
                       ConfigDict, model_validator)
 
 from typing import List, Annotated, Optional, Any
@@ -134,6 +134,14 @@ class FeatureSetConfig(RLMBaseConfig):
     mobility_set: Optional[MobilitySetConfig] = None
     pattern_set: Optional[PatternSetConfig] = None
     
+class StatModelConfig(BaseModel):
+    """
+    Configuration for a statistical model, including the frequency cut-off threshold.
+    """
+    frequency_cut_off: PositiveInt = 1
+    logit_clipping: float = Field(default=0.05, gt=0, lt=0.5)
+    ridge_regularization: float = Field(default=0.00, ge=0.00)
+
 class ReversiLogisticModelConfig(RLMBaseConfig):
     """
     Configuration for the Reversi Logistic Model, including general settings,
@@ -145,4 +153,5 @@ class ReversiLogisticModelConfig(RLMBaseConfig):
     use_cache: bool = True
     regab_data_set: RegabDataSetConfig
     feature_set: FeatureSetConfig
+    stat_model: StatModelConfig
     

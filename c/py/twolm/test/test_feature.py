@@ -207,9 +207,9 @@ class TestFeatureSetComputeIndexes(unittest.TestCase):
         self.positions = make_position(ml, ol)
         
         expected_index_data = [
-            [ 1,  4, 515, 5993, 2375,   13, 12, 32,  4, 14 ],
-            [ 1,  8, 483,  110, 1517,   27, 29, 44, 41, 24 ],
-            [ 1, 15,   0,  612, 1945, 1093, 22, 22, 19, 22 ],
+            [ 0,  4, 515, 5993, 2375,   13, 12, 32,  4, 14 ],
+            [ 0,  8, 483,  110, 1517,   27, 29, 44, 41, 24 ],
+            [ 0, 15,   0,  612, 1945, 1093, 22, 22, 19, 22 ],
         ]
         self.expected_indexes = np.array(expected_index_data, dtype=Index)
         

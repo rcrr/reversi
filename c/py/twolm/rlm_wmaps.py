@@ -82,8 +82,7 @@ def rlm_wmaps_store_to_file(wmaps: ReversiLogisticModelWMaps, filename: str | Pa
     with binio.BinaryWriter(filename) as w:
         w.write_header(description, version)
         w.write_string(wmaps.feature_set_hash)
-        w.write_int(wmaps.cut_off)
-        
+        w.write_i32(wmaps.cut_off)
         w.write_array(wmaps.w_ranges)
         w.write_array(wmaps.iwmap_feature_offset)
         w.write_array(wmaps.iwmap)
@@ -110,7 +109,7 @@ def rlm_wmaps_load_from_file(filename: str | Path, checksum: bool = True) -> Rev
             raise RuntimeError(f"File version mismatch: found {version}, expected {expected_version}")
 
         feature_set_hash = r.read_string()
-        cut_off = r.read_int()
+        cut_off = r.read_i32()  # <-- CORRETTO QUI
         
         w_ranges = r.read_array()
         iwmap_feature_offset = r.read_array()
@@ -130,15 +129,20 @@ def rlm_wmaps_load_from_file(filename: str | Path, checksum: bool = True) -> Rev
         w=w
     )
 
-
 def rlm_wmaps_compute(ctx: "RLMContext") -> ReversiLogisticModelWMaps:
     """Computes WMaps based on feature frequencies and cut-off threshold."""
     cut_off = ctx.cfg.stat_model.frequency_cut_off
     features = ctx.feature_set.features
     
-    f_num_configurations = [f.n_configurations for f in features]
-    iwmap_feature_offset = np.array([0] + list(accumulate(f_num_configurations)), dtype=np.uint32)
-    K = iwmap_feature_offset[len(features)]
+    # Extract configurations and explicitly cast to uint32 to prevent uint8 overflow 
+    # from the underlying feature objects.
+    f_num_configurations = np.array([f.n_configurations for f in features], dtype=np.uint32)
+    
+    # Compute the offset array using numpy's cumulative sum
+    iwmap_feature_offset = np.zeros(len(features) + 1, dtype=np.uint32)
+    iwmap_feature_offset[1:] = np.cumsum(f_num_configurations)
+    
+    K = iwmap_feature_offset[-1]
     
     iwmap = np.full(K, -1, dtype=np.int64)
     pindexes = ctx.rlm_indexes.indexes
