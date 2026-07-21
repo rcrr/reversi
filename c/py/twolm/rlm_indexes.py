@@ -28,19 +28,16 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from twolm.rlmwf import ReversiLogisticModel
-
 from enum import IntEnum
+from typing import Protocol
+from pydantic import validate_call, ConfigDict, BeforeValidator, AfterValidator, Field
+from pathlib import Path
+from twolm import binio
 
 from twolm.pattern import IndexArray
 
-from typing import Protocol
-
-from pydantic import validate_call, ConfigDict, BeforeValidator, AfterValidator, Field
-
-from pathlib import Path
-from twolm import binio
+if TYPE_CHECKING:
+    from twolm.logistic_model import RLMContext
 
 
 
@@ -139,23 +136,23 @@ def rlm_indexes_load_from_file(
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
 def rlm_indexes_compute(
-        model: ReversiLogisticModel
+        ctx: RLMContext
 ) -> ReversiLogisticModelIndexes:
     """Computes model indexes."""
-    feature_set_hash = model.feature_set.hash
-    indexes = model.feature_set.compute_indexes(model.positions)
+    feature_set_hash = ctx.feature_set.hash
+    indexes = ctx.feature_set.compute_indexes(ctx.positions)
     rlm_indexes = ReversiLogisticModelIndexes(feature_set_hash, indexes)
     return rlm_indexes
 
 
 def rlm_indexes_is_cache_consistent(
-        model: ReversiLogisticModel,
+        ctx: RLMContext,
         rlm_indexes: ReversiLogisticModelIndexes
 ) -> bool:
     """Compare live configuration with cached dataset metadata."""
 
     cached_feature_set_hash = rlm_indexes.feature_set_hash
-    expected_feature_set_hash = model.feature_set.hash
+    expected_feature_set_hash = ctx.feature_set.hash
     is_cache_consistent = cached_feature_set_hash == expected_feature_set_hash
     
     return is_cache_consistent
