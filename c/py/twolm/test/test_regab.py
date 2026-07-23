@@ -149,7 +149,7 @@ class TestRegabGPAsDF(BaseTestCase):
         where = "game_value > 0"
         fields = ['seq', 'mover', 'opponent', 'game_value']
 
-        df = regab_gp_as_df(self.rc, bid, status, ec, limit, where, fields)
+        df = regab_gp_as_df(self.rc, bid, status, ec, limit=limit, where=where, fields=fields)
 
         # Checks that the resulting DataFrame is not empty
         self.assertFalse(df.empty, "The resulting DataFrame is empty.")

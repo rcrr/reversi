@@ -248,6 +248,7 @@ def regab_gp_as_df(rc: RegabDBConnection,
                    bid: BidArgument,
                    status: StatusArgument,
                    ec: EcArgument,
+                   *,
                    limit: Union[int, None] = Field(default=None, ge=0),
                    where: Union[str, None] = None,
                    fields: FieldsArgument = None) -> pd.DataFrame:
@@ -304,7 +305,7 @@ def regab_gp_as_df(rc: RegabDBConnection,
     q = "SELECT {:s} FROM regab_prng_gp WHERE batch_id IN ({:s}) AND empty_count = {:d} AND status IN ({:s})".format(selection, bid_str, ec, status_str)
     if where:
         q = q + ' AND {:s}'.format(where)
-    q = q + ' ORDER BY seq'
+    q = q + ' ORDER BY seq'    
     if limit != None:
         q = q + ' LIMIT {:d}'.format(limit)
     q = q + ';'

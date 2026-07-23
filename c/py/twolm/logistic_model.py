@@ -42,6 +42,7 @@ from twolm.lm_worker_positions import lm_worker_positions
 from twolm.lm_worker_features import lm_worker_features
 from twolm.lm_worker_indexes import lm_worker_indexes
 from twolm.lm_worker_wmaps import lm_worker_wmaps
+from twolm.lm_worker_design_matrix import lm_worker_design_matrix
 
 
 
@@ -91,12 +92,17 @@ class RLMContext(Context):
     game_values: Any = None
     feature_set: Any = None
     rlm_indexes: Any = None
+
+    # WMAPS attributes
     feature_w_ranges: Any = None
     iwmap_feature_offset: Any = None
     iwmap: Any = None
     wmap: Any = None
     wmap_fallback: Any = None
     w: Any = None
+
+    # Design Matrix attribute
+    design_matrix: Any = None
     
     # Injected by StateMachine
     log_event: Callable = lambda *args: None
@@ -145,6 +151,7 @@ class LogisticModel(BaseModel):
             lm_worker_features(),
             lm_worker_indexes(),
             lm_worker_wmaps(),
+            lm_worker_design_matrix(),
             # Next workers will be added here
         ]
 
