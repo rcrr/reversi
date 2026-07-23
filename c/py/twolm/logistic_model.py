@@ -43,6 +43,7 @@ from twolm.lm_worker_features import lm_worker_features
 from twolm.lm_worker_indexes import lm_worker_indexes
 from twolm.lm_worker_wmaps import lm_worker_wmaps
 from twolm.lm_worker_design_matrix import lm_worker_design_matrix
+from twolm.lm_worker_zed import lm_worker_zed
 
 
 
@@ -87,13 +88,21 @@ class RLMContext(Context):
     use_cache: bool | None = None
     
     # Data artifacts populated by the workers
+
+    # Configuration attribute:
     cfg: Any = None
+
+    # Game positions and game values attributes:
     positions: Any = None
     game_values: Any = None
+
+    # Features attribute:
     feature_set: Any = None
+
+    # Indexes attribute:
     rlm_indexes: Any = None
 
-    # WMAPS attributes
+    # Wmaps attributes:
     feature_w_ranges: Any = None
     iwmap_feature_offset: Any = None
     iwmap: Any = None
@@ -101,8 +110,13 @@ class RLMContext(Context):
     wmap_fallback: Any = None
     w: Any = None
 
-    # Design Matrix attribute
+    # Design Matrix attribute:
     design_matrix: Any = None
+    
+    # ZED attributes:
+    y2z: Any = None
+    z2y: Any = None
+    z: Any = None
     
     # Injected by StateMachine
     log_event: Callable = lambda *args: None
@@ -152,6 +166,7 @@ class LogisticModel(BaseModel):
             lm_worker_indexes(),
             lm_worker_wmaps(),
             lm_worker_design_matrix(),
+            lm_worker_zed(),
             # Next workers will be added here
         ]
 
