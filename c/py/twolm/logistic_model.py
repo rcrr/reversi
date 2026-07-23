@@ -44,6 +44,7 @@ from twolm.lm_worker_indexes import lm_worker_indexes
 from twolm.lm_worker_wmaps import lm_worker_wmaps
 from twolm.lm_worker_design_matrix import lm_worker_design_matrix
 from twolm.lm_worker_zed import lm_worker_zed
+from twolm.lm_worker_gradient import lm_worker_gradient
 
 
 
@@ -117,6 +118,9 @@ class RLMContext(Context):
     y2z: Any = None
     z2y: Any = None
     z: Any = None
+
+    # Loss and gradient closure attribute:
+    fg: Any = None
     
     # Injected by StateMachine
     log_event: Callable = lambda *args: None
@@ -167,6 +171,7 @@ class LogisticModel(BaseModel):
             lm_worker_wmaps(),
             lm_worker_design_matrix(),
             lm_worker_zed(),
+            lm_worker_gradient(),
             # Next workers will be added here
         ]
 
