@@ -31,7 +31,7 @@ from pydantic import (BaseModel, Field, PositiveInt, NonNegativeInt,
                       field_validator, field_serializer,
                       ConfigDict, model_validator)
 
-from typing import List, Annotated, Optional, Any
+from typing import List, Annotated, Optional, Any, Tuple
 
 from pathlib import Path
 
@@ -43,6 +43,19 @@ from twolm.board import (Bitboard,
 __all__ = ['ReversiLogisticModelConfig']
 
 
+
+class OptimizationConfig(BaseModel):
+    """
+    Configuration for the L-BFGS optimizer.
+    """
+    max_iters: int = Field(default=500, ge=1, description="Maximum number of iterations.")
+    m: int = Field(default=50, ge=1, description="Memory size (number of stored vector pairs).")
+    c1: float = Field(default=1e-4, gt=0, lt=1, description="Armijo condition constant.")
+    c2: float = Field(default=0.9, gt=0, lt=1, description="Wolfe condition constant. Must be > c1.")
+    min_grad: Tuple[float, int] = Field(default=(1e-5, 3), description="Stopping tolerance for gradient norm and consecutive iterations.")
+    min_p_fun_decrease: Tuple[float, int] = Field(default=(1e-14, 7), description="Minimum relative loss decrease and consecutive iterations.")
+    log_every_n: int = Field(default=0, ge=0, description="Frequency of logging. 0 = no log, 1 = every iteration.")
+    save_every_n: int = Field(default=0, ge=0, description="Frequency of saving checkpoints. 0 = no save.")
 
 class RLMBaseConfig(BaseModel):
     properties: dict[str, Any] = Field(default_factory=dict)
@@ -154,4 +167,4 @@ class ReversiLogisticModelConfig(RLMBaseConfig):
     regab_data_set: RegabDataSetConfig
     feature_set: FeatureSetConfig
     stat_model: StatModelConfig
-    
+    optimization: OptimizationConfig

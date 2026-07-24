@@ -379,7 +379,7 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
     if not callable(fg):
         raise TypeError('L-BFGS - Error: argument fg is not callable')
     
-    CURVATURE_THRESHOLD = 1.e-10
+    CURVATURE_THRESHOLD = 1.e-15
     
     min_grad_value, min_grad_count = min_grad
     min_p_fun_decrease_value, min_p_fun_decrease_count = min_p_fun_decrease
@@ -401,15 +401,16 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
     sl = initial_sl if initial_sl is not None else []
     yl = initial_yl if initial_yl is not None else []
     rho = initial_rho if initial_rho is not None else []
-    
+
     fgv = fgc_plain(x)
     fgv_fun_prev = fgv.fun + np.fabs(fgv.fun)
 
+    is_converged = False
+    stop_reason = "MAX_ITERS_REACHED"
+
     for k in range(max_iters):
-        
         # --- Stopping criteria ---
         g_norm = np.linalg.norm(fgv.grad)
-        
         if g_norm < min_grad_value:
             low_progres_count_g += 1
         else:
@@ -418,6 +419,8 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
         if low_progres_count_g >= min_grad_count:
             if log_every_n > 0:
                 logger(f"L-BFGS - Converged at iteration {k}, gradient norm {g_norm:.3e}")
+            is_converged = True
+            stop_reason = "CONVERGED_MIN_GRAD"
             break
             
         if fgv.fun != 0.:
@@ -434,30 +437,28 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
         if low_progres_count_f >= min_p_fun_decrease_count:
             if log_every_n > 0:
                 logger(f"L-BFGS - Stopped at iteration {k}, low function progress")
+            is_converged = True
+            stop_reason = "CONVERGED_LOW_PROGRESS"
             break
 
         # --- Compute search direction ---
         p = - _two_loop_recursion(fgv.grad, sl, yl, rho)
 
-        # Restart if direction is not a descent direction
         if np.dot(p, fgv.grad) >= 0.:
             if log_every_n > 0:
                 logger(f"L-BFGS - Restart at iteration {k}: direction not descent, resetting memory")
             sl.clear()
             yl.clear()
             rho.clear()
-            p = -fgv.grad  # Steepest descent direction
+            p = -fgv.grad
 
-        # --- Line Search ---
-        alpha, fgv_new = _strong_wolfe_line_search(fgc_plain, x, p, fgv, c1, c2, debug_plot=debug_plot)
+        alpha, fgv_new = _strong_wolfe_line_search(fgc_plain, x, p, fgv, c1, c2)
 
         x_new = x + alpha * p
-
-        # --- Update Memory ---
         s = x_new - x
         y = fgv_new.grad - fgv.grad
 
-        if np.dot(y, s) > CURVATURE_THRESHOLD:
+        if np.dot(y, s) > 1.e-15:
             if len(sl) == m:
                 sl.pop(0)
                 yl.pop(0)
@@ -466,23 +467,33 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
             yl.append(y)
             rho.append(1.0 / np.dot(y, s))
 
-        # --- State Update ---
         x = x_new
         fgv_fun_prev = fgv.fun
         fgv = fgv_new
 
-        # --- Logging ---
         if log_every_n > 0 and (k % log_every_n == 0 or k == max_iters - 1):
             count = fg_call_count - fg_call_count_last
             logger(f"L-BFGS - [{k:04d}/{max_iters:04d}]: f = {fgv.fun:.8e}, ||g|| = {np.linalg.norm(fgv.grad):.3e}, "
                    f"alpha = {alpha:.3e}, m = [{len(sl):02d}/{m:02d}], fgc = {count:d}")
             fg_call_count_last = fg_call_count
 
-        # --- Checkpointing ---
         if save_every_n > 0 and save_fn is not None and (k % save_every_n == 0):
-            save_fn(x, sl, yl, rho, k)
+            # Passiamo anche f e g_norm al save_fn per avere checkpoint intermedi ricchi di metadati
+            save_fn(x, sl, yl, rho, k, fgv.fun, np.linalg.norm(fgv.grad))
 
     if log_every_n > 0:
         logger(f"L-BFGS - fgc (total calls to fg function) = {fg_call_count:d}")
     
-    return x
+    info = {
+        'w': x,
+        'converged': is_converged,
+        'reason': stop_reason,
+        'iters': k + 1,
+        'f': fgv.fun,
+        'g_norm': np.linalg.norm(fgv.grad),
+        'sl': sl,
+        'yl': yl,
+        'rho': rho
+    }
+    
+    return x, info

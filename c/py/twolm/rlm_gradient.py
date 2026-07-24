@@ -37,11 +37,7 @@ from scipy.special import expit
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext
 
-
-
-__all__ = ['rlm_gradient_compute',
-           'sigmoid']
-
+__all__ = ['rlm_gradient_compute', 'sigmoid']
 
 
 def sigmoid(x: np.ndarray) -> np.ndarray:
@@ -58,11 +54,13 @@ def rlm_gradient_compute(ctx: "RLMContext") -> Callable[[npt.NDArray[np.float32]
     """
     Builds the function returning loss and gradient.
     Captures X, z, and alpha in a closure for fast repeated evaluations during optimization.
+    The loss and gradient are normalized by the number of positions (M) to ensure
+    dataset-size independent convergence criteria.
     """
     alpha = ctx.cfg.stat_model.ridge_regularization
     N = len(ctx.w)
     X = ctx.design_matrix
-    M, P = X.shape
+    M, P = X.shape  # M is the number of positions
     X_flat = X.ravel()
     z = ctx.z
     
@@ -75,14 +73,19 @@ def rlm_gradient_compute(ctx: "RLMContext") -> Callable[[npt.NDArray[np.float32]
         zh = sigmoid(linear_predictor)
         dzh = zh * (1. - zh)
         rn = zh - z
+        
+        # Normalized loss (Mean Squared Error + Ridge regularization)
         norm_rn = np.dot(rn, rn)
         norm_w = np.dot(w, w)
-        f = 0.5 * (norm_rn + alpha * norm_w)
+        f = 0.5 * ((norm_rn / M) + alpha * norm_w)
+        
+        # Normalized gradient
         dzh_rn = dzh * rn
         bincount_weights_view[:] = dzh_rn[:, None]
-        g0 = np.bincount(X_flat, weights=bincount_weights_buffer, minlength=N)
+        g0 = np.bincount(X_flat, weights=bincount_weights_buffer, minlength=N) / M
         g1 = alpha * w
         g = g0 + g1
+        
         return f, g
     
     return fg

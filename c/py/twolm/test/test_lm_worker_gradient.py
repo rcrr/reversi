@@ -85,16 +85,16 @@ class TestLMWorkerGradient(unittest.TestCase):
         f, g = ctx.fg(ctx.w)
         
         # Assertions on outputs
-        expected_f = np.float32(4097.77197)
+        expected_f = np.float32(0.02049378)
         nptest.assert_allclose(f, expected_f, rtol=1e-6, atol=1e-7)
 
-        expected_g_0000 = np.float32(71.15)
+        expected_g_0000 = np.float32(3.558e-4)
         nptest.assert_allclose(g[0], expected_g_0000, rtol=1e-4, atol=1e-7)
 
-        expected_g_0001 = np.float32(-47.89)
+        expected_g_0001 = np.float32(-2.395e-4)
         nptest.assert_allclose(g[1], expected_g_0001, rtol=1e-4, atol=1e-7)
 
-        expected_g_2980 = np.float32(220.11)
+        expected_g_2980 = np.float32(1.101e-3)
         nptest.assert_allclose(g[2980], expected_g_2980, rtol=1e-4, atol=1e-7)
 
 

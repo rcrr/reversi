@@ -48,7 +48,7 @@ class TestLBFGSBaseFunction(unittest.TestCase):
 
     def test_a_optimization(self):
         x0 = np.array([0.0, 0.0])
-        actual_x_min = lbfgs(self.fg, x0, max_iters=100, m=5, min_grad=(1e-5, 1), log_every_n=0, debug_plot=False)
+        actual_x_min, _ = lbfgs(self.fg, x0, max_iters=100, m=5, min_grad=(1e-5, 1), log_every_n=0, debug_plot=False)
         nptest.assert_allclose(actual_x_min, self.x_min, atol=1.e-3)
 
 
@@ -68,7 +68,7 @@ class TestLBFGSRosenbrockFunction(unittest.TestCase):
         
     def test_a_optimization(self):
         x0 = np.array([-1.0, -1.0])
-        actual_x_min = lbfgs(self.fg, x0, max_iters=1000, m=5, min_grad=(1e-5, 1), log_every_n=0)
+        actual_x_min, _ = lbfgs(self.fg, x0, max_iters=1000, m=5, min_grad=(1e-5, 1), log_every_n=0)
         nptest.assert_allclose(actual_x_min, self.x_min, atol=1.e-4)
 
 
@@ -98,8 +98,9 @@ class TestLBFGSZakharovFunction(unittest.TestCase):
         self.x_min = np.zeros((d,), dtype=np.double)
         np.random.seed(42) # Set seed for reproducibility
         x0 = np.random.uniform(low=-5., high=5., size=(d,))
-        actual_x_min = lbfgs(self.fg, x0, max_iters=1000, m=5, min_grad=(1e-5, 1), log_every_n=0)
+        actual_x_min, _ = lbfgs(self.fg, x0, max_iters=1000, m=5, min_grad=(1e-5, 1), log_every_n=0)
         nptest.assert_allclose(actual_x_min, self.x_min, atol=1.e-5)
+
 
 
 class TestLBFGSWarmStart(unittest.TestCase):
@@ -115,11 +116,12 @@ class TestLBFGSWarmStart(unittest.TestCase):
         x0 = np.array([-1.0, -1.0])
         
         # 1. Run for 100 iterations continuously
-        x_final_continuous = lbfgs(self.fg, x0, max_iters=100, m=5, min_grad=(1e-9, 7), log_every_n=0)
+        x_final_continuous, _ = lbfgs(self.fg, x0, max_iters=100, m=5, min_grad=(1e-9, 7), log_every_n=0)
         
         # 2. Run for 50 iterations and save state
         saved_state = {}
-        def save_fn(x, sl, yl, rho, k):
+        # Updated save_fn signature to match opt_lbfgs.py (added f and g_norm)
+        def save_fn(x, sl, yl, rho, k, f, g_norm):
             saved_state['x'] = x
             saved_state['sl'] = sl
             saved_state['yl'] = yl
@@ -128,7 +130,7 @@ class TestLBFGSWarmStart(unittest.TestCase):
         lbfgs(self.fg, x0, max_iters=50, m=5, min_grad=(1e-9, 7), log_every_n=0, save_every_n=10, save_fn=save_fn)
         
         # 3. Resume from saved state for another 50 iterations
-        x_final_resumed = lbfgs(
+        x_final_resumed, _ = lbfgs(
             self.fg, 
             saved_state['x'], 
             max_iters=50, 

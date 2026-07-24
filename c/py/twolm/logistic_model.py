@@ -45,6 +45,7 @@ from twolm.lm_worker_wmaps import lm_worker_wmaps
 from twolm.lm_worker_design_matrix import lm_worker_design_matrix
 from twolm.lm_worker_zed import lm_worker_zed
 from twolm.lm_worker_gradient import lm_worker_gradient
+from twolm.lm_worker_optimize import lm_worker_optimize
 
 
 
@@ -172,6 +173,7 @@ class LogisticModel(BaseModel):
             lm_worker_design_matrix(),
             lm_worker_zed(),
             lm_worker_gradient(),
+            lm_worker_optimize(),
             # Next workers will be added here
         ]
 
