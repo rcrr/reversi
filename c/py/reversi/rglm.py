@@ -2313,7 +2313,7 @@ def rglm_workflow(kvargs: dict):
     m = timed_run(m.compute_y, "m = m.compute_y()")
     m = timed_run(m.compute_analytics, "m = m.compute_analytics()")
     m = timed_run(m.retrieve_expected_probabilities_from_regab_db, "m = m.retrieve_expected_probabilities_from_regab_db()")
-    m = timed_run(m.optimize5, "m = m.optimize6({}, {{...}})", ridge_reg_param, l_bfgs_b_options)
+    m = timed_run(m.optimize5, "m = m.optimize5({}, {{...}})", ridge_reg_param, l_bfgs_b_options)
     if l_bfgs_b_options is not None:
         print("   l_bfgs_b_options = {}".format(l_bfgs_b_options))
     m = timed_run(m.compute_wmean_for_patterns, "m = m.compute_wmean_for_patterns()")
