@@ -57,12 +57,12 @@ def rlm_gradient_compute(ctx: "RLMContext") -> Callable[[npt.NDArray[np.float32]
     The loss and gradient are normalized by the number of positions (M) to ensure
     dataset-size independent convergence criteria.
     """
-    alpha = ctx.cfg.stat_model.ridge_regularization
     N = len(ctx.w)
     X = ctx.design_matrix
     M, P = X.shape  # M is the number of positions
     X_flat = X.ravel()
     z = ctx.z
+    alpha = ctx.cfg.stat_model.ridge_regularization / M
     
     # Pre-allocate buffers for performance inside the closure
     bincount_weights_buffer = np.empty(M * P, dtype=np.float32)
