@@ -51,6 +51,43 @@ class ReversiLogisticModelWMaps:
     """
     Represents the computed Weight Maps (WMaps) for the model.
     Holds the arrays mapping feature configurations to the weight vector W.
+
+    Attributes
+    ----------
+    feature_set_hash : str
+        The hash of the feature set used to compute the indexes.
+    cut_off : int
+        The frequency cut-off threshold used to filter rare configurations.
+    w_ranges : np.ndarray
+        shape(F, 3). Lists for each feature, ordered by fid (feature index):
+        - fallback: the index value of w used for the fallback (cut-off) configurations.
+        - w_min: the first index value of w assigned to the feature (equal to fallback when fallback is not -1).
+        - w_max: the last index value of w assigned to the feature.
+    iwmap_feature_offset : np.ndarray
+        shape(F + 1,). Gives the position of a feature in the iwmap array.
+        iwmap_feature_offset[fid] gives the position of configuration zero for the feature identified by fid.
+    iwmap : np.ndarray
+        shape(K,). Assigns to each possible configuration the index of w. -1 when the configuration is not found
+        in the dataset.
+        Given fid, and feature_conf_id the formula:
+        iwmap[iwmap_feature_offset[fid] + feature_conf_id] returns the index of w related to (fid, feature_conf_id).
+    wmap : np.ndarray
+        shape(W, 3). Given the w index returns the feature index, the configuration index, and the frequency configuration.
+        fid, feature_conf_id, feature_conf_frequency = wmap[w_index]
+        The value -1 is used to identify weight assigned to fall back configurations. One per feature, if required.
+    wmap_fallback : np.ndarray
+        shape(F_cut, 3). Contains the entries of wmap being excluded by the cut-off. It has:
+        - fid: feature id
+        - feature_conf_id: index of the feature configuration excluded by the cut-off rule
+        - feature_conf_frequency: the frequency of the feature configuration within the dataset
+    w : np.ndarray
+        shape(W,). The model weights vector, initialized to zeros.
+
+    Where:
+        F is the count of features defined by the model (Intercept, Mobilities, Patterns).
+        K is the count of all feature configurations (K = sum([f.n_configurations for f in features])).
+        W is the count of all model weights.
+        F_cut is the count of all cut-off configurations.
     """
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __init__(self,
@@ -109,7 +146,7 @@ def rlm_wmaps_load_from_file(filename: str | Path, checksum: bool = True) -> Rev
             raise RuntimeError(f"File version mismatch: found {version}, expected {expected_version}")
 
         feature_set_hash = r.read_string()
-        cut_off = r.read_i32()  # <-- CORRETTO QUI
+        cut_off = r.read_i32()
         
         w_ranges = r.read_array()
         iwmap_feature_offset = r.read_array()
@@ -129,8 +166,25 @@ def rlm_wmaps_load_from_file(filename: str | Path, checksum: bool = True) -> Rev
         w=w
     )
 
+
 def rlm_wmaps_compute(ctx: "RLMContext") -> ReversiLogisticModelWMaps:
-    """Computes WMaps based on feature frequencies and cut-off threshold."""
+    """
+    Computes WMaps based on feature frequencies and the cut-off threshold.
+
+    The method performs the following steps:
+        1. Initializes the cut-off value from the configuration.
+        2. Retrieves the list of features and their respective number of configurations.
+        3. Computes the offset for each feature in the iwmap array using the cumulative sum of the number of configurations.
+        4. Initializes the iwmap array with -1, indicating that no configuration is initially mapped.
+        5. Iterates over each feature to compute the unique configurations and their frequencies.
+        6. Determines the fallback configuration for each feature if any configuration's frequency is below the cut-off.
+        7. Assigns unique w indices to configurations with frequencies above the cut-off.
+        8. Updates the iwmap array with the computed w indices.
+        9. Constructs the w_ranges array with fallback, w_min, and w_max values for each feature.
+        10. Constructs the wmap array mapping each w index to the corresponding feature index, configuration index, and frequency.
+        11. Constructs the wmap_fallback array containing configurations excluded by the cut-off.
+        12. Initializes the weights vector w with zeros, having length equal to the total count of assigned weights (W).
+    """
     cut_off = ctx.cfg.stat_model.frequency_cut_off
     features = ctx.feature_set.features
     
