@@ -25,6 +25,7 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
+# twolm/rlm_config_schemas.py
 from __future__ import annotations
 
 from pydantic import (BaseModel, Field, PositiveInt, NonNegativeInt,
@@ -43,6 +44,10 @@ from twolm.board import (Bitboard,
 __all__ = ['ReversiLogisticModelConfig']
 
 
+
+class ValidationDataSetConfig(BaseModel):
+    bid: List[NonNegativeInt]
+    status: List[str]
 
 class OptimizationConfig(BaseModel):
     """
@@ -168,3 +173,4 @@ class ReversiLogisticModelConfig(RLMBaseConfig):
     feature_set: FeatureSetConfig
     stat_model: StatModelConfig
     optimization: OptimizationConfig
+    validation_data_set: ValidationDataSetConfig

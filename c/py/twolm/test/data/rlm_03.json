@@ -35,7 +35,7 @@
         "ridge_regularization": 0.01,
     },
     "optimization": {
-        "max_iters": 600,
+        "max_iters": 500,
         "m": 93,
         "c1": 0.0001,
         "c2": 0.9,
@@ -78,5 +78,9 @@
                 { "name": "LMC", "mask": "FFFFFFFFFFFFFFFF", "amask": "0000000000000000" }
             ]
         }
+    },
+    "validation_data_set": {
+        "bid": [6],
+        "status": ["CMS", "CMR"]
     }
 }

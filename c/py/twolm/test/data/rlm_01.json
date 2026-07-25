@@ -69,5 +69,9 @@
                 { "name": "LMC", "mask": "FFFFFFFFFFFFFFFF", "amask": "0000000000000000" }
             ]
         }
+    },
+    "validation_data_set": {
+        "bid": [8],
+        "status": ["CMS", "CMR"]
     }
 }

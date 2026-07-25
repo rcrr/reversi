@@ -71,6 +71,10 @@ class TestLMWorkerOptimize(unittest.TestCase):
         
         # Record initial loss (at w=0)
         initial_f, _ = ctx.fg(ctx.w)
+
+        # Set to True to see the optimization progress.
+        if False:
+            self.patcher_stdout.stop()
         
         # Run optimization
         self.rlm.move_to_step('OPTIMIZE')

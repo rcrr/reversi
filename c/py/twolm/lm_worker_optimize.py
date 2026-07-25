@@ -125,6 +125,7 @@ def _up(ctx: "RLMContext") -> None:
     
     # 4. Update context and save final checkpoint
     ctx.w = w_opt
+    ctx.opt_info = info
     ctx.log_event(Relevance.INFO, f"Optimization finished. Reason: {info['reason']}. Final Loss: {info['f']:.8e}")
     
     save_optimization_checkpoint(
