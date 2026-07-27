@@ -102,7 +102,6 @@ class TestLBFGSZakharovFunction(unittest.TestCase):
         nptest.assert_allclose(actual_x_min, self.x_min, atol=1.e-5)
 
 
-
 class TestLBFGSWarmStart(unittest.TestCase):
     """Tests the ability to resume optimization from a saved state."""
 
