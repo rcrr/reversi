@@ -102,7 +102,7 @@ def _up(ctx: "RLMContext") -> None:
             yl=yl,
             rho=rho
         )
-        ctx.log_event(Relevance.DEBUG, f"Intermediate checkpoint saved at iteration {k+1}.")
+        ctx.log_event(Relevance.DEBUG, f"Intermediate checkpoint saved at iteration {k}.")
 
     # 3. Run L-BFGS
     w_opt, info = lbfgs(

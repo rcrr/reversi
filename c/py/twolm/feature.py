@@ -268,7 +268,7 @@ class FeatureSet:
         if self.mset:
             active_indexes.append(self.mset.compute_indexes(positions))
             
-        if self.pset:
+        if self.pset and len(self.pset.patterns) > 0:
             active_indexes.append(self.pset.compute_principal_indexes(positions))
             
         # Efficiently merge all sub-arrays horizontally in a single C-level step

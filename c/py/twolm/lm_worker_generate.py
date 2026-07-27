@@ -65,4 +65,4 @@ def _down(ctx: "RLMContext") -> None:
     ctx.w_dense = None
 
 def lm_worker_generate() -> Worker:
-    return Worker("GEN_MODEL", _up, _down)
+    return Worker("GENERATE", _up, _down)

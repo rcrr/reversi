@@ -135,13 +135,11 @@ def compute_w_dense(ctx: "RLMContext") -> ReversiLogisticModelDenseWeights:
             else:
                 weighted_mean = 0.0
                 
-            if not np.isclose(weighted_mean, 0.0, atol=0.1):
-                ctx.log_event(Relevance.WARN, f"Pattern {f.name} (id:{fid}) weighted mean is {weighted_mean:.4f} (expected ~0.0). Intercept might not be capturing the full mean.")
+            ctx.log_event(Relevance.INFO, f"Pattern {f.name} (id:{fid}) weighted mean is {weighted_mean:.4f}.")
             
             if fallback != -1:
                 fallback_w_val = w[fallback]
-                if not np.isclose(fallback_w_val, weighted_mean, atol=0.5):
-                    ctx.log_event(Relevance.WARN, f"Pattern {f.name} (id:{fid}) fallback weight is {fallback_w_val:.4f}, far from weighted mean {weighted_mean:.4f}.")
+                ctx.log_event(Relevance.INFO, f"Pattern {f.name} (id:{fid}) fallback weight is {fallback_w_val:.4f}.")
 
             # Populate w_dense for Pattern
             seen_mask = f_iwmap >= 0
@@ -152,28 +150,28 @@ def compute_w_dense(ctx: "RLMContext") -> ReversiLogisticModelDenseWeights:
 
         elif f.category == 0:  # Intercept
             w_dense[start_idx:end_idx] = f_w[0]
-            if not np.isclose(f_w[0], z_mean, atol=0.1):
-                ctx.log_event(Relevance.WARN, f"Intercept weight is {f_w[0]:.4f}, but mean of Z is {z_mean:.4f}.")
                 
         elif f.category == 1:  # Mobility
-            # Find which configurations were actually seen and have a direct weight
-            seen_mask = f_iwmap >= 0
-            known_configs = np.where(seen_mask)[0]
-            known_weights = w[f_iwmap[seen_mask]]
+            # To find the true "above cutoff" configurations, we must look at wmap, 
+            # because iwmap points rare configs to the fallback index.
+            f_wmap_mask = wmap[:, 0] == fid
+            f_wmap = wmap[f_wmap_mask]
+            
+            # True configs are those with config_id >= 0 in wmap
+            true_configs_mask = f_wmap[:, 1] >= 0
+            known_configs = f_wmap[true_configs_mask, 1].astype(np.int64)
             
             if len(known_configs) > 0:
-                # Fill known values
-                w_dense[start_idx + known_configs] = known_weights
-                
-                # Interpolate missing internal values
-                if len(known_configs) > 1:
-                    all_configs = np.arange(f.n_configurations)
-                    w_dense[start_idx : start_idx + f.n_configurations] = np.interp(
-                        all_configs, known_configs, known_weights
-                    ).astype(np.float32) # Ensure float32 output from interp
-                else:
-                    # Only one config seen, clamp everything to it
-                    w_dense[start_idx : start_idx + f.n_configurations] = known_weights[0]
+                # Get the specific weights for these true configs via iwmap
+                w_indices = f_iwmap[known_configs]
+                known_weights = w[w_indices]
+
+                # Interpolate over the full range of possible configurations (0 to n_configurations-1)
+                # np.interp automatically clamps external values to the nearest known boundary.
+                all_configs = np.arange(f.n_configurations)
+                w_dense[start_idx : start_idx + f.n_configurations] = np.interp(
+                    all_configs, known_configs, known_weights
+                ).astype(np.float32)
             else:
                 ctx.log_event(Relevance.WARN, f"Mobility {f.name} (id:{fid}) has no seen configurations. Weights are zero.")
 

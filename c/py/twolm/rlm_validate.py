@@ -40,10 +40,64 @@ if TYPE_CHECKING:
 
 __all__ = ['validate_model']
 
-
 def validate_model(ctx: "RLMContext") -> Dict[str, float]:
     """
     Extracts validation data, computes predictions using w_dense, and calculates metrics.
+
+    Validation Metrics for Logistic Curve Fitting on an Ordinal Scale
+    -----------------------------------------------------------------
+    When using a logistic model as a non-linear regression function, the discrete game 
+    values (Y, on an ordinal scale like [-64, +64] with steps of 2) are transformed 
+    into a continuous target space Z (range [0, 1]) via an affine transformation.
+    
+    The metrics below are computed in this Z space. They act as pure geometric 
+    indicators of distance, measuring how well the continuous logistic curve aligns 
+    with the discrete target points.
+
+    1. MAE (Mean Absolute Error)
+    ----------------------------
+    MAE computes the average of the absolute differences between the true transformed 
+    values (z) and the continuous predictions from the logistic curve (z_hat).
+    
+    MAE = (1 / n) * sum(|z_i - z_hat_i|)
+
+    - Physical Interpretation: It tells you, on average, how far the logistic curve 
+      misses the true target in the Z space. Because Z is bounded between 0 and 1, 
+      an MAE of 0.04 means the model's predictions deviate by 4% of the total scale 
+      on average.
+    - Mathematical Weight: MAE treats all errors linearly. A single large mistake 
+      affects the final metric exactly the same as multiple small mistakes. It 
+      provides an intuitive baseline for the "typical" accuracy of the curve.
+
+    2. MSE (Mean Squared Error)
+    ---------------------------
+    MSE computes the average of the squared differences between the true transformed 
+    values and the logistic predictions.
+    
+    MSE = (1 / n) * sum((z_i - z_hat_i)^2)
+
+    - Physical Interpretation: It measures the variance of the residuals. To bring 
+      it back to the Z scale units, you can take its square root to get the RMSE 
+      (Root Mean Squared Error), which represents the standard deviation of the 
+      prediction error.
+    - Mathematical Weight: MSE penalizes outliers and large deviations aggressively. 
+      If the curve misses a point by 0.1, it adds a penalty of 0.01; a miss of 0.5 
+      adds a penalty of 0.25.
+    - Why it matters for the Logistic Curve: Logistic curves naturally flatten out 
+      into horizontal asymptotes at their tails (near 0 and 1) and have a steep 
+      inflection point in the middle. If the empirical data does not flatten out at 
+      the same rate as the mathematical curve, the model will generate massive errors 
+      at the boundaries. MSE is the perfect alarm system to tell you if the logistic 
+      shape is fundamentally a bad fit for certain regions of the dataset.
+
+    3. RMSE (Root Mean Squared Error)
+    ---------------------------------
+    It is computed as:
+
+    RMSE = sqrt(MSE)
+
+    - When RMSE / MAE = sqrt(pi/2) = 1.253... the distribution is normal.
+    
     """
     vld_cfg = ctx.cfg.validation_data_set
     train_cfg = ctx.cfg.regab_data_set
@@ -77,30 +131,36 @@ def validate_model(ctx: "RLMContext") -> Dict[str, float]:
     ctx.log_event(Relevance.INFO, "Computing predictions (forward pass) on validation set...")
     # Cast to float64 for the sum to prevent any accumulation errors
     linear_predictor = np.sum(ctx.w_dense[dense_indices].astype(np.float64), axis=1)
-    
-    # Predicted probabilities
+        
+    # Predictions in Z space [0, 1]
     z_pred = expit(linear_predictor)
 
-    # 4. Compute true Z for validation set
+    # True values in Z space
     y_vld = np.asarray(vld_game_values, dtype=np.int8)
     z_vld = ctx.y2z(y_vld)
 
-    # 5. Calculate Metrics
-    rn = z_pred - z_vld
-    norm_rn = np.dot(rn, rn)
+    # 4. Calculate Metrics in Z space
+    rn_z = z_pred - z_vld
+    norm_rn_z = np.dot(rn_z, rn_z)
+    vld_loss = 0.5 * (norm_rn_z / M_vld)
+    mse_z = norm_rn_z / M_vld
+    mae_z = np.mean(np.abs(rn_z))
+
+    # 5. Calculate Metrics in Y space (Original game points scale)
+    # Transform predictions back to Y space
+    y_pred = ctx.z2y(z_pred)
     
-    # Normalized MSE (consistent with training loss, divided by 2)
-    vld_loss = 0.5 * (norm_rn / M_vld)
-    
-    # Mean Squared Error
-    mse = norm_rn / M_vld
-    
-    # Mean Absolute Error
-    mae = np.mean(np.abs(rn))
+    # y_vld is already in Y space (as int8), cast to float64 for math
+    rn_y = y_pred - y_vld.astype(np.float64)
+    mae_y = np.mean(np.abs(rn_y))
+    mse_y = np.dot(rn_y, rn_y) / M_vld
+    rmse_y = np.sqrt(mse_y)
 
     return {
         'vld_loss': float(vld_loss),
-        'vld_mse': float(mse),
-        'vld_mae': float(mae),
+        'vld_mse_z': float(mse_z),
+        'vld_mae_z': float(mae_z),
+        'vld_mae_y': float(mae_y),
+        'vld_rmse_y': float(rmse_y),
         'vld_samples': int(M_vld)
     }

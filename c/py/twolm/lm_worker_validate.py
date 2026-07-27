@@ -30,6 +30,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy as np
+
 from twolm.state_machine import Worker
 from twolm.enums import Relevance
 from twolm.rlm_validate import validate_model
@@ -42,6 +44,10 @@ __all__ = ['lm_worker_validate']
 
 def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Starting model validation...")
+
+    #: To be moved later in ANALYTICS
+    rmse_vs_mean = float(np.std(ctx.game_values))
+    ctx.log_event(Relevance.INFO, f"Population RMSE: {rmse_vs_mean:.2f}")
     
     metrics = validate_model(ctx)
     
@@ -49,8 +55,11 @@ def _up(ctx: "RLMContext") -> None:
     ctx.vld_loss = metrics['vld_loss']
     
     ctx.log_event(Relevance.INFO, f"Validation completed. Loss (MSE/2): {ctx.vld_loss:.8e}")
-    ctx.log_event(Relevance.INFO, f"  MSE: {metrics['vld_mse']:.8e}")
-    ctx.log_event(Relevance.INFO, f"  MAE: {metrics['vld_mae']:.8e}")
+    ctx.log_event(Relevance.INFO, f"  MSE:      {metrics['vld_mse_z']:.4e}")
+    ctx.log_event(Relevance.INFO, f"  MAE:      {metrics['vld_mae_z']:.4e}")
+    ctx.log_event(Relevance.INFO, f"  MAE(y):   {metrics['vld_mae_y']:.2f}")
+    ctx.log_event(Relevance.INFO, f"  RMSE(y):  {metrics['vld_rmse_y']:.2f}")
+    ctx.log_event(Relevance.INFO, f"  RMSE/MAE: {(metrics['vld_rmse_y']/metrics['vld_mae_y']):.2f}")
 
 def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing validation attributes...")

@@ -477,7 +477,7 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
                    f"alpha = {alpha:.3e}, m = [{len(sl):02d}/{m:02d}], fgc = {count:d}")
             fg_call_count_last = fg_call_count
 
-        if save_every_n > 0 and save_fn is not None and (k % save_every_n == 0):
+        if save_every_n > 0 and save_fn is not None and (k % save_every_n == 0) and k > 0:
             # Passiamo anche f e g_norm al save_fn per avere checkpoint intermedi ricchi di metadati
             save_fn(x, sl, yl, rho, k, fgv.fun, np.linalg.norm(fgv.grad))
 
