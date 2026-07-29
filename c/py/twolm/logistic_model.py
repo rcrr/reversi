@@ -48,7 +48,7 @@ from twolm.lm_worker_gradient import lm_worker_gradient
 from twolm.lm_worker_optimize import lm_worker_optimize
 from twolm.lm_worker_generate import lm_worker_generate
 from twolm.lm_worker_validate import lm_worker_validate
-
+from twolm.lm_worker_analytics import lm_worker_analytics
 
 
 __all__ = ['RLMContext', 'LogisticModel']
@@ -134,6 +134,9 @@ class RLMContext(Context):
     # Validation attributes:
     vld_metrics: Any = None
     vld_loss: Any = None
+
+    # Analytic attribute:
+    analytics_report: Any = None
     
     # Injected by StateMachine
     log_event: Callable = lambda *args: None
@@ -188,6 +191,7 @@ class LogisticModel(BaseModel):
             lm_worker_optimize(),
             lm_worker_generate(),
             lm_worker_validate(),
+            lm_worker_analytics(),
             # Next workers will be added here
         ]
 

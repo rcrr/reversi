@@ -66,12 +66,40 @@ def _up(ctx: "RLMContext") -> None:
             elif cp['is_converged']:
                 ctx.log_event(Relevance.INFO, f"Checkpoint found. Optimization already converged ({cp['stop_reason']}). Loading final weights.")
                 ctx.w = cp['w']
+                
+                # Populate opt_info from checkpoint to ensure analytics have the correct metadata
+                ctx.opt_info = {
+                    'converged': cp['is_converged'],
+                    'reason': cp['stop_reason'],
+                    'iters': cp['iterations_done'],
+                    'f': cp['final_f'],
+                    'g_norm': cp['final_g_norm'],
+                    'w': cp['w'],
+                    'sl': cp['sl'],
+                    'yl': cp['yl'],
+                    'rho': cp['rho']
+                }
                 return # Skip optimization entirely!
+                
             elif cp['iterations_done'] >= cp['start_max_iters']:
                 # MAX ITERS REACHED: Treated as a valid completion!
                 ctx.log_event(Relevance.INFO, f"Checkpoint found. Reached max iterations ({cp['iterations_done']}/{cp['start_max_iters']}). Proceeding with current weights.")
                 ctx.w = cp['w']
+                
+                # Populate opt_info from checkpoint
+                ctx.opt_info = {
+                    'converged': cp['is_converged'],
+                    'reason': cp['stop_reason'],
+                    'iters': cp['iterations_done'],
+                    'f': cp['final_f'],
+                    'g_norm': cp['final_g_norm'],
+                    'w': cp['w'],
+                    'sl': cp['sl'],
+                    'yl': cp['yl'],
+                    'rho': cp['rho']
+                }
                 return
+                
             elif cp['iterations_done'] < cp['start_max_iters']:
                 ctx.log_event(Relevance.INFO, f"Checkpoint found. Resuming optimization from iteration {cp['iterations_done']}.")
                 w_init = cp['w']

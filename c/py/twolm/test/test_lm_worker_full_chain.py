@@ -71,7 +71,7 @@ class TestFullChainA2030(unittest.TestCase):
         ctx = self.rlm.context
         
         # Run the model chain
-        self.rlm.move_to_step('VALIDATE')
+        self.rlm.move_to_step('ANALYTICS')
 
         # Validation Loss
         expected_vld_loss = 5.75E-03
@@ -121,7 +121,7 @@ class TestFullChainA2050(unittest.TestCase):
         ctx = self.rlm.context
         
         # Run the model chain
-        self.rlm.move_to_step('VALIDATE')
+        self.rlm.move_to_step('ANALYTICS')
 
         # Validation Loss
         expected_vld_loss = 1.578E-03
