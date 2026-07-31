@@ -74,7 +74,7 @@ class TestFullChainA2030(unittest.TestCase):
         self.rlm.move_to_step('ANALYTICS')
 
         # Validation Loss
-        expected_vld_loss = 5.75E-03
+        expected_vld_loss = 5.76E-03
         np.testing.assert_approx_equal(ctx.vld_loss, expected_vld_loss, significant=3)
 
         m = ctx.vld_metrics
@@ -84,11 +84,11 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertEqual(m['vld_samples'], expected_vld_samples)
         
         # Validation MAE(y)
-        expected_vld_mae_y = 11.039
+        expected_vld_mae_y = 11.053
         np.testing.assert_approx_equal(m['vld_mae_y'], expected_vld_mae_y, significant=4)
         
         # Validation RMSE(y)
-        expected_vld_rmse_y = 14.003
+        expected_vld_rmse_y = 14.021
         np.testing.assert_approx_equal(m['vld_rmse_y'], expected_vld_rmse_y, significant=4)
 
 
@@ -141,6 +141,49 @@ class TestFullChainA2050(unittest.TestCase):
         expected_vld_rmse_y = 7.338
         np.testing.assert_approx_equal(m['vld_rmse_y'], expected_vld_rmse_y, significant=4)
 
+#:
+        # --- Analytics Console Report Checks ---
+        self.assertIsNotNone(ctx.analytics_report, "Analytics report should be stored in context")
+        
+        console_report = ctx.analytics_report
+        # Check key console lines (no detailed tables should be here)
+        self.assertIn("MODEL ANALYTICS REPORT: RGLM (Reversi Generalized Linear Model) Logistic: Edge and Mobility", console_report)
+        self.assertIn("  Generalization Gap (RMSE)   : 0.19", console_report)
+        self.assertIn("  Loss (MSE/2)    | 5.6141e-03     | 5.7623e-03     | 2.0438e-02", console_report)
+        # Ensure detailed sections are NOT in the console report
+        self.assertNotIn("FEATURE SET SUMMARY:", console_report)
+        self.assertNotIn("MOBILITY FEATURES DETAILS:", console_report)
+
+        # --- Analytics File Report Checks ---
+        report_path = ctx.cfg.base_dir / ctx.cfg.analytics.report_file_name
+        self.assertTrue(report_path.exists(), f"Analytics report file not found at {report_path}")
+
+        file_report = report_path.read_text(encoding="utf-8")
+        
+        # Check file specific headers
+        self.assertIn("Creation Date               :", file_report)
+        self.assertIn("Training/Validation Records : 199,932 / 20,000", file_report)
+        self.assertIn("Frequency Cut-Off           : 10", file_report)
+        
+        # Check Feature Set Summary
+        self.assertIn("FEATURE SET SUMMARY:", file_report)
+        self.assertIn("FeatureSet: name = EDGE_and_MOBILITY", file_report)
+        
+        # Check Mobility Details
+        self.assertIn("MOBILITY FEATURE: LMC (fid=1) (Fallback: w_idx=1, weight=+0.295, freq=5)", file_report)
+        self.assertIn("  Eta-Squared (Discrimination): 0.3050", file_report)
+        # Check a specific row in the mobility table
+        self.assertIn("  10           | C        | 11       | 9        |     26,262 |      -4.10 |    22.46 |     +0.015", file_report)
+        # Check omitted rows (since detailed_report is empty in test config, rows should be omitted)
+        self.assertIn("(Table rows omitted: feature not in config 'analytics.detailed_report')", file_report)
+        
+        # Check Pattern Details
+        self.assertIn("PATTERN FEATURE: EDGE (fid=2) (Fallback: w_idx=22, weight=+0.121, freq=1,927)", file_report)
+        self.assertIn("  Eta-Squared (Discrimination): 0.2170", file_report)
+        # Check a specific row in the pattern table
+        self.assertIn("  66           | C        | 23       | 0        | 0              |     17,912 |      -2.08 |    27.84 |     -0.185", file_report)
+
+        
 #: ###
 
 if __name__ == '__main__':

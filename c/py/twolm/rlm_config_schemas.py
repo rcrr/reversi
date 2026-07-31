@@ -73,7 +73,11 @@ class AnalyticsConfig(RLMBaseConfig):
         default_factory=list, 
         description="List of feature names to include detailed row-by-row tables for in the analytics TXT report."
     )
-
+    report_file_name: str = Field(
+        default="model_analytics_report.txt",
+        description="Filename for the detailed analytics report."
+    )
+    
 class RegabDBConnectionConfig(RLMBaseConfig):
     """
     Configuration for connecting to the Regab database.

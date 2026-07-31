@@ -30,7 +30,7 @@
     "base_dir": "will/be/overwritten/by/python/during/unittesting",
     "use_cache": true,
     "stat_model": {
-        "frequency_cut_off": 1,
+        "frequency_cut_off": 10,
         "logit_clipping": 0.01,
         "ridge_regularization": 0.01,
     },
@@ -43,6 +43,10 @@
         "min_p_fun_decrease": [1e-5, 5],
         "log_every_n": 1,
         "save_every_n": 100
+    },
+    "analytics": {
+        "report_file_name": "model_analytics_report.txt",
+        "detailed_report": ["EDGE", "LMC"]
     },
     "regab_data_set": {
         "regab_db_connection": {

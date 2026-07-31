@@ -42,7 +42,7 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['compute_training_metrics', 'format_analytics_report']
+__all__ = ['compute_training_metrics', 'format_console_report', 'format_file_report']
 
 
 
@@ -307,14 +307,9 @@ def _format_pattern_feature_table(ctx: "RLMContext", fid: int, indexes_col_offse
     return header + "".join(rows) + f"{'-' * 135}\n"
 
 
-def format_analytics_report(
-    ctx: "RLMContext", 
-    train_metrics: Dict[str, float], 
-    val_metrics: Optional[Dict[str, float]],
-    detailed: bool = False
-) -> str:
+def _format_header(ctx: "RLMContext", detailed: bool = False) -> str:
     """
-    Formats the final model summary into a readable ASCII table.
+    Formats the common header metrics table for both console and file reports.
     """
     model_name = ctx.cfg.name
     total_params = len(ctx.w)
@@ -323,6 +318,10 @@ def format_analytics_report(
     opt_info = ctx.opt_info or {}
     opt_status = opt_info.get('reason', 'N/A')
     opt_iters = opt_info.get('iters', 0)
+    
+    # Read metrics from context
+    train_metrics = ctx.train_metrics or {}
+    val_metrics = ctx.vld_metrics
     
     train_rmse = train_metrics.get('train_rmse_y', 0.0)
     train_mae = train_metrics.get('train_mae_y', 0.0)
@@ -370,35 +369,47 @@ def format_analytics_report(
         f"  Generalization Gap (RMSE)   : {gen_gap:.2f}\n"
         f"{'=' * 135}\n"
     )
+    return header
 
-    report = header
 
-    if detailed:
-        buffer = io.StringIO()
-        ctx.feature_set.print_summary(output=buffer)
-        feature_summary = buffer.getvalue()
-        report += f"\nFEATURE SET SUMMARY:\n{'-' * 100}\n{feature_summary}\n"
+def format_console_report(ctx: "RLMContext") -> str:
+    """
+    Formats the short summary report for console output.
+    """
+    return _format_header(ctx, detailed=False)
+
+
+def format_file_report(ctx: "RLMContext") -> str:
+    """
+    Formats the complete detailed report for TXT file output.
+    """
+    report = _format_header(ctx, detailed=True)
+
+    buffer = io.StringIO()
+    ctx.feature_set.print_summary(output=buffer)
+    feature_summary = buffer.getvalue()
+    report += f"\nFEATURE SET SUMMARY:\n{'-' * 135}\n{feature_summary}\n"
+    
+    # Safely read the config list
+    detailed_report_list = []
+    if hasattr(ctx.cfg, 'analytics') and ctx.cfg.analytics is not None:
+        detailed_report_list = getattr(ctx.cfg.analytics, 'detailed_report', [])
+    
+    report += f"MOBILITY FEATURES DETAILS:\n{'-' * 135}\n"
+    col_offset = 0
+    for fid, feature in enumerate(ctx.feature_set.features):
+        if feature.category == 1:  # Mobility
+            print_rows = feature.name in detailed_report_list
+            report += _format_mobility_feature_table(ctx, fid, col_offset, print_rows=print_rows)
+        col_offset += feature.n_instances
         
-        # Safely read the config list
-        detailed_report_list = []
-        if hasattr(ctx.cfg, 'analytics') and ctx.cfg.analytics is not None:
-            detailed_report_list = getattr(ctx.cfg.analytics, 'detailed_report', [])
-        
-        report += f"MOBILITY FEATURES DETAILS:\n{'-' * 135}\n"
-        col_offset = 0
-        for fid, feature in enumerate(ctx.feature_set.features):
-            if feature.category == 1:  # Mobility
-                print_rows = feature.name in detailed_report_list
-                report += _format_mobility_feature_table(ctx, fid, col_offset, print_rows=print_rows)
-            col_offset += feature.n_instances
-            
-        report += f"\nPATTERN FEATURES DETAILS:\n{'-' * 135}\n"
-        col_offset = 0
-        for fid, feature in enumerate(ctx.feature_set.features):
-            if feature.category == 2:  # Pattern
-                print_rows = feature.name in detailed_report_list
-                report += _format_pattern_feature_table(ctx, fid, col_offset, print_rows=print_rows)
-            col_offset += feature.n_instances
+    report += f"\nPATTERN FEATURES DETAILS:\n{'-' * 135}\n"
+    col_offset = 0
+    for fid, feature in enumerate(ctx.feature_set.features):
+        if feature.category == 2:  # Pattern
+            print_rows = feature.name in detailed_report_list
+            report += _format_pattern_feature_table(ctx, fid, col_offset, print_rows=print_rows)
+        col_offset += feature.n_instances
 
     return report
 
@@ -441,3 +452,5 @@ def compute_training_metrics(ctx: "RLMContext") -> Dict[str, float]:
         'pop_rmse_y': float(pop_rmse_y),
         'pop_loss': float(pop_loss)
     }
+
+

@@ -33,7 +33,7 @@ from pathlib import Path
 
 from twolm.state_machine import Worker
 from twolm.enums import Relevance
-from twolm.rlm_analytics import compute_training_metrics, format_analytics_report
+from twolm.rlm_analytics import compute_training_metrics, format_console_report, format_file_report
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext
@@ -44,20 +44,19 @@ __all__ = ['lm_worker_analytics']
 def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Generating model analytics report...")
     
-    # 1. Compute training metrics
-    train_metrics = compute_training_metrics(ctx)
-    val_metrics = ctx.vld_metrics
+    # 1. Compute and store training metrics in context
+    ctx.train_metrics = compute_training_metrics(ctx)
     
     # 2. Format the console report
-    console_report = format_analytics_report(ctx, train_metrics, val_metrics, detailed=False)
+    console_report = format_console_report(ctx)
     
     # 3. Log the report line by line so it shows up in the StateMachine logs
     for line in console_report.strip().split('\n'):
         ctx.log_event(Relevance.INFO, line)
     
-    # 4. Save the complete report to a text file
-    file_report = format_analytics_report(ctx, train_metrics, val_metrics, detailed=True)
-    report_path = ctx.cfg.base_dir / "model_analytics_report.txt"
+    # 4. Save the complete report to a text file using the config filename
+    file_report = format_file_report(ctx)
+    report_path = ctx.cfg.base_dir / ctx.cfg.analytics.report_file_name
     with open(report_path, "w", encoding="utf-8") as f:
         f.write(file_report)
         
@@ -69,8 +68,10 @@ def _up(ctx: "RLMContext") -> None:
 def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing analytics attributes...")
     ctx.analytics_report = None
+    ctx.train_metrics = None
 
 
 def lm_worker_analytics() -> Worker:
     """Factory function that returns the ANALYTICS worker instance."""
     return Worker("ANALYTICS", _up, _down)
+
