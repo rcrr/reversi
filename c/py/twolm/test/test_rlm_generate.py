@@ -43,13 +43,14 @@ class TestRLMGenerate(unittest.TestCase):
         self.ctx.z = np.array([0.6, 0.4, 0.6, 0.4], dtype=np.float32) # mean z = 0.5
         
         # Feature 0: Intercept (cat 0, 1 config)
-        # Feature 1: Pattern (cat 2, 3 configs)
+        # Feature 1: Pattern (cat 2, 3 configs) -> AGGIUNTO ref mock
         # Feature 2: Mobility (cat 1, 5 configs)
         self.ctx.feature_set = SimpleNamespace(
             hash="abc",
             features=[
                 SimpleNamespace(name="INT", category=0, n_instances=1, n_configurations=1),
-                SimpleNamespace(name="PAT", category=2, n_instances=1, n_configurations=3),
+                SimpleNamespace(name="PAT", category=2, n_instances=1, n_configurations=3, 
+                                ref=SimpleNamespace(convert_to_principal_index=lambda x: x)), # Mock identity
                 SimpleNamespace(name="MOB", category=1, n_instances=1, n_configurations=5)
             ]
         )

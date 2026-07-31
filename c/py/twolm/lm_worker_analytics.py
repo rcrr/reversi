@@ -46,23 +46,25 @@ def _up(ctx: "RLMContext") -> None:
     
     # 1. Compute training metrics
     train_metrics = compute_training_metrics(ctx)
+    val_metrics = ctx.vld_metrics
     
-    # 2. Format the report
-    report = format_analytics_report(ctx, train_metrics, ctx.vld_metrics)
+    # 2. Format the console report
+    console_report = format_analytics_report(ctx, train_metrics, val_metrics, detailed=False)
     
     # 3. Log the report line by line so it shows up in the StateMachine logs
-    for line in report.strip().split('\n'):
+    for line in console_report.strip().split('\n'):
         ctx.log_event(Relevance.INFO, line)
     
-    # 4. Save the report to a text file
+    # 4. Save the complete report to a text file
+    file_report = format_analytics_report(ctx, train_metrics, val_metrics, detailed=True)
     report_path = ctx.cfg.base_dir / "model_analytics_report.txt"
     with open(report_path, "w", encoding="utf-8") as f:
-        f.write(report)
+        f.write(file_report)
         
     ctx.log_event(Relevance.INFO, f"Analytics report saved to {report_path}")
     
     # Store in context if needed by the SAVE worker later
-    ctx.analytics_report = report
+    ctx.analytics_report = console_report
 
 def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing analytics attributes...")

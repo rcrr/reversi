@@ -45,11 +45,14 @@ __all__ = ['ReversiLogisticModelConfig']
 
 
 
-class ValidationDataSetConfig(BaseModel):
+class RLMBaseConfig(BaseModel):
+    properties: dict[str, Any] = Field(default_factory=dict)
+
+class ValidationDataSetConfig(RLMBaseConfig):
     bid: List[NonNegativeInt]
     status: List[str]
 
-class OptimizationConfig(BaseModel):
+class OptimizationConfig(RLMBaseConfig):
     """
     Configuration for the L-BFGS optimizer.
     """
@@ -61,10 +64,16 @@ class OptimizationConfig(BaseModel):
     min_p_fun_decrease: Tuple[float, int] = Field(default=(1e-14, 7), description="Minimum relative loss decrease and consecutive iterations.")
     log_every_n: int = Field(default=0, ge=0, description="Frequency of logging. 0 = no log, 1 = every iteration.")
     save_every_n: int = Field(default=0, ge=0, description="Frequency of saving checkpoints. 0 = no save.")
-
-class RLMBaseConfig(BaseModel):
-    properties: dict[str, Any] = Field(default_factory=dict)
     
+class AnalyticsConfig(RLMBaseConfig):
+    """
+    Configuration for model analytics report generation.
+    """
+    detailed_report: List[str] = Field(
+        default_factory=list, 
+        description="List of feature names to include detailed row-by-row tables for in the analytics TXT report."
+    )
+
 class RegabDBConnectionConfig(RLMBaseConfig):
     """
     Configuration for connecting to the Regab database.
@@ -174,3 +183,4 @@ class ReversiLogisticModelConfig(RLMBaseConfig):
     stat_model: StatModelConfig
     optimization: OptimizationConfig
     validation_data_set: ValidationDataSetConfig
+    analytics: AnalyticsConfig = Field(default_factory=AnalyticsConfig)
