@@ -28,6 +28,7 @@
     "name": "RGLM (Logistic) - Unit Test 01 (rlm_01.json)",
     "description": "Used for unit testing the Design Matrix data structure.",
     "base_dir": "will/be/overwritten/by/python/during/unittesting",
+    "output": "rglm_logistic_model_ec_20_TEST01.dat",
     "use_cache": true,
     "stat_model": {
         "frequency_cut_off": 2,

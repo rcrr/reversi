@@ -28,6 +28,7 @@
     "name": "RGLM (Logistic) - Short-Long Test 04 (rlm_04.json)",
     "description": "Used for a full, not to long, testing the complete worker chain.",
     "base_dir": "will/be/overwritten/by/python/during/unittesting",
+    "output": "rglm_logistic_model_ec_20_TEST04.dat",
     "use_cache": true,
     "stat_model": {
         "frequency_cut_off": 10,

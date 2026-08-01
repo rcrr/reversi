@@ -491,17 +491,17 @@ class BinaryReader:
         return FileHeader(description=data.decode(encoding), version=version)
 
     # -- scalars ---------------------------------------------------------
-
-    def read_u8(self) -> int: return self._scalar(_U8)
-    def read_i8(self) -> int: return self._scalar(_I8)
-    def read_u16(self) -> int: return self._scalar(_U16)
-    def read_i16(self) -> int: return self._scalar(_I16)
-    def read_u32(self) -> int: return self._scalar(_U32)
-    def read_i32(self) -> int: return self._scalar(_I32)
-    def read_u64(self) -> int: return self._scalar(_U64)
-    def read_i64(self) -> int: return self._scalar(_I64)
-    def read_f32(self) -> float: return self._scalar(_F32)
-    def read_f64(self) -> float: return self._scalar(_F64)
+    
+    def read_u8(self) -> np.uint8: return np.uint8(self._scalar(_U8))
+    def read_i8(self) -> np.int8: return np.int8(self._scalar(_I8))
+    def read_u16(self) -> np.uint16: return np.uint16(self._scalar(_U16))
+    def read_i16(self) -> np.int16: return np.int16(self._scalar(_I16))
+    def read_u32(self) -> np.uint32: return np.uint32(self._scalar(_U32))
+    def read_i32(self) -> np.int32: return np.int32(self._scalar(_I32))
+    def read_u64(self) -> np.uint64: return np.uint64(self._scalar(_U64))
+    def read_i64(self) -> np.int64: return np.int64(self._scalar(_I64))
+    def read_f32(self) -> np.float32: return np.float32(self._scalar(_F32))
+    def read_f64(self) -> np.float64: return np.float64(self._scalar(_F64))
 
     # -- string ----------------------------------------------------------
 

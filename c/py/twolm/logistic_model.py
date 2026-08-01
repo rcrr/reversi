@@ -49,6 +49,7 @@ from twolm.lm_worker_optimize import lm_worker_optimize
 from twolm.lm_worker_generate import lm_worker_generate
 from twolm.lm_worker_validate import lm_worker_validate
 from twolm.lm_worker_analytics import lm_worker_analytics
+from twolm.lm_worker_save import lm_worker_save
 
 
 __all__ = ['RLMContext', 'LogisticModel']
@@ -192,7 +193,7 @@ class LogisticModel(BaseModel):
             lm_worker_generate(),
             lm_worker_validate(),
             lm_worker_analytics(),
-            # Next workers will be added here
+            lm_worker_save()
         ]
 
         # 4. Call the superclass constructor with the assembled parts

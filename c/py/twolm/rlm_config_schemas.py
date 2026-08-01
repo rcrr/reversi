@@ -181,6 +181,7 @@ class ReversiLogisticModelConfig(RLMBaseConfig):
     name: str
     description: str
     base_dir: Path
+    output: Path = Field(..., description="Output filename for the saved binary model weights.")
     use_cache: bool = True
     regab_data_set: RegabDataSetConfig
     feature_set: FeatureSetConfig

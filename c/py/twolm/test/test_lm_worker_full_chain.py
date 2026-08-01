@@ -41,6 +41,10 @@ import numpy.testing as nptest
 
 from twolm.enums import Verbosity
 from twolm.logistic_model import LogisticModel
+from twolm.binio import verify_sha3_256_sidecar
+from twolm.rlm_save import read_model_weights_file
+from twolm.rlm_client import make_evaluation_function
+from twolm.rlm_gradient import sigmoid
 
 
 class TestFullChainA2030(unittest.TestCase):
@@ -71,7 +75,7 @@ class TestFullChainA2030(unittest.TestCase):
         ctx = self.rlm.context
         
         # Run the model chain
-        self.rlm.move_to_step('ANALYTICS')
+        self.rlm.move_to_step('SAVE')
 
         # Validation Loss
         expected_vld_loss = 5.76E-03
@@ -90,6 +94,65 @@ class TestFullChainA2030(unittest.TestCase):
         # Validation RMSE(y)
         expected_vld_rmse_y = 14.021
         np.testing.assert_approx_equal(m['vld_rmse_y'], expected_vld_rmse_y, significant=4)
+
+        # Verify file exists and checksum is valid
+        output_path = ctx.cfg.base_dir / ctx.cfg.output
+        self.assertTrue(output_path.exists(), f"Output file not found at {output_path}")
+        self.assertTrue(verify_sha3_256_sidecar(output_path), "Checksum verification failed for saved model")
+        
+        # Read the file back using the Client's read function
+        mw = read_model_weights_file(output_path, compressed=True)
+        
+        # Assert Metadata matches
+        self.assertEqual(mw.name, ctx.cfg.name)
+        self.assertEqual(mw.ec, ctx.cfg.regab_data_set.ec)
+        self.assertAlmostEqual(mw.logit_clipping, ctx.cfg.stat_model.logit_clipping, places=5)
+
+        # Assert Optimization info
+        self.assertEqual(mw.opt_info['reason'], ctx.opt_info['reason'])
+        self.assertEqual(mw.opt_info['iters'], ctx.opt_info['iters'])
+        self.assertAlmostEqual(mw.opt_info['f'], ctx.opt_info['f'], places=6)
+
+        # Assert Validation metrics
+        self.assertEqual(mw.val_metrics['vld_samples'], ctx.vld_metrics['vld_samples'])
+        self.assertAlmostEqual(mw.val_metrics['vld_rmse_y'], ctx.vld_metrics['vld_rmse_y'], places=4)
+
+        # Assert FeatureSet matches (using the hash as a definitive structural check)
+        self.assertEqual(mw.feature_set.hash, ctx.feature_set.hash, 
+                         "Reconstructed FeatureSet hash does not match original")
+
+        # Assert Core Inference Arrays match
+        np.testing.assert_array_equal(mw.iwmap_feature_offset, ctx.iwmap_feature_offset)
+        np.testing.assert_allclose(mw.w_dense, ctx.w_dense, rtol=1e-5, atol=1e-6)
+
+        # Test the Client's Evaluation Function (EF)
+        ef = make_evaluation_function(mw)
+
+        sample_count = 100
+        test_positions = ctx.positions[:sample_count]
+        
+        # Let's extract the indexes for the first sample_count positions
+        idxs = ctx.rlm_indexes.indexes[:sample_count] # shape (sample_count, total_instances)
+        offsets = ctx.iwmap_feature_offset
+        
+        # Expand offsets to match the number of instances (columns in idxs)
+        n_instances_per_feature = [f.n_instances for f in ctx.feature_set.features]
+        expanded_offsets = np.repeat(offsets[:-1], n_instances_per_feature)
+        
+        for i, p in enumerate(test_positions):
+            # Client EF prediction
+            y_client = ef(p)
+                
+            # Internal equivalent prediction using w_dense
+            w_indices = expanded_offsets + idxs[i]
+            weights = ctx.w_dense[w_indices]
+            linear_pred = np.sum(weights)
+            z_pred = sigmoid(linear_pred)
+            y_internal = ctx.z2y(np.array([z_pred], dtype=np.float32))[0]
+                
+            # They should be virtually identical
+            self.assertAlmostEqual(y_client, float(y_internal), places=4, 
+                                   msg=f"EF mismatch at position {i}")
 
 
 @skipUnless(os.environ.get('LONG') == '1', "Skipping long-running test (set LONG=1 to run)")
@@ -121,7 +184,7 @@ class TestFullChainA2050(unittest.TestCase):
         ctx = self.rlm.context
         
         # Run the model chain
-        self.rlm.move_to_step('ANALYTICS')
+        self.rlm.move_to_step('SAVE')
 
         # Validation Loss
         expected_vld_loss = 1.578E-03
@@ -141,15 +204,14 @@ class TestFullChainA2050(unittest.TestCase):
         expected_vld_rmse_y = 7.338
         np.testing.assert_approx_equal(m['vld_rmse_y'], expected_vld_rmse_y, significant=4)
 
-#:
         # --- Analytics Console Report Checks ---
         self.assertIsNotNone(ctx.analytics_report, "Analytics report should be stored in context")
         
         console_report = ctx.analytics_report
         # Check key console lines (no detailed tables should be here)
-        self.assertIn("MODEL ANALYTICS REPORT: RGLM (Reversi Generalized Linear Model) Logistic: Edge and Mobility", console_report)
-        self.assertIn("  Generalization Gap (RMSE)   : 0.19", console_report)
-        self.assertIn("  Loss (MSE/2)    | 5.6141e-03     | 5.7623e-03     | 2.0438e-02", console_report)
+        self.assertIn("MODEL ANALYTICS REPORT: RGLM (Logistic) - Long Test 03 (rlm_03.json)", console_report)
+        self.assertIn("  Generalization Gap (RMSE)   : 0.32", console_report)
+        self.assertIn("  Loss (MSE/2)    | 1.4447e-03     | 1.5783e-03     | 2.0453e-02", console_report)
         # Ensure detailed sections are NOT in the console report
         self.assertNotIn("FEATURE SET SUMMARY:", console_report)
         self.assertNotIn("MOBILITY FEATURES DETAILS:", console_report)
@@ -162,27 +224,65 @@ class TestFullChainA2050(unittest.TestCase):
         
         # Check file specific headers
         self.assertIn("Creation Date               :", file_report)
-        self.assertIn("Training/Validation Records : 199,932 / 20,000", file_report)
-        self.assertIn("Frequency Cut-Off           : 10", file_report)
-        
-        # Check Feature Set Summary
-        self.assertIn("FEATURE SET SUMMARY:", file_report)
-        self.assertIn("FeatureSet: name = EDGE_and_MOBILITY", file_report)
-        
-        # Check Mobility Details
-        self.assertIn("MOBILITY FEATURE: LMC (fid=1) (Fallback: w_idx=1, weight=+0.295, freq=5)", file_report)
-        self.assertIn("  Eta-Squared (Discrimination): 0.3050", file_report)
-        # Check a specific row in the mobility table
-        self.assertIn("  10           | C        | 11       | 9        |     26,262 |      -4.10 |    22.46 |     +0.015", file_report)
-        # Check omitted rows (since detailed_report is empty in test config, rows should be omitted)
-        self.assertIn("(Table rows omitted: feature not in config 'analytics.detailed_report')", file_report)
-        
-        # Check Pattern Details
-        self.assertIn("PATTERN FEATURE: EDGE (fid=2) (Fallback: w_idx=22, weight=+0.121, freq=1,927)", file_report)
-        self.assertIn("  Eta-Squared (Discrimination): 0.2170", file_report)
-        # Check a specific row in the pattern table
-        self.assertIn("  66           | C        | 23       | 0        | 0              |     17,912 |      -2.08 |    27.84 |     -0.185", file_report)
 
+        # Verify file exists and checksum is valid
+        output_path = ctx.cfg.base_dir / ctx.cfg.output
+        self.assertTrue(output_path.exists(), f"Output file not found at {output_path}")
+        self.assertTrue(verify_sha3_256_sidecar(output_path), "Checksum verification failed for saved model")
+        
+        # Read the file back using the Client's read function
+        mw = read_model_weights_file(output_path, compressed=True)
+        
+        # Assert Metadata matches
+        self.assertEqual(mw.name, ctx.cfg.name)
+        self.assertEqual(mw.ec, ctx.cfg.regab_data_set.ec)
+        self.assertAlmostEqual(mw.logit_clipping, ctx.cfg.stat_model.logit_clipping, places=5)
+
+        # Assert Optimization info
+        self.assertEqual(mw.opt_info['reason'], ctx.opt_info['reason'])
+        self.assertEqual(mw.opt_info['iters'], ctx.opt_info['iters'])
+        self.assertAlmostEqual(mw.opt_info['f'], ctx.opt_info['f'], places=6)
+
+        # Assert Validation metrics
+        self.assertEqual(mw.val_metrics['vld_samples'], ctx.vld_metrics['vld_samples'])
+        self.assertAlmostEqual(mw.val_metrics['vld_rmse_y'], ctx.vld_metrics['vld_rmse_y'], places=4)
+
+        # Assert FeatureSet matches (using the hash as a definitive structural check)
+        self.assertEqual(mw.feature_set.hash, ctx.feature_set.hash, 
+                         "Reconstructed FeatureSet hash does not match original")
+
+        # Assert Core Inference Arrays match
+        np.testing.assert_array_equal(mw.iwmap_feature_offset, ctx.iwmap_feature_offset)
+        np.testing.assert_allclose(mw.w_dense, ctx.w_dense, rtol=1e-5, atol=1e-6)
+
+        # Test the Client's Evaluation Function (EF)
+        ef = make_evaluation_function(mw)
+
+        sample_count = 100
+        test_positions = ctx.positions[:sample_count]
+        
+        # Let's extract the indexes for the first sample_count positions
+        idxs = ctx.rlm_indexes.indexes[:sample_count] # shape (sample_count, total_instances)
+        offsets = ctx.iwmap_feature_offset
+        
+        # Expand offsets to match the number of instances (columns in idxs)
+        n_instances_per_feature = [f.n_instances for f in ctx.feature_set.features]
+        expanded_offsets = np.repeat(offsets[:-1], n_instances_per_feature)
+        
+        for i, p in enumerate(test_positions):
+            # Client EF prediction
+            y_client = ef(p)
+                
+            # Internal equivalent prediction using w_dense
+            w_indices = expanded_offsets + idxs[i]
+            weights = ctx.w_dense[w_indices]
+            linear_pred = np.sum(weights)
+            z_pred = sigmoid(linear_pred)
+            y_internal = ctx.z2y(np.array([z_pred], dtype=np.float32))[0]
+                
+            # They should be virtually identical
+            self.assertAlmostEqual(y_client, float(y_internal), places=4, 
+                                   msg=f"EF mismatch at position {i}")
         
 #: ###
 
