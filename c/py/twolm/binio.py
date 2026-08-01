@@ -25,7 +25,6 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
-
 """
 binio - minimal, C/Rust-interoperable binary I/O.
 
@@ -91,13 +90,13 @@ from __future__ import annotations
 import hashlib
 import os
 import struct
+import io
 
 from collections import namedtuple
 from pathlib import Path
 
 import numpy as np
-
-
+import lz4.frame
 
 __all__ = [
     'DEFAULT_MAGIC',
@@ -110,8 +109,6 @@ __all__ = [
     'write_sha3_256_sidecar',
     'verify_sha3_256_sidecar',
 ]
-
-
 
 # Result of BinaryReader.read_header().
 FileHeader = namedtuple("FileHeader", ["description", "version"])
@@ -184,6 +181,7 @@ class BinaryFormatError(Exception):
     Raised when the data on disk does not match the expected format
     (e.g. a MAGIC marker mismatch, truncated file, or unknown type code).
     """
+    pass
 
 
 def _open_arg(file, mode):
@@ -219,26 +217,32 @@ class BinaryWriter:
         signature: int = DEFAULT_FILE_SIGNATURE,
         checksum: bool = True,
         checksum_suffix: str = ".SHA3-256",
+        compressed: bool = False
     ):
-        # Capture the path (if any) so close() can write the sidecar next to it.
-        if isinstance(file, (str, os.PathLike)):
-            self._path = os.fspath(file)
-            self._f = open(file, "wb")
-            self._own = True
-        else:
-            self._path = None
-            self._f = file
-            self._own = False
-
+        self._path = os.fspath(file) if isinstance(file, (str, os.PathLike)) else None
+        self._actual_f = None
+        self._compressed = compressed
         self.magic = magic
         self.signature = signature
         self._magic_bytes = _MAGIC.pack(magic)
-
-        # Incremental SHA3-256: updated on every write so the digest is ready at
-        # close() without re-reading the file. Disabled when checksum=False.
         self._hash = hashlib.sha3_256() if checksum else None
         self._checksum_suffix = checksum_suffix
         self._closed = False
+
+        if self._compressed:
+            # Scrive sempre in un buffer in memoria prima di comprimere
+            self._f = io.BytesIO()
+            self._own = True
+            # Se ci ha passato un file object, lo salviamo per scriverci alla chiusura
+            if self._path is None:
+                self._actual_f = file
+        else:
+            if self._path is not None:
+                self._f = open(file, "wb")
+                self._own = True
+            else:
+                self._f = file
+                self._own = False
 
     def __enter__(self):
         return self
@@ -262,25 +266,38 @@ class BinaryWriter:
             return
         self._closed = True
         try:
-            # If checksumming is on and we know the file path, write the sidecar
-            # straight from the in-memory digest -- no API call, no re-read.
-            if self._hash is not None and self._path is not None:
+            if self._compressed:
+                uncompressed_data = self._f.getvalue()
+                compressed_data = lz4.frame.compress(uncompressed_data)
+                
+                if self._path is not None:
+                    with open(self._path, "wb") as f_out:
+                        f_out.write(compressed_data)
+                elif self._actual_f is not None:
+                    self._actual_f.write(compressed_data)
+                    
+                if self._hash is not None:
+                    self._hash.update(compressed_data)
+            else:
                 self._f.flush()
+
+            if self._hash is not None and self._path is not None:
                 sidecar = self._path + self._checksum_suffix
                 name = os.path.basename(self._path)
                 with open(sidecar, "w", encoding="ascii") as f:
                     f.write(f"{self._hash.hexdigest()}  {name}\n")
         finally:
-            if self._own and not self._f.closed:
+            if self._own and hasattr(self._f, 'close') and not self._f.closed:
                 self._f.close()
 
     # -- framing ---------------------------------------------------------
 
     def _write(self, data: bytes):
         """
-        Write raw bytes and feed them to the incremental hash (if enabled)."""
+        Write raw bytes and feed them to the incremental hash (if enabled).
+        """
         self._f.write(data)
-        if self._hash is not None:
+        if self._hash is not None and not self._compressed:
             self._hash.update(data)
 
     def _open_frame(self):
@@ -314,35 +331,16 @@ class BinaryWriter:
 
     # -- scalars ---------------------------------------------------------
 
-    def write_u8(self, value: int):
-        self._scalar(_U8, value)
-
-    def write_i8(self, value: int):
-        self._scalar(_I8, value)
-
-    def write_u16(self, value: int):
-        self._scalar(_U16, value)
-
-    def write_i16(self, value: int):
-        self._scalar(_I16, value)
-
-    def write_u32(self, value: int):
-        self._scalar(_U32, value)
-
-    def write_i32(self, value: int):
-        self._scalar(_I32, value)
-
-    def write_u64(self, value: int):
-        self._scalar(_U64, value)
-
-    def write_i64(self, value: int):
-        self._scalar(_I64, value)
-
-    def write_f32(self, value: float):
-        self._scalar(_F32, value)
-
-    def write_f64(self, value: float):
-        self._scalar(_F64, value)
+    def write_u8(self, value: int): self._scalar(_U8, value)
+    def write_i8(self, value: int): self._scalar(_I8, value)
+    def write_u16(self, value: int): self._scalar(_U16, value)
+    def write_i16(self, value: int): self._scalar(_I16, value)
+    def write_u32(self, value: int): self._scalar(_U32, value)
+    def write_i32(self, value: int): self._scalar(_I32, value)
+    def write_u64(self, value: int): self._scalar(_U64, value)
+    def write_i64(self, value: int): self._scalar(_I64, value)
+    def write_f32(self, value: float): self._scalar(_F32, value)
+    def write_f64(self, value: float): self._scalar(_F64, value)
 
     # -- string ----------------------------------------------------------
 
@@ -401,11 +399,30 @@ class BinaryReader:
         *,
         magic: int = DEFAULT_MAGIC,
         signature: int = DEFAULT_FILE_SIGNATURE,
+        compressed: bool = False
     ):
-        self._f, self._own = _open_arg(file, "rb")
+        self._compressed = compressed
+        
+        if self._compressed:
+            f, own = _open_arg(file, "rb")
+            # Se è un file object in memoria (es. BytesIO), assicuriamoci di partire da 0
+            if not own and hasattr(f, 'seek'):
+                f.seek(0)
+            compressed_data = f.read()
+            if own:
+                f.close()
+            try:
+                uncompressed_data = lz4.frame.decompress(compressed_data)
+            except Exception as e:
+                raise BinaryFormatError(f"LZ4 decompression failed: {e}")
+            self._f = io.BytesIO(uncompressed_data)
+            self._own = True
+        else:
+            self._f, self._own = _open_arg(file, "rb")
+
         self.magic = magic
         self.signature = signature
-
+        
     def __enter__(self):
         return self
 
@@ -424,7 +441,6 @@ class BinaryReader:
         """
         buf = self._f.read(n)
         if len(buf) < n:
-            # File objects may legally return fewer bytes; loop to be safe.
             chunks = [buf]
             remaining = n - len(buf)
             while remaining > 0:
@@ -476,35 +492,16 @@ class BinaryReader:
 
     # -- scalars ---------------------------------------------------------
 
-    def read_u8(self) -> int:
-        return self._scalar(_U8)
-
-    def read_i8(self) -> int:
-        return self._scalar(_I8)
-
-    def read_u16(self) -> int:
-        return self._scalar(_U16)
-
-    def read_i16(self) -> int:
-        return self._scalar(_I16)
-
-    def read_u32(self) -> int:
-        return self._scalar(_U32)
-
-    def read_i32(self) -> int:
-        return self._scalar(_I32)
-
-    def read_u64(self) -> int:
-        return self._scalar(_U64)
-
-    def read_i64(self) -> int:
-        return self._scalar(_I64)
-
-    def read_f32(self) -> float:
-        return self._scalar(_F32)
-
-    def read_f64(self) -> float:
-        return self._scalar(_F64)
+    def read_u8(self) -> int: return self._scalar(_U8)
+    def read_i8(self) -> int: return self._scalar(_I8)
+    def read_u16(self) -> int: return self._scalar(_U16)
+    def read_i16(self) -> int: return self._scalar(_I16)
+    def read_u32(self) -> int: return self._scalar(_U32)
+    def read_i32(self) -> int: return self._scalar(_I32)
+    def read_u64(self) -> int: return self._scalar(_U64)
+    def read_i64(self) -> int: return self._scalar(_I64)
+    def read_f32(self) -> float: return self._scalar(_F32)
+    def read_f64(self) -> float: return self._scalar(_F64)
 
     # -- string ----------------------------------------------------------
 
@@ -535,7 +532,6 @@ class BinaryReader:
         raw = self._read_exact(count * dtype.itemsize)
         self._expect_magic("after array")
 
-        # frombuffer is read-only and shares memory; copy to own writable data.
         return np.frombuffer(raw, dtype=dtype).reshape(shape).copy()
 
 
@@ -583,3 +579,4 @@ def verify_sha3_256_sidecar(path, *, suffix: str = ".SHA3-256") -> bool:
     if len(expected) != 64:
         raise BinaryFormatError(f"malformed sidecar: {sidecar!r}")
     return compute_sha3_256(path).lower() == expected.lower()
+

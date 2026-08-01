@@ -28,6 +28,7 @@
     "name": "RGLM (Logistic) - Unit Test 00 (rlm_00.json)",
     "description": "Used for unit testing.",
     "base_dir": "will/be/overwritten/by/python/during/unittesting",
+    "output": "rglm_logistic_model_ec_20_TEST00.dat",
     "use_cache": true,
     "stat_model": {
         "frequency_cut_off": 1,

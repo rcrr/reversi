@@ -161,5 +161,34 @@ class UsageManualOpenCloseTest(unittest.TestCase):
             reader.close()
 
 
+class UsageLz4CompressionTest(unittest.TestCase):
+    def test_write_and_read_back(self):
+        # Same cycle, but with LZ4 whole-file compression.
+        # The API is identical, just pass compressed=True to both Writer and Reader.
+        tmpdir = tempfile.mkdtemp(prefix="binio_usage_")
+        self.addCleanup(shutil.rmtree, tmpdir)
+        path = os.path.join(tmpdir, "compressed.bin")
+
+        text = "lz4 payload"
+        arr = np.arange(100, dtype=np.int32)
+
+        # --- write ---
+        with binio.BinaryWriter(path, compressed=True) as w:
+            w.write_header("lz4 lifecycle", version=1)
+            w.write_string(text)
+            w.write_array(arr)
+
+        # Verify integrity of the compressed file on disk
+        self.assertTrue(binio.verify_sha3_256_sidecar(path))
+
+        # --- read ---
+        with binio.BinaryReader(path, compressed=True) as r:
+            header = r.read_header()
+            self.assertEqual(header.description, "lz4 lifecycle")
+            self.assertEqual(header.version, 1)
+            self.assertEqual(r.read_string(), text)
+            self.assertTrue(np.array_equal(r.read_array(), arr))
+
+
 if __name__ == "__main__":
     unittest.main()

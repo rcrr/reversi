@@ -401,6 +401,84 @@ class FullDocumentTest(unittest.TestCase):
             self.assertTrue(np.array_equal(r.read_array(), a32))
             self.assertTrue(np.array_equal(r.read_array(), a64))
 
+class Lz4CompressionTest(unittest.TestCase):
+    """
+    Tests for the LZ4 whole-file compression feature (compressed=True).
+    """
+
+    def setUp(self):
+        self.dir = tempfile.mkdtemp()
+        self.path = os.path.join(self.dir, "data_compressed.bin")
+        self.uncompressed_path = os.path.join(self.dir, "data_uncompressed.bin")
+
+    def tearDown(self):
+        for name in os.listdir(self.dir):
+            os.remove(os.path.join(self.dir, name))
+        os.rmdir(self.dir)
+
+    def test_roundtrip_with_path(self):
+        a32 = np.linspace(0, 1, 100, dtype=np.float32)
+        with BinaryWriter(self.path, compressed=True) as w:
+            w.write_header("compressed", version=1)
+            w.write_string("hello lz4")
+            w.write_array(a32)
+        
+        self.assertTrue(os.path.exists(self.path))
+
+        with BinaryReader(self.path, compressed=True) as r:
+            header = r.read_header()
+            self.assertEqual(header.description, "compressed")
+            self.assertEqual(header.version, 1)
+            self.assertEqual(r.read_string(), "hello lz4")
+            out_arr = r.read_array()
+            self.assertTrue(np.array_equal(out_arr, a32))
+
+    def test_compression_actually_compresses(self):
+        # Highly repetitive array to ensure compression is effective
+        arr = np.zeros(10000, dtype=np.float64)
+        arr[::100] = 1.0
+        
+        with BinaryWriter(self.path, compressed=True) as w:
+            w.write_array(arr)
+            
+        with BinaryWriter(self.uncompressed_path, compressed=False) as w:
+            w.write_array(arr)
+            
+        compressed_size = os.path.getsize(self.path)
+        uncompressed_size = os.path.getsize(self.uncompressed_path)
+        
+        self.assertLess(compressed_size, uncompressed_size)
+
+    def test_checksum_uses_compressed_bytes(self):
+        arr = np.arange(1000, dtype=np.int32)
+        with BinaryWriter(self.path, compressed=True) as w:
+            w.write_header("chk", version=1)
+            w.write_array(arr)
+            
+        self.assertTrue(os.path.exists(self.path + ".SHA3-256"))
+        self.assertTrue(binio.verify_sha3_256_sidecar(self.path))
+        
+        # Verify the digest is for the compressed file, not the uncompressed payload
+        with open(self.path + ".SHA3-256", encoding="ascii") as f:
+            digest = f.readline().split()[0]
+        self.assertEqual(digest, binio.compute_sha3_256(self.path))
+
+    def test_roundtrip_with_file_object(self):
+        buf = io.BytesIO()
+        arr = np.arange(50, dtype=np.int32)
+        with BinaryWriter(buf, compressed=True) as w:
+            w.write_header("obj", version=2)
+            w.write_array(arr)
+        
+        # We must reset to the beginning of the BytesIO for reading
+        buf.seek(0)
+        with BinaryReader(buf, compressed=True) as r:
+            header = r.read_header()
+            self.assertEqual(header.description, "obj")
+            self.assertEqual(header.version, 2)
+            out_arr = r.read_array()
+            self.assertTrue(np.array_equal(out_arr, arr))
+
 
 if __name__ == "__main__":
     unittest.main()
