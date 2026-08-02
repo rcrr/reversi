@@ -41,15 +41,16 @@
 
 # twolm/test/test_lm_worker_features.py
 import unittest
-from unittest.mock import patch
-from io import StringIO
-
 import tempfile
 import shutil
+
+from unittest.mock import patch
+from io import StringIO
 from pathlib import Path
 
-from twolm.enums import Verbosity
+from twolm.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
+
 
 
 class TestLMWorkerFeatures(unittest.TestCase):

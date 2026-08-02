@@ -34,7 +34,7 @@ import numpy as np
 from pydantic import validate_call, ConfigDict
 
 from twolm import binio
-from twolm.enums import Relevance
+from twolm.state_machine import Relevance
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext

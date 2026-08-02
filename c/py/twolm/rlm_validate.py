@@ -32,13 +32,17 @@ from typing import TYPE_CHECKING, Dict
 import numpy as np
 from scipy.special import expit
 
-from twolm.enums import Relevance
+from twolm.state_machine import Relevance
 from twolm.regab import RegabDBConnection, regab_extract_data_set_from_db
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext
 
+
+
 __all__ = ['validate_model']
+
+
 
 def validate_model(ctx: "RLMContext") -> Dict[str, float]:
     """

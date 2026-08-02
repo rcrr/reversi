@@ -28,14 +28,15 @@
 # twolm/rlm_analytics.py
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, Optional, List
-from datetime import datetime
 import io
 import sys
 import numpy as np
+
+from typing import TYPE_CHECKING, Dict, Optional, List
+from datetime import datetime
 from scipy.special import expit
 
-from twolm.enums import Relevance
+from twolm.state_machine import Relevance
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext

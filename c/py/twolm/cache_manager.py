@@ -30,13 +30,15 @@ Utility module to handle computation caching with a 4-step validation pipeline.
 It abstracts file I/O, checksum validation, and cache invalidation.
 """
 
+# twolm/cache_manager.py
 from __future__ import annotations
 
 import hashlib
+
 from pathlib import Path
 from typing import Any, Callable, TypeVar
 
-from twolm.enums import Relevance
+from twolm.state_machine import Relevance
 
 
 

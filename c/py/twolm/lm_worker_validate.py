@@ -28,18 +28,20 @@
 # twolm/lm_worker_validate.py
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import numpy as np
 
-from twolm.state_machine import Worker
-from twolm.enums import Relevance
+from typing import TYPE_CHECKING
+
+from twolm.state_machine import Worker, Relevance
 from twolm.rlm_validate import validate_model
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext
 
+
+
 __all__ = ['lm_worker_validate']
+
 
 
 def _up(ctx: "RLMContext") -> None:

@@ -26,7 +26,6 @@
 #
 
 #
-#
 # How to use the unit tests mobility module.
 #
 # Change directory into $(REVERSI_HOME)/c
@@ -40,27 +39,8 @@
 # time PERF=0 PYTHONPATH="./py" python3 -m unittest twolm.test.test_mobility
 #
 
+# twolm/test/test_mobility.py
 import unittest
-
-from twolm.board import (Bitboard,
-                         Position,
-                         bitboard_count,
-                         bitboard_from_signed_int,
-                         make_position,
-                         legal_moves)
-
-from twolm.pattern import Index
-
-from twolm.mobility import (Mobility, MobilitySet,
-                            popcount64)
-
-from twolm.enums import Verbosity
-
-import numpy as np
-import numpy.testing as nptest
-
-import pandas as pd
-
 import io
 import time        
 import os
@@ -68,7 +48,22 @@ import tempfile
 import shutil
 import hashlib
 
+import numpy as np
+import numpy.testing as nptest
+import pandas as pd
+
 from pydantic import ValidationError
+
+from twolm.board import (Bitboard,
+                         Position,
+                         bitboard_count,
+                         bitboard_from_signed_int,
+                         make_position,
+                         legal_moves)
+from twolm.pattern import Index
+from twolm.mobility import (Mobility, MobilitySet,
+                            popcount64)
+from twolm.state_machine import Verbosity
 
 
 

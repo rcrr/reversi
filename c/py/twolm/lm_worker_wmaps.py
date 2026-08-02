@@ -30,8 +30,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from twolm.state_machine import Worker
-from twolm.enums import Relevance
+from twolm.state_machine import Worker, Relevance
 from twolm.rlm_wmaps import (rlm_wmaps_load_from_file,
                              rlm_wmaps_store_to_file,
                              rlm_wmaps_compute,

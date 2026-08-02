@@ -30,8 +30,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from twolm.state_machine import Worker
-from twolm.enums import Relevance
+from twolm.state_machine import Worker, Relevance
 from twolm.rlm_zed import rlm_zed_compute
 
 if TYPE_CHECKING:

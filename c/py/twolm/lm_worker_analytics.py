@@ -31,14 +31,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from pathlib import Path
 
-from twolm.state_machine import Worker
-from twolm.enums import Relevance
+from twolm.state_machine import Worker, Relevance
 from twolm.rlm_analytics import compute_training_metrics, format_console_report, format_file_report
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext
 
+
+
 __all__ = ['lm_worker_analytics']
+
 
 
 def _up(ctx: "RLMContext") -> None:

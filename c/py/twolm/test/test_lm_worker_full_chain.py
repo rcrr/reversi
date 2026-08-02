@@ -28,23 +28,24 @@
 # twolm/test/test_lm_worker_full_chain.py
 import unittest
 import os
-from unittest import skipUnless
-from unittest.mock import patch
-from io import StringIO
-
 import tempfile
 import shutil
-from pathlib import Path
 
 import numpy as np
 import numpy.testing as nptest
 
-from twolm.enums import Verbosity
+from unittest import skipUnless
+from unittest.mock import patch
+from io import StringIO
+from pathlib import Path
+
+from twolm.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
 from twolm.binio import verify_sha3_256_sidecar
 from twolm.rlm_save import read_model_weights_file
 from twolm.rlm_client import make_evaluation_function
 from twolm.rlm_gradient import sigmoid
+
 
 
 class TestFullChainA2030(unittest.TestCase):

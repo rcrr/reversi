@@ -26,7 +26,6 @@
 #
 
 #
-#
 # How to use the unit tests state_machine module.
 #
 # Change directory into $(REVERSI_HOME)/c
@@ -42,12 +41,13 @@
 
 # twolm/test/test_state_machine.py
 import unittest
+
 from unittest.mock import MagicMock, patch
 from io import StringIO
 from datetime import datetime
 
-from twolm.state_machine import StateMachine, Worker, Context
-from twolm.enums import Relevance, Verbosity
+from twolm.state_machine import StateMachine, Worker, Context, Relevance, Verbosity
+
 
 
 class TestStateMachine(unittest.TestCase):

@@ -30,8 +30,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from twolm.state_machine import Worker
-from twolm.enums import Relevance
+from twolm.state_machine import Worker, Relevance
 from twolm.rlm_design_matrix import (rlm_design_matrix_load_from_file,
                                      rlm_design_matrix_store_to_file,
                                      rlm_design_matrix_compute,
@@ -41,7 +40,10 @@ from twolm.cache_manager import cache_manager_load_or_compute
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext
 
+
+
 __all__ = ['lm_worker_design_matrix']
+
 
 
 def _up(ctx: "RLMContext") -> None:

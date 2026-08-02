@@ -31,8 +31,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import List
 
-from twolm.state_machine import StateMachine, Worker, Context
-from twolm.enums import Verbosity
+from twolm.state_machine import StateMachine, Worker, Context, Verbosity
+
 
 
 class BaseModel:

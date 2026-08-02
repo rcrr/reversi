@@ -26,7 +26,6 @@
 #
 
 #
-#
 # How to use the run_optimization module.
 #
 # Change directory into $(REVERSI_HOME)/c
@@ -47,7 +46,8 @@ from pathlib import Path
 from pydantic import validate_call, ConfigDict
 
 from twolm.logistic_model import LogisticModel
-from twolm.enums import Verbosity
+from twolm.state_machine import Verbosity
+
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))

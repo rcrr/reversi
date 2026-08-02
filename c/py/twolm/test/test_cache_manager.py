@@ -33,10 +33,12 @@ checksum validation, fallback computation logic, and the cache_hit flag
 behave predictably under various scenarios.
 """
 
+# twolm/test/test_cache_manager.py
 from __future__ import annotations
 
 import unittest
 import tempfile
+
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -48,7 +50,8 @@ from twolm.cache_manager import (
     _delete_cache_files,
     SHA3_256_CHECKSUM_SUFFIX,
 )
-from twolm.enums import Relevance
+from twolm.state_machine import Relevance
+
 
 
 #: A constant dummy payload to simulate computed/cached data

@@ -1,5 +1,5 @@
 #
-# lm_worker_positions.py
+# lm_worker_config.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -29,20 +29,23 @@
 # twolm/lm_worker_config.py
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable
-from pathlib import Path
 import os
 import json5
 import hashlib
 
-from twolm.state_machine import Worker
-from twolm.enums import Relevance
+from typing import TYPE_CHECKING, Callable
+from pathlib import Path
+
+from twolm.state_machine import Worker, Relevance
 from twolm.rlm_config_schemas import ReversiLogisticModelConfig
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext
 
+
+
 __all__ = ['lm_worker_config']
+
 
 
 def _up(ctx: "RLMContext") -> None:

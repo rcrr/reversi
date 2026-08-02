@@ -31,8 +31,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from pathlib import Path
 
-from twolm.state_machine import Worker
-from twolm.enums import Relevance
+from twolm.state_machine import Worker, Relevance
 from twolm.opt_lbfgs import lbfgs
 from twolm.rlm_optimize import (save_optimization_checkpoint, 
                                 load_optimization_checkpoint, 

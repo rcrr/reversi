@@ -41,18 +41,19 @@
 
 # twolm/test/test_lm_worker_config.py
 import unittest
-from unittest.mock import patch
-from io import StringIO
-
 import os
 import json5
 import tempfile
 import shutil
-from pathlib import Path
 
-from twolm.enums import Verbosity
-from twolm.logistic_model import LogisticModel
+from unittest.mock import patch
+from io import StringIO
+from pathlib import Path
 from pydantic import ValidationError
+
+from twolm.state_machine import Verbosity
+from twolm.logistic_model import LogisticModel
+
 
 
 class TestLMWorkerConfig(unittest.TestCase):

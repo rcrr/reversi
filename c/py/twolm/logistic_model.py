@@ -32,9 +32,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Any, Callable
 
-from twolm.state_machine import StateMachine, Worker, Context
+from twolm.state_machine import StateMachine, Worker, Context, Verbosity, Relevance
 from twolm.base_model import BaseModel
-from twolm.enums import Verbosity, Relevance
 
 # Import worker factories
 from twolm.lm_worker_config import lm_worker_config

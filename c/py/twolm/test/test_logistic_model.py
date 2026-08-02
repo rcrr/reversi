@@ -26,7 +26,6 @@
 #
 
 #
-#
 # How to use the unit tests logistic_model module.
 #
 # Change directory into $(REVERSI_HOME)/c
@@ -42,14 +41,15 @@
 
 # twolm/test/test_logistic_model.py
 import unittest
-from unittest.mock import MagicMock, patch
-from io import StringIO
 import tempfile
 import os
 
+from unittest.mock import MagicMock, patch
+from io import StringIO
+
 from twolm.logistic_model import LogisticModel, RLMContext
-from twolm.state_machine import Worker
-from twolm.enums import Verbosity, Relevance
+from twolm.state_machine import Worker, Verbosity, Relevance
+
 
 
 class TestLogisticModel(unittest.TestCase):

@@ -25,11 +25,10 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
-
-
 # twolm/state_machine.py
 from __future__ import annotations
 
+from enum import IntEnum
 from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass
 from contextlib import contextmanager
@@ -37,13 +36,31 @@ from typing import List, Callable, Any
 from pathlib import Path
 import csv
 
-from twolm.enums import Relevance, Verbosity
+
+
+__all__ = ['Context', 'Worker', 'StateMachine', 'Verbosity', 'Relevance']
 
 
 
-__all__ = ['Context', 'Worker', 'StateMachine']
+class Verbosity(IntEnum):
+    """
+    Logging verbosity levels.
+    """
+    HIGH      = 0
+    MODERATE  = 1
+    STANDARD  = 2
+    LOW       = 3
+    NONE      = 4
 
-
+class Relevance(IntEnum):
+    """
+    Logging relevance levels.
+    """
+    TRACE     = 0
+    DEBUG     = 1
+    INFO      = 2
+    WARN      = 3
+    ERROR     = 4
 
 class Context:
     """

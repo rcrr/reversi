@@ -1,5 +1,5 @@
 #
-# rlm_generate.py
+# lm_worker_generate.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -30,8 +30,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from twolm.state_machine import Worker
-from twolm.enums import Relevance
+from twolm.state_machine import Worker, Relevance
 from twolm.rlm_generate import (compute_w_dense,
                                 rlm_generate_store_to_file,
                                 rlm_generate_load_from_file,
@@ -41,7 +40,10 @@ from twolm.cache_manager import cache_manager_load_or_compute
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext
 
+
+
 __all__ = ['lm_worker_generate']
+
 
 
 def _up(ctx: "RLMContext") -> None:
