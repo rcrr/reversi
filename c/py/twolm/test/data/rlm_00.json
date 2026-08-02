@@ -47,6 +47,7 @@
         "checkpoint_file": "checkpoint_optimize.dat"
     },
     "analytics": {
+        "report_file_name": "model_analytics_report.txt",
         "detailed_report": ["ELLE", "EDGE", "LMC"]
     },
     "properties": {
