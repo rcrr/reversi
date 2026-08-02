@@ -50,7 +50,7 @@ def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Starting OPTIMIZE worker...")
     
     opt_cfg = ctx.cfg.optimization
-    checkpoint_path = ctx.cfg.base_dir / "checkpoint_optimize.dat"
+    checkpoint_path = ctx.cfg.base_dir / opt_cfg.checkpoint_file
     
     w_init = ctx.w
     initial_sl, initial_yl, initial_rho = None, None, None

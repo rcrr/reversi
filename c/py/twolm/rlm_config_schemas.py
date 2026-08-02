@@ -64,6 +64,7 @@ class OptimizationConfig(RLMBaseConfig):
     min_p_fun_decrease: Tuple[float, int] = Field(default=(1e-14, 7), description="Minimum relative loss decrease and consecutive iterations.")
     log_every_n: int = Field(default=0, ge=0, description="Frequency of logging. 0 = no log, 1 = every iteration.")
     save_every_n: int = Field(default=0, ge=0, description="Frequency of saving checkpoints. 0 = no save.")
+    checkpoint_file: Path = Field(..., description="Checkpoint file name used to save optimization status.")
     
 class AnalyticsConfig(RLMBaseConfig):
     """
