@@ -51,7 +51,7 @@ def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Computing indexes for the feature set...")
 
     # Execute the abstracted pipeline.
-    cache_hit, rlm_indexes, checksum = cache_manager_load_or_compute(
+    cache_hit, rlm_indexes, rlm_indexes_checksum = cache_manager_load_or_compute(
         cache_path  = ctx.get_cache_file_full_path_for_next_level(),
         is_allowed  = ctx.use_cache,
         load_fn     = rlm_indexes_load_from_file,
@@ -63,10 +63,14 @@ def _up(ctx: "RLMContext") -> None:
     
     ctx.log_event(Relevance.INFO, "Model attribute rlm_indexes has been set.")
     ctx.rlm_indexes = rlm_indexes
+    ctx.log_event(Relevance.INFO, f"Indexes checksum (rlm_indexes_checksum): {rlm_indexes_checksum}.")
+    ctx.rlm_indexes_checksum = rlm_indexes_checksum
+
         
 def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing rlm_indexes...")
     ctx.rlm_indexes = None
+    ctx.rlm_indexes_checksum = None
 
 
 def lm_worker_indexes() -> Worker:

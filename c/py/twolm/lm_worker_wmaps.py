@@ -49,7 +49,7 @@ __all__ = ['lm_worker_wmaps']
 def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Computing weight maps (WMAPS) for the feature set...")
 
-    cache_hit, wmaps_obj, checksum = cache_manager_load_or_compute(
+    cache_hit, wmaps_obj, wmaps_obj_checksum = cache_manager_load_or_compute(
         cache_path  = ctx.get_cache_file_full_path_for_next_level(),
         is_allowed  = ctx.use_cache,
         load_fn     = rlm_wmaps_load_from_file,
@@ -60,14 +60,18 @@ def _up(ctx: "RLMContext") -> None:
     )
     
     # Populate the 6 separate attributes in the context
-    ctx.feature_w_ranges = wmaps_obj.w_ranges
+    ctx.feature_w_ranges = wmaps_obj.feature_w_ranges
     ctx.iwmap_feature_offset = wmaps_obj.iwmap_feature_offset
     ctx.iwmap = wmaps_obj.iwmap
     ctx.wmap = wmaps_obj.wmap
     ctx.wmap_fallback = wmaps_obj.wmap_fallback
     ctx.w = wmaps_obj.w
-    
+    ctx.log_event(Relevance.INFO, "Model attributes feature_w_ranges, iwmap_feature_offset, iwmap, wmap, wmap_fallback, w have been set.")
     ctx.log_event(Relevance.INFO, f"WMAPS computed/loaded. Total weights (W): {len(ctx.w)}")
+    
+    ctx.log_event(Relevance.INFO, f"Wmaps object checksum (wmaps_obj_checksum): {wmaps_obj_checksum}.")
+    ctx.wmaps_obj_checksum = wmaps_obj_checksum
+    
         
 def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing WMAPS and W attributes...")

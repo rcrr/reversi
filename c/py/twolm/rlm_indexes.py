@@ -27,6 +27,8 @@
 
 from __future__ import annotations
 
+import hashlib
+
 from typing import TYPE_CHECKING
 from enum import IntEnum
 from typing import Protocol
@@ -73,6 +75,13 @@ class ReversiLogisticModelIndexes:
         self.rds_checksum = rds_checksum
         self.feature_set_hash = feature_set_hash
         self.indexes = indexes
+
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def compute_sha3_256_hash(self) -> str:
+        hasher = hashlib.sha3_256()
+        hasher.update(self.indexes.tobytes())
+        sha3_256_hash = hasher.hexdigest()
+        return sha3_256_hash
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))

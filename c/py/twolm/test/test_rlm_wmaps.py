@@ -27,15 +27,16 @@
 
 # twolm/test/test_rlm_wmaps.py
 import unittest
-from unittest.mock import patch
-from io import StringIO
 import tempfile
 import shutil
-from pathlib import Path
-from types import SimpleNamespace
 
 import numpy as np
 import numpy.testing as nptest
+
+from unittest.mock import patch
+from io import StringIO
+from pathlib import Path
+from types import SimpleNamespace
 
 from twolm.rlm_wmaps import (ReversiLogisticModelWMaps,
                              rlm_wmaps_compute,
@@ -49,13 +50,15 @@ class TestRLMWmapsCompute(unittest.TestCase):
 
     def setUp(self):
         # Create a dummy context to feed into rlm_wmaps_compute
-        self.ctx = SimpleNamespace()
+        self.ctx = SimpleNamespace(
+            rlm_indexes_checksum="abc123"
+        )
         
         # 1. Define a mock feature set with 2 features
         # Feature 0: 1 instance, 3 possible configurations (0, 1, 2)
         # Feature 1: 2 instances, 2 possible configurations (0, 1)
         self.ctx.feature_set = SimpleNamespace(
-            hash="abc123",
+            hash="zyz789",
             features=[
                 SimpleNamespace(name="F0", n_instances=1, n_configurations=3),
                 SimpleNamespace(name="F1", n_instances=2, n_configurations=2)
@@ -84,7 +87,7 @@ class TestRLMWmapsCompute(unittest.TestCase):
         wmaps = rlm_wmaps_compute(self.ctx)
         
         # Check basic attributes
-        self.assertEqual(wmaps.feature_set_hash, "abc123")
+        self.assertEqual(wmaps.rlm_indexes_checksum, "abc123")
         self.assertEqual(wmaps.cut_off, 2)
         self.assertEqual(len(wmaps.w), 4)  # Expected weights: 1 fallback + 1 above for F0, 2 above for F1
         
@@ -94,7 +97,7 @@ class TestRLMWmapsCompute(unittest.TestCase):
         # Check feature_w_ranges [fallback, w_min, w_max]
         # F0: fallback=0, w_min=0, w_max=1
         # F1: fallback=-1, w_min=2, w_max=3
-        nptest.assert_array_equal(wmaps.w_ranges, np.array([
+        nptest.assert_array_equal(wmaps.feature_w_ranges, np.array([
             [0, 0, 1],
             [-1, 2, 3]
         ], dtype=np.int64))
@@ -138,7 +141,7 @@ class TestRLMWmapsCompute(unittest.TestCase):
         self.assertEqual(wmaps.wmap_fallback.shape, (0, 3))
         
         # F0 should have fallback -1
-        self.assertEqual(wmaps.w_ranges[0, 0], -1)
+        self.assertEqual(wmaps.feature_w_ranges[0, 0], -1)
 
 
 # twolm/test/test_rlm_wmaps.py (sostituisci la classe TestRLMWmapsCacheConsistency)
@@ -147,28 +150,30 @@ class TestRLMWmapsCacheConsistency(unittest.TestCase):
     """Tests the cache validation logic."""
 
     def setUp(self):
-        self.ctx = SimpleNamespace()
-        self.ctx.feature_set = SimpleNamespace(hash="abc123")
+        self.ctx = SimpleNamespace(
+            rlm_indexes_checksum="abc123"
+        )
+        self.ctx.feature_set = SimpleNamespace(hash="zyz789")
         self.ctx.cfg = SimpleNamespace(stat_model=SimpleNamespace(frequency_cut_off=5))
         
         # Use empty arrays instead of None to satisfy Pydantic validation
         empty_arr = np.array([])
         
         self.wmaps_valid = ReversiLogisticModelWMaps(
-            feature_set_hash="abc123", cut_off=5,
-            w_ranges=empty_arr, iwmap_feature_offset=empty_arr, iwmap=empty_arr,
+            rlm_indexes_checksum="abc123", cut_off=5,
+            feature_w_ranges=empty_arr, iwmap_feature_offset=empty_arr, iwmap=empty_arr,
             wmap=empty_arr, wmap_fallback=empty_arr, w=np.zeros(1)
         )
         
         self.wmaps_wrong_hash = ReversiLogisticModelWMaps(
-            feature_set_hash="wrong", cut_off=5,
-            w_ranges=empty_arr, iwmap_feature_offset=empty_arr, iwmap=empty_arr,
+            rlm_indexes_checksum="wrong", cut_off=5,
+            feature_w_ranges=empty_arr, iwmap_feature_offset=empty_arr, iwmap=empty_arr,
             wmap=empty_arr, wmap_fallback=empty_arr, w=np.zeros(1)
         )
         
         self.wmaps_wrong_cutoff = ReversiLogisticModelWMaps(
-            feature_set_hash="abc123", cut_off=99,
-            w_ranges=empty_arr, iwmap_feature_offset=empty_arr, iwmap=empty_arr,
+            rlm_indexes_checksum="abc123", cut_off=99,
+            feature_w_ranges=empty_arr, iwmap_feature_offset=empty_arr, iwmap=empty_arr,
             wmap=empty_arr, wmap_fallback=empty_arr, w=np.zeros(1)
         )
 
@@ -191,9 +196,9 @@ class TestRLMWmapsIO(unittest.TestCase):
         
         # Create a fully populated WMaps object to serialize
         self.wmaps_original = ReversiLogisticModelWMaps(
-            feature_set_hash="io_test_hash",
+            rlm_indexes_checksum="io_test_hash",
             cut_off=42,
-            w_ranges=np.array([[0, 1, 2]], dtype=np.int64),
+            feature_w_ranges=np.array([[0, 1, 2]], dtype=np.int64),
             iwmap_feature_offset=np.array([0, 3], dtype=np.uint32),
             iwmap=np.array([1, 0, 2], dtype=np.int64),
             wmap=np.array([[0, 0, 10], [0, 1, 20]], dtype=np.int64),
@@ -214,11 +219,11 @@ class TestRLMWmapsIO(unittest.TestCase):
         wmaps_loaded = rlm_wmaps_load_from_file(self.filepath, checksum=False)
         
         # Validate scalar attributes
-        self.assertEqual(wmaps_loaded.feature_set_hash, "io_test_hash")
+        self.assertEqual(wmaps_loaded.rlm_indexes_checksum, "io_test_hash")
         self.assertEqual(wmaps_loaded.cut_off, 42)
         
         # Validate numpy arrays
-        nptest.assert_array_equal(wmaps_loaded.w_ranges, self.wmaps_original.w_ranges)
+        nptest.assert_array_equal(wmaps_loaded.feature_w_ranges, self.wmaps_original.feature_w_ranges)
         nptest.assert_array_equal(wmaps_loaded.iwmap_feature_offset, self.wmaps_original.iwmap_feature_offset)
         nptest.assert_array_equal(wmaps_loaded.iwmap, self.wmaps_original.iwmap)
         nptest.assert_array_equal(wmaps_loaded.wmap, self.wmaps_original.wmap)

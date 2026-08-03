@@ -105,9 +105,11 @@ class RLMContext(Context):
     feature_set: Any = None
 
     # Indexes attribute:
+    rlm_indexes_checksum: Union[str, None] = None
     rlm_indexes: Any = None
 
     # Wmaps attributes:
+    wmaps_obj_checksum: Union[str, None] = None
     feature_w_ranges: Any = None
     iwmap_feature_offset: Any = None
     iwmap: Any = None
@@ -116,6 +118,7 @@ class RLMContext(Context):
     w: Any = None
 
     # Design Matrix attribute:
+    design_matrix_checksum: Union[str, None] = None
     design_matrix: Any = None
     
     # ZED attributes:

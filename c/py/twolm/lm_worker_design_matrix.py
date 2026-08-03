@@ -49,7 +49,7 @@ __all__ = ['lm_worker_design_matrix']
 def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Computing Design Matrix (X)...")
 
-    cache_hit, dm_obj, checksum = cache_manager_load_or_compute(
+    cache_hit, dm_obj, dm_checksum = cache_manager_load_or_compute(
         cache_path  = ctx.get_cache_file_full_path_for_next_level(),
         is_allowed  = ctx.use_cache,
         load_fn     = rlm_design_matrix_load_from_file,
@@ -60,8 +60,13 @@ def _up(ctx: "RLMContext") -> None:
     )
     
     ctx.design_matrix = dm_obj.X
+    ctx.log_event(Relevance.INFO, "Model attribute design_matrix has been set.")
     ctx.log_event(Relevance.INFO, f"Design Matrix computed/loaded. Shape: {ctx.design_matrix.shape}")
-        
+    
+    ctx.log_event(Relevance.INFO, f"Design matrix checksum (design_matrix_checksum): {dm_checksum}.")
+    ctx.design_matrix_checksum = dm_checksum
+
+
 def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing Design Matrix attribute...")
     ctx.design_matrix = None

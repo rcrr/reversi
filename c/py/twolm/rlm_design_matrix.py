@@ -28,10 +28,11 @@
 # twolm/rlm_design_matrix.py
 from __future__ import annotations
 
+import hashlib
+import numpy as np
+
 from typing import TYPE_CHECKING
 from pathlib import Path
-
-import numpy as np
 from pydantic import validate_call, ConfigDict
 
 from twolm import binio
@@ -49,10 +50,16 @@ __all__ = ['ReversiLogisticModelDesignMatrix',
 class ReversiLogisticModelDesignMatrix:
     """Represents the computed Design Matrix (X)."""
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-    def __init__(self, feature_set_hash: str, cut_off: int, X: np.ndarray):
-        self.feature_set_hash = feature_set_hash
-        self.cut_off = cut_off
+    def __init__(self, wmaps_obj_checksum: str, X: np.ndarray):
+        self.wmaps_obj_checksum = wmaps_obj_checksum
         self.X = X
+
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def compute_sha3_256_hash(self) -> str:
+        hasher = hashlib.sha3_256()
+        hasher.update(self.X.tobytes())
+        sha3_256_hash = hasher.hexdigest()
+        return sha3_256_hash
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -64,8 +71,7 @@ def rlm_design_matrix_store_to_file(dm: ReversiLogisticModelDesignMatrix, filena
 
     with binio.BinaryWriter(filename) as w:
         w.write_header(description, version)
-        w.write_string(dm.feature_set_hash)
-        w.write_i32(dm.cut_off)
+        w.write_string(dm.wmaps_obj_checksum)
         w.write_array(dm.X)
 
 
@@ -86,13 +92,11 @@ def rlm_design_matrix_load_from_file(filename: str | Path, checksum: bool = True
         if version != expected_version:
             raise RuntimeError(f"File version mismatch: found {version}, expected {expected_version}")
 
-        feature_set_hash = r.read_string()
-        cut_off = r.read_i32()
+        wmaps_obj_checksum = r.read_string()
         X = r.read_array()
 
     return ReversiLogisticModelDesignMatrix(
-        feature_set_hash=feature_set_hash,
-        cut_off=cut_off,
+        wmaps_obj_checksum=wmaps_obj_checksum,
         X=X
     )
 
@@ -115,14 +119,12 @@ def rlm_design_matrix_compute(ctx: "RLMContext") -> ReversiLogisticModelDesignMa
     np.take(ctx.iwmap, pindexes_with_offsets, out=X)
     
     return ReversiLogisticModelDesignMatrix(
-        feature_set_hash=ctx.feature_set.hash,
-        cut_off=ctx.cfg.stat_model.frequency_cut_off,
+        wmaps_obj_checksum=ctx.wmaps_obj_checksum,
         X=X
     )
 
 
 def rlm_design_matrix_is_cache_consistent(ctx: "RLMContext", dm: ReversiLogisticModelDesignMatrix) -> bool:
-    """Validates the cache by checking feature_set_hash and cut_off."""
-    is_hash_consistent = dm.feature_set_hash == ctx.feature_set.hash
-    is_cut_off_consistent = dm.cut_off == ctx.cfg.stat_model.frequency_cut_off
-    return is_hash_consistent and is_cut_off_consistent
+    """Validates the cache by checking wmaps_obj_checksum."""
+    is_hash_consistent = dm.wmaps_obj_checksum == ctx.wmaps_obj_checksum
+    return is_hash_consistent
