@@ -149,7 +149,7 @@ class TestFeatureSet(unittest.TestCase):
         computed_n_instances = [f.n_instances for f in feature_set.features]
         self.assertEqual(computed_n_instances, expected_n_instances)
 
-        expected_hash = 'bc8897b689ed90c5a6e9440fa9766a8f763d5ff0a8661550f48b45eaff01ebec'
+        expected_hash = 'f5663932421232ba007622198625344deb9eb9aed58f8ad5c71eabc016b74167'
         self.assertEqual(feature_set.hash, expected_hash)
 
     def test_print_summary(self):
@@ -158,11 +158,11 @@ class TestFeatureSet(unittest.TestCase):
             feature_set.print_summary(output=buffer)
             actual_output = buffer.getvalue()
 
-        self.assertIn("FeatureSet: name = TestFeatureSet, length = 17, hash = bc8897b689ed90c5a6e9440fa9766a8f763d5ff0a8661550f48b45eaff01ebec", actual_output)
+        self.assertIn("FeatureSet: name = TestFeatureSet, length = 17, hash = f5663932421232ba007622198625344deb9eb9aed58f8ad5c71eabc016b74167", actual_output)
         self.assertIn("  Intercept is present.", actual_output)
-        self.assertIn("  MobilitySet: name = TestMobilitySet, hash = cee59abd002aefce5dbdc545629111e2975fc2ea278e66ffa4e22571560d5f34", actual_output)
+        self.assertIn("  MobilitySet: name = TestMobilitySet, hash = 2e5535935d46d82a941ef87d43d22562735db9b6bf41db51d6eb6a8f21208a94", actual_output)
         self.assertIn("    00 name = ALMC      , mask = 0x0000000000000000, amask = 0xFFFFFFFFFFFFFFFF", actual_output)
-        self.assertIn("  PatternSet: name = TestPatternSet, hash = f48dbd6313cf8ccbc72d46f56566b06d159560a0c4ebf7f81310756890ca2a1f", actual_output)
+        self.assertIn("  PatternSet: name = TestPatternSet, hash = ff97ce55dcb0ebc5f4b62272dde7c3ead438b0feec2411fd258f68a7210040ea", actual_output)
         self.assertIn("    04 name = R3        , mask = 0x0000000000FF0000", actual_output)
         self.assertIn("  Features: [<i>, <category>, <name>, <n_instances>, <n_configurations>]", actual_output)
         self.assertIn("    00 0 INTERCEPT  1          1", actual_output)

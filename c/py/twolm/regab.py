@@ -392,6 +392,15 @@ class RegabDataSet:
         game_values = self.df_mogv['game_value'].to_numpy()
         return positions, game_values
 
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def compute_sha3_256_hash(self) -> str:
+        hasher = hashlib.sha3_256()
+        df = self.df_mogv
+        for col in df:
+            hasher.update(df[col].to_numpy().tobytes())
+        sha3_256_hash = hasher.hexdigest()
+        return sha3_256_hash
+
 #: End of RegabDataSet class.
 
 #: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###

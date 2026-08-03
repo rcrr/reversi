@@ -137,7 +137,7 @@ class MobilitySet:
             m.mask.tobytes() + m.amask.tobytes() 
             for m in self.mobilities
         )
-        self.hash = hashlib.sha256(hash_input).hexdigest()
+        self.hash = hashlib.sha3_256(hash_input).hexdigest()
         
         self.name = name
 

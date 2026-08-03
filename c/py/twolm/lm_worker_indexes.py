@@ -51,7 +51,7 @@ def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Computing indexes for the feature set...")
 
     # Execute the abstracted pipeline.
-    cache_hit, rlm_indexes = cache_manager_load_or_compute(
+    cache_hit, rlm_indexes, checksum = cache_manager_load_or_compute(
         cache_path  = ctx.get_cache_file_full_path_for_next_level(),
         is_allowed  = ctx.use_cache,
         load_fn     = rlm_indexes_load_from_file,

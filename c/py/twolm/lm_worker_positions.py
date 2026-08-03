@@ -54,7 +54,7 @@ def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Loading game positions...")
 
     # Execute the abstracted pipeline.
-    cache_hit, rds = cache_manager_load_or_compute(
+    cache_hit, rds, rds_checksum = cache_manager_load_or_compute(
         cache_path  = ctx.get_cache_file_full_path_for_next_level(),
         is_allowed  = ctx.use_cache,
         load_fn     = regab_load_data_set_from_file,
@@ -73,13 +73,16 @@ def _up(ctx: "RLMContext") -> None:
     positions, game_values = rds.generate_positions_and_game_values()
     ctx.positions = positions
     ctx.game_values = game_values
+    ctx.rds_checksum = rds_checksum
     
-    ctx.log_event(Relevance.INFO, "Model attributes positions and game_values have been set.")
+    ctx.log_event(Relevance.INFO, f"Regab data set object checksum (rds_checksum): {rds_checksum}.")
+    ctx.log_event(Relevance.INFO, "Model attributes positions, game_values and rds_checksum have been set.")
         
 def _down(ctx: "RLMContext") -> None:
-    ctx.log_event(Relevance.INFO, "Clearing game positions and game_values attributes.")
+    ctx.log_event(Relevance.INFO, "Clearing game positions, game_values and rds_checksum attributes.")
     ctx.positions = None
     ctx.game_values = None
+    ctx.rds_checksum = None
 
 def _is_cache_consistent(ctx: "RLMContext", rds: RegabDataSet) -> bool:
     """Compare live configuration with cached dataset metadata."""

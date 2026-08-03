@@ -95,6 +95,39 @@ def _delete_cache_files(cache_path: Path) -> None:
     checksum_path.unlink(missing_ok=True)
 
 
+def _compute_sha3_256_hash(data: T) -> str | None:
+    # Look up for the compute_sha3_256_hash method in the data object.
+    # If not found, callable_method is set to None.
+    callable_method = getattr(data, "compute_sha3_256_hash", None)
+
+    # Verify that the attribute exists and it is a method.
+    if callable(callable_method):
+        data_checksum = callable_method()  # Returns the sha3_256_checksum
+    else:
+        data_checksum = None
+    return data_checksum
+
+
+def _compute_and_store(cache_path: Path, 
+                       compute_fn: ComputeFunc[T], 
+                       store_fn: StoreFunc[T], 
+                       logger_fn: LoggerFunc
+                       ) -> tuple[bool, T, str | None]:
+    """Execute computation, store result, and save checksum."""
+    logger_fn(Relevance.INFO, "Executing heavy computation...")
+    data = compute_fn()
+
+    data_checksum = _compute_sha3_256_hash(data)
+    
+    logger_fn(Relevance.INFO, f"Computation finished. Storing to cache '{cache_path}'...")
+    store_fn(data, cache_path)
+    
+    _save_checksum(cache_path)
+    logger_fn(Relevance.INFO, "Cache file and checksum successfully written.")
+    
+    return False, data, data_checksum
+
+
 def cache_manager_load_or_compute(cache_path: Path,
                                   is_allowed: bool,
                                   load_fn: LoadFunc[T],
@@ -102,9 +135,13 @@ def cache_manager_load_or_compute(cache_path: Path,
                                   validate_fn: ValidateFunc[T],
                                   compute_fn: ComputeFunc[T],
                                   logger_fn: LoggerFunc
-                                  ) -> tuple[bool, T]:
+                                  ) -> tuple[bool, T, str | None]:
     """
     Orchestrate the 4-step cache validation pipeline.
+
+    When the computed data object has a method named 'compute_sha3_256_hash' it is used to
+    compute the data checksum, different value and difefrent concept from the cacke file checksum,
+    that is returned by the method as third element of the tuple.
     
     Args:
         cache_path: Path to the cache file.
@@ -119,6 +156,7 @@ def cache_manager_load_or_compute(cache_path: Path,
         A tuple containing:
         - bool: True if data was loaded from cache, False if it was computed.
         - T: The computed or loaded data.
+        - str | None: the data object checksum, is available or None otherwise.
     """
     
     #: Step 0: Is cache allowed?
@@ -140,6 +178,7 @@ def cache_manager_load_or_compute(cache_path: Path,
     #: Step 3: Is application data valid? (Business Logic)
     try:
         cached_data = load_fn(cache_path)
+        cached_checksum = _compute_sha3_256_hash(cached_data)
     except Exception as e:
         logger_fn(Relevance.ERROR, f"Failed to load cache file '{cache_path}': {e}. Recomputing.")
         _delete_cache_files(cache_path)
@@ -152,22 +191,4 @@ def cache_manager_load_or_compute(cache_path: Path,
 
     #: All steps passed: return cached data
     logger_fn(Relevance.INFO, f"Cache successfully loaded and validated from '{cache_path}'.")
-    return True, cached_data
-
-
-def _compute_and_store(cache_path: Path, 
-                       compute_fn: ComputeFunc[T], 
-                       store_fn: StoreFunc[T], 
-                       logger_fn: LoggerFunc
-                       ) -> tuple[bool, T]:
-    """Execute computation, store result, and save checksum."""
-    logger_fn(Relevance.INFO, "Executing heavy computation...")
-    data = compute_fn()
-    
-    logger_fn(Relevance.INFO, f"Computation finished. Storing to cache '{cache_path}'...")
-    store_fn(data, cache_path)
-    
-    _save_checksum(cache_path)
-    logger_fn(Relevance.INFO, "Cache file and checksum successfully written.")
-    
-    return False, data
+    return True, cached_data, cached_checksum

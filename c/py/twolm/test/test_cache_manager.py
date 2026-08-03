@@ -165,7 +165,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
         """
         self.cache_path.write_text("old data")
 
-        cache_hit, result = cache_manager_load_or_compute(
+        cache_hit, result, checksum = cache_manager_load_or_compute(
             cache_path=self.cache_path,
             is_allowed=False,
             load_fn=self.mock_load,
@@ -190,7 +190,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
         Step 1: If cache is allowed but file is missing, 
         it must compute, store, and return cache_hit=False.
         """
-        cache_hit, result = cache_manager_load_or_compute(
+        cache_hit, result, checksum = cache_manager_load_or_compute(
             cache_path=self.cache_path,
             is_allowed=True,
             load_fn=self.mock_load,
@@ -217,7 +217,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
         )
         checksum_path.write_text("0" * 64)
 
-        cache_hit, result = cache_manager_load_or_compute(
+        cache_hit, result, checksum = cache_manager_load_or_compute(
             cache_path=self.cache_path,
             is_allowed=True,
             load_fn=self.mock_load,
@@ -247,7 +247,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
         self.mock_load.side_effect = IOError("Disk read error")
 
-        cache_hit, result = cache_manager_load_or_compute(
+        cache_hit, result, checksum = cache_manager_load_or_compute(
             cache_path=self.cache_path,
             is_allowed=True,
             load_fn=self.mock_load,
@@ -277,7 +277,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
         self.mock_validate.return_value = False
 
-        cache_hit, result = cache_manager_load_or_compute(
+        cache_hit, result, checksum = cache_manager_load_or_compute(
             cache_path=self.cache_path,
             is_allowed=True,
             load_fn=self.mock_load,
@@ -304,7 +304,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
         cached_payload = {"result": "from_cache"}
         self.mock_load.return_value = cached_payload
 
-        cache_hit, result = cache_manager_load_or_compute(
+        cache_hit, result, checksum = cache_manager_load_or_compute(
             cache_path=self.cache_path,
             is_allowed=True,
             load_fn=self.mock_load,

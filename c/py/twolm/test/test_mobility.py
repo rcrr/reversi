@@ -184,7 +184,7 @@ class TestMobilitySet(unittest.TestCase):
         
         # Recreate bytes manually
         expected_bytes = b''.join(m.mask.tobytes() + m.amask.tobytes() for m in sorted_ml)
-        expected_hash = hashlib.sha256(expected_bytes).hexdigest()
+        expected_hash = hashlib.sha3_256(expected_bytes).hexdigest()
         
         self.assertEqual(mobility_set.hash, expected_hash)
 
@@ -411,7 +411,7 @@ class TestMobilitySet(unittest.TestCase):
         self.assertEqual(masks.dtype, Bitboard)
         
         # Verify the hash matches an empty byte string (SHA256 of b'')
-        expected_hash = hashlib.sha256(b'').hexdigest()
+        expected_hash = hashlib.sha3_256(b'').hexdigest()
         self.assertEqual(ms.hash, expected_hash)
 
     def test_compute_indexes_empty_positions(self):

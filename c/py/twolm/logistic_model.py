@@ -97,6 +97,7 @@ class RLMContext(Context):
     cfg: Any = None
 
     # Game positions and game values attributes:
+    rds_checksum: Union[str, None] = None
     positions: Any = None
     game_values: Any = None
 

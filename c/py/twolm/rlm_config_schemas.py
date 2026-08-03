@@ -184,6 +184,10 @@ class ReversiLogisticModelConfig(RLMBaseConfig):
     base_dir: Path
     output: Path = Field(..., description="Output filename for the saved binary model weights.")
     use_cache: bool = True
+    cache_files_prefix: str = Field(
+        default="rlmwf_",
+        description="Filename prefix for the level specific cache files."
+    )
     regab_data_set: RegabDataSetConfig
     feature_set: FeatureSetConfig
     stat_model: StatModelConfig

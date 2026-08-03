@@ -490,6 +490,30 @@ class TestRegabDataSet(BaseTestCase):
         expected_positions = make_position(expected_movers, expected_opponents)
         nptest.assert_array_equal(positions, expected_positions)
 
+    def test_compute_sha3_256_hash(self):
+        """
+        Tests the method compute_sha3_256_hash.
+        """
+        bid = [1, 2]
+        status = ['CMS', 'CMR']
+        ec = 10
+        df_mogv = pd.DataFrame({
+            'mover': [1, 2, 3],
+            'opponent': [2, 4, 8],
+            'game_value': [0, 1, -1]
+        }).astype({
+            'mover': 'int64', 
+            'opponent': 'int64', 
+            'game_value': 'int8'
+        })
+
+        rds = RegabDataSet(self.rc, bid, status, ec, df_mogv)
+
+        checksum = rds.compute_sha3_256_hash()
+
+        expected = 'b507cd34abfd13ea5c636f97e983bec2c5d8f4308b90e379a553cc9093681670'
+        self.assertEqual(checksum, expected)
+        
 
 class TestRegabDataSetChecksum(BaseTestCase):
 

@@ -212,7 +212,7 @@ class FeatureSet:
         if pset:
             chunks.append(pset.hash.encode('utf-8')) 
         hash_input = b''.join(chunks)
-        self.hash = hashlib.sha256(hash_input).hexdigest()
+        self.hash = hashlib.sha3_256(hash_input).hexdigest()
         
         return
 

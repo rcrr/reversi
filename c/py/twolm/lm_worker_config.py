@@ -54,12 +54,13 @@ def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, f"Configuration file {ctx.config_file_path} loaded.")
     _validate(ctx, cfg)
     ctx.log_event(Relevance.INFO, f"Configuration file {ctx.config_file_path} validated.")
-    _store_to_file(ctx, cfg)
     ctx.log_event(Relevance.INFO, f"Model name: {cfg.name}")
     ctx.log_event(Relevance.INFO, f"Model description: {cfg.description}")
     ctx.log_event(Relevance.INFO, f"Model base_dir: {cfg.base_dir}")
     ctx.use_cache = cfg.use_cache
     ctx.cfg = cfg
+    ctx.log_event(Relevance.INFO, f"Configuration file {ctx.config_file_path} stored to cache file.")
+    _store_to_file(ctx, cfg)
 
 def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing configuration...")

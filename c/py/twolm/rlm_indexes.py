@@ -56,17 +56,21 @@ class ReversiLogisticModelIndexes:
     """
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __init__(self,
+                 rds_checksum: str,
                  feature_set_hash: str,
                  indexes: IndexArray):
         """
-        Initializes a RegabDataSet instance.
+        Initializes a ReversiLogisticModelIndexes instance.
 
         Parameters
         ----------
+        rds_checksum : str
+            The hash taken from the rds data set.
         feature_set_hash : str
             The hash code taken from the feature_set used to compute indexes.
         indexes : IndexArray
         """
+        self.rds_checksum = rds_checksum
         self.feature_set_hash = feature_set_hash
         self.indexes = indexes
 
@@ -88,6 +92,9 @@ def rlm_indexes_store_to_file(
 
         #: Write header
         w.write_header(description, version)
+
+        #: Write the rds_checksum
+        w.write_string(rlm_indexes.rds_checksum)
 
         #: Write the feature_set_hash
         w.write_string(rlm_indexes.feature_set_hash)
@@ -124,13 +131,16 @@ def rlm_indexes_load_from_file(
         if version != 1:
             raise RuntimeError(f"The file version is not consistent, found {version}, expected {expected_version}")
 
+        #: Read the rds_checksum
+        rds_checksum = r.read_string()
+
         #: Read the feature_set_hash
         feature_set_hash = r.read_string()
         
         # read the data of the 2D indexes matrix
         indexes = r.read_array()
 
-    rlm_indexes = ReversiLogisticModelIndexes(feature_set_hash, indexes)
+    rlm_indexes = ReversiLogisticModelIndexes(rds_checksum, feature_set_hash, indexes)
     
     return rlm_indexes
 
@@ -139,9 +149,10 @@ def rlm_indexes_compute(
         ctx: RLMContext
 ) -> ReversiLogisticModelIndexes:
     """Computes model indexes."""
+    rds_checksum = ctx.rds_checksum
     feature_set_hash = ctx.feature_set.hash
     indexes = ctx.feature_set.compute_indexes(ctx.positions)
-    rlm_indexes = ReversiLogisticModelIndexes(feature_set_hash, indexes)
+    rlm_indexes = ReversiLogisticModelIndexes(rds_checksum, feature_set_hash, indexes)
     return rlm_indexes
 
 
@@ -151,8 +162,10 @@ def rlm_indexes_is_cache_consistent(
 ) -> bool:
     """Compare live configuration with cached dataset metadata."""
 
+    cached_rds_checksum = rlm_indexes.rds_checksum
     cached_feature_set_hash = rlm_indexes.feature_set_hash
+    expected_rds_checksum = ctx.rds_checksum
     expected_feature_set_hash = ctx.feature_set.hash
-    is_cache_consistent = cached_feature_set_hash == expected_feature_set_hash
+    is_cache_consistent = (cached_feature_set_hash == expected_feature_set_hash) and (cached_rds_checksum == expected_rds_checksum)
     
     return is_cache_consistent

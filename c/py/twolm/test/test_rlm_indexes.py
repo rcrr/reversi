@@ -30,7 +30,7 @@ Unit tests for the twolm.rlm_indexes module.
 """
 
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, call, MagicMock
 from pathlib import Path
 
 from twolm import rlm_indexes
@@ -50,11 +50,13 @@ class TestReversiLogisticModelIndexes(unittest.TestCase):
         hash_val = "abc123"
         
         obj = rlm_indexes.ReversiLogisticModelIndexes(
+            rds_checksum=hash_val,
             feature_set_hash=hash_val,
             indexes=DUMMY_INDEXES
         )
         
         self.assertEqual(obj.feature_set_hash, hash_val)
+        self.assertEqual(obj.rds_checksum, hash_val)
         self.assertIsInstance(obj.indexes, np.ndarray)
         self.assertEqual(obj.indexes.dtype, np.uint32)
         self.assertIs(obj.indexes, DUMMY_INDEXES)
@@ -65,6 +67,7 @@ class TestReversiLogisticModelIndexes(unittest.TestCase):
         
         with self.assertRaises(Exception):
             rlm_indexes.ReversiLogisticModelIndexes(
+                rds_checksum='abc',
                 feature_set_hash=12345, 
                 indexes=indexes
             )
@@ -87,21 +90,32 @@ class TestRlmIndexesStoreToFile(unittest.TestCase):
         mock_writer = MagicMock()
         mock_binio.BinaryWriter.return_value.__enter__.return_value = mock_writer
 
-        hash_val = "hash_xyz"
+        hash_val_a = "hash_xyz"
+        hash_val_b = "hash_abc"
         indexes = DUMMY_INDEXES
-        rlm_idx = rlm_indexes.ReversiLogisticModelIndexes(hash_val, indexes)
+        rlm_idx = rlm_indexes.ReversiLogisticModelIndexes(hash_val_a, hash_val_b, indexes)
         filename = "test_output.bin"
 
         rlm_indexes.rlm_indexes_store_to_file(rlm_idx, filename)
 
+        # 1. Verify the writer was instantiated correctly
         mock_binio.BinaryWriter.assert_called_once_with(Path(filename))
         
+        # 2. Define the exact expected sequence of calls
         expected_desc = "ReversiLogisticModelIndexes binary data file"
         expected_version = 1
         
-        mock_writer.write_header.assert_called_once_with(expected_desc, expected_version)
-        mock_writer.write_string.assert_called_once_with(hash_val)
-        mock_writer.write_array.assert_called_once_with(indexes)
+        expected_calls = [
+            call.write_header(expected_desc, expected_version),
+            call.write_string(hash_val_a),
+            call.write_string(hash_val_b),
+            call.write_array(indexes)
+        ]
+        
+        # 3. Assert the writer received these calls in this exact order
+        mock_writer.assert_has_calls(expected_calls, any_order=False)
+
+        self.assertEqual(mock_writer.method_calls, expected_calls) 
 
     @patch('twolm.rlm_indexes.binio')
     def test_store_to_file_accepts_path_object(self, mock_binio):
@@ -110,7 +124,7 @@ class TestRlmIndexesStoreToFile(unittest.TestCase):
         mock_binio.BinaryWriter.return_value.__enter__.return_value = mock_writer
 
         indexes = DUMMY_INDEXES
-        rlm_idx = rlm_indexes.ReversiLogisticModelIndexes("h", indexes)
+        rlm_idx = rlm_indexes.ReversiLogisticModelIndexes("h", "h", indexes)
         filename_path = Path("dir/test_output.bin")
 
         rlm_indexes.rlm_indexes_store_to_file(rlm_idx, filename_path)
@@ -206,6 +220,7 @@ class TestRlmIndexesCompute(unittest.TestCase):
         expected_hash = "model_hash_999"
         expected_indexes = DUMMY_INDEXES
         
+        mock_model.rds_checksum = expected_hash
         mock_model.feature_set.hash = expected_hash
         mock_model.feature_set.compute_indexes.return_value = expected_indexes
         mock_model.positions = "dummy_positions"
@@ -225,9 +240,11 @@ class TestRlmIndexesIsCacheConsistent(unittest.TestCase):
     def test_is_cache_consistent_returns_true(self):
         """Test that the function returns True when hashes match."""
         mock_model = MagicMock()
+        mock_model.rds_checksum = "identical_hash"
         mock_model.feature_set.hash = "identical_hash"
 
         rlm_idx = rlm_indexes.ReversiLogisticModelIndexes(
+            rds_checksum="identical_hash",
             feature_set_hash="identical_hash",
             indexes=DUMMY_INDEXES
         )
@@ -238,9 +255,11 @@ class TestRlmIndexesIsCacheConsistent(unittest.TestCase):
     def test_is_cache_consistent_returns_false(self):
         """Test that the function returns False when hashes differ."""
         mock_model = MagicMock()
+        mock_model.rds_checksum = "identical_hash"
         mock_model.feature_set.hash = "live_hash"
 
         rlm_idx = rlm_indexes.ReversiLogisticModelIndexes(
+            rds_checksum="identical_hash",
             feature_set_hash="outdated_cached_hash",
             indexes=DUMMY_INDEXES
         )

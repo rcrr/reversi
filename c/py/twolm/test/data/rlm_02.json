@@ -30,6 +30,7 @@
     "base_dir": "will/be/overwritten/by/python/during/unittesting",
     "output": "rglm_logistic_model_ec_20_TEST02.dat",
     "use_cache": true,
+    "cache_files_prefix": "rlmwf_",
     "stat_model": {
         "frequency_cut_off": 1,
         "logit_clipping": 0.01,

@@ -980,7 +980,7 @@ class PatternSet:
         
         # Create hash of sorted masks
         hash_input = b''.join(pattern.mask.tobytes() for pattern in self.patterns)
-        self.hash = hashlib.sha256(hash_input).hexdigest()
+        self.hash = hashlib.sha3_256(hash_input).hexdigest()
         
         self.name = name
 

@@ -135,8 +135,9 @@ class StateMachine:
             # current_step is updated BEFORE the worker executes, so it reflects the active worker
             level = self.current_step
             worker_name = self.workers[level].name
-            # Match old format: rlmwf_01_CONFIG.dat
-            file_name = f"rlmwf_{level:02}_{worker_name}.dat"
+            # Note: context.cfg must be populated by a previous worker (e.g., ConfigWorker)
+            cache_files_prefix = getattr(self.context, 'cfg').cache_files_prefix
+            file_name = f"{cache_files_prefix}{level:02}_{worker_name}.dat"
             return Path(file_name)
             
         self.context.get_cache_file_path_for_next_level = _get_cache_file_path
@@ -150,6 +151,34 @@ class StateMachine:
         self.context.get_cache_file_full_path_for_next_level = _get_cache_file_full_path
 
         self.log_event(Relevance.DEBUG, "StateMachine initialized.")
+
+    @contextmanager
+    def _history_timer(self, step: int, worker_name: str, direction: str):
+        start = datetime.now(timezone.utc)
+        try:
+            yield
+        finally:
+            finish = datetime.now(timezone.utc)
+            self.history.append(self.StepMove(
+                step=step,
+                worker_name=worker_name,
+                direction=direction,
+                start=start,
+                finish=finish,
+                duration=finish - start
+            ))
+
+    def _run_step(self, worker: Worker, direction: str):
+        try:
+            self.log_event(Relevance.INFO, f"Starting worker {worker.name}, {direction.upper()} step")            
+            if direction == 'up':
+                worker.up(self.context)
+            else:
+                worker.down(self.context)
+            self.log_event(Relevance.INFO, f"Completed {direction.upper()} step for {worker.name}")
+        except Exception as e:
+            self.log_event(Relevance.ERROR, f"Error in {worker.name} during {direction}: {str(e)}")
+            raise
 
     @property
     def current_worker_name(self) -> str:
@@ -180,22 +209,6 @@ class StateMachine:
             time = entry['time']
             timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
             print(f"{timestamp} | {entry['step']:04} | {entry['worker_name']:15} | {entry['relevance']} | {entry['message']}")
-
-    @contextmanager
-    def _history_timer(self, step: int, worker_name: str, direction: str):
-        start = datetime.now(timezone.utc)
-        try:
-            yield
-        finally:
-            finish = datetime.now(timezone.utc)
-            self.history.append(self.StepMove(
-                step=step,
-                worker_name=worker_name,
-                direction=direction,
-                start=start,
-                finish=finish,
-                duration=finish - start
-            ))
 
     def show_history_of_moves(self) -> None:
         print(f"{'Step':<6} | {'Worker':<15} | {'Dir':<5} | {'Start (UTC)':<26} | {'Dur (s)':<14}")
@@ -259,15 +272,3 @@ class StateMachine:
         # If we moved down, the final step is the target step (which is less than the last executed step_idx)
         if direction == 'down':
             self.current_step = target_step
-
-    def _run_step(self, worker: Worker, direction: str):
-        try:
-            self.log_event(Relevance.INFO, f"Starting worker {worker.name}, {direction.upper()} step")            
-            if direction == 'up':
-                worker.up(self.context)
-            else:
-                worker.down(self.context)
-            self.log_event(Relevance.INFO, f"Completed {direction.upper()} step for {worker.name}")
-        except Exception as e:
-            self.log_event(Relevance.ERROR, f"Error in {worker.name} during {direction}: {str(e)}")
-            raise
