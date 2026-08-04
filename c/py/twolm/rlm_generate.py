@@ -28,6 +28,7 @@
 # twolm/rlm_generate.py
 from __future__ import annotations
 
+import hashlib
 import numpy as np
 
 from typing import TYPE_CHECKING
@@ -56,6 +57,13 @@ class ReversiLogisticModelDenseWeights:
     def __init__(self, feature_set_hash: str, w_dense: np.ndarray):
         self.feature_set_hash = feature_set_hash
         self.w_dense = w_dense
+
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def compute_sha3_256_hash(self) -> str:
+        hasher = hashlib.sha3_256()
+        hasher.update(self.w_dense.tobytes())
+        sha3_256_hash = hasher.hexdigest()
+        return sha3_256_hash
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))

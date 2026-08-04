@@ -131,9 +131,11 @@ class RLMContext(Context):
     fg: Any = None
 
     # Optimization outcome attribute:
+    w_checksum: Union[str, None] = None
     opt_info: Any = None
 
     # Full exploded weigth array:
+    dense_w_checksum: Union[str, None] = None
     w_dense: Any = None
 
     # Validation attributes:

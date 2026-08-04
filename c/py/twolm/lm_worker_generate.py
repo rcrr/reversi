@@ -49,7 +49,7 @@ __all__ = ['lm_worker_generate']
 def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Generating dense weight vector (w_dense) for inference...")
 
-    cache_hit, dense_obj, dense_obj_checksum = cache_manager_load_or_compute(
+    cache_hit, dense_obj, dense_w_checksum = cache_manager_load_or_compute(
         cache_path  = ctx.get_cache_file_full_path_for_next_level(),
         is_allowed  = ctx.use_cache,
         load_fn     = rlm_generate_load_from_file,
@@ -61,10 +61,16 @@ def _up(ctx: "RLMContext") -> None:
     
     ctx.w_dense = dense_obj.w_dense
     ctx.log_event(Relevance.INFO, f"Dense weight vector generated/loaded. Shape: {ctx.w_dense.shape}")
+    
+    ctx.log_event(Relevance.INFO, f"Dense weight vector (dense_w_checksum): {dense_w_checksum}.")
+    ctx.dense_w_checksum = dense_w_checksum
 
+    
 def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing dense weight vector...")
     ctx.w_dense = None
+    ctx.dense_w_checksum = None
+    
 
 def lm_worker_generate() -> Worker:
     return Worker("GENERATE", _up, _down)

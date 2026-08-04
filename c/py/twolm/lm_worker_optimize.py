@@ -37,7 +37,8 @@ from twolm.rlm_optimize import (optimization_info_dict,
                                 save_optimization_checkpoint, 
                                 load_optimization_checkpoint, 
                                 is_optimization_cache_consistent,
-                                is_optimization_status_converged)
+                                is_optimization_status_converged,
+                                weights_compute_sha3_256_hash)
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext
@@ -67,22 +68,16 @@ def _up(ctx: "RLMContext") -> None:
             
         if not is_optimization_cache_consistent(ctx, cp):
             ctx.log_event(Relevance.WARN, "Checkpoint config mismatch. Starting from scratch.")
-        elif is_optimization_status_converged(ctx, cp):
-            ctx.log_event(Relevance.INFO, f"Checkpoint: optimization already converged ({cp['reason']}). Loading final weights.")
+            
+        elif is_optimization_status_converged(ctx, cp) or cp['iters'] >= ctx.cfg.optimization.max_iters:
+            ctx.log_event(Relevance.INFO, f"Checkpoint: optimization already completed. ({cp['reason']}). Loading final weights.")
+            ctx.log_event(Relevance.INFO, f"Iterations ({cp['iters']}/{cp['max_iters']}).")
             ctx.w = cp['w']
-                
-            # Populate opt_info from checkpoint to ensure analytics have the correct metadata
+            w_checksum = weights_compute_sha3_256_hash(cp['w'])
+            ctx.w_checksum = w_checksum
+            ctx.log_event(Relevance.INFO, f"Weight vector cecksum (w_checksum): {w_checksum}.")
             ctx.opt_info = optimization_info_dict(cp)
             return # Skip optimization entirely!
-                
-        elif cp['iters'] >= ctx.cfg.optimization.max_iters:
-            # MAX ITERS REACHED: Treated as a valid completion!
-            ctx.log_event(Relevance.INFO, f"Checkpoint found. Reached max iterations ({cp['iters']}/{cp['max_iters']}). Proceeding with current weights.")
-            ctx.w = cp['w']
-                
-            # Populate opt_info from checkpoint
-            ctx.opt_info = optimization_info_dict(cp)
-            return
                 
         elif cp['iters'] < ctx.cfg.optimization.max_iters:
             ctx.log_event(Relevance.INFO, f"Checkpoint found. Resuming optimization from iteration {cp['iters']}.")
@@ -143,6 +138,9 @@ def _up(ctx: "RLMContext") -> None:
     ctx.w = w_opt
     ctx.opt_info = optimization_info_dict(info)
     ctx.log_event(Relevance.INFO, f"Optimization finished. Reason: {info['reason']}. Final Loss: {info['f']:.8e}")
+    w_checksum = weights_compute_sha3_256_hash(w_opt)
+    ctx.w_checksum = w_checksum
+    ctx.log_event(Relevance.INFO, f"Weight vector cecksum (w_checksum): {w_checksum}.")
     
     save_optimization_checkpoint(
         filepath=checkpoint_path,

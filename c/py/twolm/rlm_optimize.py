@@ -29,10 +29,13 @@
 from __future__ import annotations
 
 import math
+import hashlib
 import numpy as np
+import numpy.typing as npt
 
 from pathlib import Path
 from typing import List, Tuple, Dict, Any, TYPE_CHECKING
+from pydantic import validate_call, ConfigDict
 
 from twolm import binio
 from twolm.state_machine import Relevance
@@ -46,13 +49,15 @@ __all__ = ['optimization_info_dict',
            'save_optimization_checkpoint',
            'load_optimization_checkpoint',
            'is_optimization_cache_consistent',
-           'is_optimization_status_converged']
+           'is_optimization_status_converged',
+           'weights_compute_sha3_256_hash']
 
 
 
 #: Unlike the other layers, where the cache—when present—is organized using a class and a data object,
 #: the OPTIMIZE layer cache (called a checkpoint) consists of a dictionary.
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def save_optimization_checkpoint(filepath: Path,
                                  design_matrix_checksum: str,
                                  zed_checksum: str,
@@ -97,6 +102,7 @@ def save_optimization_checkpoint(filepath: Path,
             bw.write_f64(r)
 
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def load_optimization_checkpoint(filepath: Path) -> Dict[str, Any]:
     """
     Loads the L-BFGS state from a binary checkpoint file.
@@ -181,6 +187,7 @@ def is_optimization_cache_consistent(ctx: "RLMContext", checkpoint: Dict[str, An
     return True
 
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def optimization_info_dict(lbfgs_info: dict) -> dict:
     """
     Filters unused entries given by the lbfgs function.
@@ -229,3 +236,11 @@ def is_optimization_status_converged(ctx: "RLMContext", checkpoint: Dict[str, An
     else:
         ctx.log_event(Relevance.INFO, f"Obtained gradient norm is greater than required, convergence is not reached.")
         return False
+
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def weights_compute_sha3_256_hash(w: npt.NDArray[np.float32]) -> str:
+    hasher = hashlib.sha3_256()
+    hasher.update(w.tobytes())
+    sha3_256_hash = hasher.hexdigest()
+    return sha3_256_hash

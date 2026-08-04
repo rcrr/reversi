@@ -119,8 +119,8 @@ class TestLMWorkerOptimize(unittest.TestCase):
         
         # Check logs to confirm it loaded from checkpoint instead of running
         logs = self.mock_stdout.getvalue()
-        self.assertIn("Reached max iterations", logs)
-        self.assertIn("Proceeding with current weights", logs)
+        self.assertIn("Checkpoint: optimization already completed.", logs)
+        self.assertIn("Iterations", logs)
         
         # And confirm L-BFGS did NOT run (no optimizer logs)
         self.assertNotIn("Starting L-BFGS optimization", logs)
