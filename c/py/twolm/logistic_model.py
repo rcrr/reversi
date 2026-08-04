@@ -122,6 +122,7 @@ class RLMContext(Context):
     design_matrix: Any = None
     
     # ZED attributes:
+    zed_checksum: Union[str, None] = None
     y2z: Any = None
     z2y: Any = None
     z: Any = None

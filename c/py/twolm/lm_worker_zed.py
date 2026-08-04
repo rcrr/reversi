@@ -47,18 +47,23 @@ def _up(ctx: "RLMContext") -> None:
     
     # ZED computation is very fast (vectorized math), so we compute it on the fly without disk caching.
     zed_obj = rlm_zed_compute(ctx)
+    zed_checksum = zed_obj.compute_sha3_256_hash()
     
     ctx.y2z = zed_obj.y2z
     ctx.z2y = zed_obj.z2y
     ctx.z = zed_obj.z
+    ctx.zed_checksum = zed_checksum
     
     ctx.log_event(Relevance.INFO, f"Zed array computed. Shape: {ctx.z.shape}")
-        
+    ctx.log_event(Relevance.INFO, f"Zed array checksum (zed_checksum): {zed_checksum}.")
+
+
 def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing Zed attributes...")
     ctx.y2z = None
     ctx.z2y = None
     ctx.z = None
+    ctx.zed_checksum = None
 
 
 def lm_worker_zed() -> Worker:
