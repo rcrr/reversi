@@ -29,10 +29,11 @@
 from __future__ import annotations
 
 import math
+import numpy as np
+
 from collections import namedtuple
 from typing import Callable, Tuple, List, Optional
 
-import numpy as np
 
 # FG : Function , Gradient named tuple
 FG = namedtuple('FG', ['fun', 'grad'])
@@ -108,9 +109,9 @@ def _hermite_cubic_interp_min(x0: float, y0: float, dy0: float,
     dx = x1 - x0
     dy = y1 - y0
     
-    a = - 6 * dy + 3 * dx * (dy0 + dy1)
+    a = - 6 * dy + 3 * dx *     (dy0 + dy1)
     b =   6 * dy - 2 * dx * (2 * dy0 + dy1)
-    c =                dx *       dy0
+    c =                dx *      dy0
 
     if a == 0.:
         return None
@@ -142,27 +143,27 @@ def _hermite_cubic_interp(x0: float, y0: float, dy0: float,
     Evaluates the cubic Hermite interpolant and its first two derivatives at x.
     """
     dx = x1 - x0
-    t = (x - x0) / dx
+    t  = (x - x0) / dx
     t2 = t * t
     t3 = t2 * t
     
-    h0  =  2 * t3 - 3 * t2 + 1
+    h0  =  2 * t3 - 3 * t2         + 1
     h1  = -2 * t3 + 3 * t2
-    h2  =      t3 - 2 * t2 + t
+    h2  =      t3 - 2 * t2 +     t
     h3  =      t3 -     t2
     
-    h01 =             6 * t2 - 6 * t
-    h11 =          - 6 * t2 + 6 * t
-    h21 =             3 * t2 - 4 * t + 1
-    h31 =             3 * t2 - 2 * t
+    h01 =           6 * t2 - 6 * t
+    h11 =         - 6 * t2 + 6 * t
+    h21 =           3 * t2 - 4 * t + 1
+    h31 =           3 * t2 - 2 * t
     
-    h02 =                       12 * t - 6
-    h12 =                     - 12 * t + 6
-    h22 =                        6 * t - 4
-    h32 =                        6 * t - 2
+    h02 =                   12 * t - 6
+    h12 =                 - 12 * t + 6
+    h22 =                    6 * t - 4
+    h32 =                    6 * t - 2
 
     h   =   y0 * h0  + y1 * h1  + dy0 * dx * h2  + dy1 * dx * h3
-    dh  = ( y0 * h01 + y1 * h11 + dy0 * dx * h21 + dy1 * dx * h31 ) / dx
+    dh  = ( y0 * h01 + y1 * h11 + dy0 * dx * h21 + dy1 * dx * h31 ) /  dx
     d2h = ( y0 * h02 + y1 * h12 + dy0 * dx * h22 + dy1 * dx * h32 ) / (dx * dx)
     
     return x, h, dh, d2h

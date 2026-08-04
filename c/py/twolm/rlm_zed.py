@@ -28,24 +28,44 @@
 # twolm/rlm_zed.py
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Tuple, Callable
+import hashlib
 import numpy as np
 import numpy.typing as npt
 
+from typing import TYPE_CHECKING, Tuple, Callable
+from pydantic import validate_call, ConfigDict
+
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext
+
+
 
 __all__ = ['ReversiLogisticModelZed',
            'rlm_zed_compute',
            'zed_fun_factory']
 
 
+
 class ReversiLogisticModelZed:
-    """Holds the Z vector and the transformation functions y2z and z2y."""
-    def __init__(self, y2z: Callable, z2y: Callable, z: np.ndarray):
+    """
+    Holds the Z vector and the transformation functions y2z and z2y.
+    """
+
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def __init__(self,
+                 y2z: Callable[[npt.NDArray[np.int8]], npt.NDArray[np.float32]],
+                 z2y: Callable[[npt.NDArray[np.float32]], npt.NDArray[np.float32]],
+                 z: npt.NDArray[np.float32]):
         self.y2z = y2z
         self.z2y = z2y
         self.z = z
+
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def compute_sha3_256_hash(self) -> str:
+        hasher = hashlib.sha3_256()
+        hasher.update(self.z.tobytes())
+        sha3_256_hash = hasher.hexdigest()
+        return sha3_256_hash
 
 
 def zed_fun_factory(logit_clipping: float) -> Tuple[Callable[[npt.NDArray[np.int8]], npt.NDArray[np.float32]],
@@ -72,12 +92,11 @@ def zed_fun_factory(logit_clipping: float) -> Tuple[Callable[[npt.NDArray[np.int
 
 
 def rlm_zed_compute(ctx: "RLMContext") -> ReversiLogisticModelZed:
-    """Computes Z vector and transformation functions based on logit_clipping."""
+    """
+    Computes Z vector and transformation functions based on logit_clipping.
+    """
     alpha = ctx.cfg.stat_model.logit_clipping
     y2z, z2y = zed_fun_factory(alpha)
-    
-    # Ensure game_values is a numpy array of int8
-    y = np.asarray(ctx.game_values, dtype=np.int8)
+    y = ctx.game_values
     z = y2z(y)
-    
     return ReversiLogisticModelZed(y2z=y2z, z2y=z2y, z=z)

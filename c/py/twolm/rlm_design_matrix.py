@@ -40,11 +40,14 @@ from twolm import binio
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext
 
+
+
 __all__ = ['ReversiLogisticModelDesignMatrix',
            'rlm_design_matrix_store_to_file',
            'rlm_design_matrix_load_from_file',
            'rlm_design_matrix_compute',
            'rlm_design_matrix_is_cache_consistent']
+
 
 
 class ReversiLogisticModelDesignMatrix:
