@@ -28,9 +28,10 @@
 # twolm/rlm_generate.py
 from __future__ import annotations
 
+import numpy as np
+
 from typing import TYPE_CHECKING
 from pathlib import Path
-import numpy as np
 from pydantic import validate_call, ConfigDict
 
 from twolm import binio
@@ -93,7 +94,7 @@ def compute_w_dense(ctx: "RLMContext") -> ReversiLogisticModelDenseWeights:
     - Mobility (Ordinal): Internal missing values are linearly interpolated, external ones clamped.
     """
     features = ctx.feature_set.features
-    w_ranges = ctx.feature_w_ranges
+    feature_w_ranges = ctx.feature_w_ranges
     iwmap = ctx.iwmap
     iwmap_feature_offset = ctx.iwmap_feature_offset
     wmap = ctx.wmap
@@ -101,16 +102,13 @@ def compute_w_dense(ctx: "RLMContext") -> ReversiLogisticModelDenseWeights:
     
     K = iwmap_feature_offset[-1]
     w_dense = np.zeros(K, dtype=np.float32)
-    
-    # Calculate mean of Z for Intercept sanity check
-    z_mean = np.mean(ctx.z) if ctx.z is not None else 0.5
 
     for fid, f in enumerate(features):
         start_idx = iwmap_feature_offset[fid]
         end_idx = iwmap_feature_offset[fid + 1]
         f_iwmap = iwmap[start_idx:end_idx]
         
-        fallback, w_min, w_max = w_ranges[fid]
+        fallback, w_min, w_max = feature_w_ranges[fid]
         f_w = w[w_min : w_max + 1]
         
         # Extract frequencies for this feature from wmap
@@ -118,8 +116,34 @@ def compute_w_dense(ctx: "RLMContext") -> ReversiLogisticModelDenseWeights:
         f_wmap_mask = wmap[:, 0] == fid
         f_wmap = wmap[f_wmap_mask]
         
-        # Sanity checks for Patterns
-        if f.category == 2:  # Pattern
+        if f.category == 0:  # Intercept
+            w_dense[start_idx:end_idx] = f_w[0]
+                
+        elif f.category == 1:  # Mobility
+            # To find the true "above cutoff" configurations, we must look at wmap, 
+            # because iwmap points rare configs to the fallback index.
+            f_wmap_mask = wmap[:, 0] == fid
+            f_wmap = wmap[f_wmap_mask]
+            
+            # True configs are those with config_id >= 0 in wmap
+            true_configs_mask = f_wmap[:, 1] >= 0
+            known_configs = f_wmap[true_configs_mask, 1].astype(np.int64)
+            
+            if len(known_configs) > 0:
+                # Get the specific weights for these true configs via iwmap
+                w_indices = f_iwmap[known_configs]
+                known_weights = w[w_indices]
+
+                # Interpolate over the full range of possible configurations (0 to n_configurations-1)
+                # np.interp automatically clamps external values to the nearest known boundary.
+                all_configs = np.arange(f.n_configurations)
+                w_dense[start_idx : start_idx + f.n_configurations] = np.interp(
+                    all_configs, known_configs, known_weights
+                ).astype(np.float32)
+            else:
+                ctx.log_event(Relevance.WARN, f"Mobility {f.name} (id:{fid}) has no seen configurations. Weights are zero.")
+                
+        elif f.category == 2:  # Pattern
             # We only want configurations that are NOT fallback (config_id >= 0)
             # and that were actually assigned a weight (seen in dataset, above cutoff)
             true_configs_mask = f_wmap[:, 1] >= 0
@@ -141,7 +165,7 @@ def compute_w_dense(ctx: "RLMContext") -> ReversiLogisticModelDenseWeights:
                 fallback_w_val = w[fallback]
                 ctx.log_event(Relevance.INFO, f"Pattern {f.name} (id:{fid}) fallback weight is {fallback_w_val:.4f}.")
 
-            # --- NEW: Populate w_dense propagating Principal Index weights ---
+            # --- Populate w_dense propagating Principal Index weights ---
             
             # 1. Get all theoretical configuration IDs for this pattern (MUST BE uint32 for Pydantic validation)
             all_configs = np.arange(f.n_configurations, dtype=np.uint32)
@@ -163,127 +187,8 @@ def compute_w_dense(ctx: "RLMContext") -> ReversiLogisticModelDenseWeights:
             f_w_dense[is_computed] = w[principal_w_indices[is_computed].astype(np.int64)]
             
             w_dense[start_idx:end_idx] = f_w_dense
-
-        elif f.category == 0:  # Intercept
-            w_dense[start_idx:end_idx] = f_w[0]
-                
-        elif f.category == 1:  # Mobility
-            # To find the true "above cutoff" configurations, we must look at wmap, 
-            # because iwmap points rare configs to the fallback index.
-            f_wmap_mask = wmap[:, 0] == fid
-            f_wmap = wmap[f_wmap_mask]
             
-            # True configs are those with config_id >= 0 in wmap
-            true_configs_mask = f_wmap[:, 1] >= 0
-            known_configs = f_wmap[true_configs_mask, 1].astype(np.int64)
-            
-            if len(known_configs) > 0:
-                # Get the specific weights for these true configs via iwmap
-                w_indices = f_iwmap[known_configs]
-                known_weights = w[w_indices]
-
-                # Interpolate over the full range of possible configurations (0 to n_configurations-1)
-                # np.interp automatically clamps external values to the nearest known boundary.
-                all_configs = np.arange(f.n_configurations)
-                w_dense[start_idx : start_idx + f.n_configurations] = np.interp(
-                    all_configs, known_configs, known_weights
-                ).astype(np.float32)
-            else:
-                ctx.log_event(Relevance.WARN, f"Mobility {f.name} (id:{fid}) has no seen configurations. Weights are zero.")
+        else:  # Undefined feature
+            raise RuntimeError(f"The feature category is unknown, f.category = {f.category}")
 
     return ReversiLogisticModelDenseWeights(ctx.feature_set.hash, w_dense)
-
-
-def compute_w_dense_old(ctx: "RLMContext") -> ReversiLogisticModelDenseWeights:
-    """
-    Computes the dense weight vector (w_dense) of size K (all theoretical configurations).
-    Unseen configurations and fallbacks are handled according to feature type:
-    - Intercept: Direct mapping.
-    - Pattern (Categorical): Replaced with the weighted mean of the pattern's weights.
-    - Mobility (Ordinal): Internal missing values are linearly interpolated, external ones clamped.
-    """
-    features = ctx.feature_set.features
-    w_ranges = ctx.feature_w_ranges
-    iwmap = ctx.iwmap
-    iwmap_feature_offset = ctx.iwmap_feature_offset
-    wmap = ctx.wmap
-    w = ctx.w
-    
-    K = iwmap_feature_offset[-1]
-    w_dense = np.zeros(K, dtype=np.float32)
-    
-    # Calculate mean of Z for Intercept sanity check
-    z_mean = np.mean(ctx.z) if ctx.z is not None else 0.5
-
-    for fid, f in enumerate(features):
-        start_idx = iwmap_feature_offset[fid]
-        end_idx = iwmap_feature_offset[fid + 1]
-        f_iwmap = iwmap[start_idx:end_idx]
-        
-        fallback, w_min, w_max = w_ranges[fid]
-        f_w = w[w_min : w_max + 1]
-        
-        # Extract frequencies for this feature from wmap
-        # wmap columns: [fid, config_id, frequency]
-        f_wmap_mask = wmap[:, 0] == fid
-        f_wmap = wmap[f_wmap_mask]
-        
-        # Sanity checks for Patterns
-        if f.category == 2:  # Pattern
-            # We only want configurations that are NOT fallback (config_id >= 0)
-            # and that were actually assigned a weight (seen in dataset, above cutoff)
-            true_configs_mask = f_wmap[:, 1] >= 0
-            true_freqs = f_wmap[true_configs_mask, 2]
-            
-            # Get the weights for these true configs via iwmap
-            true_config_ids = f_wmap[true_configs_mask, 1].astype(np.int64)
-            w_indices = f_iwmap[true_config_ids]
-            true_weights = w[w_indices]
-            
-            if len(true_weights) > 0 and np.sum(true_freqs) > 0:
-                weighted_mean = np.dot(true_weights, true_freqs) / np.sum(true_freqs)
-            else:
-                weighted_mean = 0.0
-                
-            ctx.log_event(Relevance.INFO, f"Pattern {f.name} (id:{fid}) weighted mean is {weighted_mean:.4f}.")
-            
-            if fallback != -1:
-                fallback_w_val = w[fallback]
-                ctx.log_event(Relevance.INFO, f"Pattern {f.name} (id:{fid}) fallback weight is {fallback_w_val:.4f}.")
-
-            # Populate w_dense for Pattern
-            seen_mask = f_iwmap >= 0
-            w_dense[start_idx:end_idx][seen_mask] = w[f_iwmap[seen_mask]]
-            w_dense[start_idx:end_idx][~seen_mask] = weighted_mean
-            if fallback != -1:
-                w_dense[start_idx:end_idx][f_iwmap == fallback] = weighted_mean
-
-        elif f.category == 0:  # Intercept
-            w_dense[start_idx:end_idx] = f_w[0]
-                
-        elif f.category == 1:  # Mobility
-            # To find the true "above cutoff" configurations, we must look at wmap, 
-            # because iwmap points rare configs to the fallback index.
-            f_wmap_mask = wmap[:, 0] == fid
-            f_wmap = wmap[f_wmap_mask]
-            
-            # True configs are those with config_id >= 0 in wmap
-            true_configs_mask = f_wmap[:, 1] >= 0
-            known_configs = f_wmap[true_configs_mask, 1].astype(np.int64)
-            
-            if len(known_configs) > 0:
-                # Get the specific weights for these true configs via iwmap
-                w_indices = f_iwmap[known_configs]
-                known_weights = w[w_indices]
-
-                # Interpolate over the full range of possible configurations (0 to n_configurations-1)
-                # np.interp automatically clamps external values to the nearest known boundary.
-                all_configs = np.arange(f.n_configurations)
-                w_dense[start_idx : start_idx + f.n_configurations] = np.interp(
-                    all_configs, known_configs, known_weights
-                ).astype(np.float32)
-            else:
-                ctx.log_event(Relevance.WARN, f"Mobility {f.name} (id:{fid}) has no seen configurations. Weights are zero.")
-
-    return ReversiLogisticModelDenseWeights(ctx.feature_set.hash, w_dense)
-
