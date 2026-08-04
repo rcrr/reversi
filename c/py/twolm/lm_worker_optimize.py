@@ -33,7 +33,8 @@ from pathlib import Path
 
 from twolm.state_machine import Worker, Relevance
 from twolm.opt_lbfgs import lbfgs
-from twolm.rlm_optimize import (save_optimization_checkpoint, 
+from twolm.rlm_optimize import (optimization_info_dict,
+                                save_optimization_checkpoint, 
                                 load_optimization_checkpoint, 
                                 is_optimization_cache_consistent)
 
@@ -45,16 +46,6 @@ if TYPE_CHECKING:
 __all__ = ['lm_worker_optimize']
 
 
-
-def _optimization_info_dict(lbfgs_info: dict):
-    info = {
-        'converged': lbfgs_info['converged'],
-        'reason':    lbfgs_info['reason'],
-        'iters':     lbfgs_info['iters'],
-        'f':         lbfgs_info['f'],
-        'g_norm':    lbfgs_info['g_norm']
-    }
-    return info
 
 def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Starting OPTIMIZE worker...")
@@ -69,15 +60,16 @@ def _up(ctx: "RLMContext") -> None:
     if checkpoint_path.exists() and ctx.use_cache:
         try:
             cp = load_optimization_checkpoint(checkpoint_path)
+            ctx.log_event(Relevance.INFO, f"Checkpoint found, checking consistency ...")
             
             if not is_optimization_cache_consistent(ctx, cp):
                 ctx.log_event(Relevance.WARN, "Checkpoint config mismatch. Starting from scratch.")
             elif cp['converged']:
-                ctx.log_event(Relevance.INFO, f"Checkpoint found. Optimization already converged ({cp['reason']}). Loading final weights.")
+                ctx.log_event(Relevance.INFO, f"Checkpoint: optimization already converged ({cp['reason']}). Loading final weights.")
                 ctx.w = cp['w']
                 
                 # Populate opt_info from checkpoint to ensure analytics have the correct metadata
-                ctx.opt_info = _optimization_info_dict(cp)
+                ctx.opt_info = optimization_info_dict(cp)
                 return # Skip optimization entirely!
                 
             elif cp['iters'] >= cp['max_iters']:
@@ -86,7 +78,7 @@ def _up(ctx: "RLMContext") -> None:
                 ctx.w = cp['w']
                 
                 # Populate opt_info from checkpoint
-                ctx.opt_info = _optimization_info_dict(cp)
+                ctx.opt_info = optimization_info_dict(cp)
                 return
                 
             elif cp['iters'] < cp['max_iters']:
@@ -107,6 +99,8 @@ def _up(ctx: "RLMContext") -> None:
     def save_fn(w, sl, yl, rho, k, f, g_norm):
         save_optimization_checkpoint(
             filepath=checkpoint_path,
+            design_matrix_checksum=ctx.design_matrix_checksum,
+            zed_checksum=ctx.zed_checksum,
             max_iters=opt_cfg.max_iters,
             m=opt_cfg.m,
             converged=False,
@@ -142,11 +136,13 @@ def _up(ctx: "RLMContext") -> None:
     
     # 4. Update context and save final checkpoint
     ctx.w = w_opt
-    ctx.opt_info = _optimization_info_dict(info)
+    ctx.opt_info = optimization_info_dict(info)
     ctx.log_event(Relevance.INFO, f"Optimization finished. Reason: {info['reason']}. Final Loss: {info['f']:.8e}")
     
     save_optimization_checkpoint(
         filepath=checkpoint_path,
+        design_matrix_checksum=ctx.design_matrix_checksum,
+        zed_checksum=ctx.zed_checksum,
         max_iters=opt_cfg.max_iters,
         m=opt_cfg.m,
         converged=info['converged'],

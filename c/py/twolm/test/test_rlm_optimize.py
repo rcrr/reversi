@@ -53,9 +53,14 @@ class TestRLMOptimizeIO(unittest.TestCase):
         self.sl = [np.array([0.01, 0.02, 0.03], dtype=np.float32)]
         self.yl = [np.array([0.04, 0.05, 0.06], dtype=np.float32)]
         self.rho = [1.5]
+
+        self.design_matrix_checksum = 'abc123'
+        self.zed_checksum = 'xyz789'
         
         save_optimization_checkpoint(
             filepath=self.filepath,
+            design_matrix_checksum=self.design_matrix_checksum,
+            zed_checksum=self.zed_checksum,            
             max_iters=500,
             m=50,
             converged=True,
@@ -100,34 +105,35 @@ class TestRLMOptimizeCacheConsistency(unittest.TestCase):
 
     def setUp(self):
         # Mock context with config
-        self.ctx = SimpleNamespace()
-        self.ctx.cfg = SimpleNamespace(
-            optimization=SimpleNamespace(max_iters=500, m=50)
+        self.ctx = SimpleNamespace(
+            log_event = lambda *args, **kwargs: None,
+            design_matrix_checksum = "123abc",
+            zed_checksum = "456xyz"
         )
         
         self.cp_valid = {
-            'max_iters': 500,
-            'm': 50
+            'design_matrix_checksum': "123abc",
+            'zed_checksum': "456xyz"
         }
         
-        self.cp_wrong_iters = {
-            'max_iters': 1000, # Changed
-            'm': 50
+        self.cp_changed_design_matrix_checksum = {
+            'design_matrix_checksum': "654uhv",
+            'zed_checksum': "456xyz"
         }
         
-        self.cp_wrong_m = {
-            'max_iters': 500,
-            'm': 10 # Changed
+        self.cp_changed_zed_checksum = {
+            'design_matrix_checksum': "123abc",
+            'zed_checksum': "725tfd"
         }
 
     def test_consistent_cache(self):
         self.assertTrue(is_optimization_cache_consistent(self.ctx, self.cp_valid))
 
     def test_inconsistent_iters(self):
-        self.assertFalse(is_optimization_cache_consistent(self.ctx, self.cp_wrong_iters))
+        self.assertFalse(is_optimization_cache_consistent(self.ctx, self.cp_changed_design_matrix_checksum))
 
     def test_inconsistent_m(self):
-        self.assertFalse(is_optimization_cache_consistent(self.ctx, self.cp_wrong_m))
+        self.assertFalse(is_optimization_cache_consistent(self.ctx, self.cp_changed_zed_checksum))
 
 
 if __name__ == '__main__':

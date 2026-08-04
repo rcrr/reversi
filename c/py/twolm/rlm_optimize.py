@@ -34,13 +34,15 @@ from pathlib import Path
 from typing import List, Tuple, Dict, Any, TYPE_CHECKING
 
 from twolm import binio
+from twolm.state_machine import Relevance
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext
 
 
 
-__all__ = ['save_optimization_checkpoint',
+__all__ = ['optimization_info_dict',
+           'save_optimization_checkpoint',
            'load_optimization_checkpoint',
            'is_optimization_cache_consistent']
 
@@ -49,21 +51,25 @@ __all__ = ['save_optimization_checkpoint',
 #: Unlike the other layers, where the cache—when present—is organized using a class and a data object,
 #: the OPTIMIZE layer cache (called a checkpoint) consists of a dictionary.
 
-def save_optimization_checkpoint(filepath: Path, 
-                                 max_iters: int, 
-                                 m: int, 
-                                 converged: bool, 
-                                 reason: str, 
-                                 iters: int, 
-                                 f: float, 
-                                 g_norm: float, 
-                                 w: np.ndarray, 
-                                 sl: List[np.ndarray], 
-                                 yl: List[np.ndarray], 
+def save_optimization_checkpoint(filepath: Path,
+                                 design_matrix_checksum: str,
+                                 zed_checksum: str,
+                                 max_iters: int,
+                                 m: int,
+                                 converged: bool,
+                                 reason: str,
+                                 iters: int,
+                                 f: float,
+                                 g_norm: float,
+                                 w: np.ndarray,
+                                 sl: List[np.ndarray],
+                                 yl: List[np.ndarray],
                                  rho: List[float]) -> None:
     """Saves the L-BFGS state and metadata to a binary checkpoint file."""
     with binio.BinaryWriter(filepath) as bw:
         bw.write_header("RGLM Optimization Checkpoint", 1)
+        bw.write_string(design_matrix_checksum)
+        bw.write_string(zed_checksum)
         bw.write_i32(max_iters)
         bw.write_i32(m)
         bw.write_i32(1 if converged else 0)
@@ -90,12 +96,16 @@ def load_optimization_checkpoint(filepath: Path) -> Dict[str, Any]:
     Loads the L-BFGS state from a binary checkpoint file.
     """
     with binio.BinaryReader(filepath) as br:
-        # 1. Read header properly!
+        # Read header properly!
         description, version = br.read_header()
         if description != "RGLM Optimization Checkpoint":
             raise RuntimeError(f"The file is not a proper optimization checkpoint. Found: {description}")
         if version != 1:
             raise RuntimeError(f"Checkpoint version mismatch: found {version}, expected 1")
+
+        # Read the checksum from earlier steps
+        design_matrix_checksum = br.read_string()
+        zed_checksum = br.read_string()
         
         # 2. Read the metadata
         max_iters = br.read_i32()
@@ -117,6 +127,8 @@ def load_optimization_checkpoint(filepath: Path) -> Dict[str, Any]:
             rho.append(br.read_f64())
             
     return {
+        'design_matrix_checksum': design_matrix_checksum,
+        'zed_checksum': zed_checksum,
         'max_iters': max_iters,
         'm': m,
         'converged': converged,
@@ -132,9 +144,54 @@ def load_optimization_checkpoint(filepath: Path) -> Dict[str, Any]:
 
 
 def is_optimization_cache_consistent(ctx: "RLMContext", checkpoint: Dict[str, Any]) -> bool:
-    """Validates the checkpoint against current configuration."""
-    if checkpoint['max_iters'] != ctx.cfg.optimization.max_iters:
+    """
+    Validates the checkpoint against current configuration.
+    The two gates are:
+      - ctx.design_matrix_checksum
+        It ensures that the game positions, feature set, frequency clipping are all
+        unchanged. The actual JSON config and database extraction are consistent with
+        the reloaded data from the checpoint file cache.
+      - ctx.zed_checksum
+        It ensures that the game values and logit clipping are consistent as well.
+    """
+
+    if ctx.design_matrix_checksum != checkpoint['design_matrix_checksum']:
+        ctx.log_event(Relevance.WARN, f"The definition of the Design Matrix has changed.")
+        ctx.log_event(Relevance.WARN, f"ctx.design_matrix_checksum:           {ctx.design_matrix_checksum}.")
+        ctx.log_event(Relevance.WARN, f"checkpoint['design_matrix_checksum']: {checkpoint['design_matrix_checksum']}.")
         return False
-    if checkpoint['m'] != ctx.cfg.optimization.m:
+    
+    if ctx.zed_checksum != checkpoint['zed_checksum']:
+        ctx.log_event(Relevance.WARN, f"The definition of the Z array has changed.")
+        ctx.log_event(Relevance.WARN, f"ctx.zed_checksum:           {ctx.zed_checksum}.")
+        ctx.log_event(Relevance.WARN, f"checkpoint['zed_checksum']: {checkpoint['zed_checksum']}.")
         return False
+    
+    ctx.log_event(Relevance.INFO, f"The definition of the Design Matrix and Z array are unchanged.")
     return True
+
+
+def optimization_info_dict(lbfgs_info: dict) -> dict:
+    """
+    Filters unused entries given by the lbfgs function.
+    Keeps the ones saved into the logistic_model context.
+    """
+    info = {
+        'converged': lbfgs_info['converged'],
+        'reason':    lbfgs_info['reason'],
+        'iters':     lbfgs_info['iters'],
+        'f':         lbfgs_info['f'],
+        'g_norm':    lbfgs_info['g_norm']
+    }
+    return info
+
+
+def is_optimization_status_converged(ctx: "RLMContext", checkpoint: Dict[str, Any]) -> bool:
+    """
+    Validates the checkpoint convergence status against current configuration requirements.
+    """
+
+    """
+    Prima cosa dobbiamo verificare che ...
+    """
+    return False
