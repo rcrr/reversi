@@ -56,13 +56,13 @@ class TestRLMOptimizeIO(unittest.TestCase):
         
         save_optimization_checkpoint(
             filepath=self.filepath,
-            start_max_iters=500,
-            start_m=50,
-            is_converged=True,
-            stop_reason="CONVERGED_MIN_GRAD",
-            iterations_done=42,
-            final_f=0.123,
-            final_g_norm=0.001,
+            max_iters=500,
+            m=50,
+            converged=True,
+            reason="CONVERGED_MIN_GRAD",
+            iters=42,
+            f=0.123,
+            g_norm=0.001,
             w=self.w,
             sl=self.sl,
             yl=self.yl,
@@ -79,13 +79,13 @@ class TestRLMOptimizeIO(unittest.TestCase):
         cp = load_optimization_checkpoint(self.filepath)
         
         # Check scalars
-        self.assertEqual(cp['start_max_iters'], 500)
-        self.assertEqual(cp['start_m'], 50)
-        self.assertTrue(cp['is_converged'])
-        self.assertEqual(cp['stop_reason'], "CONVERGED_MIN_GRAD")
-        self.assertEqual(cp['iterations_done'], 42)
-        self.assertAlmostEqual(cp['final_f'], 0.123)
-        self.assertAlmostEqual(cp['final_g_norm'], 0.001)
+        self.assertEqual(cp['max_iters'], 500)
+        self.assertEqual(cp['m'], 50)
+        self.assertTrue(cp['converged'])
+        self.assertEqual(cp['reason'], "CONVERGED_MIN_GRAD")
+        self.assertEqual(cp['iters'], 42)
+        self.assertAlmostEqual(cp['f'], 0.123)
+        self.assertAlmostEqual(cp['g_norm'], 0.001)
         
         # Check arrays
         nptest.assert_array_equal(cp['w'], self.w)
@@ -106,18 +106,18 @@ class TestRLMOptimizeCacheConsistency(unittest.TestCase):
         )
         
         self.cp_valid = {
-            'start_max_iters': 500,
-            'start_m': 50
+            'max_iters': 500,
+            'm': 50
         }
         
         self.cp_wrong_iters = {
-            'start_max_iters': 1000, # Changed
-            'start_m': 50
+            'max_iters': 1000, # Changed
+            'm': 50
         }
         
         self.cp_wrong_m = {
-            'start_max_iters': 500,
-            'start_m': 10 # Changed
+            'max_iters': 500,
+            'm': 10 # Changed
         }
 
     def test_consistent_cache(self):

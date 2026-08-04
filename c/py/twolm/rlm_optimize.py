@@ -28,9 +28,10 @@
 # twolm/rlm_optimize.py
 from __future__ import annotations
 
+import numpy as np
+
 from pathlib import Path
 from typing import List, Tuple, Dict, Any, TYPE_CHECKING
-import numpy as np
 
 from twolm import binio
 
@@ -45,14 +46,17 @@ __all__ = ['save_optimization_checkpoint',
 
 
 
+#: Unlike the other layers, where the cache—when present—is organized using a class and a data object,
+#: the OPTIMIZE layer cache (called a checkpoint) consists of a dictionary.
+
 def save_optimization_checkpoint(filepath: Path, 
-                                 start_max_iters: int, 
-                                 start_m: int, 
-                                 is_converged: bool, 
-                                 stop_reason: str, 
-                                 iterations_done: int, 
-                                 final_f: float, 
-                                 final_g_norm: float, 
+                                 max_iters: int, 
+                                 m: int, 
+                                 converged: bool, 
+                                 reason: str, 
+                                 iters: int, 
+                                 f: float, 
+                                 g_norm: float, 
                                  w: np.ndarray, 
                                  sl: List[np.ndarray], 
                                  yl: List[np.ndarray], 
@@ -60,17 +64,21 @@ def save_optimization_checkpoint(filepath: Path,
     """Saves the L-BFGS state and metadata to a binary checkpoint file."""
     with binio.BinaryWriter(filepath) as bw:
         bw.write_header("RGLM Optimization Checkpoint", 1)
-        bw.write_i32(start_max_iters)
-        bw.write_i32(start_m)
-        bw.write_i32(1 if is_converged else 0)
-        bw.write_string(stop_reason)
-        bw.write_i32(iterations_done)
-        bw.write_f32(final_f)
-        bw.write_f32(final_g_norm)
+        bw.write_i32(max_iters)
+        bw.write_i32(m)
+        bw.write_i32(1 if converged else 0)
+        bw.write_string(reason)
+        bw.write_i32(iters)
+        bw.write_f32(f)
+        bw.write_f32(g_norm)
         
         bw.write_i32(len(sl))
         bw.write_array(w)
         
+        # Atomically serialize the L-BFGS history vectors chronologically.
+        # zip() pairs each displacement vector (s) with its corresponding 
+        # gradient change (y) and scaling factor (rho) to write them 
+        # sequentially into the binary file for a seamless warm start.
         for s, y, r in zip(sl, yl, rho):
             bw.write_array(s)
             bw.write_array(y)
@@ -78,7 +86,9 @@ def save_optimization_checkpoint(filepath: Path,
 
 
 def load_optimization_checkpoint(filepath: Path) -> Dict[str, Any]:
-    """Loads the L-BFGS state from a binary checkpoint file."""
+    """
+    Loads the L-BFGS state from a binary checkpoint file.
+    """
     with binio.BinaryReader(filepath) as br:
         # 1. Read header properly!
         description, version = br.read_header()
@@ -88,13 +98,13 @@ def load_optimization_checkpoint(filepath: Path) -> Dict[str, Any]:
             raise RuntimeError(f"Checkpoint version mismatch: found {version}, expected 1")
         
         # 2. Read the metadata
-        start_max_iters = br.read_i32()
-        start_m = br.read_i32()
-        is_converged = bool(br.read_i32())
-        stop_reason = br.read_string()
-        iterations_done = br.read_i32()
-        final_f = br.read_f32()
-        final_g_norm = br.read_f32()
+        max_iters = br.read_i32()
+        m = br.read_i32()
+        converged = bool(br.read_i32())
+        reason = br.read_string()
+        iters = br.read_i32()
+        f = br.read_f32()
+        g_norm = br.read_f32()
         
         # 3. Read the L-BFGS memory state
         len_mem = br.read_i32()
@@ -107,13 +117,13 @@ def load_optimization_checkpoint(filepath: Path) -> Dict[str, Any]:
             rho.append(br.read_f64())
             
     return {
-        'start_max_iters': start_max_iters,
-        'start_m': start_m,
-        'is_converged': is_converged,
-        'stop_reason': stop_reason,
-        'iterations_done': iterations_done,
-        'final_f': final_f,
-        'final_g_norm': final_g_norm,
+        'max_iters': max_iters,
+        'm': m,
+        'converged': converged,
+        'reason': reason,
+        'iters': iters,
+        'f': f,
+        'g_norm': g_norm,
         'w': w,
         'sl': sl,
         'yl': yl,
@@ -123,8 +133,8 @@ def load_optimization_checkpoint(filepath: Path) -> Dict[str, Any]:
 
 def is_optimization_cache_consistent(ctx: "RLMContext", checkpoint: Dict[str, Any]) -> bool:
     """Validates the checkpoint against current configuration."""
-    if checkpoint['start_max_iters'] != ctx.cfg.optimization.max_iters:
+    if checkpoint['max_iters'] != ctx.cfg.optimization.max_iters:
         return False
-    if checkpoint['start_m'] != ctx.cfg.optimization.m:
+    if checkpoint['m'] != ctx.cfg.optimization.m:
         return False
     return True
