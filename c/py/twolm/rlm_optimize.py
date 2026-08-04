@@ -28,6 +28,7 @@
 # twolm/rlm_optimize.py
 from __future__ import annotations
 
+import math
 import numpy as np
 
 from pathlib import Path
@@ -44,7 +45,8 @@ if TYPE_CHECKING:
 __all__ = ['optimization_info_dict',
            'save_optimization_checkpoint',
            'load_optimization_checkpoint',
-           'is_optimization_cache_consistent']
+           'is_optimization_cache_consistent',
+           'is_optimization_status_converged']
 
 
 
@@ -54,6 +56,8 @@ __all__ = ['optimization_info_dict',
 def save_optimization_checkpoint(filepath: Path,
                                  design_matrix_checksum: str,
                                  zed_checksum: str,
+                                 ridge_regularization: float,
+                                 min_grad_value: float,
                                  max_iters: int,
                                  m: int,
                                  converged: bool,
@@ -70,6 +74,8 @@ def save_optimization_checkpoint(filepath: Path,
         bw.write_header("RGLM Optimization Checkpoint", 1)
         bw.write_string(design_matrix_checksum)
         bw.write_string(zed_checksum)
+        bw.write_f32(ridge_regularization)
+        bw.write_f32(min_grad_value)
         bw.write_i32(max_iters)
         bw.write_i32(m)
         bw.write_i32(1 if converged else 0)
@@ -106,6 +112,8 @@ def load_optimization_checkpoint(filepath: Path) -> Dict[str, Any]:
         # Read the checksum from earlier steps
         design_matrix_checksum = br.read_string()
         zed_checksum = br.read_string()
+        ridge_regularization = br.read_f32()
+        min_grad_value = br.read_f32()
         
         # 2. Read the metadata
         max_iters = br.read_i32()
@@ -129,6 +137,8 @@ def load_optimization_checkpoint(filepath: Path) -> Dict[str, Any]:
     return {
         'design_matrix_checksum': design_matrix_checksum,
         'zed_checksum': zed_checksum,
+        'ridge_regularization': ridge_regularization,
+        'min_grad_value': min_grad_value,
         'max_iters': max_iters,
         'm': m,
         'converged': converged,
@@ -190,8 +200,32 @@ def is_optimization_status_converged(ctx: "RLMContext", checkpoint: Dict[str, An
     """
     Validates the checkpoint convergence status against current configuration requirements.
     """
+    ridge_regularization = ctx.cfg.stat_model.ridge_regularization
+    min_grad = ctx.cfg.optimization.min_grad
+    ctx.log_event(Relevance.TRACE, f"Parameter ctx.cfg.stat_model.ridge_regularization = {ridge_regularization:.4e}")
+    ctx.log_event(Relevance.TRACE, f"Parameter ctx.cfg.optimization.min_grad = ({min_grad[0]:.4e}, {min_grad[1]})")
+    min_grad_value, _ = min_grad
 
-    """
-    Prima cosa dobbiamo verificare che ...
-    """
-    return False
+    cp_ridge_regularization = checkpoint['ridge_regularization']
+    cp_min_grad_value = checkpoint['min_grad_value']
+    ctx.log_event(Relevance.TRACE, f"Parameter checkpoint['ridge_regularization'] = {cp_ridge_regularization:.4e}")
+    ctx.log_event(Relevance.TRACE, f"Parameter checkpoint['min_grad_value'] = {cp_min_grad_value:.4e}")
+
+    rr_is_consistent = math.isclose(ridge_regularization, cp_ridge_regularization, rel_tol=1e-5, abs_tol=1e-8)
+    mg_is_consistent = math.isclose(min_grad_value, cp_min_grad_value, rel_tol=1e-3, abs_tol=1e-8)
+    ctx.log_event(Relevance.TRACE, f"Parameter rr_is_consistent = {rr_is_consistent}")
+    ctx.log_event(Relevance.TRACE, f"Parameter mg_is_consistent = {mg_is_consistent}")
+
+    if not rr_is_consistent:
+        ctx.log_event(Relevance.DEBUG, f"Configuration parameter ridge_regularization has been changed.")
+        return False
+
+    cp_g_norm = checkpoint['g_norm']
+    ctx.log_event(Relevance.TRACE, f"Parameter checkpoint['g_norm'] = {cp_g_norm:.4e}")
+
+    if cp_g_norm < min_grad_value:
+        ctx.log_event(Relevance.INFO, f"Obtained gradient norm is lower than required, convergence is reached.")
+        return True
+    else:
+        ctx.log_event(Relevance.INFO, f"Obtained gradient norm is greater than required, convergence is not reached.")
+        return False

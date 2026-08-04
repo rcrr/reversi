@@ -31,7 +31,7 @@ from __future__ import annotations
 import math
 import numpy as np
 
-from collections import namedtuple
+from collections import namedtuple, deque
 from typing import Callable, Tuple, List, Optional
 
 
@@ -42,6 +42,23 @@ FG = namedtuple('FG', ['fun', 'grad'])
 
 __all__ = ['lbfgs', 'FG']
 
+
+
+
+class FixedSizeMaxList:
+    def __init__(self, size: int):
+        self._buffer = deque(maxlen=size)
+
+    def push(self, value: float) -> None:
+        self._buffer.append(value)
+
+    def max(self) -> float:
+        if not self._buffer:
+            raise RuntimeException('Something went wrong with the deque.')
+        return max(self._buffer)
+        
+    def __len__(self) -> int:
+        return len(self._buffer)
 
 
 def _display_line_search(phi: Callable[[float], Tuple[float, float]],
@@ -330,7 +347,8 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
           initial_sl: Optional[List[np.ndarray]] = None,
           initial_yl: Optional[List[np.ndarray]] = None,
           initial_rho: Optional[List[float]] = None,
-          debug_plot: bool = False) -> np.ndarray:
+          initial_iter: int = 0,
+          debug_plot: bool = False) -> Tuple[np.ndarray, dict]:
     """
     Limited-memory BFGS optimizer with strong Wolfe line search and restart logic.
     Supports logging, checkpointing, and warm starting.
@@ -383,6 +401,7 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
     CURVATURE_THRESHOLD = 1.e-15
     
     min_grad_value, min_grad_count = min_grad
+    g_norm_history = FixedSizeMaxList(size = min_grad_count)
     min_p_fun_decrease_value, min_p_fun_decrease_count = min_p_fun_decrease
 
     fg_call_count = 0
@@ -409,7 +428,7 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
     is_converged = False
     stop_reason = "MAX_ITERS_REACHED"
 
-    for k in range(max_iters):
+    for k in range(initial_iter, max_iters):
         # --- Stopping criteria ---
         g_norm = np.linalg.norm(fgv.grad)
         if g_norm < min_grad_value:
@@ -478,9 +497,9 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
                    f"alpha = {alpha:.3e}, m = [{len(sl):02d}/{m:02d}], fgc = {count:d}")
             fg_call_count_last = fg_call_count
 
+        g_norm_history.push(np.linalg.norm(fgv.grad))
         if save_every_n > 0 and save_fn is not None and (k % save_every_n == 0) and k > 0:
-            # Passiamo anche f e g_norm al save_fn per avere checkpoint intermedi ricchi di metadati
-            save_fn(x, sl, yl, rho, k, fgv.fun, np.linalg.norm(fgv.grad))
+            save_fn(x, sl, yl, rho, k, fgv.fun, g_norm_history.max())
 
     if log_every_n > 0:
         logger(f"L-BFGS - fgc (total calls to fg function) = {fg_call_count:d}")

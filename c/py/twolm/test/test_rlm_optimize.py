@@ -60,7 +60,9 @@ class TestRLMOptimizeIO(unittest.TestCase):
         save_optimization_checkpoint(
             filepath=self.filepath,
             design_matrix_checksum=self.design_matrix_checksum,
-            zed_checksum=self.zed_checksum,            
+            zed_checksum=self.zed_checksum,
+            ridge_regularization=0.01,
+            min_grad_value=1.e-05,
             max_iters=500,
             m=50,
             converged=True,

@@ -36,7 +36,8 @@ from twolm.opt_lbfgs import lbfgs
 from twolm.rlm_optimize import (optimization_info_dict,
                                 save_optimization_checkpoint, 
                                 load_optimization_checkpoint, 
-                                is_optimization_cache_consistent)
+                                is_optimization_cache_consistent,
+                                is_optimization_status_converged)
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext
@@ -55,42 +56,43 @@ def _up(ctx: "RLMContext") -> None:
     
     w_init = ctx.w
     initial_sl, initial_yl, initial_rho = None, None, None
+    initial_iter = 0
+
+    min_grad_value, min_grad_count = opt_cfg.min_grad
 
     # 1. Check for existing checkpoint
     if checkpoint_path.exists() and ctx.use_cache:
-        try:
-            cp = load_optimization_checkpoint(checkpoint_path)
-            ctx.log_event(Relevance.INFO, f"Checkpoint found, checking consistency ...")
+        cp = load_optimization_checkpoint(checkpoint_path)
+        ctx.log_event(Relevance.INFO, f"Checkpoint found, checking consistency ...")
             
-            if not is_optimization_cache_consistent(ctx, cp):
-                ctx.log_event(Relevance.WARN, "Checkpoint config mismatch. Starting from scratch.")
-            elif cp['converged']:
-                ctx.log_event(Relevance.INFO, f"Checkpoint: optimization already converged ({cp['reason']}). Loading final weights.")
-                ctx.w = cp['w']
+        if not is_optimization_cache_consistent(ctx, cp):
+            ctx.log_event(Relevance.WARN, "Checkpoint config mismatch. Starting from scratch.")
+        elif is_optimization_status_converged(ctx, cp):
+            ctx.log_event(Relevance.INFO, f"Checkpoint: optimization already converged ({cp['reason']}). Loading final weights.")
+            ctx.w = cp['w']
                 
-                # Populate opt_info from checkpoint to ensure analytics have the correct metadata
-                ctx.opt_info = optimization_info_dict(cp)
-                return # Skip optimization entirely!
+            # Populate opt_info from checkpoint to ensure analytics have the correct metadata
+            ctx.opt_info = optimization_info_dict(cp)
+            return # Skip optimization entirely!
                 
-            elif cp['iters'] >= cp['max_iters']:
-                # MAX ITERS REACHED: Treated as a valid completion!
-                ctx.log_event(Relevance.INFO, f"Checkpoint found. Reached max iterations ({cp['iters']}/{cp['max_iters']}). Proceeding with current weights.")
-                ctx.w = cp['w']
+        elif cp['iters'] >= ctx.cfg.optimization.max_iters:
+            # MAX ITERS REACHED: Treated as a valid completion!
+            ctx.log_event(Relevance.INFO, f"Checkpoint found. Reached max iterations ({cp['iters']}/{cp['max_iters']}). Proceeding with current weights.")
+            ctx.w = cp['w']
                 
-                # Populate opt_info from checkpoint
-                ctx.opt_info = optimization_info_dict(cp)
-                return
+            # Populate opt_info from checkpoint
+            ctx.opt_info = optimization_info_dict(cp)
+            return
                 
-            elif cp['iters'] < cp['max_iters']:
-                ctx.log_event(Relevance.INFO, f"Checkpoint found. Resuming optimization from iteration {cp['iters']}.")
-                w_init = cp['w']
-                initial_sl = cp['sl']
-                initial_yl = cp['yl']
-                initial_rho = cp['rho']
-            else:
-                ctx.log_event(Relevance.WARN, "Checkpoint exists but state is unrecognized. Restarting from scratch.")
-        except Exception as e:
-            ctx.log_event(Relevance.WARN, f"Failed to load checkpoint ({e}). Starting from scratch.")
+        elif cp['iters'] < ctx.cfg.optimization.max_iters:
+            ctx.log_event(Relevance.INFO, f"Checkpoint found. Resuming optimization from iteration {cp['iters']}.")
+            w_init = cp['w']
+            initial_sl = cp['sl']
+            initial_yl = cp['yl']
+            initial_rho = cp['rho']
+            initial_iter = cp['iters']
+        else:
+            ctx.log_event(Relevance.WARN, "Checkpoint exists but state is unrecognized. Restarting from scratch.")
 
     # 2. Setup wrappers
     def logger_fn(msg: str):
@@ -101,6 +103,8 @@ def _up(ctx: "RLMContext") -> None:
             filepath=checkpoint_path,
             design_matrix_checksum=ctx.design_matrix_checksum,
             zed_checksum=ctx.zed_checksum,
+            ridge_regularization=ctx.cfg.stat_model.ridge_regularization,
+            min_grad_value=min_grad_value,
             max_iters=opt_cfg.max_iters,
             m=opt_cfg.m,
             converged=False,
@@ -131,7 +135,8 @@ def _up(ctx: "RLMContext") -> None:
         save_fn=save_fn,
         initial_sl=initial_sl,
         initial_yl=initial_yl,
-        initial_rho=initial_rho
+        initial_rho=initial_rho,
+        initial_iter=initial_iter
     )
     
     # 4. Update context and save final checkpoint
@@ -143,6 +148,8 @@ def _up(ctx: "RLMContext") -> None:
         filepath=checkpoint_path,
         design_matrix_checksum=ctx.design_matrix_checksum,
         zed_checksum=ctx.zed_checksum,
+        ridge_regularization=ctx.cfg.stat_model.ridge_regularization,
+        min_grad_value=min_grad_value,
         max_iters=opt_cfg.max_iters,
         m=opt_cfg.m,
         converged=info['converged'],
