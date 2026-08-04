@@ -54,8 +54,8 @@ __all__ = ['ReversiLogisticModelDenseWeights',
 class ReversiLogisticModelDenseWeights:
     """Wrapper for the dense weight vector and its metadata."""
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-    def __init__(self, feature_set_hash: str, w_dense: np.ndarray):
-        self.feature_set_hash = feature_set_hash
+    def __init__(self, w_checksum: str, w_dense: np.ndarray):
+        self.w_checksum = w_checksum
         self.w_dense = w_dense
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -71,8 +71,10 @@ def rlm_generate_store_to_file(dw: ReversiLogisticModelDenseWeights, filename: s
     filename = Path(filename)
     with binio.BinaryWriter(filename) as w:
         w.write_header("RGLM Dense Weights binary data file", 1)
-        w.write_string(dw.feature_set_hash)
+        w.write_string(dw.w_checksum)
         w.write_array(dw.w_dense)
+    return
+
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def rlm_generate_load_from_file(filename: str | Path, checksum: bool = True) -> ReversiLogisticModelDenseWeights:
@@ -84,13 +86,15 @@ def rlm_generate_load_from_file(filename: str | Path, checksum: bool = True) -> 
         description, version = r.read_header()
         if description != "RGLM Dense Weights binary data file":
             raise RuntimeError(f"Wrong file format: {description}")
-        feature_set_hash = r.read_string()
+        w_checksum = r.read_string()
         w_dense = r.read_array()
         
-    return ReversiLogisticModelDenseWeights(feature_set_hash, w_dense)
+    return ReversiLogisticModelDenseWeights(w_checksum, w_dense)
+
 
 def rlm_generate_is_cache_consistent(ctx: "RLMContext", dw: ReversiLogisticModelDenseWeights) -> bool:
-    return dw.feature_set_hash == ctx.feature_set.hash
+    return dw.w_checksum == ctx.w_checksum
+
 
 def compute_w_dense(ctx: "RLMContext") -> ReversiLogisticModelDenseWeights:
     """
@@ -107,6 +111,7 @@ def compute_w_dense(ctx: "RLMContext") -> ReversiLogisticModelDenseWeights:
     iwmap_feature_offset = ctx.iwmap_feature_offset
     wmap = ctx.wmap
     w = ctx.w
+    w_checksum = ctx.w_checksum
     
     K = iwmap_feature_offset[-1]
     w_dense = np.zeros(K, dtype=np.float32)
@@ -199,4 +204,4 @@ def compute_w_dense(ctx: "RLMContext") -> ReversiLogisticModelDenseWeights:
         else:  # Undefined feature
             raise RuntimeError(f"The feature category is unknown, f.category = {f.category}")
 
-    return ReversiLogisticModelDenseWeights(ctx.feature_set.hash, w_dense)
+    return ReversiLogisticModelDenseWeights(w_checksum, w_dense)

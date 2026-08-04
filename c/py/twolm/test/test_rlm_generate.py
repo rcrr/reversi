@@ -93,6 +93,7 @@ class TestRLMGenerate(unittest.TestCase):
         # w[2] = 1.0 (Mobility config 1)
         # w[3] = 3.0 (Mobility config 3)
         self.ctx.w = np.array([0.5, -0.2, 1.0, 3.0], dtype=np.float32)
+        self.ctx.w_checksum = "abc654"
         
         # Mock logger
         self.ctx.log_event = lambda rel, msg: None
