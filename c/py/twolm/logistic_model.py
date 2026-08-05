@@ -100,6 +100,7 @@ class RLMContext(Context):
     rds_checksum: Union[str, None] = None
     positions: Any = None
     game_values: Any = None
+    training_pop_stats: Any = None
 
     # Features attribute:
     feature_set: Any = None
@@ -140,7 +141,6 @@ class RLMContext(Context):
 
     # Validation attributes:
     vld_metrics: Any = None
-    vld_loss: Any = None
 
     # Analytic attribute:
     analytics_report: Any = None

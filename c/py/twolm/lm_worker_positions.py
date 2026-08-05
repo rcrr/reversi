@@ -28,6 +28,8 @@
 # twolm/lm_worker_positions.py
 from __future__ import annotations
 
+import numpy as np
+
 from typing import TYPE_CHECKING
 from pathlib import Path
 
@@ -77,12 +79,32 @@ def _up(ctx: "RLMContext") -> None:
     
     ctx.log_event(Relevance.INFO, f"Regab data set object checksum (rds_checksum): {rds_checksum}.")
     ctx.log_event(Relevance.INFO, "Model attributes positions, game_values and rds_checksum have been set.")
+
+    count = len(game_values)
+    mean = np.mean(game_values)
+    std_dev = np.std(game_values)
+    variance = np.var(game_values)
+    ctx.log_event(Relevance.INFO, f"Population statistical properties: [COUNT: {count:,}], [MEAN: {mean:.2f}], [STD: {std_dev:.2f}], [VARIANCE: {variance:.2f}].")
+
+    ctx.training_pop_stats = {
+        'count': count,
+        'mean': mean,
+        'std_dev': std_dev,
+        'variance': variance
+    }
+    
+    return
+
         
 def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing game positions, game_values and rds_checksum attributes.")
     ctx.positions = None
     ctx.game_values = None
     ctx.rds_checksum = None
+    ctx.training_pop_stats = None
+
+    return
+
 
 def _is_cache_consistent(ctx: "RLMContext", rds: RegabDataSet) -> bool:
     """Compare live configuration with cached dataset metadata."""

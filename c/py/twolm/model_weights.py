@@ -56,7 +56,7 @@ class ModelWeights:
     ec: int
     logit_clipping: float
     opt_info: Dict[str, Any]
-    training_set_size: int
+    training_pop_stats: Dict[str, Any]
     vld_metrics: Dict[str, Any]
     feature_set: FeatureSet
     iwmap_feature_offset: np.ndarray
@@ -82,28 +82,34 @@ def model_weights_write_file(ctx: "RLMContext",
         w.write_string(ctx.cfg.name)
         w.write_u32(ctx.cfg.regab_data_set.ec)
         w.write_f32(ctx.cfg.stat_model.logit_clipping)
-        w.write_u64(len(ctx.positions))
 
-        # 2. Optimization Info
+        # 2. training Population Statistics
+        training_pop_stats = ctx.training_pop_stats
+        w.write_u64(training_pop_stats['count'])
+        w.write_f32(training_pop_stats['mean'])
+        w.write_f32(training_pop_stats['std_dev'])
+        w.write_f32(training_pop_stats['variance'])
+
+        # 3. Optimization Info
         opt_info = ctx.opt_info
         w.write_string(opt_info['reason'])
         w.write_u32(opt_info['iters'])
         w.write_f32(opt_info['f'])
         w.write_f32(opt_info['g_norm'])
 
-        # 3. Validation Metrics
+        # 4. Validation Metrics
         vld = ctx.vld_metrics
         w.write_u32(vld['vld_samples'])
         w.write_f32(vld['vld_rmse_y'])
         w.write_f32(vld['vld_mae_y'])
         w.write_f32(vld['vld_loss'])
 
-        # 4. FeatureSet
+        # 5. FeatureSet
         fs = ctx.feature_set
         w.write_string(fs.name)
         w.write_u8(1 if fs.intercept else 0)
 
-        # 5. MobilitySet
+        # 6. MobilitySet
         if fs.mset:
             w.write_u8(1)
             w.write_string(fs.mset.name)
@@ -115,7 +121,7 @@ def model_weights_write_file(ctx: "RLMContext",
         else:
             w.write_u8(0)
 
-        # 6. PatternSet
+        # 7. PatternSet
         if fs.pset:
             w.write_u8(1)
             w.write_string(fs.pset.name)
@@ -126,7 +132,7 @@ def model_weights_write_file(ctx: "RLMContext",
         else:
             w.write_u8(0)
 
-        # 7. Core Inference Data
+        # 8. Core Inference Data
         w.write_array(ctx.iwmap_feature_offset)
         w.write_array(ctx.w_dense)
 
@@ -148,7 +154,17 @@ def model_weights_read_file(path: Path, compressed: bool = True) -> ModelWeights
         name = r.read_string()
         ec = r.read_u32()
         logit_clipping = r.read_f32()
-        training_set_size = r.read_u64()
+        
+        tps_count = r.read_u64()
+        tps_mean = r.read_f32()
+        tps_std_dev = r.read_f32()
+        tps_variance = r.read_f32()
+        training_pop_stats = {
+            'count': tps_count,
+            'mean': tps_mean,
+            'std_dev': tps_std_dev,
+            'variance': tps_variance
+        }
 
         opt_reason = r.read_string()
         opt_iters = r.read_u32()
@@ -213,7 +229,7 @@ def model_weights_read_file(path: Path, compressed: bool = True) -> ModelWeights
             name=name,
             ec=ec,
             logit_clipping=logit_clipping,
-            training_set_size=training_set_size,
+            training_pop_stats=training_pop_stats,
             opt_info=opt_info,
             vld_metrics=vld_metrics,
             feature_set=feature_set,

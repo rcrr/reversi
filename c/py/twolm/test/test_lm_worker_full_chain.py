@@ -80,7 +80,8 @@ class TestFullChainA2030(unittest.TestCase):
 
         # Validation Loss
         expected_vld_loss = 5.76E-03
-        np.testing.assert_approx_equal(ctx.vld_loss, expected_vld_loss, significant=3)
+        computed_vld_loss = ctx.vld_metrics['vld_loss']
+        np.testing.assert_approx_equal(computed_vld_loss, expected_vld_loss, significant=3)
 
         m = ctx.vld_metrics
         

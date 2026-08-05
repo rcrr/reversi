@@ -46,17 +46,11 @@ __all__ = ['lm_worker_validate']
 
 def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Starting model validation...")
-
-    #: To be moved later in ANALYTICS
-    rmse_vs_mean = float(np.std(ctx.game_values))
-    ctx.log_event(Relevance.INFO, f"Population RMSE: {rmse_vs_mean:.2f}")
     
-    metrics = validate_model(ctx)
-    
+    metrics = validate_model(ctx)    
     ctx.vld_metrics = metrics
-    ctx.vld_loss = metrics['vld_loss']
     
-    ctx.log_event(Relevance.INFO, f"Validation completed. Loss (MSE/2): {ctx.vld_loss:.8e}")
+    ctx.log_event(Relevance.INFO, f"Validation completed. Loss (MSE/2): {metrics['vld_loss']:.8e}")
     ctx.log_event(Relevance.INFO, f"  MSE:      {metrics['vld_mse_z']:.4e}")
     ctx.log_event(Relevance.INFO, f"  MAE:      {metrics['vld_mae_z']:.4e}")
     ctx.log_event(Relevance.INFO, f"  MAE(y):   {metrics['vld_mae_y']:.2f}")
@@ -66,7 +60,6 @@ def _up(ctx: "RLMContext") -> None:
 def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing validation attributes...")
     ctx.vld_metrics = None
-    ctx.vld_loss = None
 
 
 def lm_worker_validate() -> Worker:

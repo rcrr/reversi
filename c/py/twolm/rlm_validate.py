@@ -28,8 +28,9 @@
 # twolm/rlm_validate.py
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict
 import numpy as np
+
+from typing import TYPE_CHECKING, Dict
 
 from twolm.rlm_gradient import sigmoid
 from twolm.state_machine import Relevance
@@ -135,7 +136,7 @@ def validate_model(ctx: "RLMContext") -> Dict[str, float]:
     ctx.log_event(Relevance.INFO, "Computing predictions (forward pass) on validation set...")
     # Cast to float64 for the sum to prevent any accumulation errors
     linear_predictor = np.sum(ctx.w_dense[dense_indices].astype(np.float64), axis=1)
-        
+    
     # Predictions in Z space [0, 1]
     z_pred = sigmoid(linear_predictor)
 
