@@ -66,11 +66,6 @@ def _up(ctx: "RLMContext") -> None:
         logger_fn   = ctx.log_event
     )
 
-    # If we recomputed at this level, all subsequent levels must recompute too.
-    if not cache_hit:
-        ctx.log_event(Relevance.INFO, "Cache invalidated. Forcing computation for all subsequent pipeline steps.")
-        ctx.use_cache = False
-
     # Post-processing (unrelated to caching logic).
     positions, game_values = rds.generate_positions_and_game_values()
     ctx.positions = positions

@@ -61,18 +61,13 @@ def _up(ctx: "RLMContext") -> None:
     # Execute the abstracted pipeline.
     cache_hit, vld_rds, vld_rds_checksum = cache_manager_load_or_compute(
         cache_path  = ctx.get_cache_file_full_path_for_next_level(),
-        is_allowed  = True, # The validation data set doesn't depend on previous steps.
+        is_allowed  = ctx.use_cache,
         load_fn     = regab_load_data_set_from_file,
         store_fn    = regab_store_data_set_to_file,
         validate_fn = lambda cached_vld_rds: is_cache_consistent(ctx, cached_vld_rds, bid=vld_cfg.bid, status=vld_cfg.status),
         compute_fn  = lambda: load_from_db(ctx, bid=vld_cfg.bid, status=vld_cfg.status),
         logger_fn   = ctx.log_event
     )
-
-    # If we recomputed at this level, all subsequent levels must recompute too.
-    if not cache_hit:
-        ctx.log_event(Relevance.INFO, "Cache invalidated. Forcing computation for all subsequent pipeline steps.")
-        ctx.use_cache = False
 
     # Post-processing (unrelated to caching logic).
     vld_positions, vld_game_values = vld_rds.generate_positions_and_game_values()

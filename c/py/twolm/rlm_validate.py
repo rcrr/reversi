@@ -104,18 +104,15 @@ def validate_model(ctx: "RLMContext") -> Dict[str, Any]:
     - When RMSE / MAE = sqrt(pi/2) = 1.253... the distribution is normal.
     
     """
-    vld_cfg = ctx.cfg.validation_data_set
-    train_cfg = ctx.cfg.regab_data_set
-
     vld_positions = ctx.vld_positions
     vld_game_values = ctx.vld_game_values
         
-    # 2. Compute indexes for validation positions using the SAME feature_set
+    # Compute indexes for validation positions using the SAME feature_set
     ctx.log_event(Relevance.INFO, "Computing indexes for validation set...")
     vld_indexes = ctx.feature_set.compute_indexes(vld_positions)
     vld_M, vld_P = vld_indexes.shape
 
-    # 3. Map to dense weights and compute linear predictor
+    # Map to dense weights and compute linear predictor
     # We need the column offsets for each feature instance
     n_instances_per_feature = [f.n_instances for f in ctx.feature_set.features]
     col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1], n_instances_per_feature)
@@ -123,30 +120,25 @@ def validate_model(ctx: "RLMContext") -> Dict[str, Any]:
     # Apply offsets to raw indexes to point directly into w_dense
     dense_indices = vld_indexes + col_offsets
 
-    ctx.log_event(Relevance.INFO, "Computing predictions (forward pass) on validation set...")
-    # Cast to float64 for the sum to prevent any accumulation errors
-    linear_predictor = np.sum(ctx.w_dense[dense_indices].astype(np.float64), axis=1)
-    
     # Predictions in Z space [0, 1]
+    ctx.log_event(Relevance.INFO, "Computing predictions (forward pass) on validation set...")
+    linear_predictor = np.sum(ctx.w_dense[dense_indices], axis=1)
     z_pred = sigmoid(linear_predictor)
 
     # True values in Z space
-    vld_y = np.asarray(vld_game_values, dtype=np.int8)
-    vld_z = ctx.y2z(vld_y)
+    vld_z = ctx.y2z(vld_game_values)
 
-    # 4. Calculate Metrics in Z space
+    # Calculate Metrics in Z space
     rn_z = z_pred - vld_z
     norm_rn_z = np.dot(rn_z, rn_z)
     vld_loss = 0.5 * (norm_rn_z / vld_M)
     mse_z = norm_rn_z / vld_M
     mae_z = np.mean(np.abs(rn_z))
 
-    # 5. Calculate Metrics in Y space (Original game points scale)
+    # Calculate Metrics in Y space (Original game points scale)
     # Transform predictions back to Y space
     y_pred = ctx.z2y(z_pred)
-    
-    # vld_y is already in Y space (as int8), cast to float64 for math
-    rn_y = y_pred - vld_y.astype(np.float64)
+    rn_y = y_pred - vld_game_values
     mae_y = np.mean(np.abs(rn_y))
     mse_y = np.dot(rn_y, rn_y) / vld_M
     rmse_y = np.sqrt(mse_y)
