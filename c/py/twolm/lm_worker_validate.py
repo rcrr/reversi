@@ -57,9 +57,14 @@ def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, f"  RMSE(y):  {metrics['vld_rmse_y']:.2f}")
     ctx.log_event(Relevance.INFO, f"  RMSE/MAE: {(metrics['vld_rmse_y']/metrics['vld_mae_y']):.2f}")
 
+    return
+
+
 def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing validation attributes...")
     ctx.vld_metrics = None
+
+    return
 
 
 def lm_worker_validate() -> Worker:

@@ -45,7 +45,7 @@ __all__ = ['validate_model']
 
 
 
-def validate_model(ctx: "RLMContext") -> Dict[str, float]:
+def validate_model(ctx: "RLMContext") -> Dict[str, Any]:
     """
     Extracts validation data, computes predictions using w_dense, and calculates metrics.
 
@@ -114,8 +114,8 @@ def validate_model(ctx: "RLMContext") -> Dict[str, float]:
     
     try:
         # Reuse 'ec' from training config
-        rds_vld = regab_extract_data_set_from_db(rc, vld_cfg.bid, vld_cfg.status, train_cfg.ec)
-        vld_positions, vld_game_values = rds_vld.generate_positions_and_game_values()
+        vld_rds = regab_extract_data_set_from_db(rc, vld_cfg.bid, vld_cfg.status, train_cfg.ec)
+        vld_positions, vld_game_values = vld_rds.generate_positions_and_game_values()
         ctx.log_event(Relevance.INFO, f"Extracted {len(vld_positions):,} validation positions.")
     finally:
         rc.close()
@@ -123,7 +123,7 @@ def validate_model(ctx: "RLMContext") -> Dict[str, float]:
     # 2. Compute indexes for validation positions using the SAME feature_set
     ctx.log_event(Relevance.INFO, "Computing indexes for validation set...")
     vld_indexes = ctx.feature_set.compute_indexes(vld_positions)
-    M_vld, P_vld = vld_indexes.shape
+    vld_M, vld_P = vld_indexes.shape
 
     # 3. Map to dense weights and compute linear predictor
     # We need the column offsets for each feature instance
@@ -141,24 +141,24 @@ def validate_model(ctx: "RLMContext") -> Dict[str, float]:
     z_pred = sigmoid(linear_predictor)
 
     # True values in Z space
-    y_vld = np.asarray(vld_game_values, dtype=np.int8)
-    z_vld = ctx.y2z(y_vld)
+    vld_y = np.asarray(vld_game_values, dtype=np.int8)
+    vld_z = ctx.y2z(vld_y)
 
     # 4. Calculate Metrics in Z space
-    rn_z = z_pred - z_vld
+    rn_z = z_pred - vld_z
     norm_rn_z = np.dot(rn_z, rn_z)
-    vld_loss = 0.5 * (norm_rn_z / M_vld)
-    mse_z = norm_rn_z / M_vld
+    vld_loss = 0.5 * (norm_rn_z / vld_M)
+    mse_z = norm_rn_z / vld_M
     mae_z = np.mean(np.abs(rn_z))
 
     # 5. Calculate Metrics in Y space (Original game points scale)
     # Transform predictions back to Y space
     y_pred = ctx.z2y(z_pred)
     
-    # y_vld is already in Y space (as int8), cast to float64 for math
-    rn_y = y_pred - y_vld.astype(np.float64)
+    # vld_y is already in Y space (as int8), cast to float64 for math
+    rn_y = y_pred - vld_y.astype(np.float64)
     mae_y = np.mean(np.abs(rn_y))
-    mse_y = np.dot(rn_y, rn_y) / M_vld
+    mse_y = np.dot(rn_y, rn_y) / vld_M
     rmse_y = np.sqrt(mse_y)
 
     return {
@@ -167,5 +167,5 @@ def validate_model(ctx: "RLMContext") -> Dict[str, float]:
         'vld_mae_z': float(mae_z),
         'vld_mae_y': float(mae_y),
         'vld_rmse_y': float(rmse_y),
-        'vld_samples': int(M_vld)
+        'vld_samples': int(vld_M)
     }
