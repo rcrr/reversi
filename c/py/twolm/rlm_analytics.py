@@ -34,8 +34,8 @@ import numpy as np
 
 from typing import TYPE_CHECKING, Dict, Optional, List
 from datetime import datetime
-from scipy.special import expit
 
+from twolm.rlm_gradient import sigmoid
 from twolm.state_machine import Relevance
 
 if TYPE_CHECKING:
@@ -424,7 +424,7 @@ def compute_training_metrics(ctx: "RLMContext") -> Dict[str, float]:
     
     # --- Model Metrics ---
     linear_predictor = np.sum(ctx.w[ctx.design_matrix].astype(np.float64), axis=1)
-    z_pred = expit(linear_predictor)
+    z_pred = sigmoid(linear_predictor)
     
     y_pred = ctx.z2y(z_pred)
     y_true = ctx.game_values.astype(np.float64)

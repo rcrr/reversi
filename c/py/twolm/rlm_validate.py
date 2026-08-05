@@ -30,8 +30,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Dict
 import numpy as np
-from scipy.special import expit
 
+from twolm.rlm_gradient import sigmoid
 from twolm.state_machine import Relevance
 from twolm.regab import RegabDBConnection, regab_extract_data_set_from_db
 
@@ -137,7 +137,7 @@ def validate_model(ctx: "RLMContext") -> Dict[str, float]:
     linear_predictor = np.sum(ctx.w_dense[dense_indices].astype(np.float64), axis=1)
         
     # Predictions in Z space [0, 1]
-    z_pred = expit(linear_predictor)
+    z_pred = sigmoid(linear_predictor)
 
     # True values in Z space
     y_vld = np.asarray(vld_game_values, dtype=np.int8)
