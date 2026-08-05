@@ -31,10 +31,10 @@ from __future__ import annotations
 import numpy as np
 
 from typing import Callable
-from scipy.special import expit
 
 from twolm.model_weights import ModelWeights, model_weights_read_file
 from twolm.rlm_zed import zed_fun_factory
+from twolm.rlm_gradient import sigmoid
 from twolm.board import Position
 
 
@@ -60,7 +60,7 @@ def make_evaluation_function(mw: ModelWeights) -> Callable[[Position], float]:
         
         # 3. Linear predictor and Sigmoid (Z space)
         linear_predictor = np.sum(weights)
-        z_pred = expit(linear_predictor)
+        z_pred = sigmoid(linear_predictor)
         
         # 4. Transform back to Y space
         y_pred = z2y(np.array([z_pred], dtype=np.float32))[0]
