@@ -53,7 +53,7 @@ from twolm.state_machine import Verbosity
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def build_model(json_config: Path, verbosity: Verbosity) -> None:
     rlm = LogisticModel(json_config, verbosity=verbosity)
-    rlm.move_to_step('SAVE')
+    rlm.move_to_last()
 
     return
 

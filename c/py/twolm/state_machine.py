@@ -272,3 +272,11 @@ class StateMachine:
         # If we moved down, the final step is the target step (which is less than the last executed step_idx)
         if direction == 'down':
             self.current_step = target_step
+
+    def move_to_last(self) -> None:
+        """
+        Moves the state machine to the last (higher) step.
+        """
+        last = self.workers[-1] if self.workers else None
+        if last is not None:
+            self.move_to_step(last.name)

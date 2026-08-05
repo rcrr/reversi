@@ -70,6 +70,10 @@ class BaseModel:
         """Move the pipeline to the specified step."""
         self.sm.move_to_step(target_step)
 
+    def move_to_last(self) -> None:
+        """Move the pipeline to the last step."""
+        self.sm.move_to_last()
+
     def show_event_log(self) -> None:
         self.sm.show_event_log()
 
