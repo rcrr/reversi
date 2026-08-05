@@ -106,20 +106,10 @@ def validate_model(ctx: "RLMContext") -> Dict[str, Any]:
     """
     vld_cfg = ctx.cfg.validation_data_set
     train_cfg = ctx.cfg.regab_data_set
-    
-    # 1. Extract validation data from DB
-    conn_params = train_cfg.regab_db_connection
-    rc = RegabDBConnection(conn_params.dbname, conn_params.user, conn_params.host)
-    ctx.log_event(Relevance.INFO, "Connecting to DB for validation data...")
-    
-    try:
-        # Reuse 'ec' from training config
-        vld_rds = regab_extract_data_set_from_db(rc, vld_cfg.bid, vld_cfg.status, train_cfg.ec)
-        vld_positions, vld_game_values = vld_rds.generate_positions_and_game_values()
-        ctx.log_event(Relevance.INFO, f"Extracted {len(vld_positions):,} validation positions.")
-    finally:
-        rc.close()
 
+    vld_positions = ctx.vld_positions
+    vld_game_values = ctx.vld_game_values
+        
     # 2. Compute indexes for validation positions using the SAME feature_set
     ctx.log_event(Relevance.INFO, "Computing indexes for validation set...")
     vld_indexes = ctx.feature_set.compute_indexes(vld_positions)

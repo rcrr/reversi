@@ -48,7 +48,7 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['lm_worker_positions']
+__all__ = ['lm_worker_positions', 'load_from_db', 'is_cache_consistent']
 
 
 
@@ -61,8 +61,8 @@ def _up(ctx: "RLMContext") -> None:
         is_allowed  = ctx.use_cache,
         load_fn     = regab_load_data_set_from_file,
         store_fn    = regab_store_data_set_to_file,
-        validate_fn = lambda cached_rds: _is_cache_consistent(ctx, cached_rds),
-        compute_fn  = lambda: _load_from_db(ctx),
+        validate_fn = lambda cached_rds: is_cache_consistent(ctx, cached_rds),
+        compute_fn  = lambda: load_from_db(ctx),
         logger_fn   = ctx.log_event
     )
 
@@ -84,7 +84,7 @@ def _up(ctx: "RLMContext") -> None:
     mean = np.mean(game_values)
     std_dev = np.std(game_values)
     variance = np.var(game_values)
-    ctx.log_event(Relevance.INFO, f"Population statistical properties: [COUNT: {count:,}], [MEAN: {mean:.2f}], [STD: {std_dev:.2f}], [VARIANCE: {variance:.2f}].")
+    ctx.log_event(Relevance.INFO, f"Statistical properties of population for training: [COUNT: {count:,}], [MEAN: {mean:.2f}], [STD: {std_dev:.2f}], [VARIANCE: {variance:.2f}].")
 
     ctx.training_pop_stats = {
         'count': count,
@@ -97,7 +97,7 @@ def _up(ctx: "RLMContext") -> None:
 
         
 def _down(ctx: "RLMContext") -> None:
-    ctx.log_event(Relevance.INFO, "Clearing game positions, game_values and rds_checksum attributes.")
+    ctx.log_event(Relevance.INFO, "Clearing training game positions, game_values and rds_checksum attributes.")
     ctx.positions = None
     ctx.game_values = None
     ctx.rds_checksum = None
@@ -106,7 +106,7 @@ def _down(ctx: "RLMContext") -> None:
     return
 
 
-def _is_cache_consistent(ctx: "RLMContext", rds: RegabDataSet) -> bool:
+def is_cache_consistent(ctx: "RLMContext", rds: RegabDataSet, *, bid=None, status=None) -> bool:
     """Compare live configuration with cached dataset metadata."""
     
     # 1. Check DB Connection parameters
@@ -120,9 +120,14 @@ def _is_cache_consistent(ctx: "RLMContext", rds: RegabDataSet) -> bool:
 
     # 2. Check DB Query parameters
     cfg_query = ctx.cfg.regab_data_set
+    if bid is None:
+        bid = cfg_query.bid
+    if status is None:
+        status = cfg_query.status
+    ec = cfg_query.ec
     cache_query = rds
     
-    cfg_query_data = (cfg_query.bid, cfg_query.status, cfg_query.ec)
+    cfg_query_data = (bid, status, ec)
     cache_query_data = (cache_query.bid, cache_query.status, cache_query.ec)
     
     is_query_consistent = cfg_query_data == cache_query_data
@@ -144,24 +149,29 @@ def _is_cache_consistent(ctx: "RLMContext", rds: RegabDataSet) -> bool:
     if not is_query_consistent:
         msg_query = (
             f"DB Query mismatch:\n"
-            f"  cfg.bid    = {repr(cfg_query.bid)}, cache.bid = {repr(cache_query.bid)}\n"
-            f"  cfg.status = {repr(cfg_query.status)}, cache.status = {repr(cache_query.status)}\n"
-            f"  cfg.ec     = {repr(cfg_query.ec)}, cache.ec = {repr(cache_query.ec)}"
+            f"  cfg.bid    = {repr(bid)}, cache.bid = {repr(cache_query.bid)}\n"
+            f"  cfg.status = {repr(status)}, cache.status = {repr(cache_query.status)}\n"
+            f"  cfg.ec     = {repr(ec)}, cache.ec = {repr(cache_query.ec)}"
         )
         ctx.log_event(Relevance.DEBUG, msg_query)
 
     return is_cache_consistent
 
-def _load_from_db(ctx: "RLMContext") -> RegabDataSet:
+def load_from_db(ctx: "RLMContext", *, bid=None, status=None) -> RegabDataSet:
     """Extract dataset from the database safely."""
     conn_params = ctx.cfg.regab_data_set.regab_db_connection
     rc = RegabDBConnection(conn_params.dbname, conn_params.user, conn_params.host)
     
     ctx.log_event(Relevance.DEBUG, f"Regab Database connection {(conn_params.dbname, conn_params.user, conn_params.host)} established successfully.")
 
+    query_params = ctx.cfg.regab_data_set
+    if bid is None:
+        bid = query_params.bid
+    if status is None:
+        status = query_params.status
+
     try:
-        query_params = ctx.cfg.regab_data_set
-        rds = regab_extract_data_set_from_db(rc, query_params.bid, query_params.status, query_params.ec)
+        rds = regab_extract_data_set_from_db(rc, bid, status, query_params.ec)
         ctx.log_event(Relevance.DEBUG, f"Extracted {len(rds.df_mogv):,} positions from the database.")
         return rds
     finally:
