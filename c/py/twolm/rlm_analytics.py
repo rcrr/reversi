@@ -322,22 +322,22 @@ def _format_header(ctx: "RLMContext", detailed: bool = False) -> str:
     
     # Read metrics from context
     train_metrics = ctx.train_metrics or {}
-    val_metrics = ctx.vld_metrics
+    vld_metrics = ctx.vld_metrics
     
     train_rmse = train_metrics.get('train_rmse_y', 0.0)
     train_mae = train_metrics.get('train_mae_y', 0.0)
     train_loss = train_metrics.get('train_loss', 0.0)
     train_samples = train_metrics.get('train_samples', 0)
     
-    if val_metrics:
-        val_rmse_str = f"{val_metrics.get('vld_rmse_y', 0.0):.2f}"
-        val_mae_str = f"{val_metrics.get('vld_mae_y', 0.0):.2f}"
-        val_loss_str = f"{val_metrics.get('vld_loss', 0.0):.4e}"
-        val_samples = val_metrics.get('vld_samples', 0)
-        gen_gap = val_metrics.get('vld_rmse_y', 0.0) - train_rmse
+    if vld_metrics:
+        vld_rmse_str = f"{vld_metrics.get('vld_rmse_y', 0.0):.2f}"
+        vld_mae_str = f"{vld_metrics.get('vld_mae_y', 0.0):.2f}"
+        vld_loss_str = f"{vld_metrics.get('vld_loss', 0.0):.4e}"
+        vld_samples = vld_metrics.get('vld_samples', 0)
+        gen_gap = vld_metrics.get('vld_rmse_y', 0.0) - train_rmse
     else:
-        val_rmse_str = val_mae_str = val_loss_str = "N/A"
-        val_samples = 0
+        vld_rmse_str = vld_mae_str = vld_loss_str = "N/A"
+        vld_samples = 0
         gen_gap = 0.0
 
     pop_rmse_str = f"{train_metrics.get('pop_rmse_y', 0.0):.2f}"
@@ -351,7 +351,7 @@ def _format_header(ctx: "RLMContext", detailed: bool = False) -> str:
         stat_model_cfg = ctx.cfg.stat_model
         
         header += f"  Creation Date               : {creation_date}\n"
-        header += f"  Training/Validation Records : {train_samples:,} / {val_samples:,}\n"
+        header += f"  Training/Validation Records : {train_samples:,} / {vld_samples:,}\n"
         header += f"  Frequency Cut-Off           : {stat_model_cfg.frequency_cut_off}\n"
         header += f"  Logit Clipping              : {stat_model_cfg.logit_clipping}\n"
         header += f"  Ridge Regularization        : {stat_model_cfg.ridge_regularization}\n"
@@ -363,9 +363,9 @@ def _format_header(ctx: "RLMContext", detailed: bool = False) -> str:
         f"{'-' * 135}\n"
         f"  {'METRIC':<15} | {'TRAINING':<14} | {'VALIDATION':<14} | {'POPULATION':<14}\n"
         f"{'-' * 135}\n"
-        f"  {'RMSE (y)':<15} | {train_rmse:<14.2f} | {val_rmse_str:<14} | {pop_rmse_str:<14}\n"
-        f"  {'MAE (y)':<15} | {train_mae:<14.2f} | {val_mae_str:<14} | {pop_mae_str:<14}\n"
-        f"  {'Loss (MSE/2)':<15} | {train_loss:<14.4e} | {val_loss_str:<14} | {pop_loss_str:<14}\n"
+        f"  {'RMSE (y)':<15} | {train_rmse:<14.2f} | {vld_rmse_str:<14} | {pop_rmse_str:<14}\n"
+        f"  {'MAE (y)':<15} | {train_mae:<14.2f} | {vld_mae_str:<14} | {pop_mae_str:<14}\n"
+        f"  {'Loss (MSE/2)':<15} | {train_loss:<14.4e} | {vld_loss_str:<14} | {pop_loss_str:<14}\n"
         f"{'-' * 135}\n"
         f"  Generalization Gap (RMSE)   : {gen_gap:.2f}\n"
         f"{'=' * 135}\n"

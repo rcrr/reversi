@@ -46,9 +46,6 @@ __all__ = ['lm_worker_save']
 def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Saving model weights to disk...")
     
-    # Assume ctx.cfg.output holds the filename (e.g., "model.dat")
-    # and ctx.cfg.base_dir holds the directory.
-    # If ctx.cfg.output is already a full path, we can just use it directly.
     output_path = ctx.cfg.base_dir / ctx.cfg.output
     
     write_model_weights_file(ctx, output_path, compressed=True)

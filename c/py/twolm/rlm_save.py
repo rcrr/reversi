@@ -54,7 +54,7 @@ class ModelWeights:
     ec: int
     logit_clipping: float
     opt_info: Dict[str, Any]
-    val_metrics: Dict[str, Any]
+    vld_metrics: Dict[str, Any]
     feature_set: FeatureSet
     iwmap_feature_offset: np.ndarray
     w_dense: np.ndarray
@@ -139,7 +139,7 @@ def read_model_weights_file(path: Path, compressed: bool = True) -> ModelWeights
         vld_rmse_y = r.read_f32()
         vld_mae_y = r.read_f32()
         vld_loss = r.read_f32()
-        val_metrics = {
+        vld_metrics = {
             'vld_samples': vld_samples,
             'vld_rmse_y': vld_rmse_y,
             'vld_mae_y': vld_mae_y,
@@ -188,7 +188,7 @@ def read_model_weights_file(path: Path, compressed: bool = True) -> ModelWeights
             ec=ec,
             logit_clipping=logit_clipping,
             opt_info=opt_info,
-            val_metrics=val_metrics,
+            vld_metrics=vld_metrics,
             feature_set=feature_set,
             iwmap_feature_offset=iwmap_feature_offset,
             w_dense=w_dense

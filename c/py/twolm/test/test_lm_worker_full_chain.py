@@ -115,8 +115,8 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertAlmostEqual(mw.opt_info['f'], ctx.opt_info['f'], places=6)
 
         # Assert Validation metrics
-        self.assertEqual(mw.val_metrics['vld_samples'], ctx.vld_metrics['vld_samples'])
-        self.assertAlmostEqual(mw.val_metrics['vld_rmse_y'], ctx.vld_metrics['vld_rmse_y'], places=4)
+        self.assertEqual(mw.vld_metrics['vld_samples'], ctx.vld_metrics['vld_samples'])
+        self.assertAlmostEqual(mw.vld_metrics['vld_rmse_y'], ctx.vld_metrics['vld_rmse_y'], places=4)
 
         # Assert FeatureSet matches (using the hash as a definitive structural check)
         self.assertEqual(mw.feature_set.hash, ctx.feature_set.hash, 
@@ -245,8 +245,8 @@ class TestFullChainA2050(unittest.TestCase):
         self.assertAlmostEqual(mw.opt_info['f'], ctx.opt_info['f'], places=6)
 
         # Assert Validation metrics
-        self.assertEqual(mw.val_metrics['vld_samples'], ctx.vld_metrics['vld_samples'])
-        self.assertAlmostEqual(mw.val_metrics['vld_rmse_y'], ctx.vld_metrics['vld_rmse_y'], places=4)
+        self.assertEqual(mw.vld_metrics['vld_samples'], ctx.vld_metrics['vld_samples'])
+        self.assertAlmostEqual(mw.vld_metrics['vld_rmse_y'], ctx.vld_metrics['vld_rmse_y'], places=4)
 
         # Assert FeatureSet matches (using the hash as a definitive structural check)
         self.assertEqual(mw.feature_set.hash, ctx.feature_set.hash, 

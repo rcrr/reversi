@@ -70,6 +70,7 @@ def _up(ctx: "RLMContext") -> None:
 def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing Design Matrix attribute...")
     ctx.design_matrix = None
+    ctx.design_matrix_checksum = None
 
 
 def lm_worker_design_matrix() -> Worker:
