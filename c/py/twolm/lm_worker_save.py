@@ -32,7 +32,7 @@ from typing import TYPE_CHECKING
 from pathlib import Path
 
 from twolm.state_machine import Worker, Relevance
-from twolm.rlm_save import write_model_weights_file
+from twolm.model_weights import model_weights_write_file
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext
@@ -48,7 +48,7 @@ def _up(ctx: "RLMContext") -> None:
     
     output_path = ctx.cfg.base_dir / ctx.cfg.output
     
-    write_model_weights_file(ctx, output_path, compressed=True)
+    model_weights_write_file(ctx, output_path, compressed=True)
     ctx.log_event(Relevance.INFO, f"Model weights saved to {output_path}")
 
 def _down(ctx: "RLMContext") -> None:

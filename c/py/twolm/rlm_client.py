@@ -28,11 +28,12 @@
 # twolm/rlm_client.py
 from __future__ import annotations
 
-from typing import Callable
 import numpy as np
+
+from typing import Callable
 from scipy.special import expit
 
-from twolm.rlm_save import ModelWeights, read_model_weights_file
+from twolm.model_weights import ModelWeights, model_weights_read_file
 from twolm.rlm_zed import zed_fun_factory
 from twolm.board import Position
 

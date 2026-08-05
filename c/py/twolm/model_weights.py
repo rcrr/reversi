@@ -1,5 +1,5 @@
 #
-# rlm_save.py
+# model_weights.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -25,7 +25,7 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
-# twolm/rlm_save.py
+# twolm/model_weights.py
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -43,7 +43,9 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['ModelWeights', 'read_model_weights_file', 'write_model_weights_file']
+__all__ = ['ModelWeights',
+           'model_weights_read_file',
+           'model_weights_write_file']
 
 
 
@@ -54,35 +56,47 @@ class ModelWeights:
     ec: int
     logit_clipping: float
     opt_info: Dict[str, Any]
+    training_set_size: int
     vld_metrics: Dict[str, Any]
     feature_set: FeatureSet
     iwmap_feature_offset: np.ndarray
     w_dense: np.ndarray
 
 
-def write_model_weights_file(ctx: "RLMContext", path: Path, compressed: bool = True) -> None:
+#: --- End of class ModelWeights ---
+
+
+MODEL_WEIGHTS_FILE_HEADER_STR = "RGLM_BINARY_WEIGHTS"
+MODEL_WEIGHTS_FILE_HEADER_VER = 1
+
+
+def model_weights_write_file(ctx: "RLMContext",
+                             path: Path,
+                             compressed: bool = True) -> None:
     """
     Writes the model weights and metadata to a binary file using binio.
     """
     with BinaryWriter(path, compressed=compressed) as w:
         # 1. Header & Metadata
-        w.write_header("RGLM_BINARY_WEIGHTS", version=1)
+        w.write_header(MODEL_WEIGHTS_FILE_HEADER_STR, version=MODEL_WEIGHTS_FILE_HEADER_VER)
         w.write_string(ctx.cfg.name)
         w.write_u32(ctx.cfg.regab_data_set.ec)
         w.write_f32(ctx.cfg.stat_model.logit_clipping)
+        w.write_u64(len(ctx.positions))
 
         # 2. Optimization Info
-        opt_info = ctx.opt_info or {}
-        w.write_string(opt_info.get('reason', 'N/A'))
-        w.write_u32(opt_info.get('iters', 0))
-        w.write_f64(opt_info.get('f', 0.0))
+        opt_info = ctx.opt_info
+        w.write_string(opt_info['reason'])
+        w.write_u32(opt_info['iters'])
+        w.write_f32(opt_info['f'])
+        w.write_f32(opt_info['g_norm'])
 
         # 3. Validation Metrics
-        vld = ctx.vld_metrics or {}
-        w.write_u32(vld.get('vld_samples', 0))
-        w.write_f32(vld.get('vld_rmse_y', 0.0))
-        w.write_f32(vld.get('vld_mae_y', 0.0))
-        w.write_f32(vld.get('vld_loss', 0.0))
+        vld = ctx.vld_metrics
+        w.write_u32(vld['vld_samples'])
+        w.write_f32(vld['vld_rmse_y'])
+        w.write_f32(vld['vld_mae_y'])
+        w.write_f32(vld['vld_loss'])
 
         # 4. FeatureSet
         fs = ctx.feature_set
@@ -117,23 +131,35 @@ def write_model_weights_file(ctx: "RLMContext", path: Path, compressed: bool = T
         w.write_array(ctx.w_dense)
 
 
-def read_model_weights_file(path: Path, compressed: bool = True) -> ModelWeights:
+def model_weights_read_file(path: Path, compressed: bool = True) -> ModelWeights:
     """
     Reads a binary model weights file and returns a ModelWeights dataclass.
     """
     with BinaryReader(path, compressed=compressed) as r:
         header = r.read_header()
-        # We could assert header.description == "RGLM_BINARY_WEIGHTS" here
+        description = header.description
         version = header.version
+
+        if description != MODEL_WEIGHTS_FILE_HEADER_STR:
+            raise ValueError(f"File header mismatch, expected '{MODEL_WEIGHTS_FILE_HEADER_STR}', found '{description}'.")
+        if version != MODEL_WEIGHTS_FILE_HEADER_VER:
+            raise ValueError(f"File header version, expected '{MODEL_WEIGHTS_FILE_HEADER_VER}', found '{version}'.")
         
         name = r.read_string()
         ec = r.read_u32()
         logit_clipping = r.read_f32()
+        training_set_size = r.read_u64()
 
         opt_reason = r.read_string()
         opt_iters = r.read_u32()
-        opt_f = r.read_f64()
-        opt_info = {'reason': opt_reason, 'iters': opt_iters, 'f': opt_f}
+        opt_f = r.read_f32()
+        opt_g_norm = r.read_f32()
+        opt_info = {
+            'reason': opt_reason,
+            'iters': opt_iters,
+            'f': opt_f,
+            'g_norm': opt_g_norm
+        }
 
         vld_samples = r.read_u32()
         vld_rmse_y = r.read_f32()
@@ -187,6 +213,7 @@ def read_model_weights_file(path: Path, compressed: bool = True) -> ModelWeights
             name=name,
             ec=ec,
             logit_clipping=logit_clipping,
+            training_set_size=training_set_size,
             opt_info=opt_info,
             vld_metrics=vld_metrics,
             feature_set=feature_set,

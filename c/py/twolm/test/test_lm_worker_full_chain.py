@@ -42,7 +42,7 @@ from pathlib import Path
 from twolm.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
 from twolm.binio import verify_sha3_256_sidecar
-from twolm.rlm_save import read_model_weights_file
+from twolm.model_weights import model_weights_read_file
 from twolm.rlm_client import make_evaluation_function
 from twolm.rlm_gradient import sigmoid
 
@@ -102,7 +102,7 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertTrue(verify_sha3_256_sidecar(output_path), "Checksum verification failed for saved model")
         
         # Read the file back using the Client's read function
-        mw = read_model_weights_file(output_path, compressed=True)
+        mw = model_weights_read_file(output_path, compressed=True)
         
         # Assert Metadata matches
         self.assertEqual(mw.name, ctx.cfg.name)
@@ -232,7 +232,7 @@ class TestFullChainA2050(unittest.TestCase):
         self.assertTrue(verify_sha3_256_sidecar(output_path), "Checksum verification failed for saved model")
         
         # Read the file back using the Client's read function
-        mw = read_model_weights_file(output_path, compressed=True)
+        mw = model_weights_read_file(output_path, compressed=True)
         
         # Assert Metadata matches
         self.assertEqual(mw.name, ctx.cfg.name)
