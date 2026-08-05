@@ -83,7 +83,7 @@ def model_weights_write_file(ctx: "RLMContext",
         w.write_u32(ctx.cfg.regab_data_set.ec)
         w.write_f32(ctx.cfg.stat_model.logit_clipping)
 
-        # 2. training Population Statistics
+        # 2. Training Population Statistics
         training_pop_stats = ctx.training_pop_stats
         w.write_u64(training_pop_stats['count'])
         w.write_f32(training_pop_stats['mean'])

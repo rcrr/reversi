@@ -53,7 +53,7 @@ __all__ = ['lm_worker_positions']
 
 
 def _up(ctx: "RLMContext") -> None:
-    ctx.log_event(Relevance.INFO, "Loading game positions...")
+    ctx.log_event(Relevance.INFO, "Loading training game positions...")
 
     # Execute the abstracted pipeline.
     cache_hit, rds, rds_checksum = cache_manager_load_or_compute(
